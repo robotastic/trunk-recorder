@@ -1,0 +1,125 @@
+1616,65,D,DCFD 01 Disp,01 Dispatch,Fire Dispatch,Fire/EMS,1
+1632,66,D,DCFD 02 Main,02 Main,Fire-Tac,Fire/EMS,1
+1648,67,D,DCFD 03,03 Fireground 3,Fire-Tac,Fire/EMS,1
+1680,69,D,DCFD 05,05 Fireground 5,Fire-Tac,Fire/EMS,1
+1696,06a,D,DCFD 06,06 Fireground 1A,Fire-Tac,Fire/EMS,1
+1712,06b,D,DCFD 07,07 Fireground 7,Fire-Tac,Fire/EMS,1
+1744,6,D,DCFD 09,09 Fireground 9,Fire-Tac,Fire/EMS,1
+1760,6,D,DCFD 010,010 Fireground 2A,Fire-Tac,Fire/EMS,1
+1776,06f,D,DCFD 0A3,0A3 Fireground A3,Fire-Tac,Fire/EMS,1
+1808,71,D,DCFD 0A5,0A5 Fireground A5,Fire-Tac,Fire/EMS,1
+1824,72,D,DCFD 0A6,0A6 Fireground 3A,Fire-Tac,Fire/EMS,1
+1840,73,D,DCFD 0A7,0A7 Fireground A7,Fire-Tac,Fire/EMS,1
+1872,75,D,DCFD 0A9,0A9 Fireground A9,Fire-Tac,Fire/EMS,1
+1888,76,D,DCFD 0A10,0A10 Fireground 4A,Fire-Tac,Fire/EMS,1
+1904,77,D,DCFD 011 EM1,011 EMS 1,EMS-Tac,Fire/EMS,2
+1920,78,D,DCFD 012 EM2,012 EMS 2,EMS-Tac,Fire/EMS,2
+1936,79,D,DCFD 013 EM3,013 EMS 3,EMS-Talk,Fire/EMS,2
+1952,07a,D,DCFD NCR,National Capital Region (sometimes encrypted),Interop,Fire/EMS,1
+1968,07b,D,DCFD 0B10,0B10 Fireground 6A,Fire-Tac,Fire/EMS,1
+2000,7,D,DCFD 0C4 App,0C4 Apparatus Division,Fire-Talk,Fire/EMS,1
+2016,7,D,DCFD 0B3,0B3 Rescue Assignments,Fire-Tac,Fire/EMS,1
+2048,80,D,DCFD 0C11 Tr,0C11 Training Administration,Fire-Tac,Fire/EMS,3
+2064,81,D,DCFD 0C6 Inv,0C6 Investigations,Fire-Tac,Fire/EMS,2
+2080,82,D,DCFD 0C5 Ins,0C5 Inspectors,Fire-Tac,Fire/EMS,2
+2096,83,D,DCFD 0A11 SE,0A11 Special Event 1,Fire-Tac,Fire/EMS,1
+2112,84,D,DCFD 0A12 SE,0A12 Special Event 2,Fire-Tac,Fire/EMS,1
+2128,85,D,DCFD 0A13 SE,0A13 Special Event 3,Fire-Tac,Fire/EMS,1
+2144,86,D,DCFD 0C3 Log,0C3 Logistics,Fire-Tac,Fire/EMS,3
+2160,87,D,DCFD 0B12,0B12 Patch 1,Fire-Tac,Fire/EMS,1
+2176,88,D,DCFD 0B13,0B13 Patch 2,Fire-Tac,Fire/EMS,1
+2192,89,D,DCFD 0B14,0B14 Stage B,Fire-Tac,Fire/EMS,1
+2224,08b,D,DCFD 0B9,0B9 Fireground,Fire-Tac,Fire/EMS,1
+2240,08c,D,DCFD 0C8 SpO,0C8 Special Operations,Fire-Tac,Fire/EMS,1
+2272,8,D,DCFD 0H1 UMC,0H1 United Medical Center,Hospital,Fire/EMS,2
+2288,08f,D,DCFD 0H2 Chd,0H2 Children's,Hospital,Fire/EMS,2
+2304,90,D,DCFD 0H3,0H3 Spare,Hospital,Fire/EMS,2
+2320,91,D,DCFD 0H4 MST,0H4 MedSTAR,Hospital,Fire/EMS,2
+2336,92,D,DCFD 0H5 How,0H5 Howard University,Hospital,Fire/EMS,2
+2352,93,D,DCFD 0H6 DCG,0H6 DC General,Hospital,Fire/EMS,2
+2368,94,D,DCFD 0H7 GU,0H7 Georgetown University,Hospital,Fire/EMS,2
+2384,95,D,DCFD 0H8 GWU,0H8 George Washington University,Hospital,Fire/EMS,2
+2400,96,D,DCFD 0H9,0H9 Children's at United Medical Center,Hospital,Fire/EMS,2
+2416,97,D,DCFD 0H10 Pr,0H10 Providence,Hospital,Fire/EMS,2
+2432,98,D,DCFD 0H11 PC,0H11 Poison Control,Hospital,Fire/EMS,2
+2448,99,D,DCFD 0H12 Si,0H12 Sibley,Hospital,Fire/EMS,2
+2464,09a,D,DCFD 0H13 WH,0H13 Washington Hospital Center,Hospital,Fire/EMS,2
+2480,09b,D,DCFD 0H14 WR,0H14 Walter Reed,Hospital,Fire/EMS,2
+2496,09c,D,DCFD 0H15 Vt,0H15 Veterans,Hospital,Fire/EMS,2
+2512,9,D,DCFD 0H16 PG,0H16 Prince George's,Hospital,Fire/EMS,2
+2592,0a2,D,DCFD 0C7 MPD,0C7 MPD-DCFD Interoperability,Interop,Fire/EMS,1
+2608,0a3,D,DCFD 0C15,0C15 Admin 2,Fire-Talk,Fire/EMS,2
+2640,0a5,D,DCFD 0C9 FBt,0C9 Fire Boat,Fire-Tac,Fire/EMS,1
+2656,0a6,D,DC-01 UCC1,Unified Communications Center 1,Interop,DC Common,1
+2672,0a7,D,DC-02 UCC2,Unified Communications Center 2,Interop,DC Common,1
+2720,0aa,D,DCFD 014,014 Stage 0,Fire-Tac,Fire/EMS,1
+2736,0ab,D,DCFD 0A14,0A14 Stage A,Fire-Tac,Fire/EMS,1
+2752,0ac,E,DCFD Encrypt,Encrypted,Fire-Talk,Fire/EMS,3
+2848,0b2,D,DCFD 0C16,0C16 Admin 3,Fire-Tac,Fire/EMS,3
+2864,0b3,D,DCFD 0B5,0B5 Fireground,Fire-Tac,Fire/EMS,1
+2880,0b4,D,DCFD 0B6,0B6 Fireground 5A,Fire-Tac,Fire/EMS,1
+9808,265,D,DCFD 0G12,0G12 Tactical/Fireground 3,Fire-Tac,Fire/EMS,1
+9824,266,D,DCFD 0C10,0C10 Spare,Fire-Tac,Fire/EMS,2
+9840,267,D,DCFD 0B7,0B7 Ops Command,Fire-Tac,Fire/EMS,1
+9872,269,D,DCFD 0C14,0C14 Admin 1,Fire-Tac,Fire/EMS,1
+9936,26,D,DC-07 MAF1,Mutual Aid Fire 1,Interop,DC Common,1
+9968,26f,D,DC-08 MAF2,Mutual Aid Fire 2,Interop,DC Common,1
+9984,270,D,DCFD MAF3,Mutual Aid Fire 3,Interop,Fire/EMS,1
+10032,273,D,DCFD MAF4,Mutual Aid Fire 4,Interop,Fire/EMS,1
+16624,40f,D,DC-16 CW-1,MPD Citywide 1,Law Dispatch,DC Common,2
+19248,4b3,D,DC-13 PMARS,Police Mutual Aid Radio System (PMARS),Interop,DC Common,1
+33584,833,D,DC Hlth Tac,Department of Health Tac,Public Works,Services,3
+33616,835,D,DC-11 Exec1,Executive 1 (Senior City Officials),Interop,DC Common,1
+33648,837,D,DC-12 Exec2,Executive 2 (City Officials),Interop,DC Common,1
+33840,843,D,DC ReeveSec?,Reeves Center Security,Public Works,Services,3
+33872,845,D,DC EMA 33872,Emergency Management Agency,Emergency Ops,Services,1
+33904,847,D,DC EMA 33904,Emergency Management Agency,Emergency Ops,Services,1
+34128,855,D,DC Sch Sec,School Security,Security,Services,3
+34192,859,D,DC Sec 34192,Medical Holding Unit (jail-hospital-court prisoner transports) ,Security,Services,3
+34288,85f,D,StEliz Mnt,St. Elizabeth's Hospital - Maintenance/Motor Pool,Public Works,Services,3
+34320,861,D,StEliz Ops 1,St. Elizabeth's Hospital - Ops 1,Public Works,Services,3
+34352,863,D,StEliz Sec,St. Elizabeth's Hospital - Security,Security,Services,3
+34384,865,D,StEliz Ops 2,St. Elizabeth's Hospital - Ops 2,Public Works,Services,3
+34368,864,D,StEliz Mnt,St. Elizabeth's Hospital - Maintenance,Public Works,Services,3
+34416,867,D,DC DHS Ops,Department of Human Services Ops,Public Works,Services,3
+34448,869,D,DC Health,Department of Health,Public Works,Services,3
+34480,86b,D,DC Med Exam,Office of the Chief Medical Examiner (OCME),Public Works,Services,1
+34512,86,D,DDOT TCO,Department of Transportation Traffic Control Officers,Public Works,Services,3
+34576,871,D,DDOT 34576,Department of Transportation,Public Works,Services,3
+34608,873,D,DC Pkg Enf,Parking Enforcement,Public Works,Services,3
+34672,877,D,DC 34672,(Active during 2006 National Marathon),Public Works,Services,3
+34800,87f,D,DC PkgEnf T2,Parking Enforcement Tac 2,Public Works,Services,3
+34832,881,D,DC PrtSrvDsp,DC Protective Services Dispatch,Security,Services,3
+34864,883,D,DC PrtSrvTac,DC Protective Services Tactical,Security,Services,3
+35024,88,D,DC WASA 1,Water and Sewer Authority 1,Public Works,Services,3
+35056,88f,D,DC WASA 2,Water and Sewer Authority 2,Public Works,Services,3
+35088,891,D,DC WASA 3,Water and Sewer Authority 3,Public Works,Services,3
+35152,895,D,DC Lib Sec,Library Security,Security,Services,3
+35184,897,D,DC 35184,Coordination of 2007 National Fire and Emergency Services Dinner and Seminars,Public Works,Services,3
+35216,899,D,DC 35216,Coordination of 2007 National Fire and Emergency Services Dinner and Seminars--Shuttle,Public Works,Services,3
+35248,89b,D,DC Parks&Rec,Parks and Recreation,Public Works,Services,2
+35408,8a5,D,DC UDC PD,University of the District of Columbia Police,Law Dispatch,Services,3
+35440,8a7,D,DC UDC PD T,University of the District of Columbia Police Tac,Law Tac,Services,3
+35536,8ad,D,DC-09 EMA1,Emergency Management Agency 1,Interop,DC Common,1
+35568,8af,D,DC-10 EMA2,Emergency Management Agency 2,Interop,DC Common,1
+35600,8b1,D,DC TraffMgmt,Traffic Management Center (TMC),Public Works,Services,3
+35632,8b3,D,DC Streetcar Streetcar Testing,Transportation,Services ,Services,3
+35664,8b5,D,DC Paratrans,Paratransit,Transportation,Services,3
+36880,901,D,DC Hosp Roll,Hospital Roll Call,Hospital,Services,3
+37040,90b,D,DC MotorPool,Motor Pool,Public Works,Services,3
+37200,915,D,DC MPD FlMt?,MPD Fleet Maintenance?,Public Works,Services,3
+37232,917,D,DC UDC PD T,University of the District of Columbia Police Tac,Law Tac,Services,3
+37328,91,D,DC Pub Work?,Public Works?,Public Works,Services,3
+37456,925,D,DC-03 UCC3,Unified Communications Center 3,Interop,DC Common,3
+37488,927,D,DC-04 UCC4,Unified Communications Center 4,Interop,DC Common,3
+37648,931,D,DC-14 Spare1,Spare 1,Interop,DC Common,3
+37680,933,D,DC-15 Spare2,Spare 2,Interop,DC Common,3
+40000,9c4,D,DCFD AutoDsp,Automated Dispatch,Fire Dispatch,Fire/EMS,1
+40032,9c6,D,DCFD AutoDsp,Automated Dispatch,Fire Dispatch,Fire/EMS,1
+40080,9c9,D,DC Taxi Comm,Taxicab Commission,Public Works,Services,2
+56000,dac,A,DCFD MOSCAD,MOSCAD Data,Data,Fire/EMS,3
+56016,dad,A,DCFD MOSCAD,MOSCAD Data,Data,Fire/EMS,3
+59952,ea3,D,DC-05 MA1,Mutual Aid 1,Interop,DC Common,1
+59968,ea4,D,DC-06 MA2,Mutual Aid 2 (also DC Interop 1),Interop,DC Common,1
+59984,ea5,D,MPD MA3,Mutual Aid 3,Interop,Police,1
+60000,ea6,D,MPD MA4,Mutual Aid 4,Interop,Police,1

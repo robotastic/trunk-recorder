@@ -1,0 +1,26 @@
+INCLUDE(FindPkgConfig)
+PKG_CHECK_MODULES(PC_GNURADIO_AUDIO gnuradio-audio)
+
+FIND_PATH(
+    GNURADIO_AUDIO_INCLUDE_DIRS
+    NAMES gnuradio/gr_audio_api.h
+    HINTS $ENV{GNURADIO_AUDIO_DIR}/include
+        ${PC_GNURADIO_AUDIO_INCLUDEDIR}
+    PATHS /usr/local/include
+          /usr/include
+)
+
+FIND_LIBRARY(
+    GNURADIO_AUDIO_LIBRARIES
+    NAMES gnuradio-audio
+    HINTS $ENV{GNURADIO_AUDIO_DIR}/lib
+        ${PC_GNURADIO_AUDIO_LIBDIR}
+    PATHS /usr/local/lib
+          /usr/local/lib64
+          /usr/lib
+          /usr/lib64
+)
+
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(GNURADIO_AUDIO DEFAULT_MSG GNURADIO_AUDIO_LIBRARIES GNURADIO_AUDIO_INCLUDE_DIRS)
+MARK_AS_ADVANCED(GNURADIO_AUDIO_LIBRARIES GNURADIO_AUDIO_INCLUDE_DIRS)
