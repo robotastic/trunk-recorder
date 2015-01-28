@@ -74,15 +74,24 @@
         max_digital_recorders = r;
 
         for (int i = 0; i < max_digital_recorders; i++) {
+        #ifdef DSD
             dsd_recorder_sptr log = make_dsd_recorder( center, center, rate, 0, i);
+        #else
+            p25_recorder_sptr log = make_p25_recorder( center, center, rate, 0, i);
+        #endif
             digital_recorders.push_back(log);
             tb->connect(source_block, 0, log, 0);
         }
     }
     Recorder * Source::get_digital_recorder() 
     {
+        #ifdef DSD
             for(std::vector<dsd_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end();it++) {
                 dsd_recorder_sptr rx = *it;
+        #else
+             for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end();it++) {
+                p25_recorder_sptr rx = *it;
+        #endif               
                 if (!rx->is_active())
                 {
                     return (Recorder *) rx.get();

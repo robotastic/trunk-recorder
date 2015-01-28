@@ -1,0 +1,2 @@
+install_name_tool -change libgnuradio-op25_repeater.dylib /opt/local/lib/libgnuradio-op25_repeater.dylib smartnet
+install_name_tool -change libgnuradio-op25.dylib /opt/local/lib/libgnuradio-op25.dylib smartnet

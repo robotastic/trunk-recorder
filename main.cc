@@ -16,7 +16,13 @@
 #include <ncurses.h>
 #include <menu.h>
 #include "recorder.h"
+
+#ifdef DSD
 #include "dsd_recorder.h"
+#else
+#include "p25_recorder.h"
+#endif
+
 #include "analog_recorder.h"
 #include "smartnet_trunking.h"
 #include "smartnet_crc.h"
