@@ -1,14 +1,14 @@
 
-#include "p25_recorder.h"
+#include "p25_trunking.h"
 
 
-p25_recorder_sptr make_p25_recorder(double freq, double center, long s, long t, int n)
+p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue)
 {
-    return gnuradio::get_initial_sptr(new p25_recorder(freq, center, s, t, n));
+    return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue));
 }
 
 
-unsigned p25_recorder::GCD(unsigned u, unsigned v) {
+unsigned p25_trunking::GCD(unsigned u, unsigned v) {
     while ( v != 0) {
         unsigned r = u % v;
         u = v;
@@ -17,7 +17,7 @@ unsigned p25_recorder::GCD(unsigned u, unsigned v) {
     return u;
 }
 
-std::vector<float> p25_recorder::design_filter(double interpolation, double deci) {
+std::vector<float> p25_trunking::design_filter(double interpolation, double deci) {
     float beta = 5.0;
     float trans_width = 0.5 - 0.4;
     float mid_transition_band = 0.5 - trans_width/2;
@@ -36,19 +36,18 @@ std::vector<float> p25_recorder::design_filter(double interpolation, double deci
 
 
 
-p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
-    : gr::hier_block2 ("p25_recorder",
+p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue)
+    : gr::hier_block2 ("p25_trunking",
           gr::io_signature::make  (1, 1, sizeof(gr_complex)),
           gr::io_signature::make  (0, 0, sizeof(float)))
 {
 	freq = f;
 	center = c;
-	talkgroup = t;
 	long capture_rate = s;
-		num = n;
-	active = false;
 
-	float offset = f - center;
+
+
+	float offset = freq - center;
 	
 
 		   
@@ -97,9 +96,6 @@ std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " <
 
 	double symbol_decim = 1;
 
-	valve = gr::blocks::copy::make(sizeof(gr_complex));
-	valve->set_enabled(false);
-
 	std::cout << " FM Gain: " << fm_demod_gain << " PI: " << pi << " Samples per sym: " << samples_per_symbol <<  std::endl;
 	
 	for (int i=0; i < samples_per_symbol; i++) {
@@ -107,9 +103,8 @@ std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " <
 	}
         //symbol_coeffs = (1.0/samples_per_symbol,)*samples_per_symbol
     sym_filter =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
-	tune_queue = gr::msg_queue::make(2);
-	traffic_queue = gr::msg_queue::make(2);
-	rx_queue = gr::msg_queue::make(100);
+	tune_queue = gr::msg_queue::make(100);
+	rx_queue = queue;
 	const float l[] = { -2.0, 0.0, 2.0, 4.0 };
 	std::vector<float> levels( l,l + sizeof( l ) / sizeof( l[0] ) );
 	op25_demod = gr::op25::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
@@ -118,32 +113,20 @@ std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " <
 	int udp_port = 0;
 	int verbosity = 10;
 	const char * wireshark_host="127.0.0.1";
-	bool do_imbe = 1;
-	bool do_output = 1;
-	bool do_msgq = 0;
-	bool do_audio_output = 1;
+	bool do_imbe = 0;
+	bool do_output = 0;
+	bool do_msgq = 1;
+	bool do_audio_output = 0;
 	bool do_tdma = 0;
 	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 	//op25_vocoder = gr::op25_repeater::vocoder::make(0, 0, 0, "", 0, 0);
 
     converter = gr::blocks::short_to_float::make();
-    //converter = gr::blocks::char_to_float::make();
-    float convert_num = float(1.0)/float(32768.0);
-    multiplier = gr::blocks::multiply_const_ff::make(convert_num);
-	tm *ltm = localtime(&starttime);
 
-	std::stringstream path_stream;
-	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-
-	boost::filesystem::create_directories(path_stream.str());
-	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
-	wav_sink = gr::blocks::wavfile_sink::make(filename,1,8000,16);
-	null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 
 
 		
-	connect(self(),0, valve,0);
-	connect(valve,0, prefilter,0);
+	connect(self(),0, prefilter,0);
 	connect(prefilter, 0, downsample_sig, 0);
 	connect(downsample_sig, 0, demod, 0);
 	connect(demod, 0, sym_filter, 0);
@@ -151,48 +134,46 @@ std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " <
 	connect(op25_demod,0, op25_slicer, 0);
 
 	connect(op25_slicer,0, op25_frame_assembler,0);
-	connect(op25_frame_assembler, 0,  converter,0);
-    connect(converter, 0, multiplier,0);
-    connect(multiplier, 0, wav_sink,0);
+
 
 }
 
 
-p25_recorder::~p25_recorder() {
+p25_trunking::~p25_trunking() {
 
 }
 
 
-bool p25_recorder::is_active() {
+bool p25_trunking::is_active() {
 	return active;
 }
 
 
-double p25_recorder::get_freq() {
+double p25_trunking::get_freq() {
 	return freq;
 }
 
-char *p25_recorder::get_filename() {
+char *p25_trunking::get_filename() {
 	return filename;
 }
 
-int p25_recorder::lastupdate() {
+int p25_trunking::lastupdate() {
 	return time(NULL) - timestamp;
 }
 
-long p25_recorder::elapsed() {
+long p25_trunking::elapsed() {
 	return time(NULL) - starttime;
 }
 
 
-void p25_recorder::tune_offset(double f) {
+void p25_trunking::tune_offset(double f) {
 	freq = f;
 	int offset_amount = (f - center);
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 	//std::cout << "Offset set to: " << offset_amount << " Freq: "  << freq << std::endl;
 }
 
-void p25_recorder::deactivate() {
+void p25_trunking::deactivate() {
 	std::cout<< "logging_receiver_dsd.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl; 
 
 	active = false;
@@ -201,7 +182,7 @@ void p25_recorder::deactivate() {
 
 }
 
-void p25_recorder::activate(long t, double f, int n) {
+void p25_trunking::activate(long t, double f, int n) {
 
 	timestamp = time(NULL);
 	starttime = time(NULL);

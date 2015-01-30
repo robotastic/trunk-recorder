@@ -25,6 +25,7 @@
 
 #include "analog_recorder.h"
 #include "smartnet_trunking.h"
+#include "p25_trunking.h"
 #include "smartnet_crc.h"
 #include "smartnet_deinterleave.h"
 #include "talkgroups.h"
@@ -62,6 +63,7 @@ std::string talkgroups_file;
 string system_type;
 gr::top_block_sptr tb;
 smartnet_trunking_sptr smartnet_trunking;
+p25_trunking_sptr p25_trunking;
 gr::msg_queue::sptr queue; 
 
 	volatile sig_atomic_t exit_flag = 0;
@@ -297,7 +299,11 @@ void stop_inactive_recorders() {
 		stop_inactive_recorders();
 		lastTalkgroupPurge = currentTime;
 	}
-	trunk_message = smartnet_parser->parse_message(msg->to_string());
+	if (system_type == "smartnet") {
+		trunk_message = smartnet_parser->parse_message(msg->to_string());
+	} else {
+		std::cout << msg->to_string() << std::endl;
+	}
 	handle_message(trunk_message);
 
 	if (timeDiff >= 3.0) {
@@ -320,7 +326,7 @@ int main(void)
 {
 	signal(SIGINT, exit_interupt);
 	tb = gr::make_top_block("Smartnet");
-	queue = gr::msg_queue::make(); 
+	queue = gr::msg_queue::make(100); 
 	smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
 	
 	load_config();
@@ -335,6 +341,12 @@ int main(void)
     	// what you really need to do is go through all of the sources to find the one with the right frequencies
     	smartnet_trunking = make_smartnet_trunking(control_channels[0], sources[0]->get_center(), sources[0]->get_rate(),  queue);
     	tb->connect(sources[0]->get_src_block(),0, smartnet_trunking, 0);
+    }
+
+    if (system_type == "p25") {
+    	// what you really need to do is go through all of the sources to find the one with the right frequencies
+    	p25_trunking = make_p25_trunking(control_channels[0], sources[0]->get_center(), sources[0]->get_rate(),  queue);
+    	tb->connect(sources[0]->get_src_block(),0, p25_trunking, 0);
     }
 
     tb->start();

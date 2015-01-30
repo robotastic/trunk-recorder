@@ -1,5 +1,5 @@
-#ifndef P25_RECORDER_H
-#define P25_RECORDER_H
+#ifndef P25_TRUNKING_H
+#define P25_TRUNKING_H
 
 #define _USE_MATH_DEFINES
 
@@ -61,20 +61,20 @@
 #include "smartnet.h"
 
 
-class p25_recorder;
+class p25_trunking;
 
-typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+typedef boost::shared_ptr<p25_trunking> p25_trunking_sptr;
 
-p25_recorder_sptr make_p25_recorder(double f, double c, long s, long t, int n);
+p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
 
-class p25_recorder : public gr::hier_block2, public Recorder
+class p25_trunking : public gr::hier_block2, public Recorder
 {
-  friend p25_recorder_sptr make_p25_recorder(double f, double c, long s, long t, int n);
+  friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
 protected:
-    p25_recorder(double f, double c, long s, long t, int n);
+    p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
 
 public:
-    ~p25_recorder();
+    ~p25_trunking();
 
 	void tune_offset(double f);
 	void activate( long talkgroup, double f, int num);
