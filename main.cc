@@ -32,6 +32,7 @@
 #include "source.h"
 #include "call.h"
 #include "smartnet_parser.h"
+#include "p25_parser.h"
 #include "parser.h"
 
 #include <osmosdr/source.h>
@@ -72,6 +73,7 @@ gr::msg_queue::sptr queue;
 	time_t lastMsgCountTime = time(NULL);;
  	time_t lastTalkgroupPurge = time(NULL);;
  	SmartnetParser *smartnet_parser;
+ 	P25Parser *p25_parser;
  	
 
 void exit_interupt(int sig){ // can be called asynchronously
@@ -301,7 +303,11 @@ void stop_inactive_recorders() {
 	}
 	if (system_type == "smartnet") {
 		trunk_message = smartnet_parser->parse_message(msg->to_string());
-	} else {
+	} 
+	if (system_type == "p25") {
+		trunk_message = p25_parser->parse_message(msg);
+	}
+	else {
 		std::cout << msg->to_string() << std::endl;
 	}
 	handle_message(trunk_message);
@@ -311,7 +317,7 @@ void stop_inactive_recorders() {
 		messagesDecodedSinceLastReport = 0;
 		lastMsgCountTime = currentTime;
 		if (msgs_decoded_per_second < 30 ) {
-			std::cout << "Control Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
+			//std::cout << "Control Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
 		}
 		
 	}
@@ -328,6 +334,7 @@ int main(void)
 	tb = gr::make_top_block("Smartnet");
 	queue = gr::msg_queue::make(100); 
 	smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
+	p25_parser = new P25Parser();
 	
 	load_config();
 

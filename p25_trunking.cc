@@ -111,7 +111,7 @@ std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " <
 	op25_slicer = gr::op25_repeater::fsk4_slicer_fb::make(levels);
 
 	int udp_port = 0;
-	int verbosity = 10;
+	int verbosity = 0;
 	const char * wireshark_host="127.0.0.1";
 	bool do_imbe = 0;
 	bool do_output = 0;
