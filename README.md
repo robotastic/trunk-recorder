@@ -87,7 +87,19 @@ Here are the different arguments:
  - **sources** - an array of JSON objects that define the different SDRs available and how to configure them
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
-   - **errorr** - the tuning error for the SDR. This is the value that needs to be added to 
+   - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually recieve it, you would set this to -1000000. You should also probably get a new SDR.
+   - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
+   - **ifGain** - [hackrf only] sets the ifgain.
+   - **bbGain** - [hackrf only] sets the bbgain.
+   - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
+   - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentaully the number of simultanious call you can record at the same time in the frequency range that this SDR will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. It will use DSD or OP25 to decode the P25 CAI voice.
+   - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
+   - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
+   - **device** - right now this doesn't do anything
+ - **system** - This object defines the trunking system that will be recorded
+   - **control_channels** - an array of the control channel frequencies for the system, in Hz. Right now, only the first value is used.
+   - **type** - the type of trunking system. The options are *smartnet* & *p25*.
+ - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. 
 
 
 ###How Trunking Works
