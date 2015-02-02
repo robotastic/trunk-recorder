@@ -1,40 +1,114 @@
-smartnet-recorder
+Trunk Recorder
 =================
 
-Uses a HackRF to record all of the radio transmissions on a SmartNet II system.
+Trunk Recorder is able to record the calls on a trunked radio system. It uses 1 or more Software Defined Radios (SDRs) to do. The SDRs capture large swatches of RF and then use software to process what was recieved. GNURadio is used to do this processing and provides lots of convienent RF blocks that can be pieced together to do complex RF processing. Right now it can only record one Trunked System at a time.
 
-After a bit of work, I have put together a system that lets you monitor the radio system for DC Fire, EMS & City Services. Everything gets recorded and can be played back through a website. Thanks to the magic websockets, any new call that comes in gets added to the top of the list. Better yet, if you hit the Autoplay button in the upper left hand corner, it will automatically play through the list of calls. You can narrow the list of calls display to specific group using the filters.
+Trunk Recorder currently supports the following:
+ - P25 & SmartNet Trunking Systems
+ - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
+ - Ettus USRP
+ - P25 Phase 1 & Analog voice
+ 
+I have tested things on both Unbuntu 14.04 & OSX 10.10. I have been using it with an Ettus b200, and a HackRF Jawbreaker.
 
-Anyhow, give it a try at openmhz.com and let me know what you think. If you want more background on how it works, read on…
+##Compile
 
-###HackRF
-Software Defined Radios are pretty awesome. For the uninitiated, they let you receive a lot of radio signal over a wide range of frequencies. It pass you the raw information and you use a computer to filter out a transmission and process the signal. There is tons of flexibility… and that is also a challenge. There are a lot of rough edges and ways you can mess things up. That is half the fun though, boldly coding where few have coded before.
+###Requirements
+ - GNURadio 3.7
+ - GR-DSD (The version I forked)
+ - OP-25
+  
+**GNURadio**
 
-I was one of the lucky recipients of a great SDR, the HackRF Jawbreaker. It is an amazing piece of Hardware, capable of sending or receiving 20MHz of spectrum between ~13MHz – 6GHz. It is Open Source Hardware too, so if you are wicked smart you can build your own boards. The design work for it was funded by DARPA and I got one of the boards from that pre-production run. In order to go into production, a Kickstarter project was put together. The original target amount was $80k and it quickly blew through that and ended up raising $600k. One of the most impressive stats is that the target price is $300.
+It is important to have a very recent version of GnuRadio (GR). There was a bug in earlier versions that messed up the smartnet trunking. Make sure your install is up to date if you are having trouble deoding smartnet trunking.
 
-You can do a lot of things with this board. It use the popular Osmosdr drivers, so it works with a lot of existing things and plugs right into GNURadio.
+If you are running Linux, the easiest way to install GR is by using [Pybombs](http://gnuradio.org/redmine/projects/pybombs/wiki/QuickStart). After you have installed using pybombs, make sure you setup you Environment variables. In your pybombs directory, run: `./pybombs env` and then load them `source $prefix/setup_env.sh`, with $prefix being the directory you installed GR in.
 
-There are an endless number of things to try. What I have been focusing on is trying to monitor the radio system that the Washington, DC Fire/EMS & City Services use. Of course monitoring a radio system is nothing new. Radio Shack sells a bunch of different scanners that can do it. However, these scanners can only follow one conversation on a system on a time. Since an SDR can receive a wide swatch a spectrum at once and all the processing happens on the computer, you can decode multiple transmissions. Since you are doing the processing on a computer you can easily save and archive the transmissions, which you sort of needed since you could be getting a couple at once.
+If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
 
-Luckily for me, a couple of people have already setup systems that do exactly that. The code from Nick Foster, GR-SmartNet, seems to be the first out there, and the only publicly available code. The Super Trunking Scanner took it a step further and made it playable over the web. It monitor a trunked system with analog channels. The Radio Capture system took a similar approach, except made it work for a system with digital voice channels.
+**GR-DSD**
+
+I made a fork of this code to allow for more statistics to be collected and the also make usre multiple copies can run at once. It has a few dependencies:
+ - Lib Snd File: `sudo apt-get install libsndfile`
+ - ITPP: `sudo apt-get install libitpp-dev`
+
+Now download, compile and install the code. Make sure you have loaded the environment variables that point to the GR libaries first.
+```
+git clone https://github.com/robotastic/gr-dsd.git
+cd gr-dsd
+cmake -DCMAKE_PREFIX_PATH=/path/to/GR/install   .
+make
+sudo make install
+sudo ldconfig
+```
+Note - if you did not install GR in the standard spot, use the -DCMAKE_PREFIX_PATH to point to it.
+
+**OP25**
+
+This should be as simple doing `./pybombs install gr-op25`. On OSX, it is quite a bit trickier. Right now the code is not patched for OSX installs. I will try to put together an easy way to do an OSX install in the future.
+
+###Trunk Recorder
+Okay, with that out of the way, here is how you compile Trunk Recorder:
+```
+git clone https://github.com/robotastic/trunk-recorder.git
+cd trunk-recorder
+cmake -DCMAKE_PREFIX_PATH=/path/to/GR/install   .
+make 
+```
+Hopefully this should compile with no errors.
+
+##Configure
+Configuring Trunk Recorder and getting things setup can be rather complex. I am looking to make things simpler in the future.
+
+**config.json**
+
+This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. The following is an example for my local system in DC, using an Ettus B200:
+
+```
+{
+    "sources": [{
+        "center": 857000000.0,
+        "rate": 8000000.0,
+        "error": 0,
+        "gain": 40,
+        "antenna": "TX/RX",
+        "digitalRecorders": 2,
+        "driver": "usrp",
+        "device": ""
+    }],
+    "system": {
+        "control_channels": [854862500],
+        "type": "smartnet"
+    },
+    "talkgroupsFile": "ChanList.csv"
+}
+```
+Here are the different arguments:
+ - **sources** - an array of JSON objects that define the different SDRs available and how to configure them
+   - **center** - the center frequency in Hz to tune the SDR to
+   - **rate** - the sampling rate to set the SDR to, in samples / second
+   - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually recieve it, you would set this to -1000000. You should also probably get a new SDR.
+   - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
+   - **ifGain** - [hackrf only] sets the ifgain.
+   - **bbGain** - [hackrf only] sets the bbgain.
+   - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
+   - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentaully the number of simultanious call you can record at the same time in the frequency range that this SDR will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. It will use DSD or OP25 to decode the P25 CAI voice.
+   - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
+   - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
+   - **device** - right now this doesn't do anything
+ - **system** - This object defines the trunking system that will be recorded
+   - **control_channels** - an array of the control channel frequencies for the system, in Hz. Right now, only the first value is used.
+   - **type** - the type of trunking system. The options are *smartnet* & *p25*.
+ - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. 
+
 
 ###How Trunking Works
 Here is a little background on trunking radio systems, for those not familiar. In a Trunking system, one of the radio channels is set aside for to manage the assignment of radio channels to talkgroups. When someone wants to talk, they send a message on the control channel. The system then assigns them a channel and sends a Channel Grant message on the control channel. This lets the talker know what channel to transmit on and anyone who is a member of the talkgroup know that they should listen to that channel.
 
-In order to follow all of the transmissions, this system constantly listens to and decodes the control channel. When a channel is granted to a talkgroup, the system creates a monitoring process. This process will start to process and decode the part of the radio spectrum for that channel which the SDR is already pulling in. In the DC system, the audio is digitally encoded using the P25 CAI process. Decoding it is a bit of pain. I am taking a quick and dirty approach right now and have shoe horned in the DSD program. In the future I would like to try using the code from the OP25 project and a hardware dongle for the decoding. Unfortunately, the dongle is $500, so that might not be happening too soon.
+In order to follow all of the transmissions, this system constantly listens to and decodes the control channel. When a channel is granted to a talkgroup, the system creates a monitoring process. This process will start to process and decode the part of the radio spectrum for that channel which the SDR is already pulling in.
 
-No message is transmitted on the control channel when a talkgroup’s conversation is over. So instead the monitoring process keeps track of transmissions and if there has been no activity for 5 seconds, it ends the recording and uploads to the webserver. I convert the WAV file that gets recorder into an MP3 file. Since the audio is original converted to digital by the radio system, put it through another lossy digital conversion is probably not a good idea, but sending the full-size WAV file ate up too much space.
+No message is transmitted on the control channel when a talkgroup’s conversation is over. So instead the monitoring process keeps track of transmissions and if there has been no activity for 5 seconds, it ends the recording.
 
-###My Setup
-The monitoring and recording is being run off of a laptop in my apartment and uses a crappy antenna. The website is run off a VPS I have running up in the magical cloud.
 
-The webserver is pretty simple. It is written in NodeJs. The audio is stored as WAV files and indexed using MongoDB. The server simply watches for new files being placed in a directory and then moves them and adds them to the DB. Socket.io is used to updated all of the browsers visiting the site that a new transmission has been added.
-
-###The Code
-The recorder portion of the system is C++ code that uses GnuRadio 3.7.4
-
-The recorder uses DSD to decode the digital audio. Unfortunately DSD isn’t supported or being developed, isn’t designed to work with GNURadio or SDR. Luckily someone wrapped DSD into a GNURadio block. It works, but it isn’t pretty. I had to futz with it a bit to run concurrently. My version is here.
-
-The final portion is the website for listening to the recordings. The code for that is available here.
 
 
