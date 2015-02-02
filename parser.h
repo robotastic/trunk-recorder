@@ -5,6 +5,7 @@
 enum MessageType {
 	ASSIGNMENT = 0,
 	STATUS = 1,
+	UPDATE = 2,
 	UNKNOWN = 99
 };
 enum MessageCommand {

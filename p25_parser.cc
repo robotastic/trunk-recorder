@@ -61,10 +61,13 @@ unsigned long P25Parser::bitset_shift_mask(boost::dynamic_bitset<> &tsbk, int sh
 	return result;
 }
 
-long P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
+TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 	//self.stats['tsbks'] += 1
     long updated = 0;
-    
+    TrunkMessage message;
+
+
+	message.message_type = UNKNOWN;
     
 	/*if crc16(tsbk, 12) != 0:
 		self.stats['crc'] += 1
@@ -80,6 +83,11 @@ long P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 	if (opcode == 0x00 ) { // group voice chan grant
 		unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
 		unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
+		bool emergency = (bool) bitset_shift_mask(tsbk,72,0x80);
+		bool encrypted = (bool) bitset_shift_mask(tsbk,72,0x40);
+		bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+		bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+		unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
 		unsigned long ch   = bitset_shift_mask(tsbk,56,0xffff);
 		unsigned long ga   = bitset_shift_mask(tsbk,40,0xffff);
 		unsigned long sa   = bitset_shift_mask(tsbk,16,0xffffff);
@@ -87,9 +95,13 @@ long P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 
 		} else {
 			
-				unsigned f1 = channel_id_to_frequency(ch);
-				
-				std::cout << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: "<< f1/1000000.0 << "\tga " << std::setw(7) << ga << "\tsa " << sa << "\tTDMA " << get_tdma_slot(ch) << std::endl; 
+				unsigned long f1 = channel_id_to_frequency(ch);
+				message.message_type = ASSIGNMENT;
+				message.message_command = GRANT;
+				message.freq = f1;
+				message.talkgroup = ga;
+
+				std::cout << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: "<< f1/1000000.0 << "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) << "\tsa " << sa << "\tEncrypt " << encrypted <<std::endl; 
 		}
 				
 	} else if (opcode == 0x02) {  // group voice chan grant update
@@ -118,6 +130,10 @@ long P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 			if (f2) {
 				updated += 1;
 			}
+				message.message_type = UPDATE;
+				message.message_command = CONTINUE;
+				message.freq = f1;
+				message.talkgroup = ga1;
 			std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1) << std::endl;
 			std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2) << std::endl;
 		}
@@ -251,7 +267,7 @@ long P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 	} else {
 		//std::cout << "tsbk other " << std::hex << opcode << std::endl;
 	}
-    return updated;
+    return message;
 }
 void P25Parser::print_bitset(boost::dynamic_bitset<> &tsbk) {
 	boost::dynamic_bitset<> bitmask(tsbk.size(), 0x3f);
@@ -313,37 +329,7 @@ TrunkMessage P25Parser::parse_message(gr::message::sptr msg) {
             */
         }
         if (type == 7) { 	 //# trunk: TSBK
-           //boost::dynamic_bitset<> bset(s.length()*8);
-           //boost::dynamic_bitset<> bset(s.begin(),s.end());
 
-/*
-            for (int i = 0; i < s.length(); ++i) {
-            	boost::dynamic_bitset<> temp(s.length()*8,s[i]);
-	
-				bset |= temp;
-				if (i< (s.length()-1)){
-				bset <<= 8;
-				}
-				std::cout << temp << std::endl;
-				std::cout << bset << std::endl;
-
-			}*/
-				/*
-				char c = s[i];
-				 for (int j = 0; j < 8 && c; j++) {
-				    if (c & 0x1) {
-				    	bset[( 95 - (8 * i )  - j)] = 1;
-				      
-				    }
-				    c >>= 1;
-				  }*/
-			/*
-			std::cout << std::dec << "nac " << nac << " type " << type <<  " mesg len: "  << std::endl;
-       		for (int i = 0; i < s.length(); ++i) {
-				char c = s[i];
-				printbincharpad(c);
-			}*/
-			//std::cout << std::endl;
 			boost::dynamic_bitset<> b((s.length()+2)*8);
 			for (int i = 0; i < s.length(); ++i) {
 				unsigned char c = (unsigned char) s[i];
@@ -358,35 +344,8 @@ TrunkMessage P25Parser::parse_message(gr::message::sptr msg) {
 				}
 			}
 			b <<= 16;	// for missing crc
-			//std::cout << b << std::endl;
 
-			/*
-
-			boost::dynamic_bitset<> a(8,s[2]);
-			boost::dynamic_bitset<> b(8,s[11]);
-			boost::dynamic_bitset<> c(8);
-			char e = s[2];
-				 for (int j = 7; j >= 0 && e; --j) {
-				    if (e & 0x1) {
-				    	c[j] = 1;
-				      
-				    }
-				    e >>= 1;
-				  }
-			boost::dynamic_bitset<> d(8);
-				e = s[11];
-				 for (int j = 7; j >= 0 && e; --j) {
-				    if (e & 0x1) {
-				    	d[j] = 1;
-				      
-				    }
-				    e >>= 1;
-				  }
-				  print_bitset(a);
-				  print_bitset(b);
-				  print_bitset(c);
-				  print_bitset(d);*/
-            updated += decode_tsbk(b);
+            message = decode_tsbk(b);
         } else if (type == 12) {	//# trunk: MBT
             std::string s1 = s.substr(0,10);
             std::string s2 = s.substr(10);

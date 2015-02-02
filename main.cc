@@ -276,6 +276,9 @@ void stop_inactive_recorders() {
 			case ASSIGNMENT:
 				update_recorders(message);
 			break;
+			case UPDATE:
+				update_recorders(message);
+			break;
 		}
 
 	}
