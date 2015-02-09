@@ -181,7 +181,7 @@ void dsd_recorder::deactivate() {
     myfile << "\"headerErrors\": " << state->debug_header_errors << ",\n";
     myfile << "\"audioErrors\": " << state->debug_audio_errors << ",\n";
     myfile << "\"symbCount\": " << state->symbolcnt << ",\n";
-    myfile << "\"mode\": \"digital\" \n"; 
+    myfile << "\"mode\": \"digital\",\n"; 
     myfile << "\"srcList\": [ ";
     	while(state->src_list[index]!=0){
     		if (index !=0) {
