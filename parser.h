@@ -5,6 +5,7 @@
 enum MessageType {
 	ASSIGNMENT = 0,
 	STATUS = 1,
+	UPDATE = 2,
 	UNKNOWN = 99
 };
 enum MessageCommand {
@@ -16,6 +17,10 @@ struct TrunkMessage{
 	MessageCommand message_command;
 	double freq;
 	long talkgroup;
+	bool encrypted;
+	bool emergency;
+	int tdma;
+	long source;
 };
 
 

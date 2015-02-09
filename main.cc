@@ -1,3 +1,5 @@
+
+#define DSD
 #include <tuple>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -16,15 +18,24 @@
 #include <ncurses.h>
 #include <menu.h>
 #include "recorder.h"
+
+#ifdef DSD
 #include "dsd_recorder.h"
+#endif
+
+#include "p25_recorder.h"
+
+
 #include "analog_recorder.h"
 #include "smartnet_trunking.h"
+#include "p25_trunking.h"
 #include "smartnet_crc.h"
 #include "smartnet_deinterleave.h"
 #include "talkgroups.h"
 #include "source.h"
 #include "call.h"
 #include "smartnet_parser.h"
+#include "p25_parser.h"
 #include "parser.h"
 
 #include <osmosdr/source.h>
@@ -56,6 +67,7 @@ std::string talkgroups_file;
 string system_type;
 gr::top_block_sptr tb;
 smartnet_trunking_sptr smartnet_trunking;
+p25_trunking_sptr p25_trunking;
 gr::msg_queue::sptr queue; 
 
 	volatile sig_atomic_t exit_flag = 0;
@@ -64,6 +76,7 @@ gr::msg_queue::sptr queue;
 	time_t lastMsgCountTime = time(NULL);;
  	time_t lastTalkgroupPurge = time(NULL);;
  	SmartnetParser *smartnet_parser;
+ 	P25Parser *p25_parser;
  	
 
 void exit_interupt(int sig){ // can be called asynchronously
@@ -167,40 +180,43 @@ void load_config()
 
 
 
-void start_recorder(long tg_number, double freq) {
-	Call * call = new Call(tg_number, freq);
-	Talkgroup * talkgroup = talkgroups->find_talkgroup(tg_number);
+void start_recorder(TrunkMessage message) {
+	Call * call = new Call(message);
+	Talkgroup * talkgroup = talkgroups->find_talkgroup(message.talkgroup);
 	bool source_found = false;
 	Recorder *recorder;
 	call->set_recording(false); // start with the assumption that there are no recorders available.
+	std::cout << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
+				
+	if (message.encrypted == false) {
+		for(vector<Source *>::iterator it = sources.begin(); it != sources.end();it++) {
+		      Source * source = *it;
 
-	for(vector<Source *>::iterator it = sources.begin(); it != sources.end();it++) {
-	      Source * source = *it;
+			if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
+				source_found = true;
+				if (talkgroup && (talkgroup->mode == 'A')) {
+					recorder = source->get_analog_recorder();
+				} else {
+				  	recorder = source->get_digital_recorder();
 
-		if ((source->get_min_hz() <= freq) && (source->get_max_hz() >= freq)) {
-			source_found = true;
-			if (talkgroup && (talkgroup->mode == 'A')) {
-				recorder = source->get_analog_recorder();
-			} else {
-			  	recorder = source->get_digital_recorder();
-
+				}
+			  	if (recorder) {
+			  		recorder->activate( message.talkgroup,message.freq, calls.size());
+			  		call->set_recorder(recorder);
+			  		call->set_recording(true);
+			  	} else {
+			  		//std::cout << "\tNot recording call" << std::endl;
+			  	}
+				
+				
 			}
-		  	if (recorder) {
-		  		std::cout << "Activating recorder" << std::endl;
-		  		recorder->activate( tg_number,freq, calls.size());
-		  		call->set_recorder(recorder);
-		  		call->set_recording(true);
-		  	} else {
-		  		std::cout << "Not recording call" << std::endl;
-		  	}
-			
-			
-		}
 
-	}
-	if (!source_found) {
-		std::cout << "Recording not started because there was no source covering: " << freq << std::endl;
-	}
+		}
+		if (!source_found) {
+		std::cout << "\tRecording not started because there was no source covering: " << message.freq << std::endl;
+		}
+	} 
+
 	calls.push_back(call);
 }
 void stop_inactive_recorders() {
@@ -209,7 +225,7 @@ void stop_inactive_recorders() {
 
  	for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
 	      Call *call = *it;
-	      if ( call->since_last_update()  > 4.0) {
+	      if ( call->since_last_update()  >= 3.0) {
 	       
 		
 			if (call->get_recording() == true) {
@@ -229,15 +245,16 @@ void stop_inactive_recorders() {
 	void update_recorders(TrunkMessage message) {
 		bool call_found = false;
 
-		for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
+		for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
 			Call *call= *it;
 
 			
 				if (call->get_talkgroup() == message.talkgroup) {
 					if (call->get_freq() != message.freq) {
-						std::cout << "Retune - Total calls: " << calls.size() << std::endl;
+						std::cout << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
 						// not sure what to do here; looks like we should retune
 						call->set_freq(message.freq);
+						call->set_tdma(message.tdma);
 						if (call->get_recording() == true) {
 							call->get_recorder()->tune_offset(message.freq);
 						}
@@ -245,25 +262,40 @@ void stop_inactive_recorders() {
 					call->update();
 
 					call_found = true;
+					++it; // move on to the next one
 				} else {
 
-					if (call->get_freq() == message.freq) {
-						call_found = true;
-						std::cout << "Freq in use" << std::endl;
+					if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
+						//call_found = true;
+
+						std::cout << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << std::endl;
 						//different talkgroups on the same freq, that is trouble
+
+						if (call->get_recording() == true) {
+							//sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
+				        	call->get_recorder()->deactivate();
+				        	//system(shell_command);
+				        }
+						it = calls.erase(it);
+					} else {
+						++it; // move on to the next one
 					}
 				}		
 		}
 
 
 		if (!call_found){
-			start_recorder(message.talkgroup, message.freq);
+
+			start_recorder(message);
 		}
 	}
 
 	void handle_message(TrunkMessage message){
 		switch(message.message_type) {
 			case ASSIGNMENT:
+				update_recorders(message);
+			break;
+			case UPDATE:
 				update_recorders(message);
 			break;
 		}
@@ -291,15 +323,23 @@ void stop_inactive_recorders() {
 		stop_inactive_recorders();
 		lastTalkgroupPurge = currentTime;
 	}
-	trunk_message = smartnet_parser->parse_message(msg->to_string());
+	if (system_type == "smartnet") {
+		trunk_message = smartnet_parser->parse_message(msg->to_string());
+	} 
+	if (system_type == "p25") {
+		trunk_message = p25_parser->parse_message(msg);
+	}
+	else {
+		std::cout << msg->to_string() << std::endl;
+	}
 	handle_message(trunk_message);
 
 	if (timeDiff >= 3.0) {
 		msgs_decoded_per_second = messagesDecodedSinceLastReport/timeDiff; 
 		messagesDecodedSinceLastReport = 0;
 		lastMsgCountTime = currentTime;
-		if (msgs_decoded_per_second < 30 ) {
-			std::cout << "Control Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
+		if (msgs_decoded_per_second < 10 ) {
+			std::cout << "\tControl Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
 		}
 		
 	}
@@ -314,8 +354,9 @@ int main(void)
 {
 	signal(SIGINT, exit_interupt);
 	tb = gr::make_top_block("Smartnet");
-	queue = gr::msg_queue::make(); 
+	queue = gr::msg_queue::make(100); 
 	smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
+	p25_parser = new P25Parser();
 	
 	load_config();
 
@@ -329,6 +370,12 @@ int main(void)
     	// what you really need to do is go through all of the sources to find the one with the right frequencies
     	smartnet_trunking = make_smartnet_trunking(control_channels[0], sources[0]->get_center(), sources[0]->get_rate(),  queue);
     	tb->connect(sources[0]->get_src_block(),0, smartnet_trunking, 0);
+    }
+
+    if (system_type == "p25") {
+    	// what you really need to do is go through all of the sources to find the one with the right frequencies
+    	p25_trunking = make_p25_trunking(control_channels[0], sources[0]->get_center(), sources[0]->get_rate(),  queue);
+    	tb->connect(sources[0]->get_src_block(),0, p25_trunking, 0);
     }
 
     tb->start();

@@ -1,5 +1,5 @@
 { "sources": [
-{"center": 858000000.0,
+{"center": 857000000.0,
 "rate": 8000000.0,
 "error": 0,
 "gain": 40,
@@ -9,8 +9,8 @@
 "device": ""}
 ],
 "system": {
-	"control_channels": [855462500],
-	"type": "p25"
+	"control_channels": [854862500],
+	"type": "smartnet"
 	},
 "talkgroupsFile": "ChanList.csv"
-}
+} 
