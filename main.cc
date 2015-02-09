@@ -229,9 +229,9 @@ void stop_inactive_recorders() {
 	       
 		
 			if (call->get_recording() == true) {
-				//sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
+			sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
 	        call->get_recorder()->deactivate();
-	        //system(shell_command);
+	        system(shell_command);
 	        }
 			  
 	        
@@ -244,6 +244,7 @@ void stop_inactive_recorders() {
 
 	void update_recorders(TrunkMessage message) {
 		bool call_found = false;
+	char shell_command[200];
 
 		for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
 			Call *call= *it;
@@ -272,9 +273,9 @@ void stop_inactive_recorders() {
 						//different talkgroups on the same freq, that is trouble
 
 						if (call->get_recording() == true) {
-							//sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
+						sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
 				        	call->get_recorder()->deactivate();
-				        	//system(shell_command);
+				        	system(shell_command);
 				        }
 						it = calls.erase(it);
 					} else {
