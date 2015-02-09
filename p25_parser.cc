@@ -50,7 +50,7 @@ double P25Parser::channel_id_to_frequency(int chan_id){
 			return temp_chan.frequency + temp_chan.step * int(channel / temp_chan.tdma);
 		}
 	}
-	std::cout << "Find - ChanId " << chan_id << " map id " << id  << "Channel " << channel << " size " << channels.size() << " ! Not Found ! " << std::endl;
+	std::cout << "\tFind - ChanId " << chan_id << " map id " << id  << "Channel " << channel << " size " << channels.size() << " ! Not Found ! " << std::endl;
 	return  0;
 }
 
@@ -100,6 +100,14 @@ TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 				message.message_command = GRANT;
 				message.freq = f1;
 				message.talkgroup = ga;
+				message.source = sa;
+				message.emergency = emergency;
+				message.encrypted = encrypted;
+				if (get_tdma_slot(ch)>0) {
+					message.tdma = true;
+				} else {
+					message.tdma = false;
+				}
 
 				std::cout << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: "<< f1/1000000.0 << "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) << "\tsa " << sa << "\tEncrypt " << encrypted <<std::endl; 
 		}
@@ -114,7 +122,7 @@ TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 				unsigned long ch1  = bitset_shift_mask(tsbk, 56, 0xffff);
 				unsigned long f1 = channel_id_to_frequency(ch1);
 
-				std::cout << "tsbk02[90]\tGrant Update\tChannel ID: "<< std::setw(5) << ch1 << "\tFreq: " <<  f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 <<  "\tTDMA " << get_tdma_slot(ch1) << std::endl;
+				//std::cout << "tsbk02[90]\tGrant Update\tChannel ID: "<< std::setw(5) << ch1 << "\tFreq: " <<  f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 <<  "\tTDMA " << get_tdma_slot(ch1) << std::endl;
 			
 		}
 		else {
@@ -134,8 +142,9 @@ TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 				message.message_command = CONTINUE;
 				message.freq = f1;
 				message.talkgroup = ga1;
-			std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1) << std::endl;
-			std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2) << std::endl;
+				message.tdma = get_tdma_slot(ch1);
+			//std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1) << std::endl;
+			//std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2) << std::endl;
 		}
 	} else if ( opcode == 0x16 ) {   // sndcp data ch
 		unsigned long ch1  = bitset_shift_mask(tsbk, 48, 0xffff);
@@ -264,6 +273,47 @@ TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 				std::cout << "\ttsbk3c Chan " << temp_chan.frequency << "  " << temp_chan.step << std::endl;
 			} 
 		}
+	} else if (opcode == 0x20) { //Acknowledge response
+		unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
+		unsigned long ga   = bitset_shift_mask(tsbk,40,0xffff);
+		unsigned long op   = bitset_shift_mask(tsbk,48,0xff);
+		unsigned long sa   = bitset_shift_mask(tsbk,16,0xffffff);
+
+		message.talkgroup = ga;
+		message.source = sa;
+		
+		//std::cout << "tsbk20\tAcknowledge Response\tga " << std::setw(7) << ga  <<"\tsa " << sa << "\tReserved: " << op << std::endl; 
+
+	} else if (opcode == 0x2c) { // Unit Registration Response
+		unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
+		unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
+		unsigned long sa   = bitset_shift_mask(tsbk,16,0xffffff);
+		unsigned long si   = bitset_shift_mask(tsbk,40,0xffffff);
+			
+				
+				//message.message_type = ASSIGNMENT;
+				//message.message_command = GRANT;
+
+				message.source = sa;
+
+			
+
+		//std::cout << "tsbk2c\tUnit Registration Response\tsa " << std::setw(7) << sa << " Source ID: " << si << std::endl; 
+	} else if (opcode == 0x2f) { // Unit DeRegistration Ack
+		unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
+		unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
+		unsigned long sa   = bitset_shift_mask(tsbk,16,0xffffff);
+
+			
+				
+				//message.message_type = ASSIGNMENT;
+				//message.message_command = GRANT;
+
+				message.source = sa;
+
+			
+
+		//std::cout << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << sa <<std::endl; 		
 	} else {
 		//std::cout << "tsbk other " << std::hex << opcode << std::endl;
 	}

@@ -1,3 +1,5 @@
+
+#define DSD
 #include <tuple>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -19,9 +21,10 @@
 
 #ifdef DSD
 #include "dsd_recorder.h"
-#else
-#include "p25_recorder.h"
 #endif
+
+#include "p25_recorder.h"
+
 
 #include "analog_recorder.h"
 #include "smartnet_trunking.h"
@@ -177,40 +180,43 @@ void load_config()
 
 
 
-void start_recorder(long tg_number, double freq) {
-	Call * call = new Call(tg_number, freq);
-	Talkgroup * talkgroup = talkgroups->find_talkgroup(tg_number);
+void start_recorder(TrunkMessage message) {
+	Call * call = new Call(message);
+	Talkgroup * talkgroup = talkgroups->find_talkgroup(message.talkgroup);
 	bool source_found = false;
 	Recorder *recorder;
 	call->set_recording(false); // start with the assumption that there are no recorders available.
+	std::cout << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
+				
+	if (message.encrypted == false) {
+		for(vector<Source *>::iterator it = sources.begin(); it != sources.end();it++) {
+		      Source * source = *it;
 
-	for(vector<Source *>::iterator it = sources.begin(); it != sources.end();it++) {
-	      Source * source = *it;
+			if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
+				source_found = true;
+				if (talkgroup && (talkgroup->mode == 'A')) {
+					recorder = source->get_analog_recorder();
+				} else {
+				  	recorder = source->get_digital_recorder();
 
-		if ((source->get_min_hz() <= freq) && (source->get_max_hz() >= freq)) {
-			source_found = true;
-			if (talkgroup && (talkgroup->mode == 'A')) {
-				recorder = source->get_analog_recorder();
-			} else {
-			  	recorder = source->get_digital_recorder();
-
+				}
+			  	if (recorder) {
+			  		recorder->activate( message.talkgroup,message.freq, calls.size());
+			  		call->set_recorder(recorder);
+			  		call->set_recording(true);
+			  	} else {
+			  		//std::cout << "\tNot recording call" << std::endl;
+			  	}
+				
+				
 			}
-		  	if (recorder) {
-		  		std::cout << "Activating recorder" << std::endl;
-		  		recorder->activate( tg_number,freq, calls.size());
-		  		call->set_recorder(recorder);
-		  		call->set_recording(true);
-		  	} else {
-		  		std::cout << "Not recording call" << std::endl;
-		  	}
-			
-			
-		}
 
-	}
-	if (!source_found) {
-		std::cout << "Recording not started because there was no source covering: " << freq << std::endl;
-	}
+		}
+		if (!source_found) {
+		std::cout << "\tRecording not started because there was no source covering: " << message.freq << std::endl;
+		}
+	} 
+
 	calls.push_back(call);
 }
 void stop_inactive_recorders() {
@@ -219,7 +225,7 @@ void stop_inactive_recorders() {
 
  	for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
 	      Call *call = *it;
-	      if ( call->since_last_update()  > 4.0) {
+	      if ( call->since_last_update()  >= 3.0) {
 	       
 		
 			if (call->get_recording() == true) {
@@ -239,15 +245,16 @@ void stop_inactive_recorders() {
 	void update_recorders(TrunkMessage message) {
 		bool call_found = false;
 
-		for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
+		for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
 			Call *call= *it;
 
 			
 				if (call->get_talkgroup() == message.talkgroup) {
 					if (call->get_freq() != message.freq) {
-						std::cout << "Retune - Total calls: " << calls.size() << std::endl;
+						std::cout << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
 						// not sure what to do here; looks like we should retune
 						call->set_freq(message.freq);
+						call->set_tdma(message.tdma);
 						if (call->get_recording() == true) {
 							call->get_recorder()->tune_offset(message.freq);
 						}
@@ -255,19 +262,31 @@ void stop_inactive_recorders() {
 					call->update();
 
 					call_found = true;
+					++it; // move on to the next one
 				} else {
 
-					if (call->get_freq() == message.freq) {
-						call_found = true;
-						std::cout << "Freq in use" << std::endl;
+					if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
+						//call_found = true;
+
+						std::cout << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << std::endl;
 						//different talkgroups on the same freq, that is trouble
+
+						if (call->get_recording() == true) {
+							//sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
+				        	call->get_recorder()->deactivate();
+				        	//system(shell_command);
+				        }
+						it = calls.erase(it);
+					} else {
+						++it; // move on to the next one
 					}
 				}		
 		}
 
 
 		if (!call_found){
-			start_recorder(message.talkgroup, message.freq);
+
+			start_recorder(message);
 		}
 	}
 
@@ -319,8 +338,8 @@ void stop_inactive_recorders() {
 		msgs_decoded_per_second = messagesDecodedSinceLastReport/timeDiff; 
 		messagesDecodedSinceLastReport = 0;
 		lastMsgCountTime = currentTime;
-		if (msgs_decoded_per_second < 30 ) {
-			//std::cout << "Control Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
+		if (msgs_decoded_per_second < 10 ) {
+			std::cout << "\tControl Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
 		}
 		
 	}

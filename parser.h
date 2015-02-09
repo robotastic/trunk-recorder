@@ -17,6 +17,10 @@ struct TrunkMessage{
 	MessageCommand message_command;
 	double freq;
 	long talkgroup;
+	bool encrypted;
+	bool emergency;
+	int tdma;
+	long source;
 };
 
 

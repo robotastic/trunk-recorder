@@ -4,7 +4,7 @@
 "error": 0,
 "gain": 40,
 "antenna": "TX/RX",
-"digitalRecorders": 0,
+"digitalRecorders": 2,
 "driver": "usrp",
 "device": ""}
 ],
