@@ -202,7 +202,7 @@ void dsd_recorder::deactivate() {
 
 void dsd_recorder::activate( long t, double f, int n) {
 
-	
+	timestamp = time(NULL);
 	starttime = time(NULL);
 
 	talkgroup = t;
