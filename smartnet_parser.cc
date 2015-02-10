@@ -20,8 +20,9 @@ double SmartnetParser::getfreq(int cmd) {
 
 
 
-TrunkMessage SmartnetParser::parse_message(std::string s) {
-	TrunkMessage message;
+std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
+	std::vector<TrunkMessage> messages;
+    TrunkMessage message;
 
 
 	message.message_type = UNKNOWN;
@@ -60,5 +61,6 @@ TrunkMessage SmartnetParser::parse_message(std::string s) {
 
 	lastaddress = address;
 	lastcmd = command;
-	return message;
+    messages.push_back(message);
+    return messages;
 }

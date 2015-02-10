@@ -61,9 +61,10 @@ unsigned long P25Parser::bitset_shift_mask(boost::dynamic_bitset<> &tsbk, int sh
 	return result;
 }
 
-TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
+std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 	//self.stats['tsbks'] += 1
     long updated = 0;
+    std::vector<TrunkMessage> messages;
     TrunkMessage message;
 
 
@@ -143,6 +144,11 @@ TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 				message.freq = f1;
 				message.talkgroup = ga1;
 				message.tdma = get_tdma_slot(ch1);
+				messages.push_back(message);
+				message.freq = f2;
+				message.talkgroup = ga2;
+				message.tdma = get_tdma_slot(ch2);
+
 			//std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1) << std::endl;
 			//std::cout << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2) << std::endl;
 		}
@@ -317,7 +323,8 @@ TrunkMessage P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 	} else {
 		//std::cout << "tsbk other " << std::hex << opcode << std::endl;
 	}
-    return message;
+    messages.push_back(message);
+    return messages;
 }
 void P25Parser::print_bitset(boost::dynamic_bitset<> &tsbk) {
 	boost::dynamic_bitset<> bitmask(tsbk.size(), 0x3f);
@@ -334,9 +341,9 @@ void printbincharpad(char c)
 }
 
 
-TrunkMessage P25Parser::parse_message(gr::message::sptr msg) {
+std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
 	TrunkMessage message;
-
+	std::vector<TrunkMessage> messages;
 
 	message.message_type = UNKNOWN;
 
@@ -349,14 +356,17 @@ TrunkMessage P25Parser::parse_message(gr::message::sptr msg) {
             
             std::cout << "process_qmsg: command: " << cmd << std::endl;
             //self.update_state(cmd, curr_time)
-            return message;
+            messages.push_back(message);
+            return messages;
         } else if ( type == -1 ) {  //	# timeout
             std::cout << "process_data_unit timeout" << std::endl;
             //self.update_state('timeout', curr_time)
-            return message;
+            messages.push_back(message);
+            return messages;
         } else if ( type < 0 ) {
             std::cout << "unknown message type " << type << std::endl;
-            return message;
+            messages.push_back(message);
+            return messages;
          }
         std::string s = msg->to_string();
         //# nac is always 1st two bytes
@@ -364,7 +374,8 @@ TrunkMessage P25Parser::parse_message(gr::message::sptr msg) {
         if (nac == 0xffff) {
             //# TDMA
             //self.update_state('tdma_duid%d' % type, curr_time)
-            return message;
+            messages.push_back(message);
+            return messages;
         }
         s = s.substr(2); 
         //std::cout << std::dec << "nac " << nac << " type " << type <<  " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl; //" at %f state %d len %d" %(nac, type, time.time(), self.state, len(s))
@@ -395,7 +406,7 @@ TrunkMessage P25Parser::parse_message(gr::message::sptr msg) {
 			}
 			b <<= 16;	// for missing crc
 
-            message = decode_tsbk(b);
+            return decode_tsbk(b);
         } else if (type == 12) {	//# trunk: MBT
             std::string s1 = s.substr(0,10);
             std::string s2 = s.substr(10);
@@ -424,5 +435,6 @@ TrunkMessage P25Parser::parse_message(gr::message::sptr msg) {
         else:
             self.update_state('duid%d' % type, curr_time)
         */
-        return message;
+            messages.push_back(message);
+            return messages;
     }

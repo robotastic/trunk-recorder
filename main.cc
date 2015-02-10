@@ -291,7 +291,10 @@ void stop_inactive_recorders() {
 		}
 	}
 
-	void handle_message(TrunkMessage message){
+	void handle_message(std::vector<TrunkMessage>  messages){
+		 for(std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end();it++) {
+                TrunkMessage message = *it;
+                
 		switch(message.message_type) {
 			case ASSIGNMENT:
 				update_recorders(message);
@@ -300,12 +303,12 @@ void stop_inactive_recorders() {
 				update_recorders(message);
 			break;
 		}
-
+	}
 	}
 	void monitor_messages() {
 			gr::message::sptr msg;
 			time_t currentTime = time(NULL);
-			TrunkMessage trunk_message;
+			std::vector<TrunkMessage> trunk_messages;
 
 	while (1) {
 		if(exit_flag){ // my action when signal set it 1
@@ -325,15 +328,15 @@ void stop_inactive_recorders() {
 		lastTalkgroupPurge = currentTime;
 	}
 	if (system_type == "smartnet") {
-		trunk_message = smartnet_parser->parse_message(msg->to_string());
+		trunk_messages = smartnet_parser->parse_message(msg->to_string());
 	} 
 	if (system_type == "p25") {
-		trunk_message = p25_parser->parse_message(msg);
+		trunk_messages = p25_parser->parse_message(msg);
 	}
 	else {
 		std::cout << msg->to_string() << std::endl;
 	}
-	handle_message(trunk_message);
+	handle_message(trunk_messages);
 
 	if (timeDiff >= 3.0) {
 		msgs_decoded_per_second = messagesDecodedSinceLastReport/timeDiff; 

@@ -1,6 +1,7 @@
 #ifndef PARSE_H
 #define PARSE_H
 #include <iostream>
+#include <vector>
 
 enum MessageType {
 	ASSIGNMENT = 0,
@@ -25,6 +26,6 @@ struct TrunkMessage{
 
 
 class TrunkParser {
-	TrunkMessage parse_message(std::string s);
+	std::vector<TrunkMessage> parse_message(std::string s);
 };
 #endif
