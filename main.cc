@@ -242,9 +242,9 @@ void stop_inactive_recorders() {
     	}//foreach loggers
 }
 
-	void update_recorders(TrunkMessage message) {
+	void assign_recorder(TrunkMessage message) {
 		bool call_found = false;
-	char shell_command[200];
+		char shell_command[200];
 
 		for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
 			Call *call= *it;
@@ -258,11 +258,12 @@ void stop_inactive_recorders() {
 						call->set_tdma(message.tdma);
 						if (call->get_recording() == true) {
 							call->get_recorder()->tune_offset(message.freq);
+
 						}
 					}
 					call->update();
-
-					call_found = true;
+					call_found = true; 
+					
 					++it; // move on to the next one
 				} else {
 
@@ -291,16 +292,39 @@ void stop_inactive_recorders() {
 		}
 	}
 
+
+
+	void update_recorder(TrunkMessage message) {
+
+		for(vector<Call *>::iterator it = calls.begin(); it != calls.end();++it) {
+			Call *call= *it;
+
+			
+				if (call->get_talkgroup() == message.talkgroup) {
+					if (call->get_freq() != message.freq) {
+						std::cout << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+						// not sure what to do here; looks like we should retune
+						call->set_freq(message.freq);
+						call->set_tdma(message.tdma);
+						if (call->get_recording() == true) {
+							call->get_recorder()->tune_offset(message.freq);
+						}
+					}
+					call->update();
+				} 		
+		}
+	}
+
 	void handle_message(std::vector<TrunkMessage>  messages){
 		 for(std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end();it++) {
                 TrunkMessage message = *it;
                 
 		switch(message.message_type) {
-			case ASSIGNMENT:
-				update_recorders(message);
+			case GRANT:
+				assign_recorder(message);
 			break;
 			case UPDATE:
-				update_recorders(message);
+				update_recorder(message);
 			break;
 		}
 	}

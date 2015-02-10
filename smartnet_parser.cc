@@ -41,14 +41,13 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	if (command < 0x2d0) {
 		if (  (address != 56016) && (address != 8176)) {  // remove this later to make it more general
 			message.talkgroup = address;
-			message.message_type = ASSIGNMENT;
 			message.freq = getfreq(command);
 			if ( lastcmd == 0x308) {
 			        // Channel Grant
-					message.message_command = GRANT;
+					message.message_type = GRANT;
 			} else {
 				// Call continuation
-					message.message_command = CONTINUE;
+					message.message_type = UPDATE;
 			}
 		}
 	}

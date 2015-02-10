@@ -4,18 +4,14 @@
 #include <vector>
 
 enum MessageType {
-	ASSIGNMENT = 0,
+	GRANT = 0,
 	STATUS = 1,
 	UPDATE = 2,
 	UNKNOWN = 99
 };
-enum MessageCommand {
-	GRANT = 0,
-	CONTINUE = 1
-};
+
 struct TrunkMessage{
 	MessageType message_type;
-	MessageCommand message_command;
 	double freq;
 	long talkgroup;
 	bool encrypted;

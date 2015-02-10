@@ -97,8 +97,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 		} else {
 			
 				unsigned long f1 = channel_id_to_frequency(ch);
-				message.message_type = ASSIGNMENT;
-				message.message_command = GRANT;
+				message.message_type = GRANT;
 				message.freq = f1;
 				message.talkgroup = ga;
 				message.source = sa;
@@ -140,7 +139,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 				updated += 1;
 			}
 				message.message_type = UPDATE;
-				message.message_command = CONTINUE;
 				message.freq = f1;
 				message.talkgroup = ga1;
 				message.tdma = get_tdma_slot(ch1);
