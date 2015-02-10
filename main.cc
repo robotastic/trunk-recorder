@@ -234,7 +234,7 @@ void stop_inactive_recorders() {
 	        system(shell_command);
 	        }
 			  
-	        std::cout << "\tRemoving TG: " << call->talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
+	        std::cout << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
 	         it = calls.erase(it);
 		  } else {
 		    ++it;
