@@ -225,7 +225,7 @@ void stop_inactive_recorders() {
 
  	for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
 	      Call *call = *it;
-	      if ( call->since_last_update()  >= 3.0) {
+	      if ( call->since_last_update()  >= 5.0) {
 	       
 		
 			if (call->get_recording() == true) {
@@ -234,7 +234,7 @@ void stop_inactive_recorders() {
 	        system(shell_command);
 	        }
 			  
-	        
+	        std::cout << "\tRemoving TG: " << call->talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
 	         it = calls.erase(it);
 		  } else {
 		    ++it;

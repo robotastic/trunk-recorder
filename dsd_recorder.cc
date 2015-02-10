@@ -47,7 +47,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	num = n;
 	active = false;
 
-	timestamp = time(NULL);
+
 	starttime = time(NULL);
 
 	float offset = f - center; //have to flip for 3.7
@@ -101,8 +101,8 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
 	boost::filesystem::create_directories(path_stream.str());
-	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
-	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,timestamp,freq);
+	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,freq);
+	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,starttime,freq);
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 	
 	//sprintf(raw_filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,timestamp,freq);
@@ -202,7 +202,6 @@ void dsd_recorder::deactivate() {
 
 void dsd_recorder::activate( long t, double f, int n) {
 
-	timestamp = time(NULL);
 	starttime = time(NULL);
 
 	talkgroup = t;
