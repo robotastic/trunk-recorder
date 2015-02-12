@@ -196,6 +196,7 @@ void start_recorder(TrunkMessage message) {
 				source_found = true;
 				if (talkgroup)
 				{
+					std::cout << "\tPriority: " << talkgroup->get_priority() << std::endl;
 					if (talkgroup->mode == 'A') {
 						recorder = source->get_analog_recorder(talkgroup->get_priority());
 					} else {
