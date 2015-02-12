@@ -194,11 +194,15 @@ void start_recorder(TrunkMessage message) {
 
 			if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
 				source_found = true;
-				if (talkgroup && (talkgroup->mode == 'A')) {
-					recorder = source->get_analog_recorder();
+				if (talkgroup)
+				{
+					if (talkgroup->mode == 'A') {
+						recorder = source->get_analog_recorder(talkgroup->get_priority());
+					} else {
+				  		recorder = source->get_digital_recorder(talkgroup->get_priority());
+					}
 				} else {
-				  	recorder = source->get_digital_recorder();
-
+					recorder = source->get_digital_recorder(3);
 				}
 			  	if (recorder) {
 			  		recorder->activate( message.talkgroup,message.freq, calls.size());

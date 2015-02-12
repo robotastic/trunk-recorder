@@ -56,7 +56,7 @@
             tb->connect(source_block, 0, log, 0);
         }
     }
-    Recorder * Source::get_analog_recorder() 
+    Recorder * Source::get_analog_recorder(int priority) 
     {
             for(std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end();it++) {
                 analog_recorder_sptr rx = *it;
@@ -83,8 +83,29 @@
             tb->connect(source_block, 0, log, 0);
         }
     }
-    Recorder * Source::get_digital_recorder() 
+    int Source::get_num_available_recorders(){
+        int num_available_recorders = 0;
+         #ifdef DSD
+            for(std::vector<dsd_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end();it++) {
+                dsd_recorder_sptr rx = *it;
+        #else
+             for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end();it++) {
+                p25_recorder_sptr rx = *it;
+        #endif               
+                if (!rx->is_active())
+                {
+                    num_available_recorders++;
+                }
+            }
+    }
+    Recorder * Source::get_digital_recorder(int priority) 
     {
+        int num_available_recorders = get_num_available_recorders();
+
+        if (priority> num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
+            return NULL;
+        }
+
         #ifdef DSD
             for(std::vector<dsd_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end();it++) {
                 dsd_recorder_sptr rx = *it;

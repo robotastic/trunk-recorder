@@ -38,6 +38,7 @@ class Source
     gr::basic_block_sptr source_block;
 
 public:
+    int get_num_available_recorders();
     Source(double c, double r, double e, std::string driver, std::string device);
     gr::basic_block_sptr get_src_block();
     double get_min_hz();
@@ -57,9 +58,9 @@ public:
     void set_bb_gain(int b);
     int get_bb_gain();
     void create_analog_recorders(gr::top_block_sptr tb, int r);
-    Recorder * get_analog_recorder();
+    Recorder * get_analog_recorder(int priority);
     void create_digital_recorders(gr::top_block_sptr tb, int r);
-    Recorder * get_digital_recorder();
+    Recorder * get_digital_recorder(int priority);
     inline osmosdr::source::sptr cast_to_osmo_sptr(gr::basic_block_sptr p)
     {
         return boost::dynamic_pointer_cast<osmosdr::source, gr::basic_block>(p);
