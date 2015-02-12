@@ -6,8 +6,10 @@ Talkgroups::Talkgroups() {
 
 void Talkgroups::load_talkgroups(std::string filename) {
 	std::ifstream in(filename.c_str());
-	if (!in.is_open()) return;
-
+	if (!in.is_open()) {
+		std::cout << "Error Opening TG File: " << filename << std::endl;
+		return;
+	}
 	boost::char_separator<char> sep(",");
 	typedef boost::tokenizer< boost::char_separator<char> > t_tokenizer;
 
@@ -16,7 +18,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
 
 	while (getline(in,line))
 	{
-
+		std::cout << "[ " << line << " ]" << std::endl;
 		t_tokenizer tok(line, sep);
 	
 		vec.assign(tok.begin(),tok.end());

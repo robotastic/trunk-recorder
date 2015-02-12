@@ -396,6 +396,7 @@ int main(void)
 	// Setup the talkgroups from the CSV file
 	talkgroups = new Talkgroups();
 	if (talkgroups_file.length()) {
+		std::cout<< "Loading Talkgroups..."<<std::endl;
 		talkgroups->load_talkgroups(talkgroups_file);
 	}
           
