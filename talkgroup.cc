@@ -10,6 +10,7 @@ Talkgroup::Talkgroup(long num, char m, std::string a, std::string d, std::string
 	group = g;
 	priority = p;
 	active = false;
+	std::cout << "TG Num: " << num << " Priority: " << priority << std::endl;
 }
 
 std::string Talkgroup::menu_string() {

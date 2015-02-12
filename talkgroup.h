@@ -1,6 +1,7 @@
 #ifndef TALKGROUP_H
 #define TALKGROUP_H
 
+#include <iostream>
 #include <string>
 #include <stdio.h>
 //#include <sstream>
