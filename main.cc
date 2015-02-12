@@ -135,8 +135,7 @@ void load_config()
 
                 std::string driver = node.second.get<std::string>("driver","");
                 std::string device = node.second.get<std::string>("device","");
-                talkgroups_file = node.second.get<std::string>("talkgroupsFile","");
-               
+                               
                 std::cout << "Center: " << node.second.get<double>("center",0) << std::endl;
                 std::cout << "Rate: " << node.second.get<double>("rate",0) << std::endl;
                 std::cout << "Error: " << node.second.get<double>("error",0) << std::endl;
@@ -147,7 +146,7 @@ void load_config()
                 std::cout << "Digital Recorders: " << node.second.get<int>("digitalRecorders",0) << std::endl;
                 std::cout << "Analog Recorders: " << node.second.get<int>("analogRecorders",0) << std::endl;
                 std::cout << "driver: " << node.second.get<std::string>("driver","") << std::endl;
-                std::cout << "Talkgroup File: " << talkgroups_file << std::endl;
+                
                 
                 Source *source = new Source(center,rate,error,driver,device);
                 std::cout << "Max HZ: " << source->get_max_hz() << std::endl;
@@ -169,6 +168,8 @@ void load_config()
 
         }
 
+        talkgroups_file = pt.get<std::string>("talkgroupsFile","");
+        std::cout << "Talkgroups File: " << talkgroups_file << std::endl;
 		system_type = pt.get<std::string>("system.type");
         
     }
