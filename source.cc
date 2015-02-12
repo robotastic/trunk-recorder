@@ -97,6 +97,7 @@
                     num_available_recorders++;
                 }
             }
+        return num_available_recorders;
     }
     Recorder * Source::get_digital_recorder(int priority) 
     {

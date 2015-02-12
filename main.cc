@@ -147,6 +147,7 @@ void load_config()
                 std::cout << "Digital Recorders: " << node.second.get<int>("digitalRecorders",0) << std::endl;
                 std::cout << "Analog Recorders: " << node.second.get<int>("analogRecorders",0) << std::endl;
                 std::cout << "driver: " << node.second.get<std::string>("driver","") << std::endl;
+                std::cout << "Talkgroup File: " << talkgroups_file << std::endl;
                 
                 Source *source = new Source(center,rate,error,driver,device);
                 std::cout << "Max HZ: " << source->get_max_hz() << std::endl;
@@ -395,10 +396,10 @@ int main(void)
 
 	// Setup the talkgroups from the CSV file
 	talkgroups = new Talkgroups();
-	if (talkgroups_file.length()) {
+	//if (talkgroups_file.length() > 0) {
 		std::cout<< "Loading Talkgroups..."<<std::endl;
 		talkgroups->load_talkgroups(talkgroups_file);
-	}
+	//}
           
     if (system_type == "smartnet") {
     	// what you really need to do is go through all of the sources to find the one with the right frequencies
