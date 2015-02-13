@@ -16,9 +16,8 @@ void Talkgroups::load_talkgroups(std::string filename) {
 	std::vector< std::string > vec;
 	std::string line;
 
-	while (getline(in,line))
+	while (getline(in,line, '\r'))  // this works with the CSV files from Excel, it might be a different new line charecter for other programs
 	{
-		std::cout << "[ " << line << " ]" << std::endl;
 		t_tokenizer tok(line, sep);
 	
 		vec.assign(tok.begin(),tok.end());
