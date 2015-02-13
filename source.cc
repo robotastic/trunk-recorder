@@ -103,10 +103,10 @@
     {
         int num_available_recorders = get_num_available_recorders();
         std::cout << "\tTG Priority: "<< priority << " Available Recorders: " <<num_available_recorders <<std::endl;
-       /*
+       
         if (priority> num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
             return NULL;
-        }*/
+        }
 
         #ifdef DSD
             for(std::vector<dsd_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end();it++) {
