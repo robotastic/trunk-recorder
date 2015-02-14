@@ -94,7 +94,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,freq);
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,starttime,freq);
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
-	
+	null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 
 	connect(self(),0, null_sink,0);
 /*
