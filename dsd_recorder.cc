@@ -81,16 +81,6 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 		sym_taps.push_back(1.0 / samp_per_sym);
 	}
 	sym_filter = gr::filter::fir_filter_fff::make(1, sym_taps);
-	/*
-	if (!logging) {
-	iam_logging = true;
-	logging = true;
-	std::cout << "I am the one true only!" << std::endl;
-	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_C4FM,3,1,1, false, num);
-	} else {
-	iam_logging = false;
-	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_C4FM,3,0,0, false, num);
-	}*/
 	
 	iam_logging = false;
 	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_C4FM,3,0,0, false, num);
@@ -105,21 +95,17 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,starttime,freq);
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 	
-	//sprintf(raw_filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,timestamp,freq);
-	//raw_sink = gr::blocks::file_sink::make(sizeof(gr_complex), raw_filename);
 
-
+	connect(self(),0, null_sink,0);
+/*
 	connect(self(),0, valve,0);
 	connect(valve,0, prefilter,0);
 	connect(prefilter, 0, downsample_sig, 0);
-
-	//connect(prefilter,0, raw_sink,0);
-
 	connect(downsample_sig, 0, demod, 0);
 	connect(demod, 0, sym_filter, 0);
 	connect(sym_filter, 0, levels, 0);
 	connect(levels, 0, dsd, 0);
-	connect(dsd, 0, wav_sink,0);
+	connect(dsd, 0, wav_sink,0);*/
 }
 
 dsd_recorder::~dsd_recorder() {
@@ -147,16 +133,29 @@ void dsd_recorder::tune_offset(double f) {
 	freq = f;
 	long offset_amount = (f - center);
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
-	//std::cout << "Offset set to: " << offset_amount << " Freq: "  << freq << std::endl;
 }
 void dsd_recorder::deactivate() {
 	std::cout<< "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl; 
 
-	active = false;
-	valve->set_enabled(false);
+lock();
 
+	wav_sink->close();
 	
-	//raw_sink->close();
+	disconnect(self(), 0, prefilter, 0);
+	connect(self(),0, null_sink,0);
+
+	disconnect(prefilter, 0, downsample_sig, 0);
+	disconnect(downsample_sig, 0, demod, 0);
+	disconnect(demod, 0, sym_filter, 0);
+	disconnect(sym_filter, 0, levels, 0);
+	disconnect(levels, 0, dsd, 0);
+	disconnect(dsd, 0, wav_sink,0);
+
+/*	active = false;
+	valve->set_enabled(false);
+*/
+	
+unlock();
 
 
   dsd_state *state = dsd->get_state();
@@ -197,7 +196,7 @@ void dsd_recorder::deactivate() {
   }
   else cout << "Unable to open file";
   dsd->reset_state();
-  wav_sink->close();
+  //wav_sink->close();
 }
 
 void dsd_recorder::activate( long t, double f, int n) {
@@ -213,11 +212,6 @@ void dsd_recorder::activate( long t, double f, int n) {
  
 	prefilter->set_center_freq(f - center); // have to flip for 3.7
 
-	if (iam_logging) {
-		//printf("Recording Freq: %f \n", f);
-	}
-
-
 
 	std::stringstream path_stream;
 	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
@@ -226,12 +220,21 @@ void dsd_recorder::activate( long t, double f, int n) {
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,f);
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,starttime,freq);
 	
-	//sprintf(raw_filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,timestamp,freq);
-
-
-	//raw_sink->open(raw_filename);
 	wav_sink->open(filename);
 
+	lock();
+	disconnect(self(),0, null_sink, 0);
+	connect(self(),0, prefilter,0);
+	connect(prefilter, 0, downsample_sig, 0);
+	connect(downsample_sig, 0, demod, 0);
+	connect(demod, 0, sym_filter, 0);
+	connect(sym_filter, 0, levels, 0);
+	connect(levels, 0, dsd, 0);
+	connect(dsd, 0, wav_sink,0);
+
+	unlock();
+
+
 	active = true;
-	valve->set_enabled(true);
+//	valve->set_enabled(true);
 }
