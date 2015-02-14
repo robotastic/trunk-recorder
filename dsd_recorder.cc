@@ -151,9 +151,9 @@ lock();
 	disconnect(levels, 0, dsd, 0);
 	disconnect(dsd, 0, wav_sink,0);
 
-/*	active = false;
-	valve->set_enabled(false);
-*/
+	active = false;
+	//valve->set_enabled(false);
+
 	
 unlock();
 
