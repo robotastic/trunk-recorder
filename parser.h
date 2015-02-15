@@ -7,6 +7,7 @@ enum MessageType {
 	GRANT = 0,
 	STATUS = 1,
 	UPDATE = 2,
+	CONTROL_CHANNEL = 3,
 	UNKNOWN = 99
 };
 

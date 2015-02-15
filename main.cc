@@ -61,6 +61,7 @@ using namespace std;
 
 std::vector<Source *> sources;
 std::vector<double> control_channels;
+int current_control_channel = 0;
 std::vector<Call *> calls;
 Talkgroups *talkgroups;
 std::string talkgroups_file;
@@ -299,6 +300,13 @@ void stop_inactive_recorders() {
 	}
 
 
+void add_control_channel(double control_channel) {
+	if (std::find(control_channels.begin(), control_channels.end(), control_channel) != control_channels.end()) {
+  		control_channels.push_back(control_channel);
+	}
+}
+
+
 
 	void update_recorder(TrunkMessage message) {
 
@@ -321,8 +329,9 @@ void stop_inactive_recorders() {
 		}
 	}
 
-	void handle_message(std::vector<TrunkMessage>  messages){
-		 for(std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end();it++) {
+
+void handle_message(std::vector<TrunkMessage>  messages){
+	for(std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end();it++) {
                 TrunkMessage message = *it;
                 
 		switch(message.message_type) {
@@ -332,10 +341,13 @@ void stop_inactive_recorders() {
 			case UPDATE:
 				update_recorder(message);
 			break;
+			case CONTROL_CHANNEL:
+				add_control_channel(message.freq);
+			break;
 		}
 	}
-	}
-	void monitor_messages() {
+}
+void monitor_messages() {
 			gr::message::sptr msg;
 			time_t currentTime = time(NULL);
 			std::vector<TrunkMessage> trunk_messages;
@@ -382,7 +394,38 @@ void stop_inactive_recorders() {
 
 
 	}
+}
+
+
+bool monitor_system(){
+	bool source_found = false;
+	Source * source = NULL;
+	double control_channel_freq = control_channels[current_control_channel];
+
+	for(vector<Source *>::iterator it = sources.begin(); it != sources.end();it++) {
+		    source = *it;
+
+			if ((source->get_min_hz() <= control_channel_freq) && (source->get_max_hz() >= control_channel_freq)) {
+				source_found = true;
+
+				break;
+			}
 	}
+
+	if (source_found) { 
+	    if (system_type == "smartnet") {
+	    	// what you really need to do is go through all of the sources to find the one with the right frequencies
+	    	smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  queue);
+	    	tb->connect(source->get_src_block(),0, smartnet_trunking, 0);
+	    }
+
+	    if (system_type == "p25") {
+	    	// what you really need to do is go through all of the sources to find the one with the right frequencies
+	    	p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  queue);
+	    	tb->connect(source->get_src_block(),0, p25_trunking, 0);
+	    }
+	}
+}
 
 int main(void)
 {
@@ -401,17 +444,7 @@ int main(void)
 		talkgroups->load_talkgroups(talkgroups_file);
 	//}
           
-    if (system_type == "smartnet") {
-    	// what you really need to do is go through all of the sources to find the one with the right frequencies
-    	smartnet_trunking = make_smartnet_trunking(control_channels[0], sources[0]->get_center(), sources[0]->get_rate(),  queue);
-    	tb->connect(sources[0]->get_src_block(),0, smartnet_trunking, 0);
-    }
-
-    if (system_type == "p25") {
-    	// what you really need to do is go through all of the sources to find the one with the right frequencies
-    	p25_trunking = make_p25_trunking(control_channels[0], sources[0]->get_center(), sources[0]->get_rate(),  queue);
-    	tb->connect(sources[0]->get_src_block(),0, p25_trunking, 0);
-    }
+	monitor_system();
 
     tb->start();
     monitor_messages();

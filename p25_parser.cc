@@ -226,15 +226,15 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 		unsigned long stid = bitset_shift_mask(tsbk, 40, 0xff);
 		unsigned long chan = bitset_shift_mask(tsbk, 24, 0xffff);
 		unsigned long f1 = channel_id_to_frequency(chan);
-		/*
-		if f1:
+		
+		/*if f1:
 			self.rfss_syid = syid
 			self.rfss_rfid = rfid
 			self.rfss_stid = stid
 			self.rfss_chan = f1
 			self.rfss_txchan = f1 + self.freq_table[chan >> 12]['offset']
-		if self.debug > 10:
-			print "tsbk3a rfss status: syid: %x rfid %x stid %d ch1 %x(%s)" %(syid, rfid, stid, chan, self.channel_id_to_string(chan))*/
+		if self.debug > 10:*/
+			std::cout << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan) <<  ")"<< std::endl;
 	} else if (opcode == 0x39) {  // secondary cc
 		unsigned long rfid = bitset_shift_mask(tsbk, 72, 0xff);
 		unsigned long stid = bitset_shift_mask(tsbk, 64, 0xff);
@@ -243,12 +243,16 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 		unsigned long f1 = channel_id_to_frequency(ch1);
 		unsigned long f2 = channel_id_to_frequency(ch2);
 		if (f1 && f2) {
-			// figure out what to do with this
-			/*self.secondary[ f1 ] = 1
-			self.secondary[ f2 ] = 1*/ 
+				message.message_type = CONTROL_CHANNEL;
+				message.freq = f1;
+				message.talkgroup = 0;
+				message.tdma = 0;
+				messages.push_back(message);
+				message.freq = f2;
+
 		}
 
-//		std::cout << "tsbk39 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2) << ") " << std::endl;
+		std::cout << "tsbk39 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2) << ") " << std::endl;
 	} else if (opcode == 0x3b) {  // network status
 		unsigned long wacn = bitset_shift_mask(tsbk, 52, 0xfffff);
 		unsigned long syid = bitset_shift_mask(tsbk, 40, 0xfff);
@@ -260,7 +264,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk){
 			self.ns_wacn = wacn
 			self.ns_chan = f1*/
 		}
-//		std::cout << "tsbk3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") " << std::endl;
+		std::cout << "tsbk3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") " << std::endl;
 	} else if (opcode == 0x3c) {  // adjacent status
 		unsigned long rfid = bitset_shift_mask(tsbk, 48, 0xff);
 		unsigned long stid = bitset_shift_mask(tsbk, 40, 0xff);

@@ -64,7 +64,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 	std::vector<float> sym_taps;
 	const double pi = M_PI; //boost::math::constants::pi<double>();
 
-timestamp = time(NULL);
+	timestamp = time(NULL);
 	starttime = time(NULL);
 
 
@@ -142,6 +142,8 @@ std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " <
 
 
 		
+	connect(self(),0, null_sink,0);
+	/*
 	connect(self(),0, valve,0);
 	connect(valve,0, prefilter,0);
 	connect(prefilter, 0, downsample_sig, 0);
@@ -149,11 +151,10 @@ std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " <
 	connect(demod, 0, sym_filter, 0);
 	connect(sym_filter, 0, op25_demod, 0);
 	connect(op25_demod,0, op25_slicer, 0);
-
 	connect(op25_slicer,0, op25_frame_assembler,0);
 	connect(op25_frame_assembler, 0,  converter,0);
     connect(converter, 0, multiplier,0);
-    connect(multiplier, 0, wav_sink,0);
+    connect(multiplier, 0, wav_sink,0);*/
 
 }
 
@@ -196,8 +197,21 @@ void p25_recorder::deactivate() {
 	std::cout<< "logging_receiver_dsd.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl; 
 
 	active = false;
-	valve->set_enabled(false);
+	//valve->set_enabled(false);
 	wav_sink->close();
+	lock();
+	connect(self(),0,null_sink,0);
+	disconnect(self(),0, prefilter,0);
+	disconnect(prefilter, 0, downsample_sig, 0);
+	disconnect(downsample_sig, 0, demod, 0);
+	disconnect(demod, 0, sym_filter, 0);
+	disconnect(sym_filter, 0, op25_demod, 0);
+	disconnect(op25_demod,0, op25_slicer, 0);
+	disconnect(op25_slicer,0, op25_frame_assembler,0);
+	disconnect(op25_frame_assembler, 0,  converter,0);
+    disconnect(converter, 0, multiplier,0);
+    disconnect(multiplier, 0, wav_sink,0);
+    unlock();
 
 }
 
@@ -225,8 +239,22 @@ void p25_recorder::activate(long t, double f, int n) {
 
 
 	wav_sink->open(filename);
+	lock();
+	disconnect(self(),0,null_sink,0);
+	connect(self(),0, prefilter,0);
+	connect(prefilter, 0, downsample_sig, 0);
+	connect(downsample_sig, 0, demod, 0);
+	connect(demod, 0, sym_filter, 0);
+	connect(sym_filter, 0, op25_demod, 0);
+	connect(op25_demod,0, op25_slicer, 0);
+	connect(op25_slicer,0, op25_frame_assembler,0);
+	connect(op25_frame_assembler, 0,  converter,0);
+    connect(converter, 0, multiplier,0);
+    connect(multiplier, 0, wav_sink,0);
+    unlock();
+
 	active = true;
-	valve->set_enabled(true);
+	//valve->set_enabled(true);
 
 }
 
