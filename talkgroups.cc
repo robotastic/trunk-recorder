@@ -19,7 +19,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
 	while (getline(in,line, '\r'))  // this works with the CSV files from Excel, it might be a different new line charecter for other programs
 	{
 		t_tokenizer tok(line, sep);
-	
+
 		vec.assign(tok.begin(),tok.end());
 		if (vec.size() < 8) continue;
 

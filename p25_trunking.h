@@ -69,12 +69,12 @@ p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::s
 
 class p25_trunking : public gr::hier_block2, public Recorder
 {
-  friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
+	friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
 protected:
-    p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
+	p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
 
 public:
-    ~p25_trunking();
+	~p25_trunking();
 
 	void tune_offset(double f);
 	void activate( long talkgroup, double f, int num);
@@ -97,10 +97,10 @@ private:
 	bool muted;
 	long talkgroup;
 	time_t timestamp;
-    	time_t starttime;
+	time_t starttime;
 
-char filename[160];
-  char raw_filename[160];
+	char filename[160];
+	char raw_filename[160];
 	int num;
 
 	bool iam_logging;
@@ -111,8 +111,8 @@ char filename[160];
 	std::vector<float> resampler_taps;
 	std::vector<float> sym_taps;
 
-    /* GR blocks */
-    	gr::filter::fir_filter_ccf::sptr lpf;
+	/* GR blocks */
+	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr sym_filter;
 	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::analog::sig_source_c::sptr offset_sig;
@@ -129,14 +129,14 @@ char filename[160];
 	gr::analog::quadrature_demod_cf::sptr demod;
 	gr::blocks::wavfile_sink::sptr wav_sink;
 	gr::blocks::file_sink::sptr raw_sink;
-	gr::blocks::null_sink::sptr null_sink; 
+	gr::blocks::null_sink::sptr null_sink;
 	gr::blocks::null_sink::sptr dump_sink;
 	gr::blocks::head::sptr head_source;
 	gr::blocks::short_to_float::sptr converter;
 	gr::blocks::copy::sptr valve;
 	//gr::blocks::char_to_float::sptr converter;
-    gr::blocks::multiply_const_ff::sptr multiplier;
-    //gr::analog::pwr_squelch_cc::sptr squelch;
+	gr::blocks::multiply_const_ff::sptr multiplier;
+	//gr::analog::pwr_squelch_cc::sptr squelch;
 	gr::op25::fsk4_demod_ff::sptr op25_demod;
 	gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
 

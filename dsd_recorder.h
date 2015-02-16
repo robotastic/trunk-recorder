@@ -60,12 +60,12 @@ dsd_recorder_sptr make_dsd_recorder(float f, float c, long s, long t, int n);
 
 class dsd_recorder : public gr::hier_block2 , public Recorder
 {
-  friend dsd_recorder_sptr make_dsd_recorder(float f, float c, long s, long t, int n);
+	friend dsd_recorder_sptr make_dsd_recorder(float f, float c, long s, long t, int n);
 protected:
-    dsd_recorder(double f, double c, long s, long t, int n);
+	dsd_recorder(double f, double c, long s, long t, int n);
 
 public:
-    ~dsd_recorder();
+	~dsd_recorder();
 	void tune_offset(double f);
 	void activate( long t, double f, int n);
 
@@ -85,12 +85,12 @@ private:
 	double center, freq;
 	bool recording;
 	long talkgroup;
-  long samp_rate;
+	long samp_rate;
 	time_t timestamp;
 	time_t starttime;
 	char filename[160];
-  char status_filename[160];
-  char raw_filename[160];
+	char status_filename[160];
+	char raw_filename[160];
 	int num;
 
 	bool iam_logging;
@@ -99,16 +99,16 @@ private:
 	std::vector<float> resampler_taps;
 	std::vector<float> sym_taps;
 
-    /* GR blocks */
-    	gr::filter::fir_filter_ccf::sptr lpf;
+	/* GR blocks */
+	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr sym_filter;
 	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::analog::sig_source_c::sptr offset_sig;
 
 	gr::blocks::multiply_cc::sptr mixer;
 	gr::blocks::file_sink::sptr fs;
- 	gr::blocks::multiply_const_ff::sptr quiet;
- 	gr::blocks::multiply_const_ff::sptr levels;
+	gr::blocks::multiply_const_ff::sptr quiet;
+	gr::blocks::multiply_const_ff::sptr levels;
 
 
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;

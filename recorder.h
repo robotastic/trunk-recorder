@@ -52,30 +52,30 @@
 
 
 
-class Recorder 
+class Recorder
 {
-  
+
 public:
 	virtual void tune_offset(double f) {};
 	virtual void activate( long t, double f, int n) {};
 	virtual void deactivate() {} ;
-	virtual double get_freq() {};
-	virtual long get_talkgroup() {};
-	virtual bool is_active() {};
-	virtual char *get_filename() {};
-/*
-private:
-	double center, freq;
-	long talkgroup;
-  long samp_rate;
-	time_t timestamp;
-	time_t starttime;
-	char filename[160];
-  char status_filename[160];
-	int num;
+	virtual double get_freq() {return 0;};
+	virtual long get_talkgroup() {return 0;};
+	virtual bool is_active() {return false;};
+	virtual char *get_filename() {return NULL;};
+	/*
+	private:
+		double center, freq;
+		long talkgroup;
+	  long samp_rate;
+		time_t timestamp;
+		time_t starttime;
+		char filename[160];
+	  char status_filename[160];
+		int num;
 
-	bool iam_logging;
-	bool active;*/
+		bool iam_logging;
+		bool active;*/
 };
 
 

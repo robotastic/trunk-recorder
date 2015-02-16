@@ -11,7 +11,7 @@ enum MessageType {
 	UNKNOWN = 99
 };
 
-struct TrunkMessage{
+struct TrunkMessage {
 	MessageType message_type;
 	double freq;
 	long talkgroup;

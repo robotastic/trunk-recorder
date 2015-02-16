@@ -22,12 +22,12 @@ double SmartnetParser::getfreq(int cmd) {
 
 std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	std::vector<TrunkMessage> messages;
-    TrunkMessage message;
+	TrunkMessage message;
 
 
 	message.message_type = UNKNOWN;
 
-	
+
 	std::vector<std::string> x;
 	boost::split(x, s, boost::is_any_of(","), boost::token_compress_on);
 
@@ -37,17 +37,17 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 
 	x.clear();
 	vector<string>().swap(x);
- 
+
 	if (command < 0x2d0) {
 		if (  (address != 56016) && (address != 8176)) {  // remove this later to make it more general
 			message.talkgroup = address;
 			message.freq = getfreq(command);
 			if ( lastcmd == 0x308) {
-			        // Channel Grant
-					message.message_type = GRANT;
+				// Channel Grant
+				message.message_type = GRANT;
 			} else {
 				// Call continuation
-					message.message_type = UPDATE;
+				message.message_type = UPDATE;
 			}
 		}
 	}
@@ -60,6 +60,6 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 
 	lastaddress = address;
 	lastcmd = command;
-    messages.push_back(message);
-    return messages;
+	messages.push_back(message);
+	return messages;
 }

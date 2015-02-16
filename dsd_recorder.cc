@@ -6,7 +6,7 @@ bool dsd_recorder::logging = false;
 
 dsd_recorder_sptr make_dsd_recorder(float freq, float center, long s, long t, int n)
 {
-    return gnuradio::get_initial_sptr(new dsd_recorder(freq, center, s, t, n));
+	return gnuradio::get_initial_sptr(new dsd_recorder(freq, center, s, t, n));
 }
 /*
 unsigned GCD(unsigned u, unsigned v) {
@@ -36,13 +36,13 @@ std::vector<float> design_filter(double interpolation, double deci) {
 }*/
 
 dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
-    : gr::hier_block2 ("dsd_recorder",
-          gr::io_signature::make  (1, 1, sizeof(gr_complex)),
-          gr::io_signature::make  (0, 0, sizeof(float)))
+	: gr::hier_block2 ("dsd_recorder",
+	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
+	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
 	freq = f;
 	center = c;
-  samp_rate = s;
+	samp_rate = s;
 	talkgroup = t;
 	num = n;
 	active = false;
@@ -60,15 +60,15 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 
 
 
-    lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 6000);
-	
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 6000);
+
 	prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
-						      lpf_taps,
-						       offset,
-						       samp_rate);
+	            lpf_taps,
+	            offset,
+	            samp_rate);
 	unsigned int d = GCD(channel_rate, pre_channel_rate);
-    	channel_rate = floor(channel_rate  / d);
-    	pre_channel_rate = floor(pre_channel_rate / d);
+	channel_rate = floor(channel_rate  / d);
+	pre_channel_rate = floor(pre_channel_rate / d);
 	resampler_taps = design_filter(channel_rate, pre_channel_rate);
 
 	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps);
@@ -81,7 +81,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 		sym_taps.push_back(1.0 / samp_per_sym);
 	}
 	sym_filter = gr::filter::fir_filter_fff::make(1, sym_taps);
-	
+
 	iam_logging = false;
 	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_C4FM,3,0,0, false, num);
 
@@ -97,15 +97,15 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 
 	connect(self(),0, null_sink,0);
-/*
-	connect(self(),0, valve,0);
-	connect(valve,0, prefilter,0);
-	connect(prefilter, 0, downsample_sig, 0);
-	connect(downsample_sig, 0, demod, 0);
-	connect(demod, 0, sym_filter, 0);
-	connect(sym_filter, 0, levels, 0);
-	connect(levels, 0, dsd, 0);
-	connect(dsd, 0, wav_sink,0);*/
+	/*
+		connect(self(),0, valve,0);
+		connect(valve,0, prefilter,0);
+		connect(prefilter, 0, downsample_sig, 0);
+		connect(downsample_sig, 0, demod, 0);
+		connect(demod, 0, sym_filter, 0);
+		connect(sym_filter, 0, levels, 0);
+		connect(levels, 0, dsd, 0);
+		connect(dsd, 0, wav_sink,0);*/
 }
 
 dsd_recorder::~dsd_recorder() {
@@ -135,12 +135,12 @@ void dsd_recorder::tune_offset(double f) {
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 }
 void dsd_recorder::deactivate() {
-	std::cout<< "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl; 
+	std::cout<< "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl;
 
-lock();
+	lock();
 
 	wav_sink->close();
-	
+
 	disconnect(self(), 0, prefilter, 0);
 	connect(self(),0, null_sink,0);
 
@@ -154,49 +154,49 @@ lock();
 	active = false;
 	//valve->set_enabled(false);
 
-	
-unlock();
+
+	unlock();
 
 
-  dsd_state *state = dsd->get_state();
-  ofstream myfile (status_filename);
-  if (myfile.is_open())
-  {
-    int level = (int) state->max / 164;
-    int index=0;
-    myfile << "{\n";
-    myfile << "\"freq\": " << freq << ",\n";
-    myfile << "\"num\": " << num << ",\n";
-    myfile << "\"talkgroup\": " << talkgroup << ",\n";
-    myfile << "\"center\": " << state->center << ",\n";
-    myfile << "\"umid\": " << state->umid << ",\n";
-    myfile << "\"lmid\": " << state->lmid << ",\n";
-    myfile << "\"max\": " << state->max << ",\n";
-    myfile << "\"inlvl\": " << level << ",\n";
-    myfile << "\"nac\": " << state->nac << ",\n";
-    myfile << "\"src\": " << state->lastsrc << ",\n";
-    myfile << "\"dsdtg\": " << state->lasttg << ",\n";
-    myfile << "\"headerCriticalErrors\": " << state->debug_header_critical_errors << ",\n";
-    myfile << "\"headerErrors\": " << state->debug_header_errors << ",\n";
-    myfile << "\"audioErrors\": " << state->debug_audio_errors << ",\n";
-    myfile << "\"symbCount\": " << state->symbolcnt << ",\n";
-    myfile << "\"mode\": \"digital\",\n"; 
-    myfile << "\"srcList\": [ ";
-    	while(state->src_list[index]!=0){
-    		if (index !=0) {
-    			 myfile << ", " << state->src_list[index];
-    		} else {
-    			myfile << state->src_list[index];
-    		}
-    		index++;
-    	}
-    myfile << " ]\n";
-    myfile << "}\n";
-    myfile.close();
-  }
-  else cout << "Unable to open file";
-  dsd->reset_state();
-  //wav_sink->close();
+	dsd_state *state = dsd->get_state();
+	ofstream myfile (status_filename);
+	if (myfile.is_open())
+	{
+		int level = (int) state->max / 164;
+		int index=0;
+		myfile << "{\n";
+		myfile << "\"freq\": " << freq << ",\n";
+		myfile << "\"num\": " << num << ",\n";
+		myfile << "\"talkgroup\": " << talkgroup << ",\n";
+		myfile << "\"center\": " << state->center << ",\n";
+		myfile << "\"umid\": " << state->umid << ",\n";
+		myfile << "\"lmid\": " << state->lmid << ",\n";
+		myfile << "\"max\": " << state->max << ",\n";
+		myfile << "\"inlvl\": " << level << ",\n";
+		myfile << "\"nac\": " << state->nac << ",\n";
+		myfile << "\"src\": " << state->lastsrc << ",\n";
+		myfile << "\"dsdtg\": " << state->lasttg << ",\n";
+		myfile << "\"headerCriticalErrors\": " << state->debug_header_critical_errors << ",\n";
+		myfile << "\"headerErrors\": " << state->debug_header_errors << ",\n";
+		myfile << "\"audioErrors\": " << state->debug_audio_errors << ",\n";
+		myfile << "\"symbCount\": " << state->symbolcnt << ",\n";
+		myfile << "\"mode\": \"digital\",\n";
+		myfile << "\"srcList\": [ ";
+		while(state->src_list[index]!=0) {
+			if (index !=0) {
+				myfile << ", " << state->src_list[index];
+			} else {
+				myfile << state->src_list[index];
+			}
+			index++;
+		}
+		myfile << " ]\n";
+		myfile << "}\n";
+		myfile.close();
+	}
+	else cout << "Unable to open file";
+	dsd->reset_state();
+	//wav_sink->close();
 }
 
 void dsd_recorder::activate( long t, double f, int n) {
@@ -206,10 +206,10 @@ void dsd_recorder::activate( long t, double f, int n) {
 	talkgroup = t;
 	freq = f;
 
-  	tm *ltm = localtime(&starttime);
-  	std::cout<< "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
+	tm *ltm = localtime(&starttime);
+	std::cout<< "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
 
- 
+
 	prefilter->set_center_freq(f - center); // have to flip for 3.7
 
 
@@ -219,7 +219,7 @@ void dsd_recorder::activate( long t, double f, int n) {
 	boost::filesystem::create_directories(path_stream.str());
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,f);
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,starttime,freq);
-	
+
 	wav_sink->open(filename);
 
 	lock();

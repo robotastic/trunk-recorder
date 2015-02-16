@@ -4,13 +4,13 @@ using namespace std;
 
 smartnet_trunking_sptr make_smartnet_trunking(float freq, float center, long samp, gr::msg_queue::sptr queue)
 {
-    return gnuradio::get_initial_sptr(new smartnet_trunking(freq, center, samp, queue));
+	return gnuradio::get_initial_sptr(new smartnet_trunking(freq, center, samp, queue));
 }
 
 smartnet_trunking::smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue)
-    : gr::hier_block2 ("smartnet_trunking",
-          gr::io_signature::make  (1, 1, sizeof(gr_complex)),
-          gr::io_signature::make  (0, 0, sizeof(float)))
+	: gr::hier_block2 ("smartnet_trunking",
+	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
+	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
 	center_freq = c;
 	chan_freq = f;
@@ -31,15 +31,15 @@ smartnet_trunking::smartnet_trunking(float f, float c, long s, gr::msg_queue::sp
 	cout << "Decim: " << decim << endl;
 	cout << "Samples per symbol: " << sps << endl;
 
-  std::vector<float> lpf_taps;
+	std::vector<float> lpf_taps;
 
 
 	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 4500, 2000);
 
 	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
-						       lpf_taps,
-						       offset,
-						       samp_rate);
+	        lpf_taps,
+	        offset,
+	        samp_rate);
 
 	gr::digital::fll_band_edge_cc::sptr carriertrack = gr::digital::fll_band_edge_cc::make(sps, 0.6, 64, 0.35);
 
