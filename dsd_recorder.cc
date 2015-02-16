@@ -96,8 +96,8 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 	null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 
-	connect(self(),0, null_sink,0);
-	/*
+	//connect(self(),0, null_sink,0);
+	
 		connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter, 0, downsample_sig, 0);
@@ -105,7 +105,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 		connect(demod, 0, sym_filter, 0);
 		connect(sym_filter, 0, levels, 0);
 		connect(levels, 0, dsd, 0);
-		connect(dsd, 0, wav_sink,0);*/
+		connect(dsd, 0, wav_sink,0);
 }
 
 dsd_recorder::~dsd_recorder() {
@@ -137,11 +137,11 @@ void dsd_recorder::tune_offset(double f) {
 void dsd_recorder::deactivate() {
 	std::cout<< "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl;
 
-	lock();
+	//lock();
 
 	wav_sink->close();
 
-	disconnect(self(), 0, prefilter, 0);
+/*	disconnect(self(), 0, prefilter, 0);
 	connect(self(),0, null_sink,0);
 
 	disconnect(prefilter, 0, downsample_sig, 0);
@@ -149,13 +149,13 @@ void dsd_recorder::deactivate() {
 	disconnect(demod, 0, sym_filter, 0);
 	disconnect(sym_filter, 0, levels, 0);
 	disconnect(levels, 0, dsd, 0);
-	disconnect(dsd, 0, wav_sink,0);
+	disconnect(dsd, 0, wav_sink,0);*/
 
 	active = false;
-	//valve->set_enabled(false);
+	valve->set_enabled(false);
 
 
-	unlock();
+	//unlock();
 
 
 	dsd_state *state = dsd->get_state();
@@ -222,7 +222,7 @@ void dsd_recorder::activate( long t, double f, int n) {
 
 	wav_sink->open(filename);
 
-	lock();
+	/*lock();
 	disconnect(self(),0, null_sink, 0);
 	connect(self(),0, prefilter,0);
 	connect(prefilter, 0, downsample_sig, 0);
@@ -233,8 +233,8 @@ void dsd_recorder::activate( long t, double f, int n) {
 	connect(dsd, 0, wav_sink,0);
 
 	unlock();
-
+*/
 
 	active = true;
-//	valve->set_enabled(true);
+	valve->set_enabled(true);
 }
