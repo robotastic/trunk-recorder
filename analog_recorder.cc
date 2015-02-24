@@ -94,7 +94,6 @@ analog_recorder::analog_recorder(double f, double c, long s, long t, int n)
 	connect(self(),0, valve,0);
 	connect(valve,0, prefilter,0);
 	connect(prefilter, 0, downsample_sig, 0);
-	connect(downsample_sig,0, raw_sink,0);
 	connect(downsample_sig, 0, demod, 0);
 	connect(demod, 0, deemph, 0);
 	connect(deemph, 0, decim_audio, 0);
@@ -170,8 +169,6 @@ void analog_recorder::activate(long t, double f, int n) {
 	boost::filesystem::create_directories(path_stream.str());
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,f);
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,timestamp,freq);
-	sprintf(raw_filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,timestamp,freq);
-	sprintf(debug_filename, "%s/%ld-%ld_%g_debug.raw", path_stream.str().c_str(),talkgroup,timestamp,freq);
 
 	wav_sink->open(filename);
 
