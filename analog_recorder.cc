@@ -144,7 +144,7 @@ void analog_recorder::deactivate() {
 		myfile << "{\n";
 		myfile << "\"freq\": " << freq << ",\n";
 		myfile << "\"num\": " << num << ",\n";
-		myfile << "\"talkgroup\": " << talkgroup << "\n";
+		myfile << "\"talkgroup\": " << talkgroup << ",\n";
 		myfile << "\"mode\": \"analog\" \n";
 		myfile << "}\n";
 		myfile.close();
