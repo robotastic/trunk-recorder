@@ -332,7 +332,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 		//message.message_type = ASSIGNMENT;
 		//message.message_command = GRANT;
 
-		message.source = sa;
+		message.source = ta;
 
 
 
