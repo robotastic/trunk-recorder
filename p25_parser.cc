@@ -322,6 +322,21 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 
 
 		//std::cout << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << sa <<std::endl;
+	} else if (opcode == 0x28) { // Unit Group Association Response
+		unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
+		unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
+		unsigned long ta   = bitset_shift_mask(tsbk,16,0xffffff);
+		unsigned long ga   = bitset_shift_mask(tsbk,40,0xffff);
+		unsigned long aga   = bitset_shift_mask(tsbk,56,0xffff);
+
+		//message.message_type = ASSIGNMENT;
+		//message.message_command = GRANT;
+
+		message.source = sa;
+
+
+
+		std::cout << "tsbk2f\tUnit Group Association\tSource ID: " << std::setw(7) << sa << "\tGroup Address: " << ga << "\tAnouncement Goup: " << aga << endl;
 	} else {
 		//std::cout << "tsbk other " << std::hex << opcode << std::endl;
 	}
