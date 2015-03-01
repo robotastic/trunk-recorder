@@ -24,6 +24,19 @@ long P25Parser::get_tdma_slot(int chan_id) {
 
 	return 0;
 }
+
+double P25Parser::get_bandwidth(int chan_id) {
+
+	long channel = chan_id & 0xfff;
+	it = channels.find((chan_id >> 12) & 0xf);
+
+	if (it != channels.end()) {
+		Channel temp_chan = it->second;
+		return temp_chan.bandwidth;
+	}
+
+	return 0;
+}
 std::string  P25Parser::channel_id_to_string(int chan_id) {
 	double f = channel_id_to_frequency(chan_id);
 	if (f == 0) {
@@ -109,7 +122,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 				message.tdma = false;
 			}
 
-			std::cout << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: "<< f1/1000000.0 << "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) << "\tsa " << sa << "\tEncrypt " << encrypted <<std::endl;
+			std::cout << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: "<< f1/1000000.0 << "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) << "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch) << std::endl;
 		}
 
 	} else if (opcode == 0x02) {  // group voice chan grant update
@@ -161,6 +174,12 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 		unsigned long spac = bitset_shift_mask(tsbk, 48, 0x3ff);
 		unsigned long freq = bitset_shift_mask(tsbk, 16, 0xffffffff);
 		unsigned long toff_sign = (toff0 >> 13) & 1;
+		double bandwidth = 0 ;
+		if (bwvu == 4) {
+			bandwidth = 6.25;
+		} else if (bwvu==5) {
+			bandwidth = 12.5;
+		}
 		long toff = toff0 & 0x1fff;
 		if (toff_sign == 0) {
 			toff = 0 - toff;
@@ -171,7 +190,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 			toff * spac * 125, //offset;
 			spac * 125, //step;
 			freq * 5, //frequency;
-			0 //tdma;
+			0, //tdma;
+			bandwidth
 		};
 		add_channel(iden, temp_chan);
 		//std::cout << "tsbk34 iden vhf/uhf id " << std::dec << iden << " toff " << toff * spac * 0.125 * 1e-3 << " spac " << spac * 0.125 << " freq " << freq * 0.000005 << " [ " << txt[toff_sign] << "]" << std::endl;
@@ -194,7 +214,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 				toff * spac * 125, //offset;
 				spac * 125, //step;
 				f1 * 5, //frequency;
-				slots_per_carrier[channel_type] //tdma;
+				slots_per_carrier[channel_type], //tdma;
+				6.25
 			};
 			add_channel(iden,temp_chan);
 			//std::cout << "tsbk33 iden up tdma id " << std::dec << iden << " f " <<  temp_chan.frequency << " offset " << temp_chan.offset << " spacing " << temp_chan.step << " slots/carrier " << temp_chan.tdma << std::endl;
@@ -216,7 +237,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 			toff * 250000, //offset;
 			spac * 125, //step;
 			freq * 5, //frequency;
-			0 //tdma;
+			0, //tdma;
+			bw * .125
 		};
 		add_channel(iden,temp_chan);
 //		std::cout << "tsbk3d iden id "<< std::dec << iden <<" toff "<< toff * 0.25 << " spac " << spac * 0.125 << " freq " << freq * 0.000005 << std::endl;

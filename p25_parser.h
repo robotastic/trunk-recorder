@@ -15,6 +15,7 @@ struct Channel {
 	long step;
 	long frequency;
 	int tdma;
+	double bandwidth;
 };
 
 class P25Parser:public TrunkParser
@@ -24,6 +25,7 @@ class P25Parser:public TrunkParser
 public:
 	P25Parser();
 	long get_tdma_slot(int chan_id);
+	double get_bandwidth(int chan_id);
 	std::vector<TrunkMessage> decode_tsbk(boost::dynamic_bitset<> &tsbk);
 	unsigned long bitset_shift_mask(boost::dynamic_bitset<> &tsbk, int shift, unsigned long long mask);
 	std::string  channel_id_to_string(int chan_id);
