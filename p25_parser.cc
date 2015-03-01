@@ -336,7 +336,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 
 
 
-		std::cout << "tsbk2f\tUnit Group Association\tSource ID: " << std::setw(7) << sa << "\tGroup Address: " << ga << "\tAnouncement Goup: " << aga << endl;
+		std::cout << "tsbk2f\tUnit Group Association\tSource ID: " << std::setw(7) << sa << "\tGroup Address: " << ga << "\tAnouncement Goup: " << aga << std::endl;
 	} else {
 		//std::cout << "tsbk other " << std::hex << opcode << std::endl;
 	}
