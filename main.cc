@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <ncurses.h>
 #include <menu.h>
+#include <time.h>
 #include "recorder.h"
 
 #ifdef DSD
@@ -61,6 +62,7 @@ using namespace std;
 
 std::vector<Source *> sources;
 std::vector<double> control_channels;
+std::map<long,long> unit_affiliations;
 int current_control_channel = 0;
 std::vector<Call *> calls;
 Talkgroups *talkgroups;
@@ -72,10 +74,6 @@ p25_trunking_sptr p25_trunking;
 gr::msg_queue::sptr queue;
 
 volatile sig_atomic_t exit_flag = 0;
-int messagesDecodedSinceLastReport = 0;
-float msgs_decoded_per_second = 0;
-time_t lastMsgCountTime = time(NULL);;
-time_t lastTalkgroupPurge = time(NULL);;
 SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 
@@ -308,6 +306,23 @@ void add_control_channel(double control_channel) {
 
 
 
+void unit_registration(long unit) {
+
+}
+
+void unit_deregistration(long unit) {
+	std::map<long, long>::iterator it;
+
+	it = unit_affiliations.find (unit);   
+	if (it != unit_affiliations.end()) {
+    unit_affiliations.erase(it);
+	}
+}
+
+void group_affiliation(long unit, long talkgroup) {
+	unit_affiliations[unit] = talkgroup;
+}
+
 void update_recorder(TrunkMessage message) {
 
 	for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
@@ -329,6 +344,36 @@ void update_recorder(TrunkMessage message) {
 	}
 }
 
+void unit_check() {
+	std::map<long, long> talkgroup_totals;
+	std::map<long, long>::iterator it;
+	time_t starttime = time(NULL);
+	tm *ltm = localtime(&starttime);
+	char unit_filename[160];
+
+	std::stringstream path_stream;
+	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+
+	boost::filesystem::create_directories(path_stream.str());
+	sprintf(unit_filename, "%s/%ld_units.json", path_stream.str().c_str(),starttime);
+
+	for(it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
+			talkgroup_totals[it->second]++;
+	}
+
+		ofstream myfile (unit_filename);
+	if (myfile.is_open())
+	{
+		myfile << "{\n";
+		myfile << "talkgroups: [\n";
+		for(it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
+			talkgroup_totals[it->second]++;
+			myfile << it->first << ": " << it->second <<",\n";
+		}
+		myfile << "]\n}\n";
+		myfile.close();
+	}
+}
 
 void handle_message(std::vector<TrunkMessage>  messages) {
 	for(std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
@@ -344,15 +389,30 @@ void handle_message(std::vector<TrunkMessage>  messages) {
 		case CONTROL_CHANNEL:
 			add_control_channel(message.freq);
 			break;
+		case REGISTRATION:
+			break;
+		case DEREGISTRATION:
+			unit_deregistration(message.source);
+			break;
+		case AFFILIATION:
+			group_affiliation(message.source, message.talkgroup);
+			break; 
 		case STATUS:
 		case UNKNOWN:
 			break;
 		}
 	}
 }
+
 void monitor_messages() {
 	gr::message::sptr msg;
+	int messagesDecodedSinceLastReport = 0;
+	float msgs_decoded_per_second = 0;
+
+	time_t lastMsgCountTime = time(NULL);;
+	time_t lastTalkgroupPurge = time(NULL);;
 	time_t currentTime = time(NULL);
+	time_t lastUnitCheckTime = time(NULL);
 	std::vector<TrunkMessage> trunk_messages;
 
 	while (1) {
@@ -365,7 +425,7 @@ void monitor_messages() {
 		msg = queue->delete_head();
 		messagesDecodedSinceLastReport++;
 		currentTime = time(NULL);
-		float timeDiff = currentTime - lastMsgCountTime;
+		
 
 		if ((currentTime - lastTalkgroupPurge) >= 1.0 )
 		{
@@ -383,6 +443,7 @@ void monitor_messages() {
 		}
 		handle_message(trunk_messages);
 
+		float timeDiff = currentTime - lastMsgCountTime;
 		if (timeDiff >= 3.0) {
 			msgs_decoded_per_second = messagesDecodedSinceLastReport/timeDiff;
 			messagesDecodedSinceLastReport = 0;
@@ -390,8 +451,14 @@ void monitor_messages() {
 			if (msgs_decoded_per_second < 10 ) {
 				std::cout << "\tControl Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
 			}
-
 		}
+
+		
+		if ((currentTime - lastUnitCheckTime) >= 10.0) {
+
+			lastUnitCheckTime = currentTime;
+		}
+
 		msg.reset();
 
 
