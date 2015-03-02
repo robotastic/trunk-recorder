@@ -8,6 +8,9 @@ enum MessageType {
 	STATUS = 1,
 	UPDATE = 2,
 	CONTROL_CHANNEL = 3,
+	REGISTRATION = 4,
+	DEREGISTRATION = 5,
+	AFFILIATION = 6,
 	UNKNOWN = 99
 };
 

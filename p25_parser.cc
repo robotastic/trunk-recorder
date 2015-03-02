@@ -323,42 +323,40 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 
 		//message.message_type = ASSIGNMENT;
 		//message.message_command = GRANT;
+		message.message_type = REGISTRATION;
+		message.source = si;
 
-		message.source = sa;
 
 
-
-		//std::cout << "tsbk2c\tUnit Registration Response\tsa " << std::setw(7) << sa << " Source ID: " << si << std::endl;
+		std::cout << "tsbk2c\tUnit Registration Response\tsa " << std::setw(7) << sa << " Source ID: " << si << std::endl;
 	} else if (opcode == 0x2f) { // Unit DeRegistration Ack
 		unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
 		unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
-		unsigned long sa   = bitset_shift_mask(tsbk,16,0xffffff);
+		unsigned long si   = bitset_shift_mask(tsbk,16,0xffffff);
 
 
 
-		//message.message_type = ASSIGNMENT;
-		//message.message_command = GRANT;
 
-		message.source = sa;
-
+		message.message_type = DEREGISTRATION;
+		message.source = si;
 
 
-		//std::cout << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << sa <<std::endl;
-	} else if (opcode == 0x28) { // Unit Group Association Response
+
+		std::cout << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si <<std::endl;
+	} else if (opcode == 0x28) { // Unit Group Affiliation Response
 		unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
 		unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
 		unsigned long ta   = bitset_shift_mask(tsbk,16,0xffffff);
 		unsigned long ga   = bitset_shift_mask(tsbk,40,0xffff);
 		unsigned long aga   = bitset_shift_mask(tsbk,56,0xffff);
 
-		//message.message_type = ASSIGNMENT;
-		//message.message_command = GRANT;
-
+		message.message_type = AFFILIATION;
 		message.source = ta;
+		message.talkgroup = ga;
 
 
 
-		std::cout << "tsbk2f\tUnit Group Association\tSource ID: " << std::setw(7) << ta << "\tGroup Address: " << ga << "\tAnouncement Goup: " << aga << std::endl;
+		std::cout << "tsbk2f\tUnit Group Affiliation\tSource ID: " << std::setw(7) << ta << "\tGroup Address: " << ga << "\tAnouncement Goup: " << aga << std::endl;
 	} else {
 		//std::cout << "tsbk other " << std::hex << opcode << std::endl;
 	}
