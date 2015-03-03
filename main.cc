@@ -350,12 +350,13 @@ void unit_check() {
 	time_t starttime = time(NULL);
 	tm *ltm = localtime(&starttime);
 	char unit_filename[160];
+	char shell_command[200];
 
 	std::stringstream path_stream;
 	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
 	boost::filesystem::create_directories(path_stream.str());
-	sprintf(unit_filename, "%s/%ld_units.json", path_stream.str().c_str(),starttime);
+	sprintf(unit_filename, "%s/unit_check.json", path_stream.str().c_str(),starttime);
 
 	for(it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
 			talkgroup_totals[it->second]++;
@@ -368,9 +369,14 @@ void unit_check() {
 		myfile << "talkgroups: [\n";
 		for(it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
 			talkgroup_totals[it->second]++;
-			myfile << it->first << ": " << it->second <<",\n";
+			myfile << it->first << ": " << it->second;
+			if (++it != talkgroup_totals.end()) {
+				myfile << ",";
+			}
+			myfile << "\n";
 		}
 		myfile << "]\n}\n";
+		system("./unit_check.sh > /dev/null 2>&1 &");
 		myfile.close();
 	}
 }
