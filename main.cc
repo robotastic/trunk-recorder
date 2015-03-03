@@ -347,16 +347,11 @@ void update_recorder(TrunkMessage message) {
 void unit_check() {
 	std::map<long, long> talkgroup_totals;
 	std::map<long, long>::iterator it;
-	time_t starttime = time(NULL);
-	tm *ltm = localtime(&starttime);
+
 	char unit_filename[160];
-	char shell_command[200];
 
-	std::stringstream path_stream;
-	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-
-	boost::filesystem::create_directories(path_stream.str());
-	sprintf(unit_filename, "%s/unit_check.json", path_stream.str().c_str(),starttime);
+	
+	sprintf(unit_filename, "unit_check.json");
 
 	for(it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
 			talkgroup_totals[it->second]++;
