@@ -365,7 +365,7 @@ void unit_check() {
 		for(it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
 			talkgroup_totals[it->second]++;
 			myfile << it->first << ": " << it->second;
-			if (++it != talkgroup_totals.end()) {
+			if (it != talkgroup_totals.end()) {
 				myfile << ",";
 			}
 			myfile << "\n";
