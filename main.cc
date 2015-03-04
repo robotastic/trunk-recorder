@@ -361,16 +361,15 @@ void unit_check() {
 	if (myfile.is_open())
 	{
 		myfile << "{\n";
-		myfile << "talkgroups: [\n";
+		myfile << "talkgroups: {\n";
 		for(it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
-			talkgroup_totals[it->second]++;
-			myfile << it->first << ": " << it->second;
-			if (it != talkgroup_totals.end()) {
-				myfile << ",";
+			if (it != talkgroup_totals.begin()) {
+				myfile << ",\n";
 			}
-			myfile << "\n";
+			myfile << it->first << ": " << it->second;
+
 		}
-		myfile << "]\n}\n";
+		myfile << "\n}\n}\n";
 		system("./unit_check.sh > /dev/null 2>&1 &");
 		myfile.close();
 	}
