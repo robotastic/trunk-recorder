@@ -347,15 +347,23 @@ void update_recorder(TrunkMessage message) {
 void unit_check() {
 	std::map<long, long> talkgroup_totals;
 	std::map<long, long>::iterator it;
-
+	char shell_command[200];
+	time_t starttime = time(NULL);
+	tm *ltm = localtime(&starttime);
 	char unit_filename[160];
 
+	std::stringstream path_stream;
+	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+
+	boost::filesystem::create_directories(path_stream.str());
+		
 	
-	sprintf(unit_filename, "unit_check.json");
 
 	for(it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
 			talkgroup_totals[it->second]++;
 	}
+
+	sprintf(unit_filename, "%s/%ld-unit_check.json", path_stream.str().c_str(),starttime);
 
 		ofstream myfile (unit_filename);
 	if (myfile.is_open())
@@ -366,11 +374,12 @@ void unit_check() {
 			if (it != talkgroup_totals.begin()) {
 				myfile << ",\n";
 			}
-			myfile << it->first << ": " << it->second;
+			myfile << "\"" << it->first << "\": " << it->second;
 
 		}
 		myfile << "\n}\n}\n";
-		system("./unit_check.sh > /dev/null 2>&1 &");
+		sprintf(shell_command,"./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
+		system(shell_command);
 		myfile.close();
 	}
 }
