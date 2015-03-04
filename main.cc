@@ -361,7 +361,7 @@ void unit_check() {
 	if (myfile.is_open())
 	{
 		myfile << "{\n";
-		myfile << "talkgroups: {\n";
+		myfile << "\"talkgroups\": {\n";
 		for(it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
 			if (it != talkgroup_totals.begin()) {
 				myfile << ",\n";
