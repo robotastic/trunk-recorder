@@ -57,7 +57,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	sym_filter = gr::filter::fir_filter_fff::make(1, sym_taps);
 
 	iam_logging = false;
-	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_C4FM,3,0,0, false, num);
+	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_C4FM,3,1,1, false, num);
 
 	tm *ltm = localtime(&starttime);
 
