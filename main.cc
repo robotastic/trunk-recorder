@@ -43,7 +43,8 @@
 #include <osmosdr/source.h>
 #include <gnuradio/uhd/usrp_source.h>
 
-
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 #include <boost/program_options.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/algorithm/string/split.hpp>
