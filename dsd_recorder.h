@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>

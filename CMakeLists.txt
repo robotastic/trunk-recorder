@@ -93,6 +93,7 @@ SET(BOOST_REQUIRED_COMPONENTS
     system
     program_options
     filesystem
+    log
 )
 
 if(UNIX AND NOT BOOST_ROOT AND EXISTS "/usr/lib64")

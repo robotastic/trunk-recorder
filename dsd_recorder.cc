@@ -8,32 +8,6 @@ dsd_recorder_sptr make_dsd_recorder(float freq, float center, long s, long t, in
 {
 	return gnuradio::get_initial_sptr(new dsd_recorder(freq, center, s, t, n));
 }
-/*
-unsigned GCD(unsigned u, unsigned v) {
-    while ( v != 0) {
-        unsigned r = u % v;
-        u = v;
-        v = r;
-    }
-    return u;
-}
-
-std::vector<float> design_filter(double interpolation, double deci) {
-    float beta = 5.0;
-    float trans_width = 0.5 - 0.4;
-    float mid_transition_band = 0.5 - trans_width/2;
-
-    std::vector<float> result = gr::filter::firdes::low_pass(
-                                                             interpolation,
-                                                             1,
-                                                             mid_transition_band/interpolation,
-                                                             trans_width/interpolation,
-                                                             gr::filter::firdes::WIN_KAISER,
-                                                             beta
-                                                             );
-
-    return result;
-}*/
 
 dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	: gr::hier_block2 ("dsd_recorder",
@@ -135,7 +109,7 @@ void dsd_recorder::tune_offset(double f) {
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 }
 void dsd_recorder::deactivate() {
-	std::cout<< "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl;
 
 	//lock();
 
@@ -194,7 +168,7 @@ void dsd_recorder::deactivate() {
 		myfile << "}\n";
 		myfile.close();
 	}
-	else cout << "Unable to open file";
+	else BOOST_LOG_TRIVIAL(error) << "Unable to open file";
 	dsd->reset_state();
 	//wav_sink->close();
 }
@@ -207,7 +181,7 @@ void dsd_recorder::activate( long t, double f, int n) {
 	freq = f;
 
 	tm *ltm = localtime(&starttime);
-	std::cout<< "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
 
 
 	prefilter->set_center_freq(f - center); // have to flip for 3.7

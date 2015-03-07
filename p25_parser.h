@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <boost/dynamic_bitset.hpp>
+#include <boost/log/trivial.hpp>
 #include <gnuradio/message.h>
 #include <bitset>
 
