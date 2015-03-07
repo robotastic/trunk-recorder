@@ -47,7 +47,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 
 	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps);
 	demod = gr::analog::quadrature_demod_cf::make(1.6); //1.4);
-	levels = gr::blocks::multiply_const_ff::make(0.40); //33);
+	levels = gr::blocks::multiply_const_ff::make(0.50); //33);
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
 
