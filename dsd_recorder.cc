@@ -55,7 +55,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 		sym_taps.push_back(1.0 / samp_per_sym);
 	}
 	sym_filter = gr::filter::fir_filter_fff::make(1, sym_taps);
-	lpf_second = gr::filter::fir_filter_fff::make(1,gr::filter::firdes::low_pass(1, channel_rate, 6000, 500));
+	lpf_second = gr::filter::fir_filter_fff::make(1,gr::filter::firdes::low_pass(1, 48000, 6000, 500));
 	iam_logging = false;
 	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_GFSK,4,1,1, false, num);
 
