@@ -47,6 +47,17 @@ analog_recorder::analog_recorder(double f, double c, long s, long t, int n)
 
 	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps); //downsample from 100k to 48k
 
+	//on a trunked network where you know you will have good signal, a carrier power squelch works well. real FM receviers use a noise squelch, where
+	//the received audio is high-passed above the cutoff and then fed to a reverse squelch. If the power is then BELOW a threshold, open the squelch.
+	
+	/*squelch = gr::analog::pwr_squelch_cc::make(28, 		//squelch point
+										   		0.1, 	//alpha
+										  		10, 		//ramp
+										   		true); 	//gated so that the audio recording doesn't contain blank spaces between transmissions
+*/
+
+
+
 	//k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
 
 	demod = gr::analog::quadrature_demod_cf::make(1.527); //1.6 //1.4);
@@ -95,6 +106,8 @@ analog_recorder::analog_recorder(double f, double c, long s, long t, int n)
 	connect(valve,0, prefilter,0);
 	connect(prefilter, 0, downsample_sig, 0);
 	connect(downsample_sig, 0, demod, 0);
+	//connect(downsample_sig, 0, squelch, 0);
+	//connect(squelch, 0,	demod, 0);
 	connect(demod, 0, deemph, 0);
 	connect(deemph, 0, decim_audio, 0);
 	connect(decim_audio, 0, wav_sink, 0);

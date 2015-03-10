@@ -102,6 +102,7 @@ private:
 
 	/* GR blocks */
 	gr::filter::fir_filter_ccf::sptr lpf;
+	gr::filter::fir_filter_fff::sptr lpf_second;
 	gr::filter::fir_filter_fff::sptr sym_filter;
 	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::analog::sig_source_c::sptr offset_sig;

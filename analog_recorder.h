@@ -26,9 +26,9 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/rational_resampler_base_ccc.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
-//#include "dsd_block_ff.h"
 #include <gnuradio/analog/sig_source_f.h>
 #include <gnuradio/analog/sig_source_c.h>
+//#include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/blocks/multiply_cc.h>
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/filter/rational_resampler_base_ccf.h>
@@ -37,14 +37,11 @@
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/copy.h>
 //Valve
-//#include <gnuradio/blocks/null_sink.h>
-//#include <gnuradio/blocks/null_source.h>
 #include <gnuradio/blocks/head.h>
-//#include <gnuradio/kludge_copy.h>
-//#include <smartnet_wavsink.h>
+
 #include <gnuradio/blocks/wavfile_sink.h>
 #include <gnuradio/blocks/file_sink.h>
-//#include <blocks/wavfile_sink.h>
+
 #include "smartnet.h"
 #include "recorder.h"
 
@@ -114,16 +111,15 @@ private:
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 	gr::filter::fir_filter_fff::sptr decim_audio;
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
-	//gr::analog::quadrature_demod_cf::sptr demod;
+	//gr::analog::pwr_squelch_cc::sptr squelch;
 	gr::analog::quadrature_demod_cf::sptr demod;
-	//dsd_block_ff_sptr dsd;
 	gr::blocks::wavfile_sink::sptr wav_sink;
 	gr::blocks::file_sink::sptr raw_sink;
 	gr::blocks::file_sink::sptr debug_sink;
 	gr::blocks::null_sink::sptr null_sink;
 	gr::blocks::head::sptr head_source;
 	gr::blocks::copy::sptr valve;
-	//gr_kludge_copy_sptr copier;
+	
 
 };
 
