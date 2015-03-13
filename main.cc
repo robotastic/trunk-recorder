@@ -223,7 +223,7 @@ void start_recorder(TrunkMessage message) {
 
 		}
 		if (!source_found) {
-			BOOST_LOG_TRIVIAL(debug) << "\tRecording not started because there was no source covering: " << message.freq << std::endl;
+			BOOST_LOG_ERROR(debug) << "\tRecording not started because there was no source covering: " << message.freq << std::endl;
 		}
 	}
 

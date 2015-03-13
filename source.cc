@@ -107,6 +107,33 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 		tb->connect(source_block, 0, log, 0);
 	}
 }
+void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
+	max_digital_recorders = r;
+
+	for (int i = 0; i < max_digital_recorders; i++) {
+
+		debug_recorder_sptr log = make_debug_recorder( center, center, rate, 0, i);
+
+		debug_recorders.push_back(log);
+		tb->connect(source_block, 0, log, 0);
+	}
+}
+
+Recorder * Source::get_debug_recorder(int priority)
+{
+	for(std::vector<debug_recorder_sptr>::iterator it = debug_recorders.begin(); it != debug_recorders.end(); it++) {
+		debug_recorder_sptr rx = *it;
+		if (!rx->is_active())
+		{
+			return (Recorder *) rx.get();
+			break;
+		}
+	}
+	std::cout << "[ " << driver << " ] No Debug Recorders Available" << std::endl;
+	return NULL;
+
+}
+
 int Source::get_num_available_recorders() {
 	int num_available_recorders = 0;
 #ifdef DSD
@@ -123,6 +150,7 @@ int Source::get_num_available_recorders() {
 	}
 	return num_available_recorders;
 }
+
 Recorder * Source::get_digital_recorder(int priority)
 {
 	int num_available_recorders = get_num_available_recorders();

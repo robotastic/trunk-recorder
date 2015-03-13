@@ -34,7 +34,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 
 
 
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 5000, gr::filter::firdes::WIN_BLACKMAN);
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 5000, gr::filter::firdes::WIN_HAMMING);
 
 	prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
 	            lpf_taps,
@@ -76,8 +76,9 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 		connect(valve,0, prefilter,0);
 		connect(prefilter, 0, downsample_sig, 0);
 		connect(downsample_sig, 0, demod, 0);
-		connect(demod, 0, lpf_second, 0);
-		connect(lpf_second, 0, sym_filter, 0);
+		connect(demod, 0, sym_filter, 0);
+		//connect(demod, 0, lpf_second, 0);
+		//connect(lpf_second, 0, sym_filter, 0);
 		connect(sym_filter, 0, levels, 0);
 		connect(levels, 0, dsd, 0);
 		connect(dsd, 0, wav_sink,0);

@@ -11,6 +11,7 @@
 #include "recorder.h"
 #include "analog_recorder.h"
 #include "dsd_recorder.h"
+#include "debug_recorder.h"
 #include "p25_recorder.h"
 
 class Source
@@ -31,6 +32,7 @@ class Source
 #else
 	std::vector<p25_recorder_sptr> digital_recorders;
 #endif
+	std::vector<debug_recorder_sptr> debug_recorders;
 	std::vector<analog_recorder_sptr> analog_recorders;
 	std::string driver;
 	std::string device;
@@ -61,6 +63,8 @@ public:
 	Recorder * get_analog_recorder(int priority);
 	void create_digital_recorders(gr::top_block_sptr tb, int r);
 	Recorder * get_digital_recorder(int priority);
+	void create_debug_recorders(gr::top_block_sptr tb, int r);
+	Recorder * get_debug_recorder(int priority);
 	inline osmosdr::source::sptr cast_to_osmo_sptr(gr::basic_block_sptr p)
 	{
 		return boost::dynamic_pointer_cast<osmosdr::source, gr::basic_block>(p);

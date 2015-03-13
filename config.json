@@ -1,10 +1,10 @@
 { "sources": [
 {"center": 858000000.0,
 "rate": 8000000.0,
-"error": 0,
-"gain": 40,
+"error": 900,
+"gain": 30,
 "antenna": "TX/RX",
-"digitalRecorders": 2,
+"digitalRecorders": 4,
 "driver": "usrp",
 "device": ""}
 ],
