@@ -65,12 +65,7 @@ debug_recorder::debug_recorder(double f, double c, long s, long t, int n)
 		connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter, 0, downsample_sig, 0);
-		connect(downsample_sig, 0, demod, 0);
-		connect(demod, 0, lpf_second, 0);
-		connect(lpf_second, 0, sym_filter, 0);
-		connect(sym_filter, 0, levels, 0);
-		connect(levels, 0, dsd, 0);
-		connect(dsd, 0, wav_sink,0);
+		connect(downsample_sig, 0, raw_sink, 0);
 }
 
 debug_recorder::~debug_recorder() {
