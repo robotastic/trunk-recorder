@@ -46,7 +46,7 @@ debug_recorder::debug_recorder(double f, double c, long s, long t, int n)
 	resampler_taps = design_filter(channel_rate, pre_channel_rate);
 
 	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps);
-	
+	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
 
 	
