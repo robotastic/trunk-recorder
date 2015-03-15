@@ -25,6 +25,7 @@ class Source
 	int bb_gain;
 	int if_gain;
 	int max_digital_recorders;
+	int max_debug_recorders;
 	int max_analog_recorders;
 
 #ifdef DSD
