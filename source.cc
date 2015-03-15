@@ -108,9 +108,9 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 	}
 }
 void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
-	max_digital_recorders = r;
+	max_debug_recorders = r;
 
-	for (int i = 0; i < max_digital_recorders; i++) {
+	for (int i = 0; i < max_debug_recorders; i++) {
 
 		debug_recorder_sptr log = make_debug_recorder( center, center, rate, 0, i);
 
