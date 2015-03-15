@@ -1,8 +1,8 @@
 { "sources": [
-{"center": 858000000.0,
+{"center": 857000000.0,
 "rate": 8000000.0,
 "error": 900,
-"gain": 30,
+"gain": 32,
 "antenna": "TX/RX",
 "digitalRecorders": 4,
 "driver": "usrp",

@@ -133,6 +133,7 @@ void load_config()
 			int bb_gain = node.second.get<int>("bbGain",0);
 			std::string antenna = node.second.get<string>("antenna","");
 			int digital_recorders = node.second.get<int>("digitalRecorders",0);
+			int debug_recorders = node.second.get<int>("debugRecorders",0);
 			int analog_recorders = node.second.get<int>("analogRecorders",0);
 
 			std::string driver = node.second.get<std::string>("driver","");
@@ -146,6 +147,7 @@ void load_config()
 			BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain",0) << std::endl;
 
 			BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders",0) << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",0) << std::endl;
 			BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",0) << std::endl;
 			BOOST_LOG_TRIVIAL(info) << "driver: " << node.second.get<std::string>("driver","") << std::endl;
 
@@ -159,6 +161,7 @@ void load_config()
 			source->set_antenna(antenna);
 			source->create_digital_recorders(tb, digital_recorders);
 			source->create_analog_recorders(tb, analog_recorders);
+			source->create_debug_recorders(tb, debug_recorders);
 			sources.push_back(source);
 		}
 
@@ -190,6 +193,7 @@ void start_recorder(TrunkMessage message) {
 	Talkgroup * talkgroup = talkgroups->find_talkgroup(message.talkgroup);
 	bool source_found = false;
 	Recorder *recorder;
+	Recorder *debug_recorder;
 	call->set_recording(false); // start with the assumption that there are no recorders available.
 
 	BOOST_LOG_TRIVIAL(trace) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
@@ -218,12 +222,20 @@ void start_recorder(TrunkMessage message) {
 					BOOST_LOG_TRIVIAL(trace) << "\tNot recording call" << std::endl;
 				}
 
+				debug_recorder = source->get_debug_recorder();
+				if (debug_recorder) {
+					debug_recorder->activate( message.talkgroup,message.freq, calls.size());
+					call->set_recorder(debug_recorder);
+					call->set_recording(true);
+				} else {
+					BOOST_LOG_TRIVIAL(trace) << "\tNot debug recording call" << std::endl;
+				}
 
 			}
 
 		}
 		if (!source_found) {
-			BOOST_LOG_TRIVIAL(error) << "\tRecording not started because there was no source covering: " << message.freq << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "\tRecording not started because there was no source covering: " << message.freq << " For TG: " << message.talkgroup << std::endl;
 		}
 	}
 
@@ -242,6 +254,9 @@ void stop_inactive_recorders() {
 				sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
 				call->get_recorder()->deactivate();
 				system(shell_command);
+			}
+			if (call->get_debug_recording() == true) {
+				call->get_debug_recorder()->deactivate();
 			}
 
 			BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
@@ -268,7 +283,9 @@ void assign_recorder(TrunkMessage message) {
 				call->set_tdma(message.tdma);
 				if (call->get_recording() == true) {
 					call->get_recorder()->tune_offset(message.freq);
-
+				}
+				if (call->get_debug_recording() == true) {
+					call->get_debug_recorder()->tune_offset(message.freq);
 				}
 			}
 			call->update();
@@ -288,6 +305,11 @@ void assign_recorder(TrunkMessage message) {
 					call->get_recorder()->deactivate();
 					system(shell_command);
 				}
+
+				if (call->get_debug_recording() == true) {
+					call->get_debug_recorder()->deactivate();
+				}
+
 				it = calls.erase(it);
 			} else {
 				++it; // move on to the next one

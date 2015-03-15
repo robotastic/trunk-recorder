@@ -64,7 +64,7 @@ public:
 	void create_digital_recorders(gr::top_block_sptr tb, int r);
 	Recorder * get_digital_recorder(int priority);
 	void create_debug_recorders(gr::top_block_sptr tb, int r);
-	Recorder * get_debug_recorder(int priority);
+	Recorder * get_debug_recorder();
 	inline osmosdr::source::sptr cast_to_osmo_sptr(gr::basic_block_sptr p)
 	{
 		return boost::dynamic_pointer_cast<osmosdr::source, gr::basic_block>(p);

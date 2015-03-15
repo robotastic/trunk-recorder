@@ -119,7 +119,7 @@ void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
 	}
 }
 
-Recorder * Source::get_debug_recorder(int priority)
+Recorder * Source::get_debug_recorder()
 {
 	for(std::vector<debug_recorder_sptr>::iterator it = debug_recorders.begin(); it != debug_recorders.end(); it++) {
 		debug_recorder_sptr rx = *it;

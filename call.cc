@@ -6,6 +6,7 @@ Call::Call(long t, double f) {
 	start_time = time(NULL);
 	last_update = time(NULL);
 	recording = false;
+	debug_recording = false;
 	tdma = false;
 	encrypted = false;
 	emergency = false;
@@ -19,11 +20,20 @@ Call::Call(TrunkMessage message) {
 	start_time = time(NULL);
 	last_update = time(NULL);
 	recording = false;
+	debug_recording = false;
 	tdma = message.tdma;
 	encrypted = message.encrypted;
 	emergency = message.emergency;
 	source = 0;
 
+}
+
+void  Call::set_debug_recorder(Recorder *r) {
+	debug_recorder = r;
+}
+
+Recorder *  Call::get_debug_recorder() {
+	return debug_recorder;
 }
 
 void  Call::set_recorder(Recorder *r) {
@@ -46,6 +56,12 @@ void  Call::set_source(long s) {
 }
 long  Call::get_source() {
 	return source;
+}
+void  Call::set_debug_recording(bool m) {
+	debug_recording = m;
+}
+bool  Call::get_debug_recording() {
+	return debug_recording;
 }
 void  Call::set_recording(bool m) {
 	recording = m;
