@@ -108,6 +108,7 @@ This file provides info on the different talkgroups in a trunking system. A lot 
 You will have to add an additional column that adds a priority for each talkgroup. You need that number of recorders available to record a call at that priority. So, 1 is the highest, you would need 2 recorders available to record a priority 2, 3 record for a priority 3 and so on.
 
 Here are the column headers and some sample data:
+
 | DEC |	HEX |	Mode |	Alpha | Tag	| Description	| Tag |	Group | Priority |
 -------------------------------------------------------------------------
 |101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 |
