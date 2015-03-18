@@ -110,7 +110,7 @@ You will have to add an additional column that adds a priority for each talkgrou
 Here are the column headers and some sample data:
 
 | DEC |	HEX |	Mode |	Alpha Tag	| Description	| Tag |	Group | Priority |
--------------------------------------------------------------------------
+|-----|-----|------|-----------|-------------|-----|-------|----------|
 |101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 |
 |2227 |	8b3	| D	| DC StcarYard	| Streetcar Yard |	Transportation |	Services | 3 | 
 
