@@ -196,7 +196,7 @@ void start_recorder(TrunkMessage message) {
 	Recorder *debug_recorder;
 	call->set_recording(false); // start with the assumption that there are no recorders available.
 
-	BOOST_LOG_TRIVIAL(trace) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
+	BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
 
 	if (message.encrypted == false) {
 		for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
@@ -219,7 +219,7 @@ void start_recorder(TrunkMessage message) {
 					call->set_recorder(recorder);
 					call->set_recording(true);
 				} else {
-					BOOST_LOG_TRIVIAL(trace) << "\tNot recording call" << std::endl;
+					BOOST_LOG_TRIVIAL(error) << "\tNot recording call" << std::endl;
 				}
 
 				debug_recorder = source->get_debug_recorder();

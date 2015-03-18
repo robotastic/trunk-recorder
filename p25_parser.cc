@@ -99,7 +99,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 		unsigned long ga   = bitset_shift_mask(tsbk,40,0xffff);
 		unsigned long sa   = bitset_shift_mask(tsbk,16,0xffffff);
 		if (mfrid == 0x90) {
-
+			std::cout << "!!! Wait what? " <<std:endl;
 		} else {
 
 			unsigned long f1 = channel_id_to_frequency(ch);

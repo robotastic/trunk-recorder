@@ -56,7 +56,7 @@ debug_recorder::debug_recorder(double f, double c, long s, long t, int n)
 	path_stream << boost::filesystem::current_path().string() <<  "/debug";
 
 	boost::filesystem::create_directories(path_stream.str());
-	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,freq);
+	sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
 	raw_sink = gr::blocks::file_sink::make(sizeof(gr_complex), filename);
 
 
@@ -126,7 +126,7 @@ void debug_recorder::activate( long t, double f, int n) {
 	path_stream << boost::filesystem::current_path().string() <<  "/debug";
 
 	boost::filesystem::create_directories(path_stream.str());
-	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,freq);
+	sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
 	
 	
 	raw_sink->open(filename);

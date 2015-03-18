@@ -57,7 +57,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	sym_filter = gr::filter::fir_filter_fff::make(1, sym_taps);
 	lpf_second = gr::filter::fir_filter_fff::make(1,gr::filter::firdes::low_pass(1, 48000, 6000, 500));
 	iam_logging = false;
-	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_GFSK,4,1,1, false, num);
+	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_GFSK,4,0,0, false, num);
 
 	tm *ltm = localtime(&starttime);
 
@@ -70,15 +70,12 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 	null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 
-	//connect(self(),0, null_sink,0);
 	
 		connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter, 0, downsample_sig, 0);
 		connect(downsample_sig, 0, demod, 0);
 		connect(demod, 0, sym_filter, 0);
-		//connect(demod, 0, lpf_second, 0);
-		//connect(lpf_second, 0, sym_filter, 0);
 		connect(sym_filter, 0, levels, 0);
 		connect(levels, 0, dsd, 0);
 		connect(dsd, 0, wav_sink,0);
@@ -172,7 +169,6 @@ void dsd_recorder::deactivate() {
 	}
 	else BOOST_LOG_TRIVIAL(error) << "Unable to open file";
 	dsd->reset_state();
-	//wav_sink->close();
 }
 
 void dsd_recorder::activate( long t, double f, int n) {
@@ -197,19 +193,6 @@ void dsd_recorder::activate( long t, double f, int n) {
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,starttime,freq);
 
 	wav_sink->open(filename);
-
-	/*lock();
-	disconnect(self(),0, null_sink, 0);
-	connect(self(),0, prefilter,0);
-	connect(prefilter, 0, downsample_sig, 0);
-	connect(downsample_sig, 0, demod, 0);
-	connect(demod, 0, sym_filter, 0);
-	connect(sym_filter, 0, levels, 0);
-	connect(levels, 0, dsd, 0);
-	connect(dsd, 0, wav_sink,0);
-
-	unlock();
-*/
 
 	active = true;
 	valve->set_enabled(true);
