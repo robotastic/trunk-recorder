@@ -137,7 +137,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 
 	boost::filesystem::create_directories(path_stream.str());
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
-	wav_sink = gr::blocks::wavfile_sink::make(filename,1,8000,16);
+	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 	null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 
 

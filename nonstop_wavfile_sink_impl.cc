@@ -266,6 +266,12 @@ nonstop_wavfile_sink_impl::sample_rate()
 	return d_sample_rate;
 }
 
+float
+nonstop_wavfile_sink_impl::length_in_seconds()
+{
+	return d_sample_count / d_sample_rate;
+}
+
 void
 nonstop_wavfile_sink_impl::do_update()
 {

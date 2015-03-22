@@ -79,6 +79,8 @@ public:
 	 * is kept.
 	 */
 	virtual void set_bits_per_sample(int bits_per_sample) = 0;
+
+	virtual float length_in_seconds() = 0;
 };
 
 } /* namespace blocks */

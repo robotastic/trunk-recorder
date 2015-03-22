@@ -55,7 +55,7 @@
 
 #include <gnuradio/blocks/head.h>
 
-#include <gnuradio/blocks/wavfile_sink.h>
+#include "nonstop_wavfile_sink.h"
 #include <gnuradio/blocks/file_sink.h>
 #include "recorder.h"
 #include "smartnet.h"
@@ -127,7 +127,7 @@ private:
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 	//gr::analog::quadrature_demod_cf::sptr demod;
 	gr::analog::quadrature_demod_cf::sptr demod;
-	gr::blocks::wavfile_sink::sptr wav_sink;
+	gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 	gr::blocks::file_sink::sptr raw_sink;
 	gr::blocks::null_sink::sptr null_sink;
 	gr::blocks::null_sink::sptr dump_sink;

@@ -69,7 +69,7 @@
     <key>variable</key>
     <param>
       <key>id</key>
-      <value>samp_rate</value>
+      <value>decim</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -77,7 +77,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>48000</value>
+      <value>15</value>
     </param>
     <param>
       <key>alias</key>
@@ -85,34 +85,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(7, 82)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>id</key>
-      <value>samp_per_sym</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>10</value>
-    </param>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(220, 313)</value>
+      <value>(112, 374)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -150,7 +123,7 @@
     <key>variable</key>
     <param>
       <key>id</key>
-      <value>decim</value>
+      <value>samp_per_sym</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -158,7 +131,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>15</value>
+      <value>10</value>
     </param>
     <param>
       <key>alias</key>
@@ -166,7 +139,34 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(112, 374)</value>
+      <value>(220, 313)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>id</key>
+      <value>samp_rate</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>48000</value>
+    </param>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(7, 82)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1424,7 +1424,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/Users/luke/Programming/dsd-debug/728-1426444466_8.57188e+08.wav</value>
+      <value>/Users/luke/Programming/dsd-debug/103-1426965236_8.57988e+08.raw</value>
     </param>
     <param>
       <key>type</key>

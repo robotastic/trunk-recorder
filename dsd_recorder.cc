@@ -46,7 +46,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	resampler_taps = design_filter(channel_rate, pre_channel_rate);
 
 	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps);
-	demod = gr::analog::quadrature_demod_cf::make(1.0); //1.6); //1.4);
+	demod = gr::analog::quadrature_demod_cf::make(1.2); //1.6); //1.4);
 	levels = gr::blocks::multiply_const_ff::make(1.0); //.40); //33);
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
@@ -57,7 +57,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	sym_filter = gr::filter::fir_filter_fff::make(1, sym_taps);
 	lpf_second = gr::filter::fir_filter_fff::make(1,gr::filter::firdes::low_pass(1, 48000, 6000, 500));
 	iam_logging = false;
-	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_GFSK,4,0,0, false, num);
+	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_GFSK,4,1,1, false, num);
 
 	tm *ltm = localtime(&starttime);
 
