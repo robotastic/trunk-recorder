@@ -284,7 +284,7 @@ long p25_recorder::elapsed() {
 void p25_recorder::tune_offset(double f) {
 	freq = f;
 	int offset_amount = (f - center);
-	lo->set_frequency(offset_amount);
+	lo->set_frequency(-offset_amount);
 	//prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 	//std::cout << "Offset set to: " << offset_amount << " Freq: "  << freq << std::endl;
 }
@@ -309,7 +309,7 @@ void p25_recorder::activate(long t, double f, int n) {
 	std::cout<< "logging_receiver_dsd.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
 
 	int offset_amount = (f - center);
-	lo->set_frequency(offset_amount);
+	lo->set_frequency(-offset_amount);
 
 
 	std::stringstream path_stream;
