@@ -192,8 +192,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 	device = dev;
 	if (driver == "osmosdr") {
 		osmosdr::source::sptr osmo_src;
-		osmo_src = osmosdr::source::make();
-
+		if (dev == "") {
+			osmo_src = osmosdr::source::make();
+		} else {
+			osmo_src = osmosdr::source::make(dev);
+		}
 		std::cout << "SOURCE TYPE OSMOSDR (osmosdr)" << std::endl;
 		std::cout << "Setting sample rate to: " << rate << std::endl;
 		osmo_src->set_sample_rate(rate);
