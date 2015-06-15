@@ -213,6 +213,11 @@ void start_recorder(TrunkMessage message) {
             
             if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
                 source_found = true;
+
+                 if (call->get_tdma()) {
+                    BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " << message.freq << " For TG: " << message.talkgroup << std::endl;
+                 }
+                 
                 if (talkgroup)
                 {
                     if (talkgroup->mode == 'A') {
@@ -221,6 +226,8 @@ void start_recorder(TrunkMessage message) {
                         recorder = source->get_digital_recorder(talkgroup->get_priority());
                     }
                 } else {
+                    BOOST_LOG_TRIVIAL(error) << "\tTalkgroup not found: " << message.freq << " For TG: " << message.talkgroup << std::endl;
+ 
                     recorder = source->get_digital_recorder(3);
                 }
                 if (recorder) {
