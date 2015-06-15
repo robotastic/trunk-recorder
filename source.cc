@@ -129,7 +129,7 @@ Recorder * Source::get_debug_recorder()
 			break;
 		}
 	}
-	std::cout << "[ " << driver << " ] No Debug Recorders Available" << std::endl;
+	//std::cout << "[ " << driver << " ] No Debug Recorders Available" << std::endl;
 	return NULL;
 
 }
