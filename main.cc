@@ -5,7 +5,6 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/program_options.hpp>
 #include <boost/math/constants/constants.hpp>
