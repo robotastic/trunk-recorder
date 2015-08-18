@@ -98,7 +98,7 @@ std::vector<float> design_filter(double interpolation, double deci) {
     float beta = 5.0;
     float trans_width = 0.5 - 0.4;
     float mid_transition_band = 0.5 - trans_width/2;
-    
+
     std::vector<float> result = gr::filter::firdes::low_pass(
                                                              interpolation,
                                                              1,
@@ -107,7 +107,7 @@ std::vector<float> design_filter(double interpolation, double deci) {
                                                              gr::filter::firdes::WIN_KAISER,
                                                              beta
                                                              );
-    
+
     return result;
 }
 
@@ -119,15 +119,15 @@ std::vector<float> design_filter(double interpolation, double deci) {
 
 void load_config()
 {
-    
+
     try
     {
-        
+
         const std::string json_filename = "config.json";
-        
+
         boost::property_tree::ptree pt;
         boost::property_tree::read_json(json_filename, pt);
-        
+
         BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("sources") )
         {
             double center = node.second.get<double>("center",0);
@@ -140,23 +140,23 @@ void load_config()
             int digital_recorders = node.second.get<int>("digitalRecorders",0);
             int debug_recorders = node.second.get<int>("debugRecorders",0);
             int analog_recorders = node.second.get<int>("analogRecorders",0);
-            
+
             std::string driver = node.second.get<std::string>("driver","");
             std::string device = node.second.get<std::string>("device","");
-            
+
             BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain",0) << std::endl;
-            
+
             BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",0) << std::endl;
             BOOST_LOG_TRIVIAL(info) << "driver: " << node.second.get<std::string>("driver","") << std::endl;
-            
-            
+
+
             Source *source = new Source(center,rate,error,driver,device);
             BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz() << std::endl;
             BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz() << std::endl;
@@ -169,7 +169,7 @@ void load_config()
             source->create_debug_recorders(tb, debug_recorders);
             sources.push_back(source);
         }
-        
+
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
         BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("system.control_channels") )
         {
@@ -178,17 +178,17 @@ void load_config()
             BOOST_LOG_TRIVIAL(info) << node.second.get<double>("",0) << " ";
         }
         BOOST_LOG_TRIVIAL(info) << std::endl;
-        
+
         talkgroups_file = pt.get<std::string>("talkgroupsFile","");
         BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file << std::endl;
         system_type = pt.get<std::string>("system.type");
-        
+
     }
     catch (std::exception const& e)
     {
         BOOST_LOG_TRIVIAL(error) << e.what() << std::endl;
     }
-    
+
 }
 
 /**
@@ -204,14 +204,14 @@ void start_recorder(TrunkMessage message) {
     Recorder *recorder;
     Recorder *debug_recorder;
     call->set_recording(false); // start with the assumption that there are no recorders available.
-    
-    
+
+
     if (message.encrypted == false) {
     BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
-    
+
         for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
             Source * source = *it;
-            
+
             if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
                 source_found = true;
 
@@ -228,7 +228,7 @@ void start_recorder(TrunkMessage message) {
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tTalkgroup not found: " << message.freq << " For TG: " << message.talkgroup << std::endl;
- 
+
                     recorder = source->get_digital_recorder(3);
                 }
                 if (recorder) {
@@ -238,7 +238,7 @@ void start_recorder(TrunkMessage message) {
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tNot recording call" << std::endl;
                 }
-                
+
                 debug_recorder = source->get_debug_recorder();
                 if (debug_recorder) {
                     debug_recorder->activate( message.talkgroup,message.freq, calls.size());
@@ -247,26 +247,26 @@ void start_recorder(TrunkMessage message) {
                 } else {
                     BOOST_LOG_TRIVIAL(trace) << "\tNot debug recording call" << std::endl;
                 }
-                
+
             }
-            
+
         }
         if (!source_found) {
             BOOST_LOG_TRIVIAL(error) << "\tRecording not started because there was no source covering: " << message.freq << " For TG: " << message.talkgroup << std::endl;
         }
     }
-    
+
     calls.push_back(call);
 }
 void stop_inactive_recorders() {
-    
+
     char shell_command[200];
-    
+
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
         if ( call->since_last_update()  >= 5.0) {
-            
-            
+
+
             if (call->get_recording() == true) {
                 sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
                 call->get_recorder()->deactivate();
@@ -275,7 +275,7 @@ void stop_inactive_recorders() {
             if (call->get_debug_recording() == true) {
                 call->get_debug_recorder()->deactivate();
             }
-            
+
             BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
             it = calls.erase(it);
         } else {
@@ -287,11 +287,11 @@ void stop_inactive_recorders() {
 void assign_recorder(TrunkMessage message) {
     bool call_found = false;
     char shell_command[200];
-    
+
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call= *it;
-        
-        
+
+
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
                 BOOST_LOG_TRIVIAL(trace) << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
@@ -307,34 +307,34 @@ void assign_recorder(TrunkMessage message) {
             }
             call->update();
             call_found = true;
-            
+
             ++it; // move on to the next one
         } else {
-            
+
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
                 //call_found = true;
-                
+
                 BOOST_LOG_TRIVIAL(trace) << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << std::endl;
                 //different talkgroups on the same freq, that is trouble
-                
+
                 if (call->get_recording() == true) {
                     sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
                     call->get_recorder()->deactivate();
                     system(shell_command);
                 }
-                
+
                 if (call->get_debug_recording() == true) {
                     call->get_debug_recorder()->deactivate();
                 }
-                
+
                 it = calls.erase(it);
             } else {
                 ++it; // move on to the next one
             }
         }
     }
-    
-    
+
+
     if (!call_found) {
         start_recorder(message);
     }
@@ -350,12 +350,12 @@ void add_control_channel(double control_channel) {
 
 
 void unit_registration(long unit) {
-    
+
 }
 
 void unit_deregistration(long unit) {
     std::map<long, long>::iterator it;
-    
+
     it = unit_affiliations.find (unit);
     if (it != unit_affiliations.end()) {
         unit_affiliations.erase(it);
@@ -367,15 +367,15 @@ void group_affiliation(long unit, long talkgroup) {
 }
 
 void update_recorder(TrunkMessage message) {
-    
+
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
         Call *call= *it;
-        
+
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
-                
+
                 BOOST_LOG_TRIVIAL(trace) << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
-                
+
                 // not sure what to do here; looks like we should retune
                 call->set_freq(message.freq);
                 call->set_tdma(message.tdma);
@@ -395,20 +395,20 @@ void unit_check() {
     time_t starttime = time(NULL);
     tm *ltm = localtime(&starttime);
     char unit_filename[160];
-    
+
     std::stringstream path_stream;
     path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-    
+
     boost::filesystem::create_directories(path_stream.str());
-    
-    
-    
+
+
+
     for(it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
         talkgroup_totals[it->second]++;
     }
-    
+
     sprintf(unit_filename, "%s/%ld-unit_check.json", path_stream.str().c_str(),starttime);
-    
+
     ofstream myfile (unit_filename);
     if (myfile.is_open())
     {
@@ -419,7 +419,7 @@ void unit_check() {
                 myfile << ",\n";
             }
             myfile << "\"" << it->first << "\": " << it->second;
-            
+
         }
         myfile << "\n}\n}\n";
         sprintf(shell_command,"./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
@@ -431,7 +431,7 @@ void unit_check() {
 void handle_message(std::vector<TrunkMessage>  messages) {
     for(std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
         TrunkMessage message = *it;
-        
+
         switch(message.message_type) {
             case GRANT:
                 assign_recorder(message);
@@ -461,25 +461,25 @@ void monitor_messages() {
     gr::message::sptr msg;
     int messagesDecodedSinceLastReport = 0;
     float msgs_decoded_per_second = 0;
-    
+
     time_t lastMsgCountTime = time(NULL);;
     time_t lastTalkgroupPurge = time(NULL);;
     time_t currentTime = time(NULL);
     time_t lastUnitCheckTime = time(NULL);
     std::vector<TrunkMessage> trunk_messages;
-    
+
     while (1) {
         if(exit_flag) { // my action when signal set it 1
             printf("\n Signal caught!\n");
             return;
         }
-        
-        
+
+
         msg = queue->delete_head();
         messagesDecodedSinceLastReport++;
         currentTime = time(NULL);
-        
-        
+
+
         if ((currentTime - lastTalkgroupPurge) >= 1.0 )
         {
             stop_inactive_recorders();
@@ -494,7 +494,7 @@ void monitor_messages() {
             BOOST_LOG_TRIVIAL(error) << msg->to_string() << std::endl;
         }
         handle_message(trunk_messages);
-        
+
         float timeDiff = currentTime - lastMsgCountTime;
         if (timeDiff >= 3.0) {
             msgs_decoded_per_second = messagesDecodedSinceLastReport/timeDiff;
@@ -504,17 +504,17 @@ void monitor_messages() {
                 BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
             }
         }
-        
-        
+
+
         if ((currentTime - lastUnitCheckTime) >= 300.0) {
             unit_check();
             lastUnitCheckTime = currentTime;
         }
-        
+
         msg.reset();
-        
-        
-        
+
+
+
     }
 }
 
@@ -523,24 +523,24 @@ bool monitor_system() {
     bool source_found = false;
     Source * source = NULL;
     double control_channel_freq = control_channels[current_control_channel];
-    
+
     for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
         source = *it;
-        
+
         if ((source->get_min_hz() <= control_channel_freq) && (source->get_max_hz() >= control_channel_freq)) {
             source_found = true;
-            
+
             break;
         }
     }
-    
+
     if (source_found) {
         if (system_type == "smartnet") {
             // what you really need to do is go through all of the sources to find the one with the right frequencies
             smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  queue);
             tb->connect(source->get_src_block(),0, smartnet_trunking, 0);
         }
-        
+
         if (system_type == "p25") {
             // what you really need to do is go through all of the sources to find the one with the right frequencies
             p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  queue);
@@ -557,23 +557,23 @@ int main(void)
     (
      logging::trivial::severity >= logging::trivial::info
      );
-    
+
     tb = gr::make_top_block("Smartnet");
     queue = gr::msg_queue::make(100);
     smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
     p25_parser = new P25Parser();
-    
+
     load_config();
-    
-    
-    
+
+
+
     // Setup the talkgroups from the CSV file
     talkgroups = new Talkgroups();
     //if (talkgroups_file.length() > 0) {
     BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups..."<<std::endl;
     talkgroups->load_talkgroups(talkgroups_file);
     //}
-    
+
     if (monitor_system()) {
         tb->start();
         monitor_messages();
@@ -586,10 +586,10 @@ int main(void)
     } else {
         BOOST_LOG_TRIVIAL(info) << "Unable to setup Control Channel Monitor"<< std::endl;
     }
-    
-    
-    
-    
+
+
+
+
     return 0;
-    
+
 }

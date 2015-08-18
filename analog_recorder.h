@@ -119,7 +119,7 @@ private:
 	gr::blocks::null_sink::sptr null_sink;
 	gr::blocks::head::sptr head_source;
 	gr::blocks::copy::sptr valve;
-	
+
 
 };
 
