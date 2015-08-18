@@ -143,22 +143,22 @@ void load_config()
             std::string driver = node.second.get<std::string>("driver","");
             std::string device = node.second.get<std::string>("device","");
 
-            BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain",0) << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center",0);
+            BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate",0);
+            BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error",0);
+            BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain",0);
+            BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain",0);
+            BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain",0);
 
-            BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",0) << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "driver: " << node.second.get<std::string>("driver","") << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders",0);
+            BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",0);
+            BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",0);
+            BOOST_LOG_TRIVIAL(info) << "driver: " << node.second.get<std::string>("driver","");
 
 
             Source *source = new Source(center,rate,error,driver,device);
-            BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz() << std::endl;
-            BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz() << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
+            BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
             source->set_if_gain(if_gain);
             source->set_bb_gain(bb_gain);
             source->set_gain(gain);
@@ -176,16 +176,16 @@ void load_config()
             control_channels.push_back(control_channel);
             BOOST_LOG_TRIVIAL(info) << node.second.get<double>("",0) << " ";
         }
-        BOOST_LOG_TRIVIAL(info) << std::endl;
+        BOOST_LOG_TRIVIAL(info);
 
         talkgroups_file = pt.get<std::string>("talkgroupsFile","");
-        BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
         system_type = pt.get<std::string>("system.type");
 
     }
     catch (std::exception const& e)
     {
-        BOOST_LOG_TRIVIAL(error) << e.what() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << e.what();
     }
 
 }
@@ -206,7 +206,7 @@ void start_recorder(TrunkMessage message) {
 
 
     if (message.encrypted == false) {
-    //BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
+        //BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted();
 
         for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
             Source * source = *it;
@@ -215,7 +215,7 @@ void start_recorder(TrunkMessage message) {
                 source_found = true;
 
                  if (call->get_tdma()) {
-                    BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " << message.freq << " For TG: " << message.talkgroup << std::endl;
+                    BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " << message.freq << " For TG: " << message.talkgroup;
                  }
 
                 if (talkgroup)
@@ -226,7 +226,7 @@ void start_recorder(TrunkMessage message) {
                         recorder = source->get_digital_recorder(talkgroup->get_priority());
                     }
                 } else {
-                    BOOST_LOG_TRIVIAL(error) << "\tTalkgroup not found: " << message.freq << " For TG: " << message.talkgroup << std::endl;
+                    BOOST_LOG_TRIVIAL(error) << "\tTalkgroup not found: " << message.freq << " For TG: " << message.talkgroup;
 
                     recorder = source->get_digital_recorder(3);
                 }
@@ -235,7 +235,7 @@ void start_recorder(TrunkMessage message) {
                     call->set_recorder(recorder);
                     call->set_recording(true);
                 } else {
-                    //BOOST_LOG_TRIVIAL(error) << "\tNot recording call" << std::endl;
+                    BOOST_LOG_TRIVIAL(error) << "\tNot recording call";
                 }
 
                 debug_recorder = source->get_debug_recorder();
@@ -244,14 +244,14 @@ void start_recorder(TrunkMessage message) {
                     call->set_recorder(debug_recorder);
                     call->set_recording(true);
                 } else {
-                    BOOST_LOG_TRIVIAL(trace) << "\tNot debug recording call" << std::endl;
+                    BOOST_LOG_TRIVIAL(trace) << "\tNot debug recording call";
                 }
 
             }
 
         }
         if (!source_found) {
-            BOOST_LOG_TRIVIAL(error) << "\tRecording not started because there was no source covering: " << message.freq << " For TG: " << message.talkgroup << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "\tRecording not started because there was no source covering: " << message.freq << " For TG: " << message.talkgroup;
         }
     }
 
@@ -271,12 +271,12 @@ void stop_inactive_recorders() {
                 call->get_recorder()->deactivate();
                 system(shell_command);
                 //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
- 
             }
             if (call->get_debug_recording() == true) {
                 call->get_debug_recorder()->deactivate();
             }
 
+            //BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed();
             it = calls.erase(it);
         } else {
             ++it;
@@ -294,6 +294,7 @@ void assign_recorder(TrunkMessage message) {
 
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
+                BOOST_LOG_TRIVIAL(trace) << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
                 // not sure what to do here; looks like we should retune
                 if (call->get_recording() == true) {
                     BOOST_LOG_TRIVIAL(info) << "\tAssign Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
@@ -315,9 +316,8 @@ void assign_recorder(TrunkMessage message) {
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
                 //call_found = true;
 
-                
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << std::endl;
+                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
                 //different talkgroups on the same freq, that is trouble
 
                     sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
@@ -375,7 +375,7 @@ void update_recorder(TrunkMessage message) {
 
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
-                    
+                //BOOST_LOG_TRIVIAL(trace) << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
                 // not sure what to do here; looks like we should retune
 
                 if (call->get_recording() == true) {
@@ -494,7 +494,7 @@ void monitor_messages() {
             trunk_messages = p25_parser->parse_message(msg);
         }
         else {
-            BOOST_LOG_TRIVIAL(error) << msg->to_string() << std::endl;
+            BOOST_LOG_TRIVIAL(error) << msg->to_string();
         }
         handle_message(trunk_messages);
 
@@ -504,7 +504,7 @@ void monitor_messages() {
             messagesDecodedSinceLastReport = 0;
             lastMsgCountTime = currentTime;
             if (msgs_decoded_per_second < 10 ) {
-                BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec" << std::endl;
+                BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec";
             }
         }
 
@@ -583,7 +583,7 @@ int main(void)
         //------------------------------------------------------------------
         //-- stop flow graph execution
         //------------------------------------------------------------------
-        BOOST_LOG_TRIVIAL(info) << "stopping flow graph" << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "stopping flow graph";
         tb->stop();
         tb->wait();
     } else {

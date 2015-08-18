@@ -108,7 +108,7 @@ void dsd_recorder::tune_offset(double f) {
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 }
 void dsd_recorder::deactivate() {
-	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	//lock();
 
@@ -179,7 +179,7 @@ void dsd_recorder::activate( long t, double f, int n) {
 	freq = f;
 
 	tm *ltm = localtime(&starttime);
-	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 
 	prefilter->set_center_freq(f - center); // have to flip for 3.7

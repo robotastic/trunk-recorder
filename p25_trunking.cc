@@ -1,5 +1,6 @@
 
 #include "p25_trunking.h"
+#include <boost/log/trivial.hpp>
 
 
 p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue)
@@ -75,12 +76,12 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
 	//int squelch_db = 40;
 	// squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.001, 0, true);
-	std::cout << "Prechannel Decim: " << floor(capture_rate / system_channel_rate) << " Rate: " << prechannel_rate << " system_channel_rate: " << system_channel_rate << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "Prechannel Decim: " << floor(capture_rate / system_channel_rate) << " Rate: " << prechannel_rate << " system_channel_rate: " << system_channel_rate;
 
 	unsigned int d = GCD(prechannel_rate, system_channel_rate);
 	double small_system_channel_rate = floor(system_channel_rate  / d);
 	double small_prechannel_rate = floor(prechannel_rate / d);
-	std::cout << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " << small_prechannel_rate << " system_channel_rate: " << small_system_channel_rate << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "After GCD - Prechannel Decim: " << prechannel_decim << " Rate: " << small_prechannel_rate << " system_channel_rate: " << small_system_channel_rate;
 
 
 	resampler_taps = design_filter(small_system_channel_rate, small_prechannel_rate);
@@ -96,7 +97,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
 	double symbol_decim = 1;
 
-	std::cout << " FM Gain: " << fm_demod_gain << " PI: " << pi << " Samples per sym: " << samples_per_symbol <<  std::endl;
+	BOOST_LOG_TRIVIAL(info) << " FM Gain: " << fm_demod_gain << " PI: " << pi << " Samples per sym: " << samples_per_symbol;
 
 	for (int i=0; i < samples_per_symbol; i++) {
 		sym_taps.push_back(1.0 / samples_per_symbol);
@@ -170,11 +171,11 @@ void p25_trunking::tune_offset(double f) {
 	freq = f;
 	int offset_amount = (f - center);
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
-	//std::cout << "Offset set to: " << offset_amount << " Freq: "  << freq << std::endl;
+	//BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "  << freq;
 }
 
 void p25_trunking::deactivate() {
-	std::cout<< "logging_receiver_dsd.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "logging_receiver_dsd.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	active = false;
 	valve->set_enabled(false);
@@ -191,7 +192,7 @@ void p25_trunking::activate(long t, double f, int n) {
 	freq = f;
 
 	tm *ltm = localtime(&starttime);
-	std::cout<< "logging_receiver_dsd.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "logging_receiver_dsd.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	prefilter->set_center_freq(f - center); // have to flip for 3.7
 

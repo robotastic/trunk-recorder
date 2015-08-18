@@ -28,6 +28,7 @@
 #include "smartnet_deinterleave.h"
 #include <gnuradio/io_signature.h>
 #include <gnuradio/tags.h>
+#include <boost/log/trivial.hpp>
 
 #define VERBOSE 0
 
@@ -92,7 +93,7 @@ smartnet_deinterleave::general_work (int noutput_items,
 	const char *in = (const char *) input_items[0];
 	char *out = (char *) output_items[0];
 
-	if(VERBOSE) std::cout << "Deinterleave called with " << noutput_items << " outputs" << std::endl;
+	if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "Deinterleave called with " << noutput_items << " outputs";
 
 	//you will need to look ahead 84 bits to post 76 bits of data
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
@@ -118,7 +119,7 @@ smartnet_deinterleave::general_work (int noutput_items,
 		uint64_t mark = tag_iter->offset - abs_sample_cnt;
 
 		if(VERBOSE)
-			std::cout << "found a preamble at " << tag_iter->offset << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "found a preamble at " << tag_iter->offset;
 
 		for(int k=0; k<76/4; k++) {
 			for(int l=0; l<4; l++) {
@@ -136,7 +137,7 @@ smartnet_deinterleave::general_work (int noutput_items,
 		outlen += 76;
 	}
 
-	if(VERBOSE) std::cout << "consumed " << size << ", produced " << outlen << std::endl;
+	if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "consumed " << size << ", produced " << outlen;
 	consume_each(preamble_tags.back().offset - abs_sample_cnt + 84);
 	return outlen;
 }

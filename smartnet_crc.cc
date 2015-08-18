@@ -31,6 +31,7 @@
 #include <gnuradio/tags.h>
 #include <sstream>
 #include "smartnet_types.h"
+#include <boost/log/trivial.hpp>
 
 #define VERBOSE 0
 
@@ -76,7 +77,7 @@ static void smartnet_ecc(char *out, const char *in) {
 
 	for(int k = 0; k < 76; k++) {
 		syndrome[k] = expected[k] ^ (in[k] & 0x01); //calculate the syndrome
-		if(VERBOSE) if(syndrome[k]) std::cout << "Bit error at bit " << k << std::endl;
+		if(VERBOSE) if(syndrome[k]) BOOST_LOG_TRIVIAL(info) << "Bit error at bit " << k;
 	}
 
 	for(int k = 0; k < 38-1; k++) {
@@ -84,7 +85,7 @@ static void smartnet_ecc(char *out, const char *in) {
 		//parity bits are flipped, you've got a bad previous bit
 		if(syndrome[2*k+1] && syndrome[2*k+3]) {
 			out[k] = (in[2*k] & 0x01) ? 0 : 1; //byte-safe bit flip
-			if(VERBOSE) std::cout << "I just flipped a bit!" << std::endl;
+			if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "I just flipped a bit!";
 		}
 		else out[k] = in[2*k];
 	}
@@ -159,7 +160,7 @@ smartnet_crc::work (int noutput_items,
 	for(tag_iter = frame_tags.begin(); tag_iter != frame_tags.end(); tag_iter++) {
 		uint64_t mark = tag_iter->offset - abs_sample_cnt;
 		if(VERBOSE)
-			std::cout << "found a frame at " << mark << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "found a frame at " << mark;
 
 		char databits[38];
 		smartnet_ecc(databits, &in[mark]);
@@ -167,7 +168,7 @@ smartnet_crc::work (int noutput_items,
 
 		if(crc_ok) {
 			if(VERBOSE)
-				std::cout << "CRC OK" << std::endl;
+				BOOST_LOG_TRIVIAL(info) << "CRC OK";
 			//parse the message into readable chunks
 			smartnet_packet pkt = parse(databits);
 
@@ -177,7 +178,7 @@ smartnet_crc::work (int noutput_items,
 			payload << pkt.address << "," << pkt.groupflag << "," << pkt.command;
 			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()));
 			d_queue->handle(msg);
-		} else if (VERBOSE) std::cout << "CRC FAILED" << std::endl;
+		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
 	}
 	return size;
 }
