@@ -508,12 +508,12 @@ void monitor_messages() {
             }
         }
 
-
+/*
         if ((currentTime - lastUnitCheckTime) >= 300.0) {
             unit_check();
             lastUnitCheckTime = currentTime;
         }
-
+*/
         msg.reset();
 
 
