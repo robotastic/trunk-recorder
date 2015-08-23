@@ -20,7 +20,7 @@
 
 
 cmake_minimum_required(VERSION 2.6)
-project(Smartnet-Recorder CXX C)
+project(Trunk-Recorder CXX C)
 
 set(CMAKE_BUILD_TYPE Debug)
 

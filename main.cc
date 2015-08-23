@@ -275,7 +275,7 @@ void stop_inactive_recorders() {
                 call->get_debug_recorder()->deactivate();
             }
 
-            BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
             it = calls.erase(it);
         } else {
             ++it;
@@ -293,7 +293,7 @@ void assign_recorder(TrunkMessage message) {
 
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
-                BOOST_LOG_TRIVIAL(trace) << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+                BOOST_LOG_TRIVIAL(info) << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
                 // not sure what to do here; looks like we should retune
                 call->set_freq(message.freq);
                 call->set_tdma(message.tdma);
@@ -313,7 +313,7 @@ void assign_recorder(TrunkMessage message) {
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
                 //call_found = true;
 
-                BOOST_LOG_TRIVIAL(trace) << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << std::endl;
+                BOOST_LOG_TRIVIAL(info) << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << std::endl;
                 //different talkgroups on the same freq, that is trouble
 
                 if (call->get_recording() == true) {
@@ -373,7 +373,7 @@ void update_recorder(TrunkMessage message) {
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
 
-                BOOST_LOG_TRIVIAL(trace) << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+                BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
 
                 // not sure what to do here; looks like we should retune
                 call->set_freq(message.freq);
@@ -557,7 +557,7 @@ int main(void)
      logging::trivial::severity >= logging::trivial::info
      );
 
-    tb = gr::make_top_block("Smartnet");
+    tb = gr::make_top_block("Trunking");
     queue = gr::msg_queue::make(100);
     smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
     p25_parser = new P25Parser();
