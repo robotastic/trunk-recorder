@@ -296,7 +296,7 @@ void assign_recorder(TrunkMessage message) {
             if (call->get_freq() != message.freq) {
                 // not sure what to do here; looks like we should retune
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tAssign Retune - Elapsed: " << call->elapsed() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+                    BOOST_LOG_TRIVIAL(info) << "\tAssign Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
                     call->get_recorder()->tune_offset(message.freq);
                 }
                 call->set_freq(message.freq);
@@ -317,7 +317,7 @@ void assign_recorder(TrunkMessage message) {
 
                 
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << std::endl;
+                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << std::endl;
                 //different talkgroups on the same freq, that is trouble
 
                     sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
@@ -375,9 +375,8 @@ void update_recorder(TrunkMessage message) {
 
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
-
-                BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
-
+                BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+                    
                 // not sure what to do here; looks like we should retune
                 call->set_freq(message.freq);
                 call->set_tdma(message.tdma);
