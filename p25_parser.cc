@@ -104,8 +104,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
                 unsigned long ga2   = bitset_shift_mask(tsbk, 32, 0xffff);
                 unsigned long ga3   = bitset_shift_mask(tsbk, 16, 0xffff);
                 BOOST_LOG_TRIVIAL(trace) << "tsbk00\tMoto Patch Add \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3 << std::endl;
-    
-			
+
+
 		} else {
 
 			unsigned long f1 = channel_id_to_frequency(ch);
@@ -144,13 +144,13 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 			} else {
 				message.tdma = false;
 			}
-               
 
 
-        
+
+
             BOOST_LOG_TRIVIAL(error) << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: "<< f/1000000.0 << "\tsg " << std::setw(7) << sg  << "\tTDMA " << get_tdma_slot(ch) << "\tsa " << sa << std::endl;
-	
-	
+
+
 		}
 		else {
 			unsigned long ch1  = bitset_shift_mask(tsbk, 64, 0xffff);
@@ -160,8 +160,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 			unsigned long f1 = channel_id_to_frequency(ch1);
 			unsigned long f2 = channel_id_to_frequency(ch2);
 
-			
-		
+
+
 			if (f1) {
 				updated += 1;
 			}
@@ -182,7 +182,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 
 			BOOST_LOG_TRIVIAL(trace) << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1) << std::endl;
 		}
-	} else if ( opcode == 0x03 ) { 
+	} else if ( opcode == 0x03 ) {
 
 		unsigned long mfrid  = bitset_shift_mask(tsbk, 80, 0xff);
         if (mfrid == 0x90) {   // MOT_GRG_CN_GRANT_UPDT
@@ -203,10 +203,10 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 				message.freq = f2;
 				message.talkgroup = sg2;
 				message.tdma = get_tdma_slot(ch2);
-	         	BOOST_LOG_TRIVIAL(trace) << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: "<< std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tsg " << std::setw(7) << sg2 << "\tTDMA " << get_tdma_slot(ch2) << std::endl;        
+	         	BOOST_LOG_TRIVIAL(trace) << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: "<< std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tsg " << std::setw(7) << sg2 << "\tTDMA " << get_tdma_slot(ch2) << std::endl;
 			}
 
-            BOOST_LOG_TRIVIAL(trace) << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: "<< std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tsg " << std::setw(7) << sg1 << "\tTDMA " << get_tdma_slot(ch1) << std::endl;        
+            BOOST_LOG_TRIVIAL(trace) << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: "<< std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tsg " << std::setw(7) << sg1 << "\tTDMA " << get_tdma_slot(ch1) << std::endl;
 
         }
 	} else if ( opcode == 0x16 ) {   // sndcp data ch

@@ -49,7 +49,7 @@ debug_recorder::debug_recorder(double f, double c, long s, long t, int n)
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
 
-	
+
 	tm *ltm = localtime(&starttime);
 
 	std::stringstream path_stream;
@@ -61,7 +61,7 @@ debug_recorder::debug_recorder(double f, double c, long s, long t, int n)
 
 
 
-	
+
 		connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter, 0, downsample_sig, 0);
@@ -106,7 +106,7 @@ void debug_recorder::deactivate() {
 	valve->set_enabled(false);
 
 
-	
+
 
 }
 
@@ -122,13 +122,13 @@ void debug_recorder::activate( long t, double f, int n) {
 
 
 	prefilter->set_center_freq(f - center); // have to flip for 3.7
-	std::stringstream path_stream;	
+	std::stringstream path_stream;
 	path_stream << boost::filesystem::current_path().string() <<  "/debug";
 
 	boost::filesystem::create_directories(path_stream.str());
 	sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
-	
-	
+
+
 	raw_sink->open(filename);
 
 

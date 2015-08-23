@@ -74,7 +74,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
         float costas_alpha = 0.04;
         double sps = 0.0;
         float bb_gain = 1.0;
-        
+
        	baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
         // local osc
@@ -91,7 +91,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
         float arb_size = 32;
         float arb_atten=100;
 
-   
+
             // Create a filter that covers the full bandwidth of the output signal
 
             // If rate >= 1, we need to prevent images in the output,
@@ -140,7 +140,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 
         arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps );
 
-        
+
 
 
 
@@ -216,7 +216,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 
 
-      
+
 
 
 	if (fsk4) {

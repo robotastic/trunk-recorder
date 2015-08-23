@@ -70,7 +70,7 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 	null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 
-	
+
 		connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter, 0, downsample_sig, 0);
