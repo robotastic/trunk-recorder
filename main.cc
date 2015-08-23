@@ -206,7 +206,7 @@ void start_recorder(TrunkMessage message) {
 
 
     if (message.encrypted == false) {
-    BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
+    //BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << std::endl;
 
         for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
             Source * source = *it;
@@ -235,7 +235,7 @@ void start_recorder(TrunkMessage message) {
                     call->set_recorder(recorder);
                     call->set_recording(true);
                 } else {
-                    BOOST_LOG_TRIVIAL(error) << "\tNot recording call" << std::endl;
+                    //BOOST_LOG_TRIVIAL(error) << "\tNot recording call" << std::endl;
                 }
 
                 debug_recorder = source->get_debug_recorder();
@@ -270,7 +270,7 @@ void stop_inactive_recorders() {
                 sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
                 call->get_recorder()->deactivate();
                 system(shell_command);
-                BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
+                //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
  
             }
             if (call->get_debug_recording() == true) {
@@ -317,7 +317,7 @@ void assign_recorder(TrunkMessage message) {
 
                 
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use - Update for TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\tExisting call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << std::endl;
+                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << std::endl;
                 //different talkgroups on the same freq, that is trouble
 
                     sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_recorder()->get_filename());
@@ -375,14 +375,16 @@ void update_recorder(TrunkMessage message) {
 
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
-                BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
                     
                 // not sure what to do here; looks like we should retune
+
+                if (call->get_recording() == true) {
+                    BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+                    call->get_recorder()->tune_offset(message.freq);
+
+                }
                 call->set_freq(message.freq);
                 call->set_tdma(message.tdma);
-                if (call->get_recording() == true) {
-                    call->get_recorder()->tune_offset(message.freq);
-                }
             }
             call->update();
         }
