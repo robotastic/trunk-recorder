@@ -298,7 +298,7 @@ void assign_recorder(TrunkMessage message) {
                 call->set_freq(message.freq);
                 call->set_tdma(message.tdma);
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+                    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
                     call->get_recorder()->tune_offset(message.freq);
                 }
                 if (call->get_debug_recording() == true) {
