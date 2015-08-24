@@ -6,7 +6,7 @@ void Source::set_antenna(std::string ant)
 {
 	antenna = ant;
 	if (driver == "usrp") {
-		std::cout << "Setting antenna to [" << antenna << "]" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "Setting antenna to [" << antenna << "]";
 		cast_to_usrp_sptr(source_block)->set_antenna(antenna,0);
 	}
 }
@@ -90,7 +90,7 @@ Recorder * Source::get_analog_recorder(int priority)
 			break;
 		}
 	}
-	std::cout << "[ " << driver << " ] No Analog Recorders Available" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Analog Recorders Available";
 	return NULL;
 
 }
@@ -129,7 +129,7 @@ Recorder * Source::get_debug_recorder()
 			break;
 		}
 	}
-	//std::cout << "[ " << driver << " ] No Debug Recorders Available" << std::endl;
+	//BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Debug Recorders Available";
 	return NULL;
 
 }
@@ -154,10 +154,10 @@ int Source::get_num_available_recorders() {
 Recorder * Source::get_digital_recorder(int priority)
 {
 	int num_available_recorders = get_num_available_recorders();
-	//std::cout << "\tTG Priority: "<< priority << " Available Digital Recorders: " <<num_available_recorders <<std::endl;
+	//BOOST_LOG_TRIVIAL(info) << "\tTG Priority: "<< priority << " Available Digital Recorders: " <<num_available_recorders;
 
 	if (priority> num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
-		//std::cout << " Not recording because of priority" << std::endl;
+		//BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
 		return NULL;
 	}
 
@@ -174,7 +174,7 @@ Recorder * Source::get_digital_recorder(int priority)
 			break;
 		}
 	}
-	std::cout << "[ " << driver << " ] No Digital Recorders Available" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Digital Recorders Available";
 	return NULL;
 
 }
@@ -197,10 +197,10 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 		} else {
 			osmo_src = osmosdr::source::make(dev);
 		}
-		std::cout << "SOURCE TYPE OSMOSDR (osmosdr)" << std::endl;
-		std::cout << "Setting sample rate to: " << rate << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
+		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
 		osmo_src->set_sample_rate(rate);
-		std::cout << "Tunning to " << center + error << "hz" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		osmo_src->set_center_freq(center + error,0);
 		source_block = osmo_src;
 	}
@@ -208,13 +208,13 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 		gr::uhd::usrp_source::sptr usrp_src;
 		usrp_src = gr::uhd::usrp_source::make(device,uhd::stream_args_t("fc32"));
 
-		std::cout << "SOURCE TYPE USRP (UHD)" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE USRP (UHD)";
 
-		std::cout << "Setting sample rate to: " << rate << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
 		usrp_src->set_samp_rate(rate);
 		double actual_samp_rate = usrp_src->get_samp_rate();
-		std::cout << "Actual sample rate: " << actual_samp_rate << std::endl;
-		std::cout << "Tunning to " << center + error << "hz" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_samp_rate;
+		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		usrp_src->set_center_freq(center + error,0);
 
 

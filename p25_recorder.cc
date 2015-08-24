@@ -1,5 +1,6 @@
 
 #include "p25_recorder.h"
+#include <boost/log/trivial.hpp>
 
 
 p25_recorder_sptr make_p25_recorder(double freq, double center, long s, long t, int n)
@@ -111,7 +112,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
                 arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                                       gr::filter::firdes::WIN_BLACKMAN_HARRIS);
             } else {
-            	std::cout << " CRAP!! " << std::endl;
+                BOOST_LOG_TRIVIAL(error) << "CRAP! Computer over!";
             	/*
                 float halfband = 0.5;
                 float bw = percent*halfband;
@@ -131,7 +132,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
                         # Build in an exit strategy; if we've come this far, it ain't working.
                         if(ripple >= 1.0):
                             raise RuntimeError("optfir could not generate an appropriate filter.")*/
-                    }
+            }
 
 
 
@@ -176,7 +177,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
 
-	std::cout << " FM Gain: " << fm_demod_gain << " PI: " << pi << " Samples per sym: " << samples_per_symbol <<  std::endl;
+	BOOST_LOG_TRIVIAL(info) << " FM Gain: " << fm_demod_gain << " PI: " << pi << " Samples per sym: " << samples_per_symbol;
 
 	for (int i=0; i < samples_per_symbol; i++) {
 		sym_taps.push_back(1.0 / samples_per_symbol);
@@ -286,11 +287,11 @@ void p25_recorder::tune_offset(double f) {
 	int offset_amount = (f - center);
 	lo->set_frequency(-offset_amount);
 	//prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
-	//std::cout << "Offset set to: " << offset_amount << " Freq: "  << freq << std::endl;
+	//BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "  << freq;
 }
 
 void p25_recorder::deactivate() {
-	std::cout<< "logging_receiver_dsd.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ] " << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	active = false;
 	valve->set_enabled(false);
@@ -306,7 +307,7 @@ void p25_recorder::activate(long t, double f, int n) {
 	freq = f;
 
 	tm *ltm = localtime(&starttime);
-	std::cout<< "logging_receiver_dsd.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]  "  <<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	int offset_amount = (f - center);
 	lo->set_frequency(-offset_amount);
