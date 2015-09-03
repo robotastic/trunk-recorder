@@ -29,8 +29,11 @@ If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio
 **GR-DSD**
 
 I made a fork of this code to allow for more statistics to be collected and the also make usre multiple copies can run at once. It has a few dependencies:
- - Lib Snd File: `sudo apt-get install libsndfile1
+ - Lib Snd File: `sudo apt-get install libsndfile1-dev`
  - ITPP: `sudo apt-get install libitpp-dev`
+ - CMake: `sudo apt-get install cmake`
+ - Boost: `sudo apt-get install libboost-dev libboost-system-dev libboost-thread-dev`
+ - CppUnit: `sudo apt-get install libcppunit-dev`
 
 Now download, compile and install the code. Make sure you have loaded the environment variables that point to the GR libaries first.
 ```
