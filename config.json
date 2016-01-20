@@ -1,12 +1,22 @@
 { "sources": [
-{"center": 857000000.0,
-"rate": 8000000.0,
-"error": 1400,
-"gain": 12,
-"antenna": "TX/RX",
+{"center": 855000000.0,
+"rate": 2048000.0,
+"error": 0,
+"ppm": 59.3,
+"gain": 38,
 "digitalRecorders": 4,
-"driver": "usrp",
-"device": ""}
+"driver": "osmosdr",
+"device": "22"}
+],
+ [
+{"center": 858000000.0,
+"rate": 2000000.0,
+"error": 0,
+ "ppm": -2.23,
+"gain": 38,
+"digitalRecorders": 4,
+"driver": "osmosdr",
+"device": "21"}
 ],
 "system": {
 	"control_channels": [855462500],

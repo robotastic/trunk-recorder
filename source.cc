@@ -68,6 +68,16 @@ void Source::set_if_gain(int i)
 		cast_to_osmo_sptr(source_block)->set_if_gain(if_gain);
 	}
 }
+void Source::set_freq_corr(double p)
+{
+    ppm = p;
+    if (driver == "osmosdr") {
+        cast_to_osmo_sptr(source_block)->set_freq_corr(ppm);
+    }
+	if (driver == "usrp") {
+		cast_to_usrp_sptr(source_block)->set_freq_corr(ppm);
+	}
+}
 int Source::get_if_gain() {
 	return if_gain;
 }
@@ -195,7 +205,9 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 		if (dev == "") {
 			osmo_src = osmosdr::source::make();
 		} else {
-			osmo_src = osmosdr::source::make(dev);
+            std::ostringstream msg;
+            msg << "rtl= " << dev;
+			osmo_src = osmosdr::source::make(msg);
 		}
 		BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
 		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;

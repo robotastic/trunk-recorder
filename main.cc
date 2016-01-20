@@ -132,6 +132,7 @@ void load_config()
             double center = node.second.get<double>("center",0);
             double rate = node.second.get<double>("rate",0);
             double error = node.second.get<double>("error",0);
+            double ppm = node.second.get<double>("ppm",0);
             int gain = node.second.get<int>("gain",0);
             int if_gain = node.second.get<int>("ifGain",0);
             int bb_gain = node.second.get<int>("bbGain",0);
@@ -146,6 +147,7 @@ void load_config()
             BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center",0);
             BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate",0);
             BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error",0);
+            BOOST_LOG_TRIVIAL(info) << "PPM Error: " << node.second.get<double>("PPM",0);
             BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain",0);
             BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain",0);
             BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain",0);
@@ -156,6 +158,10 @@ void load_config()
             BOOST_LOG_TRIVIAL(info) << "driver: " << node.second.get<std::string>("driver","");
 
 
+            if ((ppm!=0) && (error!=0)) {
+                BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
+                error = 0;
+            }
             Source *source = new Source(center,rate,error,driver,device);
             BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
             BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
@@ -163,6 +169,7 @@ void load_config()
             source->set_bb_gain(bb_gain);
             source->set_gain(gain);
             source->set_antenna(antenna);
+            source->set_freq_corr(ppm);
             source->create_digital_recorders(tb, digital_recorders);
             source->create_analog_recorders(tb, analog_recorders);
             source->create_debug_recorders(tb, debug_recorders);

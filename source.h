@@ -21,6 +21,7 @@ class Source
 	double center;
 	double rate;
 	double error;
+    double ppm;
 	int gain;
 	int bb_gain;
 	int if_gain;
@@ -60,6 +61,7 @@ public:
 	int get_gain();
 	void set_bb_gain(int b);
 	int get_bb_gain();
+    void set_freq_corr(double p);
 	void create_analog_recorders(gr::top_block_sptr tb, int r);
 	Recorder * get_analog_recorder(int priority);
 	void create_digital_recorders(gr::top_block_sptr tb, int r);
