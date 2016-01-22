@@ -74,9 +74,7 @@ void Source::set_freq_corr(double p)
     if (driver == "osmosdr") {
         cast_to_osmo_sptr(source_block)->set_freq_corr(ppm);
     }
-	if (driver == "usrp") {
-		cast_to_usrp_sptr(source_block)->set_freq_corr(ppm);
-	}
+
 }
 int Source::get_if_gain() {
 	return if_gain;
@@ -203,11 +201,13 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 	if (driver == "osmosdr") {
 		osmosdr::source::sptr osmo_src;
 		if (dev == "") {
+            BOOST_LOG_TRIVIAL(info) << "Source Device not specified";
 			osmo_src = osmosdr::source::make();
 		} else {
             std::ostringstream msg;
-            msg << "rtl= " << dev;
-			osmo_src = osmosdr::source::make(msg);
+            msg << "rtl=" << dev;
+            BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
+			osmo_src = osmosdr::source::make(msg.str());
 		}
 		BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
 		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
