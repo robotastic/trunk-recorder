@@ -205,7 +205,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 			osmo_src = osmosdr::source::make();
 		} else {
             std::ostringstream msg;
-            msg << "rtl=" << dev << ",buffers=48,buflen=384000";
+            msg << "rtl=" << dev; //<< ",buffers=48,buflen=384000";
             BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
 			osmo_src = osmosdr::source::make(msg.str());
 		}
