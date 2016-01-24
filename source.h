@@ -20,6 +20,7 @@ class Source
 	double max_hz;
 	double center;
 	double rate;
+    double actual_rate;
 	double error;
     double ppm;
 	int gain;

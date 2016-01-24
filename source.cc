@@ -107,9 +107,9 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
 	for (int i = 0; i < max_digital_recorders; i++) {
 #ifdef DSD
-		dsd_recorder_sptr log = make_dsd_recorder( center, center, rate, 0, i);
+		dsd_recorder_sptr log = make_dsd_recorder( center, center, actual_rate, 0, i);
 #else
-		p25_recorder_sptr log = make_p25_recorder( center, center, rate, 0, i);
+		p25_recorder_sptr log = make_p25_recorder( center, center, actual_rate, 0, i);
 #endif
 		digital_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
@@ -212,6 +212,8 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 		BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
 		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
 		osmo_src->set_sample_rate(rate);
+        actual_rate = osmo_src->get_sample_rate();
+        BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
 		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		osmo_src->set_center_freq(center + error,0);
 		source_block = osmo_src;
@@ -224,8 +226,8 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 
 		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
 		usrp_src->set_samp_rate(rate);
-		double actual_samp_rate = usrp_src->get_samp_rate();
-		BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_samp_rate;
+		actual_rate = usrp_src->get_samp_rate();
+		BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
 		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		usrp_src->set_center_freq(center + error,0);
 
