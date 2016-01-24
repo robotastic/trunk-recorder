@@ -162,9 +162,7 @@ void load_config()
                 BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
                 error = 0;
             }
-            if (ppm!=0){
-                source->set_freq_corr(ppm);
-            }
+
             Source *source = new Source(center,rate,error,driver,device);
             BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
             BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
@@ -172,7 +170,9 @@ void load_config()
             source->set_bb_gain(bb_gain);
             source->set_gain(gain);
             source->set_antenna(antenna);
-            
+            if (ppm!=0){
+                source->set_freq_corr(ppm);
+            }
             source->create_digital_recorders(tb, digital_recorders);
             source->create_analog_recorders(tb, analog_recorders);
             source->create_debug_recorders(tb, debug_recorders);
