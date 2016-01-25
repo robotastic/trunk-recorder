@@ -28,7 +28,7 @@ dsd_recorder::dsd_recorder(Source *src, long t, int n)
 	float offset = 0; //have to flip for 3.7
 
 	int samp_per_sym = 10;
-	double decim = floor(sampe_rate / 100000);
+	double decim = floor(samp_rate / 100000);
 	float xlate_bandwidth = 7000; //14000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
