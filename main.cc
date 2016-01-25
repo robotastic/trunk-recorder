@@ -431,23 +431,46 @@ void group_affiliation(long unit, long talkgroup) {
 
 void update_recorder(TrunkMessage message) {
 
-    for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
+    for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ) {
         Call *call= *it;
 
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
-                //BOOST_LOG_TRIVIAL(trace) << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
-                // not sure what to do here; looks like we should retune
 
                 if (call->get_recording() == true) {
-                        BOOST_LOG_TRIVIAL(info) << "\tRreally!! Update Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
-    call->get_recorder()->tune_offset(message.freq);
+                    // see if we can retune the recorder, sometimes you can't if there are more than one
+                    if (retune_recorder(message, call)) {
+                        
+                        // it worked! Update the call and keep it going.
+                        call->set_freq(message.freq);
+                        call->set_tdma(message.tdma); 
+                        call->update();
 
+                        ++it; // move on to the next one 
+                        BOOST_LOG_TRIVIAL(trace) << "\tUpdate Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+                        
+                        
+                    // was not able to retune.
+                    } else {
+                        // the call was killed, erase and start a new one.
+                        it = calls.erase(it);
+                        
+                        start_recorder(message);
+                        BOOST_LOG_TRIVIAL(trace) << "\tStopping call: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+                    }
+                // the Call is not recording, continue
+                } else {
+                    ++it;
+                    call->update();
                 }
-                call->set_freq(message.freq);
-                call->set_tdma(message.tdma);
+            } else {
+                ++it;
+                call->update();
             }
-            call->update();
+
+        // the Call TG does not match    
+        } else {
+            ++it;
         }
     }
 }
