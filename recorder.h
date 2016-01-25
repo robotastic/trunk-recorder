@@ -49,8 +49,7 @@
 #include <gnuradio/blocks/file_sink.h>
 //#include <blocks/wavfile_sink.h>
 
-
-
+class Source;
 
 class Recorder
 {
@@ -60,6 +59,7 @@ public:
 	virtual void activate( long t, double f, int n) {};
 	virtual void deactivate() {} ;
 	virtual double get_freq() {return 0;};
+    virtual Source *get_source() {return NULL;};
 	virtual long get_talkgroup() {return 0;};
 	virtual bool is_active() {return false;};
 	virtual char *get_filename() {return NULL;};

@@ -377,7 +377,11 @@ void unit_deregistration(long unit) {
 void group_affiliation(long unit, long talkgroup) {
     unit_affiliations[unit] = talkgroup;
 }
-
+/*
+void retune_recorder(TrunkMessage message, Call *call) {
+    BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+    call->get_recorder()->tune_offset(message.freq);
+}*/
 void update_recorder(TrunkMessage message) {
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
@@ -389,8 +393,8 @@ void update_recorder(TrunkMessage message) {
                 // not sure what to do here; looks like we should retune
 
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
-                    call->get_recorder()->tune_offset(message.freq);
+                        BOOST_LOG_TRIVIAL(info) << "\tRreally!! Update Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+    call->get_recorder()->tune_offset(message.freq);
 
                 }
                 call->set_freq(message.freq);
@@ -565,6 +569,7 @@ bool monitor_system() {
 
 int main(void)
 {
+    BOOST_STATIC_ASSERT(true) __attribute__((unused));
     signal(SIGINT, exit_interupt);
     logging::core::get()->set_filter
     (

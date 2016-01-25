@@ -53,17 +53,18 @@
 #include "smartnet.h"
 
 
+class Source;
 class dsd_recorder;
-
 typedef boost::shared_ptr<dsd_recorder> dsd_recorder_sptr;
+dsd_recorder_sptr make_dsd_recorder(Source *src, long t, int n);
 
-dsd_recorder_sptr make_dsd_recorder(float f, float c, long s, long t, int n);
+#include "source.h"
 
 class dsd_recorder : public gr::hier_block2 , public Recorder
 {
-	friend dsd_recorder_sptr make_dsd_recorder(float f, float c, long s, long t, int n);
+	friend dsd_recorder_sptr make_dsd_recorder(Source *src, long t, int n);
 protected:
-	dsd_recorder(double f, double c, long s, long t, int n);
+	dsd_recorder(Source *src, long t, int n);
 
 public:
 	~dsd_recorder();
@@ -72,6 +73,7 @@ public:
 
 	void deactivate();
 	double get_freq();
+    Source *get_source();
 	long get_talkgroup();
 	bool is_active();
 	int lastupdate();
@@ -96,6 +98,9 @@ private:
 
 	bool iam_logging;
 	bool active;
+    
+    Source *source;
+    
 	std::vector<float> lpf_taps;
 	std::vector<float> resampler_taps;
 	std::vector<float> sym_taps;

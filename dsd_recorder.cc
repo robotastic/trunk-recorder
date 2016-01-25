@@ -4,19 +4,20 @@ using namespace std;
 
 bool dsd_recorder::logging = false;
 
-dsd_recorder_sptr make_dsd_recorder(float freq, float center, long s, long t, int n)
+dsd_recorder_sptr make_dsd_recorder( Source *src, long t, int n)
 {
-	return gnuradio::get_initial_sptr(new dsd_recorder(freq, center, s, t, n));
+	return gnuradio::get_initial_sptr(new dsd_recorder(src, t, n));
 }
 
-dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
+dsd_recorder::dsd_recorder(Source *src, long t, int n)
 	: gr::hier_block2 ("dsd_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
-	freq = f;
-	center = c;
-	samp_rate = s;
+    source = src;
+	freq = source->get_center();
+	center = source->get_center();
+	samp_rate = source->get_rate();
 	talkgroup = t;
 	num = n;
 	active = false;
@@ -24,10 +25,10 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 
 	starttime = time(NULL);
 
-	float offset = f - center; //have to flip for 3.7
+	float offset = 0; //have to flip for 3.7
 
 	int samp_per_sym = 10;
-	double decim = 80;
+	double decim = floor(sampe_rate / 100000);
 	float xlate_bandwidth = 7000; //14000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
@@ -96,6 +97,10 @@ long dsd_recorder::get_talkgroup() {
 
 double dsd_recorder::get_freq() {
 	return freq;
+}
+
+Source *dsd_recorder::get_source() {
+    return source;
 }
 
 char *dsd_recorder::get_filename() {
