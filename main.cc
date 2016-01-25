@@ -294,38 +294,89 @@ void stop_inactive_recorders() {
     }//foreach loggers
 }
 
+
+bool retune_recorder(TrunkMessage message, Call *call) {
+
+    Recorder *recorder = call->get_recorder();
+    Source *source = recorder->get_source();
+    char shell_command[200];
+    
+    if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
+        recorder->tune_offset(message.freq);
+        if (call->get_debug_recording() == true) {
+            call->get_debug_recorder()->tune_offset(message.freq);
+        }
+        BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
+        return true;
+    } else {
+        sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", recorder->get_filename());
+        recorder->deactivate();
+        system(shell_command);
+        
+        if (call->get_debug_recording() == true) {
+            call->get_debug_recorder()->deactivate();
+        }
+        return false;
+    }
+}
 void assign_recorder(TrunkMessage message) {
     bool call_found = false;
     char shell_command[200];
 
+    // go through all the talkgroups
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call= *it;
 
-
+        // Does the call have the same talkgroup
         if (call->get_talkgroup() == message.talkgroup) {
+            
+            // Is the freq the same?
             if (call->get_freq() != message.freq) {
                 BOOST_LOG_TRIVIAL(trace) << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
-                // not sure what to do here; looks like we should retune
+                // are we currently recording the call?
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tAssign Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
-                    call->get_recorder()->tune_offset(message.freq);
-                }
-                call->set_freq(message.freq);
-                call->set_tdma(message.tdma);
+                    
+                    // see if we can retune the recorder, sometimes you can't if there are more than one
+                    if (retune_recorder(message, call)) {
+                        
+                        // it worked! Update the call and keep it going.
+                        call->set_freq(message.freq);
+                        call->set_tdma(message.tdma); 
+                        call->update();
+                        call_found = true;
 
-                if (call->get_debug_recording() == true) {
-                    call->get_debug_recorder()->tune_offset(message.freq);
+                        ++it; // move on to the next one 
+                    // was not able to retune.
+                    } else {
+                        // the call was killed, erase and start a new one.
+                        it = calls.erase(it);
+                        BOOST_LOG_TRIVIAL(trace) << "\tStopping call: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+                    }
+                // This call is not being recorded, just update the Freq and move on
+                } else {
+                    call->set_freq(message.freq);
+                    call->set_tdma(message.tdma);
+                    call->update();
+                    call_found = true;
+
+                    ++it; // move on to the next one 
                 }
+                
+            // The freq hasn't changed
+            } else {
+                call->update();
+                call_found = true;
+
+                ++it; // move on to the next one 
             }
-            call->update();
-            call_found = true;
 
-            ++it; // move on to the next one
+        // The talkgroup for the call does not match
         } else {
 
+            // check is the freq is the same as the one being used by the call
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
-                //call_found = true;
-
+                
+                // if you are recording the call, stop
                 if (call->get_recording() == true) {
                     BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
                 //different talkgroups on the same freq, that is trouble
@@ -377,11 +428,7 @@ void unit_deregistration(long unit) {
 void group_affiliation(long unit, long talkgroup) {
     unit_affiliations[unit] = talkgroup;
 }
-/*
-void retune_recorder(TrunkMessage message, Call *call) {
-    BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
-    call->get_recorder()->tune_offset(message.freq);
-}*/
+
 void update_recorder(TrunkMessage message) {
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
