@@ -98,7 +98,7 @@ Here are the different arguments:
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentaully the number of simultanious call you can record at the same time in the frequency range that this SDR will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. It will use DSD or OP25 to decode the P25 CAI voice.
    - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
    - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
-   - **device** - right now this doesn't do anything
+   - **device** - the serial number for the device. You only need to do this if there are more than one.
  - **system** - This object defines the trunking system that will be recorded
    - **control_channels** - an array of the control channel frequencies for the system, in Hz. Right now, only the first value is used.
    - **type** - the type of trunking system. The options are *smartnet* & *p25*.
@@ -119,6 +119,12 @@ Here are the column headers and some sample data:
 |101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 |
 |2227 |	8b3	| D	| DC StcarYard	| Streetcar Yard |	Transportation |	Services | 3 | 
 
+###Multiple SDR
+Most trunk systems use a wide range of spectrum. Often a more powerful SDR is needed to have enough bandwidth to capture all of the potential channels that a system may broadcast on. However it is possible to use multiple SDRs working together to cover all of the channels. This means that you can use a bunch of cheap RTL-SDR to capture an entire system. 
+
+In addition to being able to use a cheaper SDR, it also helps with performance. When a single SDR is used, each of the Recorders gets fed all of the sampled signal. Each Recorder needs to cut down the multi-megasamples per second into a small 12.5Khz sliver. When you use multiple SDRs, each SDR is capturing only partial slice of the system so the Recorders have to cut down a much smaller amount of sample to get to the sliver they are interested in. This menans that you can have a lot more recorders running!
+
+To user mutliple SDRs, simply define additional Sources in the Source array. The `confing-multi-rtl.json.sample` has an example of how to do this. In order to tell the different SDRs apart and make sure they get the right error correction value, give them a serial number using the `rtl_eeprom -s` command and then specifying that number in the `device` setting for that Source.
 
 ###How Trunking Works
 Here is a little background on trunking radio systems, for those not familiar. In a Trunking system, one of the radio channels is set aside for to manage the assignment of radio channels to talkgroups. When someone wants to talk, they send a message on the control channel. The system then assigns them a channel and sends a Channel Grant message on the control channel. This lets the talker know what channel to transmit on and anyone who is a member of the talkgroup know that they should listen to that channel.
