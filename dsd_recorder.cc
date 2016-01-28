@@ -182,6 +182,7 @@ void dsd_recorder::activate( long t, double f, int n) {
 
 	talkgroup = t;
 	freq = f;
+    num = n;
 
 	tm *ltm = localtime(&starttime);
 	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";

@@ -238,7 +238,7 @@ void start_recorder(TrunkMessage message) {
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tTalkgroup not found: " << message.freq << " For TG: " << message.talkgroup;
 
-                    recorder = source->get_digital_recorder(3);
+                    recorder = source->get_digital_recorder(2);
                 }
                 if (recorder) {
                     recorder->activate( message.talkgroup,message.freq, calls.size());
