@@ -200,6 +200,20 @@ void load_config()
 
 }
 
+
+int get_total_recorders() {
+    int total_recorders = 0;
+    
+    for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+        Call *call = *it;
+
+            if (call->get_recording() == true) {
+                total_recorders++;
+            }
+    }
+    return total_recorders;
+}
+
 /**
  * Method name: start_recorder
  * Description: <#description#>
@@ -240,8 +254,9 @@ void start_recorder(TrunkMessage message) {
 
                     recorder = source->get_digital_recorder(2);
                 }
+                int total_recorders = get_total_recorders();
                 if (recorder) {
-                    recorder->activate( message.talkgroup,message.freq, calls.size());
+                    recorder->activate( message.talkgroup,message.freq, total_recorders);
                     call->set_recorder(recorder);
                     call->set_recording(true);
                 } else {
@@ -250,7 +265,7 @@ void start_recorder(TrunkMessage message) {
 
                 debug_recorder = source->get_debug_recorder();
                 if (debug_recorder) {
-                    debug_recorder->activate( message.talkgroup,message.freq, calls.size());
+                    debug_recorder->activate( message.talkgroup,message.freq, total_recorders);
                     call->set_recorder(debug_recorder);
                     call->set_recording(true);
                 } else {
