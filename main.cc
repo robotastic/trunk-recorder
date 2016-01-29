@@ -204,7 +204,7 @@ void load_config()
 int get_total_recorders() {
     int total_recorders = 0;
     
-    for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+    for(vector<Call *>::iterator it = calls.begin(); it != calls.end();it++) {
         Call *call = *it;
 
             if (call->get_recording() == true) {
