@@ -69,8 +69,7 @@ protected:
 public:
 	~dsd_recorder();
 	void tune_offset(double f);
-	void activate( long t, double f, int n);
-
+	void activate( long t, double f, int n,char *existing_filename);
 	void deactivate();
 	double get_freq();
     Source *get_source();

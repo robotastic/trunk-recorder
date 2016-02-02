@@ -86,7 +86,7 @@ public:
 	~p25_recorder();
 
 	void tune_offset(double f);
-	void activate( long talkgroup, double f, int num);
+	void activate( long talkgroup, double f, int num, char *existing_filename);
 
 	void deactivate();
 	double get_freq();

@@ -115,7 +115,7 @@ void debug_recorder::deactivate() {
 
 }
 
-void debug_recorder::activate( long t, double f, int n) {
+void debug_recorder::activate( long t, double f, int n, char *existing_filename) {
 
 	starttime = time(NULL);
 

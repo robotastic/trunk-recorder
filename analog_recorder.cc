@@ -170,7 +170,7 @@ void analog_recorder::deactivate() {
 	else cout << "Unable to open file";
 }
 
-void analog_recorder::activate(long t, double f, int n) {
+void analog_recorder::activate(long t, double f, int n, char *existing_filename) {
 
 	starttime = time(NULL);
 

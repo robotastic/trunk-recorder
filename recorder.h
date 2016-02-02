@@ -56,7 +56,7 @@ class Recorder
 
 public:
 	virtual void tune_offset(double f) {};
-	virtual void activate( long t, double f, int n) {};
+	virtual void activate( long t, double f, int n, char *existing_filename) {};
 	virtual void deactivate() {} ;
 	virtual double get_freq() {return 0;};
     virtual Source *get_source() {return NULL;};
