@@ -51,26 +51,28 @@
 #include "recorder.h"
 #include "smartnet.h"
 
-
+class Source;
 class debug_recorder;
-
 typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
 
-debug_recorder_sptr make_debug_recorder(float f, float c, long s, long t, int n);
+#include "source.h"
+
+debug_recorder_sptr make_debug_recorder( Source *src, long t, int n);
 
 class debug_recorder : public gr::hier_block2 , public Recorder
 {
-	friend debug_recorder_sptr make_debug_recorder(float f, float c, long s, long t, int n);
+	friend debug_recorder_sptr make_debug_recorder( Source *src, long t, int n);
 protected:
-	debug_recorder(double f, double c, long s, long t, int n);
+	debug_recorder( Source *src, long t, int n);
 
 public:
 	~debug_recorder();
 	void tune_offset(double f);
-	void activate( long t, double f, int n);
+	void activate( long t, double f, int n, char *existing_filename);
 
 	void deactivate();
 	double get_freq();
+    Source *get_source();
 	long get_talkgroup();
 	bool is_active();
 	int lastupdate();
@@ -97,6 +99,8 @@ private:
 	std::vector<float> lpf_taps;
 	std::vector<float> resampler_taps;
 	std::vector<float> sym_taps;
+    
+    Source *source;
 
 	/* GR blocks */
 	gr::filter::fir_filter_ccf::sptr lpf;

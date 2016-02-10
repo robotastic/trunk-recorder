@@ -46,25 +46,28 @@
 #include "recorder.h"
 
 
+class Source;
 class analog_recorder;
-
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 
-analog_recorder_sptr make_analog_recorder(double f, double c, long s, long t, int n);
+#include "source.h"
+
+analog_recorder_sptr make_analog_recorder(Source *src, long t, int n);
 
 class analog_recorder : public gr::hier_block2, public Recorder
 {
-	friend analog_recorder_sptr make_analog_recorder(double f, double c, long s, long t, int n);
+	friend analog_recorder_sptr make_analog_recorder(Source *src, long t, int n);
 protected:
-	analog_recorder(double f, double c, long s, long t, int n);
+	analog_recorder(Source *src, long t, int n);
 
 public:
 	~analog_recorder();
 	void tune_offset(double f);
-	void activate(long talkgroup,double f, int num);
+	void activate(long talkgroup,double f, int num, char *existing_filename);
 
 	void deactivate();
 	double get_freq();
+    Source *get_source();
 	long get_talkgroup();
 	bool is_active();
 	int lastupdate();
@@ -95,6 +98,8 @@ private:
 	std::vector<float> audio_resampler_taps;
 	std::vector<float> sym_taps;
 
+    Source *source;
+    
 	/* GR blocks */
 	gr::filter::iir_filter_ffd::sptr deemph;
 	gr::filter::fir_filter_ccf::sptr lpf;

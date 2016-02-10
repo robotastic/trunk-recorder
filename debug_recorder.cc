@@ -4,19 +4,20 @@ using namespace std;
 
 bool debug_recorder::logging = false;
 
-debug_recorder_sptr make_debug_recorder(float freq, float center, long s, long t, int n)
+debug_recorder_sptr make_debug_recorder(Source *src, long t, int n)
 {
-	return gnuradio::get_initial_sptr(new debug_recorder(freq, center, s, t, n));
+	return gnuradio::get_initial_sptr(new debug_recorder(src, t, n));
 }
 
-debug_recorder::debug_recorder(double f, double c, long s, long t, int n)
+debug_recorder::debug_recorder(Source *src, long t, int n)
 	: gr::hier_block2 ("debug_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
-	freq = f;
-	center = c;
-	samp_rate = s;
+    source = src;
+	freq = source->get_center();
+	center = source->get_center();
+	samp_rate = source->get_rate();
 	talkgroup = t;
 	num = n;
 	active = false;
@@ -24,10 +25,10 @@ debug_recorder::debug_recorder(double f, double c, long s, long t, int n)
 
 	starttime = time(NULL);
 
-	float offset = f - center; //have to flip for 3.7
+	float offset = 0; //have to flip for 3.7
 
 	int samp_per_sym = 10;
-	double decim = 80;
+	double decim = floor(samp_rate / 100000);
 	float xlate_bandwidth = 25000; //14000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
@@ -85,6 +86,10 @@ double debug_recorder::get_freq() {
 	return freq;
 }
 
+Source *debug_recorder::get_source() {
+    return source;
+}
+
 char *debug_recorder::get_filename() {
 	return filename;
 }
@@ -110,7 +115,7 @@ void debug_recorder::deactivate() {
 
 }
 
-void debug_recorder::activate( long t, double f, int n) {
+void debug_recorder::activate( long t, double f, int n, char *existing_filename) {
 
 	starttime = time(NULL);
 

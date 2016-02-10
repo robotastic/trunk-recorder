@@ -4,19 +4,20 @@ using namespace std;
 
 bool dsd_recorder::logging = false;
 
-dsd_recorder_sptr make_dsd_recorder(float freq, float center, long s, long t, int n)
+dsd_recorder_sptr make_dsd_recorder( Source *src, long t, int n)
 {
-	return gnuradio::get_initial_sptr(new dsd_recorder(freq, center, s, t, n));
+	return gnuradio::get_initial_sptr(new dsd_recorder(src, t, n));
 }
 
-dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
+dsd_recorder::dsd_recorder(Source *src, long t, int n)
 	: gr::hier_block2 ("dsd_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
-	freq = f;
-	center = c;
-	samp_rate = s;
+    source = src;
+	freq = source->get_center();
+	center = source->get_center();
+	samp_rate = source->get_rate();
 	talkgroup = t;
 	num = n;
 	active = false;
@@ -24,10 +25,10 @@ dsd_recorder::dsd_recorder(double f, double c, long s, long t, int n)
 
 	starttime = time(NULL);
 
-	float offset = f - center; //have to flip for 3.7
+	float offset = 0; //have to flip for 3.7
 
 	int samp_per_sym = 10;
-	double decim = 80;
+	double decim = floor(samp_rate / 100000);
 	float xlate_bandwidth = 7000; //14000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
@@ -96,6 +97,10 @@ long dsd_recorder::get_talkgroup() {
 
 double dsd_recorder::get_freq() {
 	return freq;
+}
+
+Source *dsd_recorder::get_source() {
+    return source;
 }
 
 char *dsd_recorder::get_filename() {
@@ -171,12 +176,15 @@ void dsd_recorder::deactivate() {
 	dsd->reset_state();
 }
 
-void dsd_recorder::activate( long t, double f, int n) {
+
+
+void dsd_recorder::activate( long t, double f, int n,char *existing_filename) {
 
 	starttime = time(NULL);
 
 	talkgroup = t;
 	freq = f;
+    num = n;
 
 	tm *ltm = localtime(&starttime);
 	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
@@ -189,7 +197,11 @@ void dsd_recorder::activate( long t, double f, int n) {
 	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
 	boost::filesystem::create_directories(path_stream.str());
+    if (existing_filename != NULL) {
+    strcpy(filename,existing_filename);
+    } else {
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,f);
+    }
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,starttime,freq);
 
 	wav_sink->open(filename);

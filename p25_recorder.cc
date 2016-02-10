@@ -298,7 +298,7 @@ void p25_recorder::deactivate() {
 	wav_sink->close();
 }
 
-void p25_recorder::activate(long t, double f, int n) {
+void p25_recorder::activate(long t, double f, int n, char *existing_filename) {
 
 	timestamp = time(NULL);
 	starttime = time(NULL);

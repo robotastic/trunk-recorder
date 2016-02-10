@@ -2,7 +2,7 @@
 {"center": 857000000.0,
 "rate": 8000000.0,
 "error": 1400,
-"gain": 12,
+"gain": 16,
 "antenna": "TX/RX",
 "digitalRecorders": 4,
 "driver": "usrp",

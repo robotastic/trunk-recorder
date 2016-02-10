@@ -68,6 +68,14 @@ void Source::set_if_gain(int i)
 		cast_to_osmo_sptr(source_block)->set_if_gain(if_gain);
 	}
 }
+void Source::set_freq_corr(double p)
+{
+    ppm = p;
+    if (driver == "osmosdr") {
+        cast_to_osmo_sptr(source_block)->set_freq_corr(ppm);
+    }
+
+}
 int Source::get_if_gain() {
 	return if_gain;
 }
@@ -75,7 +83,7 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 	max_analog_recorders = r;
 
 	for (int i = 0; i < max_analog_recorders; i++) {
-		analog_recorder_sptr log = make_analog_recorder( center, center, rate, 0, i);
+		analog_recorder_sptr log = make_analog_recorder( this, 0, i);
 		analog_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
 	}
@@ -99,9 +107,9 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
 	for (int i = 0; i < max_digital_recorders; i++) {
 #ifdef DSD
-		dsd_recorder_sptr log = make_dsd_recorder( center, center, rate, 0, i);
+		dsd_recorder_sptr log = make_dsd_recorder( this, 0, i);
 #else
-		p25_recorder_sptr log = make_p25_recorder( center, center, rate, 0, i);
+		p25_recorder_sptr log = make_p25_recorder( center, center, actual_rate, 0, i);
 #endif
 		digital_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
@@ -112,7 +120,7 @@ void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
 
 	for (int i = 0; i < max_debug_recorders; i++) {
 
-		debug_recorder_sptr log = make_debug_recorder( center, center, rate, 0, i);
+		debug_recorder_sptr log = make_debug_recorder( this, 0, i);
 
 		debug_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
@@ -157,7 +165,7 @@ Recorder * Source::get_digital_recorder(int priority)
 	//BOOST_LOG_TRIVIAL(info) << "\tTG Priority: "<< priority << " Available Digital Recorders: " <<num_available_recorders;
 
 	if (priority> num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
-		//BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
+		BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
 		return NULL;
 	}
 
@@ -193,13 +201,19 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 	if (driver == "osmosdr") {
 		osmosdr::source::sptr osmo_src;
 		if (dev == "") {
+            BOOST_LOG_TRIVIAL(info) << "Source Device not specified";
 			osmo_src = osmosdr::source::make();
 		} else {
-			osmo_src = osmosdr::source::make(dev);
+            std::ostringstream msg;
+            msg << "rtl=" << dev << ",buflen=16384,buffers=32";
+            BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
+			osmo_src = osmosdr::source::make(msg.str());
 		}
 		BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
 		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
 		osmo_src->set_sample_rate(rate);
+        actual_rate = osmo_src->get_sample_rate();
+        BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
 		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		osmo_src->set_center_freq(center + error,0);
 		source_block = osmo_src;
@@ -212,8 +226,8 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 
 		BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
 		usrp_src->set_samp_rate(rate);
-		double actual_samp_rate = usrp_src->get_samp_rate();
-		BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_samp_rate;
+		actual_rate = usrp_src->get_samp_rate();
+		BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
 		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		usrp_src->set_center_freq(center + error,0);
 

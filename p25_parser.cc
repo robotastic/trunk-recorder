@@ -405,7 +405,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 void P25Parser::print_bitset(boost::dynamic_bitset<> &tsbk) {
 	boost::dynamic_bitset<> bitmask(tsbk.size(), 0x3f);
 	unsigned long result = (tsbk & bitmask).to_ulong();
-	BOOST_LOG_TRIVIAL(trace) << tsbk << " = " << std::hex << result;
+	//BOOST_LOG_TRIVIAL(trace) << tsbk << " = " << std::hex << result;
 }
 void printbincharpad(char c)
 {
