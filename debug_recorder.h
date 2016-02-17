@@ -37,6 +37,14 @@
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/copy.h>
 
+#include <op25_repeater/gardner_costas_cc.h>
+#include <gnuradio/blocks/short_to_float.h>
+#include <gnuradio/filter/pfb_arb_resampler_ccf.h>
+#include <gnuradio/analog/feedforward_agc_cc.h>
+#include <gnuradio/digital/diff_phasor_cc.h>
+#include <gnuradio/blocks/complex_to_arg.h>
+
+
 //Valve
 //#include <gnuradio/blocks/null_sink.h>
 //#include <gnuradio/blocks/null_source.h>
@@ -99,6 +107,8 @@ private:
 	std::vector<float> lpf_taps;
 	std::vector<float> resampler_taps;
 	std::vector<float> sym_taps;
+    std::vector<float> lpf_coeffs;
+	std::vector<float> arb_taps;
     
     Source *source;
 
@@ -117,14 +127,20 @@ private:
 
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
-	//gr::analog::quadrature_demod_cf::sptr demod;
+
 	gr::analog::quadrature_demod_cf::sptr demod;
 
 	gr::blocks::file_sink::sptr raw_sink;
 	gr::blocks::null_sink::sptr null_sink;
 	gr::blocks::head::sptr head_source;
 	gr::blocks::copy::sptr valve;
-	//gr_kludge_copy_sptr copier;
+	gr::blocks::complex_to_arg::sptr to_float;
+    gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+    	gr::blocks::short_to_float::sptr converter;
+    	gr::analog::feedforward_agc_cc::sptr agc;
+    	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
+    gr::digital::diff_phasor_cc::sptr diffdec;
+
 
 };
 

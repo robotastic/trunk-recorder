@@ -29,13 +29,13 @@ dsd_recorder::dsd_recorder(Source *src, long t, int n)
 
 	int samp_per_sym = 10;
 	double decim = floor(samp_rate / 100000);
-	float xlate_bandwidth = 7000; //14000; //24260.0;
+	float xlate_bandwidth = 10000; //14000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
 
 
 
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 5000, gr::filter::firdes::WIN_HAMMING);
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 2000, gr::filter::firdes::WIN_HAMMING);
 
 	prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
 	            lpf_taps,
@@ -58,7 +58,7 @@ dsd_recorder::dsd_recorder(Source *src, long t, int n)
 	sym_filter = gr::filter::fir_filter_fff::make(1, sym_taps);
 	lpf_second = gr::filter::fir_filter_fff::make(1,gr::filter::firdes::low_pass(1, 48000, 6000, 500));
 	iam_logging = false;
-	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_GFSK,4,0,0, false, num);
+	dsd = dsd_make_block_ff(dsd_FRAME_P25_PHASE_1,dsd_MOD_AUTO_SELECT,4,0,0, false, num);
 
 	tm *ltm = localtime(&starttime);
 
