@@ -334,6 +334,7 @@ void retune_recorder(TrunkMessage message, Call *call) {
         //system(shell_command);
         
         if (call->get_debug_recording() == true) {
+            call->set_debug_recording(false);
             call->get_debug_recorder()->deactivate();
         }
     }
