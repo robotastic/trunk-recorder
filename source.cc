@@ -137,7 +137,7 @@ Recorder * Source::get_debug_recorder()
 			break;
 		}
 	}
-	//BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Debug Recorders Available";
+	BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Debug Recorders Available";
 	return NULL;
 
 }
@@ -164,10 +164,10 @@ Recorder * Source::get_digital_recorder(int priority)
 	int num_available_recorders = get_num_available_recorders();
 	//BOOST_LOG_TRIVIAL(info) << "\tTG Priority: "<< priority << " Available Digital Recorders: " <<num_available_recorders;
 
-	if (priority> num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
+/* 	if (priority> num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
 		BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
 		return NULL;
-	}
+	}*/
 
 #ifdef DSD
 	for(std::vector<dsd_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {

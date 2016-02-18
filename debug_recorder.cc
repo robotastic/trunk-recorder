@@ -215,8 +215,12 @@ void debug_recorder::activate( long t, double f, int n, char *existing_filename)
 	path_stream << boost::filesystem::current_path().string() <<  "/debug";
 
 	boost::filesystem::create_directories(path_stream.str());
+    if (existing_filename != NULL) {
+    strcpy(filename,existing_filename);
+    } else {
 	sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
-
+    }
+	
 
 	raw_sink->open(filename);
 
