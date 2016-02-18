@@ -273,7 +273,7 @@ void start_recorder(TrunkMessage message, Call *call, char *filename, char *debu
                 debug_recorder = source->get_debug_recorder();
                 if (debug_recorder) {
                     BOOST_LOG_TRIVIAL(info) << "\tHere: " << message.talkgroup << " freq: " << message.freq;
-                    debug_recorder->activate( message.talkgroup,message.freq, total_recorders,NULL );
+                    debug_recorder->activate( message.talkgroup,message.freq, total_recorders,debug_filename );
                     call->set_debug_recorder(debug_recorder);
                     call->set_debug_recording(true);
                 } else {

@@ -139,7 +139,7 @@ debug_recorder::debug_recorder(Source *src, long t, int n)
 
         boost::filesystem::create_directories(path_stream.str());
         sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
-        raw_sink = gr::blocks::file_sink::make(sizeof(float), filename);
+        raw_sink = gr::blocks::file_sink::make(sizeof(float), filename, true);
 
 
 		connect(self(),0, valve,0);
@@ -223,7 +223,7 @@ void debug_recorder::activate( long t, double f, int n, char *existing_filename)
 	
 
 	raw_sink->open(filename);
-
+    raw_sink->set_unbuffered(true);
 
 	active = true;
 	valve->set_enabled(true);
