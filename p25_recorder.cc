@@ -211,7 +211,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	int udp_port = 0;
 	int verbosity = 10;
 	const char * wireshark_host="127.0.0.1";
-	bool do_imbe = 0;
+	bool do_imbe = 1;
 	bool do_output = 1;
 	bool do_msgq = 0;
 	bool do_audio_output = 1;
@@ -250,11 +250,9 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 		connect(op25_frame_assembler, 0,  converter,0);
 		connect(converter,  0, wav_sink,0);
 	} else {
-		connect(self(),0, mixer, 0);
-		connect(lo,0, mixer, 1);
-		connect(mixer,0, valve,0);
-		connect(valve, 0, lpf, 0);
-		connect(lpf, 0, arb_resampler, 0);
+        connect(self(),0, valve,0);
+		connect(valve,0, prefilter,0);
+		connect(prefilter, 0, arb_resampler, 0);
 		connect(arb_resampler,0, agc,0);
 		connect(agc, 0, costas_clock, 0);
 		connect(costas_clock,0, diffdec, 0);
