@@ -109,7 +109,7 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 #ifdef DSD
 		dsd_recorder_sptr log = make_dsd_recorder( this, 0, i);
 #else
-		p25_recorder_sptr log = make_p25_recorder( center, center, actual_rate, 0, i);
+		p25_recorder_sptr log = make_p25_recorder( this, 0, i);
 #endif
 		digital_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);

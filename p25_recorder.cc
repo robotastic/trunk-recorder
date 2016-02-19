@@ -3,9 +3,9 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_recorder_sptr make_p25_recorder(double freq, double center, long s, long t, int n)
+p25_recorder_sptr make_p25_recorder(Source *src, long t, int n)
 {
-	return gnuradio::get_initial_sptr(new p25_recorder(freq, center, s, t, n));
+	return gnuradio::get_initial_sptr(new p25_recorder(src, t, n));
 }
 
 
@@ -37,23 +37,26 @@ std::vector<float> p25_recorder::design_filter(double interpolation, double deci
 
 
 
-p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
+p25_recorder::p25_recorder(Source *src, long t, int n)
 	: gr::hier_block2 ("p25_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
-	freq = f;
-	center = c;
+    source = src;
+	freq = source->get_center();
+	center = source->get_center();
+	long samp_rate = source->get_rate();
 	talkgroup = t;
-	long capture_rate = s;
+	long capture_rate = samp_rate;
+
 	num = n;
 	active = false;
 
-	float offset = f - center;
+	float offset = freq - center;
 
 
 
-	float symbol_rate = 4800;
+        float symbol_rate = 4800;
 	double samples_per_symbol = 10;
 	double system_channel_rate = symbol_rate * samples_per_symbol;
 	double prechannel_decim = floor(capture_rate / system_channel_rate);
@@ -61,7 +64,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 	double trans_width = 12500 / 2;
 	double trans_centre = trans_width + (trans_width / 2);
 	float symbol_deviation = 600.0;
-	bool fsk4 = true;
+	bool fsk4 = false;
 
 	std::vector<float> sym_taps;
 	const double pi = M_PI; //boost::math::constants::pi<double>();
@@ -70,20 +73,34 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 	starttime = time(NULL);
 
         double input_rate = capture_rate;
-        float if_rate = 48000;
+        
+        float if_rate = 24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
         double sps = 0.0;
         float bb_gain = 1.0;
 
        	baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
+        
+        int samp_per_sym = 10;
 
-        // local osc
-        lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0);
-        mixer = gr::blocks::multiply_cc::make();
-        lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 15000, 1500, gr::filter::firdes::WIN_HANN);
+
+ 	float xlate_bandwidth = 10000; //14000; //24260.0
+
+
+  
+        
+	valve = gr::blocks::copy::make(sizeof(gr_complex));
+	valve->set_enabled(false);
+        
+        
+            lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(input_rate / if_rate);
-        lpf = gr::filter::fir_filter_ccf::make(decimation, lpf_coeffs);
+
+        prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
+	            lpf_coeffs,
+	            offset,
+	            samp_rate);
 
         float resampled_rate = float(input_rate) / float(decimation); // rate at output of self.lpf
 
@@ -142,7 +159,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
         arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps );
 
 
-
+        agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
 
         float omega = float(if_rate) / float(symbol_rate);
@@ -155,7 +172,6 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 
         costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
 
-        agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
         // Perform Differential decoding on the constellation
         diffdec = gr::digital::diff_phasor_cc::make();
@@ -203,10 +219,9 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 	//op25_vocoder = gr::op25_repeater::vocoder::make(0, 0, 0, "", 0, 0);
 
-	converter = gr::blocks::short_to_float::make();
-	//converter = gr::blocks::char_to_float::make();
-	float convert_num = float(1.0)/float(32768.0);
-	multiplier = gr::blocks::multiply_const_ff::make(convert_num);
+        
+	converter = gr::blocks::short_to_float::make(1, 8192.0);
+
 	tm *ltm = localtime(&starttime);
 
 	std::stringstream path_stream;
@@ -233,8 +248,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 		connect(fsk4_demod, 0, slicer, 0);
 		connect(slicer,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
-		connect(converter, 0, multiplier,0);
-		connect(multiplier, 0, wav_sink,0);
+		connect(converter,  0, wav_sink,0);
 	} else {
 		connect(self(),0, mixer, 0);
 		connect(lo,0, mixer, 1);
@@ -249,8 +263,7 @@ p25_recorder::p25_recorder(double f, double c, long s, long t, int n)
 		connect(rescale, 0, slicer, 0);
 		connect(slicer,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
-		connect(converter, 0, multiplier,0);
-		connect(multiplier, 0, wav_sink,0);
+		connect(converter, 0, wav_sink,0);
 	}
 }
 
