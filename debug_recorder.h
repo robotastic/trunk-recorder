@@ -36,14 +36,16 @@
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/copy.h>
-
+#include <op25_repeater/p25_frame_assembler.h>
 #include <op25_repeater/gardner_costas_cc.h>
+#include <op25_repeater/fsk4_slicer_fb.h>
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
 #include <gnuradio/digital/diff_phasor_cc.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 
+#include <gnuradio/msg_queue.h>
 
 //Valve
 //#include <gnuradio/blocks/null_sink.h>
@@ -109,6 +111,7 @@ private:
 	std::vector<float> sym_taps;
     std::vector<float> lpf_coeffs;
 	std::vector<float> arb_taps;
+    gr::msg_queue::sptr rx_queue;
     
     Source *source;
 
@@ -140,7 +143,9 @@ private:
     	gr::analog::feedforward_agc_cc::sptr agc;
     	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
     gr::digital::diff_phasor_cc::sptr diffdec;
-
+	gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+    	gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
+    	gr::blocks::multiply_const_ff::sptr rescale;
 
 };
 

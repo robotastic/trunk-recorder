@@ -140,7 +140,31 @@ debug_recorder::debug_recorder(Source *src, long t, int n)
         boost::filesystem::create_directories(path_stream.str());
         sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
         raw_sink = gr::blocks::file_sink::make(sizeof(float), filename, true);
+        null_sink = gr::blocks::null_sink::make(sizeof(float));
+        // Perform Differential decoding on the constellation
+        diffdec = gr::digital::diff_phasor_cc::make();
 
+        // take angle of the difference (in radians)
+        to_float = gr::blocks::complex_to_arg::make();
+        
+        // convert from radians such that signal is in -3/-1/+1/+3
+        rescale = gr::blocks::multiply_const_ff::make( (1 / (pi / 4)) );
+        
+        	const float l[] = { -2.0, 0.0, 2.0, 4.0 };
+	std::vector<float> levels( l,l + sizeof( l ) / sizeof( l[0] ) );
+        slicer = gr::op25_repeater::fsk4_slicer_fb::make(levels);
+        
+        int udp_port = 0;
+        int verbosity = 10;
+        const char * wireshark_host="127.0.0.1";
+        bool do_imbe = 1;
+        bool do_output = 1;
+        bool do_msgq = 0;
+        bool do_audio_output = 1;
+        bool do_tdma = 0;
+        op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
+        
+        converter = gr::blocks::short_to_float::make(1, 8192.0);
 
 		connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
@@ -150,6 +174,11 @@ debug_recorder::debug_recorder(Source *src, long t, int n)
 		connect(costas_clock,0, diffdec, 0);
 		connect(diffdec, 0, to_float, 0);
         connect(to_float,0, raw_sink,0);
+        connect(to_float,0, rescale, 0);
+		connect(rescale, 0, slicer, 0);
+		connect(slicer,0, op25_frame_assembler,0);
+		connect(op25_frame_assembler, 0,  converter,0);
+		connect(converter, 0, null_sink,0);
         
 }
 
