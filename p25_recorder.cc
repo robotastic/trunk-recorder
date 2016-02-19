@@ -268,6 +268,10 @@ p25_recorder::~p25_recorder() {
 
 }
 
+Source *p25_recorder::get_source() {
+    return source;
+}
+
 
 bool p25_recorder::is_active() {
 	return active;

@@ -95,6 +95,7 @@ public:
 	void mute();
 	void unmute();
 	char *get_filename();
+    Source *get_source()
 	gr::msg_queue::sptr tune_queue;
 	gr::msg_queue::sptr traffic_queue;
 	gr::msg_queue::sptr rx_queue;
