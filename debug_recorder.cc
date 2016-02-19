@@ -174,11 +174,11 @@ debug_recorder::debug_recorder(Source *src, long t, int n)
 		connect(costas_clock,0, diffdec, 0);
 		connect(diffdec, 0, to_float, 0);
         connect(to_float,0, raw_sink,0);
-        connect(to_float,0, rescale, 0);
+        /*connect(to_float,0, rescale, 0);
 		connect(rescale, 0, slicer, 0);
 		connect(slicer,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
-		connect(converter, 0, null_sink,0);
+		connect(converter, 0, null_sink,0);*/
         
 }
 
