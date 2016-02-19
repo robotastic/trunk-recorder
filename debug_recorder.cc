@@ -35,7 +35,7 @@ debug_recorder::debug_recorder(Source *src, long t, int n)
 	double pre_channel_rate = samp_rate/decim;
     const double pi = M_PI;
 
-            float if_rate = 48000;
+        float if_rate = 24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
         double sps = 0.0;
