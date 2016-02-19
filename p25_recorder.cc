@@ -236,11 +236,9 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 
 
 	if (fsk4) {
-		connect(self(),0, mixer, 0);
-		connect(lo,0, mixer, 1);
-		connect(mixer,0, valve,0);
-		connect(valve, 0, lpf, 0);
-		connect(lpf, 0, arb_resampler, 0);
+        connect(self(),0, valve,0);
+		connect(valve,0, prefilter,0);
+		connect(prefilter, arb_resampler, 0);
 		connect(arb_resampler,0, fm_demod,0);
 		connect(fm_demod, 0, baseband_amp, 0);
 		connect(baseband_amp,0, sym_filter, 0);
@@ -296,8 +294,7 @@ long p25_recorder::elapsed() {
 void p25_recorder::tune_offset(double f) {
 	freq = f;
 	int offset_amount = (f - center);
-	lo->set_frequency(-offset_amount);
-	//prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
+	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 	//BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "  << freq;
 }
 
@@ -321,7 +318,7 @@ void p25_recorder::activate(long t, double f, int n, char *existing_filename) {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	int offset_amount = (f - center);
-	lo->set_frequency(-offset_amount);
+	prefilter->set_center_freq(offset_amount); 
 
 
 	std::stringstream path_stream;
