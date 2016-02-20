@@ -306,8 +306,9 @@ void stop_inactive_recorders() {
                 //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
             }
             if (call->get_debug_recording() == true) {
-                 BOOST_LOG_TRIVIAL(info) << "Stopping debug - inactive call";
+                sprintf(shell_command,"./debug-encode-upload.sh %s > /dev/null 2>&1 &", call->get_debug_recorder()->get_filename());
                 call->get_debug_recorder()->deactivate();
+                system(shell_command);
             }
 
             //BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed();
@@ -420,8 +421,10 @@ void assign_recorder(TrunkMessage message) {
                 }
 
                 if (call->get_debug_recording() == true) {
+                    sprintf(shell_command,"./debug-encode-upload.sh %s > /dev/null 2>&1 &", call->get_debug_recorder()->get_filename());
                      BOOST_LOG_TRIVIAL(info) << "Stopping debug - diff TG, same freq";
                     call->get_debug_recorder()->deactivate();
+                    system(shell_command);
                 }
 
                 it = calls.erase(it);

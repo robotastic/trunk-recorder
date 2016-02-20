@@ -9,3 +9,4 @@ debug
 smartnet
 recorder
 *.py
+config.json
