@@ -59,8 +59,6 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
         float symbol_rate = 4800;
 	double samples_per_symbol = 10;
 	double system_channel_rate = symbol_rate * samples_per_symbol;
-	double prechannel_decim = floor(capture_rate / system_channel_rate);
-	double prechannel_rate = capture_rate / prechannel_decim;
 	double trans_width = 12500 / 2;
 	double trans_centre = trans_width + (trans_width / 2);
 	float symbol_deviation = 600.0;
@@ -77,12 +75,10 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
         float if_rate = 48000;//24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
-        double sps = 0.0;
         float bb_gain = 1.0;
 
        	baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
-        
-        int samp_per_sym = 10;
+
 
 
  	float xlate_bandwidth = 10000; //14000; //24260.0
@@ -123,7 +119,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
                 float halfband = 0.5* arb_rate;
                 float bw = percent*halfband;
                 float tb = (percent/2.0)*halfband;
-                float ripple = 0.1;
+
 
                 // As we drop the bw factor, the optfir filter has a harder time converging;
                 // using the firdes method here for better results.
