@@ -217,7 +217,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	//op25_vocoder = gr::op25_repeater::vocoder::make(0, 0, 0, "", 0, 0);
 
         
-	converter = gr::blocks::short_to_float::make(1, 256.0); //8192.0);
+	converter = gr::blocks::short_to_float::make(1, 1024.0); //8192.0);
 
 	tm *ltm = localtime(&starttime);
 
