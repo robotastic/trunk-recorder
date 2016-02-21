@@ -7,5 +7,5 @@ eval "nice -n 19 /home/luke/p25-decoder/decoder $filename $wav > /dev/null"
 eval "nice -n 19 /home/luke/bin/ffmpeg -i $wav  -c:a libfdk_aac -b:a 32k -cutoff 18000 $mp4encoded > /dev/null 2>&1"
 
 echo "Upload: $encoded"  
-eval "scp $json $mp4encoded username@server.com:~/smartnet-upload "
+eval "scp $mp4encoded username@server.com:~/smartnet-upload "
 

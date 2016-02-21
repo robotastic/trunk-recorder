@@ -1,5 +1,5 @@
 
-#define DSD
+//#define DSD
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -272,7 +272,6 @@ void start_recorder(TrunkMessage message, Call *call, char *filename, char *debu
 
                 debug_recorder = source->get_debug_recorder();
                 if (debug_recorder) {
-                    BOOST_LOG_TRIVIAL(info) << "\tHere: " << message.talkgroup << " freq: " << message.freq;
                     debug_recorder->activate( message.talkgroup,message.freq, total_recorders,debug_filename );
                     call->set_debug_recorder(debug_recorder);
                     call->set_debug_recording(true);
@@ -325,7 +324,6 @@ void retune_recorder(TrunkMessage message, Call *call) {
 
     Recorder *recorder = call->get_recorder();
     Source *source = recorder->get_source();
-    char shell_command[200];
     char filename[160];
     char debug_filename[160];
 
@@ -570,7 +568,6 @@ void monitor_messages() {
     time_t lastMsgCountTime = time(NULL);;
     time_t lastTalkgroupPurge = time(NULL);;
     time_t currentTime = time(NULL);
-    time_t lastUnitCheckTime = time(NULL);
     std::vector<TrunkMessage> trunk_messages;
 
     while (1) {

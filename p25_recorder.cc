@@ -74,7 +74,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 
         double input_rate = capture_rate;
         
-        float if_rate = 24000;
+        float if_rate = 48000;//24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
         double sps = 0.0;
@@ -96,16 +96,17 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
         
             lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(input_rate / if_rate);
-
+        BOOST_LOG_TRIVIAL(error) << "input_rate: " << float(input_rate) << "\t if_rate: " << if_rate << "\t decimation: " << decimation ;
         prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
 	            lpf_coeffs,
 	            offset,
 	            samp_rate);
 
         float resampled_rate = float(input_rate) / float(decimation); // rate at output of self.lpf
-
+        BOOST_LOG_TRIVIAL(error) << "input_rate: " << float(input_rate) << "\t decimation: " << float(decimation) << " resampled_rate: " << resampled_rate;
 
         float arb_rate = (float(if_rate) / resampled_rate);
+        BOOST_LOG_TRIVIAL(error) << "if_rate: " << float(if_rate) << "\t resampled_rate: " << float(resampled_rate) << " arb_rate: " << arb_rate;
         float arb_size = 32;
         float arb_atten=100;
 
