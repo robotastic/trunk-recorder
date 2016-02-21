@@ -39,7 +39,7 @@ Now download, compile and install the code. Make sure you have loaded the enviro
 ```
 git clone https://github.com/robotastic/gr-dsd.git
 cd gr-dsd
-cmake -DCMAKE_PREFIX_PATH=/path/to/GR/install   .
+cmake -DCMAKE_PREFIX_PATH=/path/to/GR/install -DCMAKE_INSTALL_PREFIX=/path/to/GR/install  .
 make
 sudo make install
 sudo ldconfig
