@@ -72,7 +72,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 
         double input_rate = capture_rate;
         
-        float if_rate = 48000;//24000;
+        float if_rate = 24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
         float bb_gain = 1.0;
@@ -217,7 +217,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	//op25_vocoder = gr::op25_repeater::vocoder::make(0, 0, 0, "", 0, 0);
 
         
-	converter = gr::blocks::short_to_float::make(1, 8192.0);
+	converter = gr::blocks::short_to_float::make(1, 256.0); //8192.0);
 
 	tm *ltm = localtime(&starttime);
 
