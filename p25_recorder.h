@@ -155,9 +155,6 @@ gr::digital::diff_phasor_cc::sptr diffdec;
 	gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
 	gr::op25_repeater::vocoder::sptr op25_vocoder;
 	gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
-
-	unsigned GCD(unsigned u, unsigned v);
-	std::vector<float> design_filter(double interpolation, double deci);
 };
 
 

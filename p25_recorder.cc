@@ -18,24 +18,6 @@ unsigned p25_recorder::GCD(unsigned u, unsigned v) {
 	return u;
 }
 
-std::vector<float> p25_recorder::design_filter(double interpolation, double deci) {
-	float beta = 5.0;
-	float trans_width = 0.5 - 0.4;
-	float mid_transition_band = 0.5 - trans_width/2;
-
-	std::vector<float> result = gr::filter::firdes::low_pass(
-	                                interpolation,
-	                                1,
-	                                mid_transition_band/interpolation,
-	                                trans_width/interpolation,
-	                                gr::filter::firdes::WIN_KAISER,
-	                                beta
-	                            );
-
-	return result;
-}
-
-
 
 p25_recorder::p25_recorder(Source *src, long t, int n)
 	: gr::hier_block2 ("p25_recorder",
@@ -56,10 +38,9 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 
 
 
-        float symbol_rate = 4800;
+    float symbol_rate = 4800;
 	double samples_per_symbol = 10;
 	double system_channel_rate = symbol_rate * samples_per_symbol;
-	double trans_width = 12500 / 2;
 	float symbol_deviation = 600.0;
 	bool fsk4 = false;
 
@@ -80,7 +61,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 
 
 
- 	float xlate_bandwidth = 10000; //14000; //24260.0
+ 	float xlate_bandwidth = 14000; //14000; //24260.0
 
 
   
@@ -91,17 +72,14 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
         
             lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(input_rate / if_rate);
-        BOOST_LOG_TRIVIAL(error) << "input_rate: " << float(input_rate) << "\t if_rate: " << if_rate << "\t decimation: " << decimation ;
+       
         prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
 	            lpf_coeffs,
 	            offset,
 	            samp_rate);
 
         float resampled_rate = float(input_rate) / float(decimation); // rate at output of self.lpf
-        BOOST_LOG_TRIVIAL(error) << "input_rate: " << float(input_rate) << "\t decimation: " << float(decimation) << " resampled_rate: " << resampled_rate;
-
         float arb_rate = (float(if_rate) / resampled_rate);
-        BOOST_LOG_TRIVIAL(error) << "if_rate: " << float(if_rate) << "\t resampled_rate: " << float(resampled_rate) << " arb_rate: " << arb_rate;
         float arb_size = 32;
         float arb_atten=100;
 
@@ -125,7 +103,8 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
                 arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                                       gr::filter::firdes::WIN_BLACKMAN_HARRIS);
             } else {
-                BOOST_LOG_TRIVIAL(error) << "CRAP! Computer over!";
+                BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+                exit(0);
             	/*
                 float halfband = 0.5;
                 float bw = percent*halfband;
@@ -189,8 +168,6 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
 
-	BOOST_LOG_TRIVIAL(info) << " FM Gain: " << fm_demod_gain << " PI: " << pi << " Samples per sym: " << samples_per_symbol;
-
 	for (int i=0; i < samples_per_symbol; i++) {
 		sym_taps.push_back(1.0 / samples_per_symbol);
 	}
@@ -216,7 +193,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	
 
         
-	converter = gr::blocks::short_to_float::make(1, 1024.0); //8192.0);
+	converter = gr::blocks::short_to_float::make(1, 2048.0); //8192.0);
 
 	tm *ltm = localtime(&starttime);
 
