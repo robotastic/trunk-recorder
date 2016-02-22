@@ -60,7 +60,6 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	double samples_per_symbol = 10;
 	double system_channel_rate = symbol_rate * samples_per_symbol;
 	double trans_width = 12500 / 2;
-	double trans_centre = trans_width + (trans_width / 2);
 	float symbol_deviation = 600.0;
 	bool fsk4 = false;
 
@@ -195,7 +194,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	for (int i=0; i < samples_per_symbol; i++) {
 		sym_taps.push_back(1.0 / samples_per_symbol);
 	}
-	//symbol_coeffs = (1.0/samples_per_symbol,)*samples_per_symbol
+
 	sym_filter =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
 	tune_queue = gr::msg_queue::make(2);
 	traffic_queue = gr::msg_queue::make(2);
@@ -206,7 +205,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	slicer = gr::op25_repeater::fsk4_slicer_fb::make(levels);
 
 	int udp_port = 0;
-	int verbosity = 10;
+	int verbosity = 1; // 10 = lots of debug messages
 	const char * wireshark_host="127.0.0.1";
 	bool do_imbe = 1;
 	bool do_output = 1;
@@ -214,7 +213,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	bool do_audio_output = 1;
 	bool do_tdma = 0;
 	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
-	//op25_vocoder = gr::op25_repeater::vocoder::make(0, 0, 0, "", 0, 0);
+	
 
         
 	converter = gr::blocks::short_to_float::make(1, 1024.0); //8192.0);
