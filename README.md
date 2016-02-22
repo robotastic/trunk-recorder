@@ -48,7 +48,16 @@ Note - if you did not install GR in the standard spot, use the -DCMAKE_PREFIX_PA
 
 **OP25**
 
-This should be as simple doing `./pybombs install gr-op25`. On OSX, it is quite a bit trickier. Right now the code is not patched for OSX installs. I will try to put together an easy way to do an OSX install in the future.
+This should be as simple doing `./pybombs install gr-op25`. Unfortunately, it is not. There seems to a be small error in one of the files. The Forecast block for p25_frame_assembler seems to be wrong if it is not receiving samples in. I have a fix for it up here:
+[GitLab](https://gitlab.com/robotastic/op25/tree/master). Pull it down with:
+```
+git clone https://gitlab.com/robotastic/op25.git
+cd op25
+mkdir build
+cd build
+cmake ..
+make install
+```
 
 ###Trunk Recorder
 Okay, with that out of the way, here is how you compile Trunk Recorder:
