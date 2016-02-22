@@ -50,9 +50,6 @@ debug_recorder::debug_recorder(Source *src, long t, int n)
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
 
-
-	tm *ltm = localtime(&starttime);
-
 	std::stringstream path_stream;
 	path_stream << boost::filesystem::current_path().string() <<  "/debug";
 
@@ -122,7 +119,6 @@ void debug_recorder::activate( long t, double f, int n, char *existing_filename)
 	talkgroup = t;
 	freq = f;
 
-	tm *ltm = localtime(&starttime);
 	BOOST_LOG_TRIVIAL(info) << "debug_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 

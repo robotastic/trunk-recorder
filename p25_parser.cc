@@ -365,7 +365,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 		BOOST_LOG_TRIVIAL(trace) << "tsbk2c\tUnit Registration Response\tsa " << std::setw(7) << sa << " Source ID: " << si;
 	} else if (opcode == 0x2f) { // Unit DeRegistration Ack
 		//unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
-		unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
+		//unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
 		unsigned long si   = bitset_shift_mask(tsbk,16,0xffffff);
 
 

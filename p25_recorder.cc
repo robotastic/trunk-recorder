@@ -8,17 +8,6 @@ p25_recorder_sptr make_p25_recorder(Source *src, long t, int n)
 	return gnuradio::get_initial_sptr(new p25_recorder(src, t, n));
 }
 
-
-unsigned p25_recorder::GCD(unsigned u, unsigned v) {
-	while ( v != 0) {
-		unsigned r = u % v;
-		u = v;
-		v = r;
-	}
-	return u;
-}
-
-
 p25_recorder::p25_recorder(Source *src, long t, int n)
 	: gr::hier_block2 ("p25_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
