@@ -4,6 +4,9 @@ Makefile
 cmake_install.cmake
 install_manifest.txt
 2015
+2016
+debug
 smartnet
 recorder
 *.py
+config.json

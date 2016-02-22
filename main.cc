@@ -1,5 +1,5 @@
 
-#define DSD
+//#define DSD
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -220,13 +220,21 @@ int get_total_recorders() {
  * Parameters: TrunkMessage message
  */
 
-void start_recorder(TrunkMessage message, Call *call, char *filename) {
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
+
+void start_recorder(TrunkMessage message, Call *call, char *filename, char *debug_filename) {
     Talkgroup * talkgroup = talkgroups->find_talkgroup(message.talkgroup);
     bool source_found = false;
     Recorder *recorder;
     Recorder *debug_recorder;
     call->set_recording(false); // start with the assumption that there are no recorders available.
-
+    call->set_debug_recording(false);
 
     if (message.encrypted == false) {
         //BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted();
@@ -264,11 +272,11 @@ void start_recorder(TrunkMessage message, Call *call, char *filename) {
 
                 debug_recorder = source->get_debug_recorder();
                 if (debug_recorder) {
-                    debug_recorder->activate( message.talkgroup,message.freq, total_recorders, NULL);
-                    call->set_recorder(debug_recorder);
-                    call->set_recording(true);
+                    debug_recorder->activate( message.talkgroup,message.freq, total_recorders,debug_filename );
+                    call->set_debug_recorder(debug_recorder);
+                    call->set_debug_recording(true);
                 } else {
-                    BOOST_LOG_TRIVIAL(trace) << "\tNot debug recording call";
+                    BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
                 }
 
             }
@@ -297,7 +305,9 @@ void stop_inactive_recorders() {
                 //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
             }
             if (call->get_debug_recording() == true) {
+                sprintf(shell_command,"./debug-encode-upload.sh %s > /dev/null 2>&1 &", call->get_debug_recorder()->get_filename());
                 call->get_debug_recorder()->deactivate();
+                system(shell_command);
             }
 
             //BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed();
@@ -309,12 +319,14 @@ void stop_inactive_recorders() {
 }
 
 
+
 void retune_recorder(TrunkMessage message, Call *call) {
 
     Recorder *recorder = call->get_recorder();
     Source *source = recorder->get_source();
-    char shell_command[200];
     char filename[160];
+    char debug_filename[160];
+
     BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << std::endl;
     if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
         recorder->tune_offset(message.freq);
@@ -330,11 +342,17 @@ void retune_recorder(TrunkMessage message, Call *call) {
         //sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", recorder->get_filename());
         strcpy(filename, recorder->get_filename());
         recorder->deactivate();
-        start_recorder(message,call,filename);
+
         //system(shell_command);
         
         if (call->get_debug_recording() == true) {
+             BOOST_LOG_TRIVIAL(info) << "Stopping debug - source can't handle retune";
+            strcpy(debug_filename, call->get_debug_recorder()->get_filename());
             call->get_debug_recorder()->deactivate();
+            call->set_debug_recording(false);
+            start_recorder(message,call,filename, debug_filename);
+        } else {
+            start_recorder(message,call,filename, NULL);  
         }
     }
 }
@@ -401,7 +419,10 @@ void assign_recorder(TrunkMessage message) {
                 }
 
                 if (call->get_debug_recording() == true) {
+                    sprintf(shell_command,"./debug-encode-upload.sh %s > /dev/null 2>&1 &", call->get_debug_recorder()->get_filename());
+                     BOOST_LOG_TRIVIAL(info) << "Stopping debug - diff TG, same freq";
                     call->get_debug_recorder()->deactivate();
+                    system(shell_command);
                 }
 
                 it = calls.erase(it);
@@ -414,7 +435,7 @@ void assign_recorder(TrunkMessage message) {
 
     if (!call_found) {
         Call * call = new Call(message);
-        start_recorder(message, call, NULL);
+        start_recorder(message, call, NULL, NULL);
         calls.push_back(call);
     }
 }
@@ -547,7 +568,6 @@ void monitor_messages() {
     time_t lastMsgCountTime = time(NULL);;
     time_t lastTalkgroupPurge = time(NULL);;
     time_t currentTime = time(NULL);
-    time_t lastUnitCheckTime = time(NULL);
     std::vector<TrunkMessage> trunk_messages;
 
     while (1) {

@@ -69,18 +69,17 @@
 #include "recorder.h"
 #include "smartnet.h"
 
-
+class Source;
 class p25_recorder;
-
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-
-p25_recorder_sptr make_p25_recorder(double f, double c, long s, long t, int n);
+p25_recorder_sptr make_p25_recorder(Source *src, long t, int n);
+#include "source.h"
 
 class p25_recorder : public gr::hier_block2, public Recorder
 {
-	friend p25_recorder_sptr make_p25_recorder(double f, double c, long s, long t, int n);
+	friend p25_recorder_sptr make_p25_recorder(Source *src, long t, int n);
 protected:
-	p25_recorder(double f, double c, long s, long t, int n);
+	p25_recorder(Source *src, long t, int n);
 
 public:
 	~p25_recorder();
@@ -96,6 +95,7 @@ public:
 	void mute();
 	void unmute();
 	char *get_filename();
+    Source *get_source();
 	gr::msg_queue::sptr tune_queue;
 	gr::msg_queue::sptr traffic_queue;
 	gr::msg_queue::sptr rx_queue;
@@ -108,6 +108,7 @@ private:
 	time_t timestamp;
 	time_t starttime;
 
+        Source *source;
 	char filename[160];
 	char raw_filename[160];
 	int num;
@@ -132,7 +133,7 @@ gr::digital::diff_phasor_cc::sptr diffdec;
 	gr::blocks::file_sink::sptr fs;
 
 	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-
+	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 
@@ -154,9 +155,6 @@ gr::digital::diff_phasor_cc::sptr diffdec;
 	gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
 	gr::op25_repeater::vocoder::sptr op25_vocoder;
 	gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
-
-	unsigned GCD(unsigned u, unsigned v);
-	std::vector<float> design_filter(double interpolation, double deci);
 };
 
 

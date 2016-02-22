@@ -11,10 +11,10 @@
 #include <bitset>
 
 struct Channel {
-	long id;
-	long offset;
-	long step;
-	long frequency;
+	unsigned long id;
+	unsigned long offset;
+	unsigned long step;
+	unsigned long frequency;
 	int tdma;
 	double bandwidth;
 };
