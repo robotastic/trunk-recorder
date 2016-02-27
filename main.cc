@@ -602,9 +602,9 @@ void monitor_messages() {
             msgs_decoded_per_second = messagesDecodedSinceLastReport/timeDiff;
             messagesDecodedSinceLastReport = 0;
             lastMsgCountTime = currentTime;
-            if (msgs_decoded_per_second < 10 ) {
+            //if (msgs_decoded_per_second < 10 ) {
                 BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec";
-            }
+            //}
         }
 
 /*

@@ -47,7 +47,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
  	float xlate_bandwidth = 14000; //14000; //24260.0
 
         
-            lpf_coeffs = gr::filter::firdes::low_pass(1.0, samp_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
+        lpf_coeffs = gr::filter::firdes::low_pass(1.0, samp_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(samp_rate / if_rate);
        
         prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
@@ -58,7 +58,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
         float resampled_rate = float(samp_rate) / float(decimation); // rate at output of self.lpf
         float arb_rate = (float(if_rate) / resampled_rate);
         float arb_size = 32;
-        float arb_atten=100;
+        float arb_atten = 100;
 
 
             // Create a filter that covers the full bandwidth of the output signal
@@ -84,16 +84,9 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
                 exit(0);
             }
 
-
-
-
-
-
         arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps );
 
-
         agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
-
 
         float omega = float(if_rate) / float(symbol_rate);
         float gain_omega = 0.1  * gain_mu * gain_mu;
