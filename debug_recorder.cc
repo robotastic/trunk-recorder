@@ -4,12 +4,12 @@ using namespace std;
 
 bool debug_recorder::logging = false;
 
-debug_recorder_sptr make_debug_recorder(Source *src, long t, int n)
+debug_recorder_sptr make_debug_recorder(Source *src)
 {
-	return gnuradio::get_initial_sptr(new debug_recorder(src, t, n));
+	return gnuradio::get_initial_sptr(new debug_recorder(src));
 }
 
-debug_recorder::debug_recorder(Source *src, long t, int n)
+debug_recorder::debug_recorder(Source *src)
 	: gr::hier_block2 ("debug_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
@@ -18,8 +18,8 @@ debug_recorder::debug_recorder(Source *src, long t, int n)
 	freq = source->get_center();
 	center = source->get_center();
 	samp_rate = source->get_rate();
-	talkgroup = t;
-	num = n;
+	talkgroup = 0;
+	num = 0;
 	active = false;
 
 
@@ -87,10 +87,6 @@ Source *debug_recorder::get_source() {
     return source;
 }
 
-char *debug_recorder::get_filename() {
-	return filename;
-}
-
 void debug_recorder::tune_offset(double f) {
 	freq = f;
 	long offset_amount = (f - center);
@@ -112,17 +108,18 @@ void debug_recorder::deactivate() {
 
 }
 
-void debug_recorder::activate( long t, double f, int n, char *existing_filename) {
+void debug_recorder::activate(Call *call, int n) {
 
 	starttime = time(NULL);
 
-	talkgroup = t;
-	freq = f;
+	talkgroup = call->get_talkgroup();
+	freq = call->get_freq();
+    num = n;
 
 	BOOST_LOG_TRIVIAL(info) << "debug_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 
-	prefilter->set_center_freq(f - center); // have to flip for 3.7
+	prefilter->set_center_freq(freq - center); // have to flip for 3.7
 	std::stringstream path_stream;
 	path_stream << boost::filesystem::current_path().string() <<  "/debug";
 

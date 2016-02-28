@@ -4,13 +4,13 @@ using namespace std;
 
 bool analog_recorder::logging = false;
 
-analog_recorder_sptr make_analog_recorder(Source *src, long t, int n)
+analog_recorder_sptr make_analog_recorder(Source *src)
 {
-	return gnuradio::get_initial_sptr(new analog_recorder(src, t, n));
+	return gnuradio::get_initial_sptr(new analog_recorder(src));
 }
 
 
-analog_recorder::analog_recorder(Source *src, long t, int n)
+analog_recorder::analog_recorder(Source *src)
 	: gr::hier_block2 ("analog_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
@@ -19,8 +19,8 @@ analog_recorder::analog_recorder(Source *src, long t, int n)
 	freq = source->get_center();
 	center = source->get_center();
 	samp_rate = source->get_rate();
-	talkgroup = t;
-	num = n;
+	talkgroup = 0;
+	num = 0;
 	active = false;
 
 	timestamp = time(NULL);
@@ -137,10 +137,6 @@ Source *analog_recorder::get_source() {
     return source;
 }
 
-char *analog_recorder::get_filename() {
-	return filename;
-}
-
 
 void analog_recorder::tune_offset(double f) {
 	freq = f;
@@ -170,25 +166,17 @@ void analog_recorder::deactivate() {
 	else cout << "Unable to open file";
 }
 
-void analog_recorder::activate(long t, double f, int n, char *existing_filename) {
+void analog_recorder::activate(Call *call, int n) {
 
 	starttime = time(NULL);
 
-	talkgroup = t;
-	freq = f;
-	tm *ltm = localtime(&starttime);
+	talkgroup = call->get_talkgroup();
+	freq = call->get_freq();
+    num = n;
 
-	prefilter->set_center_freq( f - center); // have to flip for 3.7
+	prefilter->set_center_freq( freq - center); // have to flip for 3.7
 
-
-	std::stringstream path_stream;
-	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-
-	boost::filesystem::create_directories(path_stream.str());
-	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,f);
-	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,timestamp,freq);
-
-	wav_sink->open(filename);
+	wav_sink->open(call->get_filename());
 
 	active = true;
 	valve->set_enabled(true);

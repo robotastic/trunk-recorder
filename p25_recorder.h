@@ -72,29 +72,26 @@
 class Source;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-p25_recorder_sptr make_p25_recorder(Source *src, long t, int n);
+p25_recorder_sptr make_p25_recorder(Source *src);
 #include "source.h"
 
 class p25_recorder : public gr::hier_block2, public Recorder
 {
-	friend p25_recorder_sptr make_p25_recorder(Source *src, long t, int n);
+	friend p25_recorder_sptr make_p25_recorder(Source *src);
 protected:
-	p25_recorder(Source *src, long t, int n);
+	p25_recorder(Source *src);
 
 public:
 	~p25_recorder();
 
 	void tune_offset(double f);
-	void activate( long talkgroup, double f, int num, char *existing_filename);
+	void activate( Call *call, int n);
 
 	void deactivate();
 	double get_freq();
 	bool is_active();
 	int lastupdate();
 	long elapsed();
-	void mute();
-	void unmute();
-	char *get_filename();
     Source *get_source();
 	gr::msg_queue::sptr tune_queue;
 	gr::msg_queue::sptr traffic_queue;

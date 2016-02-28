@@ -56,20 +56,20 @@
 class Source;
 class dsd_recorder;
 typedef boost::shared_ptr<dsd_recorder> dsd_recorder_sptr;
-dsd_recorder_sptr make_dsd_recorder(Source *src, long t, int n);
+dsd_recorder_sptr make_dsd_recorder(Source *src);
 
 #include "source.h"
 
 class dsd_recorder : public gr::hier_block2 , public Recorder
 {
-	friend dsd_recorder_sptr make_dsd_recorder(Source *src, long t, int n);
+	friend dsd_recorder_sptr make_dsd_recorder(Source *src);
 protected:
-	dsd_recorder(Source *src, long t, int n);
+	dsd_recorder(Source *src);
 
 public:
 	~dsd_recorder();
 	void tune_offset(double f);
-	void activate( long t, double f, int n,char *existing_filename);
+	void activate( Call *call, int n);
 	void deactivate();
 	double get_freq();
     Source *get_source();
@@ -78,9 +78,6 @@ public:
 	int lastupdate();
 	long elapsed();
 	void close();
-	void mute();
-	void unmute();
-	char *get_filename();
 	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 	static bool logging;
 private:

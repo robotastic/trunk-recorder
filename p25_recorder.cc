@@ -3,12 +3,12 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_recorder_sptr make_p25_recorder(Source *src, long t, int n)
+p25_recorder_sptr make_p25_recorder(Source *src)
 {
-	return gnuradio::get_initial_sptr(new p25_recorder(src, t, n));
+	return gnuradio::get_initial_sptr(new p25_recorder(src));
 }
 
-p25_recorder::p25_recorder(Source *src, long t, int n)
+p25_recorder::p25_recorder(Source *src)
 	: gr::hier_block2 ("p25_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
@@ -17,10 +17,10 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 	freq = source->get_center();
 	center = source->get_center();
 	long samp_rate = source->get_rate();
-	talkgroup = t;
+	talkgroup = 0;
 	long capture_rate = samp_rate;
 
-	num = n;
+	num = 0;
 	active = false;
 
 	float offset = freq - center;
@@ -41,7 +41,7 @@ p25_recorder::p25_recorder(Source *src, long t, int n)
 
         double input_rate = capture_rate;
         
-        float if_rate = 24000;
+        float if_rate = 48000; //24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
         float bb_gain = 1.0;
@@ -244,10 +244,6 @@ double p25_recorder::get_freq() {
 	return freq;
 }
 
-char *p25_recorder::get_filename() {
-	return filename;
-}
-
 int p25_recorder::lastupdate() {
 	return time(NULL) - timestamp;
 }
@@ -272,28 +268,22 @@ void p25_recorder::deactivate() {
 	wav_sink->close();
 }
 
-void p25_recorder::activate(long t, double f, int n, char *existing_filename) {
+void p25_recorder::activate(Call *call, int n) {
 
 	timestamp = time(NULL);
 	starttime = time(NULL);
 
-	talkgroup = t;
-	freq = f;
+	talkgroup = call->get_talkgroup();
+	freq = call->get_freq();
+    num = n;
 
 	tm *ltm = localtime(&starttime);
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
-	int offset_amount = (f - center);
+	int offset_amount = (freq - center);
 	prefilter->set_center_freq(offset_amount); 
 
-
-	std::stringstream path_stream;
-	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-
-	boost::filesystem::create_directories(path_stream.str());
-	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,starttime,f);
-
-	wav_sink->open(filename);
+	wav_sink->open(call->get_filename());
 	active = true;
 	valve->set_enabled(true);
 }

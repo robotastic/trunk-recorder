@@ -2,6 +2,7 @@
 #define CALL_H
 #include <sys/time.h>
 
+class Recorder;
 #include "parser.h"
 #include "recorder.h"
 
@@ -14,8 +15,10 @@ class Call {
 	bool debug_recording;
 	bool encrypted;
 	bool emergency;
+    char filename[160];
 	int tdma;
-	long source;
+    long src_count;
+    long src_list[50];
 	Recorder *recorder;
 	Recorder *debug_recorder;
 public:
@@ -26,11 +29,14 @@ public:
 	void set_recorder(Recorder *r);
 	Recorder * get_recorder();
 	double get_freq();
+    char *get_filename();
+    void create_filename(); 
 	void set_freq(double f);
 	long get_talkgroup();
-	long get_source();
-	void set_source(long s);
-	void update();
+    long get_source_count(); 
+    long *get_source_list();
+    bool add_source(long src);
+	void update(TrunkMessage message);
 	int since_last_update();
 	long elapsed();
 	void set_debug_recording(bool m);

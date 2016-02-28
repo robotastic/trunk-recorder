@@ -1,5 +1,15 @@
 #include "call.h"
 
+void Call::create_filename() {
+    tm *ltm = localtime(&start_time);
+
+    
+	std::stringstream path_stream;
+	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+
+	boost::filesystem::create_directories(path_stream.str());
+	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,start_time,freq);
+}
 Call::Call(long t, double f) {
 	talkgroup = t;
 	freq = f;
@@ -10,8 +20,8 @@ Call::Call(long t, double f) {
 	tdma = false;
 	encrypted = false;
 	emergency = false;
-	source = 0;
-
+    src_count = 0;
+    this->create_filename();
 }
 
 Call::Call(TrunkMessage message) {
@@ -24,8 +34,9 @@ Call::Call(TrunkMessage message) {
 	tdma = message.tdma;
 	encrypted = message.encrypted;
 	emergency = message.emergency;
-	source = 0;
-
+	src_count = 0;
+    this->create_filename();
+    this->add_source(message.source);
 }
 
 void  Call::set_debug_recorder(Recorder *r) {
@@ -51,11 +62,29 @@ void Call::set_freq(double f) {
 long  Call::get_talkgroup() {
 	return talkgroup;
 }
-void  Call::set_source(long s) {
-	source = s;
+
+long  *Call::get_source_list() {
+	return src_list;
 }
-long  Call::get_source() {
-	return source;
+
+long  Call::get_source_count() {
+	return src_count;
+}
+
+bool Call::add_source(long src) {
+    if (src==0) {
+        return false;
+    }
+    if (src_count < 1 ) {
+        src_list[src_count] = src;
+        src_count++;
+        return true;
+    } else if ((src_count < 48) && (src_list[src_count-1] != src)) {
+        src_list[src_count] = src;
+        src_count++;
+        return true;
+    }
+    return false;
 }
 void  Call::set_debug_recording(bool m) {
 	debug_recording = m;
@@ -87,7 +116,9 @@ void  Call::set_tdma(int m) {
 int  Call::get_tdma() {
 	return tdma;
 }
-void  Call::update() {
+void  Call::update(TrunkMessage message) {
+    
+    this->add_source(message.source);
 	last_update = time(NULL);
 }
 int  Call::since_last_update() {
@@ -95,4 +126,8 @@ int  Call::since_last_update() {
 }
 long  Call::elapsed() {
 	return time(NULL) - start_time;
+}
+
+char *Call::get_filename() {
+	return filename;
 }

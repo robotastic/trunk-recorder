@@ -80,6 +80,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 
 
 	message.message_type = UNKNOWN;
+    message.source = 0;
 
 	unsigned long opcode = bitset_shift_mask(tsbk,88,0x3f); //x3f
 
@@ -417,6 +418,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
 	std::vector<TrunkMessage> messages;
 
 	message.message_type = UNKNOWN;
+    message.source = 0;
 
 	long type = msg->type();
 	

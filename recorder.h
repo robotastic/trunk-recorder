@@ -49,6 +49,9 @@
 #include <gnuradio/blocks/file_sink.h>
 //#include <blocks/wavfile_sink.h>
 
+class Call;
+#include "call.h"
+
 class Source;
 
 class Recorder
@@ -56,13 +59,12 @@ class Recorder
 
 public:
 	virtual void tune_offset(double f) {};
-	virtual void activate( long t, double f, int n, char *existing_filename) {};
+	virtual void activate( Call *call, int n) {};
 	virtual void deactivate() {} ;
 	virtual double get_freq() {return 0;};
     virtual Source *get_source() {return NULL;};
 	virtual long get_talkgroup() {return 0;};
 	virtual bool is_active() {return false;};
-	virtual char *get_filename() {return NULL;};
 	/*
 	private:
 		double center, freq;
