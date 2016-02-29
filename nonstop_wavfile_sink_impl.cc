@@ -158,6 +158,7 @@ fprintf(stderr, "about to parse\n");
           fseek(d_fp, 0, SEEK_END);
       } else {
           	d_sample_count = 0;
+          fprintf(stderr, "about to write header\n");
           	if(!wavheader_write(d_new_fp,
 	                    d_sample_rate,
 	                    d_nchans,
