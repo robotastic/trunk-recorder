@@ -294,7 +294,7 @@ void stop_inactive_recorders() {
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
-        if ( call->since_last_update()  > 3.0) {
+        if ( call->since_last_update()  > 8.0) {
 
             if (call->get_recording() == true) {
                 sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_filename());
