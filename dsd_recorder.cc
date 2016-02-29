@@ -184,7 +184,6 @@ void dsd_recorder::activate( Call *call, int n) {
 	freq = call->get_freq();
     num = n;
 
-	tm *ltm = localtime(&starttime);
 	BOOST_LOG_TRIVIAL(info) << "dsd_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	prefilter->set_center_freq(freq - center); // have to flip for 3.7

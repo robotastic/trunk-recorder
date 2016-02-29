@@ -107,36 +107,64 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char *filename,
 bool
 nonstop_wavfile_sink_impl::open(const char* filename)
 {
+    int d_first_sample_pos;
+    unsigned d_samples_per_chan;
 	gr::thread::scoped_lock guard(d_mutex);
 
+    
+    
 	// we use the open system call to get access to the O_LARGEFILE flag.  O_APPEND|
 	int fd;
 	if((fd = ::open(filename,
-	                O_WRONLY|O_CREAT|O_APPEND|OUR_O_LARGEFILE|OUR_O_BINARY,
+	                O_RDWR|O_CREAT|OUR_O_LARGEFILE|OUR_O_BINARY,
 	                0664)) < 0) {
 		perror(filename);
+        fprintf(stderr, "::open\n");
 		return false;
 	}
-
+    
 	if(d_new_fp) {    // if we've already got a new one open, close it
 		fclose(d_new_fp);
 		d_new_fp = 0;
 	}
 
-	if((d_new_fp = fdopen (fd, "wb")) == NULL) {
+	if((d_new_fp = fdopen (fd, "rb+")) == NULL) {
 		perror(filename);
+        fprintf(stderr, "fdopen\n");
 		::close(fd);  // don't leak file descriptor if fdopen fails.
 		return false;
 	}
 	d_updated = true;
 
-	if(!wavheader_write(d_new_fp,
+
+      // Scan headers, check file validity
+      if(wavheader_parse(d_new_fp,
+			  d_sample_rate,
+			  d_nchans,
+			  d_bytes_per_sample,
+			  d_first_sample_pos,
+			  d_samples_per_chan)) {
+	     
+
+
+          if(d_samples_per_chan == 0) {
+             throw std::runtime_error("WAV file does not contain any samples");
+          }
+          d_sample_count = d_samples_per_chan * d_nchans;
+          fprintf(stderr, "Sample Count: %d\n", d_sample_count);
+          fseek(d_fp, 0, SEEK_END);
+      } else {
+          	d_sample_count = 0;
+          	if(!wavheader_write(d_new_fp,
 	                    d_sample_rate,
 	                    d_nchans,
 	                    d_bytes_per_sample_new)) {
-		fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
-		exit(-1);
-	}
+		      fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
+		      exit(-1);
+	       }
+      }
+    
+
 
 	return true;
 }
@@ -285,7 +313,7 @@ nonstop_wavfile_sink_impl::do_update()
 
 	d_fp = d_new_fp;                    // install new file pointer
 	d_new_fp  = 0;
-	d_sample_count = 0;
+
 	d_bytes_per_sample = d_bytes_per_sample_new;
 
 	if(d_bytes_per_sample == 1) {

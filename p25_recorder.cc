@@ -277,7 +277,6 @@ void p25_recorder::activate(Call *call, int n) {
 	freq = call->get_freq();
     num = n;
 
-	tm *ltm = localtime(&starttime);
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	int offset_amount = (freq - center);
