@@ -115,31 +115,26 @@ nonstop_wavfile_sink_impl::open(const char* filename)
     
 	// we use the open system call to get access to the O_LARGEFILE flag.  O_APPEND|
 	int fd;
-    fprintf(stderr, "about to ::open\n");
 	if((fd = ::open(filename,
 	                O_RDWR|O_CREAT|OUR_O_LARGEFILE|OUR_O_BINARY,
 	                0664)) < 0) {
 		perror(filename);
-        fprintf(stderr, "::open\n");
 		return false;
 	}
     
 	if(d_new_fp) {    // if we've already got a new one open, close it
-        fprintf(stderr, "here\n");
 		fclose(d_new_fp);
 		d_new_fp = 0;
 	}
 
-    fprintf(stderr, "about to fdopen\n");
 	if((d_new_fp = fdopen (fd, "rb+")) == NULL) {
 		perror(filename);
-        fprintf(stderr, "fdopen\n");
 		::close(fd);  // don't leak file descriptor if fdopen fails.
 		return false;
 	}
 	d_updated = true;
 
-fprintf(stderr, "about to parse\n");
+
       // Scan headers, check file validity
       if(wavheader_parse(d_new_fp,
 			  d_sample_rate,
@@ -158,7 +153,11 @@ fprintf(stderr, "about to parse\n");
           fseek(d_fp, 0, SEEK_END);
       } else {
           	d_sample_count = 0;
-          fprintf(stderr, "about to write header\n");
+          // you have to rewind the d_new_fp because the read failed.
+          if (fseek(d_new_fp, 0, SEEK_SET) != 0) {
+		      return false;
+	       }  
+          
           	if(!wavheader_write(d_new_fp,
 	                    d_sample_rate,
 	                    d_nchans,
