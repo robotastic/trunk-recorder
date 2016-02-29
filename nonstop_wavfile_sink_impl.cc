@@ -125,6 +125,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	}
     
 	if(d_new_fp) {    // if we've already got a new one open, close it
+        fprintf(stderr, "here\n");
 		fclose(d_new_fp);
 		d_new_fp = 0;
 	}

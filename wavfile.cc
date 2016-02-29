@@ -104,13 +104,15 @@ wavheader_parse(FILE *fp,
 
 	size_t fresult;
 
+    fprintf(stderr, "1\n");
 	fresult = fread(str_buf, 1, 4, fp);
 	if(fresult != 4 || strncmp(str_buf, "RIFF", 4) || feof(fp)) {
+        fprintf(stderr, "1.5\n");
 		return false;
 	}
-
+    fprintf(stderr, "2\n");
 	fresult = fread(&file_size, 1, 4, fp);
-
+fprintf(stderr, "3\n");
 	fresult = fread(str_buf, 1, 8, fp);
 	if(fresult != 8 || strncmp(str_buf, "WAVEfmt ", 8) || feof(fp)) {
 		return false;
