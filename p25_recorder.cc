@@ -277,7 +277,7 @@ void p25_recorder::activate(Call *call, int n) {
 	freq = call->get_freq();
     num = n;
 
-	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	int offset_amount = (freq - center);
 	prefilter->set_center_freq(offset_amount); 

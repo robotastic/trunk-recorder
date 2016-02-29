@@ -334,7 +334,7 @@ void retune_recorder(TrunkMessage message, Call *call) {
             call->get_debug_recorder()->tune_offset(message.freq);
         }
     } else {
-         BOOST_LOG_TRIVIAL(info) << "\tClosing and restarting";
+         BOOST_LOG_TRIVIAL(info) << "\t\tSwitching to Different Source to Record";
     
         recorder->deactivate();
         
