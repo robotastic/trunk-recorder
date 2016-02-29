@@ -269,19 +269,19 @@ void p25_recorder::deactivate() {
 
 	active = false;
 	valve->set_enabled(false);
-    BOOST_LOG_TRIVIAL(info) << 
+    /*BOOST_LOG_TRIVIAL(info) << 
 		  "Valve: \t" << valve->max_output_buffer(0) << "\n" <<
 		  "Prefilter: \t" << prefilter->max_output_buffer(0) << "\n" <<
 		  "arb_resampler: \t" << arb_resampler->max_output_buffer(0) << "\n" <<
-		  "agc: \t" << agc->max_output_buffer(0) << "\n" <<
+		  "agc: \t\t" << agc->max_output_buffer(0) << "\n" <<
 		  "costas_clock: \t" << costas_clock->max_output_buffer(0) << "\n" <<
 		  "diffdec: \t" << diffdec->max_output_buffer(0) << "\n" <<
 		"to_float: \t" << to_float->max_output_buffer(0) << "\n" <<
 		  "rescale: \t" << rescale->max_output_buffer(0) << "\n" <<
 		"slicer: \t" << slicer->max_output_buffer(0) << "\n" <<
-		"op25: \t" << op25_frame_assembler->max_output_buffer(0) << "\n" <<
+		"op25: \t\t" << op25_frame_assembler->max_output_buffer(0) << "\n" <<
 		"converter: \t" << converter->max_output_buffer(0) << "\n" <<
-        "wav_sink: \t" <<  wav_sink->max_output_buffer(0);
+        "wav_sink: \t" <<  wav_sink->max_output_buffer(0);*/
 	wav_sink->close();
 }
 
