@@ -261,7 +261,7 @@ void p25_recorder::tune_offset(double f) {
 }
 
 void p25_recorder::deactivate() {
-	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	active = false;
 	valve->set_enabled(false);
@@ -277,7 +277,7 @@ void p25_recorder::activate(Call *call, int n) {
 	freq = call->get_freq();
     num = n;
 
-	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	int offset_amount = (freq - center);
 	prefilter->set_center_freq(offset_amount); 

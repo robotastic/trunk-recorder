@@ -150,7 +150,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
           }
           d_sample_count = d_samples_per_chan * d_nchans;
           fprintf(stderr, "Sample Count: %d\n", d_sample_count);
-          fseek(d_fp, 0, SEEK_END);
+          fseek(d_new_fp, 0, SEEK_END);
       } else {
           	d_sample_count = 0;
           // you have to rewind the d_new_fp because the read failed.
