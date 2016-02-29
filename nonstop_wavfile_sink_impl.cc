@@ -115,6 +115,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
     
 	// we use the open system call to get access to the O_LARGEFILE flag.  O_APPEND|
 	int fd;
+    fprintf(stderr, "about to ::open\n");
 	if((fd = ::open(filename,
 	                O_RDWR|O_CREAT|OUR_O_LARGEFILE|OUR_O_BINARY,
 	                0664)) < 0) {
@@ -128,6 +129,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 		d_new_fp = 0;
 	}
 
+    fprintf(stderr, "about to fdopen\n");
 	if((d_new_fp = fdopen (fd, "rb+")) == NULL) {
 		perror(filename);
         fprintf(stderr, "fdopen\n");
@@ -136,7 +138,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	}
 	d_updated = true;
 
-
+fprintf(stderr, "about to parse\n");
       // Scan headers, check file validity
       if(wavheader_parse(d_new_fp,
 			  d_sample_rate,
