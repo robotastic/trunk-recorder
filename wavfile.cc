@@ -234,6 +234,11 @@ wavheader_write(FILE *fp,
 	memcpy((void*)(wav_hdr + 32), (void*)&block_align,     2);
 	memcpy((void*)(wav_hdr + 34), (void*)&bits_per_sample, 2);
 fprintf(stderr, "trying\n");
+    	if (fseek(fp, 0, SEEK_SET) != 0) {
+            fprintf(stderr, "rewind failed\n");
+		return false;
+	}
+    
 	fwrite(&wav_hdr, 1, header_len, fp);
 	if(ferror(fp)) {
 		return false;
