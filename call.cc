@@ -47,11 +47,9 @@ void Call::end_call() {
 
                 //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
 
-                ofstream myfile (status_filename);
+                std::ofstream myfile (status_filename);
                 if (myfile.is_open())
                 {
-                    int level = (int) state->max / 164;
-                    int index=0;
                     myfile << "{\n";
                     myfile << "\"freq\": " << this->freq << ",\n";
                     myfile << "\"emergency\": " << this->emergency << ",\n";
