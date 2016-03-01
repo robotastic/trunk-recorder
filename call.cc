@@ -9,6 +9,7 @@ void Call::create_filename() {
 
 	boost::filesystem::create_directories(path_stream.str());
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,start_time,freq);
+    sprintf(filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,start_time,freq);
 }
 Call::Call(long t, double f) {
 	talkgroup = t;
@@ -43,13 +44,33 @@ void Call::end_call() {
     char shell_command[200];
     
             if (this->get_recording() == true) {
+
+                //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
+
+                ofstream myfile (status_filename);
+                if (myfile.is_open())
+                {
+                    int level = (int) state->max / 164;
+                    int index=0;
+                    myfile << "{\n";
+                    myfile << "\"freq\": " << this->freq << ",\n";
+                    myfile << "\"emergency\": " << this->emergency << ",\n";
+                    myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
+                    myfile << "\"srcList\": [ ";
+                    for (int i=0; i < this->src_count; i++ ){
+                        if (i != 0) {
+                          myfile << ", " <<  this->src_list[i];
+                        } else {
+                          myfile << this->src_list[i];  
+                        }
+                    }
+                    myfile << " ]\n";
+                    myfile << "}\n";
+                    myfile.close();
+                }
                 sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", this->get_filename());
                 this->get_recorder()->deactivate();
                 system(shell_command);
-                //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
-                for (int i=0; i < this->src_count; i++ ){
-                    BOOST_LOG_TRIVIAL(trace) << "\tSource: " << this->src_list[i];
-                }
             }
             if (this->get_debug_recording() == true) {
                 this->get_debug_recorder()->deactivate();

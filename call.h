@@ -17,6 +17,7 @@ class Call {
 	bool encrypted;
 	bool emergency;
     char filename[160];
+    char status_filename[160];
 	int tdma;
     long src_count;
     long src_list[50];
