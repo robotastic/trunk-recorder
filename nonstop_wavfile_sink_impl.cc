@@ -144,10 +144,6 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 			  d_samples_per_chan)) {
 	     
 
-
-          if(d_samples_per_chan == 0) {
-             throw std::runtime_error("WAV file does not contain any samples");
-          }
           d_sample_count = d_samples_per_chan * d_nchans;
           //fprintf(stderr, "Sample Count: %d\n", d_sample_count);
           fseek(d_new_fp, 0, SEEK_END);

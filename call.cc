@@ -39,6 +39,27 @@ Call::Call(TrunkMessage message) {
     this->add_source(message.source);
 }
 
+void Call::end_call() {
+    char shell_command[200];
+    
+            if (this->get_recording() == true) {
+                sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", this->get_filename());
+                this->get_recorder()->deactivate();
+                system(shell_command);
+                //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
+                for (int i=0; i < this->src_count; i++ ){
+                    BOOST_LOG_TRIVIAL(trace) << "\tSource: " << this->src_list[i];
+                }
+            }
+            if (this->get_debug_recording() == true) {
+                this->get_debug_recorder()->deactivate();
+            }
+
+            //BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed();
+
+}
+
+
 void  Call::set_debug_recorder(Recorder *r) {
 	debug_recorder = r;
 }

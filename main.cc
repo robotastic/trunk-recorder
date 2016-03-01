@@ -289,25 +289,16 @@ void start_recorder(Call *call) {
     }
 }
 
+
+
 void stop_inactive_recorders() {
-    char shell_command[200];
+    
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
         if ( call->since_last_update()  > 8.0) {
-
-            if (call->get_recording() == true) {
-                sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_filename());
-                call->get_recorder()->deactivate();
-                system(shell_command);
-                //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
-            }
-            if (call->get_debug_recording() == true) {
-                call->get_debug_recorder()->deactivate();
-            }
-
-            //BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed();
-            it = calls.erase(it);
+            call->end_call();
+             it = calls.erase(it);
         } else {
             ++it;
         }//if rx is active
@@ -399,17 +390,9 @@ void assign_recorder(TrunkMessage message) {
                 if (call->get_recording() == true) {
                     BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
                 //different talkgroups on the same freq, that is trouble
-
-                    sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", call->get_filename());
-                    call->get_recorder()->deactivate();
-                    system(shell_command);
                 }
-
-                if (call->get_debug_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "Stopping debug - diff TG, same freq";
-                    system(shell_command);
-                }
-
+                call->end_call();
+                
                 it = calls.erase(it);
             } else {
                 ++it; // move on to the next one

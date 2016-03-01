@@ -1,6 +1,7 @@
 #ifndef CALL_H
 #define CALL_H
 #include <sys/time.h>
+#include <boost/log/trivial.hpp>
 
 class Recorder;
 #include "parser.h"
@@ -24,6 +25,7 @@ class Call {
 public:
 	Call( long t, double f);
 	Call( TrunkMessage message );
+    void end_call();
 	void set_debug_recorder(Recorder *r);
 	Recorder * get_debug_recorder();
 	void set_recorder(Recorder *r);
