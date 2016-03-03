@@ -17,15 +17,34 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-
+########################################################################
+# Project setup
+########################################################################
 
 cmake_minimum_required(VERSION 2.6)
 project(Trunk-Recorder CXX C)
 
-set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Debug)
+
+#select the release build type by default to get optimization flags
+if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE "Release")
+   message(STATUS "Build type not specified: defaulting to release.")
+endif(NOT CMAKE_BUILD_TYPE)
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
+########################################################################
+# Compiler specific setup
+########################################################################
+if(CMAKE_COMPILER_IS_GNUCXX AND NOT WIN32)
+    #http://gcc.gnu.org/wiki/Visibility
+    add_definitions(-fvisibility=hidden)
+endif()
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
+endif()
 
 ########################################################################
 # Install directories
@@ -44,44 +63,50 @@ set(GR_LIBEXEC_DIR      libexec)
 set(GR_PKG_LIBEXEC_DIR  ${GR_LIBEXEC_DIR}/${CMAKE_PROJECT_NAME})
 set(GRC_BLOCKS_DIR      ${GR_PKG_DATA_DIR}/grc/blocks)
 
+
 ########################################################################
 # Find gnuradio build dependencies
 ########################################################################
+find_package(GnuradioRuntime)
+find_package(CppUnit)
 
-# Search for GNU Radio and its components and versions. Add any
-# components required to the list of GR_REQUIRED_COMPONENTS (in all
-# caps such as FILTER or FFT) and change the version to the minimum
-# API compatible version required.
-set(GR_REQUIRED_COMPONENTS RUNTIME PMT AUDIO BLOCKS FILTER DIGITAL ANALOG)
-find_package(Gnuradio "3.7.2" REQUIRED)
+# To run a more advanced search for GNU Radio and it's components and
+# versions, use the following. Add any components required to the list
+# of GR_REQUIRED_COMPONENTS (in all caps) and change "version" to the
+# minimum API compatible version required.
+#
+# set(GR_REQUIRED_COMPONENTS RUNTIME BLOCKS FILTER ...)
+# find_package(Gnuradio "version")
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT)
+    find_package(Gnuradio)
+endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
+if(NOT GNURADIO_RUNTIME_FOUND)
+    message(FATAL_ERROR "GnuRadio Runtime required to compile Trunk Recorder")
+endif()
+if(NOT CPPUNIT_FOUND)
+    message(FATAL_ERROR "CppUnit required to compile Trunk Recorder")
+endif()
 
 
 
 ########################################################################
 # Find build dependencies
 ########################################################################
-
-
 #find_package(LibOsmoSDR)
 #find_package(LibRTLSDR)
 #find_package(LibMiriSDR)
+#find_package(LibbladeRF)
+find_package(GnuradioUHD)
 find_package(GrOsmoSDR)
 find_package(LibHackRF)
-find_package(LibDSD)
-#find_package(LibbladeRF)
-find_package(LibOP25)
-find_package(LibOP25Repeater)
-find_package(GnuradioUHD)
 find_package(UHD)
-
 
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to build " ${CMAKE_PROJECT_NAME})
 endif()
  
-
-
 ########################################################################
 # Setup boost
 ########################################################################
@@ -119,9 +144,6 @@ endif()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
 
 
-
-
-
 ########################################################################
 # Setup the include and linker paths
 ########################################################################
@@ -129,25 +151,24 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
     ${GNURADIO_RUNTIME_INCLUDE_DIRS}
     ${GROSMOSDR_INCLUDE_DIR}
-    ${LIBDSD_INCLUDE_DIR}
-    #/usr/local/include/dsd/
-	  #./lib/
+    ${CMAKE_BINARY_DIR}/lib
+    ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_SOURCE_DIR}/op25_repeater/lib
+    ${CMAKE_SOURCE_DIR}/op25_repeater/include
 )
 
 link_directories(
     ${Boost_LIBRARY_DIRS}
     ${GNURADIO_RUNTIME_LIBRARY_DIRS}
-    ${GROSMOSDR_LIBRARIES}
-    ${LIBDSD_LIBRARIES}
-    ${GNURADIO_UHD_LIBRARIES}
-    ${UHD_LIBRARIES}
-	  #/usr/local/lib/
-	  #/usr/local/lib/pyton2.7/dist-packages/gnuradio/
+    ${GROSMOSDR_LIBRARIES_DIRS}
+    ${GNURADIO_UHD_LIBRARIES_DIRS}
+    ${UHD_LIBRARIES_DIRS}
 )
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall")
 
+add_subdirectory(op25_repeater)
 
-add_executable(recorder main.cc source.cc smartnet_trunking.cc p25_trunking.cc smartnet_parser.cc p25_parser.cc call.cc smartnet_crc.cc smartnet_deinterleave.cc dsd_recorder.cc debug_recorder.cc analog_recorder.cc p25_recorder.cc talkgroup.cc talkgroups.cc nonstop_wavfile_sink_impl.cc)
-target_link_libraries(recorder  ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBDSD_LIBRARIES} ${LIBOP25_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} itpp ncurses menu)
+add_executable(recorder main.cc source.cc smartnet_trunking.cc p25_trunking.cc smartnet_parser.cc p25_parser.cc call.cc smartnet_crc.cc smartnet_deinterleave.cc debug_recorder.cc analog_recorder.cc p25_recorder.cc talkgroup.cc talkgroups.cc nonstop_wavfile_sink_impl.cc)
+target_link_libraries(recorder  ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)

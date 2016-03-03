@@ -57,18 +57,18 @@ typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
 
 #include "source.h"
 
-debug_recorder_sptr make_debug_recorder( Source *src, long t, int n);
+debug_recorder_sptr make_debug_recorder( Source *src);
 
 class debug_recorder : public gr::hier_block2 , public Recorder
 {
-	friend debug_recorder_sptr make_debug_recorder( Source *src, long t, int n);
+	friend debug_recorder_sptr make_debug_recorder( Source *src);
 protected:
-	debug_recorder( Source *src, long t, int n);
+	debug_recorder( Source *src);
 
 public:
 	~debug_recorder();
 	void tune_offset(double f);
-	void activate( long t, double f, int n, char *existing_filename);
+	void activate( Call *call, int n);
 
 	void deactivate();
 	double get_freq();
@@ -78,9 +78,7 @@ public:
 	int lastupdate();
 	long elapsed();
 	void close();
-	void mute();
-	void unmute();
-	char *get_filename();
+
 	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 	static bool logging;
 private:

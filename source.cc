@@ -83,7 +83,7 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 	max_analog_recorders = r;
 
 	for (int i = 0; i < max_analog_recorders; i++) {
-		analog_recorder_sptr log = make_analog_recorder( this, 0, i);
+		analog_recorder_sptr log = make_analog_recorder( this);
 		analog_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
 	}
@@ -107,9 +107,9 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
 	for (int i = 0; i < max_digital_recorders; i++) {
 #ifdef DSD
-		dsd_recorder_sptr log = make_dsd_recorder( this, 0, i);
+		dsd_recorder_sptr log = make_dsd_recorder( this);
 #else
-		p25_recorder_sptr log = make_p25_recorder( this, 0, i);
+		p25_recorder_sptr log = make_p25_recorder( this);
 #endif
 		digital_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
@@ -120,7 +120,7 @@ void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
 
 	for (int i = 0; i < max_debug_recorders; i++) {
 
-		debug_recorder_sptr log = make_debug_recorder( this, 0, i);
+		debug_recorder_sptr log = make_debug_recorder( this);
 
 		debug_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
@@ -137,7 +137,7 @@ Recorder * Source::get_debug_recorder()
 			break;
 		}
 	}
-	BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Debug Recorders Available";
+	//BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Debug Recorders Available";
 	return NULL;
 
 }
@@ -165,7 +165,7 @@ Recorder * Source::get_digital_recorder(int priority)
 	//BOOST_LOG_TRIVIAL(info) << "\tTG Priority: "<< priority << " Available Digital Recorders: " <<num_available_recorders;
 
  	if (priority> 99) { //num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
-		BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
+		//BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
 		return NULL;
 	}
 

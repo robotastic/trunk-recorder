@@ -51,9 +51,8 @@
 
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/char_to_float.h>
-#include <op25/decoder_bf.h>
-#include <op25/fsk4_demod_ff.h>
-#include <op25/fsk4_slicer_fb.h>
+
+#include <op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/p25_frame_assembler.h>
 #include <op25_repeater/gardner_costas_cc.h>
@@ -72,29 +71,26 @@
 class Source;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-p25_recorder_sptr make_p25_recorder(Source *src, long t, int n);
+p25_recorder_sptr make_p25_recorder(Source *src);
 #include "source.h"
 
 class p25_recorder : public gr::hier_block2, public Recorder
 {
-	friend p25_recorder_sptr make_p25_recorder(Source *src, long t, int n);
+	friend p25_recorder_sptr make_p25_recorder(Source *src);
 protected:
-	p25_recorder(Source *src, long t, int n);
+	p25_recorder(Source *src);
 
 public:
 	~p25_recorder();
 
 	void tune_offset(double f);
-	void activate( long talkgroup, double f, int num, char *existing_filename);
+	void activate( Call *call, int n);
 
 	void deactivate();
 	double get_freq();
 	bool is_active();
 	int lastupdate();
 	long elapsed();
-	void mute();
-	void unmute();
-	char *get_filename();
     Source *get_source();
 	gr::msg_queue::sptr tune_queue;
 	gr::msg_queue::sptr traffic_queue;
@@ -149,7 +145,7 @@ gr::digital::diff_phasor_cc::sptr diffdec;
 	gr::blocks::multiply_const_ff::sptr rescale;
 	gr::blocks::multiply_const_ff::sptr baseband_amp;
 	gr::blocks::complex_to_arg::sptr to_float;
-	gr::op25::fsk4_demod_ff::sptr fsk4_demod;
+	gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 	gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
 
 	gr::op25_repeater::fsk4_slicer_fb::sptr slicer;

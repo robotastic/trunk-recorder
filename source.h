@@ -6,12 +6,8 @@
 #include <osmosdr/source.h>
 #include <gnuradio/uhd/usrp_source.h>
 
-//#define DSD
-
-
 #include "recorder.h"
 #include "analog_recorder.h"
-#include "dsd_recorder.h"
 #include "debug_recorder.h"
 #include "p25_recorder.h"
 
@@ -31,11 +27,7 @@ class Source
 	int max_debug_recorders;
 	int max_analog_recorders;
 
-#ifdef DSD
-	std::vector<dsd_recorder_sptr> digital_recorders;
-#else
 	std::vector<p25_recorder_sptr> digital_recorders;
-#endif
 	std::vector<debug_recorder_sptr> debug_recorders;
 	std::vector<analog_recorder_sptr> analog_recorders;
 	std::string driver;

@@ -52,18 +52,18 @@ typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 
 #include "source.h"
 
-analog_recorder_sptr make_analog_recorder(Source *src, long t, int n);
+analog_recorder_sptr make_analog_recorder(Source *src);
 
 class analog_recorder : public gr::hier_block2, public Recorder
 {
-	friend analog_recorder_sptr make_analog_recorder(Source *src, long t, int n);
+	friend analog_recorder_sptr make_analog_recorder(Source *src);
 protected:
-	analog_recorder(Source *src, long t, int n);
+	analog_recorder(Source *src);
 
 public:
 	~analog_recorder();
 	void tune_offset(double f);
-	void activate(long talkgroup,double f, int num, char *existing_filename);
+	void activate(Call *call, int n);
 
 	void deactivate();
 	double get_freq();
@@ -73,10 +73,6 @@ public:
 	int lastupdate();
 	long elapsed();
 	void close();
-	void mute();
-	void unmute();
-	char *get_filename();
-	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 	static bool logging;
 private:
 	double center, freq;
