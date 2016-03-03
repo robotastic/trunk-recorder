@@ -1,6 +1,3 @@
-
-//#define DSD
-
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -25,21 +22,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <ncurses.h>
-#include <menu.h>
 #include <time.h>
+
+
 #include "recorder.h"
-
-#ifdef DSD
-#include "dsd_recorder.h"
-#endif
-
 #include "p25_recorder.h"
-
-
 #include "analog_recorder.h"
+
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
+
 #include "smartnet_crc.h"
 #include "smartnet_deinterleave.h"
 #include "talkgroups.h"

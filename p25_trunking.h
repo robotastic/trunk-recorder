@@ -50,8 +50,7 @@
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/char_to_float.h>
 #include <op25/decoder_bf.h>
-#include <op25/fsk4_demod_ff.h>
-#include <op25/fsk4_slicer_fb.h>
+#include <op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/p25_frame_assembler.h>
 #include <op25_repeater/gardner_costas_cc.h>
@@ -116,7 +115,7 @@ gr::digital::diff_phasor_cc::sptr diffdec;
 	gr::blocks::multiply_const_ff::sptr rescale;
 	gr::blocks::multiply_const_ff::sptr baseband_amp;
 	gr::blocks::complex_to_arg::sptr to_float;
-	gr::op25::fsk4_demod_ff::sptr fsk4_demod;
+	gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 	gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
 
 	gr::op25_repeater::fsk4_slicer_fb::sptr slicer;

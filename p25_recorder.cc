@@ -167,7 +167,7 @@ p25_recorder::p25_recorder(Source *src)
 	rx_queue = gr::msg_queue::make(100);
 	const float l[] = { -2.0, 0.0, 2.0, 4.0 };
 	std::vector<float> levels( l,l + sizeof( l ) / sizeof( l[0] ) );
-	fsk4_demod = gr::op25::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
+	fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
 	slicer = gr::op25_repeater::fsk4_slicer_fb::make(levels);
 
 	int udp_port = 0;
