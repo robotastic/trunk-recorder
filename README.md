@@ -9,14 +9,13 @@ Trunk Recorder currently supports the following:
  - Ettus USRP
  - P25 Phase 1 & Analog voice
  
-I have tested things on both Unbuntu 14.04 & OSX 10.10. I have been using it with an Ettus b200, and a HackRF Jawbreaker.
+I have tested things on both Unbuntu 14.04, OSX 10.10, & OSX 10.11. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
 ##Compile
 
 ###Requirements
  - GNURadio 3.7
- - GR-DSD (The version I forked)
- - OP-25
+ - (GR-DSD & OP25 used to be required, but I just bundled in a fork of OP25)
   
 **GNURadio**
 
@@ -28,36 +27,11 @@ If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio
 
 **GR-DSD**
 
-I made a fork of this code to allow for more statistics to be collected and the also make usre multiple copies can run at once. It has a few dependencies:
- - Lib Snd File: `sudo apt-get install libsndfile1-dev`
- - ITPP: `sudo apt-get install libitpp-dev`
- - CMake: `sudo apt-get install cmake`
- - Boost: `sudo apt-get install libboost-dev libboost-system-dev libboost-thread-dev`
- - CppUnit: `sudo apt-get install libcppunit-dev`
-
-Now download, compile and install the code. Make sure you have loaded the environment variables that point to the GR libaries first.
-```
-git clone https://github.com/robotastic/gr-dsd.git
-cd gr-dsd
-cmake -DCMAKE_PREFIX_PATH=/path/to/GR/install -DCMAKE_INSTALL_PREFIX=/path/to/GR/install  .
-make
-sudo make install
-sudo ldconfig
-```
-Note - if you did not install GR in the standard spot, use the -DCMAKE_PREFIX_PATH to point to it.
+GR-DSD is no longer needed. I couldn't get it to do a good job of decoding QPSK systems.
 
 **OP25**
 
-This should be as simple doing `./pybombs install gr-op25`. Unfortunately, it is not. There seems to a be small error in one of the files. The Forecast block for p25_frame_assembler seems to be wrong if it is not receiving samples in. I have a fix for it up here:
-[GitLab](https://gitlab.com/robotastic/op25/tree/master). Pull it down with:
-```
-git clone https://gitlab.com/robotastic/op25.git
-cd op25
-mkdir build
-cd build
-cmake ..
-make install
-```
+OP25 can do a good job of decoding QPSK systems. It has a bug though that causes it use lots of CPU. I have a branch that fixes this and have bundled it direclty with Trunk Recorder. You do not need a seperate install of OP25.
 
 ###Trunk Recorder
 Okay, with that out of the way, here is how you compile Trunk Recorder:
@@ -89,8 +63,9 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
         "device": ""
     }],
     "system": {
-        "control_channels": [854862500],
-        "type": "smartnet"
+        "control_channels": [855462500],
+        "type": "p25",
+        "modulation": "QPSK"
     },
     "talkgroupsFile": "ChanList.csv"
 }
@@ -111,6 +86,7 @@ Here are the different arguments:
  - **system** - This object defines the trunking system that will be recorded
    - **control_channels** - an array of the control channel frequencies for the system, in Hz. Right now, only the first value is used.
    - **type** - the type of trunking system. The options are *smartnet* & *p25*.
+   - **modulation** - the type of modulation that the system uses. The options are *QPSK* & *FSK4*.
  - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. 
 
 **ChanList.csv**
