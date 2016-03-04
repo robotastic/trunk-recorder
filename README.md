@@ -27,11 +27,11 @@ If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio
 
 **GR-DSD**
 
-GR-DSD is no longer needed. I couldn't get it to do a good job of decoding QPSK systems.
+*GR-DSD is no longer needed. I couldn't get it to do a good job of decoding QPSK systems.*
 
 **OP25**
 
-OP25 can do a good job of decoding QPSK systems. It has a bug though that causes it use lots of CPU. I have a branch that fixes this and have bundled it direclty with Trunk Recorder. You do not need a seperate install of OP25.
+*OP25 can do a good job of decoding QPSK systems. It has a bug though that causes it use lots of CPU. I have a branch that fixes this and have bundled it direclty with Trunk Recorder. You do not need a seperate install of OP25.*
 
 ###Trunk Recorder
 Okay, with that out of the way, here is how you compile Trunk Recorder:
