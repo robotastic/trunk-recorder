@@ -307,7 +307,8 @@ void stop_inactive_recorders() {
         Call *call = *it;
         if ( call->since_last_update()  > 8.0) {
             call->end_call();
-             it = calls.erase(it);
+            delete call;
+            it = calls.erase(it);
         } else {
             ++it;
         }//if rx is active
@@ -401,7 +402,7 @@ void assign_recorder(TrunkMessage message) {
                 //different talkgroups on the same freq, that is trouble
                 }
                 call->end_call();
-                
+                delete call;
                 it = calls.erase(it);
             } else {
                 ++it; // move on to the next one

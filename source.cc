@@ -141,13 +141,9 @@ Recorder * Source::get_debug_recorder()
 
 int Source::get_num_available_recorders() {
 	int num_available_recorders = 0;
-#ifdef DSD
-	for(std::vector<dsd_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
-		dsd_recorder_sptr rx = *it;
-#else
+
 	for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
 		p25_recorder_sptr rx = *it;
-#endif
 		if (!rx->is_active())
 		{
 			num_available_recorders++;
@@ -166,13 +162,10 @@ Recorder * Source::get_digital_recorder(int priority)
 		return NULL;
 	}
 
-#ifdef DSD
-	for(std::vector<dsd_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
-		dsd_recorder_sptr rx = *it;
-#else
+
 	for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
 		p25_recorder_sptr rx = *it;
-#endif
+        
 		if (!rx->is_active())
 		{
 			return (Recorder *) rx.get();
