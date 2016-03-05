@@ -68,13 +68,13 @@ class p25_trunking;
 
 typedef boost::shared_ptr<p25_trunking> p25_trunking_sptr;
 
-p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
+p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk);
 
 class p25_trunking : public gr::hier_block2
 {
-	friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
+	friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk);
 protected:
-	p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue);
+	p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk);
 
 public:
 	~p25_trunking();
@@ -89,7 +89,7 @@ public:
 
 private:
 	double center, freq;
-
+    bool qpsk_mod;
 
 	std::vector<float> lpf_coeffs;
 	std::vector<float> arb_taps;
@@ -99,7 +99,7 @@ private:
 	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr sym_filter;
 
-gr::digital::diff_phasor_cc::sptr diffdec;
+    gr::digital::diff_phasor_cc::sptr diffdec;
 
 	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;

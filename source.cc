@@ -102,15 +102,12 @@ Recorder * Source::get_analog_recorder(int priority)
 	return NULL;
 
 }
-void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
+void Source::create_digital_recorders(gr::top_block_sptr tb, int r, bool qpsk) {
 	max_digital_recorders = r;
 
 	for (int i = 0; i < max_digital_recorders; i++) {
-#ifdef DSD
-		dsd_recorder_sptr log = make_dsd_recorder( this);
-#else
-		p25_recorder_sptr log = make_p25_recorder( this);
-#endif
+
+		p25_recorder_sptr log = make_p25_recorder( this, qpsk);
 		digital_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
 	}

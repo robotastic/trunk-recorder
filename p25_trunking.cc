@@ -3,14 +3,14 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue)
+p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk)
 {
-	return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue));
+	return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue, qpsk));
 }
 
 
 
-p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue)
+p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk)
 	: gr::hier_block2 ("p25_trunking",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
@@ -28,7 +28,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	double samples_per_symbol = 10;
 	double system_channel_rate = symbol_rate * samples_per_symbol;
 	float symbol_deviation = 600.0;
-	bool fsk4 = false;
+    qpsk_mod = qpsk;
+
 
 	std::vector<float> sym_taps;
 	const double pi = M_PI; //boost::math::constants::pi<double>();
@@ -143,8 +144,12 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
 
 
+        to_float->set_max_output_buffer(8192);
+        rescale->set_max_output_buffer(8192);
+        slicer->set_max_output_buffer(8192);
+        op25_frame_assembler->set_max_output_buffer(8192);
 
-	if (fsk4) {
+	if (!qpsk_mod) {
         connect(self(),0, prefilter,0);
 		connect(prefilter,0, arb_resampler, 0);
 		connect(arb_resampler,0, fm_demod,0);

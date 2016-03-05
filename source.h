@@ -58,7 +58,7 @@ public:
     void set_freq_corr(double p);
 	void create_analog_recorders(gr::top_block_sptr tb, int r);
 	Recorder * get_analog_recorder(int priority);
-	void create_digital_recorders(gr::top_block_sptr tb, int r);
+	void create_digital_recorders(gr::top_block_sptr tb, int r, bool qpsk);
 	Recorder * get_digital_recorder(int priority);
 	void create_debug_recorders(gr::top_block_sptr tb, int r);
 	Recorder * get_debug_recorder();
