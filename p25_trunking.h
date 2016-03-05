@@ -49,7 +49,7 @@
 
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/char_to_float.h>
-#include <op25/decoder_bf.h>
+
 #include <op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/p25_frame_assembler.h>
