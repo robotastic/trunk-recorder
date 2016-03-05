@@ -6,6 +6,7 @@
 #include <boost/program_options.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -62,6 +63,8 @@ std::vector<Call *> calls;
 Talkgroups *talkgroups;
 std::string talkgroups_file;
 string system_type;
+string system_modulation;
+bool qpsk_mod = true;
 gr::top_block_sptr tb;
 smartnet_trunking_sptr smartnet_trunking;
 p25_trunking_sptr p25_trunking;
@@ -70,6 +73,7 @@ gr::msg_queue::sptr queue;
 volatile sig_atomic_t exit_flag = 0;
 SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
+
 
 
 void exit_interupt(int sig) { // can be called asynchronously
@@ -119,6 +123,33 @@ void load_config()
         boost::property_tree::ptree pt;
         boost::property_tree::read_json(json_filename, pt);
 
+        BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
+        BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("system.control_channels") )
+        {
+            double control_channel = node.second.get<double>("",0);
+            control_channels.push_back(control_channel);
+            BOOST_LOG_TRIVIAL(info) << node.second.get<double>("",0) << " ";
+        }
+        BOOST_LOG_TRIVIAL(info);
+
+        talkgroups_file = pt.get<std::string>("talkgroupsFile","");
+        BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
+        system_type = pt.get<std::string>("system.type");
+        boost::optional<std::string> mod_exists = pt.get_optional<std::string>("system.modulation");
+        if (mod_exists) {
+            system_modulation = pt.get<std::string>("system.modulation");
+            if (boost::iequals(system_modulation, "QPSK"))
+            {
+                qpsk_mod = true;
+            } else if (boost::iequals(system_modulation, "FSK4")) {
+                qpsk_mod = false;
+            } else {
+                qpsk_mod = true;
+                BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, assuming QPSK";
+            }
+        } else {
+            qpsk_mod = true;
+        }
         BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("sources") )
         {
             double center = node.second.get<double>("center",0);
@@ -165,25 +196,11 @@ void load_config()
             if (ppm!=0){
                 source->set_freq_corr(ppm);
             }
-            source->create_digital_recorders(tb, digital_recorders);
+            source->create_digital_recorders(tb, digital_recorders, qpsk_mod);
             source->create_analog_recorders(tb, analog_recorders);
             source->create_debug_recorders(tb, debug_recorders);
             sources.push_back(source);
         }
-
-        BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-        BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("system.control_channels") )
-        {
-            double control_channel = node.second.get<double>("",0);
-            control_channels.push_back(control_channel);
-            BOOST_LOG_TRIVIAL(info) << node.second.get<double>("",0) << " ";
-        }
-        BOOST_LOG_TRIVIAL(info);
-
-        talkgroups_file = pt.get<std::string>("talkgroupsFile","");
-        BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
-        system_type = pt.get<std::string>("system.type");
-
     }
     catch (std::exception const& e)
     {
@@ -547,6 +564,7 @@ void monitor_messages() {
             stop_inactive_recorders();
             lastTalkgroupPurge = currentTime;
         }
+
         if (system_type == "smartnet") {
             trunk_messages = smartnet_parser->parse_message(msg->to_string());
         } else if (system_type == "p25") {
@@ -596,7 +614,9 @@ bool monitor_system() {
         }
     }
 
+    
     if (source_found) {
+        
         if (system_type == "smartnet") {
             // what you really need to do is go through all of the sources to find the one with the right frequencies
             smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  queue);
@@ -605,7 +625,7 @@ bool monitor_system() {
 
         if (system_type == "p25") {
             // what you really need to do is go through all of the sources to find the one with the right frequencies
-            p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  queue);
+            p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  queue, qpsk_mod);
             tb->connect(source->get_src_block(),0, p25_trunking, 0);
         }
     }

@@ -3,12 +3,12 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_recorder_sptr make_p25_recorder(Source *src)
+p25_recorder_sptr make_p25_recorder(Source *src, bool qpsk)
 {
-	return gnuradio::get_initial_sptr(new p25_recorder(src));
+	return gnuradio::get_initial_sptr(new p25_recorder(src, qpsk));
 }
 
-p25_recorder::p25_recorder(Source *src)
+p25_recorder::p25_recorder(Source *src, bool qpsk)
 	: gr::hier_block2 ("p25_recorder",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
@@ -17,6 +17,7 @@ p25_recorder::p25_recorder(Source *src)
 	freq = source->get_center();
 	center = source->get_center();
 	long samp_rate = source->get_rate();
+    qpsk_mod = qpsk;
 	talkgroup = 0;
 	long capture_rate = samp_rate;
 
@@ -31,7 +32,7 @@ p25_recorder::p25_recorder(Source *src)
 	double samples_per_symbol = 10;
 	double system_channel_rate = symbol_rate * samples_per_symbol;
 	float symbol_deviation = 600.0;
-	bool fsk4 = false;
+
 
 	std::vector<float> sym_taps;
 	const double pi = M_PI; //boost::math::constants::pi<double>();
@@ -201,7 +202,7 @@ p25_recorder::p25_recorder(Source *src)
         slicer->set_max_output_buffer(8192);
         op25_frame_assembler->set_max_output_buffer(8192);
         converter->set_max_output_buffer(8192);
-	if (fsk4) {
+	if (!qpsk_mod) {
         connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter,0, arb_resampler, 0);
