@@ -135,17 +135,21 @@ void load_config()
         talkgroups_file = pt.get<std::string>("talkgroupsFile","");
         BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
         system_type = pt.get<std::string>("system.type");
-        system_modulation = pt.get<std::string>("system.modulation");
-        if (boost::iequals(system_modulation, "QPSK"))
-        {
-            qpsk_mod = true;
-        } else if (boost::iequals(system_modulation, "FSK4")) {
-            qpsk_mod = false;
+        boost::optional<std::string> mod_exists = pt.get_optional<std::string>("system.modulation");
+        if (mod_exists) {
+            system_modulation = pt.get<std::string>("system.modulation");
+            if (boost::iequals(system_modulation, "QPSK"))
+            {
+                qpsk_mod = true;
+            } else if (boost::iequals(system_modulation, "FSK4")) {
+                qpsk_mod = false;
+            } else {
+                qpsk_mod = true;
+                BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, assuming QPSK";
+            }
         } else {
             qpsk_mod = true;
-            BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, assuming QPSK";
         }
-        
         BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("sources") )
         {
             double center = node.second.get<double>("center",0);

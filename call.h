@@ -26,6 +26,7 @@ class Call {
 public:
 	Call( long t, double f);
 	Call( TrunkMessage message );
+    ~Call();
     void end_call();
 	void set_debug_recorder(Recorder *r);
 	Recorder * get_debug_recorder();

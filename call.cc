@@ -40,6 +40,10 @@ Call::Call(TrunkMessage message) {
     this->add_source(message.source);
 }
 
+Call::~Call() {
+    BOOST_LOG_TRIVIAL(info) << " This call is over!!";
+}
+
 void Call::end_call() {
     char shell_command[200];
     
