@@ -85,9 +85,9 @@ uint8_t gardner_costas_cc_impl::slicer(float sym) {
       dibit = 0;
     nid_accum <<= 2;
     nid_accum |= dibit;
-
+/*
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ P25_FRAME_SYNC_MAGIC, 0, 48)) {
-//		fprintf(stderr, "P25P1 Framing detect\n");
+		fprintf(stderr, "P25P1 Framing detect\n");
 	}
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0x001050551155LL, 0, 48)) {
 		fprintf(stderr, "tuning error -1200\n");
@@ -97,7 +97,7 @@ uint8_t gardner_costas_cc_impl::slicer(float sym) {
 	}
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0xAA8A0A008800LL, 0, 48)) {
 		fprintf(stderr, "tuning error +/- 2400\n");
-	}
+	}*/
     return dibit;
 }
 
