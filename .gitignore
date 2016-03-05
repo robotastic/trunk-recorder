@@ -9,4 +9,7 @@ debug
 smartnet
 recorder
 *.py
+*.a
+*.dylib
 config.json
+build
