@@ -41,7 +41,7 @@ Call::Call(TrunkMessage message) {
 }
 
 Call::~Call() {
-    BOOST_LOG_TRIVIAL(info) << " This call is over!!";
+  //  BOOST_LOG_TRIVIAL(info) << " This call is over!!";
 }
 
 void Call::end_call() {
