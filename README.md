@@ -25,6 +25,12 @@ If you are running Linux, the easiest way to install GR is by using [Pybombs](ht
 
 If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
 
+**Boost**
+The Boost Libraries are needed. On Linux box, it can't hurt to do:
+```
+sudo apt-get install libboost-all-dev
+```
+
 **GR-DSD**
 
 *GR-DSD is no longer needed. I couldn't get it to do a good job of decoding QPSK systems.*
