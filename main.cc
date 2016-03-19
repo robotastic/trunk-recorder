@@ -170,7 +170,7 @@ void load_config()
             BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center",0);
             BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate",0);
             BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error",0);
-            BOOST_LOG_TRIVIAL(info) << "PPM Error: " << node.second.get<double>("PPM",0);
+            BOOST_LOG_TRIVIAL(info) << "PPM Error: " << node.second.get<double>("ppm",0);
             BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain",0);
             BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain",0);
             BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain",0);
