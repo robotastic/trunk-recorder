@@ -504,7 +504,7 @@ void unit_check() {
         }
         myfile << "\n}\n}\n";
         sprintf(shell_command,"./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-        system(shell_command);
+        int rc = system(shell_command);
         myfile.close();
     }
 }
