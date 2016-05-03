@@ -21,7 +21,7 @@ I have tested things on both Unbuntu 14.04, OSX 10.10, & OSX 10.11. I have been 
 
 It is important to have a very recent version of GnuRadio (GR). There was a bug in earlier versions that messed up the smartnet trunking. Make sure your install is up to date if you are having trouble deoding smartnet trunking.
 
-If you are running Linux, the easiest way to install GR is by using [Pybombs](http://gnuradio.org/redmine/projects/pybombs/wiki/QuickStart). After you have installed using pybombs, make sure you setup you Environment variables. In your pybombs directory, run: `./pybombs env` and then load them `source $prefix/setup_env.sh`, with $prefix being the directory you installed GR in.
+If you are running Linux, the easiest way to install GR is by using [Pybombs](http://gnuradio.org/redmine/projects/pybombs/wiki). After you have installed using pybombs, make sure you setup you Environment variables. In your pybombs directory, run: `./pybombs env` and then load them `source $prefix/setup_env.sh`, with $prefix being the directory you installed GR in.
 
 If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
 
