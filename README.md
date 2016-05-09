@@ -61,6 +61,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
     "sources": [{
         "center": 857000000.0,
         "rate": 8000000.0,
+        "squelch": -50,
         "error": 0,
         "gain": 40,
         "antenna": "TX/RX",
@@ -80,6 +81,7 @@ Here are the different arguments:
  - **sources** - an array of JSON objects that define the different SDRs available and how to configure them
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
+   - **squelch** - Analog Squelch, Set each source when using multiple sources, my rtl-sdr's are around -60. [0 = Disabled]
    - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually recieve it, you would set this to -1000000. You should also probably get a new SDR.
    - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
    - **ifGain** - [hackrf only] sets the ifgain.
@@ -94,6 +96,7 @@ Here are the different arguments:
    - **type** - the type of trunking system. The options are *smartnet* & *p25*.
    - **modulation** - the type of modulation that the system uses. The options are *QPSK* & *FSK4*.
  - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. 
+ - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** [digital/analog].
 
 **ChanList.csv**
 

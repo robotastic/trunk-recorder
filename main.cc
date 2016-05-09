@@ -62,6 +62,7 @@ int current_control_channel = 0;
 std::vector<Call *> calls;
 Talkgroups *talkgroups;
 std::string talkgroups_file;
+string default_mode;
 string system_type;
 string system_modulation;
 bool qpsk_mod = true;
@@ -134,6 +135,8 @@ void load_config()
 
         talkgroups_file = pt.get<std::string>("talkgroupsFile","");
         BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
+        default_mode = pt.get<std::string>("defaultMode","digital");
+        BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
         system_type = pt.get<std::string>("system.type");
         boost::optional<std::string> mod_exists = pt.get_optional<std::string>("system.modulation");
         if (mod_exists) {
@@ -159,6 +162,7 @@ void load_config()
             int gain = node.second.get<int>("gain",0);
             int if_gain = node.second.get<int>("ifGain",0);
             int bb_gain = node.second.get<int>("bbGain",0);
+            double squelch_db = node.second.get<double>("squelch",0);
             std::string antenna = node.second.get<string>("antenna","");
             int digital_recorders = node.second.get<int>("digitalRecorders",0);
             int debug_recorders = node.second.get<int>("debugRecorders",0);
@@ -174,6 +178,7 @@ void load_config()
             BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain",0);
             BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain",0);
             BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain",0);
+            BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch",0);
 
             BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders",0);
             BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",0);
@@ -193,6 +198,7 @@ void load_config()
             source->set_bb_gain(bb_gain);
             source->set_gain(gain);
             source->set_antenna(antenna);
+            source->set_squelch_db(squelch_db);
             if (ppm!=0){
                 source->set_freq_corr(ppm);
             }
@@ -267,8 +273,12 @@ void start_recorder(Call *call) {
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tTalkgroup not found: " << call->get_freq() << " For TG: " << call->get_talkgroup();
-
-                    recorder = source->get_digital_recorder(2);
+                    // A talkgroup was not found from the talkgroup file.
+                     if (default_mode == "analog") {
+                         recorder = source->get_analog_recorder(2) ;
+                     } else {
+                         recorder = source->get_digital_recorder(2);
+                     }
                 }
                 
                 int total_recorders = get_total_recorders();

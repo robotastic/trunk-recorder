@@ -20,6 +20,7 @@ class Source
     double actual_rate;
 	double error;
     double ppm;
+    double squelch_db;
 	int gain;
 	int bb_gain;
 	int if_gain;
@@ -51,6 +52,8 @@ public:
 	double get_error();
 	void set_if_gain(int i);
 	int get_if_gain();
+    void set_squelch_db(double s);
+    double get_squelch_db();
 	void set_gain(int r);
 	int get_gain();
 	void set_bb_gain(int b);
