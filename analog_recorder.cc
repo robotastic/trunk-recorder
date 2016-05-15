@@ -51,12 +51,19 @@ analog_recorder::analog_recorder(Source *src)
 	//on a trunked network where you know you will have good signal, a carrier power squelch works well. real FM receviers use a noise squelch, where
 	//the received audio is high-passed above the cutoff and then fed to a reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-	/*squelch = gr::analog::pwr_squelch_cc::make(28, 		//squelch point
-										   		0.1, 	//alpha
-										  		10, 		//ramp
-										   		true); 	//gated so that the audio recording doesn't contain blank spaces between transmissions
-*/
-
+ 	squelch_db = source->get_squelch_db();
+         if (squelch_db!=0) {
+ 		squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 		//squelch point
+                                                            0.01,	 	//alpha
+ 							   10, 		//ramp
+ 							   false); 	// Non-blocking as we are using squelch_two as a gate. 
+ 
+ 		 //  based on squelch code form ham2mon
+ 		squelch_two = gr::analog::pwr_squelch_ff::make(-200, 	// set low -200 since its after demod and its just gate for previous squelch
+ 							        0.01, 	//alpha
+ 					  		        0, 	//ramp
+ 					   		        true); 	//gated so that the audio recording doesn't contain blank spaces between transmissions
+         }
 
 
 	//k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
@@ -103,15 +110,27 @@ analog_recorder::analog_recorder(Source *src)
 
 
 
-	connect(self(),0, valve,0);
-	connect(valve,0, prefilter,0);
-	connect(prefilter, 0, downsample_sig, 0);
-	connect(downsample_sig, 0, demod, 0);
-	//connect(downsample_sig, 0, squelch, 0);
-	//connect(squelch, 0,	demod, 0);
-	connect(demod, 0, deemph, 0);
-	connect(deemph, 0, decim_audio, 0);
-	connect(decim_audio, 0, wav_sink, 0);
+    if (squelch_db!=0) {	
+ 		// using squelch
+ 		connect(self(),0, valve,0);
+ 		connect(valve,0, prefilter,0);
+ 		connect(prefilter, 0, downsample_sig, 0);
+ 		connect(downsample_sig, 0, squelch, 0);
+ 		connect(squelch, 0,	demod, 0);
+ 		connect(demod, 0, deemph, 0);
+ 		connect(deemph, 0, decim_audio, 0);
+ 		connect(decim_audio, 0, squelch_two, 0);
+ 		connect(squelch_two, 0, wav_sink, 0);
+ 	   } else {
+ 		// No squelch used
+ 		connect(self(),0, valve,0);
+ 		connect(valve,0, prefilter,0);
+ 		connect(prefilter, 0, downsample_sig, 0);
+ 		connect(downsample_sig, 0, demod, 0);
+ 		connect(demod, 0, deemph, 0);
+ 		connect(deemph, 0, decim_audio, 0);
+ 		connect(decim_audio, 0, wav_sink, 0);
+ 	}
 
 
 }

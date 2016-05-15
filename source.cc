@@ -58,6 +58,7 @@ void Source::set_gain(int r)
 		cast_to_usrp_sptr(source_block)->set_gain(gain);
 	}
 }
+
 int Source::get_gain() {
 	return gain;
 }
@@ -68,6 +69,9 @@ void Source::set_if_gain(int i)
 		cast_to_osmo_sptr(source_block)->set_if_gain(if_gain);
 	}
 }
+
+
+
 void Source::set_freq_corr(double p)
 {
     ppm = p;
@@ -79,6 +83,15 @@ void Source::set_freq_corr(double p)
 int Source::get_if_gain() {
 	return if_gain;
 }
+
+void Source::set_squelch_db(double s) {
+    squelch_db = s;
+}
+
+double Source::get_squelch_db() {
+    return squelch_db;
+}
+
 void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 	max_analog_recorders = r;
 
@@ -90,6 +103,10 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 }
 Recorder * Source::get_analog_recorder(int priority)
 {
+    if (priority > 99) { 
+ 		BOOST_LOG_TRIVIAL(info) << "\t\tNot recording because of priority";
+ 		return NULL;
+ 	}
 	for(std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
 		analog_recorder_sptr rx = *it;
 		if (!rx->is_active())
