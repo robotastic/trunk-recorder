@@ -2,11 +2,12 @@
 {"center": 857000000.0,
 "rate": 8000000.0,
 "error": 1400,
-"gain": 24,
-"antenna": "TX/RX",
+"gain": 14,
+"ifgain": 24,
+"bbgain": 32,
 "digitalRecorders": 2,
-"driver": "usrp",
-"device": ""}
+"driver": "osmosdr"
+}
 ],
 "system": {
 	"control_channels": [855462500],
