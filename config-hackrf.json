@@ -1,16 +1,17 @@
 { "sources": [
 {"center": 857000000.0,
 "rate": 8000000.0,
-"error": 0,
-"gain": 40,
+"error": 1400,
+"gain": 24,
 "antenna": "TX/RX",
 "digitalRecorders": 2,
 "driver": "usrp",
 "device": ""}
 ],
 "system": {
-	"control_channels": [854862500],
-	"type": "smartnet"
+	"control_channels": [855462500],
+	"type": "p25",
+    "modulation": "QPSK"
 	},
 "talkgroupsFile": "ChanList.csv"
 } 
