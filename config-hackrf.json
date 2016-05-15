@@ -3,8 +3,8 @@
 "rate": 8000000.0,
 "error": 1400,
 "gain": 14,
-"ifgain": 24,
-"bbgain": 32,
+"ifGain": 24,
+"bbGain": 42,
 "digitalRecorders": 2,
 "driver": "osmosdr"
 }
