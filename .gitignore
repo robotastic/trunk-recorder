@@ -13,3 +13,4 @@ recorder
 *.dylib
 config.json
 build
+*.so
