@@ -196,12 +196,12 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
 
 
-        valve->set_max_output_buffer(8192);
-        to_float->set_max_output_buffer(8192);
-        rescale->set_max_output_buffer(8192);
-        slicer->set_max_output_buffer(8192);
-        op25_frame_assembler->set_max_output_buffer(8192);
-        converter->set_max_output_buffer(8192);
+        valve->set_max_output_buffer(4096);
+        to_float->set_max_output_buffer(4096);
+        rescale->set_max_output_buffer(4096);
+        slicer->set_max_output_buffer(4096);
+        op25_frame_assembler->set_max_output_buffer(4096);
+        converter->set_max_output_buffer(4096);
 	if (!qpsk_mod) {
         connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);

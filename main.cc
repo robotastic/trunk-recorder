@@ -65,6 +65,8 @@ std::string talkgroups_file;
 string default_mode;
 string system_type;
 string system_modulation;
+string capture_dir;
+string config_dir;
 bool qpsk_mod = true;
 gr::top_block_sptr tb;
 smartnet_trunking_sptr smartnet_trunking;
@@ -133,6 +135,15 @@ void load_config()
         }
         BOOST_LOG_TRIVIAL(info);
 
+        capture_dir = pt.get<std::string>("captureDir",boost::filesystem::current_path().string());
+        size_t pos = capture_dir.find_last_of("/");
+        if(pos == capture_dir.length()-1)
+        {
+            capture_dir.erase(capture_dir.length()-1);
+        }
+        BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << capture_dir;
+        config_dir = pt.get<std::string>("configDir",boost::filesystem::current_path().string());
+        BOOST_LOG_TRIVIAL(info) << "Config Directory: " << config_dir;
         talkgroups_file = pt.get<std::string>("talkgroupsFile","");
         BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
         default_mode = pt.get<std::string>("defaultMode","digital");
@@ -170,6 +181,7 @@ void load_config()
 
             std::string driver = node.second.get<std::string>("driver","");
             std::string device = node.second.get<std::string>("device","");
+            
 
             BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center",0);
             BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate",0);
@@ -422,7 +434,7 @@ void assign_recorder(TrunkMessage message) {
 
 
     if (!call_found) {
-        Call * call = new Call(message);
+        Call * call = new Call(message, capture_dir);
         start_recorder(call);
         calls.push_back(call);
     }

@@ -24,8 +24,8 @@ class Call {
 	Recorder *recorder;
 	Recorder *debug_recorder;
 public:
-	Call( long t, double f);
-	Call( TrunkMessage message );
+	Call( long t, double f, std::string rec_dir);
+	Call( TrunkMessage message, std::string rec_dir);
     ~Call();
     void end_call();
 	void set_debug_recorder(Recorder *r);
@@ -34,7 +34,7 @@ public:
 	Recorder * get_recorder();
 	double get_freq();
     char *get_filename();
-    void create_filename(); 
+    void create_filename(std::string rec_dir); 
 	void set_freq(double f);
 	long get_talkgroup();
     long get_source_count(); 

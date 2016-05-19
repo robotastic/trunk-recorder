@@ -1,17 +1,17 @@
 #include "call.h"
 
-void Call::create_filename() {
+void Call::create_filename(std::string capture_dir) {
     tm *ltm = localtime(&start_time);
 
     
 	std::stringstream path_stream;
-	path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+	path_stream << capture_dir <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
 	boost::filesystem::create_directories(path_stream.str());
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,start_time,freq);
     sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,start_time,freq);
 }
-Call::Call(long t, double f) {
+Call::Call(long t, double f, std::string capture_dir) {
 	talkgroup = t;
 	freq = f;
 	start_time = time(NULL);
@@ -22,10 +22,10 @@ Call::Call(long t, double f) {
 	encrypted = false;
 	emergency = false;
     src_count = 0;
-    this->create_filename();
+    this->create_filename(capture_dir);
 }
 
-Call::Call(TrunkMessage message) {
+Call::Call(TrunkMessage message, std::string capture_dir) {
 	talkgroup = message.talkgroup;
 	freq = message.freq;
 	start_time = time(NULL);
@@ -36,7 +36,7 @@ Call::Call(TrunkMessage message) {
 	encrypted = message.encrypted;
 	emergency = message.emergency;
 	src_count = 0;
-    this->create_filename();
+    this->create_filename(capture_dir);
     this->add_source(message.source);
 }
 
