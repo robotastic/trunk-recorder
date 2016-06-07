@@ -40,6 +40,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	message.message_type = UNKNOWN;
 	message.encrypted = false;
 	message.tdma = false;
+	message.source = 0;
 
 	std::vector<std::string> x;
 	boost::split(x, s, boost::is_any_of(","), boost::token_compress_on);
@@ -58,6 +59,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 			if ( lastcmd == 0x308) {
 				// Channel Grant
 				message.message_type = GRANT;
+				message.source = lastaddress;
 			} else {
 				// Call continuation
 				message.message_type = UPDATE;
