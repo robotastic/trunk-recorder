@@ -292,6 +292,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 		unsigned long rfid = bitset_shift_mask(tsbk, 48, 0xff);
 		unsigned long stid = bitset_shift_mask(tsbk, 40, 0xff);
 		unsigned long chan = bitset_shift_mask(tsbk, 24, 0xffff);
+		message.message_type = SYSID;
+		message.sysid = syid;
 		
 		BOOST_LOG_TRIVIAL(trace) << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan) <<  ")"<< std::endl;
 	} else if (opcode == 0x39) {  // secondary cc
@@ -308,6 +310,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 			message.tdma = 0;
 			messages.push_back(message);
 			message.freq = f2;
+			//message.sysid = syid;
 
 		}
 

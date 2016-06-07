@@ -11,6 +11,7 @@ enum MessageType {
 	REGISTRATION = 4,
 	DEREGISTRATION = 5,
 	AFFILIATION = 6,
+	SYSID = 7,
 	UNKNOWN = 99
 };
 
@@ -22,6 +23,7 @@ struct TrunkMessage {
 	bool emergency;
 	int tdma;
 	long source;
+	int sysid;
 };
 
 
