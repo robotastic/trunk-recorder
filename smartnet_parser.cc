@@ -41,6 +41,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	message.encrypted = false;
 	message.tdma = false;
 	message.source = 0;
+	message.sysid = 0;
 
 	std::vector<std::string> x;
 	boost::split(x, s, boost::is_any_of(","), boost::token_compress_on);
@@ -51,8 +52,10 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 
 	x.clear();
 	vector<string>().swap(x);
-
-	if (command < 0x2d0) {
+	if ((address & 0xfc00) == 0x2800) {
+		message.sysid = lastaddress;
+		message.message_type = SYSID;
+	} else if (command < 0x2d0) {
 		if (  (address != 56016) && (address != 8176)) {  // remove this later to make it more general
 			message.talkgroup = address;
 			message.freq = getfreq(command);
@@ -65,10 +68,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 				message.message_type = UPDATE;
 			}
 		}
-	}
-
-
-	if (command == 0x03c0) {
+	} else if (command == 0x03c0) {
 		message.message_type = STATUS;
 		//parse_status(command, address,groupflag);
 	}

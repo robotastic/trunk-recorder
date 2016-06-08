@@ -447,7 +447,13 @@ void add_control_channel(double control_channel) {
     }
 }
 
-
+void current_system_id(int sysid) {
+    static int active_sysid = 0;
+    if(active_sysid != sysid) {
+        BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::hex << std::uppercase << sysid << std::nouppercase << std::dec;
+        active_sysid = sysid;
+    }
+}
 
 void unit_registration(long unit) {
 
@@ -552,6 +558,9 @@ void handle_message(std::vector<TrunkMessage>  messages) {
                 break;
             case AFFILIATION:
                 group_affiliation(message.source, message.talkgroup);
+                break;
+            case SYSID:
+		current_system_id(message.sysid);
                 break;
             case STATUS:
             case UNKNOWN:
