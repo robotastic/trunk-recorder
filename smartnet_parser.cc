@@ -46,7 +46,8 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	std::vector<std::string> x;
 	boost::split(x, s, boost::is_any_of(","), boost::token_compress_on);
 
-	long address = atoi( x[0].c_str() ) & 0xFFF0;
+	int full_address = atoi( x[0].c_str() );
+	long address = full_address & 0xFFF0;
 	//int groupflag = atoi( x[1].c_str() );
 	int command = atoi( x[2].c_str() );
 
@@ -73,7 +74,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 		//parse_status(command, address,groupflag);
 	}
 
-	lastaddress = address;
+	lastaddress = full_address;
 	lastcmd = command;
 	messages.push_back(message);
 	return messages;
