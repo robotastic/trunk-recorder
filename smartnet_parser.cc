@@ -57,17 +57,15 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 		message.sysid = lastaddress;
 		message.message_type = SYSID;
 	} else if (command < 0x2d0) {
-		if (  (address != 56016) && (address != 8176)) {  // remove this later to make it more general
-			message.talkgroup = address;
-			message.freq = getfreq(command);
-			if ( lastcmd == 0x308) {
-				// Channel Grant
-				message.message_type = GRANT;
-				message.source = lastaddress;
-			} else {
-				// Call continuation
-				message.message_type = UPDATE;
-			}
+		message.talkgroup = address;
+		message.freq = getfreq(command);
+		if ( lastcmd == 0x308) {
+			// Channel Grant
+			message.message_type = GRANT;
+			message.source = lastaddress;
+		} else {
+			// Call continuation
+			message.message_type = UPDATE;
 		}
 	} else if (command == 0x03c0) {
 		message.message_type = STATUS;
