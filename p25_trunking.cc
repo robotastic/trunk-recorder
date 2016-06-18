@@ -70,7 +70,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
             // than half the output signal's bw to avoid aliasing, so
             // the half-band here is 0.5*rate.
             float percent = 0.80;
-            if(arb_rate < 1) {
+            if(arb_rate <= 1) {
                 float halfband = 0.5* arb_rate;
                 float bw = percent*halfband;
                 float tb = (percent/2.0)*halfband;
