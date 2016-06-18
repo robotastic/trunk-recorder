@@ -42,11 +42,13 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	message.tdma = false;
 	message.source = 0;
 	message.sysid = 0;
+	message.emergency = false;
 
 	std::vector<std::string> x;
 	boost::split(x, s, boost::is_any_of(","), boost::token_compress_on);
 
 	int full_address = atoi( x[0].c_str() );
+	int status = full_address & 0x000F;
 	long address = full_address & 0xFFF0;
 	//int groupflag = atoi( x[1].c_str() );
 	int command = atoi( x[2].c_str() );
@@ -59,10 +61,34 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	} else if (command < 0x2d0) {
 		message.talkgroup = address;
 		message.freq = getfreq(command);
-		if ( lastcmd == 0x308) {
+		if ( lastcmd == 0x308 || lastcmd == 0x321 ) { // Include digital
 			// Channel Grant
 			message.message_type = GRANT;
 			message.source = lastaddress;
+			// Check Status
+			/* Status Message in TalkGroup ID
+			 *   0 Normal Talkgroup
+			 *   1 All Talkgroup
+			 *   2 Emergency
+			 *   3 Talkgroup patch to another
+			 *   4 Emergency Patch
+			 *   5 Emergency multi - group
+			 *   6 Not assigned
+			 *   7 Multi - select (initiated by dispatcher)
+			 *   8 DES Encryption talkgroup
+			 *   9 DES All Talkgroup
+			 *  10 DES Emergency
+			 *  11 DES Talkgroup patch
+			 *  12 DES Emergency Patch
+			 *  13 DES Emergency multi - group
+			 *  14 Not assigned
+			 *  15 Multi - select DES TG
+			 */
+			if(status == 2 && status == 4 && status == 5) {
+				message.emergency = true;
+			} else if ( status >= 8 ) { // Ignore DES Encryption
+				message.message_type = UNKNOWN;
+			}
 		} else {
 			// Call continuation
 			message.message_type = UPDATE;
