@@ -263,8 +263,10 @@ void start_recorder(Call *call) {
     call->set_recording(false); // start with the assumption that there are no recorders available.
     call->set_debug_recording(false);
 
+        BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << "\tFreq: " << call->get_freq();    
+    
     if (call->get_encrypted() == false) {
-        BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << "\tFreq: " << call->get_freq();
+
 
         for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
             Source * source = *it;
@@ -317,6 +319,8 @@ void start_recorder(Call *call) {
         if (!source_found) {
             BOOST_LOG_TRIVIAL(error) << "\tRecording not started because there was no source covering: " << call->get_freq() << " For TG: " << call->get_talkgroup();
         }
+    } else {
+        // anything for encrypted calls could go here...
     }
 }
 
