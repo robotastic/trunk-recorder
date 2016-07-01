@@ -90,7 +90,7 @@ Here are the different arguments:
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentaully the number of simultanious call you can record at the same time in the frequency range that this SDR will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. It will use DSD or OP25 to decode the P25 CAI voice.
    - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
    - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
-   - **device** - the serial number for the device. You only need to do this if there are more than one.
+   - **device** - osmosdr device name and posiably serial number or index of the device, see [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for each device and parameters. You only need to do this if there are more than one. (bladerf=00001 for BladeRF with serial 00001 or rtl=00923838 for RTL-SDR with serial 00923838, just airspy for an airspy)
  - **system** - This object defines the trunking system that will be recorded
    - **control_channels** - an array of the control channel frequencies for the system, in Hz. Right now, only the first value is used.
    - **type** - the type of trunking system. The options are *smartnet* & *p25*.
