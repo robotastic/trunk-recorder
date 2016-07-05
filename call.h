@@ -6,6 +6,7 @@
 class Recorder;
 #include "parser.h"
 #include "recorder.h"
+#include "uploader.h"
 
 class Call {
 	long talkgroup;
@@ -34,10 +35,10 @@ public:
 	Recorder * get_recorder();
 	double get_freq();
     char *get_filename();
-    void create_filename(std::string rec_dir); 
+    void create_filename(std::string rec_dir);
 	void set_freq(double f);
 	long get_talkgroup();
-    long get_source_count(); 
+    long get_source_count();
     long *get_source_list();
     bool add_source(long src);
 	void update(TrunkMessage message);

@@ -3,7 +3,7 @@
 void Call::create_filename(std::string capture_dir) {
     tm *ltm = localtime(&start_time);
 
-    
+
 	std::stringstream path_stream;
 	path_stream << capture_dir <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
@@ -46,7 +46,7 @@ Call::~Call() {
 
 void Call::end_call() {
     char shell_command[200];
-    
+
             if (this->get_recording() == true) {
 
                 //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
@@ -63,7 +63,7 @@ void Call::end_call() {
                         if (i != 0) {
                           myfile << ", " <<  this->src_list[i];
                         } else {
-                          myfile << this->src_list[i];  
+                          myfile << this->src_list[i];
                         }
                     }
                     myfile << " ]\n";
@@ -72,7 +72,8 @@ void Call::end_call() {
                 }
                 sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", this->get_filename());
                 this->get_recorder()->deactivate();
-                int rc = system(shell_command);
+                //int rc = system(shell_command);
+                send_call(this);
             }
             if (this->get_debug_recording() == true) {
                 this->get_debug_recorder()->deactivate();
@@ -161,7 +162,7 @@ int  Call::get_tdma() {
 	return tdma;
 }
 void  Call::update(TrunkMessage message) {
-    
+
     this->add_source(message.source);
 	last_update = time(NULL);
 }
