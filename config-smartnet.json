@@ -5,7 +5,7 @@
 "gain": 34,
 "digitalRecorders": 4,
 "driver": "osmosdr",
-"device": 40
+"device": "rtl=40"
 },
 {"center": 496300000.0,
 "rate": 2048000.0,
@@ -13,7 +13,7 @@
 "gain": 34,
 "digitalRecorders": 4,
 "driver": "osmosdr",
-"device": 42
+"device": "rtl=42"
 }
 ],
 "system": {
