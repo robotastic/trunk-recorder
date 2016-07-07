@@ -172,7 +172,9 @@ int  Call::since_last_update() {
 long  Call::elapsed() {
 	return time(NULL) - start_time;
 }
-
+	long Call::get_start_time() {
+    return start_time;
+  }
 char *Call::get_filename() {
 	return filename;
 }

@@ -44,6 +44,7 @@ public:
 	void update(TrunkMessage message);
 	int since_last_update();
 	long elapsed();
+	long get_start_time();
 	void set_debug_recording(bool m);
 	bool get_debug_recording();
 	void set_recording(bool m);

@@ -52,6 +52,12 @@ make_verbose_verification(Verifier verifier)
 
 
 
+      inline std::string to_string (long l)
+      {
+          std::stringstream ss;
+          ss << l;
+          return ss.str();
+      }
 
 
 int upload(struct call_data *call)
@@ -59,7 +65,8 @@ int upload(struct call_data *call)
   try
   {
 
-
+  std::string server = "api.openmhz.com";
+  std::string path =  "/upload";
     boost::asio::io_service io_service;
   boost::asio::streambuf response_;
   boost::asio::streambuf request_;
@@ -78,6 +85,7 @@ int upload(struct call_data *call)
 
     // Make sure we have something to read.
 if ( !file.is_open() ) {
+  std::cout << "Error opening file \n";
     //throw (std::exception("Could not open file."));
 }
 
@@ -98,11 +106,19 @@ if ( !file.is_open() ) {
 
     oss << file.rdbuf();
 
-    add_post_field(oss, "length", "20", boundary);
-    add_post_field(oss, "freq", "8.56588e+08", boundary);
-    add_post_field(oss, "timestamp", "14145353244", boundary);
-    add_post_field(oss, "talkgroup", "149", boundary);
-    add_post_field(oss, "sources", "1414, 535, 3244", boundary);
+    std::string source_list;
+    for (int i=0; i < call->src_count; i++ ){
+      source_list = source_list + to_string(call->src_list[i]);
+      if (i < (call->src_count - 1)) {
+        source_list = source_list + ", ";
+      }
+    }
+
+    add_post_field(oss, "freq", to_string(call->freq), boundary);
+    add_post_field(oss, "start_time", to_string(call->start_time), boundary);
+    add_post_field(oss, "talkgroup", to_string(call->talkgroup), boundary);
+    add_post_field(oss, "emergency", to_string(call->emergency), boundary);
+    add_post_field(oss, "sources", source_list, boundary);
 
     oss << "\r\n--" << boundary << "--\r\n";
 
@@ -240,7 +256,7 @@ void *convert_upload_call(void *thread_arg){
   m4a = m4a.replace_extension(".m4a");
   strcpy(call_info->converted, m4a.string().c_str());
   sprintf(shell_command,"ffmpeg -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 %s", call_info->filename, m4a.string().c_str());
-  std::cout << "Converting: " << m4a << "\n";
+  std::cout << "Converting: " << call_info->converted << "\n";
   std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
   upload(call_info);
@@ -257,6 +273,7 @@ void send_call(Call *call) {
   call_info->emergency = call->get_emergency();
   call_info->tdma = call->get_tdma();
   call_info->src_count = call->get_source_count();
+  call_info->start_time = call->get_start_time();
   strcpy(call_info->filename, call->get_filename());
   for (int i=0; i < call_info->src_count; i++ ){
     call_info->src_list[i] = source_list[i];

@@ -9,6 +9,8 @@
 #include <boost/bind.hpp>
 #include <boost/asio/ssl.hpp>
 #include <pthread.h>
+#include <sstream>
+
 
 #include "call.h"
 
@@ -16,8 +18,7 @@ struct call_data{
   long thread_id;
   long talkgroup;
 	double freq;
-	time_t last_update;
-	time_t start_time;
+	long start_time;
   bool encrypted;
   bool emergency;
   char filename[160];
