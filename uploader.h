@@ -24,8 +24,8 @@ struct call_data{
   char filename[160];
   char converted[160];
   int tdma;
-  long src_count;
-  long src_list[50];
+  long source_count;
+  long source_list[50];
 };
 int upload(struct call_data *call);
 void *convert_upload_call(void *thread_arg);
