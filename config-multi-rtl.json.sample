@@ -6,7 +6,7 @@
 "gain": 42,
 "digitalRecorders": 4,
 "driver": "osmosdr",
-"device": "30"},
+"device": "rtl=30"},
 {"center": 855700000.0,
 "rate": 2048000.0,
 "error": 1900,
@@ -14,7 +14,7 @@
 "gain": 42,
 "digitalRecorders": 4,
 "driver": "osmosdr",
-"device": "31"},
+"device": "rtl=31"},
 {"center": 860000000.0,
 "rate": 2048000.0,
 "error": 1100,
@@ -22,7 +22,7 @@
 "gain": 42,
 "digitalRecorders": 4,
 "driver": "osmosdr",
-"device": "32"}
+"device": "rtl=32"}
 ],
 "system": {
 	"control_channels": [855462500],

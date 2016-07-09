@@ -208,12 +208,18 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 	if (driver == "osmosdr") {
 		osmosdr::source::sptr osmo_src;
 		if (dev == "") {
-            BOOST_LOG_TRIVIAL(info) << "Source Device not specified";
+			BOOST_LOG_TRIVIAL(info) << "Source Device not specified";
 			osmo_src = osmosdr::source::make();
 		} else {
-            std::ostringstream msg;
-            msg << "rtl=" << dev << ",buflen=16384,buffers=8";
-            BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
+			std::ostringstream msg;
+			if(isdigit(dev[0])) {	// Assume this is a serial number and fail back
+						// to using rtl as default
+				msg << "rtl=" << dev << ",buflen=16384,buffers=8";
+				BOOST_LOG_TRIVIAL(info) << "Source device name missing, defaulting to rtl device";
+			} else {
+				msg << dev << ",buflen=16384,buffers=8";
+			}
+			BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
 			osmo_src = osmosdr::source::make(msg.str());
 		}
 		BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
