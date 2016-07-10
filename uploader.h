@@ -11,8 +11,9 @@
 #include <pthread.h>
 #include <sstream>
 
-
+#include "config.h"
 #include "call.h"
+#include "url_parser/url_parser.h"
 
 struct call_data{
   long thread_id;
@@ -23,13 +24,19 @@ struct call_data{
   bool emergency;
   char filename[160];
   char converted[160];
+  std::string upload_server;
+  std::string server;
+  std::string scheme;
+  std::string hostname;
+  std::string port;
+  std::string path;
   int tdma;
   long source_count;
   long source_list[50];
 };
 int upload(struct call_data *call);
 void *convert_upload_call(void *thread_arg);
-void send_call(Call *call);
+void send_call(Call *call, Config config);
 
 
 #endif

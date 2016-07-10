@@ -29,7 +29,7 @@
 #include "recorder.h"
 #include "p25_recorder.h"
 #include "analog_recorder.h"
-
+#include "config.h"
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
 
@@ -65,7 +65,7 @@ std::string talkgroups_file;
 string default_mode;
 string system_type;
 string system_modulation;
-string capture_dir;
+
 string config_dir;
 bool qpsk_mod = true;
 gr::top_block_sptr tb;
@@ -77,7 +77,7 @@ volatile sig_atomic_t exit_flag = 0;
 SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 
-
+Config config;
 
 void exit_interupt(int sig) { // can be called asynchronously
     exit_flag = 1; // set flag
@@ -135,17 +135,23 @@ void load_config()
         }
         BOOST_LOG_TRIVIAL(info);
 
-        capture_dir = pt.get<std::string>("captureDir",boost::filesystem::current_path().string());
-        size_t pos = capture_dir.find_last_of("/");
-        if(pos == capture_dir.length()-1)
+        config.capture_dir = pt.get<std::string>("captureDir",boost::filesystem::current_path().string());
+        size_t pos = config.capture_dir.find_last_of("/");
+        if(pos == config.capture_dir.length()-1)
         {
-            capture_dir.erase(capture_dir.length()-1);
+            config.capture_dir.erase(config.capture_dir.length()-1);
         }
-        BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << capture_dir;
+        BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
         config_dir = pt.get<std::string>("configDir",boost::filesystem::current_path().string());
         BOOST_LOG_TRIVIAL(info) << "Config Directory: " << config_dir;
         talkgroups_file = pt.get<std::string>("talkgroupsFile","");
         BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
+
+        config.upload_script = pt.get<std::string>("uploadScript","");
+        BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
+        config.upload_server = pt.get<std::string>("uploadServer","");
+        BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
+
         default_mode = pt.get<std::string>("defaultMode","digital");
         BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
         system_type = pt.get<std::string>("system.type");
@@ -181,7 +187,7 @@ void load_config()
 
             std::string driver = node.second.get<std::string>("driver","");
             std::string device = node.second.get<std::string>("device","");
-            
+
 
             BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center",0);
             BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate",0);
@@ -230,7 +236,7 @@ void load_config()
 
 int get_total_recorders() {
     int total_recorders = 0;
-    
+
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();it++) {
         Call *call = *it;
 
@@ -263,8 +269,8 @@ void start_recorder(Call *call) {
     call->set_recording(false); // start with the assumption that there are no recorders available.
     call->set_debug_recording(false);
 
-        BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << "\tFreq: " << call->get_freq();    
-    
+        BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << "\tFreq: " << call->get_freq();
+
     if (call->get_encrypted() == false) {
 
 
@@ -294,7 +300,7 @@ void start_recorder(Call *call) {
                          recorder = source->get_digital_recorder(2);
                      }
                 }
-                
+
                 int total_recorders = get_total_recorders();
                 if (recorder) {
                     recorder->activate(call, total_recorders);
@@ -327,7 +333,7 @@ void start_recorder(Call *call) {
 
 
 void stop_inactive_recorders() {
-    
+
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
@@ -349,10 +355,10 @@ void retune_recorder(TrunkMessage message, Call *call) {
     Source *source = recorder->get_source();
 
     BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
-    
+
     // set the call to the new Freq / TDMA slot
     call->set_freq(message.freq);
-    call->set_tdma(message.tdma); 
+    call->set_tdma(message.tdma);
 
 
     if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
@@ -362,17 +368,17 @@ void retune_recorder(TrunkMessage message, Call *call) {
         }
     } else {
          BOOST_LOG_TRIVIAL(info) << "\t\tSwitching to Different Source to Record";
-    
+
         recorder->deactivate();
-        
+
         call->set_recording(false);
-        
+
         if (call->get_debug_recording() == true) {
             call->get_debug_recorder()->deactivate();
             call->set_debug_recording(false);
-        } 
-        
-        start_recorder(call);  
+        }
+
+        start_recorder(call);
     }
 }
 
@@ -386,18 +392,18 @@ void assign_recorder(TrunkMessage message) {
 
         // Does the call have the same talkgroup
         if (call->get_talkgroup() == message.talkgroup) {
-            
+
             // Is the freq the same?
             if (call->get_freq() != message.freq) {
                 BOOST_LOG_TRIVIAL(trace) << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
                 // are we currently recording the call?
                 if (call->get_recording() == true) {
-                    
+
                     retune_recorder(message, call);
                     call->update(message);
                     call_found = true;
-                    ++it; // move on to the next one 
-       
+                    ++it; // move on to the next one
+
                 // This call is not being recorded, just update the Freq and move on
                 } else {
                     call->set_freq(message.freq);
@@ -405,15 +411,15 @@ void assign_recorder(TrunkMessage message) {
                     call->update(message);
                     call_found = true;
 
-                    ++it; // move on to the next one 
+                    ++it; // move on to the next one
                 }
-                
+
             // The freq hasn't changed
             } else {
                 call->update(message);
                 call_found = true;
 
-                ++it; // move on to the next one 
+                ++it; // move on to the next one
             }
 
         // The talkgroup for the call does not match
@@ -421,7 +427,7 @@ void assign_recorder(TrunkMessage message) {
 
             // check is the freq is the same as the one being used by the call
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
-                
+
                 // if you are recording the call, stop
                 if (call->get_recording() == true) {
                     BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
@@ -438,7 +444,7 @@ void assign_recorder(TrunkMessage message) {
 
 
     if (!call_found) {
-        Call * call = new Call(message, capture_dir);
+        Call * call = new Call(message, config);
         start_recorder(call);
         calls.push_back(call);
     }
@@ -486,15 +492,15 @@ void update_recorder(TrunkMessage message) {
 
                 if (call->get_recording() == true) {
                     // see if we can retune the recorder, sometimes you can't if there are more than one
-                    retune_recorder(message, call); 
-                                                    
+                    retune_recorder(message, call);
+
                 // the Call is not recording, continue
                 } else {
                     call->set_freq(message.freq);
-                    call->set_tdma(message.tdma); 
-                    
+                    call->set_tdma(message.tdma);
+
                 }
-            } 
+            }
 
             call->update(message);
         }
@@ -650,9 +656,9 @@ bool monitor_system() {
         }
     }
 
-    
+
     if (source_found) {
-        
+
         if (system_type == "smartnet") {
             // what you really need to do is go through all of the sources to find the one with the right frequencies
             smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue);

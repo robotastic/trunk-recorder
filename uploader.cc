@@ -52,7 +52,7 @@ make_verbose_verification(Verifier verifier)
 
 
 
-      inline std::string to_string (long l)
+      inline std::string long_to_string (long l)
       {
           std::stringstream ss;
           ss << l;
@@ -99,16 +99,16 @@ void build_request(struct call_data *call,   boost::asio::streambuf &request_) {
 
          std::string source_list;
          for (int i=0; i < call->source_count; i++ ){
-           source_list = source_list + to_string(call->source_list[i]);
+           source_list = source_list + long_to_string(call->source_list[i]);
            if (i < (call->source_count - 1)) {
              source_list = source_list + ", ";
            }
          }
 
-         add_post_field(oss, "freq", to_string(call->freq), boundary);
-         add_post_field(oss, "start_time", to_string(call->start_time), boundary);
-         add_post_field(oss, "talkgroup", to_string(call->talkgroup), boundary);
-         add_post_field(oss, "emergency", to_string(call->emergency), boundary);
+         add_post_field(oss, "freq", long_to_string(call->freq), boundary);
+         add_post_field(oss, "start_time", long_to_string(call->start_time), boundary);
+         add_post_field(oss, "talkgroup", long_to_string(call->talkgroup), boundary);
+         add_post_field(oss, "emergency", long_to_string(call->emergency), boundary);
          add_post_field(oss, "source_list", source_list, boundary);
 
          oss << "\r\n--" << boundary << "--\r\n";
@@ -117,10 +117,10 @@ void build_request(struct call_data *call,   boost::asio::streambuf &request_) {
 
          boost::asio::streambuf post;
        std::ostream post_stream(&request_);
-       post_stream << "POST " << path << "" << " HTTP/1.1\r\n";
+       post_stream << "POST /" << call->path << "" << " HTTP/1.1\r\n";
          post_stream << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
        post_stream << "User-Agent: OpenWebGlobe/1.0\r\n";
-         post_stream << "Host: " << server << "\r\n";   // The domain name of the server (for virtual hosting), mandatory since HTTP/1.1
+         post_stream << "Host: " << call->hostname << "\r\n";   // The domain name of the server (for virtual hosting), mandatory since HTTP/1.1
          post_stream << "Accept: */*\r\n";
          post_stream << "Connection: Close\r\n";
          post_stream << "Cache-Control: no-cache\r\n";
@@ -139,7 +139,7 @@ int http_upload(struct call_data *call)
 
       // Get a list of endpoints corresponding to the server name.
       tcp::resolver resolver(io_service);
-      tcp::resolver::query query("localhost","3005",tcp::resolver::query::canonical_name);
+      tcp::resolver::query query(call->hostname,call->port,tcp::resolver::query::canonical_name);
       tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
       // Try each endpoint until we successfully establish a connection.
@@ -212,6 +212,7 @@ int https_upload(struct call_data *call)
 {
   std::string server = "api.openmhz.com";
   std::string path =  "/upload";
+
   try
   {
 
@@ -236,9 +237,7 @@ build_request(call, request_);
     // Get a list of endpoints corresponding to the server name.
     tcp::resolver resolver(io_service);
 
-
-    //tcp::resolver::query query("localhost","3005",tcp::resolver::query::canonical_name);
-    tcp::resolver::query query(server, "https");
+    tcp::resolver::query query(call->hostname, "https");
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query, ec);
     ssl_socket socket(io_service,ctx);
 
@@ -350,11 +349,17 @@ void *convert_upload_call(void *thread_arg){
   std::cout << "Converting: " << call_info->converted << "\n";
   std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
-  https_upload(call_info);
+  if (call_info->scheme == "http") {
+      http_upload(call_info);
+  }
+  if (call_info->scheme == "https") {
+      https_upload(call_info);
+  }
+
   pthread_exit(NULL);
 }
 
-void send_call(Call *call) {
+void send_call(Call *call, Config config) {
   struct call_data *call_info = (struct call_data *) malloc(sizeof(struct call_data));
   pthread_t thread;
   long *source_list = call->get_source_list();
@@ -365,6 +370,12 @@ void send_call(Call *call) {
   call_info->tdma = call->get_tdma();
   call_info->source_count = call->get_source_count();
   call_info->start_time = call->get_start_time();
+  EdUrlParser* url = EdUrlParser::parseUrl(config.upload_server);
+  call_info->upload_server = config.upload_server;
+  call_info->scheme = url->scheme;
+  call_info->hostname = url->hostName;
+  call_info->port = url->port;
+  call_info->path = url->path;
   strcpy(call_info->filename, call->get_filename());
   for (int i=0; i < call_info->source_count; i++ ){
     call_info->source_list[i] = source_list[i];

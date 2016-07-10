@@ -1,17 +1,18 @@
 #include "call.h"
 
-void Call::create_filename(std::string capture_dir) {
+void Call::create_filename() {
     tm *ltm = localtime(&start_time);
 
 
 	std::stringstream path_stream;
-	path_stream << capture_dir <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+	path_stream << this->config.capture_dir <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
 	boost::filesystem::create_directories(path_stream.str());
 	sprintf(filename, "%s/%ld-%ld.wav", path_stream.str().c_str(),talkgroup,start_time);
     sprintf(status_filename, "%s/%ld-%ld.json", path_stream.str().c_str(),talkgroup,start_time);
 }
-Call::Call(long t, double f, std::string capture_dir) {
+Call::Call(long t, double f, Config c) {
+  config = c;
 	talkgroup = t;
 	freq = f;
 	start_time = time(NULL);
@@ -22,10 +23,11 @@ Call::Call(long t, double f, std::string capture_dir) {
 	encrypted = false;
 	emergency = false;
     src_count = 0;
-    this->create_filename(capture_dir);
+    this->create_filename();
 }
 
-Call::Call(TrunkMessage message, std::string capture_dir) {
+Call::Call(TrunkMessage message, Config c) {
+  config = c;
 	talkgroup = message.talkgroup;
 	freq = message.freq;
 	start_time = time(NULL);
@@ -36,7 +38,7 @@ Call::Call(TrunkMessage message, std::string capture_dir) {
 	encrypted = message.encrypted;
 	emergency = message.emergency;
 	src_count = 0;
-    this->create_filename(capture_dir);
+    this->create_filename();
     this->add_source(message.source);
 }
 
@@ -74,7 +76,9 @@ void Call::end_call() {
                 sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", this->get_filename());
                 this->get_recorder()->deactivate();
                 //int rc = system(shell_command);
-                send_call(this);
+                if (this->config.upload_server != "") {
+                  send_call(this, config);
+                }
             }
             if (this->get_debug_recording() == true) {
                 this->get_debug_recorder()->deactivate();
