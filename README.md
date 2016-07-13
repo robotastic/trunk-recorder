@@ -13,6 +13,9 @@ I have tested things on both Unbuntu 14.04, OSX 10.10, & OSX 10.11. I have been 
 
 ##Compile
 
+###WIKI with install tips
+ [Installing on Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki)
+
 ###Requirements
  - GNURadio 3.7
  - (GR-DSD & OP25 used to be required, but I just bundled in a fork of OP25)
