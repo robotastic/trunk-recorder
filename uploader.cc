@@ -59,12 +59,17 @@ make_verbose_verification(Verifier verifier)
           return ss.str();
       }
 
+      inline std::string double_to_string (double d)
+      {
+          std::stringstream ss;
+          ss << d;
+          return ss.str();
+      }
 
-
-void build_request(struct call_data *call,   boost::asio::streambuf &request_) {
+void build_call_request(struct call_data_t *call,   boost::asio::streambuf &request_) {
     //boost::asio::streambuf request_;
-    std::string server = "api.openmhz.com";
-    std::string path =  "/upload";
+    //std::string server = "api.openmhz.com";
+    //std::string path =  "/upload";
       std::string boundary("MD5_0be63cda3bf42193e4303db2c5ac3138");
 
 
@@ -97,14 +102,16 @@ void build_request(struct call_data *call,   boost::asio::streambuf &request_) {
          oss << file.rdbuf();
          file.close();
 
-         std::string source_list;
+         std::string source_list = "[";
          for (int i=0; i < call->source_count; i++ ){
-           source_list = source_list + long_to_string(call->source_list[i]);
+           source_list = source_list + "{ \"position\": " + double_to_string(call->source_list[i].position) + ", \"src\": " + long_to_string(call->source_list[i].source) + " }";
            if (i < (call->source_count - 1)) {
              source_list = source_list + ", ";
+           } else {
+             source_list = source_list + "]";
            }
          }
-
+         std::cout << source_list << "\n";
          add_post_field(oss, "freq", long_to_string(call->freq), boundary);
          add_post_field(oss, "start_time", long_to_string(call->start_time), boundary);
          add_post_field(oss, "talkgroup", long_to_string(call->talkgroup), boundary);
@@ -117,7 +124,7 @@ void build_request(struct call_data *call,   boost::asio::streambuf &request_) {
 
          boost::asio::streambuf post;
        std::ostream post_stream(&request_);
-       post_stream << "POST /" << call->path << "" << " HTTP/1.1\r\n";
+       post_stream << "POST " << call->path << "" << " HTTP/1.1\r\n";
          post_stream << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
        post_stream << "User-Agent: OpenWebGlobe/1.0\r\n";
          post_stream << "Host: " << call->hostname << "\r\n";   // The domain name of the server (for virtual hosting), mandatory since HTTP/1.1
@@ -131,7 +138,7 @@ void build_request(struct call_data *call,   boost::asio::streambuf &request_) {
 
   }
 
-int http_upload(struct call_data *call)
+int http_upload(struct server_data_t *server_info, boost::asio::streambuf &request_)
 {
   try
 {
@@ -139,7 +146,7 @@ int http_upload(struct call_data *call)
 
       // Get a list of endpoints corresponding to the server name.
       tcp::resolver resolver(io_service);
-      tcp::resolver::query query(call->hostname,call->port,tcp::resolver::query::canonical_name);
+      tcp::resolver::query query(server_info->hostname,server_info->port,tcp::resolver::query::canonical_name);
       tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
       // Try each endpoint until we successfully establish a connection.
@@ -150,8 +157,7 @@ int http_upload(struct call_data *call)
       // server will close the socket after transmitting the response. This will
       // allow us to treat all data up until the EOF as the content.
 
-      boost::asio::streambuf request_;
-      build_request(call, request_);
+
       // Send the request.
       boost::asio::write(socket, request_);
 
@@ -179,7 +185,7 @@ int http_upload(struct call_data *call)
         std::cout << "Response returned with status code " << status_code << "\n";
         return 1;
       }
-
+      std::cout << "Response code: " << status_code << "\n";
       // Read the response headers, which are terminated by a blank line.
       boost::asio::read_until(socket, response, "\r\n\r\n");
 
@@ -208,10 +214,10 @@ int http_upload(struct call_data *call)
 return 0;
 }
 
-int https_upload(struct call_data *call)
+int https_upload(struct server_data_t *server_info, boost::asio::streambuf &request_)
 {
-  std::string server = "api.openmhz.com";
-  std::string path =  "/upload";
+  //std::string server = "api.openmhz.com";
+  //std::string path =  "/upload";
 
   try
   {
@@ -219,11 +225,6 @@ int https_upload(struct call_data *call)
 
     boost::asio::io_service io_service;
   boost::asio::streambuf response_;
-
-boost::asio::streambuf request_;
-build_request(call, request_);
-
-
 
    // Open the file for the shortest time possible.
 
@@ -237,7 +238,7 @@ build_request(call, request_);
     // Get a list of endpoints corresponding to the server name.
     tcp::resolver resolver(io_service);
 
-    tcp::resolver::query query(call->hostname, "https");
+    tcp::resolver::query query(server_info->hostname, "https");
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query, ec);
     ssl_socket socket(io_service,ctx);
 
@@ -250,7 +251,7 @@ build_request(call, request_);
         socket.set_verify_mode(boost::asio::ssl::verify_peer);
         //socket.set_verify_callback(boost::bind(&client::verify_certificate, this, _1, _2));
         //socket.set_verify_callback(ssl::rfc2818_verification(server));
-        socket.set_verify_callback(make_verbose_verification(boost::asio::ssl::rfc2818_verification(server)));
+        socket.set_verify_callback(make_verbose_verification(boost::asio::ssl::rfc2818_verification(server_info->hostname)));
         boost::asio::connect(socket.lowest_layer(), endpoint_iterator, ec);
   if (ec)
         {
@@ -338,10 +339,19 @@ std::cout << &request_;
 }
 
 void *convert_upload_call(void *thread_arg){
-  struct call_data *call_info;
+  //struct call_data_t *call_info;
+  call_data_t *call_info;
+  server_data_t *server_info = new server_data_t;
   char shell_command[400];
 
-  call_info = (struct call_data *) thread_arg;
+  //call_info = (struct call_data_t *) thread_arg;
+  call_info = static_cast<call_data_t *>(thread_arg);
+  server_info->upload_server = call_info->upload_server;
+  server_info->scheme = call_info->scheme;
+  server_info->hostname = call_info->hostname;
+  server_info->port = call_info->port;
+  server_info->path = call_info->path;
+
   boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
   strcpy(call_info->converted, m4a.string().c_str());
@@ -349,20 +359,30 @@ void *convert_upload_call(void *thread_arg){
   std::cout << "Converting: " << call_info->converted << "\n";
   std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
+
+    std::cout << "Finished converting\n";
+    boost::asio::streambuf request_;
+    build_call_request(call_info, request_);
+
   if (call_info->scheme == "http") {
-      http_upload(call_info);
+      http_upload(server_info, request_);
   }
   if (call_info->scheme == "https") {
-      https_upload(call_info);
+      https_upload(server_info, request_);
   }
-
+    std::cout << "All done sending\n";
+  //free(call_info);
+  delete(call_info);
   pthread_exit(NULL);
 }
 
 void send_call(Call *call, Config config) {
-  struct call_data *call_info = (struct call_data *) malloc(sizeof(struct call_data));
+  //struct call_data_t *call_info = (struct call_data_t *) malloc(sizeof(struct call_data_t));
+  call_data_t *call_info = new call_data_t;
   pthread_t thread;
-  long *source_list = call->get_source_list();
+
+  std::cout << "Setting up thread\n";
+  Call_Source *source_list = call->get_source_list();
   call_info->talkgroup = call->get_talkgroup();
 	call_info->freq = call->get_freq();
   call_info->encrypted = call->get_encrypted();
@@ -376,12 +396,14 @@ void send_call(Call *call, Config config) {
   call_info->hostname = url->hostName;
   call_info->port = url->port;
   call_info->path = url->path;
+  std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
   strcpy(call_info->filename, call->get_filename());
   for (int i=0; i < call_info->source_count; i++ ){
     call_info->source_list[i] = source_list[i];
   }
   std::cout << "Creating Upload Thread\n";
   int rc = pthread_create(&thread, NULL, convert_upload_call,(void *) call_info);
+  std::cout << "Finished creating Thread\n";
   if (rc){
    printf("ERROR; return code from pthread_create() is %d\n", rc);
    exit(-1);

@@ -83,6 +83,10 @@ double debug_recorder::get_freq() {
 	return freq;
 }
 
+double debug_recorder::get_current_length() {
+	return 0;
+}
+
 Source *debug_recorder::get_source() {
     return source;
 }

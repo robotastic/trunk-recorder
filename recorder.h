@@ -64,6 +64,7 @@ public:
     virtual Source *get_source() {return NULL;};
 	virtual long get_talkgroup() {return 0;};
 	virtual bool is_active() {return false;};
+	virtual double get_current_length(){return 0;};
 	/*
 	private:
 		double center, freq;

@@ -88,6 +88,7 @@ public:
 
 	void deactivate();
 	double get_freq();
+	double get_current_length();
 	bool is_active();
 	int lastupdate();
 	long elapsed();
@@ -156,4 +157,3 @@ gr::digital::diff_phasor_cc::sptr diffdec;
 
 
 #endif
-

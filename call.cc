@@ -19,6 +19,7 @@ Call::Call(long t, double f, Config c) {
 	last_update = time(NULL);
 	recording = false;
 	debug_recording = false;
+    recorder = NULL;
 	tdma = false;
 	encrypted = false;
 	emergency = false;
@@ -34,6 +35,7 @@ Call::Call(TrunkMessage message, Config c) {
 	last_update = time(NULL);
 	recording = false;
 	debug_recording = false;
+  recorder = NULL;
 	tdma = message.tdma;
 	encrypted = message.encrypted;
 	emergency = message.emergency;
@@ -49,9 +51,9 @@ Call::~Call() {
 void Call::end_call() {
     char shell_command[200];
 
-            if (this->get_recording() == true) {
+            if (recording) {
 
-                //BOOST_LOG_TRIVIAL(info) << "\tRemoving TG: " << call->get_talkgroup() << "\tElapsed: " << call->elapsed() << std::endl;
+                BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
 
                 std::ofstream myfile (status_filename);
                 if (myfile.is_open())
@@ -64,9 +66,9 @@ void Call::end_call() {
                     myfile << "\"srcList\": [ ";
                     for (int i=0; i < this->src_count; i++ ){
                         if (i != 0) {
-                          myfile << ", " <<  this->src_list[i];
+                          myfile << ", " <<  this->src_list[i].source;
                         } else {
-                          myfile << this->src_list[i];
+                          myfile << this->src_list[i].source;
                         }
                     }
                     myfile << " ]\n";
@@ -79,6 +81,11 @@ void Call::end_call() {
                 if (this->config.upload_server != "") {
                   send_call(this, config);
                 }
+                BOOST_LOG_TRIVIAL(info) << "\tFinished Removing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
+
+            } else {
+              BOOST_LOG_TRIVIAL(info) << "\tRemoving Non-Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+
             }
             if (this->get_debug_recording() == true) {
                 this->get_debug_recorder()->deactivate();
@@ -113,7 +120,7 @@ long  Call::get_talkgroup() {
 	return talkgroup;
 }
 
-long  *Call::get_source_list() {
+Call_Source  *Call::get_source_list() {
 	return src_list;
 }
 
@@ -122,15 +129,21 @@ long  Call::get_source_count() {
 }
 
 bool Call::add_source(long src) {
+    double position = 0;
     if (src==0) {
         return false;
     }
+    if (recorder!=NULL) {
+      position = recorder->get_current_length();
+    }
+    Call_Source call_source = {src, position};
+
     if (src_count < 1 ) {
-        src_list[src_count] = src;
+        src_list[src_count] = call_source;
         src_count++;
         return true;
-    } else if ((src_count < 48) && (src_list[src_count-1] != src)) {
-        src_list[src_count] = src;
+    } else if ((src_count < 48) && (src_list[src_count-1].source != src)) {
+        src_list[src_count] = call_source;
         src_count++;
         return true;
     }

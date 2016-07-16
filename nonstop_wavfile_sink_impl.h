@@ -87,7 +87,7 @@ public:
 	int bits_per_sample();
 	unsigned int sample_rate();
 
-	float length_in_seconds();
+	double length_in_seconds();
 
 	int work(int noutput_items,
 	         gr_vector_const_void_star &input_items,

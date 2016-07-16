@@ -261,13 +261,11 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
     return true;
 }
 
-void start_recorder(Call *call) {
+int start_recorder(Call *call) {
     Talkgroup * talkgroup = talkgroups->find_talkgroup(call->get_talkgroup());
     bool source_found = false;
     Recorder *recorder;
     Recorder *debug_recorder;
-    call->set_recording(false); // start with the assumption that there are no recorders available.
-    call->set_debug_recording(false);
 
         BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << "\tFreq: " << call->get_freq();
 
@@ -282,6 +280,7 @@ void start_recorder(Call *call) {
 
                  if (call->get_tdma()) {
                     BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " << call->get_freq() << " For TG: " << call->get_talkgroup();
+                    return 0;
                  }
 
                 if (talkgroup)
@@ -308,6 +307,7 @@ void start_recorder(Call *call) {
                     call->set_recording(true);
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tNot recording call";
+                    return 0;
                 }
 
                 debug_recorder = source->get_debug_recorder();
@@ -324,10 +324,13 @@ void start_recorder(Call *call) {
         }
         if (!source_found) {
             BOOST_LOG_TRIVIAL(error) << "\tRecording not started because there was no source covering: " << call->get_freq() << " For TG: " << call->get_talkgroup();
+            return 0;
         }
     } else {
+        return 0;
         // anything for encrypted calls could go here...
     }
+    return 1;
 }
 
 
@@ -349,12 +352,12 @@ void stop_inactive_recorders() {
 
 
 
-void retune_recorder(TrunkMessage message, Call *call) {
+int retune_recorder(TrunkMessage message, Call *call) {
 
     Recorder *recorder = call->get_recorder();
     Source *source = recorder->get_source();
 
-    BOOST_LOG_TRIVIAL(info) << "\tUpdate Retune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
     // set the call to the new Freq / TDMA slot
     call->set_freq(message.freq);
@@ -366,20 +369,21 @@ void retune_recorder(TrunkMessage message, Call *call) {
         if (call->get_debug_recording() == true) {
             call->get_debug_recorder()->tune_offset(message.freq);
         }
+        return 1;
     } else {
          BOOST_LOG_TRIVIAL(info) << "\t\tSwitching to Different Source to Record";
 
         recorder->deactivate();
-
-        call->set_recording(false);
 
         if (call->get_debug_recording() == true) {
             call->get_debug_recorder()->deactivate();
             call->set_debug_recording(false);
         }
 
-        start_recorder(call);
+        int restarted_recording = start_recorder(call);
+        return restarted_recording;
     }
+
 }
 
 void assign_recorder(TrunkMessage message) {
@@ -395,14 +399,21 @@ void assign_recorder(TrunkMessage message) {
 
             // Is the freq the same?
             if (call->get_freq() != message.freq) {
-                BOOST_LOG_TRIVIAL(trace) << "\tRetune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+                BOOST_LOG_TRIVIAL(trace) << "\tAssign Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
                 // are we currently recording the call?
                 if (call->get_recording() == true) {
 
-                    retune_recorder(message, call);
-                    call->update(message);
-                    call_found = true;
-                    ++it; // move on to the next one
+                    int retuned = retune_recorder(message, call);
+                    if (retuned) {
+                      call->update(message);
+                      call_found = true;
+                      ++it; // move on to the next one
+                    } else {
+                      BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
+                      call->end_call();
+                      delete call;
+                      it = calls.erase(it);
+                    }
 
                 // This call is not being recorded, just update the Freq and move on
                 } else {
@@ -427,15 +438,17 @@ void assign_recorder(TrunkMessage message) {
 
             // check is the freq is the same as the one being used by the call
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
+              BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
                 // if you are recording the call, stop
                 if (call->get_recording() == true) {
-                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
+                    //BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
                 //different talkgroups on the same freq, that is trouble
                 }
                 call->end_call();
                 delete call;
                 it = calls.erase(it);
+
             } else {
                 ++it; // move on to the next one
             }
@@ -484,25 +497,41 @@ void group_affiliation(long unit, long talkgroup) {
 
 void update_recorder(TrunkMessage message) {
 
-    for(vector<Call *>::iterator it = calls.begin(); it != calls.end();++it ) {
+    for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call= *it;
 
         if (call->get_talkgroup() == message.talkgroup) {
             if (call->get_freq() != message.freq) {
 
                 if (call->get_recording() == true) {
+                  BOOST_LOG_TRIVIAL(trace) << "\t Update Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+
                     // see if we can retune the recorder, sometimes you can't if there are more than one
-                    retune_recorder(message, call);
+                    int retuned = retune_recorder(message, call);
+                    if (retuned) {
+                      call->update(message);
+
+                      ++it; // move on to the next one
+                    } else {
+                      BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
+                      call->end_call();
+                      delete call;
+                      it = calls.erase(it);
+
+                    }
 
                 // the Call is not recording, continue
                 } else {
                     call->set_freq(message.freq);
                     call->set_tdma(message.tdma);
-
+                    call->update(message);
+                    ++it; // move on to the next one
                 }
+            } else {
+              ++it; // move on to the next one
             }
-
-            call->update(message);
+        } else {
+          ++it; // move on to the next one
         }
     }
 }

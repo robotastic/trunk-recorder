@@ -15,7 +15,7 @@
 #include "call.h"
 #include "url_parser/url_parser.h"
 
-struct call_data{
+struct call_data_t{
   long thread_id;
   long talkgroup;
 	double freq;
@@ -32,9 +32,19 @@ struct call_data{
   std::string path;
   int tdma;
   long source_count;
-  long source_list[50];
+ Call_Source source_list[50];
 };
-int upload(struct call_data *call);
+
+struct server_data_t{
+  std::string upload_server;
+  std::string server;
+  std::string scheme;
+  std::string hostname;
+  std::string port;
+  std::string path;
+};
+
+int upload(struct call_data_t *call);
 void *convert_upload_call(void *thread_arg);
 void send_call(Call *call, Config config);
 

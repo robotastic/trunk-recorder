@@ -78,7 +78,8 @@ public:
 	int lastupdate();
 	long elapsed();
 	void close();
-
+	double get_current_length();
+	
 	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 	static bool logging;
 private:
@@ -97,7 +98,7 @@ private:
 	std::vector<float> lpf_taps;
 	std::vector<float> resampler_taps;
 	std::vector<float> sym_taps;
-    
+
     Source *source;
 
 	/* GR blocks */

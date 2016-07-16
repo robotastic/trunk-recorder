@@ -56,8 +56,8 @@ analog_recorder::analog_recorder(Source *src)
  		squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 		//squelch point
                                                             0.01,	 	//alpha
  							   10, 		//ramp
- 							   false); 	// Non-blocking as we are using squelch_two as a gate. 
- 
+ 							   false); 	// Non-blocking as we are using squelch_two as a gate.
+
  		 //  based on squelch code form ham2mon
  		squelch_two = gr::analog::pwr_squelch_ff::make(-200, 	// set low -200 since its after demod and its just gate for previous squelch
  							        0.01, 	//alpha
@@ -106,11 +106,11 @@ analog_recorder::analog_recorder(Source *src)
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,timestamp,freq);
 
-	wav_sink = gr::blocks::wavfile_sink::make(filename,1,8000,16);
+	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 
 
 
-    if (squelch_db!=0) {	
+    if (squelch_db!=0) {
  		// using squelch
  		connect(self(),0, valve,0);
  		connect(valve,0, prefilter,0);
@@ -156,6 +156,9 @@ Source *analog_recorder::get_source() {
     return source;
 }
 
+double analog_recorder::get_current_length() {
+	return wav_sink->length_in_seconds();
+}
 
 void analog_recorder::tune_offset(double f) {
 	freq = f;

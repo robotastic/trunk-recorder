@@ -71,6 +71,7 @@ public:
     double get_squelch_in();
     Source *get_source();
 	long get_talkgroup();
+	double get_current_length();
 	bool is_active();
 	int lastupdate();
 	long elapsed();
@@ -98,7 +99,7 @@ private:
 	std::vector<float> sym_taps;
 
     Source *source;
-    
+
 	/* GR blocks */
 	gr::filter::iir_filter_ffd::sptr deemph;
 	gr::filter::fir_filter_ccf::sptr lpf;
@@ -118,7 +119,8 @@ private:
 	gr::analog::pwr_squelch_cc::sptr squelch;
  	gr::analog::pwr_squelch_ff::sptr squelch_two;
 	gr::analog::quadrature_demod_cf::sptr demod;
-	gr::blocks::wavfile_sink::sptr wav_sink;
+
+	gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 	gr::blocks::file_sink::sptr raw_sink;
 	gr::blocks::file_sink::sptr debug_sink;
 	gr::blocks::null_sink::sptr null_sink;

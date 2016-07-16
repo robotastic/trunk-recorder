@@ -41,7 +41,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 	starttime = time(NULL);
 
         double input_rate = capture_rate;
-        
+
         float if_rate = 48000; //24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
@@ -54,15 +54,15 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
  	float xlate_bandwidth = 14000; //14000; //24260.0
 
 
-  
-        
+
+
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
-        
-        
+
+
             lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(input_rate / if_rate);
-       
+
         prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
 	            lpf_coeffs,
 	            offset,
@@ -180,9 +180,9 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 	bool do_audio_output = 1;
 	bool do_tdma = 0;
 	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
-	
 
-        
+
+
 	converter = gr::blocks::short_to_float::make(1, 2048.0); //8192.0);
 
 	tm *ltm = localtime(&starttime);
@@ -249,6 +249,11 @@ double p25_recorder::get_freq() {
 	return freq;
 }
 
+
+double p25_recorder::get_current_length() {
+	return wav_sink->length_in_seconds();
+}
+
 int p25_recorder::lastupdate() {
 	return time(NULL) - timestamp;
 }
@@ -270,7 +275,7 @@ void p25_recorder::deactivate() {
 
 	active = false;
 	valve->set_enabled(false);
-    /*BOOST_LOG_TRIVIAL(info) << 
+    /*BOOST_LOG_TRIVIAL(info) <<
 		  "Valve: \t" << valve->max_output_buffer(0) << "\n" <<
 		  "Prefilter: \t" << prefilter->max_output_buffer(0) << "\n" <<
 		  "arb_resampler: \t" << arb_resampler->max_output_buffer(0) << "\n" <<
@@ -298,11 +303,9 @@ void p25_recorder::activate(Call *call, int n) {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	int offset_amount = (freq - center);
-	prefilter->set_center_freq(offset_amount); 
+	prefilter->set_center_freq(offset_amount);
 
 	wav_sink->open(call->get_filename());
 	active = true;
 	valve->set_enabled(true);
 }
-
-

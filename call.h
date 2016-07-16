@@ -3,11 +3,18 @@
 #include <sys/time.h>
 #include <boost/log/trivial.hpp>
 
+struct Call_Source {
+	long source;
+	double position;
+};
+
 class Recorder;
 #include "parser.h"
 #include "recorder.h"
 #include "uploader.h"
 #include "config.h"
+
+
 
 class Call {
 	long talkgroup;
@@ -22,7 +29,7 @@ class Call {
     char status_filename[160];
 	int tdma;
     long src_count;
-    long src_list[50];
+    Call_Source src_list[50];
 		Config config;
 	Recorder *recorder;
 	Recorder *debug_recorder;
@@ -41,7 +48,7 @@ public:
 	void set_freq(double f);
 	long get_talkgroup();
     long get_source_count();
-    long *get_source_list();
+    Call_Source *get_source_list();
     bool add_source(long src);
 	void update(TrunkMessage message);
 	int since_last_update();
