@@ -103,7 +103,7 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 }
 Recorder * Source::get_analog_recorder(int priority)
 {
-    if (priority > 99) { 
+    if (priority > 99) {
  		BOOST_LOG_TRIVIAL(info) << "\t\tNot recording because of priority";
  		return NULL;
  	}
@@ -182,7 +182,7 @@ Recorder * Source::get_digital_recorder(int priority)
 
 	for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
 		p25_recorder_sptr rx = *it;
-        
+
 		if (!rx->is_active())
 		{
 			return (Recorder *) rx.get();
@@ -214,7 +214,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 			std::ostringstream msg;
 			if(isdigit(dev[0])) {	// Assume this is a serial number and fail back
 						// to using rtl as default
-				msg << "rtl=" << dev << ",buflen=16384,buffers=8";
+				msg << "rtl=" << dev <<  ",buflen=8192,buffers=4"; //",buflen=16384,buffers=8";
 				BOOST_LOG_TRIVIAL(info) << "Source device name missing, defaulting to rtl device";
 			} else {
 				msg << dev << ",buflen=16384,buffers=8";
@@ -229,6 +229,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
         BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
 		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		osmo_src->set_center_freq(center + error,0);
+		osmo_src->set_max_output_buffer(10);
 		source_block = osmo_src;
 	}
 	if (driver == "usrp") {

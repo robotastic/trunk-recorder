@@ -195,13 +195,23 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 
 
+				valve->set_max_output_buffer(512);
+        to_float->set_max_output_buffer(512);
+        rescale->set_max_output_buffer(512);
+        slicer->set_max_output_buffer(512);
+        op25_frame_assembler->set_max_output_buffer(512);
+        converter->set_max_output_buffer(512);
+				wav_sink->set_max_output_buffer(512);
+				prefilter->set_max_output_buffer(512);
+				arb_resampler->set_max_output_buffer(512);
+				fm_demod->set_max_output_buffer(512);
+				baseband_amp->set_max_output_buffer(512);
+				sym_filter->set_max_output_buffer(512);
+				fsk4_demod->set_max_output_buffer(512);
+				agc->set_max_output_buffer(512);
+				costas_clock->set_max_output_buffer(512);
+				diffdec->set_max_output_buffer(512);
 
-        valve->set_max_output_buffer(4096);
-        to_float->set_max_output_buffer(4096);
-        rescale->set_max_output_buffer(4096);
-        slicer->set_max_output_buffer(4096);
-        op25_frame_assembler->set_max_output_buffer(4096);
-        converter->set_max_output_buffer(4096);
 	if (!qpsk_mod) {
         connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
@@ -215,7 +225,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 		connect(op25_frame_assembler, 0,  converter,0);
 		connect(converter,  0, wav_sink,0);
 	} else {
-        connect(self(),0, valve,0);
+    connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter, 0, arb_resampler, 0);
 		connect(arb_resampler,0, agc,0);
@@ -227,7 +237,17 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 		connect(slicer,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
 		connect(converter, 0, wav_sink,0);
+
 	}
+	/*std::cout << "Valve - noutput_items min: " << valve->min_noutput_items() << " max: " << valve->max_noutput_items() << " output_buffer - Min: " << valve->min_output_buffer(0) << " Max: " << valve->max_output_buffer(0) << "\n";
+	std::cout << "Prefilter - noutput_items min: " << prefilter->min_noutput_items() << " max: " << prefilter->max_noutput_items() << " output_buffer - Min: " << prefilter->min_output_buffer(0) << " Max: " << prefilter->max_output_buffer(0) << "\n";
+	std::cout << "arb_resampler - noutput_items min: " << arb_resampler->min_noutput_items() << " max: " << arb_resampler->max_noutput_items() << " output_buffer - Min: " << arb_resampler->min_output_buffer(0) << " Max: " << arb_resampler->max_output_buffer(0) << "\n";
+	std::cout << "agc - noutput_items min: " << agc->min_noutput_items() << " max: " << agc->max_noutput_items() << " output_buffer - Min: " << agc->min_output_buffer(0) << " Max: " << agc->max_output_buffer(0) << "\n";
+	std::cout << "costas_clock - noutput_items min: " << costas_clock->min_noutput_items() << " max: " << costas_clock->max_noutput_items() << " output_buffer - Min: " << costas_clock->min_output_buffer(0) << " Max: " << costas_clock->max_output_buffer(0) << "\n";
+	std::cout << "diffdec - noutput_items min: " << diffdec->min_noutput_items() << " max: " << diffdec->max_noutput_items() << " output_buffer - Min: " << diffdec->min_output_buffer(0) << " Max: " << diffdec->max_output_buffer(0) << "\n";
+	std::cout << "Slicer - noutput_items min: " << slicer->min_noutput_items() << " max: " << slicer->max_noutput_items() << " output_buffer - Min: " << slicer->min_output_buffer(0) << " Max: " << slicer->max_output_buffer(0) << "\n";
+*/
+
 }
 
 

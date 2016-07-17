@@ -104,7 +104,7 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf &requ
 
          std::string source_list = "[";
          for (int i=0; i < call->source_count; i++ ){
-           source_list = source_list + "{ \"position\": " + double_to_string(call->source_list[i].position) + ", \"src\": " + long_to_string(call->source_list[i].source) + " }";
+           source_list = source_list + "{ \"pos\": " + double_to_string(call->source_list[i].position) + ", \"src\": " + long_to_string(call->source_list[i].source) + " }";
            if (i < (call->source_count - 1)) {
              source_list = source_list + ", ";
            } else {

@@ -286,7 +286,7 @@ nonstop_wavfile_sink_impl::set_sample_rate(unsigned int sample_rate)
 int
 nonstop_wavfile_sink_impl::bits_per_sample()
 {
-	return d_bytes_per_sample_new;
+	return d_bytes_per_sample_new * 8;
 }
 
 unsigned int
@@ -298,7 +298,9 @@ nonstop_wavfile_sink_impl::sample_rate()
 double
 nonstop_wavfile_sink_impl::length_in_seconds()
 {
-	return d_sample_count / d_sample_rate;
+  std::cout << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample_new << "\n";
+  return (double) d_sample_count  / (double) d_sample_rate;
+	//return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double) d_sample_rate;
 }
 
 void

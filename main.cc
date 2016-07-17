@@ -223,6 +223,9 @@ void load_config()
             source->create_digital_recorders(tb, digital_recorders, qpsk_mod);
             source->create_analog_recorders(tb, analog_recorders);
             source->create_debug_recorders(tb, debug_recorders);
+            //std::cout << "Source - output_buffer - Min: " << source->get_src_block()->min_output_buffer(0) << " Max: " << source->get_src_block()->max_output_buffer(0) << "\n";
+        		//source->get_src_block()->set_max_output_buffer(4096);
+
             sources.push_back(source);
         }
     }
@@ -396,6 +399,7 @@ void assign_recorder(TrunkMessage message) {
 
         // Does the call have the same talkgroup
         if (call->get_talkgroup() == message.talkgroup) {
+            call_found = true;
 
             // Is the freq the same?
             if (call->get_freq() != message.freq) {
@@ -406,7 +410,6 @@ void assign_recorder(TrunkMessage message) {
                     int retuned = retune_recorder(message, call);
                     if (retuned) {
                       call->update(message);
-                      call_found = true;
                       ++it; // move on to the next one
                     } else {
                       BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
@@ -420,16 +423,12 @@ void assign_recorder(TrunkMessage message) {
                     call->set_freq(message.freq);
                     call->set_tdma(message.tdma);
                     call->update(message);
-                    call_found = true;
-
                     ++it; // move on to the next one
                 }
 
             // The freq hasn't changed
             } else {
                 call->update(message);
-                call_found = true;
-
                 ++it; // move on to the next one
             }
 
@@ -448,7 +447,6 @@ void assign_recorder(TrunkMessage message) {
                 call->end_call();
                 delete call;
                 it = calls.erase(it);
-
             } else {
                 ++it; // move on to the next one
             }
@@ -510,14 +508,12 @@ void update_recorder(TrunkMessage message) {
                     int retuned = retune_recorder(message, call);
                     if (retuned) {
                       call->update(message);
-
                       ++it; // move on to the next one
                     } else {
                       BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
                       call->end_call();
                       delete call;
                       it = calls.erase(it);
-
                     }
 
                 // the Call is not recording, continue
@@ -719,8 +715,6 @@ int main(void)
 
     load_config();
 
-
-
     // Setup the talkgroups from the CSV file
     talkgroups = new Talkgroups();
     //if (talkgroups_file.length() > 0) {
@@ -740,9 +734,6 @@ int main(void)
     } else {
         BOOST_LOG_TRIVIAL(info) << "Unable to setup Control Channel Monitor"<< std::endl;
     }
-
-
-
 
     return 0;
 
