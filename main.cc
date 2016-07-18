@@ -400,6 +400,7 @@ void assign_recorder(TrunkMessage message) {
         // Does the call have the same talkgroup
         if (call->get_talkgroup() == message.talkgroup) {
             call_found = true;
+            call->update(message);
 
             // Is the freq the same?
             if (call->get_freq() != message.freq) {
@@ -408,27 +409,24 @@ void assign_recorder(TrunkMessage message) {
                 if (call->get_recording() == true) {
 
                     int retuned = retune_recorder(message, call);
-                    if (retuned) {
-                      call->update(message);
-                      ++it; // move on to the next one
-                    } else {
+                    if (!retuned) {
                       BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
                       call->end_call();
                       delete call;
                       it = calls.erase(it);
+                    } else {
+                      ++it; // move on to the next one
                     }
-
+                    
                 // This call is not being recorded, just update the Freq and move on
                 } else {
                     call->set_freq(message.freq);
                     call->set_tdma(message.tdma);
-                    call->update(message);
                     ++it; // move on to the next one
                 }
 
             // The freq hasn't changed
             } else {
-                call->update(message);
                 ++it; // move on to the next one
             }
 
@@ -499,34 +497,37 @@ void update_recorder(TrunkMessage message) {
         Call *call= *it;
 
         if (call->get_talkgroup() == message.talkgroup) {
-            if (call->get_freq() != message.freq) {
+            // update the call, so it stays alive
+            call->update(message);
 
+            if (call->get_freq() != message.freq) {
                 if (call->get_recording() == true) {
                   BOOST_LOG_TRIVIAL(trace) << "\t Update Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
                     // see if we can retune the recorder, sometimes you can't if there are more than one
                     int retuned = retune_recorder(message, call);
-                    if (retuned) {
-                      call->update(message);
-                      ++it; // move on to the next one
-                    } else {
+                    if (!retuned) {
                       BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
                       call->end_call();
                       delete call;
                       it = calls.erase(it);
+                      } else {
+                          ++it; // move on to the next one
                     }
 
-                // the Call is not recording, continue
+
                 } else {
+                  // the Call is not recording, update and continue
                     call->set_freq(message.freq);
                     call->set_tdma(message.tdma);
-                    call->update(message);
                     ++it; // move on to the next one
                 }
             } else {
+              // the freq is the same, just update it
               ++it; // move on to the next one
             }
         } else {
+          // the talkgroups don't match
           ++it; // move on to the next one
         }
     }

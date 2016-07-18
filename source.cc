@@ -214,7 +214,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 			std::ostringstream msg;
 			if(isdigit(dev[0])) {	// Assume this is a serial number and fail back
 						// to using rtl as default
-				msg << "rtl=" << dev <<  ",buflen=8192,buffers=4"; //",buflen=16384,buffers=8";
+				msg << "rtl=" << dev <<  ",buflen=16384,buffers=8";
 				BOOST_LOG_TRIVIAL(info) << "Source device name missing, defaulting to rtl device";
 			} else {
 				msg << dev << ",buflen=16384,buffers=8";

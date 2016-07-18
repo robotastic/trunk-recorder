@@ -15,7 +15,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
-        
+
         	freq = f;
 	center = c;
 	long samp_rate = s;
@@ -35,7 +35,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	const double pi = M_PI; //boost::math::constants::pi<double>();
 
 
-        
+
         float if_rate = 24000;
         float gain_mu = 0.025;
         float costas_alpha = 0.04;
@@ -47,10 +47,10 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
  	float xlate_bandwidth = 14000; //14000; //24260.0
 
-        
+
         lpf_coeffs = gr::filter::firdes::low_pass(1.0, samp_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(samp_rate / if_rate);
-       
+
         prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
 	            lpf_coeffs,
 	            offset,
@@ -144,10 +144,22 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
 
 
-        to_float->set_max_output_buffer(8192);
-        rescale->set_max_output_buffer(8192);
-        slicer->set_max_output_buffer(8192);
-        op25_frame_assembler->set_max_output_buffer(8192);
+	to_float->set_max_output_buffer(512);
+	rescale->set_max_output_buffer(512);
+	slicer->set_max_output_buffer(512);
+	op25_frame_assembler->set_max_output_buffer(512);
+	prefilter->set_max_output_buffer(512);
+	arb_resampler->set_max_output_buffer(512);
+	fm_demod->set_max_output_buffer(512);
+	baseband_amp->set_max_output_buffer(512);
+	sym_filter->set_max_output_buffer(512);
+	fsk4_demod->set_max_output_buffer(512);
+	agc->set_max_output_buffer(512);
+	costas_clock->set_max_output_buffer(512);
+	diffdec->set_max_output_buffer(512);
+	this->set_max_output_buffer(512);
+
+
 
 	if (!qpsk_mod) {
         connect(self(),0, prefilter,0);
@@ -169,7 +181,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 		connect(rescale, 0, slicer, 0);
 		connect(slicer,0, op25_frame_assembler,0);
 	}
-        
+
 }
 
 
@@ -189,5 +201,3 @@ void p25_trunking::tune_offset(double f) {
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 	//BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "  << freq;
 }
-
-

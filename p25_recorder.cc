@@ -211,6 +211,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 				agc->set_max_output_buffer(512);
 				costas_clock->set_max_output_buffer(512);
 				diffdec->set_max_output_buffer(512);
+				this->set_max_output_buffer(512);
 
 	if (!qpsk_mod) {
         connect(self(),0, valve,0);
@@ -292,27 +293,33 @@ void p25_recorder::tune_offset(double f) {
 
 void p25_recorder::deactivate() {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-
+	if (active) {
 	active = false;
+	this->lock();
 	valve->set_enabled(false);
-    /*BOOST_LOG_TRIVIAL(info) <<
-		  "Valve: \t" << valve->max_output_buffer(0) << "\n" <<
-		  "Prefilter: \t" << prefilter->max_output_buffer(0) << "\n" <<
-		  "arb_resampler: \t" << arb_resampler->max_output_buffer(0) << "\n" <<
-		  "agc: \t\t" << agc->max_output_buffer(0) << "\n" <<
-		  "costas_clock: \t" << costas_clock->max_output_buffer(0) << "\n" <<
-		  "diffdec: \t" << diffdec->max_output_buffer(0) << "\n" <<
-		"to_float: \t" << to_float->max_output_buffer(0) << "\n" <<
-		  "rescale: \t" << rescale->max_output_buffer(0) << "\n" <<
-		"slicer: \t" << slicer->max_output_buffer(0) << "\n" <<
-		"op25: \t\t" << op25_frame_assembler->max_output_buffer(0) << "\n" <<
-		"converter: \t" << converter->max_output_buffer(0) << "\n" <<
-        "wav_sink: \t" <<  wav_sink->max_output_buffer(0);*/
 	wav_sink->close();
+	this->unlock();
+}	else {
+	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+}
+	/*BOOST_LOG_TRIVIAL(info) <<
+		"Valve: \t" << valve->max_output_buffer(0) << "\n" <<
+		"Prefilter: \t" << prefilter->max_output_buffer(0) << "\n" <<
+		"arb_resampler: \t" << arb_resampler->max_output_buffer(0) << "\n" <<
+		"agc: \t\t" << agc->max_output_buffer(0) << "\n" <<
+		"costas_clock: \t" << costas_clock->max_output_buffer(0) << "\n" <<
+		"diffdec: \t" << diffdec->max_output_buffer(0) << "\n" <<
+	"to_float: \t" << to_float->max_output_buffer(0) << "\n" <<
+		"rescale: \t" << rescale->max_output_buffer(0) << "\n" <<
+	"slicer: \t" << slicer->max_output_buffer(0) << "\n" <<
+	"op25: \t\t" << op25_frame_assembler->max_output_buffer(0) << "\n" <<
+	"converter: \t" << converter->max_output_buffer(0) << "\n" <<
+			"wav_sink: \t" <<  wav_sink->max_output_buffer(0);*/
 }
 
 void p25_recorder::activate(Call *call, int n) {
 
+if (!active){
 	timestamp = time(NULL);
 	starttime = time(NULL);
 
@@ -328,4 +335,7 @@ void p25_recorder::activate(Call *call, int n) {
 	wav_sink->open(call->get_filename());
 	active = true;
 	valve->set_enabled(true);
+	} else {
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Trying to Activate an Active Logger!!!"; 
+	}
 }
