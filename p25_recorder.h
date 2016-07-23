@@ -116,7 +116,8 @@ private:
 	bool active;
 
 
-	std::vector<float> lpf_coeffs;
+	//std::vector<gr_complex> lpf_coeffs;
+		std::vector<float> lpf_coeffs;
 	std::vector<float> arb_taps;
 	std::vector<float> sym_taps;
 freq_xlating_fft_filter_sptr prefilter;

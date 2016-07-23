@@ -63,8 +63,11 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
             lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(input_rate / if_rate);
 
+
+std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
+
 				prefilter = make_freq_xlating_fft_filter(decimation,
-	            lpf_coeffs,
+	            dest,
 	            offset,
 	            samp_rate);
 
