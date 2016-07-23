@@ -63,10 +63,15 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
             lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(input_rate / if_rate);
 
-        prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
+				prefilter = make_freq_xlating_fft_filter(decimation,
 	            lpf_coeffs,
 	            offset,
 	            samp_rate);
+
+        /*prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
+	            lpf_coeffs,
+	            offset,
+	            samp_rate);*/
 
         float resampled_rate = float(input_rate) / float(decimation); // rate at output of self.lpf
         float arb_rate = (float(if_rate) / resampled_rate);
@@ -202,7 +207,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
         op25_frame_assembler->set_max_output_buffer(512);
         converter->set_max_output_buffer(512);
 				wav_sink->set_max_output_buffer(512);
-				prefilter->set_max_output_buffer(512);
+				//prefilter->set_max_output_buffer(512);
 				arb_resampler->set_max_output_buffer(512);
 				fm_demod->set_max_output_buffer(512);
 				baseband_amp->set_max_output_buffer(512);
@@ -336,6 +341,6 @@ if (!active){
 	active = true;
 	valve->set_enabled(true);
 	} else {
-		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Trying to Activate an Active Logger!!!"; 
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Trying to Activate an Active Logger!!!";
 	}
 }
