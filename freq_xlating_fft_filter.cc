@@ -24,7 +24,7 @@ freq_xlating_fft_filter_sptr make_freq_xlating_fft_filter(int decimation, std::v
 }
 
 //  return [ x * cmath.exp(i * phase_inc * 1j) for i,x in enumerate(taps) ]
-std::vector< gr_complex > freq_xlating_fft_filter::rotate_taps( double phase_inc){
+std::vector< gr_complex > freq_xlating_fft_filter::rotate_taps( float phase_inc){
   std::vector< gr_complex > rtaps;
   dcomp I = dcomp(0.0, 1.0);
 
@@ -34,7 +34,7 @@ std::vector< gr_complex > freq_xlating_fft_filter::rotate_taps( double phase_inc
       //dcomp result = i * phase_inc * I;
 
       //gr_complex new_value = f * exp(result.real());
-      rtaps.push_back(f * (float) exp(i * phase_inc * I));
+      rtaps.push_back(f *  exp(i * phase_inc * I));
       i++;
   }
   return rtaps;
@@ -42,11 +42,11 @@ std::vector< gr_complex > freq_xlating_fft_filter::rotate_taps( double phase_inc
 
 
 void freq_xlating_fft_filter::refresh() {
-  const double pi = M_PI; //boost::math::constants::pi<double>();
+  const float pi = M_PI; //boost::math::constants::pi<double>();
 
 std::vector< gr_complex > rtaps;
 
-    double phase_inc = (2.0 * pi * this->center_freq) / this->samp_rate;
+    float phase_inc = (2.0 * pi * this->center_freq) / this->samp_rate;
     rtaps = this->rotate_taps( phase_inc);
     this->filter->set_taps(rtaps);
     this->rotator->set_phase_inc(-1 * this->decim * phase_inc);

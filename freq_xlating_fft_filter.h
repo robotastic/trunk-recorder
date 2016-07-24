@@ -8,7 +8,7 @@
 #include <gnuradio/filter/fft_filter_ccc.h>
 #include <gnuradio/blocks/rotator_cc.h>
 
-typedef std::complex<double> dcomp;
+typedef std::complex<float> dcomp;
 
 class freq_xlating_fft_filter;
 typedef boost::shared_ptr<freq_xlating_fft_filter> freq_xlating_fft_filter_sptr;
@@ -27,7 +27,7 @@ class freq_xlating_fft_filter : public gr::hier_block2 {
 
 
     void set_taps(std::vector< gr_complex > taps);
-    std::vector< gr_complex> rotate_taps( double phase_inc);
+    std::vector< gr_complex> rotate_taps( float phase_inc);
     void refresh();
 
 
