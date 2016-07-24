@@ -51,10 +51,17 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
         lpf_coeffs = gr::filter::firdes::low_pass(1.0, samp_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_HANN);
         int decimation = int(samp_rate / if_rate);
 
+				std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
+
+				prefilter = make_freq_xlating_fft_filter(decimation,
+	            dest,
+	            offset,
+	            samp_rate);
+/*
         prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
 	            lpf_coeffs,
 	            offset,
-	            samp_rate);
+	            samp_rate);*/
 
         float resampled_rate = float(samp_rate) / float(decimation); // rate at output of self.lpf
         float arb_rate = (float(if_rate) / resampled_rate);
@@ -148,7 +155,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	rescale->set_max_output_buffer(512);
 	slicer->set_max_output_buffer(512);
 	op25_frame_assembler->set_max_output_buffer(512);
-	prefilter->set_max_output_buffer(512);
+	//prefilter->set_max_output_buffer(512);
 	arb_resampler->set_max_output_buffer(512);
 	fm_demod->set_max_output_buffer(512);
 	baseband_amp->set_max_output_buffer(512);

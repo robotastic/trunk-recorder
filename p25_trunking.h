@@ -62,6 +62,7 @@
 
 #include <gnuradio/blocks/file_sink.h>
 
+#include "freq_xlating_fft_filter.h"
 
 
 class p25_trunking;
@@ -95,6 +96,8 @@ private:
 	std::vector<float> arb_taps;
 	std::vector<float> sym_taps;
 
+freq_xlating_fft_filter_sptr prefilter;
+
 	/* GR blocks */
 	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr sym_filter;
@@ -102,7 +105,7 @@ private:
     gr::digital::diff_phasor_cc::sptr diffdec;
 
 	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 
@@ -124,4 +127,3 @@ private:
 
 
 #endif
-
