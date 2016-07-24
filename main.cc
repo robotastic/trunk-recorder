@@ -417,7 +417,7 @@ void assign_recorder(TrunkMessage message) {
                     } else {
                       ++it; // move on to the next one
                     }
-                    
+
                 // This call is not being recorded, just update the Freq and move on
                 } else {
                     call->set_freq(message.freq);
@@ -702,7 +702,7 @@ bool monitor_system() {
 
 int main(void)
 {
-    BOOST_STATIC_ASSERT(true) __attribute__((unused));
+    //BOOST_STATIC_ASSERT(true) __attribute__((unused));
     signal(SIGINT, exit_interupt);
     logging::core::get()->set_filter
     (
