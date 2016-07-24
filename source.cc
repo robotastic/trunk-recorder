@@ -229,7 +229,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
         BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
 		BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
 		osmo_src->set_center_freq(center + error,0);
-		osmo_src->set_max_output_buffer(10);
+		//osmo_src->set_max_output_buffer(10);
 		source_block = osmo_src;
 	}
 	if (driver == "usrp") {
