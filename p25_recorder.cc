@@ -303,10 +303,10 @@ void p25_recorder::deactivate() {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 	if (active) {
 	active = false;
-	this->lock();
+	//this->lock();
 	valve->set_enabled(false);
 	wav_sink->close();
-	this->unlock();
+	//this->unlock();
 }	else {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 }
