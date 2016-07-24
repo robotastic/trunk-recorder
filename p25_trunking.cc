@@ -150,7 +150,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
-
+/*
 	to_float->set_max_output_buffer(512);
 	rescale->set_max_output_buffer(512);
 	slicer->set_max_output_buffer(512);
@@ -164,7 +164,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	agc->set_max_output_buffer(512);
 	costas_clock->set_max_output_buffer(512);
 	diffdec->set_max_output_buffer(512);
-	this->set_max_output_buffer(512);
+	this->set_max_output_buffer(512);*/
 
 
 

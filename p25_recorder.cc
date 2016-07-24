@@ -202,7 +202,7 @@ std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 
-
+/*
 				valve->set_max_output_buffer(512);
         to_float->set_max_output_buffer(512);
         rescale->set_max_output_buffer(512);
@@ -220,7 +220,7 @@ std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 				costas_clock->set_max_output_buffer(512);
 				diffdec->set_max_output_buffer(512);
 				this->set_max_output_buffer(512);
-
+*/
 	if (!qpsk_mod) {
         connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
