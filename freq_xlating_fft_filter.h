@@ -1,14 +1,14 @@
 #ifndef INCLUDED_GR_XLATING_FFT_FILTER_H
 #define INCLUDED_GR_XLATING_FFT_FILTER_H
 #include <math.h>
-#include <complex.h>
+
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/filter/fft_filter_ccc.h>
 #include <gnuradio/blocks/rotator_cc.h>
 
-typedef std::complex<float> dcomp;
+
 
 class freq_xlating_fft_filter;
 typedef boost::shared_ptr<freq_xlating_fft_filter> freq_xlating_fft_filter_sptr;

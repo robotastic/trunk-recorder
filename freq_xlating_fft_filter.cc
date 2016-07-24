@@ -26,7 +26,7 @@ freq_xlating_fft_filter_sptr make_freq_xlating_fft_filter(int decimation, std::v
 //  return [ x * cmath.exp(i * phase_inc * 1j) for i,x in enumerate(taps) ]
 std::vector< gr_complex > freq_xlating_fft_filter::rotate_taps( float phase_inc){
   std::vector< gr_complex > rtaps;
-  dcomp I = dcomp(0.0, 1.0);
+  gr_complex I = gr_complex(0.0, 1.0);
 
   int i=0;
   for(std::vector<gr_complex>::iterator it = this->taps.begin(); it != this->taps.end();it++) {
