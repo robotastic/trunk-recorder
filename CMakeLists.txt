@@ -173,6 +173,18 @@ link_directories(
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall")
 
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(COMPILER_SUPPORTS_CXX11)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
+
 add_subdirectory(op25_repeater)
 
 add_executable(recorder main.cc source.cc smartnet_trunking.cc p25_trunking.cc smartnet_parser.cc p25_parser.cc call.cc smartnet_crc.cc smartnet_deinterleave.cc debug_recorder.cc analog_recorder.cc p25_recorder.cc talkgroup.cc talkgroups.cc nonstop_wavfile_sink_impl.cc uploader.cc url_parser/url_parser.cc freq_xlating_fft_filter.cc)
