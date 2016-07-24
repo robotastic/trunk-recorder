@@ -77,7 +77,7 @@ void Call::end_call() {
                 }
                 sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", this->get_filename());
                 this->get_recorder()->deactivate();
-                //int rc = system(shell_command);
+                int rc = system(shell_command);
                 if (this->config.upload_server != "") {
                   //send_call(this, config);
                 }
