@@ -29,7 +29,6 @@
 
 #include <gnuradio/gr_complex.h>
 #include <gnuradio/math.h>
-#include <math.h>
 
 #include <gnuradio/filter/mmse_fir_interpolator_cc.h>
 // class gr::filter::mmse_fir_interpolator_cc;

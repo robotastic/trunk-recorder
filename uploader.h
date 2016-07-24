@@ -13,7 +13,7 @@
 
 #include "config.h"
 #include "call.h"
-#include "url_parser/url_parser.h"
+//#include "url_parser/url_parser.h"
 
 struct call_data_t{
   long thread_id;

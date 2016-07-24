@@ -390,12 +390,12 @@ void send_call(Call *call, Config config) {
   call_info->tdma = call->get_tdma();
   call_info->source_count = call->get_source_count();
   call_info->start_time = call->get_start_time();
-  EdUrlParser* url = EdUrlParser::parseUrl(config.upload_server);
-  call_info->upload_server = config.upload_server;
-  call_info->scheme = url->scheme;
-  call_info->hostname = url->hostName;
-  call_info->port = url->port;
-  call_info->path = url->path;
+  //EdUrlParser* url = EdUrlParser::parseUrl(config.upload_server);
+  call_info->upload_server = "";//config.upload_server;
+  call_info->scheme = ""; //url->scheme;
+  call_info->hostname = ""; //url->hostName;
+  call_info->port = "";//url->port;
+  call_info->path = "";//url->path;
   std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
   strcpy(call_info->filename, call->get_filename());
   for (int i=0; i < call_info->source_count; i++ ){
