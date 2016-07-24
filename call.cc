@@ -8,8 +8,10 @@ void Call::create_filename() {
 	path_stream << this->config.capture_dir <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
 	boost::filesystem::create_directories(path_stream.str());
-	sprintf(filename, "%s/%ld-%ld.wav", path_stream.str().c_str(),talkgroup,start_time);
-    sprintf(status_filename, "%s/%ld-%ld.json", path_stream.str().c_str(),talkgroup,start_time);
+  sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,start_time,freq);
+  sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,start_time,freq);
+	//sprintf(filename, "%s/%ld-%ld.wav", path_stream.str().c_str(),talkgroup,start_time);
+  //sprintf(status_filename, "%s/%ld-%ld.json", path_stream.str().c_str(),talkgroup,start_time);
 }
 Call::Call(long t, double f, Config c) {
   config = c;
@@ -75,7 +77,7 @@ void Call::end_call() {
                     myfile << "}\n";
                     myfile.close();
                 }
-                sprintf(shell_command,"./encode-upload.sh %s > /dev/null 2>&1 &", this->get_filename());
+                sprintf(shell_command,"./encode-upload.sh %s &", this->get_filename());
                 this->get_recorder()->deactivate();
                 int rc = system(shell_command);
                 if (this->config.upload_server != "") {
