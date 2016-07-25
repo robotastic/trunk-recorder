@@ -280,6 +280,7 @@ int start_recorder(Call *call) {
 
             if ((source->get_min_hz() <= call->get_freq()) && (source->get_max_hz() >= call->get_freq())) {
                 source_found = true;
+                //std::cout << "Source - output_buffer - Min: " << source->get_src_block()->min_output_buffer(0) << " Max: " << source->get_src_block()->max_output_buffer(0) << "\n";
 
                  if (call->get_tdma()) {
                     BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " << call->get_freq() << " For TG: " << call->get_talkgroup();
