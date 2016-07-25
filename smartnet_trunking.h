@@ -24,6 +24,7 @@
 #include <gnuradio/analog/sig_source_f.h>
 #include <gnuradio/analog/sig_source_c.h>
 
+#include "freq_xlating_fft_filter.h"
 #include "smartnet_crc.h"
 #include "smartnet_deinterleave.h"
 
