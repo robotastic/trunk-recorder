@@ -174,7 +174,7 @@ smartnet_crc::work (int noutput_items,
 
 			//and throw it at the msgq
 			std::ostringstream payload;
-			payload.str("");
+			payload.str("SMARTNET: ");
 			payload << pkt.address << "," << pkt.groupflag << "," << pkt.command;
 			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()));
 			d_queue->handle(msg);
