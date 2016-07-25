@@ -12,8 +12,8 @@ public:
   std::string system_type;
 
 std::vector<double> control_channels;
-int current_control_channel = 0;
-bool qpsk_mod = true;
+int current_control_channel;
+bool qpsk_mod;
 smartnet_trunking_sptr smartnet_trunking;
 p25_trunking_sptr p25_trunking;
 std::string get_default_mode();

@@ -43,6 +43,7 @@
 #include <gnuradio/blocks/wavfile_sink.h>
 #include <gnuradio/blocks/file_sink.h>
 
+#include "freq_xlating_fft_filter.h"
 #include "smartnet.h"
 #include "recorder.h"
 
@@ -99,12 +100,12 @@ private:
 	std::vector<float> sym_taps;
 
     Source *source;
-
+freq_xlating_fft_filter_sptr prefilter;
 	/* GR blocks */
 	gr::filter::iir_filter_ffd::sptr deemph;
 	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr sym_filter;
-	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::analog::sig_source_c::sptr offset_sig;
 
 	gr::blocks::multiply_cc::sptr mixer;
