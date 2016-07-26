@@ -144,7 +144,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 			  d_samples_per_chan)) {
 
 
-          d_sample_count = d_samples_per_chan * d_nchans;
+          d_sample_count = (unsigned) d_samples_per_chan * d_nchans;
           std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " First Sample Pos: " << d_first_sample_pos << std::endl;
           //fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
           fseek(d_new_fp, 0, SEEK_END);
