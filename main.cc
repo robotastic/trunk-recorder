@@ -361,7 +361,7 @@ int retune_recorder(TrunkMessage message, Call *call) {
     Recorder *recorder = call->get_recorder();
     Source *source = recorder->get_source();
 
-    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << "\tWav Pos: " << recorder->get_current_length();
 
     // set the call to the new Freq / TDMA slot
     call->set_freq(message.freq);
