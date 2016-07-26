@@ -137,16 +137,23 @@ bool Call::add_source(long src) {
     }
     if (recorder!=NULL) {
       position = recorder->get_current_length();
+      
     }
     Call_Source call_source = {src, position};
 
     if (src_count < 1 ) {
         src_list[src_count] = call_source;
         src_count++;
+        if (this->recording){
+        	BOOST_LOG_TRIVIAL(info) << "1st src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
+        }
         return true;
     } else if ((src_count < 48) && (src_list[src_count-1].source != src)) {
         src_list[src_count] = call_source;
         src_count++;
+        if (this->recording){
+        	BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
+        }
         return true;
     }
     return false;
