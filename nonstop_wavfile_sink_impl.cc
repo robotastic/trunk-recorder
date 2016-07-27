@@ -151,6 +151,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
           std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " << d_samples_per_chan <<std::endl;
           //fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
           fseek(d_new_fp, 0, SEEK_END);
+          do_update();
       } else {
           	d_sample_count = 0;
           // you have to rewind the d_new_fp because the read failed.
