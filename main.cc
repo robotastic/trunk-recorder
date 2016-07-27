@@ -709,11 +709,11 @@ int main(void)
     (
      logging::trivial::severity >= logging::trivial::info
      );
-     boost::log::add_console_log(
+    /* boost::log::add_console_log(
      cout,
      boost::log::keywords::format = "[%TimeStamp%]: %Message%",
      boost::log::keywords::auto_flush = true
-     );
+   );*/
     tb = gr::make_top_block("Trunking");
     msg_queue = gr::msg_queue::make(100);
     smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
