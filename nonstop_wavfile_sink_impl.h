@@ -42,7 +42,7 @@ private:
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
-
+  char old_filename[255];
 	FILE *d_fp;
 	FILE *d_new_fp;
 	bool d_updated;

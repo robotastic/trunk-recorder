@@ -87,6 +87,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char *filename,
 		throw std::runtime_error("can't open file");
 	}
 
+  strcpy(old_filename, filename);
 	if(bits_per_sample == 8) {
 		d_max_sample_val = 0xFF;
 		d_min_sample_val = 0;
@@ -124,7 +125,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	}
 
 	if(d_new_fp) {    // if we've already got a new one open, close it
-    std::cout << "d_new_fp alread open, closing"<< std::endl;
+    std::cout << "d_new_fp alread open, closing "<< old_filename << " for " << filename << std::endl;
 		fclose(d_new_fp);
 		d_new_fp = 0;
 	}
@@ -151,7 +152,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
           std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " << d_samples_per_chan <<std::endl;
           //fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
           fseek(d_new_fp, 0, SEEK_END);
-          do_update();
+
       } else {
           	d_sample_count = 0;
           // you have to rewind the d_new_fp because the read failed.
@@ -170,7 +171,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	       }
       }
 
-
+      do_update();
 
 	return true;
 }
@@ -185,6 +186,10 @@ nonstop_wavfile_sink_impl::close()
     if (d_updated) {
       std::cout << "weird, update flagged" << std::endl;
     }
+    if (d_new_fp) {
+      std::cout << "weird, there is a d_new_fp" << std::endl;
+    }
+    d_new_fp = NULL;
 		return;
   }
 
