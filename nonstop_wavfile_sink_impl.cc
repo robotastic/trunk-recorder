@@ -119,6 +119,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	                O_RDWR|O_CREAT|OUR_O_LARGEFILE|OUR_O_BINARY,
 	                0664)) < 0) {
 		perror(filename);
+    std::cout << "wav error opening: " << filename << std::endl;
 		return false;
 	}
 
@@ -130,6 +131,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	if((d_new_fp = fdopen (fd, "rb+")) == NULL) {
 		perror(filename);
 		::close(fd);  // don't leak file descriptor if fdopen fails.
+    std::cout << "wav open failed" << std::endl;
 		return false;
 	}
 	d_updated = true;
@@ -151,6 +153,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
       } else {
           	d_sample_count = 0;
           // you have to rewind the d_new_fp because the read failed.
+          std::cout << "wav parse header failed" << std::endl;
           if (fseek(d_new_fp, 0, SEEK_SET) != 0) {
 		      return false;
 	       }
@@ -174,8 +177,10 @@ nonstop_wavfile_sink_impl::close()
 {
 	gr::thread::scoped_lock guard(d_mutex);
 
-	if(!d_fp)
+	if(!d_fp){
+    std::cout << "wav error closing file" << std::endl;
 		return;
+  }
 
 	close_wav();
 }

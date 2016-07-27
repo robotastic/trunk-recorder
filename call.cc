@@ -86,7 +86,7 @@ void Call::end_call() {
                 BOOST_LOG_TRIVIAL(info) << "\tFinished Removing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
 
             } else {
-              BOOST_LOG_TRIVIAL(info) << "\tRemoving Non-Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+              //BOOST_LOG_TRIVIAL(info) << "\tRemoving Non-Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
 
             }
             if (this->get_debug_recording() == true) {
@@ -137,7 +137,7 @@ bool Call::add_source(long src) {
     }
     if (recorder!=NULL) {
       position = recorder->get_current_length();
-      
+
     }
     Call_Source call_source = {src, position};
 
