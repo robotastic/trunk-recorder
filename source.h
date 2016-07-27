@@ -13,6 +13,7 @@
 
 class Source
 {
+	static int rec_num;
 	double min_hz;
 	double max_hz;
 	double center;

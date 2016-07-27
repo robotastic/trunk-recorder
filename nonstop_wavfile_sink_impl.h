@@ -78,7 +78,7 @@ public:
 	                          unsigned int sample_rate,
 	                          int bits_per_sample);
 	~nonstop_wavfile_sink_impl();
-
+char *get_filename();
 	bool open(const char* filename);
 	void close();
 

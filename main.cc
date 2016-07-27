@@ -306,6 +306,7 @@ int start_recorder(Call *call) {
 
                 int total_recorders = get_total_recorders();
                 if (recorder) {
+                    BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device();
                     recorder->activate(call, total_recorders);
                     call->set_recorder(recorder);
                     call->set_recording(true);

@@ -104,7 +104,9 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char *filename,
 		}
 	}
 }
-
+char * nonstop_wavfile_sink_impl::get_filename(){
+  return old_filename;
+}
 bool
 nonstop_wavfile_sink_impl::open(const char* filename)
 {
@@ -129,6 +131,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 		fclose(d_new_fp);
 		d_new_fp = 0;
 	}
+  strcpy(old_filename, filename);
 
 	if((d_new_fp = fdopen (fd, "rb+")) == NULL) {
 		perror(filename);
@@ -318,7 +321,7 @@ nonstop_wavfile_sink_impl::sample_rate()
 double
 nonstop_wavfile_sink_impl::length_in_seconds()
 {
-  //std::cout << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample_new << "\n";
+  std::cout << "Filename: "<< old_filename << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample_new << "\n";
   return (double) d_sample_count  / (double) d_sample_rate;
 	//return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double) d_sample_rate;
 }

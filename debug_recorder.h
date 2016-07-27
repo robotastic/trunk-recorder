@@ -79,7 +79,7 @@ public:
 	long elapsed();
 	void close();
 	double get_current_length();
-	
+
 	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 	static bool logging;
 private:
@@ -91,7 +91,7 @@ private:
 	time_t starttime;
 	char filename[160];
 
-	int num;
+	//int num;
 
 	bool iam_logging;
 	bool active;

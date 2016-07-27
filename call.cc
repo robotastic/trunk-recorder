@@ -152,7 +152,7 @@ bool Call::add_source(long src) {
         src_list[src_count] = call_source;
         src_count++;
         if (this->recording){
-        	BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
+        	BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << " Rec_num: " << this->recorder->num << std::endl;
         }
         return true;
     }

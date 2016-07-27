@@ -350,7 +350,7 @@ if (!active){
 
 	talkgroup = call->get_talkgroup();
 	freq = call->get_freq();
-    num = n;
+    //num = n;
 
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 

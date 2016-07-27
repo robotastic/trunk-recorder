@@ -65,6 +65,7 @@ public:
 	virtual long get_talkgroup() {return 0;};
 	virtual bool is_active() {return false;};
 	virtual double get_current_length(){return 0;};
+	int num;
 	/*
 	private:
 		double center, freq;
