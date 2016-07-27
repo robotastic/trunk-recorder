@@ -24,6 +24,8 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
+#include <iostream>
 #include <gnuradio/blocks/wavfile.h>
 #include <cstring>
 #include <stdint.h>

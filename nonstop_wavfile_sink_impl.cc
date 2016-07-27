@@ -124,6 +124,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	}
 
 	if(d_new_fp) {    // if we've already got a new one open, close it
+    std::cout << "d_new_fp alread open, closing"<< std::endl;
 		fclose(d_new_fp);
 		d_new_fp = 0;
 	}
@@ -141,23 +142,24 @@ nonstop_wavfile_sink_impl::open(const char* filename)
       if(wavheader_parse(d_new_fp,
 			  d_sample_rate,
 			  d_nchans,
-			  d_bytes_per_sample,
+			  d_bytes_per_sample_new,
 			  d_first_sample_pos,
 			  d_samples_per_chan)) {
 
 
           d_sample_count = (unsigned) d_samples_per_chan * d_nchans;
-          std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " First Sample Pos: " << d_first_sample_pos << std::endl;
+          std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " << d_samples_per_chan <<std::endl;
           //fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
           fseek(d_new_fp, 0, SEEK_END);
       } else {
           	d_sample_count = 0;
           // you have to rewind the d_new_fp because the read failed.
-          std::cout << "Wav parse header did not happen" << std::endl;
+
           if (fseek(d_new_fp, 0, SEEK_SET) != 0) {
+            std::cout << "Wav parse header did not happen" << std::endl;
 		      return false;
 	       }
-
+         std::cout << "Adding Wav header, bytes per sample: " << d_bytes_per_sample_new << std::endl;
         if(!wavheader_write(d_new_fp,
 	                    d_sample_rate,
 	                    d_nchans,
@@ -193,6 +195,7 @@ nonstop_wavfile_sink_impl::close_wav()
 {
 	unsigned int byte_count = d_sample_count * d_bytes_per_sample;
 
+  std::cout << "Closing wav byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << " new bytes per: " << d_bytes_per_sample_new << std::endl;
 	wavheader_complete(d_fp, byte_count);
 
 	fclose(d_fp);
@@ -231,8 +234,10 @@ nonstop_wavfile_sink_impl::work(int noutput_items,
 	gr::thread::scoped_lock guard(d_mutex);    // hold mutex for duration of this block
 	do_update();      // update: d_fp is reqd
 	if(!d_fp)         // drop output on the floor
+  {
+    std::cout << "Wav - Dropping items, no fp: " << noutput_items << std::endl;
 		return noutput_items;
-
+  }
 	for(nwritten = 0; nwritten < noutput_items; nwritten++) {
 		for(int chan = 0; chan < d_nchans; chan++) {
 			// Write zeros to channels which are in the WAV file
