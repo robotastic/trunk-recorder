@@ -711,7 +711,7 @@ int main(void)
      );
      boost::log::add_console_log(
      cout,
-     boost::log::keywords::format = “[%TimeStamp%]: %Message%”,
+     boost::log::keywords::format = "[%TimeStamp%]: %Message%",
      boost::log::keywords::auto_flush = true
      );
     tb = gr::make_top_block("Trunking");
