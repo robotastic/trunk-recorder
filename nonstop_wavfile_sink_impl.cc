@@ -153,12 +153,12 @@ nonstop_wavfile_sink_impl::open(const char* filename)
       } else {
           	d_sample_count = 0;
           // you have to rewind the d_new_fp because the read failed.
-          std::cout << "wav parse header failed" << std::endl;
+          std::cout << "Wav parse header did not happen" << std::endl;
           if (fseek(d_new_fp, 0, SEEK_SET) != 0) {
 		      return false;
 	       }
 
-          	if(!wavheader_write(d_new_fp,
+        if(!wavheader_write(d_new_fp,
 	                    d_sample_rate,
 	                    d_nchans,
 	                    d_bytes_per_sample_new)) {
@@ -179,6 +179,9 @@ nonstop_wavfile_sink_impl::close()
 
 	if(!d_fp){
     std::cout << "wav error closing file" << std::endl;
+    if (d_updated) {
+      std::cout << "weird, update flagged" << std::endl;
+    }
 		return;
   }
 
@@ -312,6 +315,11 @@ nonstop_wavfile_sink_impl::length_in_seconds()
 void
 nonstop_wavfile_sink_impl::do_update()
 {
+  if ((!d_updated) && (!d_fp)) {
+    std::cout << "Sample #: " << d_sample_count << " no update and no fp\n";
+
+  }
+
 	if(!d_updated) {
 		return;
 	}
