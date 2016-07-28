@@ -75,7 +75,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char *filename,
 	             io_signature::make(1, n_channels, sizeof(float)),
 	             io_signature::make(0, 0, 0)),
 	  d_sample_rate(sample_rate), d_nchans(n_channels),
-	  d_fp(0), d_updated(false)
+	  d_fp(0)
 {
 	if(bits_per_sample != 8 && bits_per_sample != 16) {
 		throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
@@ -149,7 +149,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 		        return false;
 	       }
 
-         std::cout << "Adding Wav header, bytes per sample: " << d_bytes_per_sample_new << std::endl;
+         std::cout << "Adding Wav header, bytes per sample: " << d_bytes_per_sample << std::endl;
         if(!wavheader_write(d_fp,
 	                    d_sample_rate,
 	                    d_nchans,
