@@ -193,11 +193,12 @@ nonstop_wavfile_sink_impl::close_wav()
 {
 	unsigned int byte_count = d_sample_count * d_bytes_per_sample;
 
-  std::cout << "Closing wav byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << " new bytes per: " << d_bytes_per_sample_new << std::endl;
-	wavheader_complete(d_fp, byte_count);
+  wavheader_complete(d_fp, byte_count);
 
 	fclose(d_fp);
 	d_fp = NULL;
+  std::cout << "FP: " << d_fp << " Closing wav byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << " new bytes per: " << d_bytes_per_sample_new << std::endl;
+
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl()
