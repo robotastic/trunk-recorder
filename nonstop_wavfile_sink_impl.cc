@@ -130,7 +130,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
       if(wavheader_parse(d_fp,
 			  d_sample_rate,
 			  d_nchans,
-			  d_bytes_per_sample_new,
+			  d_bytes_per_sample,
 			  d_first_sample_pos,
 			  d_samples_per_chan)) {
 
@@ -153,7 +153,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
         if(!wavheader_write(d_fp,
 	                    d_sample_rate,
 	                    d_nchans,
-	                    d_bytes_per_sample_new)) {
+	                    d_bytes_per_sample)) {
 		      fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
 		      exit(-1);
 	       }
@@ -197,7 +197,7 @@ nonstop_wavfile_sink_impl::close_wav()
 
 	fclose(d_fp);
 	d_fp = NULL;
-  std::cout << "FP: " << d_fp << " Closing wav byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << " new bytes per: " << d_bytes_per_sample_new << std::endl;
+  std::cout << "FP: " << d_fp << " Closing wav byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
 
 }
 
@@ -280,7 +280,7 @@ nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample)
 {
 	gr::thread::scoped_lock guard(d_mutex);
 	if(bits_per_sample == 8 || bits_per_sample == 16) {
-		d_bytes_per_sample_new = bits_per_sample / 8;
+		d_bytes_per_sample = bits_per_sample / 8;
 	}
 }
 
@@ -294,7 +294,7 @@ nonstop_wavfile_sink_impl::set_sample_rate(unsigned int sample_rate)
 int
 nonstop_wavfile_sink_impl::bits_per_sample()
 {
-	return d_bytes_per_sample_new * 8;
+	return d_bytes_per_sample * 8;
 }
 
 unsigned int
@@ -306,7 +306,7 @@ nonstop_wavfile_sink_impl::sample_rate()
 double
 nonstop_wavfile_sink_impl::length_in_seconds()
 {
-  std::cout << "Filename: "<< current_filename << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample_new << "\n";
+  std::cout << "Filename: "<< current_filename << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample << "\n";
   return (double) d_sample_count  / (double) d_sample_rate;
 	//return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double) d_sample_rate;
 }

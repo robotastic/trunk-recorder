@@ -37,14 +37,12 @@ private:
 	int d_nchans;
 	unsigned d_sample_count;
 	int d_bytes_per_sample;
-	int d_bytes_per_sample_new;
 	int d_max_sample_val;
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
   char current_filename[255];
 	FILE *d_fp;
-	bool d_updated;
 	boost::mutex d_mutex;
 
 	/*!
