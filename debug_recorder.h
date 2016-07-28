@@ -50,6 +50,7 @@
 //#include <blocks/wavfile_sink.h>
 #include "recorder.h"
 #include "smartnet.h"
+#include "freq_xlating_fft_filter.h"
 
 class Source;
 class debug_recorder;
@@ -101,11 +102,13 @@ private:
 
     Source *source;
 
+	freq_xlating_fft_filter_sptr prefilter;
+
 	/* GR blocks */
 	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr lpf_second;
 	gr::filter::fir_filter_fff::sptr sym_filter;
-	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::analog::sig_source_c::sptr offset_sig;
 
 	gr::blocks::multiply_cc::sptr mixer;
