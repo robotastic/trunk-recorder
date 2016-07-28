@@ -111,9 +111,9 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	}
 
 	if(d_fp) {    // if we've already got a new one open, close it
-    std::cout << "d_fp alread open, closing "<< current_filename << " for " << filename << std::endl;
-		fclose(d_fp);
-		d_fp = NULL;
+    std::cout << "d_fp alread open, closing "<< d_fp << " more" << current_filename << " for " << filename << std::endl;
+		//fclose(d_fp);
+		//d_fp = NULL;
 	}
   strcpy(current_filename, filename);
 
