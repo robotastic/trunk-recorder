@@ -345,7 +345,7 @@ void stop_inactive_recorders() {
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
-        if ( call->since_last_update()  > 3.0) {
+        if ( call->since_last_update()  > 8.0) {
             call->end_call();
             delete call;
             it = calls.erase(it);
