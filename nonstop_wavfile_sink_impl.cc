@@ -136,7 +136,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 
 
           d_sample_count = (unsigned) d_samples_per_chan * d_nchans;
-          std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " << d_samples_per_chan <<std::endl;
+          //std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " << d_samples_per_chan <<std::endl;
           //fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
           fseek(d_fp, 0, SEEK_END);
 
@@ -149,7 +149,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 		        return false;
 	       }
 
-         std::cout << "Adding Wav header, bytes per sample: " << d_bytes_per_sample << std::endl;
+         //std::cout << "Adding Wav header, bytes per sample: " << d_bytes_per_sample << std::endl;
         if(!wavheader_write(d_fp,
 	                    d_sample_rate,
 	                    d_nchans,
@@ -197,7 +197,7 @@ nonstop_wavfile_sink_impl::close_wav()
 
 	fclose(d_fp);
 	d_fp = NULL;
-  std::cout << "FP: " << d_fp << " Closing wav byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
+  std::cout <<  "Closing wav File - byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
 
 }
 
@@ -306,7 +306,7 @@ nonstop_wavfile_sink_impl::sample_rate()
 double
 nonstop_wavfile_sink_impl::length_in_seconds()
 {
-  std::cout << "Filename: "<< current_filename << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample << "\n";
+  //std::cout << "Filename: "<< current_filename << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample << "\n";
   return (double) d_sample_count  / (double) d_sample_rate;
 	//return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double) d_sample_rate;
 }
