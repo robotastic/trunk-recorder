@@ -111,8 +111,8 @@ nonstop_wavfile_sink_impl::open(const char* filename)
     unsigned d_samples_per_chan;
 	gr::thread::scoped_lock guard(d_mutex);
 
-    
-    
+
+
 	// we use the open system call to get access to the O_LARGEFILE flag.  O_APPEND|
 	int fd;
 	if((fd = ::open(filename,
@@ -121,7 +121,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 		perror(filename);
 		return false;
 	}
-    
+
 	if(d_new_fp) {    // if we've already got a new one open, close it
 		fclose(d_new_fp);
 		d_new_fp = 0;
@@ -142,7 +142,7 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 			  d_bytes_per_sample,
 			  d_first_sample_pos,
 			  d_samples_per_chan)) {
-	     
+
 
           d_sample_count = d_samples_per_chan * d_nchans;
           //fprintf(stderr, "Sample Count: %d\n", d_sample_count);
@@ -152,8 +152,8 @@ nonstop_wavfile_sink_impl::open(const char* filename)
           // you have to rewind the d_new_fp because the read failed.
           if (fseek(d_new_fp, 0, SEEK_SET) != 0) {
 		      return false;
-	       }  
-          
+	       }
+
           	if(!wavheader_write(d_new_fp,
 	                    d_sample_rate,
 	                    d_nchans,
@@ -162,8 +162,8 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 		      exit(-1);
 	       }
       }
-    
 
+do_update();
 
 	return true;
 }
@@ -248,7 +248,7 @@ nonstop_wavfile_sink_impl::work(int noutput_items,
 	}
 
    // fflush (d_fp);  // this is added so unbuffered content is written.
-    
+
 	return nwritten;
 }
 
