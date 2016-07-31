@@ -150,21 +150,21 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
-/*
-	to_float->set_max_output_buffer(512);
-	rescale->set_max_output_buffer(512);
-	slicer->set_max_output_buffer(512);
-	op25_frame_assembler->set_max_output_buffer(512);
+
+	to_float->set_max_output_buffer(4096);
+	rescale->set_max_output_buffer(4096);
+	slicer->set_max_output_buffer(4096);
+	op25_frame_assembler->set_max_output_buffer(4096);
 	//prefilter->set_max_output_buffer(512);
-	arb_resampler->set_max_output_buffer(512);
-	fm_demod->set_max_output_buffer(512);
-	baseband_amp->set_max_output_buffer(512);
-	sym_filter->set_max_output_buffer(512);
-	fsk4_demod->set_max_output_buffer(512);
-	agc->set_max_output_buffer(512);
-	costas_clock->set_max_output_buffer(512);
-	diffdec->set_max_output_buffer(512);
-	this->set_max_output_buffer(512);*/
+	arb_resampler->set_max_output_buffer(4096);
+	fm_demod->set_max_output_buffer(4096);
+	baseband_amp->set_max_output_buffer(4096);
+	sym_filter->set_max_output_buffer(4096);
+	fsk4_demod->set_max_output_buffer(4096);
+	agc->set_max_output_buffer(4096);
+	costas_clock->set_max_output_buffer(4096);
+	diffdec->set_max_output_buffer(4096);
+	this->set_max_output_buffer(4096);
 
 
 

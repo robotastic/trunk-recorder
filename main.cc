@@ -285,7 +285,7 @@ int start_recorder(Call *call) {
     Recorder *recorder;
     Recorder *debug_recorder;
 
-        BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << "\tFreq: " << call->get_freq();
+        //BOOST_LOG_TRIVIAL(error) << "\tCall created for: " << call->get_talkgroup() << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " << call->get_encrypted() << "\tFreq: " << call->get_freq();
 
     if (call->get_encrypted() == false) {
 
@@ -295,6 +295,7 @@ int start_recorder(Call *call) {
 
             if ((source->get_min_hz() <= call->get_freq()) && (source->get_max_hz() >= call->get_freq())) {
                 source_found = true;
+                //std::cout << "Source - output_buffer - Min: " << source->get_src_block()->min_output_buffer(0) << " Max: " << source->get_src_block()->max_output_buffer(0) << "\n";
 
                  if (call->get_tdma()) {
                     BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " << call->get_freq() << " For TG: " << call->get_talkgroup();
@@ -320,6 +321,7 @@ int start_recorder(Call *call) {
 
                 int total_recorders = get_total_recorders();
                 if (recorder) {
+                    BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device();
                     recorder->activate(call, total_recorders);
                     call->set_recorder(recorder);
                     call->set_recording(true);
@@ -375,7 +377,7 @@ int retune_recorder(TrunkMessage message, Call *call) {
     Recorder *recorder = call->get_recorder();
     Source *source = recorder->get_source();
 
-    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << "\tWav Pos: " << recorder->get_current_length();
 
     // set the call to the new Freq / TDMA slot
     call->set_freq(message.freq);
@@ -450,11 +452,11 @@ void assign_recorder(TrunkMessage message) {
 
             // check is the freq is the same as the one being used by the call
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
-              BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
+              //BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
                 // if you are recording the call, stop
                 if (call->get_recording() == true) {
-                    //BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
+                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
                 //different talkgroups on the same freq, that is trouble
                 }
                 call->end_call();
@@ -725,7 +727,11 @@ int main(void)
     (
      logging::trivial::severity >= logging::trivial::info
      );
-
+    /* boost::log::add_console_log(
+     cout,
+     boost::log::keywords::format = "[%TimeStamp%]: %Message%",
+     boost::log::keywords::auto_flush = true
+   );*/
     tb = gr::make_top_block("Trunking");
     msg_queue = gr::msg_queue::make(100);
     smartnet_parser = new SmartnetParser(); // this has to eventually be generic;

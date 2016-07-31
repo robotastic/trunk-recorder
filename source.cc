@@ -1,5 +1,6 @@
 #include "source.h"
 
+int Source::rec_num = 0;
 
 
 void Source::set_antenna(std::string ant)
@@ -125,6 +126,7 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r, bool qpsk) {
 	for (int i = 0; i < max_digital_recorders; i++) {
 
 		p25_recorder_sptr log = make_p25_recorder( this, qpsk);
+		log->num = rec_num++;
 		digital_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
 	}

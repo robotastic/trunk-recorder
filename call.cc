@@ -55,7 +55,7 @@ void Call::end_call() {
 
             if (recording) {
 
-                BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
+                BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " << this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << "Elapsed: " << this->elapsed() << std::endl;
 
                 std::ofstream myfile (status_filename);
                 if (myfile.is_open())
@@ -86,7 +86,7 @@ void Call::end_call() {
                 BOOST_LOG_TRIVIAL(info) << "\tFinished Removing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
 
             } else {
-              BOOST_LOG_TRIVIAL(info) << "\tRemoving Non-Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+              //BOOST_LOG_TRIVIAL(info) << "\tRemoving Non-Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
 
             }
             if (this->get_debug_recording() == true) {
@@ -137,16 +137,23 @@ bool Call::add_source(long src) {
     }
     if (recorder!=NULL) {
       position = recorder->get_current_length();
+
     }
     Call_Source call_source = {src, position};
 
     if (src_count < 1 ) {
         src_list[src_count] = call_source;
         src_count++;
+        if (this->recording){
+        	BOOST_LOG_TRIVIAL(info) << "1st src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
+        }
         return true;
     } else if ((src_count < 48) && (src_list[src_count-1].source != src)) {
         src_list[src_count] = call_source;
         src_count++;
+        if (this->recording){
+        	BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << " Rec_num: " << this->recorder->num << std::endl;
+        }
         return true;
     }
     return false;

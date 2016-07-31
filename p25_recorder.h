@@ -110,7 +110,7 @@ private:
         Source *source;
 	char filename[160];
 	char raw_filename[160];
-	int num;
+	//int num;
 
 	bool iam_logging;
 	bool active;

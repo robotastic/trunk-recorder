@@ -75,35 +75,22 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char *filename,
 	             io_signature::make(1, n_channels, sizeof(float)),
 	             io_signature::make(0, 0, 0)),
 	  d_sample_rate(sample_rate), d_nchans(n_channels),
-	  d_fp(0), d_new_fp(0), d_updated(false)
+	  d_fp(0)
 {
 	if(bits_per_sample != 8 && bits_per_sample != 16) {
 		throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
 	}
 	d_bytes_per_sample = bits_per_sample / 8;
-	d_bytes_per_sample_new = d_bytes_per_sample;
+
 
 	if(!open(filename)) {
 		throw std::runtime_error("can't open file");
 	}
 
-	if(bits_per_sample == 8) {
-		d_max_sample_val = 0xFF;
-		d_min_sample_val = 0;
-		d_normalize_fac  = d_max_sample_val/2;
-		d_normalize_shift = 1;
-	}
-	else {
-		d_max_sample_val = 0x7FFF;
-		d_min_sample_val = -0x7FFF;
-		d_normalize_fac  = d_max_sample_val;
-		d_normalize_shift = 0;
-		if(bits_per_sample != 16) {
-			fprintf(stderr, "Invalid bits per sample value requested, using 16");
-		}
-	}
 }
-
+char * nonstop_wavfile_sink_impl::get_filename(){
+  return current_filename;
+}
 bool
 nonstop_wavfile_sink_impl::open(const char* filename)
 {
@@ -119,24 +106,28 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 	                O_RDWR|O_CREAT|OUR_O_LARGEFILE|OUR_O_BINARY,
 	                0664)) < 0) {
 		perror(filename);
+    std::cout << "wav error opening: " << filename << std::endl;
 		return false;
 	}
 
-	if(d_new_fp) {    // if we've already got a new one open, close it
-		fclose(d_new_fp);
-		d_new_fp = 0;
+	if(d_fp) {    // if we've already got a new one open, close it
+    std::cout << "d_fp alread open, closing "<< d_fp << " more" << current_filename << " for " << filename << std::endl;
+		//fclose(d_fp);
+		//d_fp = NULL;
 	}
+  strcpy(current_filename, filename);
 
-	if((d_new_fp = fdopen (fd, "rb+")) == NULL) {
+	if((d_fp = fdopen (fd, "rb+")) == NULL) {
 		perror(filename);
 		::close(fd);  // don't leak file descriptor if fdopen fails.
+    std::cout << "wav open failed" << std::endl;
 		return false;
 	}
-	d_updated = true;
+
 
 
       // Scan headers, check file validity
-      if(wavheader_parse(d_new_fp,
+      if(wavheader_parse(d_fp,
 			  d_sample_rate,
 			  d_nchans,
 			  d_bytes_per_sample,
@@ -144,26 +135,42 @@ nonstop_wavfile_sink_impl::open(const char* filename)
 			  d_samples_per_chan)) {
 
 
-          d_sample_count = d_samples_per_chan * d_nchans;
-          fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
-          fseek(d_new_fp, 0, SEEK_END);
+          d_sample_count = (unsigned) d_samples_per_chan * d_nchans;
+          //std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " << d_samples_per_chan <<std::endl;
+          //fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
+          fseek(d_fp, 0, SEEK_END);
+
       } else {
           	d_sample_count = 0;
-          // you have to rewind the d_new_fp because the read failed.
-          if (fseek(d_new_fp, 0, SEEK_SET) != 0) {
-		      return false;
+
+            // you have to rewind the d_new_fp because the read failed.
+          if (fseek(d_fp, 0, SEEK_SET) != 0) {
+            std::cout << "Error rewinding " << std::endl;
+		        return false;
 	       }
 
-          	if(!wavheader_write(d_new_fp,
+         //std::cout << "Adding Wav header, bytes per sample: " << d_bytes_per_sample << std::endl;
+        if(!wavheader_write(d_fp,
 	                    d_sample_rate,
 	                    d_nchans,
-	                    d_bytes_per_sample_new)) {
+	                    d_bytes_per_sample)) {
 		      fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
 		      exit(-1);
 	       }
       }
 
-
+      if(d_bytes_per_sample == 1) {
+    		d_max_sample_val = UCHAR_MAX;
+    		d_min_sample_val = 0;
+    		d_normalize_fac  = d_max_sample_val/2;
+    		d_normalize_shift = 1;
+    	}
+    	else if(d_bytes_per_sample == 2) {
+    		d_max_sample_val = SHRT_MAX;
+    		d_min_sample_val = SHRT_MIN;
+    		d_normalize_fac  = d_max_sample_val;
+    		d_normalize_shift = 0;
+    	}
 
 	return true;
 }
@@ -173,8 +180,10 @@ nonstop_wavfile_sink_impl::close()
 {
 	gr::thread::scoped_lock guard(d_mutex);
 
-	if(!d_fp)
+	if(!d_fp){
+    std::cout << "wav error closing file" << std::endl;
 		return;
+  }
 
 	close_wav();
 }
@@ -184,19 +193,16 @@ nonstop_wavfile_sink_impl::close_wav()
 {
 	unsigned int byte_count = d_sample_count * d_bytes_per_sample;
 
-	wavheader_complete(d_fp, byte_count);
+  wavheader_complete(d_fp, byte_count);
 
 	fclose(d_fp);
 	d_fp = NULL;
+  std::cout <<  "Closing wav File - byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
+
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl()
 {
-	if(d_new_fp) {
-		fclose(d_new_fp);
-		d_new_fp = NULL;
-	}
-
 	close();
 }
 
@@ -220,10 +226,12 @@ nonstop_wavfile_sink_impl::work(int noutput_items,
 	int nwritten;
 
 	gr::thread::scoped_lock guard(d_mutex);    // hold mutex for duration of this block
-	do_update();      // update: d_fp is reqd
-	if(!d_fp)         // drop output on the floor
-		return noutput_items;
 
+	if(!d_fp)         // drop output on the floor
+  {
+    std::cout << "Wav - Dropping items, no fp: " << noutput_items << std::endl;
+		return noutput_items;
+  }
 	for(nwritten = 0; nwritten < noutput_items; nwritten++) {
 		for(int chan = 0; chan < d_nchans; chan++) {
 			// Write zeros to channels which are in the WAV file
@@ -272,7 +280,7 @@ nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample)
 {
 	gr::thread::scoped_lock guard(d_mutex);
 	if(bits_per_sample == 8 || bits_per_sample == 16) {
-		d_bytes_per_sample_new = bits_per_sample / 8;
+		d_bytes_per_sample = bits_per_sample / 8;
 	}
 }
 
@@ -286,7 +294,7 @@ nonstop_wavfile_sink_impl::set_sample_rate(unsigned int sample_rate)
 int
 nonstop_wavfile_sink_impl::bits_per_sample()
 {
-	return d_bytes_per_sample_new * 8;
+	return d_bytes_per_sample * 8;
 }
 
 unsigned int
@@ -298,7 +306,7 @@ nonstop_wavfile_sink_impl::sample_rate()
 double
 nonstop_wavfile_sink_impl::length_in_seconds()
 {
-  std::cout << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample_new << "\n";
+  //std::cout << "Filename: "<< current_filename << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample << "\n";
   return (double) d_sample_count  / (double) d_sample_rate;
 	//return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double) d_sample_rate;
 }
@@ -306,33 +314,7 @@ nonstop_wavfile_sink_impl::length_in_seconds()
 void
 nonstop_wavfile_sink_impl::do_update()
 {
-	if(!d_updated) {
-		return;
-	}
 
-	if(d_fp) {
-		close_wav();
-	}
-
-	d_fp = d_new_fp;                    // install new file pointer
-	d_new_fp  = 0;
-
-	d_bytes_per_sample = d_bytes_per_sample_new;
-
-	if(d_bytes_per_sample == 1) {
-		d_max_sample_val = UCHAR_MAX;
-		d_min_sample_val = 0;
-		d_normalize_fac  = d_max_sample_val/2;
-		d_normalize_shift = 1;
-	}
-	else if(d_bytes_per_sample == 2) {
-		d_max_sample_val = SHRT_MAX;
-		d_min_sample_val = SHRT_MIN;
-		d_normalize_fac  = d_max_sample_val;
-		d_normalize_shift = 0;
-	}
-
-	d_updated = false;
 }
 
 } /* namespace blocks */
