@@ -37,6 +37,7 @@
 #include "smartnet_deinterleave.h"
 #include "talkgroups.h"
 #include "source.h"
+#include "system.h"
 #include "call.h"
 #include "smartnet_parser.h"
 #include "p25_parser.h"
@@ -56,21 +57,13 @@ using namespace std;
 namespace logging = boost::log;
 
 std::vector<Source *> sources;
-std::vector<double> control_channels;
+std::vector<System *> systems;
 std::map<long,long> unit_affiliations;
-int current_control_channel = 0;
+
 std::vector<Call *> calls;
 Talkgroups *talkgroups;
-std::string talkgroups_file;
-string default_mode;
-string system_type;
-string system_modulation;
-
 string config_dir;
-bool qpsk_mod = true;
 gr::top_block_sptr tb;
-smartnet_trunking_sptr smartnet_trunking;
-p25_trunking_sptr p25_trunking;
 gr::msg_queue::sptr msg_queue;
 
 volatile sig_atomic_t exit_flag = 0;
@@ -78,6 +71,22 @@ SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 
 Config config;
+
+bool qpsk_mod = true;
+string default_mode;
+/*
+std::string talkgroups_file;
+string default_mode;
+string system_type;
+string system_modulation;
+std::vector<double> control_channels;
+int current_control_channel = 0;
+bool qpsk_mod = true;
+smartnet_trunking_sptr smartnet_trunking;
+p25_trunking_sptr p25_trunking;*/
+
+
+
 
 void exit_interupt(int sig) { // can be called asynchronously
     exit_flag = 1; // set flag
@@ -117,7 +126,7 @@ std::vector<float> design_filter(double interpolation, double deci) {
 
 void load_config()
 {
-
+  string system_modulation;
     try
     {
 
@@ -125,16 +134,26 @@ void load_config()
 
         boost::property_tree::ptree pt;
         boost::property_tree::read_json(json_filename, pt);
-
-        BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-        BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("system.control_channels") )
+        BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("systems") )
         {
-            double control_channel = node.second.get<double>("",0);
-            control_channels.push_back(control_channel);
-            BOOST_LOG_TRIVIAL(info) << node.second.get<double>("",0) << " ";
-        }
-        BOOST_LOG_TRIVIAL(info);
+          System *system = new System();
+          BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
+          BOOST_FOREACH( boost::property_tree::ptree::value_type  &sub_node,node.second.get_child("control_channels") )
+          {
+              double control_channel = sub_node.second.get<double>("",0);
+              BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("",0) << " ";
+              system->add_control_channel(control_channel);
+          }
+          BOOST_LOG_TRIVIAL(info);
 
+
+          system->set_system_type(node.second.get<std::string>("type"));
+          BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
+
+          system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile",""));
+          BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
+          systems.push_back(system);
+        }
         config.capture_dir = pt.get<std::string>("captureDir",boost::filesystem::current_path().string());
         size_t pos = config.capture_dir.find_last_of("/");
         if(pos == config.capture_dir.length()-1)
@@ -144,32 +163,28 @@ void load_config()
         BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
         config_dir = pt.get<std::string>("configDir",boost::filesystem::current_path().string());
         BOOST_LOG_TRIVIAL(info) << "Config Directory: " << config_dir;
-        talkgroups_file = pt.get<std::string>("talkgroupsFile","");
-        BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << talkgroups_file;
-
         config.upload_script = pt.get<std::string>("uploadScript","");
         BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
         config.upload_server = pt.get<std::string>("uploadServer","");
         BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
-
         default_mode = pt.get<std::string>("defaultMode","digital");
         BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
-        system_type = pt.get<std::string>("system.type");
-        boost::optional<std::string> mod_exists = pt.get_optional<std::string>("system.modulation");
-        if (mod_exists) {
-            system_modulation = pt.get<std::string>("system.modulation");
-            if (boost::iequals(system_modulation, "QPSK"))
-            {
-                qpsk_mod = true;
-            } else if (boost::iequals(system_modulation, "FSK4")) {
-                qpsk_mod = false;
-            } else {
-                qpsk_mod = true;
-                BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, assuming QPSK";
-            }
-        } else {
-            qpsk_mod = true;
-        }
+
+        boost::optional<std::string> mod_exists = pt.get_optional<std::string>("modulation");
+                if (mod_exists) {
+                    system_modulation = pt.get<std::string>("modulation");
+                    if (boost::iequals(system_modulation, "QPSK"))
+                    {
+                        qpsk_mod = true;
+                    } else if (boost::iequals(system_modulation, "FSK4")) {
+                        qpsk_mod = false;
+                    } else {
+                        qpsk_mod = true;
+                        BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, assuming QPSK";
+                    }
+                } else {
+                    qpsk_mod = true;
+                }
         BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("sources") )
         {
             double center = node.second.get<double>("center",0);
@@ -231,7 +246,7 @@ void load_config()
     }
     catch (std::exception const& e)
     {
-        BOOST_LOG_TRIVIAL(error) << e.what();
+        BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
     }
 
 }
@@ -461,12 +476,12 @@ void assign_recorder(TrunkMessage message) {
     }
 }
 
-
+/*
 void add_control_channel(double control_channel) {
     if (std::find(control_channels.begin(), control_channels.end(), control_channel) != control_channels.end()) {
         control_channels.push_back(control_channel);
     }
-}
+}*/
 
 void current_system_id(int sysid) {
     static int active_sysid = 0;
@@ -587,7 +602,7 @@ void handle_message(std::vector<TrunkMessage>  messages) {
                 update_recorder(message);
                 break;
             case CONTROL_CHANNEL:
-                add_control_channel(message.freq);
+                //add_control_channel(message.freq);
                 break;
             case REGISTRATION:
                 break;
@@ -634,15 +649,12 @@ void monitor_messages() {
             stop_inactive_recorders();
             lastTalkgroupPurge = currentTime;
         }
-
-        if (system_type == "smartnet") {
-            trunk_messages = smartnet_parser->parse_message(msg->to_string());
-        } else if (system_type == "p25") {
+        if (msg->to_string().find("SMARTNET: ") != std::string::npos) {
+            trunk_messages = smartnet_parser->parse_message(msg->to_string().erase(0, 10));
+        } else {
             trunk_messages = p25_parser->parse_message(msg);
         }
-        else {
-            BOOST_LOG_TRIVIAL(error) << msg->to_string();
-        }
+
         handle_message(trunk_messages);
 
         float timeDiff = currentTime - lastMsgCountTime;
@@ -670,41 +682,46 @@ void monitor_messages() {
 
 
 bool monitor_system() {
-    bool source_found = false;
+
+  bool system_added = false;
     Source * source = NULL;
-    double control_channel_freq = control_channels[current_control_channel];
+    for(vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
+      System *system = *it;
+          bool source_found = false;
+          double control_channel_freq = system->get_current_control_channel();
+          BOOST_LOG_TRIVIAL(info) << "Control Channel: " << control_channel_freq;
+          for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+              source = *it;
 
-    for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-        source = *it;
+              if ((source->get_min_hz() <= control_channel_freq) && (source->get_max_hz() >= control_channel_freq)) {
+                  source_found = true;
 
-        if ((source->get_min_hz() <= control_channel_freq) && (source->get_max_hz() >= control_channel_freq)) {
-            source_found = true;
+                  break;
+              }
+          }
 
-            break;
-        }
+
+          if (source_found) {
+            system_added=true;
+              if (system->get_system_type() == "smartnet") {
+                  // what you really need to do is go through all of the sources to find the one with the right frequencies
+                  system->smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue);
+                  tb->connect(source->get_src_block(),0, system->smartnet_trunking, 0);
+              }
+
+              if (system->get_system_type() == "p25") {
+                  // what you really need to do is go through all of the sources to find the one with the right frequencies
+                  system->p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue, qpsk_mod);
+                  tb->connect(source->get_src_block(),0, system->p25_trunking, 0);
+              }
+          }
     }
-
-
-    if (source_found) {
-
-        if (system_type == "smartnet") {
-            // what you really need to do is go through all of the sources to find the one with the right frequencies
-            smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue);
-            tb->connect(source->get_src_block(),0, smartnet_trunking, 0);
-        }
-
-        if (system_type == "p25") {
-            // what you really need to do is go through all of the sources to find the one with the right frequencies
-            p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue, qpsk_mod);
-            tb->connect(source->get_src_block(),0, p25_trunking, 0);
-        }
-    }
-    return source_found;
+    return system_added;
 }
 
 int main(void)
 {
-    //BOOST_STATIC_ASSERT(true) __attribute__((unused));
+    BOOST_STATIC_ASSERT(true) __attribute__((unused));
     signal(SIGINT, exit_interupt);
     logging::core::get()->set_filter
     (
@@ -726,7 +743,10 @@ int main(void)
     talkgroups = new Talkgroups();
     //if (talkgroups_file.length() > 0) {
     BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups..."<<std::endl;
-    talkgroups->load_talkgroups(talkgroups_file);
+    for(vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
+      System *system = *it;
+      talkgroups->load_talkgroups(system->get_talkgroups_file());
+    }
     //}
 
     if (monitor_system()) {

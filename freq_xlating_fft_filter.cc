@@ -52,6 +52,10 @@ std::vector< gr_complex > rtaps;
     this->rotator->set_phase_inc(-1 * this->decim * phase_inc);
 }
 
+freq_xlating_fft_filter::~freq_xlating_fft_filter() {
+
+}
+
 freq_xlating_fft_filter::freq_xlating_fft_filter(int decim,  std::vector< gr_complex > &taps, double center_freq, double samp_rate)
 	: gr::hier_block2 ("freq_xlating_fft_filter_ccc",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),

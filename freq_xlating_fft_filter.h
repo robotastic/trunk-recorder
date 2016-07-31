@@ -30,6 +30,7 @@ class freq_xlating_fft_filter : public gr::hier_block2 {
     std::vector< gr_complex> rotate_taps( float phase_inc);
     void refresh();
 
+    ~freq_xlating_fft_filter();
 
     freq_xlating_fft_filter(int decimation,std::vector< gr_complex > &taps, double center_freq, double sampling_freq);
 public:
