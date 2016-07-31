@@ -24,6 +24,7 @@
 #define INCLUDED_GR_nonstop_wavfile_SINK_IMPL_H
 
 #include "nonstop_wavfile_sink.h"
+//#include "wavfile.h"
 #include <gnuradio/blocks/wavfile.h>
 
 namespace gr {
@@ -36,15 +37,12 @@ private:
 	int d_nchans;
 	unsigned d_sample_count;
 	int d_bytes_per_sample;
-	int d_bytes_per_sample_new;
 	int d_max_sample_val;
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
-
+  char current_filename[255];
 	FILE *d_fp;
-	FILE *d_new_fp;
-	bool d_updated;
 	boost::mutex d_mutex;
 
 	/*!
@@ -77,7 +75,7 @@ public:
 	                          unsigned int sample_rate,
 	                          int bits_per_sample);
 	~nonstop_wavfile_sink_impl();
-
+char *get_filename();
 	bool open(const char* filename);
 	void close();
 

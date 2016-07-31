@@ -50,6 +50,7 @@
 //#include <blocks/wavfile_sink.h>
 #include "recorder.h"
 #include "smartnet.h"
+#include "freq_xlating_fft_filter.h"
 
 class Source;
 class debug_recorder;
@@ -79,7 +80,7 @@ public:
 	long elapsed();
 	void close();
 	double get_current_length();
-	
+
 	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 	static bool logging;
 private:
@@ -91,7 +92,7 @@ private:
 	time_t starttime;
 	char filename[160];
 
-	int num;
+	//int num;
 
 	bool iam_logging;
 	bool active;
@@ -101,11 +102,13 @@ private:
 
     Source *source;
 
+	freq_xlating_fft_filter_sptr prefilter;
+
 	/* GR blocks */
 	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr lpf_second;
 	gr::filter::fir_filter_fff::sptr sym_filter;
-	gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::analog::sig_source_c::sptr offset_sig;
 
 	gr::blocks::multiply_cc::sptr mixer;
