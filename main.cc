@@ -74,18 +74,6 @@ Config config;
 
 bool qpsk_mod = true;
 string default_mode;
-/*
-std::string talkgroups_file;
-string default_mode;
-string system_type;
-string system_modulation;
-std::vector<double> control_channels;
-int current_control_channel = 0;
-bool qpsk_mod = true;
-smartnet_trunking_sptr smartnet_trunking;
-p25_trunking_sptr p25_trunking;*/
-
-
 
 
 void exit_interupt(int sig) { // can be called asynchronously
@@ -171,6 +159,8 @@ void load_config()
         BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
         default_mode = pt.get<std::string>("defaultMode","digital");
         BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
+        config.call_timeout = pt.get<int>("callTimeout",8);
+        BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
 
         boost::optional<std::string> mod_exists = pt.get_optional<std::string>("modulation");
                 if (mod_exists) {
@@ -281,6 +271,8 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
     return true;
 }
 
+
+
 int start_recorder(Call *call) {
     Talkgroup * talkgroup = talkgroups->find_talkgroup(call->get_talkgroup());
     bool source_found = false;
@@ -370,7 +362,7 @@ void stop_inactive_recorders() {
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
-        if ( call->since_last_update()  > 8.0) {
+        if ( call->since_last_update()  > config.call_timeout) {
             call->end_call();
             delete call;
             it = calls.erase(it);
