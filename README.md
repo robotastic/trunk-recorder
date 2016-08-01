@@ -1,6 +1,6 @@
 Trunk Recorder
 =================
-
+### Note: The format for the Config.json file has changed.
 Trunk Recorder is able to record the calls on a trunked radio system. It uses 1 or more Software Defined Radios (SDRs) to do. The SDRs capture large swatches of RF and then use software to process what was recieved. GNURadio is used to do this processing and provides lots of convienent RF blocks that can be pieced together to do complex RF processing. Right now it can only record one Trunked System at a time.
 
 Trunk Recorder currently supports the following:
@@ -69,12 +69,12 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
         "driver": "usrp",
         "device": ""
     }],
-    "system": {
+    "systems": [{
         "control_channels": [855462500],
         "type": "p25",
-        "modulation": "QPSK"
-    },
-    "talkgroupsFile": "ChanList.csv"
+        "talkgroupsFile": "ChanList.csv"
+    }],
+    "modulation": "QPSK"
 }
 ```
 Here are the different arguments:
@@ -91,13 +91,15 @@ Here are the different arguments:
    - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
    - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
    - **device** - osmosdr device name and possibly serial number or index of the device, see [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for each device and parameters. You only need to do this if there are more than one. (bladerf=00001 for BladeRF with serial 00001 or rtl=00923838 for RTL-SDR with serial 00923838, just airspy for an airspy)
- - **system** - This object defines the trunking system that will be recorded
+ - **systems** - An array of JSON objects that define the trunking systems that will be recorded
    - **control_channels** - an array of the control channel frequencies for the system, in Hz. Right now, only the first value is used.
    - **type** - the type of trunking system. The options are *smartnet* & *p25*.
-   - **modulation** - the type of modulation that the system uses. The options are *QPSK* & *FSK4*.
-   - **captureDir** - the complete path to the directory where recordings should be saved. 
+
  - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. 
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** [digital/analog].
+ - **modulation** - the type of modulation that the system uses. The options are *QPSK* & *FSK4*.
+ - **captureDir** - the complete path to the directory where recordings should be saved.
+ - **callTimeout** - a Call will stop recording and save if it has not recieved anything on the control channel, after this many seconds. The default is 8.
 
 **ChanList.csv**
 
