@@ -95,7 +95,7 @@ Here are the different arguments:
    - **control_channels** - an array of the control channel frequencies for the system, in Hz. Right now, only the first value is used.
    - **type** - the type of trunking system. The options are *smartnet* & *p25*.
 
- - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. 
+   - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. 
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** [digital/analog].
  - **modulation** - the type of modulation that the system uses. The options are *QPSK* & *FSK4*.
  - **captureDir** - the complete path to the directory where recordings should be saved.
