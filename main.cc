@@ -282,6 +282,7 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
 int start_recorder(Call *call) {
     Talkgroup * talkgroup = talkgroups->find_talkgroup(call->get_talkgroup());
     bool source_found = false;
+    bool recorder_found = false;
     Recorder *recorder;
     Recorder *debug_recorder;
 
@@ -325,6 +326,7 @@ int start_recorder(Call *call) {
                     recorder->activate(call, total_recorders);
                     call->set_recorder(recorder);
                     call->set_recording(true);
+                    recorder_found = true;
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tNot recording call";
                     return 0;
@@ -335,8 +337,14 @@ int start_recorder(Call *call) {
                     debug_recorder->activate(call, total_recorders );
                     call->set_debug_recorder(debug_recorder);
                     call->set_debug_recording(true);
+                    recorder_found = true;
                 } else {
                     //BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
+                }
+                
+                if (recorder_found) {
+                  // recording successfully started.
+                  return 1;
                 }
 
             }
@@ -694,8 +702,9 @@ bool monitor_system() {
               source = *it;
 
               if ((source->get_min_hz() <= control_channel_freq) && (source->get_max_hz() >= control_channel_freq)) {
-                  source_found = true;
 
+                  // The source can cover the System's control channel, break out of the For Loop
+                  source_found = true;
                   break;
               }
           }
