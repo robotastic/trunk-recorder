@@ -6,6 +6,7 @@
 
 class System
 {
+  int sys_id;
 public:
   std::string talkgroups_file;
   std::string default_mode;
@@ -21,11 +22,12 @@ void set_default_mode(std::string def_mode);
 bool get_qpsk_mod();
 void set_qpsk_mod(bool);
 std::string get_system_type();
+int get_sys_id();
 void set_system_type(std::string);
 std::string get_talkgroups_file();
 void set_talkgroups_file(std::string);
 void add_control_channel(double channel);
 double get_current_control_channel();
-System( );
+System(int sys_id );
 };
 #endif

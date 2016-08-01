@@ -187,7 +187,7 @@ std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 	bool do_msgq = 0;
 	bool do_audio_output = 1;
 	bool do_tdma = 0;
-	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
+	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0,wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
 

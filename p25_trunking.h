@@ -69,13 +69,13 @@ class p25_trunking;
 
 typedef boost::shared_ptr<p25_trunking> p25_trunking_sptr;
 
-p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk);
+p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id);
 
 class p25_trunking : public gr::hier_block2
 {
-	friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk);
+	friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id);
 protected:
-	p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk);
+	p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id);
 
 public:
 	~p25_trunking();
@@ -91,7 +91,7 @@ public:
 private:
 	double center, freq;
     bool qpsk_mod;
-
+int sys_id;
 	std::vector<float> lpf_coeffs;
 	std::vector<float> arb_taps;
 	std::vector<float> sym_taps;

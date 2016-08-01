@@ -48,7 +48,7 @@ typedef boost::shared_ptr<smartnet_crc> smartnet_crc_sptr;
  * constructor is private.  ais_make_invert is the public
  * interface for creating new instances.
  */
-smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue);
+smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue, int sys_id);
 
 /*!
  * \brief invert a packed stream of bits.
@@ -63,10 +63,11 @@ private:
 	// The friend declaration allows smartnet_make_crc to
 	// access the private constructor.
 
-	friend smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue);
+	friend smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue, int sys_id);
 
-	smartnet_crc(gr::msg_queue::sptr queue);   // private constructor
+	smartnet_crc(gr::msg_queue::sptr queue, int sys_id);   // private constructor
 	gr::msg_queue::sptr d_queue;
+	int sys_id;
 
 public:
 	~smartnet_crc();  // public destructor
@@ -79,4 +80,3 @@ public:
 };
 
 #endif /* smartnet_crc_H */
-

@@ -39,18 +39,19 @@
  * Create a new instance of smartnet_crc and return
  * a boost shared_ptr.  This is effectively the public constructor.
  */
-smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue)
+smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue, int sys_id)
 {
-	return smartnet_crc_sptr (new smartnet_crc (queue));
+	return smartnet_crc_sptr (new smartnet_crc (queue, sys_id));
 }
 
-smartnet_crc::smartnet_crc (gr::msg_queue::sptr queue)
+smartnet_crc::smartnet_crc (gr::msg_queue::sptr queue, int sys_id)
 	: gr::sync_block ("crc",
 	                  gr::io_signature::make (1, 1, sizeof (char)),
 	                  gr::io_signature::make (0, 0, 0))
 {
 	set_output_multiple(38);
 	d_queue = queue;
+	this->sys_id = sys_id;
 }
 
 /*
@@ -174,7 +175,7 @@ smartnet_crc::work (int noutput_items,
 
 			//and throw it at the msgq
 			std::ostringstream payload;
-			payload.str("SMARTNET: ");
+			payload.str("");
 			payload << pkt.address << "," << pkt.groupflag << "," << pkt.command;
 			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()));
 			d_queue->handle(msg);

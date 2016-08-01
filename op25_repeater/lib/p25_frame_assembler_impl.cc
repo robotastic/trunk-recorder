@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
- * Copyright 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI 
- * 
+/*
+ * Copyright 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -57,10 +57,10 @@ namespace gr {
     }
 
     p25_frame_assembler::sptr
-    p25_frame_assembler::make(const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma)
+    p25_frame_assembler::make(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma)
     {
       return gnuradio::get_initial_sptr
-        (new p25_frame_assembler_impl(udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma));
+        (new p25_frame_assembler_impl(sys_id, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma));
     }
 
     /*
@@ -80,14 +80,14 @@ static const int MAX_IN = 1;	// maximum number of input streams
 /*
  * The private constructor
  */
-    p25_frame_assembler_impl::p25_frame_assembler_impl(const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma)
+    p25_frame_assembler_impl::p25_frame_assembler_impl(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma)
       : gr::block("p25_frame_assembler",
 		   gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
 		   gr::io_signature::make ((do_output || do_audio_output) ? 1 : 0, (do_output || do_audio_output) ? 1 : 0, (do_audio_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0 ))),
 	d_do_imbe(do_imbe),
 	d_do_output(do_output),
 	output_queue(),
-	p1fdma(udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
+	p1fdma(sys_id, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
 	d_do_audio_output(do_audio_output),
 	d_do_phase2_tdma(do_phase2_tdma),
 	p2tdma(0, debug, output_queue),
@@ -116,15 +116,15 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_inpu
    samples_reqd = nof_output_items;
    if (d_do_audio_output)
      samples_reqd = 0.6 * nof_output_items;
-   
+
    nof_samples_reqd = (int)ceil(samples_reqd);
     for(int i = 0; i < nof_inputs; i++) {
       nof_input_items_reqd[i] = nof_samples_reqd;
-    }     
+    }
 }
 
 
-int 
+int
 p25_frame_assembler_impl::general_work (int noutput_items,
                                gr_vector_int &ninput_items,
                                gr_vector_const_void_star &input_items,

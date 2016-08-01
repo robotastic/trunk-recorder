@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -51,6 +51,7 @@ namespace gr {
 	struct sockaddr_in write_sock_addr;
 	char write_buf[512];
 	const char* d_udp_host;
+  int d_sys_id;
 	int d_port;
 	int d_debug;
 	bool d_do_imbe;
@@ -65,7 +66,7 @@ namespace gr {
 
      public:
 	void rx_sym (const uint8_t *syms, int nsyms);
-      p25p1_fdma(const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output);
+      p25p1_fdma(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output);
       ~p25p1_fdma();
 
       // Where all the action really happens

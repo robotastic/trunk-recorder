@@ -2,12 +2,12 @@
 
 using namespace std;
 
-smartnet_trunking_sptr make_smartnet_trunking(float freq, float center, long samp, gr::msg_queue::sptr queue)
+smartnet_trunking_sptr make_smartnet_trunking(float freq, float center, long samp, gr::msg_queue::sptr queue, int sys_id)
 {
-	return gnuradio::get_initial_sptr(new smartnet_trunking(freq, center, samp, queue));
+	return gnuradio::get_initial_sptr(new smartnet_trunking(freq, center, samp, queue, sys_id));
 }
 
-smartnet_trunking::smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue)
+smartnet_trunking::smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id)
 	: gr::hier_block2 ("smartnet_trunking",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
@@ -15,6 +15,7 @@ smartnet_trunking::smartnet_trunking(float f, float c, long s, gr::msg_queue::sp
 	center_freq = c;
 	chan_freq = f;
 	samp_rate = s;
+	this->sys_id = sys_id;
 	float samples_per_second = samp_rate;
 	float syms_per_sec = 3600;
 	float gain_mu = 0.01;
@@ -25,7 +26,7 @@ smartnet_trunking::smartnet_trunking(float f, float c, long s, gr::msg_queue::sp
 	int decim = int(samples_per_second / (syms_per_sec * clockrec_oversample));
 	float sps = samples_per_second/decim/syms_per_sec;
 	const double pi = boost::math::constants::pi<double>();
-
+	cout << "SmartNet Trunking - SysId: " << sys_id << endl;
 	cout << "Control channel offset: " << offset << endl;
 	cout << "Control channel: " << chan_freq << endl;
 	cout << "Decim: " << decim << endl;
@@ -58,7 +59,7 @@ freq_xlating_fft_filter_sptr prefilter  = make_freq_xlating_fft_filter(decim,
 
 	smartnet_deinterleave_sptr deinterleave = smartnet_make_deinterleave();
 
-	smartnet_crc_sptr crc = smartnet_make_crc(queue);
+	smartnet_crc_sptr crc = smartnet_make_crc(queue, sys_id);
 
 	connect(self(),0,prefilter,0);
 	connect(prefilter,0,carriertrack,0);

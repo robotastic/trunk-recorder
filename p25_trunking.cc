@@ -3,19 +3,20 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk)
+p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk, int sys_id)
 {
-	return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue, qpsk));
+	return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue, qpsk, sys_id));
 }
 
 
 
-p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk)
+p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id)
 	: gr::hier_block2 ("p25_trunking",
 	                   gr::io_signature::make  (1, 1, sizeof(gr_complex)),
 	                   gr::io_signature::make  (0, 0, sizeof(float)))
 {
 
+this->sys_id = sys_id;
         	freq = f;
 	center = c;
 	long samp_rate = s;
@@ -120,11 +121,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
         float fm_demod_gain = if_rate / (2.0 * pi * symbol_deviation);
         fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
 
-
-
-	double symbol_decim = 1;
-
-
+				double symbol_decim = 1;
 
 	for (int i=0; i < samples_per_symbol; i++) {
 		sym_taps.push_back(1.0 / samples_per_symbol);
@@ -147,7 +144,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 	bool do_msgq = 1;
 	bool do_audio_output = 0;
 	bool do_tdma = 0;
-	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
+	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_id,wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
 

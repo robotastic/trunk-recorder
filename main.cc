@@ -127,6 +127,7 @@ std::vector<float> design_filter(double interpolation, double deci) {
 void load_config()
 {
   string system_modulation;
+  int sys_count = 0;
     try
     {
 
@@ -136,7 +137,8 @@ void load_config()
         boost::property_tree::read_json(json_filename, pt);
         BOOST_FOREACH( boost::property_tree::ptree::value_type  &node,pt.get_child("systems") )
         {
-          System *system = new System();
+          // each system should have a unique index value;
+          System *system = new System(sys_count++);
           BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
           BOOST_FOREACH( boost::property_tree::ptree::value_type  &sub_node,node.second.get_child("control_channels") )
           {
@@ -341,7 +343,7 @@ int start_recorder(Call *call) {
                 } else {
                     //BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
                 }
-                
+
                 if (recorder_found) {
                   // recording successfully started.
                   return 1;
@@ -484,12 +486,6 @@ void assign_recorder(TrunkMessage message) {
     }
 }
 
-/*
-void add_control_channel(double control_channel) {
-    if (std::find(control_channels.begin(), control_channels.end(), control_channel) != control_channels.end()) {
-        control_channels.push_back(control_channel);
-    }
-}*/
 
 void current_system_id(int sysid) {
     static int active_sysid = 0;
@@ -598,7 +594,7 @@ void unit_check() {
     }
 }
 
-void handle_message(std::vector<TrunkMessage>  messages) {
+void handle_message(std::vector<TrunkMessage>  messages, System *sys) {
     for(std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
         TrunkMessage message = *it;
 
@@ -610,7 +606,7 @@ void handle_message(std::vector<TrunkMessage>  messages) {
                 update_recorder(message);
                 break;
             case CONTROL_CHANNEL:
-                //add_control_channel(message.freq);
+                sys->add_control_channel(message.freq);
                 break;
             case REGISTRATION:
                 break;
@@ -621,7 +617,7 @@ void handle_message(std::vector<TrunkMessage>  messages) {
                 group_affiliation(message.source, message.talkgroup);
                 break;
             case SYSID:
-		current_system_id(message.sysid);
+		          current_system_id(message.sysid);
                 break;
             case STATUS:
             case UNKNOWN:
@@ -630,9 +626,26 @@ void handle_message(std::vector<TrunkMessage>  messages) {
     }
 }
 
+
+System *find_system(int sys_id) {
+	System *sys_match = NULL;
+	for(std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
+		System *sys = (System *) *it;
+		if (sys->get_sys_id() == sys_id) {
+			sys_match = sys;
+			break;
+		}
+
+	}
+	return sys_match;
+}
+
+
 void monitor_messages() {
     gr::message::sptr msg;
     int messagesDecodedSinceLastReport = 0;
+    int sys_id;
+    System *sys;
     float msgs_decoded_per_second = 0;
 
     time_t lastMsgCountTime = time(NULL);;
@@ -648,6 +661,8 @@ void monitor_messages() {
 
 
         msg = msg_queue->delete_head();
+        sys_id = msg->arg1();
+        sys = find_system(sys_id);
         messagesDecodedSinceLastReport++;
         currentTime = time(NULL);
 
@@ -657,13 +672,18 @@ void monitor_messages() {
             stop_inactive_recorders();
             lastTalkgroupPurge = currentTime;
         }
-        if (msg->to_string().find("SMARTNET: ") != std::string::npos) {
+        if (sys) {
+          if (sys->get_system_type() == "smartnet") {
             trunk_messages = smartnet_parser->parse_message(msg->to_string().erase(0, 10));
-        } else {
+            handle_message(trunk_messages, sys);
+          }
+
+          if (sys->get_system_type() == "p25"){
             trunk_messages = p25_parser->parse_message(msg);
+            handle_message(trunk_messages, sys);
+          }
         }
 
-        handle_message(trunk_messages);
 
         float timeDiff = currentTime - lastMsgCountTime;
         if (timeDiff >= 3.0) {
@@ -714,13 +734,13 @@ bool monitor_system() {
             system_added=true;
               if (system->get_system_type() == "smartnet") {
                   // what you really need to do is go through all of the sources to find the one with the right frequencies
-                  system->smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue);
+                  system->smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue, system->get_sys_id());
                   tb->connect(source->get_src_block(),0, system->smartnet_trunking, 0);
               }
 
               if (system->get_system_type() == "p25") {
                   // what you really need to do is go through all of the sources to find the one with the right frequencies
-                  system->p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue, qpsk_mod);
+                  system->p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(),  msg_queue, qpsk_mod, system->get_sys_id());
                   tb->connect(source->get_src_block(),0, system->p25_trunking, 0);
               }
           }

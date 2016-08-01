@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
- * Copyright 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI 
- * 
+/*
+ * Copyright 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -86,9 +86,9 @@ static uint32_t crc32(uint8_t buf[], int len) {	/* length is nr. of bits */
 static int
 find_min(uint8_t list[], int len)
 {
-	int min = list[0];	
-	int index = 0;	
-	int unique = 1;	
+	int min = list[0];
+	int index = 0;
+	int unique = 1;
 	int i;
 
 	for (i = 1; i < len; i++) {
@@ -159,9 +159,9 @@ block_deinterleave(bit_vector& bv, unsigned int start, uint8_t* buf)
 	memset(buf, 0, 12);
 
 	for (b=0; b < 98*2; b += 4) {
-		codeword = (bv[start+deinterleave_tb[b+0]] << 3) + 
-		           (bv[start+deinterleave_tb[b+1]] << 2) + 
-		           (bv[start+deinterleave_tb[b+2]] << 1) + 
+		codeword = (bv[start+deinterleave_tb[b+0]] << 3) +
+		           (bv[start+deinterleave_tb[b+1]] << 2) +
+		           (bv[start+deinterleave_tb[b+2]] << 1) +
 		            bv[start+deinterleave_tb[b+3]]     ;
 
 		/* try each codeword in a row of the state transition table */
@@ -197,9 +197,10 @@ block_deinterleave(bit_vector& bv, unsigned int start, uint8_t* buf)
 	return -2;	// trellis decode OK, but CRC error occurred
 }
 
-p25p1_fdma::p25p1_fdma(const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output) :
+p25p1_fdma::p25p1_fdma(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output) :
 	write_bufp(0),
 	write_sock(0),
+  d_sys_id(sys_id),
 	d_udp_host(udp_host),
 	d_port(port),
 	d_debug(debug),
@@ -217,7 +218,7 @@ p25p1_fdma::p25p1_fdma(const char* udp_host, int port, int debug, bool do_imbe, 
 		init_sock(d_udp_host, d_port);
 }
 
-void 
+void
 p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const buf[], int const len)
 {
 	char wbuf[256];
@@ -226,20 +227,22 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
 		return;
 	if (d_msg_queue->full_p())
 		return;
-	assert (len+2 <= sizeof(wbuf));
+	assert (len+4 <= sizeof(wbuf));
+  //wbuf[p++] = (char) (d_sys_id+'0'); // clever way to convert int to char
+  //wbuf[p++] = ',';
 	wbuf[p++] = (nac >> 8) & 0xff;
 	wbuf[p++] = nac & 0xff;
 	if (buf) {
 		memcpy(&wbuf[p], buf, len);	// copy data
 		p += len;
 	}
-	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, 0, 0);
+	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, d_sys_id, 0);
 	d_msg_queue->insert_tail(msg);
 	gettimeofday(&last_qtime, 0);
 //	msg.reset();
 }
 
-void 
+void
 p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 {
   struct timeval currtime;
@@ -260,7 +263,7 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 			bit_vector bv1(720);
 			int sizes[3] = {360, 576, 720};
 			uint8_t deinterleave_buf[3][12];
-			
+
 			if (framer->frame_size > 720) {
 				fprintf(stderr, "warning trunk frame size %u exceeds maximum\n", framer->frame_size);
 				framer->frame_size = 720;
@@ -283,7 +286,7 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 			&& framer->frame_size == 576
 			&& rc[0] == 0
 			&& rc[1] == 0) {
-				// we copy first 10 bytes from first and 
+				// we copy first 10 bytes from first and
 				// first 8 from second (removes CRC's)
 				uint8_t mbt_block[18];
 				memcpy(mbt_block, deinterleave_buf[0], 10);
@@ -339,7 +342,7 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 			size_t obuf_ct = 0;
 			uint8_t obuf[P25_VOICE_FRAME_SIZE/2];
 			for (uint32_t i = 0; i < framer->frame_size; i += 8) {
-				uint8_t b = 
+				uint8_t b =
 					(framer->frame_body[i+0] << 7) +
 					(framer->frame_body[i+1] << 6) +
 					(framer->frame_body[i+2] << 5) +
