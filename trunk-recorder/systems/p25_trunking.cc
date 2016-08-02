@@ -161,7 +161,7 @@ this->sys_id = sys_id;
 	agc->set_max_output_buffer(4096);
 	costas_clock->set_max_output_buffer(4096);
 	diffdec->set_max_output_buffer(4096);
-	this->set_max_output_buffer(4096);
+	//this->set_max_output_buffer(4096);
 
 
 

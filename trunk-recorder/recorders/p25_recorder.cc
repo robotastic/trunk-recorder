@@ -218,7 +218,7 @@ fsk4_demod->set_max_output_buffer(4096);
 agc->set_max_output_buffer(4096);
 costas_clock->set_max_output_buffer(4096);
 diffdec->set_max_output_buffer(4096);
-this->set_max_output_buffer(4096);
+//this->set_max_output_buffer(4096);
 /*
 				valve->set_max_output_buffer(512);
         to_float->set_max_output_buffer(512);
