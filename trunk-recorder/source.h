@@ -6,10 +6,10 @@
 #include <osmosdr/source.h>
 #include <gnuradio/uhd/usrp_source.h>
 
-#include "recorder.h"
-#include "analog_recorder.h"
-#include "debug_recorder.h"
-#include "p25_recorder.h"
+#include "recorders/recorder.h"
+#include "recorders/analog_recorder.h"
+#include "recorders/debug_recorder.h"
+#include "recorders/p25_recorder.h"
 
 class Source
 {

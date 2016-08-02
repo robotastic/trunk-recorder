@@ -8,12 +8,15 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/regex.hpp>
 #include <pthread.h>
 #include <sstream>
 
 #include "config.h"
+
+class Call;
+
 #include "call.h"
-//#include "url_parser/url_parser.h"
 
 struct call_data_t{
   long thread_id;

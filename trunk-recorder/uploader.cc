@@ -376,10 +376,32 @@ void *convert_upload_call(void *thread_arg){
   pthread_exit(NULL);
 }
 
+
+
+
 void send_call(Call *call, Config config) {
   //struct call_data_t *call_info = (struct call_data_t *) malloc(sizeof(struct call_data_t));
   call_data_t *call_info = new call_data_t;
   pthread_t thread;
+
+
+  boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+  boost::cmatch what;
+  if(regex_match(config.upload_server.c_str(), what, ex))
+  {
+    // from: http://www.zedwood.com/article/cpp-boost-url-regex
+      call_info->upload_server = config.upload_server;
+      call_info->scheme = std::string(what[1].first, what[1].second);
+      call_info->hostname = std::string(what[2].first, what[2].second);
+      call_info->port = std::string(what[3].first, what[3].second);
+      call_info->path = std::string(what[4].first, what[4].second);
+      std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
+      strcpy(call_info->filename, call->get_filename());
+
+  } else {
+    std::cout << "Unable to parse Server URL\n";
+    return;
+  }
 
   std::cout << "Setting up thread\n";
   Call_Source *source_list = call->get_source_list();
@@ -390,14 +412,6 @@ void send_call(Call *call, Config config) {
   call_info->tdma = call->get_tdma();
   call_info->source_count = call->get_source_count();
   call_info->start_time = call->get_start_time();
-  //EdUrlParser* url = EdUrlParser::parseUrl(config.upload_server);
-  call_info->upload_server = "";//config.upload_server;
-  call_info->scheme = ""; //url->scheme;
-  call_info->hostname = ""; //url->hostName;
-  call_info->port = "";//url->port;
-  call_info->path = "";//url->path;
-  std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
-  strcpy(call_info->filename, call->get_filename());
   for (int i=0; i < call_info->source_count; i++ ){
     call_info->source_list[i] = source_list[i];
   }

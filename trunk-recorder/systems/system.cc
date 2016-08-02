@@ -36,9 +36,13 @@ void System::set_talkgroups_file(std::string talkgroups_file){
   this->talkgroups_file = talkgroups_file;
 }
 void System::add_control_channel(double control_channel) {
+if (control_channels.size() == 0 ){
+  control_channels.push_back(control_channel);
+} else {
     if (std::find(control_channels.begin(), control_channels.end(), control_channel) != control_channels.end()) {
         control_channels.push_back(control_channel);
     }
+  }
 }
 double System::get_current_control_channel() {
   return this->control_channels[0];

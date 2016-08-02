@@ -26,22 +26,24 @@
 #include <time.h>
 
 
-#include "recorder.h"
-#include "p25_recorder.h"
-#include "analog_recorder.h"
-#include "config.h"
-#include "smartnet_trunking.h"
-#include "p25_trunking.h"
-
-#include "smartnet_crc.h"
-#include "smartnet_deinterleave.h"
 #include "talkgroups.h"
 #include "source.h"
-#include "system.h"
+
 #include "call.h"
-#include "smartnet_parser.h"
-#include "p25_parser.h"
-#include "parser.h"
+#include "config.h"
+
+#include "recorders/recorder.h"
+#include "recorders/p25_recorder.h"
+#include "recorders/analog_recorder.h"
+
+#include "systems/system.h"
+#include "systems/smartnet_trunking.h"
+#include "systems/p25_trunking.h"
+#include "systems/smartnet_crc.h"
+#include "systems/smartnet_deinterleave.h"
+#include "systems/smartnet_parser.h"
+#include "systems/p25_parser.h"
+#include "systems/parser.h"
 
 #include <osmosdr/source.h>
 

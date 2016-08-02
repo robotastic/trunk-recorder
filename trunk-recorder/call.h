@@ -9,10 +9,11 @@ struct Call_Source {
 };
 
 class Recorder;
-#include "parser.h"
-#include "recorder.h"
+
 #include "uploader.h"
 #include "config.h"
+#include "recorders/recorder.h"
+#include "systems/parser.h"
 
 
 

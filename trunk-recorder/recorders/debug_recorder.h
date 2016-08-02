@@ -36,27 +36,18 @@
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/copy.h>
-
-//Valve
-//#include <gnuradio/blocks/null_sink.h>
-//#include <gnuradio/blocks/null_source.h>
 #include <gnuradio/blocks/head.h>
-//#include <gnuradio/kludge_copy.h>
-//#include <smartnet_wavsink.h>
-#include "nonstop_wavfile_sink.h"
-
-//#include <gnuradio/blocks/wavfile_sink.h>
 #include <gnuradio/blocks/file_sink.h>
-//#include <blocks/wavfile_sink.h>
+
 #include "recorder.h"
-#include "smartnet.h"
-#include "freq_xlating_fft_filter.h"
+#include "../../gr_blocks/nonstop_wavfile_sink.h"
+#include "../../gr_blocks/freq_xlating_fft_filter.h"
 
 class Source;
 class debug_recorder;
 typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
 
-#include "source.h"
+#include "../source.h"
 
 debug_recorder_sptr make_debug_recorder( Source *src);
 

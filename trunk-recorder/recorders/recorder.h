@@ -36,20 +36,17 @@
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/copy.h>
 
-//Valve
-//#include <gnuradio/blocks/null_sink.h>
-//#include <gnuradio/blocks/null_source.h>
 #include <gnuradio/blocks/head.h>
-//#include <gnuradio/kludge_copy.h>
-//#include <smartnet_wavsink.h>
-#include "nonstop_wavfile_sink.h"
 
-//#include <gnuradio/blocks/wavfile_sink.h>
 #include <gnuradio/blocks/file_sink.h>
-//#include <blocks/wavfile_sink.h>
+
+#include "../../gr_blocks/nonstop_wavfile_sink.h"
 
 class Call;
-#include "call.h"
+#include "../call.h"
+
+unsigned GCD(unsigned u, unsigned v);
+std::vector<float> design_filter(double interpolation, double deci);
 
 class Source;
 

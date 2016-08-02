@@ -37,22 +37,20 @@
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/copy.h>
-//Valve
 #include <gnuradio/blocks/head.h>
-
-#include <gnuradio/blocks/wavfile_sink.h>
 #include <gnuradio/blocks/file_sink.h>
 
-#include "freq_xlating_fft_filter.h"
-#include "smartnet.h"
 #include "recorder.h"
+#include "../../gr_blocks/nonstop_wavfile_sink.h"
+#include "../../gr_blocks/freq_xlating_fft_filter.h"
+
 
 
 class Source;
 class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 
-#include "source.h"
+#include "../source.h"
 
 analog_recorder_sptr make_analog_recorder(Source *src);
 
@@ -107,27 +105,22 @@ freq_xlating_fft_filter_sptr prefilter;
 	gr::filter::fir_filter_fff::sptr sym_filter;
 	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::analog::sig_source_c::sptr offset_sig;
-
 	gr::blocks::multiply_cc::sptr mixer;
 	gr::blocks::file_sink::sptr fs;
 	gr::blocks::multiply_const_ff::sptr quiet;
 	gr::blocks::multiply_const_ff::sptr levels;
-
-
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 	gr::filter::fir_filter_fff::sptr decim_audio;
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 	gr::analog::pwr_squelch_cc::sptr squelch;
  	gr::analog::pwr_squelch_ff::sptr squelch_two;
 	gr::analog::quadrature_demod_cf::sptr demod;
-
 	gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 	gr::blocks::file_sink::sptr raw_sink;
 	gr::blocks::file_sink::sptr debug_sink;
 	gr::blocks::null_sink::sptr null_sink;
 	gr::blocks::head::sptr head_source;
 	gr::blocks::copy::sptr valve;
-
 
 };
 

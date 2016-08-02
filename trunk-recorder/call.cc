@@ -81,7 +81,7 @@ void Call::end_call() {
                 this->get_recorder()->deactivate();
                 int rc = system(shell_command);
                 if (this->config.upload_server != "") {
-                  //send_call(this, config);
+                  send_call(this, config);
                 }
                 BOOST_LOG_TRIVIAL(info) << "\tFinished Removing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
 
