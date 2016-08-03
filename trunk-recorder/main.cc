@@ -777,7 +777,7 @@ int main(void)
     //}
 
     if (monitor_system()) {
-        tb->start();
+        tb->start(1000);
         BOOST_LOG_TRIVIAL(info) << "Top Block Max number output items: " << tb->max_noutput_items();
 
         monitor_messages();
