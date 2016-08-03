@@ -775,6 +775,8 @@ int main(void)
 
     if (monitor_system()) {
         tb->start();
+        BOOST_LOG_TRIVIAL(info) << "Top Block Max number output items: " << tb->max_noutput_items();
+        	
         monitor_messages();
         //------------------------------------------------------------------
         //-- stop flow graph execution

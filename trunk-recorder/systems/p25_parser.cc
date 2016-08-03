@@ -182,8 +182,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 			BOOST_LOG_TRIVIAL(trace) << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1);
 		}
 	} else if ( opcode == 0x03 ) {
-
+		//  Group Voice Channel Update-Explicit (GRP_V_CH_GRANT_UPDT_EXP)
 		unsigned long mfrid  = bitset_shift_mask(tsbk, 80, 0xff);
+		
         if (mfrid == 0x90) {   // MOT_GRG_CN_GRANT_UPDT
         	unsigned long ch1  = bitset_shift_mask(tsbk, 64, 0xffff);
 			unsigned long sg1  = bitset_shift_mask(tsbk, 48, 0xffff);
@@ -208,8 +209,16 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
             BOOST_LOG_TRIVIAL(trace) << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: "<< std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tsg " << std::setw(7) << sg1 << "\tTDMA " << get_tdma_slot(ch1);
 
         } else {
-					BOOST_LOG_TRIVIAL(error) << "Should do something!";
 
+
+					unsigned long ch1  = bitset_shift_mask(tsbk, 32, 0xffff);
+					unsigned long ga1  = bitset_shift_mask(tsbk, 16, 0xffff);
+					unsigned long f1 = channel_id_to_frequency(ch1);
+
+					message.message_type = UPDATE;
+					message.freq = f1;
+					message.talkgroup = ga1;
+					message.tdma = get_tdma_slot(ch1);
 
 				}
 	} else if ( opcode == 0x16 ) {   // sndcp data ch
