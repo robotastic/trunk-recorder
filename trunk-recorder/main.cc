@@ -517,6 +517,9 @@ void update_recorder(TrunkMessage message) {
 
             if (call->get_freq() != message.freq) {
               BOOST_LOG_TRIVIAL(error) << "SHOULD not change freq on an UPDATE call";
+              BOOST_LOG_TRIVIAL(error) << "\t Update Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+
+              ++it;
               /*  if (call->get_recording() == true) {
                   BOOST_LOG_TRIVIAL(trace) << "\t Update Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
@@ -776,7 +779,7 @@ int main(void)
     if (monitor_system()) {
         tb->start();
         BOOST_LOG_TRIVIAL(info) << "Top Block Max number output items: " << tb->max_noutput_items();
-        	
+
         monitor_messages();
         //------------------------------------------------------------------
         //-- stop flow graph execution
