@@ -425,7 +425,7 @@ void assign_recorder(TrunkMessage message) {
 
             // Is the freq the same?
             if (call->get_freq() != message.freq) {
-                BOOST_LOG_TRIVIAL(trace) << "\tAssign Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+                BOOST_LOG_TRIVIAL(error) << "\tAssign Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
                 // are we currently recording the call?
                 if (call->get_recording() == true) {
 
