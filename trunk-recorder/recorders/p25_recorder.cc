@@ -202,7 +202,7 @@ std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
 	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
 
-/*
+
 	        valve->set_max_output_buffer(4096);
 	        to_float->set_max_output_buffer(4096);
 	        rescale->set_max_output_buffer(4096);
@@ -218,8 +218,22 @@ fsk4_demod->set_max_output_buffer(4096);
 agc->set_max_output_buffer(4096);
 costas_clock->set_max_output_buffer(4096);
 diffdec->set_max_output_buffer(4096);
-*/
 
+valve->set_min_output_buffer(0);
+to_float->set_min_output_buffer(0);
+rescale->set_min_output_buffer(0);
+slicer->set_min_output_buffer(0);
+op25_frame_assembler->set_min_output_buffer(0);
+converter->set_min_output_buffer(0);
+wav_sink->set_min_output_buffer(0);
+arb_resampler->set_min_output_buffer(0);
+fm_demod->set_min_output_buffer(0);
+baseband_amp->set_min_output_buffer(0);
+sym_filter->set_min_output_buffer(0);
+fsk4_demod->set_min_output_buffer(0);
+agc->set_min_output_buffer(0);
+costas_clock->set_min_output_buffer(0);
+diffdec->set_min_output_buffer(0);
 
 
 //this->set_max_output_buffer(4096);
