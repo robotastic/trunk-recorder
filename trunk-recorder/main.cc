@@ -318,7 +318,7 @@ int start_recorder(Call *call) {
 
                 int total_recorders = get_total_recorders();
                 if (recorder) {
-                    BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device();
+                    BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device() << << "\tMsg Q: " << msg_queue->count();
                     recorder->activate(call, total_recorders);
                     call->set_recorder(recorder);
                     call->set_recording(true);
@@ -381,7 +381,7 @@ int retune_recorder(TrunkMessage message, Call *call) {
     Recorder *recorder = call->get_recorder();
     Source *source = recorder->get_source();
 
-    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << "\tWav Pos: " << recorder->get_current_length();
+    BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << "\tWav Pos: " << recorder->get_current_length() << "\tMsg Q: " << msg_queue->count();
 
     // set the call to the new Freq / TDMA slot
     call->set_freq(message.freq);
