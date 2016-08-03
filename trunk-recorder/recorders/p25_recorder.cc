@@ -325,7 +325,7 @@ void p25_recorder::deactivate() {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 }
 std::cout << "Valve - noutput_items min: " << valve->min_noutput_items() << " max: " << valve->max_noutput_items() << " output_buffer - Min: " << valve->min_output_buffer(0) << " Max: " << valve->max_output_buffer(0) << "\n";
-std::cout << "Prefilter - noutput_items min: " << prefilter->min_noutput_items() << " max: " << prefilter->max_noutput_items() << " output_buffer - Min: " << prefilter->min_output_buffer(0) << " Max: " << prefilter->max_output_buffer(0) << "\n";
+std::cout << "P25 - noutput_items min: " << op25_frame_assembler->min_noutput_items() << " max: " << op25_frame_assembler->max_noutput_items() << " output_buffer - Min: " << op25_frame_assembler->min_output_buffer(0) << " Max: " << op25_frame_assembler->max_output_buffer(0) << "\n";
 std::cout << "arb_resampler - noutput_items min: " << arb_resampler->min_noutput_items() << " max: " << arb_resampler->max_noutput_items() << " output_buffer - Min: " << arb_resampler->min_output_buffer(0) << " Max: " << arb_resampler->max_output_buffer(0) << "\n";
 std::cout << "agc - noutput_items min: " << agc->min_noutput_items() << " max: " << agc->max_noutput_items() << " output_buffer - Min: " << agc->min_output_buffer(0) << " Max: " << agc->max_output_buffer(0) << "\n";
 std::cout << "costas_clock - noutput_items min: " << costas_clock->min_noutput_items() << " max: " << costas_clock->max_noutput_items() << " output_buffer - Min: " << costas_clock->min_output_buffer(0) << " Max: " << costas_clock->max_output_buffer(0) << "\n";
