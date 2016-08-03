@@ -269,14 +269,7 @@ diffdec->set_max_output_buffer(4096);
 		connect(converter, 0, wav_sink,0);
 
 	}
-	/*std::cout << "Valve - noutput_items min: " << valve->min_noutput_items() << " max: " << valve->max_noutput_items() << " output_buffer - Min: " << valve->min_output_buffer(0) << " Max: " << valve->max_output_buffer(0) << "\n";
-	std::cout << "Prefilter - noutput_items min: " << prefilter->min_noutput_items() << " max: " << prefilter->max_noutput_items() << " output_buffer - Min: " << prefilter->min_output_buffer(0) << " Max: " << prefilter->max_output_buffer(0) << "\n";
-	std::cout << "arb_resampler - noutput_items min: " << arb_resampler->min_noutput_items() << " max: " << arb_resampler->max_noutput_items() << " output_buffer - Min: " << arb_resampler->min_output_buffer(0) << " Max: " << arb_resampler->max_output_buffer(0) << "\n";
-	std::cout << "agc - noutput_items min: " << agc->min_noutput_items() << " max: " << agc->max_noutput_items() << " output_buffer - Min: " << agc->min_output_buffer(0) << " Max: " << agc->max_output_buffer(0) << "\n";
-	std::cout << "costas_clock - noutput_items min: " << costas_clock->min_noutput_items() << " max: " << costas_clock->max_noutput_items() << " output_buffer - Min: " << costas_clock->min_output_buffer(0) << " Max: " << costas_clock->max_output_buffer(0) << "\n";
-	std::cout << "diffdec - noutput_items min: " << diffdec->min_noutput_items() << " max: " << diffdec->max_noutput_items() << " output_buffer - Min: " << diffdec->min_output_buffer(0) << " Max: " << diffdec->max_output_buffer(0) << "\n";
-	std::cout << "Slicer - noutput_items min: " << slicer->min_noutput_items() << " max: " << slicer->max_noutput_items() << " output_buffer - Min: " << slicer->min_output_buffer(0) << " Max: " << slicer->max_output_buffer(0) << "\n";
-*/
+
 
 }
 
@@ -331,6 +324,15 @@ void p25_recorder::deactivate() {
 }	else {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 }
+std::cout << "Valve - noutput_items min: " << valve->min_noutput_items() << " max: " << valve->max_noutput_items() << " output_buffer - Min: " << valve->min_output_buffer(0) << " Max: " << valve->max_output_buffer(0) << "\n";
+std::cout << "Prefilter - noutput_items min: " << prefilter->min_noutput_items() << " max: " << prefilter->max_noutput_items() << " output_buffer - Min: " << prefilter->min_output_buffer(0) << " Max: " << prefilter->max_output_buffer(0) << "\n";
+std::cout << "arb_resampler - noutput_items min: " << arb_resampler->min_noutput_items() << " max: " << arb_resampler->max_noutput_items() << " output_buffer - Min: " << arb_resampler->min_output_buffer(0) << " Max: " << arb_resampler->max_output_buffer(0) << "\n";
+std::cout << "agc - noutput_items min: " << agc->min_noutput_items() << " max: " << agc->max_noutput_items() << " output_buffer - Min: " << agc->min_output_buffer(0) << " Max: " << agc->max_output_buffer(0) << "\n";
+std::cout << "costas_clock - noutput_items min: " << costas_clock->min_noutput_items() << " max: " << costas_clock->max_noutput_items() << " output_buffer - Min: " << costas_clock->min_output_buffer(0) << " Max: " << costas_clock->max_output_buffer(0) << "\n";
+std::cout << "diffdec - noutput_items min: " << diffdec->min_noutput_items() << " max: " << diffdec->max_noutput_items() << " output_buffer - Min: " << diffdec->min_output_buffer(0) << " Max: " << diffdec->max_output_buffer(0) << "\n";
+std::cout << "Slicer - noutput_items min: " << slicer->min_noutput_items() << " max: " << slicer->max_noutput_items() << " output_buffer - Min: " << slicer->min_output_buffer(0) << " Max: " << slicer->max_output_buffer(0) << "\n";
+
+
 	/*BOOST_LOG_TRIVIAL(info) <<
 		"Valve: \t" << valve->max_output_buffer(0) << "\n" <<
 		"Prefilter: \t" << prefilter->max_output_buffer(0) << "\n" <<
