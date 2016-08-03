@@ -516,7 +516,8 @@ void update_recorder(TrunkMessage message) {
             call->update(message);
 
             if (call->get_freq() != message.freq) {
-                if (call->get_recording() == true) {
+              BOOST_LOG_TRIVIAL(error) << "SHOULD not change freq on an UPDATE call";
+              /*  if (call->get_recording() == true) {
                   BOOST_LOG_TRIVIAL(trace) << "\t Update Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
                     // see if we can retune the recorder, sometimes you can't if there are more than one
@@ -536,7 +537,7 @@ void update_recorder(TrunkMessage message) {
                     call->set_freq(message.freq);
                     call->set_tdma(message.tdma);
                     ++it; // move on to the next one
-                }
+                }*/
             } else {
               // the freq is the same, just update it
               ++it; // move on to the next one

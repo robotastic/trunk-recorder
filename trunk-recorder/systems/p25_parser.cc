@@ -207,7 +207,11 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 
             BOOST_LOG_TRIVIAL(trace) << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: "<< std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tsg " << std::setw(7) << sg1 << "\tTDMA " << get_tdma_slot(ch1);
 
-        }
+        } else {
+					BOOST_LOG_TRIVIAL(error) << "Should do something!";
+
+
+				}
 	} else if ( opcode == 0x16 ) {   // sndcp data ch
 		unsigned long ch1  = bitset_shift_mask(tsbk, 48, 0xffff);
 		unsigned long ch2  = bitset_shift_mask(tsbk, 32, 0xffff);
@@ -294,7 +298,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk) 
 		unsigned long chan = bitset_shift_mask(tsbk, 24, 0xffff);
 		message.message_type = SYSID;
 		message.sysid = syid;
-		
+
 		BOOST_LOG_TRIVIAL(trace) << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan) <<  ")"<< std::endl;
 	} else if (opcode == 0x39) {  // secondary cc
 		unsigned long rfid = bitset_shift_mask(tsbk, 72, 0xff);
@@ -424,7 +428,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
     message.source = 0;
 
 	long type = msg->type();
-	
+
 	if (type == -2 ) {	 // # request from gui
 		std::string cmd = msg->to_string();
 

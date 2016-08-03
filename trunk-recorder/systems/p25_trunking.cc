@@ -147,7 +147,7 @@ this->sys_id = sys_id;
 	op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_id,wireshark_host,udp_port,verbosity,do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
-
+/*
 	to_float->set_max_output_buffer(4096);
 	rescale->set_max_output_buffer(4096);
 	slicer->set_max_output_buffer(4096);
@@ -160,7 +160,7 @@ this->sys_id = sys_id;
 	fsk4_demod->set_max_output_buffer(4096);
 	agc->set_max_output_buffer(4096);
 	costas_clock->set_max_output_buffer(4096);
-	diffdec->set_max_output_buffer(4096);
+	diffdec->set_max_output_buffer(4096);*/
 	//this->set_max_output_buffer(4096);
 
 
