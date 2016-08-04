@@ -218,6 +218,7 @@ fsk4_demod->set_max_output_buffer(4096);
 agc->set_max_output_buffer(4096);
 costas_clock->set_max_output_buffer(4096);
 diffdec->set_max_output_buffer(4096);
+prefilter->set_max_output_buffer(4096);
 this->set_max_output_buffer(4096);
 
 valve->set_min_output_buffer(0);
@@ -235,6 +236,7 @@ fsk4_demod->set_min_output_buffer(0);
 agc->set_min_output_buffer(0);
 costas_clock->set_min_output_buffer(0);
 diffdec->set_min_output_buffer(0);
+prefilter->set_min_output_buffer(0);
 this->set_min_output_buffer(0);
 
 if (!qpsk_mod) {
