@@ -418,6 +418,10 @@ void assign_recorder(TrunkMessage message) {
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call= *it;
 
+
+        if (call_found && (call->get_talkgroup() == message.talkgroup)) {
+          BOOST_LOG_TRIVIAL(info) << "\tALERT! Assign - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << " Recording: " << call->get_recording();
+        }
         // Does the call have the same talkgroup
         if (call->get_talkgroup() == message.talkgroup) {
             call_found = true;
@@ -507,12 +511,17 @@ void group_affiliation(long unit, long talkgroup) {
 }
 
 void update_recorder(TrunkMessage message) {
+    bool call_found = false;
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call= *it;
 
+        if (call_found && (call->get_talkgroup() == message.talkgroup)) {
+          BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << " Recording: " << call->get_recording();
+        }
         if (call->get_talkgroup() == message.talkgroup) {
             // update the call, so it stays alive
+            call_found = true;
             call->update(message);
 
             if (call->get_freq() != message.freq) {
