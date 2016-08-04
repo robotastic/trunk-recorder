@@ -218,6 +218,7 @@ fsk4_demod->set_max_output_buffer(4096);
 agc->set_max_output_buffer(4096);
 costas_clock->set_max_output_buffer(4096);
 diffdec->set_max_output_buffer(4096);
+this->set_max_output_buffer(4096);
 
 valve->set_min_output_buffer(0);
 to_float->set_min_output_buffer(0);
@@ -234,29 +235,9 @@ fsk4_demod->set_min_output_buffer(0);
 agc->set_min_output_buffer(0);
 costas_clock->set_min_output_buffer(0);
 diffdec->set_min_output_buffer(0);
+this->set_min_output_buffer(0);
 
-
-//this->set_max_output_buffer(4096);
-/*
-				valve->set_max_output_buffer(512);
-        to_float->set_max_output_buffer(512);
-        rescale->set_max_output_buffer(512);
-        slicer->set_max_output_buffer(512);
-        op25_frame_assembler->set_max_output_buffer(512);
-        converter->set_max_output_buffer(512);
-				wav_sink->set_max_output_buffer(512);
-				//prefilter->set_max_output_buffer(512);
-				arb_resampler->set_max_output_buffer(512);
-				fm_demod->set_max_output_buffer(512);
-				baseband_amp->set_max_output_buffer(512);
-				sym_filter->set_max_output_buffer(512);
-				fsk4_demod->set_max_output_buffer(512);
-				agc->set_max_output_buffer(512);
-				costas_clock->set_max_output_buffer(512);
-				diffdec->set_max_output_buffer(512);
-				this->set_max_output_buffer(512);
-*/
-	if (!qpsk_mod) {
+if (!qpsk_mod) {
         connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
 		connect(prefilter,0, arb_resampler, 0);
