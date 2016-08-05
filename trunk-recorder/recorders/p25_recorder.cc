@@ -66,6 +66,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
 std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
+
 				prefilter = make_freq_xlating_fft_filter(decimation,
 	            dest,
 	            offset,
@@ -76,6 +77,11 @@ std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 	            offset,
 	            samp_rate);*/
 
+				tagger = latency_make_tagger(sizeof(gr_complex), 512, "latency0");
+				std::vector<std::string> keys;
+				keys.push_back("latency0");
+				active_probe = latency_make_probe(sizeof (char), keys);
+				last_probe = latency_make_probe(sizeof(float), keys);
         float resampled_rate = float(input_rate) / float(decimation); // rate at output of self.lpf
         float arb_rate = (float(if_rate) / resampled_rate);
         float arb_size = 32;
@@ -218,7 +224,7 @@ fsk4_demod->set_max_output_buffer(4096);
 agc->set_max_output_buffer(4096);
 costas_clock->set_max_output_buffer(4096);
 diffdec->set_max_output_buffer(4096);
-prefilter->set_max_output_buffer(4096);
+//prefilter->set_max_output_buffer(8192);
 this->set_max_output_buffer(4096);
 
 valve->set_min_output_buffer(0);
@@ -236,7 +242,7 @@ fsk4_demod->set_min_output_buffer(0);
 agc->set_min_output_buffer(0);
 costas_clock->set_min_output_buffer(0);
 diffdec->set_min_output_buffer(0);
-prefilter->set_min_output_buffer(0);
+//prefilter->set_min_output_buffer(0);
 this->set_min_output_buffer(0);
 
 if (!qpsk_mod) {
@@ -254,16 +260,22 @@ if (!qpsk_mod) {
 	} else {
     connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
-		connect(prefilter, 0, arb_resampler, 0);
+		//connect(prefilter, 0, arb_resampler, 0);
+		connect(prefilter, 0, tagger,0);
+		connect(tagger,0, arb_resampler, 0);
 		connect(arb_resampler,0, agc,0);
 		connect(agc, 0, costas_clock, 0);
 		connect(costas_clock,0, diffdec, 0);
 		connect(diffdec, 0, to_float, 0);
 		connect(to_float,0, rescale, 0);
 		connect(rescale, 0, slicer, 0);
-		connect(slicer,0, op25_frame_assembler,0);
+		//connect(slicer,0, op25_frame_assembler,0);
+		connect(slicer,0, active_probe,0);
+		connect(active_probe,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
-		connect(converter, 0, wav_sink,0);
+		//connect(converter, 0, wav_sink,0);
+		connect(converter, 0, last_probe,0);
+		connect(last_probe,0, wav_sink,0);
 
 	}
 
@@ -275,10 +287,41 @@ p25_recorder::~p25_recorder() {
 
 }
 
+std::vector<unsigned long> p25_recorder::get_last_probe_offsets(){
+	/*std::vector<std::string> keys = probe->get_keys();
+	std::vector<unsigned long>
+	for(vector<std::string>::iterator it = keys.begin(); it != keys.end(); it++) {
+			std::string key = *it;*/
+	return last_probe->get_offsets("latency0");
+
+}
+std::vector<unsigned long> p25_recorder::get_active_probe_offsets(){
+	/*std::vector<std::string> keys = probe->get_keys();
+	std::vector<unsigned long>
+	for(vector<std::string>::iterator it = keys.begin(); it != keys.end(); it++) {
+			std::string key = *it;*/
+	return active_probe->get_offsets("latency0");
+
+}
+
+std::vector<double> p25_recorder::get_last_probe_delays(){
+	return last_probe->get_delays("latency0");
+}
+std::vector<double> p25_recorder::get_active_probe_delays(){
+	return active_probe->get_delays("latency0");
+}
+void p25_recorder::clear_probes() {
+	last_probe->clear("latency0");
+	active_probe->clear("latency0");
+
+}
+
 Source *p25_recorder::get_source() {
     return source;
 }
-
+int p25_recorder::get_num() {
+	return num;
+}
 
 bool p25_recorder::is_active() {
 	return active;

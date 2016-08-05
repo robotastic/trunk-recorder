@@ -372,6 +372,11 @@ void stop_inactive_recorders() {
             ++it;
         }//if rx is active
     }//foreach loggers
+
+    for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+        Source * source = *it;
+        source->get_mean_delay();
+    }
 }
 
 

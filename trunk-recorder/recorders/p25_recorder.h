@@ -65,6 +65,8 @@
 #include "recorder.h"
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
+#include "../../gr_blocks/latency_probe.h"
+#include "../../gr_blocks/latency_tagger.h"
 
 class Source;
 class p25_recorder;
@@ -83,9 +85,14 @@ public:
 
 	void tune_offset(double f);
 	void activate( Call *call, int n);
-
+std::vector<unsigned long> get_active_probe_offsets();
+std::vector<double> get_active_probe_delays();
+std::vector<unsigned long> get_last_probe_offsets();
+std::vector<double> get_last_probe_delays();
+void clear_probes();
 	void deactivate();
 	double get_freq();
+	int get_num();
 	double get_current_length();
 	bool is_active();
 	int lastupdate();
@@ -118,6 +125,9 @@ private:
 	std::vector<float> arb_taps;
 	std::vector<float> sym_taps;
 freq_xlating_fft_filter_sptr prefilter;
+latency_tagger_sptr tagger;
+latency_probe_sptr active_probe;
+latency_probe_sptr last_probe;
 	/* GR blocks */
 	gr::filter::fir_filter_ccf::sptr lpf;
 	gr::filter::fir_filter_fff::sptr sym_filter;

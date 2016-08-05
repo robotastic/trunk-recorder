@@ -1,6 +1,7 @@
 #ifndef SOURCE_H
 #define SOURCE_H
 #include <iostream>
+#include <numeric>
 #include <gnuradio/basic_block.h>
 #include <gnuradio/top_block.h>
 #include <osmosdr/source.h>
@@ -40,6 +41,7 @@ class Source
 public:
 	int get_num_available_recorders();
 	Source(double c, double r, double e, std::string driver, std::string device);
+	std::vector<double> get_mean_delay();
 	gr::basic_block_sptr get_src_block();
 	double get_min_hz();
 	double get_max_hz();
