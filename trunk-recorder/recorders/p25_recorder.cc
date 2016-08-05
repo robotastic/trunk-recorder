@@ -269,9 +269,9 @@ if (!qpsk_mod) {
 		connect(diffdec, 0, to_float, 0);
 		connect(to_float,0, rescale, 0);
 		connect(rescale, 0, slicer, 0);
-		//connect(slicer,0, op25_frame_assembler,0);
-		connect(slicer,0, active_probe,0);
-		connect(active_probe,0, op25_frame_assembler,0);
+		connect(slicer,0, op25_frame_assembler,0);
+		//connect(slicer,0, active_probe,0);
+		//connect(active_probe,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
 		//connect(converter, 0, wav_sink,0);
 		connect(converter, 0, last_probe,0);
@@ -312,7 +312,7 @@ std::vector<double> p25_recorder::get_active_probe_delays(){
 }
 void p25_recorder::clear_probes() {
 	last_probe->clear("latency0");
-	active_probe->clear("latency0");
+	//active_probe->clear("latency0");
 
 }
 
