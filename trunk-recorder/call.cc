@@ -19,9 +19,10 @@ Call::Call(long t, double f, Config c) {
 	freq = f;
 	start_time = time(NULL);
 	last_update = time(NULL);
+  state = monitoring;
 	recording = false;
 	debug_recording = false;
-    recorder = NULL;
+  recorder = NULL;
 	tdma = false;
 	encrypted = false;
 	emergency = false;
@@ -35,6 +36,7 @@ Call::Call(TrunkMessage message, Config c) {
 	freq = message.freq;
 	start_time = time(NULL);
 	last_update = time(NULL);
+  state = monitoring;
 	recording = false;
 	debug_recording = false;
   recorder = NULL;
@@ -53,7 +55,7 @@ Call::~Call() {
 void Call::end_call() {
     char shell_command[200];
 
-            if (recording) {
+            if (state == closing) {
 
                 BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " << this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << "Elapsed: " << this->elapsed() << std::endl;
 
@@ -86,7 +88,7 @@ void Call::end_call() {
                 BOOST_LOG_TRIVIAL(info) << "\tFinished Removing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
 
             } else {
-              //BOOST_LOG_TRIVIAL(info) << "\tRemoving Non-Recorded Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+              BOOST_LOG_TRIVIAL(info) << "\tRemoving closing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
 
             }
             if (this->get_debug_recording() == true) {
@@ -169,6 +171,13 @@ void  Call::set_recording(bool m) {
 }
 bool  Call::get_recording() {
 	return recording;
+}
+
+void Call::set_state(State s){
+  state = s;
+}
+State Call::get_state() {
+  return state;
 }
 void  Call::set_encrypted(bool m) {
 	encrypted = m;

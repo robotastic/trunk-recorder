@@ -91,12 +91,15 @@ std::vector<unsigned long> get_last_probe_offsets();
 std::vector<double> get_last_probe_delays();
 void clear_probes();
 	void deactivate();
+	void close();
 	double get_freq();
 	int get_num();
 	double get_current_length();
 	bool is_active();
+	State get_state();
 	int lastupdate();
 	long elapsed();
+	long closing_elapsed();
     Source *get_source();
 	gr::msg_queue::sptr tune_queue;
 	gr::msg_queue::sptr traffic_queue;
@@ -106,17 +109,19 @@ void clear_probes();
 private:
 	double center, freq;
 	bool muted;
-    bool qpsk_mod;
+  bool qpsk_mod;
 	long talkgroup;
 	time_t timestamp;
 	time_t starttime;
+	time_t closing_time;
 
-        Source *source;
+  Source *source;
 	char filename[160];
 	char raw_filename[160];
 	//int num;
 
 	bool iam_logging;
+	State state;
 	bool active;
 
 

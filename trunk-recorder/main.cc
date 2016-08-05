@@ -252,7 +252,7 @@ int get_total_recorders() {
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();it++) {
         Call *call = *it;
 
-            if (call->get_recording() == true) {
+            if (call->get_state() == Call::state:recording) {
                 total_recorders++;
             }
     }
@@ -321,7 +321,7 @@ int start_recorder(Call *call) {
                     BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device() << "\tMsg Q: " << msg_queue->count();
                     recorder->activate(call, total_recorders);
                     call->set_recorder(recorder);
-                    call->set_recording(true);
+                    call->set_state(Call::State::recording);
                     recorder_found = true;
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tNot recording call";
@@ -364,7 +364,11 @@ void stop_inactive_recorders() {
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
-        if ( call->since_last_update()  > config.call_timeout) {
+        if (( call->get_state() == Call::State::closing) && (call->since_last_update()  > config.call_timeout)) {
+            call->end_call();
+            delete call;
+            it = calls.erase(it);
+        } else if (( call->get_state() == Call::State::closing) && (call->since_last_update()  > config.call_timeout)) {
             call->end_call();
             delete call;
             it = calls.erase(it);
@@ -400,17 +404,19 @@ int retune_recorder(TrunkMessage message, Call *call) {
         }
         return 1;
     } else {
-         BOOST_LOG_TRIVIAL(info) << "\t\tSwitching to Different Source to Record";
+        BOOST_LOG_TRIVIAL(info) << "\t\tClosing call, starting new call on new source";
 
+        call->set_state(Call::State::closing);
         recorder->deactivate();
 
         if (call->get_debug_recording() == true) {
             call->get_debug_recorder()->deactivate();
             call->set_debug_recording(false);
         }
+        return 0;
 
-        int restarted_recording = start_recorder(call);
-        return restarted_recording;
+        //int restarted_recording = start_recorder(call);
+        //return restarted_recording;
     }
 
 }
@@ -428,7 +434,7 @@ void assign_recorder(TrunkMessage message) {
           BOOST_LOG_TRIVIAL(info) << "\tALERT! Assign - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << " Recording: " << call->get_recording();
         }
         // Does the call have the same talkgroup
-        if (call->get_talkgroup() == message.talkgroup) {
+        if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != Call::State::closing)) {
             call_found = true;
             call->update(message);
 
@@ -436,14 +442,16 @@ void assign_recorder(TrunkMessage message) {
             if (call->get_freq() != message.freq) {
                 BOOST_LOG_TRIVIAL(trace) << "\tAssign Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
                 // are we currently recording the call?
-                if (call->get_recording() == true) {
+                if (call->get_state() != Call::State::recording)) {
 
                     int retuned = retune_recorder(message, call);
                     if (!retuned) {
-                      BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
-                      call->end_call();
-                      delete call;
-                      it = calls.erase(it);
+                      BOOST_LOG_TRIVIAL(info) << "\tNew source needed, unable ";
+                      call_found = false;
+                      ++it;
+                      //call->end_call();
+                      //delete call;
+                      //it = calls.erase(it);
                     } else {
                       ++it; // move on to the next one
                     }
@@ -468,7 +476,7 @@ void assign_recorder(TrunkMessage message) {
               //BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
                 // if you are recording the call, stop
-                if (call->get_recording() == true) {
+                if (call->get_state() == Call::State::recording)) {
                     BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
                 //different talkgroups on the same freq, that is trouble
                 }
@@ -524,7 +532,7 @@ void update_recorder(TrunkMessage message) {
         if (call_found && (call->get_talkgroup() == message.talkgroup)) {
           BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq << " Recording: " << call->get_recording();
         }
-        if (call->get_talkgroup() == message.talkgroup) {
+        if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != Call::State::closing)) {
             // update the call, so it stays alive
             call_found = true;
             call->update(message);
@@ -540,10 +548,10 @@ void update_recorder(TrunkMessage message) {
                     // see if we can retune the recorder, sometimes you can't if there are more than one
                     int retuned = retune_recorder(message, call);
                     if (!retuned) {
-                      BOOST_LOG_TRIVIAL(info) << "\tUnable to Retune";
-                      call->end_call();
+                      BOOST_LOG_TRIVIAL(info) << "\tUpdate needed a new source, but I didn't care";
+                      /*call->end_call();
                       delete call;
-                      it = calls.erase(it);
+                      it = calls.erase(it);*/
                       } else {
                           ++it; // move on to the next one
                     }

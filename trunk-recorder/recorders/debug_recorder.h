@@ -61,12 +61,13 @@ public:
 	~debug_recorder();
 	void tune_offset(double f);
 	void activate( Call *call, int n);
-
 	void deactivate();
+	void close();
 	double get_freq();
     Source *get_source();
 	long get_talkgroup();
 	bool is_active();
+	State get_state();
 	int lastupdate();
 	long elapsed();
 	void close();
@@ -86,6 +87,7 @@ private:
 	//int num;
 
 	bool iam_logging;
+	State state;
 	bool active;
 	std::vector<float> lpf_taps;
 	std::vector<float> resampler_taps;

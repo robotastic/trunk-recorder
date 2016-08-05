@@ -23,6 +23,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
 	num = 0;
 	active = false;
+	state = inactive;
 
 	float offset = freq - center;
 
@@ -324,7 +325,12 @@ int p25_recorder::get_num() {
 }
 
 bool p25_recorder::is_active() {
-	return active;
+	if (state == active) {
+		return true;
+	} else {
+		return false;
+	}
+	//return active;
 }
 
 
@@ -341,6 +347,9 @@ int p25_recorder::lastupdate() {
 	return time(NULL) - timestamp;
 }
 
+long p25_recorder::closing_elapsed() {
+	return time(NULL) - clossing_time;
+}
 long p25_recorder::elapsed() {
 	return time(NULL) - starttime;
 }
@@ -353,14 +362,29 @@ void p25_recorder::tune_offset(double f) {
 	//BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "  << freq;
 }
 
+void p25_recorder::get_state() {
+	return state;
+}
+
+void p25_recorder::close() {
+	if (state == closing) {
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+		state = inactive;
+		valve->set_enabled(false);
+		wav_sink->close();
+	} else {
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+	}
+}
+
 void p25_recorder::deactivate() {
-	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-	if (active) {
-	active = false;
-	//this->lock();
-	valve->set_enabled(false);
-	wav_sink->close();
-	//this->unlock();
+	if (state == active) {
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+
+	state = closing;
+	closing_time = time(NULL);
+	/*valve->set_enabled(false);
+	wav_sink->close();*/
 }	else {
 	BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 }
@@ -391,7 +415,7 @@ std::cout << "Slicer - noutput_items min: " << slicer->min_noutput_items() << " 
 
 void p25_recorder::activate(Call *call, int n) {
 
-if (!active){
+if (state == inactive){
 	timestamp = time(NULL);
 	starttime = time(NULL);
 
@@ -405,7 +429,7 @@ if (!active){
 	prefilter->set_center_freq(offset_amount);
 
 	wav_sink->open(call->get_filename());
-	active = true;
+	state = active;
 	valve->set_enabled(true);
 	} else {
 		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Trying to Activate an Active Logger!!!";

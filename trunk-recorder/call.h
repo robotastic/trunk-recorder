@@ -18,6 +18,7 @@ class Recorder;
 
 
 class Call {
+	enum State { monitoring=0, recording=1, closing=2};
 	long talkgroup;
 	double freq;
 	time_t last_update;
@@ -59,6 +60,8 @@ public:
 	bool get_debug_recording();
 	void set_recording(bool m);
 	bool get_recording();
+	void set_state(State s);
+	State get_state();
 	void set_tdma(int m);
 	int get_tdma();
 	void set_encrypted(bool m);
