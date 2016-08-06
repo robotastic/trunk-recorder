@@ -252,7 +252,7 @@ int get_total_recorders() {
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();it++) {
         Call *call = *it;
 
-            if (call->get_state() == Call::State::recording) {
+            if (call->get_state() == recording) {
                 total_recorders++;
             }
     }
@@ -321,7 +321,7 @@ int start_recorder(Call *call) {
                     BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device() << "\tMsg Q: " << msg_queue->count();
                     recorder->activate(call, total_recorders);
                     call->set_recorder(recorder);
-                    call->set_state(Call::State::recording);
+                    call->set_state(recording);
                     recorder_found = true;
                 } else {
                     BOOST_LOG_TRIVIAL(error) << "\tNot recording call";
@@ -364,15 +364,15 @@ void stop_inactive_recorders() {
 
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
-        if (( call->get_state() == Call::State::closing) && (call->closing_elapsed()  > config.call_timeout)) {
+        if (( call->get_state() == closing) && (call->closing_elapsed()  > config.call_timeout)) {
             call->end_call();
             delete call;
             it = calls.erase(it);
-        } else if (( call->get_state() == Call::State::recording) && (call->since_last_update()  > 3)) {
+        } else if (( call->get_state() == recording) && (call->since_last_update()  > 3)) {
             call->close_call();
             std::cout << "Close call from stop_inactive_recorders";
             it++;
-        } else if (( call->get_state() == Call::State::monitoring) && (call->since_last_update()  > 3)) {
+        } else if (( call->get_state() == monitoring) && (call->since_last_update()  > 3)) {
              call->end_call();
              delete call;
              it = calls.erase(it);
@@ -410,7 +410,7 @@ int retune_recorder(TrunkMessage message, Call *call) {
     } else {
         BOOST_LOG_TRIVIAL(info) << "\t\tClosing call, starting new call on new source";
         call->close_call();
-        //call->set_state(Call::State::closing);
+        //call->set_state(closing);
         //recorder->deactivate();
 
         if (call->get_debug_recording() == true) {
@@ -438,7 +438,7 @@ void assign_recorder(TrunkMessage message) {
           BOOST_LOG_TRIVIAL(info) << "\tALERT! Assign - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
         }
         // Does the call have the same talkgroup
-        if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != Call::State::closing)) {
+        if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != closing)) {
             call_found = true;
             call->update(message);
 
@@ -446,7 +446,7 @@ void assign_recorder(TrunkMessage message) {
             if (call->get_freq() != message.freq) {
                 BOOST_LOG_TRIVIAL(trace) << "\tAssign Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
                 // are we currently recording the call?
-                if (call->get_state() == Call::State::recording) {
+                if (call->get_state() == recording) {
 
                     int retuned = retune_recorder(message, call);
                     if (!retuned) {
@@ -480,7 +480,7 @@ void assign_recorder(TrunkMessage message) {
               //BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
                 // if you are recording the call, stop
-                if (call->get_state() == Call::State::recording) {
+                if (call->get_state() == recording) {
                     BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
                 //different talkgroups on the same freq, that is trouble
                 }
@@ -536,7 +536,7 @@ void update_recorder(TrunkMessage message) {
         if (call_found && (call->get_talkgroup() == message.talkgroup)) {
           BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
         }
-        if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != Call::State::closing)) {
+        if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != closing)) {
             // update the call, so it stays alive
             call_found = true;
             call->update(message);
@@ -546,7 +546,7 @@ void update_recorder(TrunkMessage message) {
             //  BOOST_LOG_TRIVIAL(error) << "\t Update Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
               //++it;
-               if (call->get_state() == Call::State::recording) {
+               if (call->get_state() == recording) {
                   BOOST_LOG_TRIVIAL(error) << "\t Update Retune - Total calls: " << calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
                     // see if we can retune the recorder, sometimes you can't if there are more than one

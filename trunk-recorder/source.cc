@@ -110,7 +110,7 @@ Recorder * Source::get_analog_recorder(int priority)
  	}
 	for(std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
 		analog_recorder_sptr rx = *it;
-		if (rx->get_state() == Recorder::State::inactive)
+		if (rx->get_state() == inactive)
 		{
 			return (Recorder *) rx.get();
 			break;
@@ -147,7 +147,7 @@ Recorder * Source::get_debug_recorder()
 {
 	for(std::vector<debug_recorder_sptr>::iterator it = debug_recorders.begin(); it != debug_recorders.end(); it++) {
 		debug_recorder_sptr rx = *it;
-		if (rx->get_state() == Recorder::State::inactive)
+		if (rx->get_state() == inactive)
 		{
 			return (Recorder *) rx.get();
 			break;
@@ -163,7 +163,7 @@ int Source::get_num_available_recorders() {
 
 	for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
 		p25_recorder_sptr rx = *it;
-		if (rx->get_state() == Recorder::State::inactive)
+		if (rx->get_state() == inactive)
 		{
 			num_available_recorders++;
 		}
@@ -185,7 +185,7 @@ Recorder * Source::get_digital_recorder(int priority)
 	for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
 		p25_recorder_sptr rx = *it;
 
-		if (rx->get_state() == Recorder::State::inactive)
+		if (rx->get_state() == inactive)
 		{
 			return (Recorder *) rx.get();
 			break;

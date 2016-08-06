@@ -19,7 +19,7 @@ Call::Call(long t, double f, Config c) {
 	freq = f;
 	start_time = time(NULL);
 	last_update = time(NULL);
-  state = State::monitoring;
+  state = monitoring;
 	debug_recording = false;
   recorder = NULL;
 	tdma = false;
@@ -35,7 +35,7 @@ Call::Call(TrunkMessage message, Config c) {
 	freq = message.freq;
 	start_time = time(NULL);
 	last_update = time(NULL);
-  state = State::monitoring;
+  state = monitoring;
 	debug_recording = false;
   recorder = NULL;
 	tdma = message.tdma;
@@ -51,8 +51,8 @@ Call::~Call() {
 }
 
 void Call::close_call() {
-  if (state == State::recording) {
-    state = State::closing;
+  if (state == recording) {
+    state = closing;
     closing_time = time(NULL);
     this->get_recorder()->close();
   }  else {
@@ -62,7 +62,7 @@ void Call::close_call() {
 void Call::end_call() {
     char shell_command[200];
 
-            if (state == State::closing) {
+            if (state == closing) {
 
                 BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " << this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << "Elapsed: " << this->elapsed() << std::endl;
 
@@ -153,14 +153,14 @@ bool Call::add_source(long src) {
     if (src_count < 1 ) {
         src_list[src_count] = call_source;
         src_count++;
-        if (state == State::recording){
+        if (state == recording){
         	BOOST_LOG_TRIVIAL(info) << "1st src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
         }
         return true;
     } else if ((src_count < 48) && (src_list[src_count-1].source != src)) {
         src_list[src_count] = call_source;
         src_count++;
-        if (state == State::recording){
+        if (state == recording){
         	BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << " Rec_num: " << this->recorder->num << std::endl;
         }
         return true;
@@ -174,10 +174,10 @@ bool  Call::get_debug_recording() {
 	return debug_recording;
 }
 
-void Call::set_state(Call::State s){
+void Call::set_state(State s){
   state = s;
 }
-Call::State Call::get_state() {
+State Call::get_state() {
   return state;
 }
 void  Call::set_encrypted(bool m) {

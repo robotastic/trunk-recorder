@@ -96,7 +96,7 @@ public:
 	int get_num();
 	double get_current_length();
 	bool is_active();
-	Recorder::State get_state();
+	State get_state();
 	int lastupdate();
 	long elapsed();
 	long closing_elapsed();
@@ -121,7 +121,7 @@ private:
 	//int num;
 
 	bool iam_logging;
-	Recorder::State state;
+	State state;
 
 
 	//std::vector<gr_complex> lpf_coeffs;

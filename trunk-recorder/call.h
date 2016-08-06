@@ -12,14 +12,15 @@ class Recorder;
 
 #include "uploader.h"
 #include "config.h"
+#include "state.h"
 #include "recorders/recorder.h"
 #include "systems/parser.h"
 
-
+		//enum  CallState { monitoring=0, recording=1, closing=2};
 
 class Call {
 public:
-		enum class State { monitoring=0, recording=1, closing=2};
+
 	Call( long t, double f, Config c);
 	Call( TrunkMessage message, Config c);
     ~Call();
@@ -44,7 +45,7 @@ public:
 	long get_start_time();
 	void set_debug_recording(bool m);
 	bool get_debug_recording();
-	void set_state(Call::State s);
+	void set_state(State s);
 	State get_state();
 	void set_tdma(int m);
 	int get_tdma();

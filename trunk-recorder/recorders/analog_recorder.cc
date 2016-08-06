@@ -21,7 +21,7 @@ analog_recorder::analog_recorder(Source *src)
 	samp_rate = source->get_rate();
 	talkgroup = 0;
 	num = 0;
-	active = false;
+	state = inactive;
 
 	timestamp = time(NULL);
 	starttime = time(NULL);
@@ -146,13 +146,13 @@ analog_recorder::~analog_recorder() {
 
 }
 
-Recorder::State analog_recorder::get_state() {
+State analog_recorder::get_state() {
 	return state;
 }
 
 void analog_recorder::close() {
-	if (state == State::closing) {
-		state = State::inactive;
+	if (state == closing) {
+		state = inactive;
 		valve->set_enabled(false);
 		wav_sink->close();
 	} else {
@@ -163,7 +163,11 @@ void analog_recorder::close() {
 
 
 bool analog_recorder::is_active() {
-	return active;
+	if (state == active) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 long analog_recorder::get_talkgroup() {
@@ -190,7 +194,7 @@ void analog_recorder::tune_offset(double f) {
 
 void analog_recorder::deactivate() {
 
-	active = false;
+	state = inactive;
 
 	valve->set_enabled(false);
 
@@ -222,6 +226,6 @@ void analog_recorder::activate(Call *call, int n) {
 
 	wav_sink->open(call->get_filename());
 
-	active = true;
+	state = active;
 	valve->set_enabled(true);
 }

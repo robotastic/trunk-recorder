@@ -20,8 +20,7 @@ debug_recorder::debug_recorder(Source *src)
 	samp_rate = source->get_rate();
 	talkgroup = 0;
 	num = 0;
-	active = false;
-
+	state = inactive;
 
 	starttime = time(NULL);
 
@@ -78,7 +77,7 @@ debug_recorder::~debug_recorder() {
 
 }
 
-Recorder::State debug_recorder::get_state() {
+State debug_recorder::get_state() {
 	return state;
 }
 
@@ -86,7 +85,11 @@ void debug_recorder::close() {
 }
 
 bool debug_recorder::is_active() {
-	return active;
+	if (state == active) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 long debug_recorder::get_talkgroup() {
@@ -117,13 +120,8 @@ void debug_recorder::deactivate() {
 	raw_sink->close();
 
 
-
-	active = false;
+	state = inactive;
 	valve->set_enabled(false);
-
-
-
-
 }
 
 void debug_recorder::activate(Call *call, int n) {
@@ -147,7 +145,6 @@ void debug_recorder::activate(Call *call, int n) {
 
 	raw_sink->open(filename);
 
-
-	active = true;
+	state = active;
 	valve->set_enabled(true);
 }
