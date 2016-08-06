@@ -17,6 +17,7 @@ enum MessageType {
 
 struct TrunkMessage {
 	MessageType message_type;
+	std::string meta;
 	double freq;
 	long talkgroup;
 	bool encrypted;

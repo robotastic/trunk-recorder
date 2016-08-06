@@ -161,7 +161,7 @@ void load_config()
         BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
         default_mode = pt.get<std::string>("defaultMode","digital");
         BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
-        config.call_timeout = pt.get<int>("callTimeout",8);
+        config.call_timeout = pt.get<int>("callTimeout",4);
         BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
 
         boost::optional<std::string> mod_exists = pt.get_optional<std::string>("modulation");
@@ -318,7 +318,10 @@ int start_recorder(Call *call) {
 
                 int total_recorders = get_total_recorders();
                 if (recorder) {
-                    BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device() << "\tMsg Q: " << msg_queue->count();
+                    Call_Source  *call_sources = call->get_source_list();
+
+                    BOOST_LOG_TRIVIAL(error) << "Activating rec on src: " << source->get_device() << "\tSources: " << call->get_source_count() << "\t Last Source: " << call_sources[call->get_source_count() -1].source;
+
                     recorder->activate(call, total_recorders);
                     call->set_recorder(recorder);
                     call->set_state(recording);
@@ -368,7 +371,7 @@ void stop_inactive_recorders() {
             call->end_call();
             delete call;
             it = calls.erase(it);
-        } else if (( call->get_state() == recording) && (call->since_last_update()  > 3)) {
+        } else if (( call->get_state() == recording) && (call->since_last_update()  >  config.call_timeout)) {
             call->close_call();
             it++;
         } else if (( call->get_state() == monitoring) && (call->since_last_update()  > 3)) {
@@ -495,6 +498,9 @@ void assign_recorder(TrunkMessage message) {
 
     if (!call_found) {
         Call * call = new Call(message, config);
+        if (message.meta.length()) {
+          BOOST_LOG_TRIVIAL(info) << message.meta;
+        }
         start_recorder(call);
         calls.push_back(call);
     }
