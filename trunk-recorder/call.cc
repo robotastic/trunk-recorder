@@ -54,7 +54,7 @@ void Call::close_call() {
   if (state == recording) {
     state = closing;
     closing_time = time(NULL);
-    this->get_recorder()->close();
+    this->get_recorder()->deactivate();
   }  else {
     BOOST_LOG_TRIVIAL(info) << "\tRemoving closing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
   }
@@ -87,7 +87,7 @@ void Call::end_call() {
                     myfile.close();
                 }
                 sprintf(shell_command,"./encode-upload.sh %s &", this->get_filename());
-                this->get_recorder()->deactivate();
+                this->get_recorder()->close();
                 int rc = system(shell_command);
                 if (this->config.upload_server != "") {
                   send_call(this, config);
