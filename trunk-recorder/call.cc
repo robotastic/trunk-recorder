@@ -56,7 +56,7 @@ void Call::close_call() {
     closing_time = time(NULL);
     this->get_recorder()->deactivate();
   }  else {
-    BOOST_LOG_TRIVIAL(info) << "\tRemoving closing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "\tClosing closing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
   }
 }
 void Call::end_call() {

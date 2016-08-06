@@ -370,7 +370,6 @@ void stop_inactive_recorders() {
             it = calls.erase(it);
         } else if (( call->get_state() == recording) && (call->since_last_update()  > 3)) {
             call->close_call();
-            std::cout << "Close call from stop_inactive_recorders";
             it++;
         } else if (( call->get_state() == monitoring) && (call->since_last_update()  > 3)) {
              call->end_call();
@@ -381,10 +380,10 @@ void stop_inactive_recorders() {
         }//if rx is active
     }//foreach loggers
 
-    for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+  /*  for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
         Source * source = *it;
         source->get_mean_delay();
-    }
+    }*/
 }
 
 
