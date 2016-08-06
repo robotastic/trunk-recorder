@@ -18,28 +18,13 @@ class Recorder;
 
 
 class Call {
-	enum State { monitoring=0, recording=1, closing=2};
-	long talkgroup;
-	double freq;
-	time_t last_update;
-	time_t start_time;
-	bool recording;
-	bool debug_recording;
-	bool encrypted;
-	bool emergency;
-    char filename[160];
-    char status_filename[160];
-	int tdma;
-    long src_count;
-    Call_Source src_list[50];
-		Config config;
-	Recorder *recorder;
-	Recorder *debug_recorder;
 public:
+		enum State { monitoring=0, recording=1, closing=2};
 	Call( long t, double f, Config c);
 	Call( TrunkMessage message, Config c);
     ~Call();
     void end_call();
+		void close_call();
 	void set_debug_recorder(Recorder *r);
 	Recorder * get_debug_recorder();
 	void set_recorder(Recorder *r);
@@ -54,13 +39,12 @@ public:
     bool add_source(long src);
 	void update(TrunkMessage message);
 	int since_last_update();
+	long closing_elapsed();
 	long elapsed();
 	long get_start_time();
 	void set_debug_recording(bool m);
 	bool get_debug_recording();
-	void set_recording(bool m);
-	bool get_recording();
-	void set_state(State s);
+	void set_state(Call::State s);
 	State get_state();
 	void set_tdma(int m);
 	int get_tdma();
@@ -68,5 +52,24 @@ public:
 	bool get_encrypted();
 	void set_emergency(bool m);
 	bool get_emergency();
+private:
+	State state;
+	long talkgroup;
+	double freq;
+	time_t last_update;
+	time_t start_time;
+	time_t closing_time;
+	bool debug_recording;
+	bool encrypted;
+	bool emergency;
+		char filename[160];
+		char status_filename[160];
+	int tdma;
+		long src_count;
+		Call_Source src_list[50];
+		Config config;
+	Recorder *recorder;
+	Recorder *debug_recorder;
 };
+
 #endif

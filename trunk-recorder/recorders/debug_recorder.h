@@ -67,10 +67,9 @@ public:
     Source *get_source();
 	long get_talkgroup();
 	bool is_active();
-	State get_state();
+	Recorder::State get_state();
 	int lastupdate();
 	long elapsed();
-	void close();
 	double get_current_length();
 
 	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
@@ -87,7 +86,7 @@ private:
 	//int num;
 
 	bool iam_logging;
-	State state;
+	Recorder::State state;
 	bool active;
 	std::vector<float> lpf_taps;
 	std::vector<float> resampler_taps;

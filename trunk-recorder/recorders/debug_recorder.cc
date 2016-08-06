@@ -78,19 +78,11 @@ debug_recorder::~debug_recorder() {
 
 }
 
-void debug_recorder::get_state() {
+Recorder::State debug_recorder::get_state() {
 	return state;
 }
 
 void debug_recorder::close() {
-	if (state == closing) {
-		state = inactive;
-		valve->set_enabled(false);
-		wav_sink->close();
-	} else {
-		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-
-	}
 }
 
 bool debug_recorder::is_active() {

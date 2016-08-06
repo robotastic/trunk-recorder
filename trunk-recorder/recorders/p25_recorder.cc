@@ -22,7 +22,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 	long capture_rate = samp_rate;
 
 	num = 0;
-	active = false;
+
 	state = inactive;
 
 	float offset = freq - center;
@@ -348,7 +348,7 @@ int p25_recorder::lastupdate() {
 }
 
 long p25_recorder::closing_elapsed() {
-	return time(NULL) - clossing_time;
+	return time(NULL) - closing_time;
 }
 long p25_recorder::elapsed() {
 	return time(NULL) - starttime;
@@ -362,7 +362,7 @@ void p25_recorder::tune_offset(double f) {
 	//BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "  << freq;
 }
 
-void p25_recorder::get_state() {
+Recorder::State p25_recorder::get_state() {
 	return state;
 }
 

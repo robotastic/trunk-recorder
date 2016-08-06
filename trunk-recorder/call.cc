@@ -20,7 +20,6 @@ Call::Call(long t, double f, Config c) {
 	start_time = time(NULL);
 	last_update = time(NULL);
   state = monitoring;
-	recording = false;
 	debug_recording = false;
   recorder = NULL;
 	tdma = false;
@@ -37,7 +36,6 @@ Call::Call(TrunkMessage message, Config c) {
 	start_time = time(NULL);
 	last_update = time(NULL);
   state = monitoring;
-	recording = false;
 	debug_recording = false;
   recorder = NULL;
 	tdma = message.tdma;
@@ -52,6 +50,15 @@ Call::~Call() {
   //  BOOST_LOG_TRIVIAL(info) << " This call is over!!";
 }
 
+void Call::close_call() {
+  if (state == recording) {
+    state = closing;
+    closing_time = time(NULL);
+    this->get_recorder()->close();
+  }  else {
+    BOOST_LOG_TRIVIAL(info) << "\tRemoving closing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+  }
+}
 void Call::end_call() {
     char shell_command[200];
 
@@ -88,7 +95,7 @@ void Call::end_call() {
                 BOOST_LOG_TRIVIAL(info) << "\tFinished Removing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
 
             } else {
-              BOOST_LOG_TRIVIAL(info) << "\tRemoving closing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+              //BOOST_LOG_TRIVIAL(info) << "\tRemoving closing Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
 
             }
             if (this->get_debug_recording() == true) {
@@ -146,14 +153,14 @@ bool Call::add_source(long src) {
     if (src_count < 1 ) {
         src_list[src_count] = call_source;
         src_count++;
-        if (this->recording){
+        if (state == recording){
         	BOOST_LOG_TRIVIAL(info) << "1st src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
         }
         return true;
     } else if ((src_count < 48) && (src_list[src_count-1].source != src)) {
         src_list[src_count] = call_source;
         src_count++;
-        if (this->recording){
+        if (state == recording){
         	BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << " Rec_num: " << this->recorder->num << std::endl;
         }
         return true;
@@ -166,17 +173,11 @@ void  Call::set_debug_recording(bool m) {
 bool  Call::get_debug_recording() {
 	return debug_recording;
 }
-void  Call::set_recording(bool m) {
-	recording = m;
-}
-bool  Call::get_recording() {
-	return recording;
-}
 
-void Call::set_state(State s){
+void Call::set_state(Call::State s){
   state = s;
 }
-State Call::get_state() {
+Call::State Call::get_state() {
   return state;
 }
 void  Call::set_encrypted(bool m) {
@@ -204,6 +205,9 @@ void  Call::update(TrunkMessage message) {
 }
 int  Call::since_last_update() {
 	return time(NULL) - last_update;
+}
+long Call::closing_elapsed() {
+	return time(NULL) - closing_time;
 }
 long  Call::elapsed() {
 	return time(NULL) - start_time;

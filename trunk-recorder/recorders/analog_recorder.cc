@@ -146,7 +146,7 @@ analog_recorder::~analog_recorder() {
 
 }
 
-void analog_recorder::get_state() {
+Recorder::State analog_recorder::get_state() {
 	return state;
 }
 

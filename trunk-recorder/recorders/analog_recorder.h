@@ -72,10 +72,9 @@ public:
 	long get_talkgroup();
 	double get_current_length();
 	bool is_active();
-	State get_state();
+	Recorder::State get_state();
 	int lastupdate();
 	long elapsed();
-	void close();
 	static bool logging;
 private:
 	double center, freq;
@@ -92,7 +91,7 @@ private:
 	//int num;
 
 	bool iam_logging;
-	State state;
+	Recorder::State state;
 	bool active;
 	std::vector<float> lpf_taps;
 	std::vector<float> resampler_taps;

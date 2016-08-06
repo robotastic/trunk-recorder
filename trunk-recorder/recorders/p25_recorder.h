@@ -85,18 +85,18 @@ public:
 
 	void tune_offset(double f);
 	void activate( Call *call, int n);
-std::vector<unsigned long> get_active_probe_offsets();
-std::vector<double> get_active_probe_delays();
-std::vector<unsigned long> get_last_probe_offsets();
-std::vector<double> get_last_probe_delays();
-void clear_probes();
+	std::vector<unsigned long> get_active_probe_offsets();
+	std::vector<double> get_active_probe_delays();
+	std::vector<unsigned long> get_last_probe_offsets();
+	std::vector<double> get_last_probe_delays();
+	void clear_probes();
 	void deactivate();
 	void close();
 	double get_freq();
 	int get_num();
 	double get_current_length();
 	bool is_active();
-	State get_state();
+	Recorder::State get_state();
 	int lastupdate();
 	long elapsed();
 	long closing_elapsed();
@@ -121,8 +121,7 @@ private:
 	//int num;
 
 	bool iam_logging;
-	State state;
-	bool active;
+	Recorder::State state;
 
 
 	//std::vector<gr_complex> lpf_coeffs;
