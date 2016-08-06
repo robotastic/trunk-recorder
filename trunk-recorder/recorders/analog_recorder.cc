@@ -151,8 +151,8 @@ Recorder::State analog_recorder::get_state() {
 }
 
 void analog_recorder::close() {
-	if (state == closing) {
-		state = inactive;
+	if (state == State::closing) {
+		state = State::inactive;
 		valve->set_enabled(false);
 		wav_sink->close();
 	} else {

@@ -19,7 +19,7 @@ class Recorder;
 
 class Call {
 public:
-		enum State { monitoring=0, recording=1, closing=2};
+		enum class State { monitoring=0, recording=1, closing=2};
 	Call( long t, double f, Config c);
 	Call( TrunkMessage message, Config c);
     ~Call();

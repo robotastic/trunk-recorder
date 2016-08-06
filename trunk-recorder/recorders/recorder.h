@@ -54,7 +54,7 @@ class Recorder
 {
 
 public:
-enum State { inactive=0, active=1, closing=2};
+enum class State { inactive=0, active=1, closing=2};
 	virtual void tune_offset(double f) {};
 	virtual void activate( Call *call, int n) {};
 	virtual void deactivate() {};
@@ -62,7 +62,7 @@ enum State { inactive=0, active=1, closing=2};
 	virtual double get_freq() {return 0;};
   virtual Source *get_source() {return NULL;};
 	virtual long get_talkgroup() {return 0;};
-	virtual Recorder::State get_state() {return inactive;};
+	virtual Recorder::State get_state() {return State::inactive;};
 	virtual bool is_active() {return false;};
 	virtual double get_current_length(){return 0;};
 	int num;

@@ -19,7 +19,7 @@ Call::Call(long t, double f, Config c) {
 	freq = f;
 	start_time = time(NULL);
 	last_update = time(NULL);
-  state = monitoring;
+  state = State::monitoring;
 	debug_recording = false;
   recorder = NULL;
 	tdma = false;
@@ -35,7 +35,7 @@ Call::Call(TrunkMessage message, Config c) {
 	freq = message.freq;
 	start_time = time(NULL);
 	last_update = time(NULL);
-  state = monitoring;
+  state = State::monitoring;
 	debug_recording = false;
   recorder = NULL;
 	tdma = message.tdma;
@@ -51,8 +51,8 @@ Call::~Call() {
 }
 
 void Call::close_call() {
-  if (state == recording) {
-    state = closing;
+  if (state == State::recording) {
+    state = State::closing;
     closing_time = time(NULL);
     this->get_recorder()->close();
   }  else {
@@ -62,7 +62,7 @@ void Call::close_call() {
 void Call::end_call() {
     char shell_command[200];
 
-            if (state == closing) {
+            if (state == State::closing) {
 
                 BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " << this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << "Elapsed: " << this->elapsed() << std::endl;
 
@@ -153,14 +153,14 @@ bool Call::add_source(long src) {
     if (src_count < 1 ) {
         src_list[src_count] = call_source;
         src_count++;
-        if (state == recording){
+        if (state == State::recording){
         	BOOST_LOG_TRIVIAL(info) << "1st src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
         }
         return true;
     } else if ((src_count < 48) && (src_list[src_count-1].source != src)) {
         src_list[src_count] = call_source;
         src_count++;
-        if (state == recording){
+        if (state == State::recording){
         	BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position << " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << " Rec_num: " << this->recorder->num << std::endl;
         }
         return true;
