@@ -202,7 +202,7 @@ std::vector<double> Source::get_mean_delay() {
 for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
 	p25_recorder_sptr rx = *it;
 
-	if (rx->is_active())
+	if (rx->get_state() != inactive)
 	{
 		/*std::vector<double> v = rx->get_active_probe_delays();
 		double sum = std::accumulate(v.begin(), v.end(), 0.0);

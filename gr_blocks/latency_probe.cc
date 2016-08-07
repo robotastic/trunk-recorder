@@ -152,6 +152,7 @@ std::vector<double> latency_probe::get_t_end(std::string key){
 void latency_probe::clear(std::string key){
 	pmt::pmt_t this_key( pmt::intern(key));
 	d_measurements[ this_key ] =  std::vector< latmes_t >();
+		d_measurements[ this_key ].clear(); // =  std::vector< latmes_t >();
 }
 void latency_probe::reset(){
     d_measurements.clear();

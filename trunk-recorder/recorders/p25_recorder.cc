@@ -261,9 +261,9 @@ if (!qpsk_mod) {
 	} else {
     connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
-		connect(prefilter, 0, arb_resampler, 0);
-		/*connect(prefilter, 0, tagger,0);
-		connect(tagger,0, arb_resampler, 0);*/
+		//connect(prefilter, 0, arb_resampler, 0);
+		connect(prefilter, 0, tagger,0);
+		connect(tagger,0, arb_resampler, 0);
 		connect(arb_resampler,0, agc,0);
 		connect(agc, 0, costas_clock, 0);
 		connect(costas_clock,0, diffdec, 0);
@@ -275,8 +275,8 @@ if (!qpsk_mod) {
 		//connect(active_probe,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
 		connect(converter, 0, wav_sink,0);
-		/*connect(converter, 0, last_probe,0);
-		connect(last_probe,0, wav_sink,0);*/
+		connect(converter, 0, last_probe,0);
+		connect(last_probe,0, wav_sink,0);
 
 	}
 
