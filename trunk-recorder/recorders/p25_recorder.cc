@@ -274,7 +274,7 @@ if (!qpsk_mod) {
 		//connect(slicer,0, active_probe,0);
 		//connect(active_probe,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
-		connect(converter, 0, wav_sink,0);
+		//connect(converter, 0, wav_sink,0);
 		connect(converter, 0, last_probe,0);
 		connect(last_probe,0, wav_sink,0);
 
