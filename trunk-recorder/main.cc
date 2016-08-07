@@ -463,10 +463,12 @@ void assign_recorder(TrunkMessage message) {
                                                 //it = calls.erase(it);
                                         } else {
                                                 ++it; // move on to the next one
+                                                call->update(message);
                                         }
 
                                         // This call is not being recorded, just update the Freq and move on
                                 } else {
+                                        call->update(message);
                                         call->set_freq(message.freq);
                                         call->set_tdma(message.tdma);
                                         ++it; // move on to the next one
@@ -475,6 +477,7 @@ void assign_recorder(TrunkMessage message) {
                                 // The freq hasn't changed
                         } else {
                                 ++it; // move on to the next one
+                                call->update(message);
                         }
 
                         // The talkgroup for the call does not match
@@ -508,8 +511,6 @@ void assign_recorder(TrunkMessage message) {
 
                 start_recorder(call, message);
                 calls.push_back(call);
-        } else {
-          call->update(message);
         }
 }
 
