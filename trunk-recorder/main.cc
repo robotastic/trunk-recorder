@@ -491,6 +491,8 @@ void assign_recorder(TrunkMessage message) {
                 call->end_call();
                 delete call;
                 it = calls.erase(it);
+              } else {
+                ++it; // move on to the next one
               }
             } else {
                 ++it; // move on to the next one
