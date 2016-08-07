@@ -365,11 +365,11 @@ int start_recorder(Call *call, TrunkMessage message) {
 
 
 void stop_inactive_recorders() {
-
+/*
   for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
         Source * source = *it;
         source->get_mean_delay();
-     }
+     }*/
 
         for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ) {
                 Call *call = *it;
