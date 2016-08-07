@@ -101,6 +101,9 @@ public:
 	long elapsed();
 	long closing_elapsed();
     Source *get_source();
+
+		void clear_total_produced();
+		long get_total_produced();
 	gr::msg_queue::sptr tune_queue;
 	gr::msg_queue::sptr traffic_queue;
 	gr::msg_queue::sptr rx_queue;

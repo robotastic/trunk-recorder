@@ -261,9 +261,9 @@ if (!qpsk_mod) {
 	} else {
     connect(self(),0, valve,0);
 		connect(valve,0, prefilter,0);
-		//connect(prefilter, 0, arb_resampler, 0);
-		connect(prefilter, 0, tagger,0);
-		connect(tagger,0, arb_resampler, 0);
+		connect(prefilter, 0, arb_resampler, 0);
+		//connect(prefilter, 0, tagger,0);
+		//connect(tagger,0, arb_resampler, 0);
 		connect(arb_resampler,0, agc,0);
 		connect(agc, 0, costas_clock, 0);
 		connect(costas_clock,0, diffdec, 0);
@@ -274,9 +274,9 @@ if (!qpsk_mod) {
 		//connect(slicer,0, active_probe,0);
 		//connect(active_probe,0, op25_frame_assembler,0);
 		connect(op25_frame_assembler, 0,  converter,0);
-		//connect(converter, 0, wav_sink,0);
-		connect(converter, 0, last_probe,0);
-		connect(last_probe,0, wav_sink,0);
+		connect(converter, 0, wav_sink,0);
+		//connect(converter, 0, last_probe,0);
+		//connect(last_probe,0, wav_sink,0);
 
 	}
 
@@ -303,6 +303,14 @@ std::vector<unsigned long> p25_recorder::get_active_probe_offsets(){
 			std::string key = *it;*/
 	return active_probe->get_offsets("latency0");
 
+}
+
+void p25_recorder::clear_total_produced() {
+	op25_frame_assembler->clear_total_produced();
+}
+
+long p25_recorder::get_total_produced() {
+	op25_frame_assembler->get_total_produced();
 }
 
 std::vector<double> p25_recorder::get_last_probe_delays(){

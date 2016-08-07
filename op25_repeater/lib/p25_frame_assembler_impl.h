@@ -48,6 +48,7 @@ namespace gr {
 	bool d_do_phase2_tdma;
 	p25p2_tdma p2tdma;
 	bool d_do_msgq;
+  long total_produced;
 	gr::msg_queue::sptr d_msg_queue;
 
   // internal functions
@@ -65,7 +66,8 @@ namespace gr {
      public:
       p25_frame_assembler_impl(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma);
       ~p25_frame_assembler_impl();
-
+      void clear_total_produced();
+      long get_total_produced();
       // Where all the action really happens
 
       int general_work(int noutput_items,

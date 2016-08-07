@@ -164,8 +164,15 @@ p25_frame_assembler_impl::general_work (int noutput_items,
     }
   }
   consume_each(ninput_items[0]);
+  total_produced = total_produced + amt_produce;
   // Tell runtime system how many output items we produced.
   return amt_produce;
+}
+void p25_frame_assembler_impl::clear_total_produced() {
+  total_produced = 0;
+}
+long p25_frame_assembler_impl::get_total_produced() {
+  return total_produced;
 }
 
   } /* namespace op25_repeater */
