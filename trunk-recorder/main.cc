@@ -371,7 +371,7 @@ void stop_inactive_recorders() {
         for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ) {
                 Call *call = *it;
                 if (( call->get_state() == closing) && call->is_finished()) {
-                        BOOST_LOG_TRIVIAL(info) << "stop_inactive_recorders";
+                        BOOST_LOG_TRIVIAL(info) << "Stop_inactive_recorders, it has been: " << call->closing_elapsed();
                         call->end_call();
                         delete call;
                         it = calls.erase(it);
@@ -446,7 +446,6 @@ void assign_recorder(TrunkMessage message) {
                 // Does the call have the same talkgroup
                 if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != closing)) {
                         call_found = true;
-                        call->update(message);
 
                         // Is the freq the same?
                         if (call->get_freq() != message.freq) {
@@ -509,6 +508,8 @@ void assign_recorder(TrunkMessage message) {
 
                 start_recorder(call, message);
                 calls.push_back(call);
+        } else {
+          call->update(message);
         }
 }
 
