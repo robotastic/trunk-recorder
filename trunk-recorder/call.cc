@@ -106,7 +106,17 @@ void Call::end_call() {
 
 }
 
-
+bool Call::is_finished() {
+  if (state == closing){
+    if (recorder) {
+      return recorder->is_finished();
+    } else {
+      return true;
+    }
+  } else {
+    return true;
+  }
+}
 void  Call::set_debug_recorder(Recorder *r) {
 	debug_recorder = r;
 }

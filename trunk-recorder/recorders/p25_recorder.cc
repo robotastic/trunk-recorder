@@ -304,13 +304,19 @@ std::vector<unsigned long> p25_recorder::get_active_probe_offsets(){
 	return active_probe->get_offsets("latency0");
 
 }
-
+bool p25_recorder::is_finished() {
+	if (op25_frame_assembler->get_total_produced() > 0) {
+		return false;
+	} else {
+		return true;
+	}
+}
 void p25_recorder::clear_total_produced() {
 	op25_frame_assembler->clear_total_produced();
 }
 
 long p25_recorder::get_total_produced() {
-	op25_frame_assembler->get_total_produced();
+	return op25_frame_assembler->get_total_produced();
 }
 
 std::vector<double> p25_recorder::get_last_probe_delays(){

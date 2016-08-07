@@ -204,7 +204,7 @@ for(std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it 
 
 	if (rx->get_state() != inactive)
 	{
-		std::cout << " - [ " << rx->get_total_produced() << ")]";
+		std::cout << " - [ " << rx->get_num() << " : ( "<< rx->get_total_produced() << " )]";
 		output = true;
 		rx->clear_total_produced();
 

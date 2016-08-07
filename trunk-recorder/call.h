@@ -26,6 +26,7 @@ public:
     ~Call();
     void end_call();
 		void close_call();
+		bool is_finished(); 
 	void set_debug_recorder(Recorder *r);
 	Recorder * get_debug_recorder();
 	void set_recorder(Recorder *r);

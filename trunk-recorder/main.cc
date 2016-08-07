@@ -366,14 +366,11 @@ int start_recorder(Call *call, TrunkMessage message) {
 
 void stop_inactive_recorders() {
 
-  for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-        Source * source = *it;
-        source->get_mean_delay();
-     }
+
 
         for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ) {
                 Call *call = *it;
-                if (( call->get_state() == closing) && (call->closing_elapsed()  > config.call_timeout)) {
+                if (( call->get_state() == closing) && call->is_finished()) {
                         BOOST_LOG_TRIVIAL(info) << "stop_inactive_recorders";
                         call->end_call();
                         delete call;
@@ -389,7 +386,10 @@ void stop_inactive_recorders() {
                         ++it;
                 }//if rx is active
         }//foreach loggers
-
+        for(vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+              Source * source = *it;
+              source->get_mean_delay();
+           }
 
 }
 
