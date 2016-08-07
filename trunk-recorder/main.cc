@@ -368,6 +368,7 @@ void stop_inactive_recorders() {
     for(vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
         if (( call->get_state() == closing) && (call->closing_elapsed()  > config.call_timeout)) {
+          BOOST_LOG_TRIVIAL(info) << "stop_inactive_recorders";
             call->end_call();
             delete call;
             it = calls.erase(it);
@@ -481,6 +482,7 @@ void assign_recorder(TrunkMessage message) {
             if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
               //BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
+              if (call->get_state() != closing) {
                 // if you are recording the call, stop
                 if (call->get_state() == recording) {
                     BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
@@ -489,6 +491,7 @@ void assign_recorder(TrunkMessage message) {
                 call->end_call();
                 delete call;
                 it = calls.erase(it);
+              }
             } else {
                 ++it; // move on to the next one
             }
