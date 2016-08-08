@@ -84,7 +84,7 @@ public:
 	~p25_recorder();
 
 	void tune_offset(double f);
-	void activate( Call *call, int n);
+	void start( Call *call, int n);
 	std::vector<unsigned long> get_active_probe_offsets();
 	std::vector<double> get_active_probe_delays();
 	std::vector<unsigned long> get_last_probe_offsets();

@@ -214,7 +214,7 @@ void analog_recorder::stop() {
 	else cout << "Unable to open file";
 }
 
-void analog_recorder::activate(Call *call, int n) {
+void analog_recorder::start(Call *call, int n) {
 
 	starttime = time(NULL);
 

@@ -124,7 +124,7 @@ void debug_recorder::stop() {
 	valve->set_enabled(false);
 }
 
-void debug_recorder::activate(Call *call, int n) {
+void debug_recorder::start(Call *call, int n) {
 
 	starttime = time(NULL);
 

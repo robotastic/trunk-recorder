@@ -71,7 +71,7 @@ void Call::close_call() {
   char shell_command[200];
 
   if (state == stopping) {
-    BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed() << " Stopping Elapsed: " << this->stopping_elapsed() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Removing Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed() << " Stopping Elapsed: " << this->stopping_elapsed();
     std::ofstream myfile(status_filename);
 
     if (myfile.is_open())

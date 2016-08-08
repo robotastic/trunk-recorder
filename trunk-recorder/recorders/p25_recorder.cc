@@ -384,18 +384,18 @@ State p25_recorder::get_state() {
 
 void p25_recorder::close() {
   if (state == stopping) {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
   } else {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping a non-stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
   }
 }
 
 void p25_recorder::stop() {
   if (state == active) {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
     state         = stopping;
     stopping_time = time(NULL);
@@ -403,7 +403,7 @@ void p25_recorder::stop() {
     /*valve->set_enabled(false);
        wav_sink->close();*/
   }       else {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
   }
 
   /*
@@ -455,7 +455,7 @@ void p25_recorder::stop() {
                   "wav_sink: \t" <<  wav_sink->max_output_buffer(0);*/
 }
 
-void p25_recorder::activate(Call *call, int n) {
+void p25_recorder::start(Call *call, int n) {
   if (state == inactive) {
     timestamp = time(NULL);
     starttime = time(NULL);
@@ -474,6 +474,6 @@ void p25_recorder::activate(Call *call, int n) {
     state = active;
     valve->set_enabled(true);
   } else {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Trying to Activate an Active Logger!!!";
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Trying to Start an Active Logger!!!";
   }
 }

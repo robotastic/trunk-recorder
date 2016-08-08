@@ -60,7 +60,7 @@ protected:
 public:
 	~debug_recorder();
 	void tune_offset(double f);
-	void activate( Call *call, int n);
+	void start( Call *call, int n);
 	void stop();
 	void close();
 	double get_freq();

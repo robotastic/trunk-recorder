@@ -361,7 +361,7 @@ int start_recorder(Call *call, TrunkMessage message) {
           source->get_device() << "\tSources: " << call->get_source_count() <<
           "\t Last Source: " << call_sources[call->get_source_count() - 1].source;
 
-          recorder->activate(call, total_recorders);
+          recorder->start(call, total_recorders);
           call->set_recorder(recorder);
           call->set_state(recording);
           recorder_found = true;
@@ -373,7 +373,7 @@ int start_recorder(Call *call, TrunkMessage message) {
         debug_recorder = source->get_debug_recorder();
 
         if (debug_recorder) {
-          debug_recorder->activate(call, total_recorders);
+          debug_recorder->start(call, total_recorders);
           call->set_debug_recorder(debug_recorder);
           call->set_debug_recording(true);
           recorder_found = true;
@@ -884,12 +884,12 @@ int main(void)
   (
     logging::trivial::severity >= logging::trivial::info
   );
-
-  /* boost::log::add_console_log(
+/*
+  logging::add_console_log(
      cout,
-     boost::log::keywords::format = "[%TimeStamp%]: %Message%",
-     boost::log::keywords::auto_flush = true
-     );*/
+     logging::keywords::format = "[%TimeStamp%]: %Message%",
+     logging::keywords::auto_flush = true
+   );*/
   tb              = gr::make_top_block("Trunking");
   msg_queue       = gr::msg_queue::make(100);
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
