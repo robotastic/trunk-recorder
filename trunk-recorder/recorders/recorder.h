@@ -59,7 +59,7 @@ public:
 
 	virtual void tune_offset(double f) {};
 	virtual void activate( Call *call, int n) {};
-	virtual void deactivate() {};
+	virtual void stop() {};
 	virtual void close() {};
 	virtual double get_freq() {return 0;};
   virtual Source *get_source() {return NULL;};

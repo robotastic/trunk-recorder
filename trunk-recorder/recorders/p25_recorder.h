@@ -90,7 +90,7 @@ public:
 	std::vector<unsigned long> get_last_probe_offsets();
 	std::vector<double> get_last_probe_delays();
 	void clear_probes();
-	void deactivate();
+	void stop();
 	void close();
 	double get_freq();
 	int get_num();
@@ -100,7 +100,7 @@ public:
 	State get_state();
 	int lastupdate();
 	long elapsed();
-	long closing_elapsed();
+	long stopping_elapsed();
     Source *get_source();
 
 		void clear_total_produced();
@@ -117,7 +117,7 @@ private:
 	long talkgroup;
 	time_t timestamp;
 	time_t starttime;
-	time_t closing_time;
+	time_t stopping_time;
 
   Source *source;
 	char filename[160];

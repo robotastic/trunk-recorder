@@ -113,7 +113,7 @@ void debug_recorder::tune_offset(double f) {
 	long offset_amount = (f - center);
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 }
-void debug_recorder::deactivate() {
+void debug_recorder::stop() {
 	BOOST_LOG_TRIVIAL(info) << "debug_recorder.cc: Deactivating Logger [ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 

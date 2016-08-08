@@ -73,56 +73,56 @@ p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::s
 
 class p25_trunking : public gr::hier_block2
 {
-	friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id);
+								friend p25_trunking_sptr make_p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id);
 protected:
-	p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id);
+								p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id);
 
 public:
-	~p25_trunking();
+								~p25_trunking();
 
-	void tune_offset(double f);
-	double get_freq();
+								void tune_offset(double f);
+								double get_freq();
 
-	gr::msg_queue::sptr tune_queue;
-	gr::msg_queue::sptr traffic_queue;
-	gr::msg_queue::sptr rx_queue;
-	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
+								gr::msg_queue::sptr tune_queue;
+								gr::msg_queue::sptr traffic_queue;
+								gr::msg_queue::sptr rx_queue;
+								//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 
 private:
-	double center, freq;
-    bool qpsk_mod;
-int sys_id;
-	std::vector<float> lpf_coeffs;
-	std::vector<float> arb_taps;
-	std::vector<float> sym_taps;
+								double center, freq;
+								bool qpsk_mod;
+								int sys_id;
+								std::vector<float> lpf_coeffs;
+								std::vector<float> arb_taps;
+								std::vector<float> sym_taps;
 
-freq_xlating_fft_filter_sptr prefilter;
+								freq_xlating_fft_filter_sptr prefilter;
 
-	/* GR blocks */
-	gr::filter::fir_filter_ccf::sptr lpf;
-	gr::filter::fir_filter_fff::sptr sym_filter;
+								/* GR blocks */
+								gr::filter::fir_filter_ccf::sptr lpf;
+								gr::filter::fir_filter_fff::sptr sym_filter;
 
-    gr::digital::diff_phasor_cc::sptr diffdec;
+								gr::digital::diff_phasor_cc::sptr diffdec;
 
-	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
-	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
-	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
+								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
+								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
+								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 
-	gr::analog::quadrature_demod_cf::sptr fm_demod;
-	gr::analog::feedforward_agc_cc::sptr agc;
+								gr::analog::quadrature_demod_cf::sptr fm_demod;
+								gr::analog::feedforward_agc_cc::sptr agc;
 
 
-	gr::blocks::short_to_float::sptr converter;
+								gr::blocks::short_to_float::sptr converter;
 
-	gr::blocks::multiply_const_ff::sptr rescale;
-	gr::blocks::multiply_const_ff::sptr baseband_amp;
-	gr::blocks::complex_to_arg::sptr to_float;
-	gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
-	gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+								gr::blocks::multiply_const_ff::sptr rescale;
+								gr::blocks::multiply_const_ff::sptr baseband_amp;
+								gr::blocks::complex_to_arg::sptr to_float;
+								gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
+								gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
 
-	gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-	gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+								gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
+								gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 };
 
 

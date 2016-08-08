@@ -151,12 +151,12 @@ State analog_recorder::get_state() {
 }
 
 void analog_recorder::close() {
-	if (state == closing) {
+	if (state == stopping) {
 		state = inactive;
 		valve->set_enabled(false);
 		wav_sink->close();
 	} else {
-		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping a non-stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	}
 }
@@ -192,7 +192,7 @@ void analog_recorder::tune_offset(double f) {
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 }
 
-void analog_recorder::deactivate() {
+void analog_recorder::stop() {
 
 	state = inactive;
 

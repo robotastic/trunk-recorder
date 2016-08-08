@@ -14,10 +14,10 @@
 #include <boost/intrusive_ptr.hpp>
 
 class Talkgroups {
-	std::vector<Talkgroup *> talkgroups;
+								std::vector<Talkgroup *> talkgroups;
 public:
-	Talkgroups();
-	void load_talkgroups(std::string filename);
-	Talkgroup *find_talkgroup(long tg);
+								Talkgroups();
+								void load_talkgroups(std::string filename);
+								Talkgroup *find_talkgroup(long tg);
 };
 #endif

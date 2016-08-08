@@ -227,7 +227,7 @@ costas_clock->set_max_output_buffer(4096);
 diffdec->set_max_output_buffer(4096);
 //prefilter->set_max_output_buffer(8192);
 this->set_max_output_buffer(4096);
-
+/*
 valve->set_min_output_buffer(0);
 to_float->set_min_output_buffer(0);
 rescale->set_min_output_buffer(0);
@@ -244,7 +244,7 @@ agc->set_min_output_buffer(0);
 costas_clock->set_min_output_buffer(0);
 diffdec->set_min_output_buffer(0);
 //prefilter->set_min_output_buffer(0);
-this->set_min_output_buffer(0);
+this->set_min_output_buffer(0);*/
 
 if (!qpsk_mod) {
         connect(self(),0, valve,0);
@@ -361,8 +361,8 @@ int p25_recorder::lastupdate() {
 	return time(NULL) - timestamp;
 }
 
-long p25_recorder::closing_elapsed() {
-	return time(NULL) - closing_time;
+long p25_recorder::stopping_elapsed() {
+	return time(NULL) - stopping_time;
 }
 long p25_recorder::elapsed() {
 	return time(NULL) - starttime;
@@ -381,22 +381,22 @@ State p25_recorder::get_state() {
 }
 
 void p25_recorder::close() {
-	if (state == closing) {
-		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+	if (state == stopping) {
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 		state = inactive;
 		valve->set_enabled(false);
 		wav_sink->close();
 	} else {
-		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping a non-stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 	}
 }
 
-void p25_recorder::deactivate() {
+void p25_recorder::stop() {
 	if (state == active) {
 		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Deactivating Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
-	state = closing;
-	closing_time = time(NULL);
+	state = stopping;
+	stopping_time = time(NULL);
 	/*valve->set_enabled(false);
 	wav_sink->close();*/
 }	else {

@@ -36,11 +36,11 @@ smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_
 
 class smartnet_trunking : public gr::hier_block2
 {
-	friend smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
+								friend smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
 protected:
-	smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
-	double  samp_rate, chan_freq, center_freq;
-	int sys_id;
+								smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
+								double samp_rate, chan_freq, center_freq;
+								int sys_id;
 
 };
 

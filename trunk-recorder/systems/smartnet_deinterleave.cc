@@ -76,7 +76,8 @@ smartnet_deinterleave::~smartnet_deinterleave ()
 }
 
 void smartnet_deinterleave::forecast (int noutput_items,
-                                      gr_vector_int &ninput_items_required) //estimate number of input samples required for noutput_items samples
+                                      gr_vector_int &ninput_items_required)
+																			//estimate number of input samples required for noutput_items samples
 {
 	int size = (noutput_items * 84) / 76;
 

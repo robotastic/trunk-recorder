@@ -1,6 +1,6 @@
 #ifndef STATE_H
 #define STATE_H
 
-enum State { monitoring=0, recording=1, inactive=0, active=1, closing=2};
+enum State { monitoring=0, recording=1, inactive=2, active=3, stopping=4};
 
 #endif

@@ -64,7 +64,7 @@ public:
 	~analog_recorder();
 	void tune_offset(double f);
 	void activate(Call *call, int n);
-	void deactivate();
+	void stop();
 	void close();
 	double get_freq();
     double get_squelch_in();
