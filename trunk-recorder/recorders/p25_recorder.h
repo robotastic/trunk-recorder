@@ -96,7 +96,7 @@ public:
 	int get_num();
 	double get_current_length();
 	bool is_active();
-	bool is_finished();
+	bool has_stopped();
 	State get_state();
 	int lastupdate();
 	long elapsed();

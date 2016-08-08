@@ -366,7 +366,7 @@ int start_recorder(Call *call, TrunkMessage message) {
           call->set_state(recording);
           recorder_found = true;
         } else {
-          BOOST_LOG_TRIVIAL(error) << "\tNot recording call";
+          // not recording call either because the priority was too low or no recorders were available
           return 0;
         }
 
@@ -406,7 +406,7 @@ void stop_inactive_recorders() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
-    if ((call->get_state() == stopping) && call->is_finished()) {
+    if ((call->get_state() == stopping) && call->has_stopped()) {
       call->close_call();
       delete call;
       it = calls.erase(it);
@@ -423,12 +423,12 @@ void stop_inactive_recorders() {
       ++it;
     } // if rx is active
   }   // foreach loggers
-
+/*
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end();
        it++) {
     Source *source = *it;
     source->get_mean_delay();
-  }
+  }*/
 }
 
 int retune_recorder(TrunkMessage message, Call *call) {
@@ -628,9 +628,7 @@ void update_recorder(TrunkMessage message) {
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-            BOOST_LOG_TRIVIAL(info) <<
-            "\tUpdate needed a new source, but I didn 't care
-";
+            BOOST_LOG_TRIVIAL(info) << "\tUpdate needed a new source, but I didn 't care";
 
             /*call->close_call();
                delete call;

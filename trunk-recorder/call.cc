@@ -6,8 +6,7 @@ void Call::create_filename() {
 
   std::stringstream path_stream;
 
-  path_stream << this->config.capture_dir <<  "/" << 1900 + ltm->tm_year << "/" <<
-  1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  path_stream << this->config.capture_dir <<  "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
   boost::filesystem::create_directories(path_stream.str());
   sprintf(filename,        "%s/%ld-%ld_%g.wav",
@@ -64,8 +63,7 @@ void Call::stop_call() {
     stopping_time = time(NULL);
     this->get_recorder()->stop();
   }  else {
-    BOOST_LOG_TRIVIAL(info) << "\tStopping stopping Call \tTG: " <<
-    this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "\tStopping stopping Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
   }
 }
 
@@ -73,11 +71,7 @@ void Call::close_call() {
   char shell_command[200];
 
   if (state == stopping) {
-    BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " <<
-    this->get_talkgroup() << "\tLast Update: " << this->since_last_update() <<
-    " Call Elapsed: " << this->elapsed() << " Stopping Elapsed: " <<
-    this->stopping_elapsed() << std::endl;
-
+    BOOST_LOG_TRIVIAL(info) << "\tRemoving Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed() << " Stopping Elapsed: " << this->stopping_elapsed() << std::endl;
     std::ofstream myfile(status_filename);
 
     if (myfile.is_open())
@@ -107,8 +101,6 @@ void Call::close_call() {
     if (this->config.upload_server != "") {
       send_call(this, config);
     }
-    BOOST_LOG_TRIVIAL(info) << "\tFinished Removing Call \tTG: " <<
-    this->get_talkgroup() << "\tElapsed: " << this->elapsed() << std::endl;
   } else {
     // BOOST_LOG_TRIVIAL(info) << "\tRemoving stopping Call \tTG: " <<
     // this->get_talkgroup() << "\tElapsed: " << this->elapsed();
@@ -122,10 +114,12 @@ void Call::close_call() {
   // "\tElapsed: " << call->elapsed();
 }
 
-bool Call::is_finished() {
+bool Call::has_stopped() {
   if (state == stopping) {
     if (recorder) {
-      return recorder->is_finished();
+      bool result = recorder->has_stopped();
+      recorder->clear_total_produced();
+      return result;
     } else {
       return true;
     }
@@ -188,7 +182,7 @@ bool Call::add_source(long src) {
 
     if (state == recording) {
       BOOST_LOG_TRIVIAL(info) << "1st src: " << src << " Pos: " << position <<
-      " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
+        " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
     }
     return true;
   } else if ((src_count < 48) && (src_list[src_count - 1].source != src)) {
@@ -197,8 +191,8 @@ bool Call::add_source(long src) {
 
     if (state == recording) {
       BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position <<
-      " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup <<
-      " Rec_num: " << this->recorder->num << std::endl;
+        " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup <<
+        " Rec_num: " << this->recorder->num << std::endl;
     }
     return true;
   }
