@@ -371,7 +371,6 @@ void stop_inactive_recorders() {
         for(vector<Call *>::iterator it = calls.begin(); it != calls.end(); ) {
                 Call *call = *it;
                 if (( call->get_state() == closing) && call->is_finished()) {
-                        BOOST_LOG_TRIVIAL(info) << "Stop_inactive_recorders, it has been: " << call->closing_elapsed();
                         call->end_call();
                         delete call;
                         it = calls.erase(it);
@@ -455,34 +454,31 @@ void assign_recorder(TrunkMessage message) {
 
                                         int retuned = retune_recorder(message, call);
                                         if (!retuned) {
-                                                BOOST_LOG_TRIVIAL(info) << "\tNew source needed, unable ";
                                                 call_found = false;
                                                 ++it;
-                                                //call->end_call();
-                                                //delete call;
-                                                //it = calls.erase(it);
                                         } else {
                                                 ++it; // move on to the next one
                                                 call->update(message);
                                         }
 
-                                        // This call is not being recorded, just update the Freq and move on
                                 } else {
+                                  // This call is not being recorded, just update the Freq and move on
                                         call->update(message);
                                         call->set_freq(message.freq);
                                         call->set_tdma(message.tdma);
                                         ++it; // move on to the next one
                                 }
 
-                                // The freq hasn't changed
+
                         } else {
+                          // The freq hasn't changed
                                 ++it; // move on to the next one
                                 call->update(message);
                         }
 
-                        // The talkgroup for the call does not match
-                } else {
 
+                } else {
+                      // The talkgroup for the call does not match
                         // check is the freq is the same as the one being used by the call
                         if ((call->get_freq() == message.freq) && (call->get_tdma() == message.tdma)) {
                                 //BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
