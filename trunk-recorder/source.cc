@@ -179,7 +179,17 @@ Recorder * Source::get_debug_recorder()
   // Available";
   return NULL;
 }
+void Source::print_recorders() {
+  BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ]  ";
+  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
+       it != digital_recorders.end(); it++) {
+    p25_recorder_sptr rx = *it;
 
+
+
+      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped();
+  }
+}
 void Source::clean_recorders() {
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
@@ -187,8 +197,7 @@ void Source::clean_recorders() {
 
     if ((rx->get_state() == stopping) && (rx->stopping_elapsed() > 60)) {
       BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ] Really old recorder ";
-      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped() << " Freq: " <<
-      rx->get_freq();
+      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped() << " Freq: " << rx->get_freq();
       rx->close();
     }
   }

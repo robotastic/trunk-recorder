@@ -60,14 +60,17 @@ void Call::stop_call() {
     stopping_time = time(NULL);
     this->get_recorder()->stop();
   }  else {
-    BOOST_LOG_TRIVIAL(info) << "\tStopping stopping Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(error) << "\tStopping stopping Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
   }
 }
 
 void Call::close_call() {
   char shell_command[200];
 
-  if (state == stopping) {
+  if (state == recording) {
+    BOOST_LOG_TRIVIAL(error) << "Closing a recording call";
+  }
+  if ((state == stopping) || (state == recording)) {
     BOOST_LOG_TRIVIAL(info) << "Removing Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed() << " Stopping Elapsed: " << this->stopping_elapsed();
     std::ofstream myfile(status_filename);
     Call_Source *wav_src_list = get_recorder()->get_source_list();
@@ -102,17 +105,11 @@ void Call::close_call() {
     }
 
     int rc = system(shell_command);
-  } else {
-    // BOOST_LOG_TRIVIAL(info) << "\tRemoving stopping Call \tTG: " <<
-    // this->get_talkgroup() << "\tElapsed: " << this->elapsed();
   }
 
   if (this->get_debug_recording() == true) {
     this->get_debug_recorder()->stop();
   }
-
-  // BOOST_LOG_TRIVIAL(trace) << "\tRemoving TG: " << call->get_talkgroup() <<
-  // "\tElapsed: " << call->elapsed();
 }
 
 bool Call::has_stopped() {
@@ -120,17 +117,13 @@ bool Call::has_stopped() {
     if (recorder) {
       bool result = recorder->has_stopped();
       recorder->clear_total_produced();
-      if (result>0) {
-        return false;
-      } else {
-        return true;
-      }
+      return result;
     } else {
-      BOOST_LOG_TRIVIAL(trace) << "non-stopping stopped on non-stopping recorder";
+      BOOST_LOG_TRIVIAL(error) << "checking has_stopped on a non-recording call";
       return true;
     }
   } else {
-    BOOST_LOG_TRIVIAL(trace) << "Checking stopped on non-stopping recorder";
+    BOOST_LOG_TRIVIAL(error) << "Checking has_stopped on non-stopping call";
     return true;
   }
 }

@@ -81,6 +81,7 @@ private:
 	long samp_rate;
 	time_t timestamp;
 	time_t starttime;
+	time_t stopping_time;
 	char filename[160];
 
 	//int num;

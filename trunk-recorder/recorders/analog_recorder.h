@@ -75,6 +75,7 @@ public:
 	State get_state();
 	int lastupdate();
 	long elapsed();
+	long stopping_elapsed();
 	static bool logging;
 private:
 	double center, freq;
@@ -84,6 +85,7 @@ private:
     double squelch_db;
 	time_t timestamp;
 	time_t starttime;
+	time_t stopping_time;
 	char filename[160];
 	char status_filename[160];
 	char raw_filename[160];

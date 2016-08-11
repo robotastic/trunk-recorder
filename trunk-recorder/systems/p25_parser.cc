@@ -160,7 +160,6 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk) {
       os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tsg " << std::setw(7) << sg  << "\tTDMA " << get_tdma_slot(ch) <<
       "\tsa " << sa;
       message.meta = os.str();
-      BOOST_LOG_TRIVIAL(error) << os;
     }
     else {
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);

@@ -396,7 +396,7 @@ void p25_recorder::close() {
     valve->set_enabled(false);
     wav_sink->close();
   } else {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
   }
 }
 
@@ -406,7 +406,7 @@ void p25_recorder::stop() {
     state         = stopping;
     stopping_time = time(NULL);
   }       else {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
   }
 
   /*
@@ -477,6 +477,6 @@ void p25_recorder::start(Call *call, int n) {
     state = active;
     valve->set_enabled(true);
   } else {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Trying to Start an Active Logger!!!";
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an Active Logger!!!";
   }
 }

@@ -156,7 +156,7 @@ void analog_recorder::close() {
 		valve->set_enabled(false);
 		wav_sink->close();
 	} else {
-		BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping a non-stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+		BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping a non-stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	}
 }
@@ -181,6 +181,17 @@ double analog_recorder::get_freq() {
 Source *analog_recorder::get_source() {
     return source;
 }
+int analog_recorder::lastupdate() {
+  return time(NULL) - timestamp;
+}
+
+long analog_recorder::stopping_elapsed() {
+  return time(NULL) - stopping_time;
+}
+
+long analog_recorder::elapsed() {
+  return time(NULL) - starttime;
+}
 
 double analog_recorder::get_current_length() {
 	return wav_sink->length_in_seconds();
@@ -193,25 +204,13 @@ void analog_recorder::tune_offset(double f) {
 }
 
 void analog_recorder::stop() {
-
-	state = inactive;
-
-	valve->set_enabled(false);
-
-	wav_sink->close();
-
-	ofstream myfile (status_filename);
-	if (myfile.is_open())
-	{
-		myfile << "{\n";
-		myfile << "\"freq\": " << freq << ",\n";
-		myfile << "\"num\": " << num << ",\n";
-		myfile << "\"talkgroup\": " << talkgroup << ",\n";
-		myfile << "\"mode\": \"analog\" \n";
-		myfile << "}\n";
-		myfile.close();
-	}
-	else cout << "Unable to open file";
+	if (state == active) {
+    BOOST_LOG_TRIVIAL(info) << "analog_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    state         = stopping;
+    stopping_time = time(NULL);
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+  }
 }
 
 void analog_recorder::start(Call *call, int n) {
