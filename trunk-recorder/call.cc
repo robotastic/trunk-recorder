@@ -32,7 +32,6 @@ Call::Call(long t, double f, Config c) {
   tdma            = false;
   encrypted       = false;
   emergency       = false;
-  src_count       = 0;
   this->create_filename();
 }
 
@@ -48,9 +47,7 @@ Call::Call(TrunkMessage message, Config c) {
   tdma            = message.tdma;
   encrypted       = message.encrypted;
   emergency       = message.emergency;
-  src_count       = 0;
   this->create_filename();
-  this->add_source(message.source);
 }
 
 Call::~Call() {
@@ -73,6 +70,8 @@ void Call::close_call() {
   if (state == stopping) {
     BOOST_LOG_TRIVIAL(info) << "Removing Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed() << " Stopping Elapsed: " << this->stopping_elapsed();
     std::ofstream myfile(status_filename);
+    Call_Source *wav_src_list = get_recorder()->get_source_list();
+    int wav_src_count = get_recorder()->get_source_count();
 
     if (myfile.is_open())
     {
@@ -83,11 +82,11 @@ void Call::close_call() {
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
       myfile << "\"srcList\": [ ";
 
-      for (int i = 0; i < this->src_count; i++) {
+      for (int i = 0; i < wav_src_count; i++) {
         if (i != 0) {
-          myfile << ", " <<  this->src_list[i].source;
+          myfile << ", " <<  wav_src_list[i].source;
         } else {
-          myfile << this->src_list[i].source;
+          myfile << wav_src_list[i].source;
         }
       }
       myfile << " ]\n";
@@ -95,12 +94,14 @@ void Call::close_call() {
       myfile.close();
     }
     sprintf(shell_command, "./encode-upload.sh %s &", this->get_filename());
+
     this->get_recorder()->close();
-    int rc = system(shell_command);
 
     if (this->config.upload_server != "") {
       send_call(this, config);
     }
+
+    int rc = system(shell_command);
   } else {
     // BOOST_LOG_TRIVIAL(info) << "\tRemoving stopping Call \tTG: " <<
     // this->get_talkgroup() << "\tElapsed: " << this->elapsed();
@@ -119,11 +120,17 @@ bool Call::has_stopped() {
     if (recorder) {
       bool result = recorder->has_stopped();
       recorder->clear_total_produced();
-      return result;
+      if (result>0) {
+        return false;
+      } else {
+        return true;
+      }
     } else {
+      BOOST_LOG_TRIVIAL(trace) << "non-stopping stopped on non-stopping recorder";
       return true;
     }
   } else {
+    BOOST_LOG_TRIVIAL(trace) << "Checking stopped on non-stopping recorder";
     return true;
   }
 }
@@ -157,46 +164,11 @@ long Call::get_talkgroup() {
 }
 
 Call_Source * Call::get_source_list() {
-  return src_list;
+  return get_recorder()->get_source_list();
 }
 
 long Call::get_source_count() {
-  return src_count;
-}
-
-bool Call::add_source(long src) {
-  double position = 0;
-
-  if (src == 0) {
-    return false;
-  }
-
-  if (recorder != NULL) {
-    position = recorder->get_current_length();
-  }
-  Call_Source call_source = { src, position };
-
-  if (src_count < 1) {
-    src_list[src_count] = call_source;
-    src_count++;
-
-    if (state == recording) {
-      BOOST_LOG_TRIVIAL(info) << "1st src: " << src << " Pos: " << position <<
-        " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup << std::endl;
-    }
-    return true;
-  } else if ((src_count < 48) && (src_list[src_count - 1].source != src)) {
-    src_list[src_count] = call_source;
-    src_count++;
-
-    if (state == recording) {
-      BOOST_LOG_TRIVIAL(info) << "adding src: " << src << " Pos: " << position <<
-        " Elapsed:  " << this->elapsed() << " TG: " << this->talkgroup <<
-        " Rec_num: " << this->recorder->num << std::endl;
-    }
-    return true;
-  }
-  return false;
+  return get_recorder()->get_source_count();
 }
 
 void Call::set_debug_recording(bool m) {
@@ -240,7 +212,6 @@ int Call::get_tdma() {
 }
 
 void Call::update(TrunkMessage message) {
-  this->add_source(message.source);
   last_update = time(NULL);
 }
 

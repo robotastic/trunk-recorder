@@ -50,6 +50,8 @@ class LATENCY_API latency_probe : public gr::sync_block
     std::vector<pmt::pmt_t> d_keys;
     int d_itemsize;
     std::map< pmt::pmt_t, std::vector< latmes_t  > > d_measurements;
+
+		boost::mutex d_mutex;
  public:
 	~latency_probe ();
 	int work (int noutput_items,

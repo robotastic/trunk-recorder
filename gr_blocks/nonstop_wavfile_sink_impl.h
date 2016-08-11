@@ -36,14 +36,19 @@ private:
 	unsigned d_sample_rate;
 	int d_nchans;
 	unsigned d_sample_count;
+	int d_src_count;
 	int d_bytes_per_sample;
 	int d_max_sample_val;
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
+	long curr_src_id;
   char current_filename[255];
+	Call_Source src_list[50];
 	FILE *d_fp;
 	boost::mutex d_mutex;
+
+	bool add_source(long src, double position);
 
 	/*!
 	 * \brief Convert a sample value within [-1;+1] to a corresponding
@@ -86,7 +91,8 @@ char *get_filename();
 	unsigned int sample_rate();
 
 	double length_in_seconds();
-
+	Call_Source * get_source_list();
+	int get_source_count();
 	int work(int noutput_items,
 	         gr_vector_const_void_star &input_items,
 	         gr_vector_void_star &output_items);

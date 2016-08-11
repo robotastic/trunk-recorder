@@ -1,4 +1,5 @@
 /* -*- c++ -*- */
+
 /*
  * Copyright 2004,2006-2011,2013 Free Software Foundation, Inc.
  *
@@ -21,8 +22,8 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+# include "config.h"
+#endif // ifdef HAVE_CONFIG_H
 
 #include "nonstop_wavfile_sink_impl.h"
 #include "nonstop_wavfile_sink.h"
@@ -38,284 +39,337 @@
 
 // win32 (mingw/msvc) specific
 #ifdef HAVE_IO_H
-#include <io.h>
-#endif
+# include <io.h>
+#endif // ifdef HAVE_IO_H
 #ifdef O_BINARY
-#define OUR_O_BINARY O_BINARY
-#else
-#define OUR_O_BINARY 0
-#endif
+# define OUR_O_BINARY O_BINARY
+#else // ifdef O_BINARY
+# define OUR_O_BINARY 0
+#endif // ifdef O_BINARY
 
 // should be handled via configure
 #ifdef O_LARGEFILE
-#define OUR_O_LARGEFILE O_LARGEFILE
-#else
-#define OUR_O_LARGEFILE 0
-#endif
+# define OUR_O_LARGEFILE O_LARGEFILE
+#else // ifdef O_LARGEFILE
+# define OUR_O_LARGEFILE 0
+#endif // ifdef O_LARGEFILE
 
 namespace gr {
 namespace blocks {
-
 nonstop_wavfile_sink::sptr
-nonstop_wavfile_sink::make(const char *filename,
-                           int n_channels,
+nonstop_wavfile_sink::make(const char  *filename,
+                           int          n_channels,
                            unsigned int sample_rate,
-                           int bits_per_sample)
+                           int          bits_per_sample)
 {
-	return gnuradio::get_initial_sptr
-	       (new nonstop_wavfile_sink_impl(filename, n_channels,
-	                                      sample_rate, bits_per_sample));
+  return gnuradio::get_initial_sptr
+           (new nonstop_wavfile_sink_impl(filename, n_channels,
+                                          sample_rate, bits_per_sample));
 }
 
-nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char *filename,
-        int n_channels,
-        unsigned int sample_rate,
-        int bits_per_sample)
-	: sync_block("nonstop_wavfile_sink",
-	             io_signature::make(1, n_channels, sizeof(float)),
-	             io_signature::make(0, 0, 0)),
-	  d_sample_rate(sample_rate), d_nchans(n_channels),
-	  d_fp(0)
+nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char  *filename,
+                                                     int          n_channels,
+                                                     unsigned int sample_rate,
+                                                     int          bits_per_sample)
+  : sync_block("nonstop_wavfile_sink",
+               io_signature::make(1, n_channels, sizeof(float)),
+               io_signature::make(0, 0, 0)),
+  d_sample_rate(sample_rate), d_nchans(n_channels),
+  d_fp(0)
 {
-	if(bits_per_sample != 8 && bits_per_sample != 16) {
-		throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
-	}
-	d_bytes_per_sample = bits_per_sample / 8;
+  if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
+    throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
+  }
+  d_bytes_per_sample = bits_per_sample / 8;
 
 
-	if(!open(filename)) {
-		throw std::runtime_error("can't open file");
-	}
-
+  if (!open(filename)) {
+    throw std::runtime_error("can't open file");
+  }
 }
-char * nonstop_wavfile_sink_impl::get_filename(){
+
+char * nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
 }
+
 bool
-nonstop_wavfile_sink_impl::open(const char* filename)
+nonstop_wavfile_sink_impl::open(const char *filename)
 {
-    int d_first_sample_pos;
-    unsigned d_samples_per_chan;
-	gr::thread::scoped_lock guard(d_mutex);
+  int d_first_sample_pos;
+  unsigned d_samples_per_chan;
+  gr::thread::scoped_lock guard(d_mutex);
 
 
+  // we use the open system call to get access to the O_LARGEFILE flag.
+  //  O_APPEND|
+  int fd;
 
-	// we use the open system call to get access to the O_LARGEFILE flag.  O_APPEND|
-	int fd;
-	if((fd = ::open(filename,
-	                O_RDWR|O_CREAT|OUR_O_LARGEFILE|OUR_O_BINARY,
-	                0664)) < 0) {
-		perror(filename);
+  if ((fd = ::open(filename,
+                   O_RDWR | O_CREAT | OUR_O_LARGEFILE | OUR_O_BINARY,
+                   0664)) < 0) {
+    perror(filename);
     std::cout << "wav error opening: " << filename << std::endl;
-		return false;
-	}
+    return false;
+  }
 
-	if(d_fp) {    // if we've already got a new one open, close it
-    std::cout << "d_fp alread open, closing "<< d_fp << " more" << current_filename << " for " << filename << std::endl;
-		//fclose(d_fp);
-		//d_fp = NULL;
-	}
+  if (d_fp) { // if we've already got a new one open, close it
+    std::cout << "d_fp alread open, closing " << d_fp << " more" << current_filename << " for " << filename << std::endl;
+
+    // fclose(d_fp);
+    // d_fp = NULL;
+  }
   strcpy(current_filename, filename);
 
-	if((d_fp = fdopen (fd, "rb+")) == NULL) {
-		perror(filename);
-		::close(fd);  // don't leak file descriptor if fdopen fails.
+  if ((d_fp = fdopen(fd, "rb+")) == NULL) {
+    perror(filename);
+    ::close(fd); // don't leak file descriptor if fdopen fails.
     std::cout << "wav open failed" << std::endl;
-		return false;
-	}
+    return false;
+  }
 
+  d_src_count = 0;
+  curr_src_id = 0;
 
+  // Scan headers, check file validity
+  if (wavheader_parse(d_fp,
+                      d_sample_rate,
+                      d_nchans,
+                      d_bytes_per_sample,
+                      d_first_sample_pos,
+                      d_samples_per_chan)) {
+    d_sample_count = (unsigned)d_samples_per_chan * d_nchans;
 
-      // Scan headers, check file validity
-      if(wavheader_parse(d_fp,
-			  d_sample_rate,
-			  d_nchans,
-			  d_bytes_per_sample,
-			  d_first_sample_pos,
-			  d_samples_per_chan)) {
+    // std::cout << "Wav: " << filename << " Existing Wav Sample Count: " <<
+    // d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " <<
+    // d_samples_per_chan <<std::endl;
+    // fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
+    fseek(d_fp, 0, SEEK_END);
+  } else {
+    d_sample_count = 0;
 
+    // you have to rewind the d_new_fp because the read failed.
+    if (fseek(d_fp, 0, SEEK_SET) != 0) {
+      std::cout << "Error rewinding " << std::endl;
+      return false;
+    }
 
-          d_sample_count = (unsigned) d_samples_per_chan * d_nchans;
-          //std::cout << "Wav: " << filename << " Existing Wav Sample Count: " << d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " << d_samples_per_chan <<std::endl;
-          //fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
-          fseek(d_fp, 0, SEEK_END);
+    // std::cout << "Adding Wav header, bytes per sample: " <<
+    // d_bytes_per_sample << std::endl;
+    if (!wavheader_write(d_fp,
+                         d_sample_rate,
+                         d_nchans,
+                         d_bytes_per_sample)) {
+      fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
+      exit(-1);
+    }
+  }
 
-      } else {
-          	d_sample_count = 0;
+  if (d_bytes_per_sample == 1) {
+    d_max_sample_val  = UCHAR_MAX;
+    d_min_sample_val  = 0;
+    d_normalize_fac   = d_max_sample_val / 2;
+    d_normalize_shift = 1;
+  }
+  else if (d_bytes_per_sample == 2) {
+    d_max_sample_val  = SHRT_MAX;
+    d_min_sample_val  = SHRT_MIN;
+    d_normalize_fac   = d_max_sample_val;
+    d_normalize_shift = 0;
+  }
 
-            // you have to rewind the d_new_fp because the read failed.
-          if (fseek(d_fp, 0, SEEK_SET) != 0) {
-            std::cout << "Error rewinding " << std::endl;
-		        return false;
-	       }
-
-         //std::cout << "Adding Wav header, bytes per sample: " << d_bytes_per_sample << std::endl;
-        if(!wavheader_write(d_fp,
-	                    d_sample_rate,
-	                    d_nchans,
-	                    d_bytes_per_sample)) {
-		      fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
-		      exit(-1);
-	       }
-      }
-
-      if(d_bytes_per_sample == 1) {
-    		d_max_sample_val = UCHAR_MAX;
-    		d_min_sample_val = 0;
-    		d_normalize_fac  = d_max_sample_val/2;
-    		d_normalize_shift = 1;
-    	}
-    	else if(d_bytes_per_sample == 2) {
-    		d_max_sample_val = SHRT_MAX;
-    		d_min_sample_val = SHRT_MIN;
-    		d_normalize_fac  = d_max_sample_val;
-    		d_normalize_shift = 0;
-    	}
-
-	return true;
+  return true;
 }
 
 void
 nonstop_wavfile_sink_impl::close()
 {
-	gr::thread::scoped_lock guard(d_mutex);
+  gr::thread::scoped_lock guard(d_mutex);
 
-	if(!d_fp){
+  if (!d_fp) {
     std::cout << "wav error closing file" << std::endl;
-		return;
+    return;
   }
 
-	close_wav();
+  close_wav();
 }
 
 void
 nonstop_wavfile_sink_impl::close_wav()
 {
-	unsigned int byte_count = d_sample_count * d_bytes_per_sample;
+  unsigned int byte_count = d_sample_count * d_bytes_per_sample;
 
   wavheader_complete(d_fp, byte_count);
 
-	fclose(d_fp);
-	d_fp = NULL;
-  //std::cout <<  "Closing wav File - byte count: " << byte_count << " samples: " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
+  fclose(d_fp);
+  d_fp = NULL;
 
+  // std::cout <<  "Closing wav File - byte count: " << byte_count << " samples:
+  // " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl()
 {
-	close();
+  close();
 }
 
 bool nonstop_wavfile_sink_impl::stop()
 {
-
-
-	return true;
+  return true;
 }
 
 int
-nonstop_wavfile_sink_impl::work(int noutput_items,
-                                gr_vector_const_void_star &input_items,
-                                gr_vector_void_star &output_items)
+nonstop_wavfile_sink_impl::work(int                        noutput_items,
+                                gr_vector_const_void_star& input_items,
+                                gr_vector_void_star      & output_items)
 {
-	float **in = (float**)&input_items[0];
-	int n_in_chans = input_items.size();
+  float **in         = (float **)&input_items[0];
+  int     n_in_chans = input_items.size();
 
-	short int sample_buf_s;
+  short int sample_buf_s;
 
-	int nwritten;
+  int nwritten;
 
-	gr::thread::scoped_lock guard(d_mutex);    // hold mutex for duration of this block
+  gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
+                                          // block
 
-	if(!d_fp)         // drop output on the floor
+  if (!d_fp)                              // drop output on the floor
   {
     std::cout << "Wav - Dropping items, no fp: " << noutput_items << std::endl;
-		return noutput_items;
+    return noutput_items;
   }
-	for(nwritten = 0; nwritten < noutput_items; nwritten++) {
-		for(int chan = 0; chan < d_nchans; chan++) {
-			// Write zeros to channels which are in the WAV file
-			// but don't have any inputs here
-			if(chan < n_in_chans) {
-				sample_buf_s =
-				    convert_to_short(in[chan][nwritten]);
-			}
-			else {
-				sample_buf_s = 0;
-			}
+  std::vector<gr::tag_t> tags;
+  pmt::pmt_t this_key(pmt::intern("src_id"));
+  get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
-			wav_write_sample(d_fp, sample_buf_s, d_bytes_per_sample);
+  for (int i = 0; i < tags.size(); i++) {
+    if (pmt::eq(this_key, tags[i].key)) {
+      long src_id  = pmt::to_long(tags[i].value);
+      unsigned pos = d_sample_count + ( tags[i].offset - nitems_read(0));
+      double   sec = (double)pos  / (double)d_sample_rate;
+      if (curr_src_id != src_id) {
+        add_source(src_id, sec);
+        std::cout << " [" << i << "]-[ " << src_id << " : Pos - "<< pos<< " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+        curr_src_id = src_id;
+      }
+    }
+  }
+  //std::cout << std::endl;
 
-			if(feof(d_fp) || ferror(d_fp)) {
-				fprintf(stderr, "[%s] file i/o error\n", __FILE__);
-				close();
-				exit(-1);
-			}
-			d_sample_count++;
-		}
-	}
+  for (nwritten = 0; nwritten < noutput_items; nwritten++) {
+    for (int chan = 0; chan < d_nchans; chan++) {
+      // Write zeros to channels which are in the WAV file
+      // but don't have any inputs here
+      if (chan < n_in_chans) {
+        sample_buf_s =
+          convert_to_short(in[chan][nwritten]);
+      }
+      else {
+        sample_buf_s = 0;
+      }
 
-   // fflush (d_fp);  // this is added so unbuffered content is written.
+      wav_write_sample(d_fp, sample_buf_s, d_bytes_per_sample);
 
-	return nwritten;
+      if (feof(d_fp) || ferror(d_fp)) {
+        fprintf(stderr, "[%s] file i/o error\n", __FILE__);
+        close();
+        exit(-1);
+      }
+      d_sample_count++;
+    }
+  }
+
+  // fflush (d_fp);  // this is added so unbuffered content is written.
+
+  return nwritten;
 }
 
 short int
 nonstop_wavfile_sink_impl::convert_to_short(float sample)
 {
-	sample += d_normalize_shift;
-	sample *= d_normalize_fac;
-	if(sample > d_max_sample_val) {
-		sample = d_max_sample_val;
-	}
-	else if(sample < d_min_sample_val) {
-		sample = d_min_sample_val;
-	}
+  sample += d_normalize_shift;
+  sample *= d_normalize_fac;
 
-	return (short int)boost::math::iround(sample);
+  if (sample > d_max_sample_val) {
+    sample = d_max_sample_val;
+  }
+  else if (sample < d_min_sample_val) {
+    sample = d_min_sample_val;
+  }
+
+  return (short int)boost::math::iround(sample);
+}
+
+Call_Source * nonstop_wavfile_sink_impl::get_source_list() {
+  return src_list;
+}
+
+int nonstop_wavfile_sink_impl::get_source_count() {
+  return d_src_count;
+}
+
+bool nonstop_wavfile_sink_impl::add_source(long src, double position) {
+  if (src == 0) {
+    return false;
+  }
+
+  Call_Source call_source = { src, position };
+
+  if (d_src_count < 1) {
+    src_list[d_src_count] = call_source;
+    d_src_count++;
+    return true;
+  } else if ((d_src_count < 48) && (src_list[d_src_count - 1].source != src)) {
+    src_list[d_src_count] = call_source;
+    d_src_count++;
+    return true;
+  }
+  return false;
 }
 
 void
 nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample)
 {
-	gr::thread::scoped_lock guard(d_mutex);
-	if(bits_per_sample == 8 || bits_per_sample == 16) {
-		d_bytes_per_sample = bits_per_sample / 8;
-	}
+  gr::thread::scoped_lock guard(d_mutex);
+
+  if ((bits_per_sample == 8) || (bits_per_sample == 16)) {
+    d_bytes_per_sample = bits_per_sample / 8;
+  }
 }
 
 void
 nonstop_wavfile_sink_impl::set_sample_rate(unsigned int sample_rate)
 {
-	gr::thread::scoped_lock guard(d_mutex);
-	d_sample_rate = sample_rate;
+  gr::thread::scoped_lock guard(d_mutex);
+
+  d_sample_rate = sample_rate;
 }
 
 int
 nonstop_wavfile_sink_impl::bits_per_sample()
 {
-	return d_bytes_per_sample * 8;
+  return d_bytes_per_sample * 8;
 }
 
 unsigned int
 nonstop_wavfile_sink_impl::sample_rate()
 {
-	return d_sample_rate;
+  return d_sample_rate;
 }
 
 double
 nonstop_wavfile_sink_impl::length_in_seconds()
 {
-  //std::cout << "Filename: "<< current_filename << "Sample #: " << d_sample_count << " rate: " << d_sample_rate << " bytes: " << d_bytes_per_sample << "\n";
-  return (double) d_sample_count  / (double) d_sample_rate;
-	//return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double) d_sample_rate;
+  // std::cout << "Filename: "<< current_filename << "Sample #: " <<
+  // d_sample_count << " rate: " << d_sample_rate << " bytes: " <<
+  // d_bytes_per_sample << "\n";
+  return (double)d_sample_count  / (double)d_sample_rate;
+
+  // return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double)
+  // d_sample_rate;
 }
 
 void
 nonstop_wavfile_sink_impl::do_update()
-{
-
-}
-
+{}
 } /* namespace blocks */
 } /* namespace gr */

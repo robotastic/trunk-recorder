@@ -56,13 +56,14 @@ class Recorder
 {
 
 public:
-
 	virtual void tune_offset(double f) {};
 	virtual void start( Call *call, int n) {};
 	virtual void stop() {};
 	virtual void close() {};
 	virtual double get_freq() {return 0;};
   virtual Source *get_source() {return NULL;};
+	virtual Call_Source *get_source_list() {return NULL;};
+	virtual long get_source_count() {return 0;};
 	virtual long get_talkgroup() {return 0;};
 	virtual State get_state() {return inactive;};
 	virtual bool is_active() {return false;};
@@ -71,19 +72,6 @@ public:
 	virtual long get_total_produced() {return 0;};
 	virtual double get_current_length(){return 0;};
 	int num;
-	/*
-	private:
-		double center, freq;
-		long talkgroup;
-	  long samp_rate;
-		time_t timestamp;
-		time_t starttime;
-		char filename[160];
-	  char status_filename[160];
-		int num;
-
-		bool iam_logging;
-		bool active;*/
 };
 
 

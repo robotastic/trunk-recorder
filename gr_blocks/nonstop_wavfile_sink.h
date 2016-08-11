@@ -23,6 +23,7 @@
 #ifndef INCLUDED_GR_NONSTOP_WAVFILE_SINK_H
 #define INCLUDED_GR_NONSTOP_WAVFILE_SINK_H
 
+#include "../trunk-recorder/call.h"
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
 
@@ -79,7 +80,8 @@ public:
 	 * is kept.
 	 */
 	virtual void set_bits_per_sample(int bits_per_sample) = 0;
-
+	virtual Call_Source * get_source_list() = 0;
+	virtual int get_source_count() = 0;
 	virtual double length_in_seconds() = 0;
 };
 

@@ -332,6 +332,13 @@ void p25_recorder::clear_probes() {
   // active_probe->clear("latency0");
 }
 
+long p25_recorder::get_source_count() {
+  return wav_sink->get_source_count();
+}
+Call_Source *p25_recorder::get_source_list() {
+  return wav_sink->get_source_list();
+}
+
 Source * p25_recorder::get_source() {
   return source;
 }
@@ -396,12 +403,8 @@ void p25_recorder::close() {
 void p25_recorder::stop() {
   if (state == active) {
     BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-
     state         = stopping;
     stopping_time = time(NULL);
-
-    /*valve->set_enabled(false);
-       wav_sink->close();*/
   }       else {
     BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
   }

@@ -180,6 +180,20 @@ Recorder * Source::get_debug_recorder()
   return NULL;
 }
 
+void Source::clean_recorders() {
+  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
+       it != digital_recorders.end(); it++) {
+    p25_recorder_sptr rx = *it;
+
+    if ((rx->get_state() == stopping) && (rx->stopping_elapsed() > 60)) {
+      BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ] Really old recorder ";
+      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped() << " Freq: " <<
+      rx->get_freq();
+      rx->close();
+    }
+  }
+}
+
 int Source::get_num_available_recorders() {
   int num_available_recorders = 0;
 
@@ -220,8 +234,14 @@ Recorder * Source::get_digital_recorder(int priority)
       break;
     }
   }
-  BOOST_LOG_TRIVIAL(info) << "[ " << driver <<
-  " ] No Digital Recorders Available";
+  BOOST_LOG_TRIVIAL(info) << "[ " << device <<
+    " ] No Digital Recorders Available";
+
+  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
+       it != digital_recorders.end(); it++) {
+    p25_recorder_sptr rx = *it;
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped() << " Freq: " << rx->get_freq();
+  }
   return NULL;
 }
 
@@ -236,7 +256,7 @@ std::vector<double>Source::get_mean_delay() {
     if (rx->get_state() != inactive)
     {
       std::cout << " - [ " << rx->get_num() << " : ( " <<
-      rx->get_total_produced() << " )]";
+        rx->get_total_produced() << " )]";
       output = true;
       rx->clear_total_produced();
 
@@ -252,7 +272,7 @@ std::vector<double>Source::get_mean_delay() {
 
                       //std::cout << " - [ " << rx->get_num() << " : (" <<
                          mean*1e3 <<" | " <<  v.size() << ") (" << mean2*1e3 <<"
-                         | " <<  v2.size() << ")]";
+       | " <<  v2.size() << ")]";
                       output = true;
                       rx->clear_probes();*/
     }
@@ -291,7 +311,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
                              // to using rtl as default
         msg << "rtl=" << dev <<  ",buflen=32764,buffers=8";
         BOOST_LOG_TRIVIAL(info) <<
-        "Source device name missing, defaulting to rtl device";
+          "Source device name missing, defaulting to rtl device";
       } else {
         msg << dev << ",buflen=32764,buffers=8";
       }

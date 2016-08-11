@@ -38,7 +38,6 @@ public:
 								long get_talkgroup();
 								long get_source_count();
 								Call_Source *get_source_list();
-								bool add_source(long src);
 								void update(TrunkMessage message);
 								int since_last_update();
 								long stopping_elapsed();
@@ -67,8 +66,7 @@ private:
 								char filename[160];
 								char status_filename[160];
 								int tdma;
-								long src_count;
-								Call_Source src_list[50];
+
 								Config config;
 								Recorder *recorder;
 								Recorder *debug_recorder;
