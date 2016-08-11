@@ -344,7 +344,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
       if (framer->duid == 0x05) {
        uint32_t src_id = LDU1_to_Src(framer->frame_body);
        if (src_id){
-         fprintf(stderr, "%d: updating new src_id: %u \n",i1,src_id);
+         //fprintf(stderr, "%d: updating new src_id: %u \n",i1,src_id);
          curr_src_id = src_id;
        }
      }
