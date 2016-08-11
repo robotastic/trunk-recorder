@@ -403,7 +403,7 @@ void stop_inactive_recorders() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
-    if ((call->get_state() == stopping) && call->has_stopped()) {
+    if ((call->get_state() == stopping) && call->has_stopped() && (call->stopping_elapsed() > 2)) {
       call->close_call();
       delete call;
       it = calls.erase(it);

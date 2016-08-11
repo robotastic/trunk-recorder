@@ -66,7 +66,7 @@ latency_probe::work (int noutput_items,
 
     std::vector<gr::tag_t> tags;
 
-		//gr::thread::scoped_lock guard(d_mutex);
+		gr::thread::scoped_lock guard(d_mutex);
     get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
     for(int i=0; i<tags.size(); i++){
         for(int j=0; j<d_keys.size(); j++){
@@ -101,7 +101,7 @@ typedef std::map< pmt::pmt_t, lmv > mt;
 std::vector<std::string> latency_probe::get_keys(){
     std::vector<std::string> keys;
 
-		//gr::thread::scoped_lock guard(d_mutex);
+		gr::thread::scoped_lock guard(d_mutex);
     for(mt::iterator i = d_measurements.begin(); i!=d_measurements.end(); i++){
         keys.push_back( pmt::symbol_to_string( (*i).first ) );
     }
@@ -114,7 +114,7 @@ std::vector<unsigned long> latency_probe::get_offsets(std::string key){
         throw std::runtime_error("latency_probe::get_offsets() called with invalid key");
     lmv pv = d_measurements[pmt::intern(key)];
 
-		//gr::thread::scoped_lock guard(d_mutex);
+		gr::thread::scoped_lock guard(d_mutex);
     std::vector<unsigned long> offsets(pv.size());
     for(lmv::iterator i = pv.begin(); i != pv.end(); i++){
         offsets.push_back( (*i).offset );
@@ -127,7 +127,7 @@ std::vector<double> latency_probe::get_delays(std::string key){
         throw std::runtime_error("latency_probe::get_delays() called with invalid key");
     lmv pv = d_measurements[pmt::intern(key)];
 
-		//gr::thread::scoped_lock guard(d_mutex);
+		gr::thread::scoped_lock guard(d_mutex);
     std::vector<double> delays(pv.size());
     for(lmv::iterator i = pv.begin(); i != pv.end(); i++){
         delays.push_back( (*i).delay );
@@ -140,7 +140,7 @@ std::vector<double> latency_probe::get_t_start(std::string key){
         throw std::runtime_error("latency_probe::get_t_start() called with invalid key");
     lmv pv = d_measurements[pmt::intern(key)];
 
-		//gr::thread::scoped_lock guard(d_mutex);
+		gr::thread::scoped_lock guard(d_mutex);
     std::vector<double> times(pv.size());
     for(lmv::iterator i = pv.begin(); i != pv.end(); i++){
         times.push_back( (*i).t_start );
@@ -154,7 +154,7 @@ std::vector<double> latency_probe::get_t_end(std::string key){
     lmv pv = d_measurements[pmt::intern(key)];
 
 
-		//gr::thread::scoped_lock guard(d_mutex);
+		gr::thread::scoped_lock guard(d_mutex);
     std::vector<double> times(pv.size());
     for(lmv::iterator i = pv.begin(); i != pv.end(); i++){
         times.push_back( (*i).t_end );
@@ -165,12 +165,12 @@ std::vector<double> latency_probe::get_t_end(std::string key){
 void latency_probe::clear(std::string key){
 	pmt::pmt_t this_key( pmt::intern(key));
 
-	//gr::thread::scoped_lock guard(d_mutex);
+	gr::thread::scoped_lock guard(d_mutex);
 	//d_measurements[ this_key ] =  std::vector< latmes_t >();
 		d_measurements[ this_key ].clear(); // =  std::vector< latmes_t >();
 }
 void latency_probe::reset(){
 
-//gr::thread::scoped_lock guard(d_mutex);
+gr::thread::scoped_lock guard(d_mutex);
     d_measurements.clear();
 }

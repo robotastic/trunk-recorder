@@ -176,7 +176,7 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
 
         long src_id = p1fdma.get_curr_src_id();
         if (src_id) {
-          //fprintf(stderr,  "tagging source: %ld\n", src_id);
+          //fprintf(stderr,  "tagging source: %ld at %lu\n", src_id,  nitems_written(0));
           add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
         }
         for (int i = 0; i < amt_produce; i++) {

@@ -248,7 +248,7 @@ nonstop_wavfile_sink_impl::work(int                        noutput_items,
       double   sec = (double)pos  / (double)d_sample_rate;
       if (curr_src_id != src_id) {
         add_source(src_id, sec);
-        //std::cout << " [" << i << "]-[ " << src_id << " : Pos - "<< pos<< " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+        std::cout << " [" << i << "]-[ " << src_id << " : Pos - "<< pos<< " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
       }
     }
