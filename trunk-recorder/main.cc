@@ -421,7 +421,7 @@ void stop_inactive_recorders() {
 }
 void print_status() {
   BOOST_LOG_TRIVIAL(info) << "\nTotal Calls: " << calls.size();
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
     BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " Freq: " << call->get_freq() << " elapsed: " << call->elapsed() << " State: " << call->get_state();
