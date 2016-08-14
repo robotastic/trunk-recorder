@@ -366,7 +366,7 @@ void start_recorder(Call *call, TrunkMessage message) {
     }
 
     if (!source_found) {
-      BOOST_LOG_TRIVIAL(error) <<  "\tRecording not started because there was no source covering: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
+      BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because there was no source covering: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
       return;
     }
   } else {
@@ -420,7 +420,7 @@ void stop_inactive_recorders() {
      }*/
 }
 void print_status() {
-  BOOST_LOG_TRIVIAL(info) << "\nTotal Calls: " << calls.size();
+  BOOST_LOG_TRIVIAL(info) << "Total Calls: " << calls.size();
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
@@ -430,7 +430,7 @@ void print_status() {
     }
   }
 
-  BOOST_LOG_TRIVIAL(info) << "\nRecorders: ";
+  BOOST_LOG_TRIVIAL(info) << "Recorders: ";
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     Source *source = *it;
     source->print_recorders();
@@ -745,7 +745,7 @@ void monitor_messages() {
 
     if (sys) {
       if (sys->get_system_type() == "smartnet") {
-        trunk_messages = smartnet_parser->parse_message(msg->to_string().erase(0, 10));
+        trunk_messages = smartnet_parser->parse_message(msg->to_string());
         handle_message(trunk_messages, sys);
       }
 

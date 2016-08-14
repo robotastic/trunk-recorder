@@ -177,7 +177,7 @@ smartnet_crc::work (int noutput_items,
 			std::ostringstream payload;
 			payload.str("");
 			payload << pkt.address << "," << pkt.groupflag << "," << pkt.command;
-			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()));
+			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()), pkt.command, this->sys_id, 0);
 			d_queue->handle(msg);
 		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
 	}

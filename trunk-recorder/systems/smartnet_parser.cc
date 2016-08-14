@@ -7,18 +7,19 @@ SmartnetParser::SmartnetParser() {
 }
 double SmartnetParser::getfreq(int cmd) {
 
+float freq;
 
 /* Different Systems will have different band plans. Below is the one for WMATA which is a bit werid:*/
- /*       if (cmd < 0x12e) {
+       if (cmd < 0x12e) {
                 freq = float((cmd) * 0.025 + 489.0875);
         } else if (cmd < 0x2b0) {
                 freq = float((cmd-380) * 0.025 + 489.0875);
         } else {
                 freq = 0;
         }
-      cout << "CMD: 0x" <<  hex << cmd << " Freq: " << freq << " Multi: " << (cmd - 308) * 0.025 << " CMD: " << dec << cmd << endl; 
-*/
-	float freq;
+      cout << "CMD: 0x" <<  hex << cmd << " Freq: " << freq << " Multi: " << (cmd - 308) * 0.025 << " CMD: " << dec << cmd << endl;
+/*
+
 	if (cmd < 0x1b8) {
 		freq = float(cmd * 0.025 + 851.0125);
 	} else if (cmd < 0x230) {
@@ -26,7 +27,7 @@ double SmartnetParser::getfreq(int cmd) {
 	} else {
 		freq = 0;
 	}
-
+*/
 	return freq*1000000;
 }
 
