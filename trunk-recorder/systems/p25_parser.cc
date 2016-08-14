@@ -300,7 +300,33 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk) {
           message.emergency    = false;
           message.encrypted    = false;
           BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
-          "\tSource ID: " << sa; 
+          "\tSource ID: " << sa;
+
+  } else if (opcode == 0x06) {
+      //  Unit to Unit Voice Channel Grant Update (UU_V_CH_GRANT_UPDT)
+      unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+
+          // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
+          bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+          bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+
+          // bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+          // bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+          // unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
+          unsigned long ch = bitset_shift_mask(tsbk, 64, 0xffff);
+          unsigned long f  = channel_id_to_frequency(ch);
+          unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+          unsigned long ta = bitset_shift_mask(tsbk, 40, 0xffffff);
+
+          message.message_type = UPDATE;
+          message.freq         = f;
+          message.talkgroup    = ta;
+          message.source       = sa;
+          message.tdma         = get_tdma_slot(ch);
+          message.emergency    = false;
+          message.encrypted    = false;
+          BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Update\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
+          "\tSource ID: " << sa;
 
   } else if (opcode == 0x33) { // iden_up_tdma
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
