@@ -397,6 +397,9 @@ void p25_recorder::close() {
     wav_sink->close();
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    state = inactive;
+    valve->set_enabled(false);
+    wav_sink->close();
   }
 }
 
