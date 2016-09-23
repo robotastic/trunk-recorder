@@ -9,6 +9,8 @@ class System
         int sys_id;
 public:
         std::string talkgroups_file;
+        std::string short_name;
+        std::string api_key;
         std::string default_mode;
         std::string system_type;
 
@@ -19,6 +21,10 @@ public:
         p25_trunking_sptr p25_trunking;
         std::string get_default_mode();
         void set_default_mode(std::string def_mode);
+        std::string get_short_name();
+        void set_short_name(std::string short_name);
+        std::string get_api_key();
+        void set_api_key(std::string api_key);
         bool get_qpsk_mod();
         void set_qpsk_mod(bool);
         std::string get_system_type();

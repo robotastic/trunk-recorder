@@ -13,6 +13,7 @@
 #include <sstream>
 
 #include "config.h"
+#include "systems/system.h"
 
 class Call;
 
@@ -33,6 +34,8 @@ struct call_data_t {
         std::string hostname;
         std::string port;
         std::string path;
+        std::string api_key;
+        std::string short_name;
         int tdma;
         long source_count;
         Call_Source source_list[50];
@@ -49,7 +52,7 @@ struct server_data_t {
 
 int upload(struct call_data_t *call);
 void *convert_upload_call(void *thread_arg);
-void send_call(Call *call, Config config);
+void send_call(Call *call, System *sys, Config config);
 
 
 #endif

@@ -14,6 +14,7 @@ class Recorder;
 #include "config.h"
 #include "state.h"
 #include "recorders/recorder.h"
+#include "systems/system.h"
 #include "systems/parser.h"
 
 //enum  CallState { monitoring=0, recording=1, stopping=2};
@@ -21,8 +22,8 @@ class Recorder;
 class Call {
 public:
 
-								Call( long t, double f, Config c);
-								Call( TrunkMessage message, Config c);
+								Call( long t, double f, System *s, Config c);
+								Call( TrunkMessage message, System *s, Config c);
 								~Call();
 								void close_call();
 								void stop_call();
@@ -57,6 +58,7 @@ private:
 								State state;
 								long talkgroup;
 								double freq;
+								System *sys;
 								time_t last_update;
 								time_t start_time;
 								time_t stopping_time;

@@ -140,7 +140,10 @@ void load_config()
         system->add_control_channel(control_channel);
       }
       BOOST_LOG_TRIVIAL(info);
-
+      system->set_api_key(node.second.get<std::string>("apiKey"));
+      BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
+      system->set_short_name(node.second.get<std::string>("shortName"));
+      BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
 
       system->set_system_type(node.second.get<std::string>("type"));
       BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
@@ -466,7 +469,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
   }
 }
 
-void assign_recorder(TrunkMessage message) {
+void assign_recorder(TrunkMessage message, System *sys) {
   bool call_found = false;
   char shell_command[200];
 
@@ -540,7 +543,7 @@ void assign_recorder(TrunkMessage message) {
 
 
   if (!call_found) {
-    Call *call = new Call(message, config);
+    Call *call = new Call(message, sys, config);
     start_recorder(call, message);
     calls.push_back(call);
   }
@@ -571,7 +574,7 @@ void group_affiliation(long unit, long talkgroup) {
   unit_affiliations[unit] = talkgroup;
 }
 
-void update_recorder(TrunkMessage message) {
+void update_recorder(TrunkMessage message, System *sys) {
   bool call_found = false;
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
@@ -580,11 +583,13 @@ void update_recorder(TrunkMessage message) {
     if (call_found && (call->get_talkgroup() == message.talkgroup) &&  (call->get_state() != stopping)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
     }
-
+    if (call->get_talkgroup() == message.talkgroup) {
+      call_found = true;
+    }
     if ((call->get_talkgroup() == message.talkgroup) &&
         (call->get_state() != stopping)) {
       // update the call, so it stays alive
-      call_found = true;
+
       call->update(message);
 
       if (call->get_freq() != message.freq) {
@@ -613,6 +618,11 @@ void update_recorder(TrunkMessage message) {
       // the talkgroups don't match
       ++it; // move on to the next one
     }
+  }
+  if (!call_found) {
+    //BOOST_LOG_TRIVIAL(error) << "\t Call not found for update Message, Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
+
+    //assign_recorder(message, sys); //Treehouseman, Lets start the call if we missed the GRANT message!
   }
 }
 
@@ -663,11 +673,11 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
 
     switch (message.message_type) {
     case GRANT:
-      assign_recorder(message);
+      assign_recorder(message, sys);
       break;
 
     case UPDATE:
-      update_recorder(message);
+      update_recorder(message, sys);
       break;
 
     case CONTROL_CHANNEL:
@@ -746,7 +756,9 @@ void monitor_messages() {
     if (sys) {
       if (sys->get_system_type() == "smartnet") {
         trunk_messages = smartnet_parser->parse_message(msg->to_string());
-        handle_message(trunk_messages, sys);
+
+          handle_message(trunk_messages, sys);
+        
       }
 
       if (sys->get_system_type() == "p25") {

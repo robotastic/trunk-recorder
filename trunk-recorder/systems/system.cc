@@ -1,6 +1,23 @@
 #include "system.h"
 
 
+std::string System::get_api_key() {
+  return this->api_key;
+}
+
+void System::set_api_key(std::string api_key) {
+  this->api_key = api_key;
+}
+
+std::string System::get_short_name() {
+  return this->short_name;
+}
+
+void System::set_short_name(std::string short_name) {
+  this->short_name = short_name;
+}
+
+
 std::string System::get_default_mode() {
   return this->default_mode;
 }

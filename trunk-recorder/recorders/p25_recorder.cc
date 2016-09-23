@@ -162,9 +162,9 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
   // fm demodulator (needed in fsk4 case)
-  float fm_demod_gain = if_rate / (2.0 * pi * symbol_deviation);
+  float fm_demod_gain = if_rate / (4.0 * pi * symbol_deviation);
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
-
+BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
 
   double symbol_decim = 1;
 

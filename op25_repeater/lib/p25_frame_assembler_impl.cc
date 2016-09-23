@@ -120,6 +120,12 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
   if (d_do_audio_output && !d_do_imbe) fprintf(stderr, "p25_frame_assembler: error: do_imbe must be enabled if do_audio_output is enabled\n");
 
   if (d_do_phase2_tdma && !d_do_audio_output) fprintf(stderr, "p25_frame_assembler: error: do_audio_output must be enabled if do_phase2_tdma is enabled\n");
+
+  if (d_do_audio_output)
+		set_output_multiple(864);
+	if (!d_do_audio_output && !d_do_imbe)
+		set_output_multiple(160);
+
 }
 
 void

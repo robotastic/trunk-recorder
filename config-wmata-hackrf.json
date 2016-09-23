@@ -1,0 +1,23 @@
+{ "sources": [
+
+{"center": 493500000.0,
+"rate": 8000000.0,
+"error": -8000,
+"gain": 14,
+"ifGain": 40,
+"bbGain": 40,
+"digitalRecorders": 4,
+"debugRecorders": 0,
+"driver": "osmosdr"
+}
+],
+"systems": [{
+	"control_channels": [496537500],
+	"type": "smartnet",
+	"talkgroupsFile": "ChanList.csv",
+	"apiKey": "ttt",
+	"shortName": "fake"
+	}],
+	"modulation": "FSK4",
+	"uploadServer": "http://localhost:3005"
+}

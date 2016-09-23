@@ -20,10 +20,11 @@ void Call::create_filename() {
   // path_stream.str().c_str(),talkgroup,start_time);
 }
 
-Call::Call(long t, double f, Config c) {
+Call::Call(long t, double f, System *s, Config c) {
   config          = c;
   talkgroup       = t;
   freq            = f;
+  sys         = s;
   start_time      = time(NULL);
   last_update     = time(NULL);
   state           = monitoring;
@@ -35,10 +36,11 @@ Call::Call(long t, double f, Config c) {
   this->create_filename();
 }
 
-Call::Call(TrunkMessage message, Config c) {
+Call::Call(TrunkMessage message, System *s, Config c) {
   config          = c;
   talkgroup       = message.talkgroup;
   freq            = message.freq;
+  sys          = s;
   start_time      = time(NULL);
   last_update     = time(NULL);
   state           = monitoring;
@@ -99,9 +101,9 @@ void Call::close_call() {
     sprintf(shell_command, "./encode-upload.sh %s &", this->get_filename());
 
     this->get_recorder()->close();
-
+    BOOST_LOG_TRIVIAL(error) << "Upload server: " << this->config.upload_server;
     if (this->config.upload_server != "") {
-      send_call(this, config);
+      send_call(this, sys, config);
     }
 
     int rc = system(shell_command);

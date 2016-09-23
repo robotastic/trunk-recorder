@@ -114,8 +114,9 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf &requ
          std::cout << source_list << "\n";
          add_post_field(oss, "freq", long_to_string(call->freq), boundary);
          add_post_field(oss, "start_time", long_to_string(call->start_time), boundary);
-         add_post_field(oss, "talkgroup", long_to_string(call->talkgroup), boundary);
+         add_post_field(oss, "talkgroup_num", long_to_string(call->talkgroup), boundary);
          add_post_field(oss, "emergency", long_to_string(call->emergency), boundary);
+         add_post_field(oss, "api_key", call->api_key, boundary);
          add_post_field(oss, "source_list", source_list, boundary);
 
          oss << "\r\n--" << boundary << "--\r\n";
@@ -355,7 +356,7 @@ void *convert_upload_call(void *thread_arg){
   boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
   strcpy(call_info->converted, m4a.string().c_str());
-  sprintf(shell_command,"ffmpeg -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 %s", call_info->filename, m4a.string().c_str());
+  sprintf(shell_command,"ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 %s", call_info->filename, m4a.string().c_str());
   std::cout << "Converting: " << call_info->converted << "\n";
   std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
@@ -379,7 +380,7 @@ void *convert_upload_call(void *thread_arg){
 
 
 
-void send_call(Call *call, Config config) {
+void send_call(Call *call, System *sys, Config config) {
   //struct call_data_t *call_info = (struct call_data_t *) malloc(sizeof(struct call_data_t));
   call_data_t *call_info = new call_data_t;
   pthread_t thread;
@@ -412,6 +413,13 @@ void send_call(Call *call, Config config) {
   call_info->tdma = call->get_tdma();
   call_info->source_count = call->get_source_count();
   call_info->start_time = call->get_start_time();
+  call_info->api_key = sys->get_api_key();
+  call_info->short_name = sys->get_short_name();
+  std::stringstream ss;
+  ss << "/" << sys->get_short_name() << "/upload";
+  call_info->path = ss.str();
+  std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
+
   for (int i=0; i < call_info->source_count; i++ ){
     call_info->source_list[i] = source_list[i];
   }
