@@ -34,6 +34,9 @@
 struct osw_stru{
 	unsigned short cmd;
 	unsigned short id;
+	int status;
+	int full_address;
+	long address;
 	char grp;
 };
 
