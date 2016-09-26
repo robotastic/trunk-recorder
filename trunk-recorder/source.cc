@@ -17,6 +17,27 @@ std::string Source::get_antenna() {
   return antenna;
 }
 
+
+void Source::set_fsk_gain(double r) {
+  fsk_gain = r;
+}
+double Source::get_fsk_gain() {
+  return fsk_gain;
+}
+void Source::set_analog_levels(double r) {
+  analog_levels = r;
+}
+double Source::get_analog_levels() {
+  return analog_levels;
+}
+void Source::set_digital_levels(double r) {
+  digital_levels = r;
+}
+double Source::get_digital_levels() {
+  return digital_levels;
+}
+
+
 double Source::get_min_hz() {
   return min_hz;
 }

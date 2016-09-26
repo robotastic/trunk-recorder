@@ -811,7 +811,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 	bosw.grp = groupflag;
 	bosw.cmd = command;
 	//struct osw_stru* Inposw = &bosw;
-
+cout.precision(0);
 
 	        // maintain a sliding stack of 5 OSWs. If previous iteration used more than one,
 	        // don't utilize stack until all used ones have slid past.
@@ -890,7 +890,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 							//if( (stack[0].id & 0xfc00) == 0x6000)
 							//{
 									cout << "uhf/vhf equivalent of 308/320/30b" << endl;
-									cout << "Freq: " << getfreq(stack[0].cmd) << " 0add: " << dec <<  stack[0].address << " 0full_add: " << stack[0].full_address  << " 1add: " << stack[1].address << " 1full_add: " << stack[1].full_address  << endl;
+									cout << "Freq: " << fixed << getfreq(stack[0].cmd) << " 0add: " << dec <<  stack[0].address << " 0full_add: " << stack[0].full_address  << " 1add: " << stack[1].address << " 1full_add: " << stack[1].full_address  << endl;
 							//}
 
 		//	}
@@ -919,7 +919,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 			message.message_type = GRANT;
 			message.source = lastaddress;
 			// Check Status
-			cout << "Grant Command: " << hex << command << " Last CMD: 0x" <<  hex << lastcmd << " Freq: " << message.freq << " Talkgroup: " << dec << address << " Source: " << dec << lastaddress<< " 1st: " << (address & 0x2000) << " 2nd: " <<  (address & 0x0800) << endl;
+			cout << "Grant Command: " << hex << command << " Last CMD: 0x" <<  hex << lastcmd << " Freq: " << fixed <<  message.freq << " Talkgroup: " << dec << address << " Source: " << dec << lastaddress<< " 1st: " << (address & 0x2000) << " 2nd: " <<  (address & 0x0800) << endl;
 
 			 cout << "Status: " << status << endl;
 			if(status == 2 || status == 4 || status == 5) {
@@ -929,10 +929,11 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s) {
 			}
 		} else  {
 			// Call continuation
-			message.talkgroup = full_address;
-			message.message_type = UPDATE;
-			cout << "UPDATE [ Freq: " << getfreq(command) << " TG: " << dec << address << " Full: " << dec << full_address << " CMD: " << hex << command << " CMD: " << dec << command << " ] Last CMD: " << hex << lastcmd << endl;
-
+			if (groupflag) {
+				message.talkgroup = full_address;
+				message.message_type = UPDATE;
+				cout << "UPDATE [ Freq: " << fixed << getfreq(command) << " TG: " << dec << address << " Full: " << dec << full_address << " CMD: " << hex << command << " Last CMD: " << hex << stack[1].cmd  << " ] Last CMD: " << hex << lastcmd << " GRoup: " << groupflag << endl;
+			}
 		}
 	} else if (command == 0x03c0) {
 		message.message_type = STATUS;

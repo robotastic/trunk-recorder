@@ -140,9 +140,9 @@ void load_config()
         system->add_control_channel(control_channel);
       }
       BOOST_LOG_TRIVIAL(info);
-      system->set_api_key(node.second.get<std::string>("apiKey"));
+      system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
-      system->set_short_name(node.second.get<std::string>("shortName"));
+      system->set_short_name(node.second.get<std::string>("shortName", ""));
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
 
       system->set_system_type(node.second.get<std::string>("type"));
@@ -168,7 +168,7 @@ void load_config()
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
     default_mode = pt.get<std::string>("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
-    config.call_timeout = pt.get<int>("callTimeout", 4);
+    config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
 
     boost::optional<std::string> mod_exists = pt.get_optional<std::string>("modulation");
@@ -198,6 +198,9 @@ void load_config()
       int    gain           = node.second.get<int>("gain", 0);
       int    if_gain        = node.second.get<int>("ifGain", 0);
       int    bb_gain        = node.second.get<int>("bbGain", 0);
+      double fsk_gain       = node.second.get<double>("fskGain", 1.0);
+      double digital_levels = node.second.get<double>("digitalLevels", 1.0);
+      double analog_levels = node.second.get<double>("analogLevels", 1.0);
       double squelch_db     = node.second.get<double>("squelch", 0);
       std::string antenna   = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
@@ -237,6 +240,9 @@ void load_config()
       source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
+      source->set_fsk_gain(fsk_gain);
+      source->set_analog_levels(analog_levels);
+      source->set_digital_levels(digital_levels);
 
       if (ppm != 0) {
         source->set_freq_corr(ppm);
@@ -381,13 +387,20 @@ void stop_inactive_recorders() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
-    if ((call->get_state() == stopping) && call->has_stopped() && (call->stopping_elapsed() > 2)) {
+   if ((call->get_state() == stopping) && call->has_stopped() && (call->stopping_elapsed() > 2)) {
       call->close_call();
       delete call;
       it = calls.erase(it);
-    } else if ((call->get_state() == recording) && (call->since_last_update() > config.call_timeout)) {
+    } else
+    if ((call->get_state() == recording) && (call->since_last_update() > config.call_timeout)) {
+
+      call->close_call();
+      delete call;
+      it = calls.erase(it);
+
+/*
       call->stop_call();
-      it++;
+      it++;*/
     } else if ((call->get_state() == monitoring) && (call->since_last_update() > config.call_timeout)) {
       call->close_call();
       delete call;
@@ -460,6 +473,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
   } else {
     BOOST_LOG_TRIVIAL(info) <<  "\t\tStopping call, starting new call on new source";
     call->stop_call();
+    //call->close_call();
 
     if (call->get_debug_recording() == true) {
       call->get_debug_recorder()->stop();
@@ -522,7 +536,7 @@ void assign_recorder(TrunkMessage message, System *sys) {
         // call->get_talkgroup() << "\tTMDA: " << call->get_tdma() <<
         // "\tElapsed: " << call->elapsed() << "s \tSince update: " <<
         // call->since_last_update();
-
+/*
         if (call->get_state() != stopping) {
           // if you are recording the call, stop
           if (call->get_state() == recording) {
@@ -533,8 +547,18 @@ void assign_recorder(TrunkMessage message, System *sys) {
           delete call;
           it = calls.erase(it);
         } else {
+        call_found = true;
+
+
           ++it; // move on to the next one
-        }
+
+
+
+        }*/
+        call_found = true;
+
+
+          ++it;
       } else {
         ++it;   // move on to the next one
       }
@@ -601,11 +625,14 @@ void update_recorder(TrunkMessage message, System *sys) {
 
           if (!retuned) {
             BOOST_LOG_TRIVIAL(info) << "\tUpdate needed a new source, but I didn 't care";
+          } else {
+            call_found = true;
           }
 
           ++it; // move on to the next one
         } else {
           // the Call is not recording, update and continue
+          call_found = true;
           call->set_freq(message.freq);
           call->set_tdma(message.tdma);
           ++it; // move on to the next one
@@ -620,9 +647,9 @@ void update_recorder(TrunkMessage message, System *sys) {
     }
   }
   if (!call_found) {
-    //BOOST_LOG_TRIVIAL(error) << "\t Call not found for update Message, Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "\t Call not found for update Message, Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
 
-    //assign_recorder(message, sys); //Treehouseman, Lets start the call if we missed the GRANT message!
+    assign_recorder(message, sys); //Treehouseman, Lets start the call if we missed the GRANT message!
   }
 }
 
@@ -758,7 +785,7 @@ void monitor_messages() {
         trunk_messages = smartnet_parser->parse_message(msg->to_string());
 
           handle_message(trunk_messages, sys);
-        
+
       }
 
       if (sys->get_system_type() == "p25") {

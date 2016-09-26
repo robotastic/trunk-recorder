@@ -104,9 +104,11 @@ void Call::close_call() {
     BOOST_LOG_TRIVIAL(error) << "Upload server: " << this->config.upload_server;
     if (this->config.upload_server != "") {
       send_call(this, sys, config);
+    } else {
+      int rc = system(shell_command);
     }
 
-    int rc = system(shell_command);
+
   }
 
   if (this->get_debug_recording() == true) {

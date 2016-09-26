@@ -133,6 +133,9 @@ private:
 		std::vector<float> lpf_coeffs;
 	std::vector<float> arb_taps;
 	std::vector<float> sym_taps;
+
+	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+
 freq_xlating_fft_filter_sptr prefilter;
 latency_tagger_sptr tagger;
 latency_probe_sptr active_probe;
@@ -149,7 +152,6 @@ gr::digital::diff_phasor_cc::sptr diffdec;
 	gr::blocks::file_sink::sptr fs;
 
 	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 

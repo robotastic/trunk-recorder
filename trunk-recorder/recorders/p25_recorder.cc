@@ -29,9 +29,9 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
 
   float  symbol_rate         = 4800;
-  double samples_per_symbol  = 10;
+  double samples_per_symbol  = 10; // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
-  float  symbol_deviation    = 600.0;
+  float  symbol_deviation    = 600.0; // was 600.0
 
 
   std::vector<float> sym_taps;
@@ -42,23 +42,22 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   double input_rate = capture_rate;
 
-  float if_rate      = 48000; // 24000;
-  float gain_mu      = 0.025;
+  float gain_mu      = 0.025; //0.025
   float costas_alpha = 0.04;
-  float bb_gain      = 1.0;
+  float bb_gain      = src->get_fsk_gain();  // was 1.0
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  float xlate_bandwidth = 14000; // 14000; //24260.0
+  float xlate_bandwidth = 18000; // 14000; //24260.0
 
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
 
-  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 1500, gr::filter::firdes::WIN_HANN);
-  int decimation = int(input_rate / if_rate);
+  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 6250, gr::filter::firdes::WIN_HANN);
+  int decimation = int(input_rate / system_channel_rate);
 
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
@@ -68,12 +67,12 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
                                            dest,
                                            offset,
                                            samp_rate);
-
-  /*prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
+/*
+  prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
               lpf_coeffs,
               offset,
-              samp_rate);*/
-
+              samp_rate);
+*/
   tagger = latency_make_tagger(sizeof(gr_complex), 512, "latency0");
   std::vector<std::string> keys;
   keys.push_back("latency0");
@@ -82,7 +81,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   float resampled_rate = float(input_rate) / float(decimation); // rate at
                                                                 // output of
                                                                 // self.lpf
-  float arb_rate       = (float(if_rate) / resampled_rate);
+  float arb_rate       = (float(system_channel_rate) / resampled_rate);
   float arb_size       = 32;
   float arb_atten      = 100;
 
@@ -141,13 +140,13 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
 
-  float omega      = float(if_rate) / float(symbol_rate);
+  float omega      = float(system_channel_rate) / float(symbol_rate);
   float gain_omega = 0.1  * gain_mu * gain_mu;
 
   float alpha = costas_alpha;
   float beta  = 0.125 * alpha * alpha;
   float fmax  = 2400; // Hz
-  fmax = 2 * pi * fmax / float(if_rate);
+  fmax = 2 * pi * fmax / float(system_channel_rate);
 
   costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
 
@@ -162,7 +161,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
   // fm demodulator (needed in fsk4 case)
-  float fm_demod_gain = if_rate / (4.0 * pi * symbol_deviation);
+  float fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
 BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
 
@@ -196,6 +195,7 @@ BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
 
 
   converter = gr::blocks::short_to_float::make(1, 2048.0); // 8192.0);
+  //converter = gr::blocks::short_to_float::make(1, 8192.0); // 8192.0);
 
   tm *ltm = localtime(&starttime);
 
@@ -206,7 +206,7 @@ BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
   sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, freq);
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
 
-
+/*
   valve->set_max_output_buffer(4096);
   to_float->set_max_output_buffer(4096);
   rescale->set_max_output_buffer(4096);
@@ -224,7 +224,7 @@ BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
   diffdec->set_max_output_buffer(4096);
 
   // prefilter->set_max_output_buffer(8192);
-  this->set_max_output_buffer(4096);
+  this->set_max_output_buffer(4096);*/
 
   /*
      valve->set_min_output_buffer(0);
@@ -249,7 +249,7 @@ BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
-    connect(arb_resampler,        0, fm_demod,             0);
+    connect(arb_resampler,        0,      fm_demod,             0);
     connect(fm_demod,             0, baseband_amp,         0);
     connect(baseband_amp,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);

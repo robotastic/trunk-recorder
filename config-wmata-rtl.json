@@ -1,0 +1,37 @@
+{ "sources": [
+
+{"center": 496500000.0,
+"rate": 2048000.0,
+"error": 1600,
+"gain": 24,
+"digitalRecorders": 2,
+"fskGain": 0.8,
+"analogRecorders": 2,
+"analogLevels": 32,
+"debugRecorders": 0,
+"driver": "osmosdr",
+"device": "rtl=31"
+},
+{"center": 490250000.0,
+"rate": 2048000.0,
+"error": 1400,
+"gain": 24,
+"digitalRecorders": 2,
+"fskGain": 0.8,
+"analogRecorders": 2,
+"analogLevels": 32,
+"debugRecorders": 0,
+"driver": "osmosdr",
+"device": "rtl=32"
+}
+],
+"systems": [{
+	"control_channels": [496537500],
+	"type": "smartnet",
+	"talkgroupsFile": "wmata.csv",
+	"apiKey": "ttt",
+	"shortName": "fake"
+	}],
+	"modulation": "FSK4",
+	"uploadServer": "http://localhost:3005"
+}

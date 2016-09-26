@@ -23,6 +23,9 @@ class Source
 								double error;
 								double ppm;
 								double squelch_db;
+								double fsk_gain;
+								double analog_levels;
+								double digital_levels;
 								int gain;
 								int bb_gain;
 								int if_gain;
@@ -59,10 +62,16 @@ public:
 								double get_squelch_db();
 								void set_gain(int r);
 								int get_gain();
+								void set_fsk_gain(double r);
+								double get_fsk_gain();
+								void set_analog_levels(double r);
+								double get_analog_levels();
+								void set_digital_levels(double r);
+								double get_digital_levels();
 								void set_bb_gain(int b);
 								int get_bb_gain();
 								void set_freq_corr(double p);
-								void print_recorders(); 
+								void print_recorders();
 								void clean_recorders();
 								void create_analog_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_analog_recorder(int priority);
