@@ -108,6 +108,8 @@ private:
 	gr::blocks::multiply_const_ff::sptr quiet;
 	gr::blocks::multiply_const_ff::sptr levels;
 
+	gr::blocks::multiply_const_ff::sptr baseband_amp;
+
 
 	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 	gr::filter::rational_resampler_base_fff::sptr upsample_audio;

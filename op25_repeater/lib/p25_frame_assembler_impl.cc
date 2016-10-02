@@ -188,6 +188,15 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
         for (int i = 0; i < amt_produce; i++) {
           out[i] = output_queue[i];
         }
+        /*
+        if (amt_produce < noutput_items) {
+
+          int delta = noutput_items - amt_produce;
+
+          for (int i = 0; i < delta; i++) {
+            out[amt_produce + i] = 0.0;
+          }
+        }*/
       } else {
         unsigned char *out = (unsigned char *)output_items[0];
 
@@ -199,10 +208,14 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
     }
   }
   consume_each(ninput_items[0]);
-  total_produced = total_produced + amt_produce;
+
 
   // Tell runtime system how many output items we produced.
   return amt_produce;
+  total_produced = total_produced + amt_produce;
+
+  //total_produced = total_produced + noutput_items;
+  //return noutput_items;
 }
 
 void p25_frame_assembler_impl::clear_total_produced() {

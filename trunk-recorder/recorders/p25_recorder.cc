@@ -49,14 +49,14 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  float xlate_bandwidth = 18000; // 14000; //24260.0
+  float xlate_bandwidth = 8000; // 14000; //24260.0
 
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
 
-  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 6250, gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 3000, gr::filter::firdes::WIN_HANN);
   int decimation = int(input_rate / system_channel_rate);
 
 

@@ -9,10 +9,10 @@ void Call::create_filename() {
   path_stream << this->config.capture_dir <<  "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
   boost::filesystem::create_directories(path_stream.str());
-  sprintf(filename,        "%s/%ld-%ld_%g.wav",
-          path_stream.str().c_str(), talkgroup, start_time, freq);
-  sprintf(status_filename, "%s/%ld-%ld_%g.json",
-          path_stream.str().c_str(), talkgroup, start_time, freq);
+  sprintf(filename,        "%s/%ld-%ld.wav",
+          path_stream.str().c_str(), talkgroup, start_time);
+  sprintf(status_filename, "%s/%ld-%ld.json",
+          path_stream.str().c_str(), talkgroup, start_time);
 
   // sprintf(filename, "%s/%ld-%ld.wav",
   // path_stream.str().c_str(),talkgroup,start_time);
@@ -113,6 +113,7 @@ void Call::close_call() {
 
   if (this->get_debug_recording() == true) {
     this->get_debug_recorder()->stop();
+    this->get_debug_recorder()->close();
   }
 }
 

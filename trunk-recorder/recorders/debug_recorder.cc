@@ -28,13 +28,14 @@ debug_recorder::debug_recorder(Source *src)
 
 	int samp_per_sym = 10;
 	double decim = floor(samp_rate / 100000);
-	float xlate_bandwidth = 25000; //14000; //24260.0;
+
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
+	float bb_gain      = src->get_fsk_gain();  // was 1.0
 
 
-
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 5000, gr::filter::firdes::WIN_BLACKMAN);
+float xlate_bandwidth = 7000;
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 1500, gr::filter::firdes::WIN_BLACKMAN);
 
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());

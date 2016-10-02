@@ -40,10 +40,10 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  float xlate_bandwidth = 14000; // 14000; //24260.0
+  float xlate_bandwidth = 8000; // 14000; //24260.0
 
 
-  lpf_coeffs = gr::filter::firdes::low_pass(1.0, samp_rate, xlate_bandwidth / 2, 1500, gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass(1.0, samp_rate, xlate_bandwidth / 2, 3000, gr::filter::firdes::WIN_HANN);
   int decimation = int(samp_rate / if_rate);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
