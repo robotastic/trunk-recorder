@@ -105,9 +105,9 @@ void Call::close_call() {
     if (this->config.upload_server != "") {
       send_call(this, sys, config);
     } else {
-      int rc = system(shell_command);
-    }
 
+    }
+    int rc = system(shell_command);
 
   }
 
