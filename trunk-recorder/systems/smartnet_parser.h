@@ -54,6 +54,7 @@ public:
 	SmartnetParser();
 	double getfreq(int cmd);
 	void print_osw(std::string s);
+	bool is_chan(int cmd);
 	std::vector<TrunkMessage> parse_message(std::string s);
 };
 #endif

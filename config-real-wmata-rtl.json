@@ -9,7 +9,20 @@
 "analogRecorders": 2,
 "analogLevels": 32,
 "debugRecorders": 1,
-"driver": "osmosdr"
+"driver": "osmosdr",
+"device": "rtl=31"
+},
+{"center": 490250000.0,
+"rate": 2048000.0,
+"error": 1400,
+"gain": 24,
+"digitalRecorders": 4,
+"fskGain": 0.75,
+"analogRecorders": 2,
+"analogLevels": 32,
+"debugRecorders": 1,
+"driver": "osmosdr",
+"device": "rtl=32"
 }
 ],
 "systems": [{
