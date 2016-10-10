@@ -38,7 +38,7 @@ struct osw_stru{
 	int status;
 	int full_address;
 	long address;
-	char grp;
+	int grp;
 };
 
 class SmartnetParser:public TrunkParser
