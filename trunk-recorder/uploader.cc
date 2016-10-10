@@ -196,7 +196,7 @@ int http_upload(struct server_data_t *server_info, boost::asio::streambuf& reque
       std::cout << "Response returned with status code " << status_code << "\n";
       return 1;
     }
-    std::cout << "Response code: " << status_code << "\n";
+    //std::cout << "Response code: " << status_code << "\n";
 
     // Read the response headers, which are terminated by a blank line.
     boost::asio::read_until(socket, response, "\r\n\r\n");
@@ -257,7 +257,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
       std::cout << "Error resolve: " << ec.message() << "\n";
       exit(1);
     }
-    std::cout << "Resolve OK" << "\n";
+    //std::cout << "Resolve OK" << "\n";
     socket.set_verify_mode(boost::asio::ssl::verify_peer);
 
     // socket.set_verify_callback(boost::bind(&client::verify_certificate, this,
@@ -272,7 +272,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
       exit(1);
     }
 
-    std::cout << "Connect OK " << "\n";
+    //std::cout << "Connect OK " << "\n";
     socket.handshake(boost::asio::ssl::stream_base::client, ec);
 
     if (ec)
@@ -281,11 +281,11 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
       // exit(1);
     } else {
-      std::cout << "Handshake OK " << "\n";
+      //std::cout << "Handshake OK " << "\n";
     }
-    std::cout << "Request: " << "\n";
+    //std::cout << "Request: " << "\n";
     const char *req_header = boost::asio::buffer_cast<const char *>(request_.data());
-    std::cout << req_header << "\n";
+    //std::cout << req_header << "\n";
 
 
     // The handshake was successful. Send the request.
@@ -353,12 +353,12 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 }
 
 void* convert_upload_call(void *thread_arg) {
-  // struct call_data_t *call_info;
+
   call_data_t   *call_info;
   server_data_t *server_info = new server_data_t;
   char shell_command[400];
 
-  // call_info = (struct call_data_t *) thread_arg;
+
   call_info                  = static_cast<call_data_t *>(thread_arg);
   server_info->upload_server = call_info->upload_server;
   server_info->scheme        = call_info->scheme;
@@ -369,12 +369,12 @@ void* convert_upload_call(void *thread_arg) {
   boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
   strcpy(call_info->converted, m4a.string().c_str());
-  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 %s", call_info->filename, m4a.string().c_str());
-  std::cout << "Converting: " << call_info->converted << "\n";
-  std::cout << "Command: " << shell_command << "\n";
+  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 %s > /dev/null", call_info->filename, m4a.string().c_str());
+  //std::cout << "Converting: " << call_info->converted << "\n";
+  //std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
 
-  std::cout << "Finished converting\n";
+  //std::cout << "Finished converting\n";
   boost::asio::streambuf request_;
   build_call_request(call_info, request_);
 
@@ -385,9 +385,8 @@ void* convert_upload_call(void *thread_arg) {
   if (call_info->scheme == "https") {
     https_upload(server_info, request_);
   }
-  std::cout << "All done sending\n";
+  //std::cout << "All done sending\n";
 
-  // free(call_info);
   delete(call_info);
   pthread_exit(NULL);
 }
@@ -410,14 +409,14 @@ void send_call(Call *call, System *sys, Config config) {
     call_info->hostname      = std::string(what[2].first, what[2].second);
     call_info->port          = std::string(what[3].first, what[3].second);
     call_info->path          = std::string(what[4].first, what[4].second);
-    std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
+    //std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
     strcpy(call_info->filename, call->get_filename());
   } else {
-    std::cout << "Unable to parse Server URL\n";
+    //std::cout << "Unable to parse Server URL\n";
     return;
   }
 
-  std::cout << "Setting up thread\n";
+  //std::cout << "Setting up thread\n";
   Call_Source *source_list = call->get_source_list();
   call_info->talkgroup    = call->get_talkgroup();
   call_info->freq         = call->get_freq();
@@ -431,14 +430,14 @@ void send_call(Call *call, System *sys, Config config) {
   std::stringstream ss;
   ss << "/" << sys->get_short_name() << "/upload";
   call_info->path = ss.str();
-  std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
+  //std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " << call_info->hostname << " Port: " << call_info->port << " Path: " << call_info->path << "\n";
 
   for (int i = 0; i < call_info->source_count; i++) {
     call_info->source_list[i] = source_list[i];
   }
-  std::cout << "Creating Upload Thread\n";
+  //std::cout << "Creating Upload Thread\n";
   int rc = pthread_create(&thread, NULL, convert_upload_call, (void *)call_info);
-  std::cout << "Finished creating Thread\n";
+  //std::cout << "Finished creating Thread\n";
 
   if (rc) {
     printf("ERROR; return code from pthread_create() is %d\n", rc);
