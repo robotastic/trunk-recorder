@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
-
+#include <unistd.h>
 
 #include "talkgroups.h"
 #include "source.h"
@@ -131,8 +131,7 @@ void load_config()
       System *system = new System(sys_count++);
 
       BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-      BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node,
-                    node.second.get_child("control_channels"))
+      BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
       {
         double control_channel = sub_node.second.get<double>("", 0);
 
@@ -200,7 +199,7 @@ void load_config()
       int    bb_gain        = node.second.get<int>("bbGain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 1.0);
-      double analog_levels = node.second.get<double>("analogLevels", 1.0);
+      double analog_levels  = node.second.get<double>("analogLevels", 1.0);
       double squelch_db     = node.second.get<double>("squelch", 0);
       std::string antenna   = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
@@ -387,20 +386,19 @@ void stop_inactive_recorders() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
-   if ((call->get_state() == stopping) && call->has_stopped() && (call->stopping_elapsed() > 2)) {
+    if ((call->get_state() == stopping) && call->has_stopped() && (call->stopping_elapsed() > 2)) {
       call->close_call();
       delete call;
       it = calls.erase(it);
     } else
     if ((call->get_state() == recording) && (call->since_last_update() > config.call_timeout)) {
-
       call->close_call();
       delete call;
       it = calls.erase(it);
 
-/*
-      call->stop_call();
-      it++;*/
+      /*
+            call->stop_call();
+            it++;*/
     } else if ((call->get_state() == monitoring) && (call->since_last_update() > config.call_timeout)) {
       call->close_call();
       delete call;
@@ -435,23 +433,28 @@ void stop_inactive_recorders() {
       source->get_mean_delay();
      }*/
 }
+
 void print_status() {
   BOOST_LOG_TRIVIAL(info) << "Total Calls: " << calls.size();
+
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
-    Call *call = *it;
+    Call *call         = *it;
     Recorder *recorder = call->get_recorder();
     BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " Freq: " << call->get_freq() << " elapsed: " << call->elapsed() << " State: " << call->get_state();
-    if (recorder){
+
+    if (recorder) {
       BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << recorder->get_state();
     }
   }
 
   BOOST_LOG_TRIVIAL(info) << "Recorders: ";
+
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     Source *source = *it;
     source->print_recorders();
   }
 }
+
 bool retune_recorder(TrunkMessage message, Call *call) {
   Recorder *recorder = call->get_recorder();
   Source   *source   = recorder->get_source();
@@ -473,7 +476,8 @@ bool retune_recorder(TrunkMessage message, Call *call) {
   } else {
     BOOST_LOG_TRIVIAL(info) <<  "\t\tStopping call, starting new call on new source";
     call->stop_call();
-    //call->close_call();
+
+    // call->close_call();
 
     if (call->get_debug_recording() == true) {
       call->get_debug_recorder()->stop();
@@ -536,31 +540,37 @@ void assign_recorder(TrunkMessage message, System *sys) {
         // call->get_talkgroup() << "\tTMDA: " << call->get_tdma() <<
         // "\tElapsed: " << call->elapsed() << "s \tSince update: " <<
         // call->since_last_update();
-/*
-        if (call->get_state() != stopping) {
-          // if you are recording the call, stop
-          if (call->get_state() == recording) {
-            BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " <<  message.tdma << "\t Ending Existing call\tTG: " <<  call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " <<  call->since_last_update();
-            // different talkgroups on the same freq, that is trouble
-          }
-          call->close_call();
-          delete call;
-          it = calls.erase(it);
-        } else {
+
+        /*
+                if (call->get_state() != stopping) {
+                  // if you are recording the call, stop
+                  if (call->get_state() == recording) {
+                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " <<
+                       message.talkgroup << "\tFreq: " << message.freq <<
+                       "\tTDMA: " <<  message.tdma << "\t Ending Existing
+                       call\tTG: " <<  call->get_talkgroup() << "\tTMDA: " <<
+                       call->get_tdma() << "\tElapsed: " << call->elapsed() <<
+                       "s \tSince update: " <<  call->since_last_update();
+                    // different talkgroups on the same freq, that is trouble
+                  }
+                  call->close_call();
+                  delete call;
+                  it = calls.erase(it);
+                } else {
+                call_found = true;
+
+
+           ++it; // move on to the next one
+
+
+
+                }*/
         call_found = true;
 
 
-          ++it; // move on to the next one
-
-
-
-        }*/
-        call_found = true;
-
-
-          ++it;
+        ++it;
       } else {
-        ++it;   // move on to the next one
+        ++it; // move on to the next one
       }
     }
   }
@@ -607,9 +617,11 @@ void update_recorder(TrunkMessage message, System *sys) {
     if (call_found && (call->get_talkgroup() == message.talkgroup) &&  (call->get_state() != stopping)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
     }
+
     if (call->get_talkgroup() == message.talkgroup) {
       call_found = true;
     }
+
     if ((call->get_talkgroup() == message.talkgroup) &&
         (call->get_state() != stopping)) {
       // update the call, so it stays alive
@@ -619,6 +631,7 @@ void update_recorder(TrunkMessage message, System *sys) {
       if (call->get_freq() != message.freq) {
         if (call->get_state() == recording) {
           BOOST_LOG_TRIVIAL(info) << "\t Update Retune - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
+
           // see if we can retune the recorder, sometimes you can't if there are
           // more than one
           int retuned = retune_recorder(message, call);
@@ -646,10 +659,12 @@ void update_recorder(TrunkMessage message, System *sys) {
       ++it; // move on to the next one
     }
   }
+
   if (!call_found) {
     BOOST_LOG_TRIVIAL(error) << "\t Call not found for update Message, Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
 
-    assign_recorder(message, sys); //Treehouseman, Lets start the call if we missed the GRANT message!
+    assign_recorder(message, sys); // Treehouseman, Lets start the call if we
+                                   // missed the GRANT message!
   }
 }
 
@@ -747,64 +762,127 @@ System* find_system(int sys_id) {
   return sys_match;
 }
 
+void retune_system(System *system) {
+  bool source_found            = false;
+  Source *source               = NULL;
+  double  control_channel_freq = system->get_next_control_channel();
+
+  BOOST_LOG_TRIVIAL(info) << "Retuning to Control Channel: " << control_channel_freq;
+
+  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+    source = *it;
+    BOOST_LOG_TRIVIAL(info) << "Min: " << source->get_min_hz() << " Max: " << source->get_max_hz();
+
+    if ((source->get_min_hz() <= control_channel_freq) &&
+        (source->get_max_hz() >= control_channel_freq)) {
+      // The source can cover the System's control channel, break out of the
+      // For Loop
+      source_found = true;
+      break;
+    }
+  }
+
+
+  if (source_found) {
+    if (system->get_system_type() == "smartnet") {
+      // what you really need to do is go through all of the sources to find
+      // the one with the right frequencies
+      system->smartnet_trunking->tune_offset(control_channel_freq);
+    }
+
+    if (system->get_system_type() == "p25") {
+      // what you really need to do is go through all of the sources to find
+      // the one with the right frequencies
+      system->p25_trunking->tune_offset(control_channel_freq);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Finished retuning";
+  }
+}
+
+void check_message_count(float timeDiff) {
+  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
+    System *sys                     = (System *)*it;
+    float   msgs_decoded_per_second = sys->message_count / timeDiff;
+
+    if (msgs_decoded_per_second < 1) {
+      if (sys->control_channel_count() > 1) {
+        retune_system(sys);
+      } else {
+        BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
+      }
+    }
+
+    //  if (msgs_decoded_per_second < 10) {
+    BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
+
+    // }
+    sys->message_count = 0;
+  }
+}
+
 void monitor_messages() {
   gr::message::sptr msg;
-  int messagesDecodedSinceLastReport = 0;
   int sys_id;
   System *sys;
-  float   msgs_decoded_per_second = 0;
 
-  time_t lastStatusTime = time(NULL);
+
+  time_t lastStatusTime     = time(NULL);
   time_t lastMsgCountTime   = time(NULL);
   time_t lastTalkgroupPurge = time(NULL);
   time_t currentTime        = time(NULL);
   std::vector<TrunkMessage> trunk_messages;
 
   while (1) {
+    currentTime = time(NULL);
     if (exit_flag) { // my action when signal set it 1
       printf("\n Signal caught!\n");
       return;
     }
 
 
-    msg    = msg_queue->delete_head();
-    sys_id = msg->arg1();
-    sys    = find_system(sys_id);
-    messagesDecodedSinceLastReport++;
-    currentTime = time(NULL);
+    msg = msg_queue->delete_head_nowait();
+
+    if (msg != 0) {
+      sys_id = msg->arg1();
+      sys    = find_system(sys_id);
+      sys->message_count++;
 
 
-    if ((currentTime - lastTalkgroupPurge) >= 1.0)
-    {
-      stop_inactive_recorders();
-      lastTalkgroupPurge = currentTime;
-    }
 
-    if (sys) {
-      if (sys->get_system_type() == "smartnet") {
-        trunk_messages = smartnet_parser->parse_message(msg->to_string());
 
+      if ((currentTime - lastTalkgroupPurge) >= 1.0)
+      {
+        stop_inactive_recorders();
+        lastTalkgroupPurge = currentTime;
+      }
+
+      if (sys) {
+        if (sys->get_system_type() == "smartnet") {
+          trunk_messages = smartnet_parser->parse_message(msg->to_string());
           handle_message(trunk_messages, sys);
+        }
 
+        if (sys->get_system_type() == "p25") {
+          trunk_messages = p25_parser->parse_message(msg);
+          handle_message(trunk_messages, sys);
+        }
       }
 
-      if (sys->get_system_type() == "p25") {
-        trunk_messages = p25_parser->parse_message(msg);
-        handle_message(trunk_messages, sys);
-      }
+      /*
+              if ((currentTime - lastUnitCheckTime) >= 300.0) {
+                  unit_check();
+                  lastUnitCheckTime = currentTime;
+              }
+       */
+      msg.reset();
+    } else {
+      usleep(1000 * 100);
     }
-
-
     float timeDiff = currentTime - lastMsgCountTime;
 
     if (timeDiff >= 3.0) {
-      msgs_decoded_per_second        = messagesDecodedSinceLastReport / timeDiff;
-      messagesDecodedSinceLastReport = 0;
-      lastMsgCountTime               = currentTime;
-
-      if (msgs_decoded_per_second < 10) {
-        BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec";
-      }
+      check_message_count(timeDiff);
+      lastMsgCountTime = currentTime;
     }
 
     float statusTimeDiff = currentTime - lastStatusTime;
@@ -813,13 +891,6 @@ void monitor_messages() {
       lastStatusTime = currentTime;
       print_status();
     }
-    /*
-            if ((currentTime - lastUnitCheckTime) >= 300.0) {
-                unit_check();
-                lastUnitCheckTime = currentTime;
-            }
-     */
-    msg.reset();
   }
 }
 

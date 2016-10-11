@@ -13,6 +13,9 @@ public:
         std::string api_key;
         std::string default_mode;
         std::string system_type;
+        int message_count;
+        int retune_attempts;
+        time_t last_message_time;
 
         std::vector<double> control_channels;
         int current_control_channel;
@@ -32,8 +35,11 @@ public:
         void set_system_type(std::string);
         std::string get_talkgroups_file();
         void set_talkgroups_file(std::string);
+        int control_channel_count();
         void add_control_channel(double channel);
+        double get_next_control_channel();
         double get_current_control_channel();
+
         System(int sys_id );
 };
 #endif

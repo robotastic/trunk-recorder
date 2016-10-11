@@ -56,7 +56,7 @@ smartnet_trunking::smartnet_trunking(float               f,
                                                                         samp_rate);
 */
 
-          gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter =
+         prefilter =
              gr::filter::freq_xlating_fir_filter_ccf::make(decim,
                   lpf_taps,
                   offset,
@@ -97,4 +97,11 @@ smartnet_trunking::smartnet_trunking(float               f,
   connect(slicer,           0, start_correlator, 0);
   connect(start_correlator, 0, deinterleave,     0);
   connect(deinterleave,     0, crc,              0);
+}
+
+void smartnet_trunking::tune_offset(double f) {
+  chan_freq = f;
+  int offset_amount = (f - center_freq);
+  prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
+  cout << "Offset set to: " << offset_amount << " Freq: " << chan_freq << endl;
 }

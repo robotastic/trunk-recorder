@@ -28,6 +28,7 @@ void System::set_default_mode(std::string def_mode) {
 
 System::System(int sys_id) {
   this->sys_id = sys_id;
+  current_control_channel = 0;
 }
 
 int System::get_sys_id() {
@@ -57,18 +58,29 @@ std::string System::get_talkgroups_file() {
 void System::set_talkgroups_file(std::string talkgroups_file) {
   this->talkgroups_file = talkgroups_file;
 }
+int System::control_channel_count() {
+  return control_channels.size();
+}
 
 void System::add_control_channel(double control_channel) {
   if (control_channels.size() == 0) {
     control_channels.push_back(control_channel);
   } else {
     if (std::find(control_channels.begin(), control_channels.end(),
-                  control_channel) != control_channels.end()) {
+                  control_channel) == control_channels.end()) {
       control_channels.push_back(control_channel);
     }
   }
 }
 
 double System::get_current_control_channel() {
-  return this->control_channels[0];
+  return this->control_channels[current_control_channel];
+}
+
+double System::get_next_control_channel() {
+  current_control_channel++;
+  if (current_control_channel >= control_channels.size()) {
+    current_control_channel = 0;
+  }
+  return this->control_channels[current_control_channel];
 }
