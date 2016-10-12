@@ -76,7 +76,7 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf& requ
   std::string form_name("call");
   std::string form_filename(call->converted);
 
-  std::ifstream file(call->filename, std::ios::binary);
+  std::ifstream file(call->converted, std::ios::binary);
 
   // Make sure we have something to read.
   if (!file.is_open()) {
@@ -370,7 +370,7 @@ void* convert_upload_call(void *thread_arg) {
   m4a = m4a.replace_extension(".m4a");
   strcpy(call_info->converted, m4a.string().c_str());
   sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 %s > /dev/null", call_info->filename, m4a.string().c_str());
-  //std::cout << "Converting: " << call_info->converted << "\n";
+  std::cout << "Converting: " << call_info->converted << "\n";
   //std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
 
