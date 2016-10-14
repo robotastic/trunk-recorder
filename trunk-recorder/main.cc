@@ -497,14 +497,14 @@ void assign_recorder(TrunkMessage message, System *sys) {
       // The talkgroup for the call does not match
       // check is the freq is the same as the one being used by the call
       if ((call->get_freq() == message.freq) &&  (call->get_tdma() == message.tdma)) {
-        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
-
+        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
+/*
         call->end_call();
 
         it = calls.erase(it);
-                delete call;
+                delete call;*/
         call_found = false;
-
+        ++it;
       } else {
         ++it; // move on to the next one
       }
