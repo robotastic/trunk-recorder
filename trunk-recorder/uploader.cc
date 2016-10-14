@@ -255,7 +255,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     if (ec)
     {
       std::cout << "Error resolve: " << ec.message() << "\n";
-      exit(1);
+      return 1;
     }
     //std::cout << "Resolve OK" << "\n";
     socket.set_verify_mode(boost::asio::ssl::verify_peer);
@@ -269,7 +269,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     if (ec)
     {
       std::cout << "Connect failed: " << ec.message() << "\n";
-      exit(1);
+      return 1;
     }
 
     //std::cout << "Connect OK " << "\n";
@@ -278,11 +278,9 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     if (ec)
     {
       std::cout << "Handshake failed: " << ec.message() << "\n";
-
-      // exit(1);
-    } else {
-      //std::cout << "Handshake OK " << "\n";
+      return 1;
     }
+
     //std::cout << "Request: " << "\n";
     const char *req_header = boost::asio::buffer_cast<const char *>(request_.data());
     //std::cout << req_header << "\n";
@@ -294,6 +292,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     if (ec)
     {
       std::cout << "Error write req: " << ec.message() << "\n";
+      return 1;
     }
 
     std::cout << &request_;
@@ -348,6 +347,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
   catch (std::exception& e)
   {
     std::cout << "Exception: " << e.what() << "\n";
+    return 1;
   }
   return 0;
 }
@@ -369,8 +369,8 @@ void* convert_upload_call(void *thread_arg) {
   boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
   strcpy(call_info->converted, m4a.string().c_str());
-  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 %s > /dev/null", call_info->filename, m4a.string().c_str());
-  std::cout << "Converting: " << call_info->converted << "\n";
+  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, m4a.string().c_str());
+  //std::cout << "Converting: " << call_info->converted << "\n";
   //std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
 
@@ -385,7 +385,6 @@ void* convert_upload_call(void *thread_arg) {
   if (call_info->scheme == "https") {
     https_upload(server_info, request_);
   }
-  //std::cout << "All done sending\n";
 
   delete(call_info);
   pthread_exit(NULL);
@@ -441,6 +440,5 @@ void send_call(Call *call, System *sys, Config config) {
 
   if (rc) {
     printf("ERROR; return code from pthread_create() is %d\n", rc);
-    exit(-1);
   }
 }
