@@ -544,7 +544,7 @@ void group_affiliation(long unit, long talkgroup) {
 void update_recorder(TrunkMessage message, System *sys) {
   bool call_found = false;
 
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ) {
     Call *call = *it;
 
     // This should help detect 2 calls being listed for the same tg
@@ -564,8 +564,10 @@ void update_recorder(TrunkMessage message, System *sys) {
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-            // call_found = false; // if you wanted to start a new recording, you could uncomment this
-            BOOST_LOG_TRIVIAL(info) << "\tUpdate needed a new source, but I didn 't care";
+            call->end_call();
+            delete call;
+            it = calls.erase(it);
+            call_found = false;
           }
 
         } else {
@@ -575,7 +577,10 @@ void update_recorder(TrunkMessage message, System *sys) {
         }
       }
 
+      // we found out call, exit the for loop
+      break;
     } else {
+      ++it;
       // the talkgroups don't match
     }
   }
