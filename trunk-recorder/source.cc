@@ -195,32 +195,16 @@ Recorder * Source::get_debug_recorder()
       break;
     }
   }
-
-  // BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Debug Recorders
-  // Available";
   return NULL;
 }
+
 void Source::print_recorders() {
   BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ]  ";
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-
-
-      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped();
-  }
-}
-void Source::clean_recorders() {
-  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
-       it != digital_recorders.end(); it++) {
-    p25_recorder_sptr rx = *it;
-
-    if ((rx->get_state() == stopping) && (rx->stopping_elapsed() > 60)) {
-      BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ] Really old recorder ";
-      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped() << " Freq: " << rx->get_freq();
-      rx->close();
-    }
+      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state();
   }
 }
 
@@ -264,13 +248,12 @@ Recorder * Source::get_digital_recorder(int priority)
       break;
     }
   }
-  BOOST_LOG_TRIVIAL(info) << "[ " << device <<
-    " ] No Digital Recorders Available";
+  BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ] No Digital Recorders Available";
 
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Has stopped " << rx->has_stopped() << " Freq: " << rx->get_freq();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Freq: " << rx->get_freq();
   }
   return NULL;
 }
@@ -339,11 +322,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
 
       if (isdigit(dev[0])) { // Assume this is a serial number and fail back
                              // to using rtl as default
-        msg << "rtl=" << dev <<  ",buflen=32764,buffers=8";
+        msg << "rtl=" << dev; //<<  ",buflen=32764,buffers=8";
         BOOST_LOG_TRIVIAL(info) <<
           "Source device name missing, defaulting to rtl device";
       } else {
-        msg << dev << ",buflen=32764,buffers=8";
+        msg << dev; //<< ",buflen=32764,buffers=8";
       }
       BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
       osmo_src = osmosdr::source::make(msg.str());
@@ -356,7 +339,6 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
     BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
     osmo_src->set_center_freq(center + error, 0);
 
-    // osmo_src->set_max_output_buffer(10);
     source_block = osmo_src;
   }
 

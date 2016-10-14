@@ -152,13 +152,13 @@ State analog_recorder::get_state() {
 	return state;
 }
 
-void analog_recorder::close() {
-	if (state == stopping) {
+void analog_recorder::stop() {
+	if (state == active) {
 		state = inactive;
 		valve->set_enabled(false);
 		wav_sink->close();
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping a non-stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+		BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping an inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
 	}
 }
@@ -187,10 +187,6 @@ int analog_recorder::lastupdate() {
   return time(NULL) - timestamp;
 }
 
-long analog_recorder::stopping_elapsed() {
-  return time(NULL) - stopping_time;
-}
-
 long analog_recorder::elapsed() {
   return time(NULL) - starttime;
 }
@@ -203,16 +199,6 @@ void analog_recorder::tune_offset(double f) {
 	freq = f;
 	int offset_amount = (f- center);
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
-}
-
-void analog_recorder::stop() {
-	if (state == active) {
-    BOOST_LOG_TRIVIAL(info) << "analog_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-    state         = stopping;
-    stopping_time = time(NULL);
-  } else {
-    BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-  }
 }
 
 void analog_recorder::start(Call *call, int n) {

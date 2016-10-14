@@ -62,7 +62,6 @@ public:
 	void tune_offset(double f);
 	void start( Call *call, int n);
 	void stop();
-	void close();
 	double get_freq();
     Source *get_source();
 	long get_talkgroup();
@@ -81,7 +80,6 @@ private:
 	long samp_rate;
 	time_t timestamp;
 	time_t starttime;
-	time_t stopping_time;
 	char filename[160];
 
 	//int num;

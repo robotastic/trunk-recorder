@@ -310,10 +310,6 @@ void start_recorder(Call *call, TrunkMessage message) {
           (source->get_max_hz() >= call->get_freq())) {
         source_found = true;
 
-        // std::cout << "Source - output_buffer - Min: " <<
-        // source->get_src_block()->min_output_buffer(0) << " Max: " <<
-        // source->get_src_block()->max_output_buffer(0) << "\n";
-
         if (call->get_tdma()) {
           BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
           return;
@@ -343,7 +339,7 @@ void start_recorder(Call *call, TrunkMessage message) {
           if (message.meta.length()) {
             BOOST_LOG_TRIVIAL(info) << message.meta;
           }
-          BOOST_LOG_TRIVIAL(info) << "Activating rec on src: " << source->get_device();
+          BOOST_LOG_TRIVIAL(info) << "Starting Recorder on Src: " << source->get_device();
 
           recorder->start(call, total_recorders);
           call->set_recorder(recorder);
@@ -386,45 +382,14 @@ void stop_inactive_recorders() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
-    if ((call->get_state() == stopping) && call->has_stopped() && (call->stopping_elapsed() > 2)) {
-      call->close_call();
-      delete call;
-      it = calls.erase(it);
-    } else
-    if ((call->get_state() == recording) && (call->since_last_update() > config.call_timeout)) {
-      call->close_call();
-      delete call;
-      it = calls.erase(it);
-
-      /*
-            call->stop_call();
-            it++;*/
-    } else if ((call->get_state() == monitoring) && (call->since_last_update() > config.call_timeout)) {
-      call->close_call();
+    if (call->since_last_update() > config.call_timeout) {
+      call->end_call();
       delete call;
       it = calls.erase(it);
     } else {
       ++it;
     } // if rx is active
   }   // foreach loggers
-
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
-    Call *call = *it;
-
-    if ((call->get_state() == stopping) && (call->stopping_elapsed() > 45)) {
-      BOOST_LOG_TRIVIAL(error) << "Killing long running call - TG: " << call->get_talkgroup();
-      call->close_call();
-      delete call;
-      it = calls.erase(it);
-    } else {
-      ++it;
-    } // if rx is active
-  }   // foreach loggers
-
-  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-    Source *source = *it;
-    source->clean_recorders();
-  }
 
   /*
      for (vector<Source *>::iterator it = sources.begin(); it != sources.end();
@@ -474,15 +439,6 @@ bool retune_recorder(TrunkMessage message, Call *call) {
     }
     return true;
   } else {
-    BOOST_LOG_TRIVIAL(info) <<  "\t\tStopping call, starting new call on new source";
-    call->stop_call();
-
-    // call->close_call();
-
-    if (call->get_debug_recording() == true) {
-      call->get_debug_recorder()->stop();
-      call->set_debug_recording(false);
-    }
     return false;
   }
 }
@@ -501,7 +457,7 @@ void assign_recorder(TrunkMessage message, System *sys) {
     }
 
     // Does the call have the same talkgroup
-    if ((call->get_talkgroup() == message.talkgroup) && (call->get_state() != stopping)) {
+    if (call->get_talkgroup() == message.talkgroup) {
       call_found = true;
 
       // Is the freq the same?
@@ -513,62 +469,39 @@ void assign_recorder(TrunkMessage message, System *sys) {
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-            call_found = false;
+            // we failed to retune to the new freq, kill this call
+            delete call;
+            BOOST_LOG_TRIVIAL(info) <<  "\t\tStopping call, starting new call on new source";
+            call->end_call();
+            it = calls.erase(it);
+            call_found = false; // since it is set to false, a new call will be started at the end of the function
           } else {
             call->update(message);
           }
-          ++it; // move on to the next one
         } else {
           // This call is not being recorded, just update the Freq and move on
           call->update(message);
           call->set_freq(message.freq);
           call->set_tdma(message.tdma);
-          ++it; // move on to the next one
         }
       } else {
         // The freq hasn't changed
         call->update(message);
-        ++it; // move on to the next one
       }
+      // ++it; // move on to the next one
+      // we found there has already been a Call created for the talkgroup, exit the loop
+      break;
     } else {
       // The talkgroup for the call does not match
       // check is the freq is the same as the one being used by the call
       if ((call->get_freq() == message.freq) &&  (call->get_tdma() == message.tdma)) {
-        // BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " <<
-        // message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " <<
-        // message.tdma << "\t Ending Existing call\tTG: " <<
-        // call->get_talkgroup() << "\tTMDA: " << call->get_tdma() <<
-        // "\tElapsed: " << call->elapsed() << "s \tSince update: " <<
-        // call->since_last_update();
+        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
-        /*
-                if (call->get_state() != stopping) {
-                  // if you are recording the call, stop
-                  if (call->get_state() == recording) {
-                    BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " <<
-                       message.talkgroup << "\tFreq: " << message.freq <<
-                       "\tTDMA: " <<  message.tdma << "\t Ending Existing
-                       call\tTG: " <<  call->get_talkgroup() << "\tTMDA: " <<
-                       call->get_tdma() << "\tElapsed: " << call->elapsed() <<
-                       "s \tSince update: " <<  call->since_last_update();
-                    // different talkgroups on the same freq, that is trouble
-                  }
-                  call->close_call();
-                  delete call;
-                  it = calls.erase(it);
-                } else {
-                call_found = true;
+        call->end_call();
+        delete call;
+        it = calls.erase(it);
+        call_found = false;
 
-
-           ++it; // move on to the next one
-
-
-
-                }*/
-        call_found = true;
-
-
-        ++it;
       } else {
         ++it; // move on to the next one
       }
@@ -611,57 +544,44 @@ void group_affiliation(long unit, long talkgroup) {
 void update_recorder(TrunkMessage message, System *sys) {
   bool call_found = false;
 
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
     Call *call = *it;
 
-    if (call_found && (call->get_talkgroup() == message.talkgroup) &&  (call->get_state() != stopping)) {
+    // This should help detect 2 calls being listed for the same tg
+    if (call_found && (call->get_talkgroup() == message.talkgroup)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
     }
 
     if (call->get_talkgroup() == message.talkgroup) {
       call_found = true;
-    }
-
-    if ((call->get_talkgroup() == message.talkgroup) &&
-        (call->get_state() != stopping)) {
-      // update the call, so it stays alive
-
       call->update(message);
 
       if (call->get_freq() != message.freq) {
         if (call->get_state() == recording) {
           BOOST_LOG_TRIVIAL(info) << "\t Update Retune - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
-          // see if we can retune the recorder, sometimes you can't if there are
-          // more than one
+          // see if we can retune the recorder, sometimes you can't if there are more than one
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
+            // call_found = false; // if you wanted to start a new recording, you could uncomment this
             BOOST_LOG_TRIVIAL(info) << "\tUpdate needed a new source, but I didn 't care";
-          } else {
-            call_found = true;
           }
 
-          ++it; // move on to the next one
         } else {
           // the Call is not recording, update and continue
-          call_found = true;
           call->set_freq(message.freq);
           call->set_tdma(message.tdma);
-          ++it; // move on to the next one
         }
-      } else {
-        // the freq is the same, just update it
-        ++it; // move on to the next one
       }
+
     } else {
       // the talkgroups don't match
-      ++it; // move on to the next one
     }
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(error) << "\t Call not found for update Message, Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
 
     assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
@@ -812,10 +732,10 @@ void check_message_count(float timeDiff) {
       }
     }
 
-    //  if (msgs_decoded_per_second < 10) {
+      if (msgs_decoded_per_second < 10) {
     BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
 
-    // }
+     }
     sys->message_count = 0;
   }
 }
@@ -846,9 +766,6 @@ void monitor_messages() {
       sys_id = msg->arg1();
       sys    = find_system(sys_id);
       sys->message_count++;
-
-
-
 
       if ((currentTime - lastTalkgroupPurge) >= 1.0)
       {
@@ -984,7 +901,6 @@ int main(void)
 
   if (monitor_system()) {
     tb->start(1000);
-    BOOST_LOG_TRIVIAL(info) << "Top Block Max number output items: " << tb->max_noutput_items();
 
     monitor_messages();
 

@@ -56,24 +56,11 @@ Call::~Call() {
   //  BOOST_LOG_TRIVIAL(info) << " This call is over!!";
 }
 
-void Call::stop_call() {
-  if (state == recording) {
-    state         = stopping;
-    stopping_time = time(NULL);
-    this->get_recorder()->stop();
-  }  else {
-    BOOST_LOG_TRIVIAL(error) << "\tStopping stopping Call \tTG: " << this->get_talkgroup() << "\tElapsed: " << this->elapsed();
-  }
-}
-
-void Call::close_call() {
+void Call::end_call() {
   char shell_command[200];
 
   if (state == recording) {
-    BOOST_LOG_TRIVIAL(error) << "Closing a recording call";
-  }
-  if ((state == stopping) || (state == recording)) {
-    BOOST_LOG_TRIVIAL(info) << "Removing Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed() << " Stopping Elapsed: " << this->stopping_elapsed();
+    BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
     std::ofstream myfile(status_filename);
     Call_Source *wav_src_list = get_recorder()->get_source_list();
     int wav_src_count = get_recorder()->get_source_count();
@@ -100,8 +87,7 @@ void Call::close_call() {
     }
     sprintf(shell_command, "./encode-upload.sh %s &", this->get_filename());
 
-    this->get_recorder()->close();
-    BOOST_LOG_TRIVIAL(error) << "Upload server: " << this->config.upload_server;
+    this->get_recorder()->stop();
     if (this->config.upload_server != "") {
       send_call(this, sys, config);
     } else {
@@ -113,23 +99,6 @@ void Call::close_call() {
 
   if (this->get_debug_recording() == true) {
     this->get_debug_recorder()->stop();
-    this->get_debug_recorder()->close();
-  }
-}
-
-bool Call::has_stopped() {
-  if (state == stopping) {
-    if (recorder) {
-      bool result = recorder->has_stopped();
-      recorder->clear_total_produced();
-      return result;
-    } else {
-      BOOST_LOG_TRIVIAL(error) << "checking has_stopped on a non-recording call";
-      return true;
-    }
-  } else {
-    BOOST_LOG_TRIVIAL(error) << "Checking has_stopped on non-stopping call";
-    return true;
   }
 }
 
@@ -215,10 +184,6 @@ void Call::update(TrunkMessage message) {
 
 int Call::since_last_update() {
   return time(NULL) - last_update;
-}
-
-long Call::stopping_elapsed() {
-  return time(NULL) - stopping_time;
 }
 
 long Call::elapsed() {

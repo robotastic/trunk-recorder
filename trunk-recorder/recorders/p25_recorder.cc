@@ -29,7 +29,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
 
   float  symbol_rate         = 4800;
-  double samples_per_symbol  = 10; // was 10
+  double samples_per_symbol  = 10;    // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
   float  symbol_deviation    = 600.0; // was 600.0
 
@@ -42,9 +42,9 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   double input_rate = capture_rate;
 
-  float gain_mu      = 0.025; //0.025
+  float gain_mu      = 0.025;               // 0.025
   float costas_alpha = 0.04;
-  float bb_gain      = src->get_fsk_gain();  // was 1.0
+  float bb_gain      = src->get_fsk_gain(); // was 1.0
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
@@ -67,12 +67,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
                                            dest,
                                            offset,
                                            samp_rate);
-/*
-  prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
-              lpf_coeffs,
-              offset,
-              samp_rate);
-*/
+
   tagger = latency_make_tagger(sizeof(gr_complex), 512, "latency0");
   std::vector<std::string> keys;
   keys.push_back("latency0");
@@ -130,26 +125,22 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
      # Build in an exit strategy; if we've come this far, it ain't working.
             if(ripple >= 1.0):
                 raise RuntimeError("optfir could not generate an appropriate
-                 #filter.")*/
+     #filter.")*/
   }
 
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
-
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
-
 
   float omega      = float(system_channel_rate) / float(symbol_rate);
   float gain_omega = 0.1  * gain_mu * gain_mu;
-
-  float alpha = costas_alpha;
-  float beta  = 0.125 * alpha * alpha;
-  float fmax  = 2400; // Hz
+  float alpha      = costas_alpha;
+  float beta       = 0.125 * alpha * alpha;
+  float fmax       = 2400; // Hz
   fmax = 2 * pi * fmax / float(system_channel_rate);
 
   costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
-
 
   // Perform Differential decoding on the constellation
   diffdec = gr::digital::diff_phasor_cc::make();
@@ -163,7 +154,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   // fm demodulator (needed in fsk4 case)
   float fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
-BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
+  BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
 
   double symbol_decim = 1;
 
@@ -195,7 +186,6 @@ BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
 
 
   converter = gr::blocks::short_to_float::make(1, 2048.0); // 8192.0);
-  //converter = gr::blocks::short_to_float::make(1, 8192.0); // 8192.0);
 
   tm *ltm = localtime(&starttime);
 
@@ -206,50 +196,12 @@ BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
   sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, freq);
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
 
-/*
-  valve->set_max_output_buffer(4096);
-  to_float->set_max_output_buffer(4096);
-  rescale->set_max_output_buffer(4096);
-  slicer->set_max_output_buffer(4096);
-  op25_frame_assembler->set_max_output_buffer(4096);
-  converter->set_max_output_buffer(4096);
-  wav_sink->set_max_output_buffer(4096);
-  arb_resampler->set_max_output_buffer(4096);
-  fm_demod->set_max_output_buffer(4096);
-  baseband_amp->set_max_output_buffer(4096);
-  sym_filter->set_max_output_buffer(4096);
-  fsk4_demod->set_max_output_buffer(4096);
-  agc->set_max_output_buffer(4096);
-  costas_clock->set_max_output_buffer(4096);
-  diffdec->set_max_output_buffer(4096);
-
-  // prefilter->set_max_output_buffer(8192);
-  this->set_max_output_buffer(4096);*/
-
-  /*
-     valve->set_min_output_buffer(0);
-     to_float->set_min_output_buffer(0);
-     rescale->set_min_output_buffer(0);
-     slicer->set_min_output_buffer(0);
-     op25_frame_assembler->set_min_output_buffer(0);
-     converter->set_min_output_buffer(0);
-     wav_sink->set_min_output_buffer(0);
-     arb_resampler->set_min_output_buffer(0);
-     fm_demod->set_min_output_buffer(0);
-     baseband_amp->set_min_output_buffer(0);
-     sym_filter->set_min_output_buffer(0);
-     fsk4_demod->set_min_output_buffer(0);
-     agc->set_min_output_buffer(0);
-     costas_clock->set_min_output_buffer(0);
-     diffdec->set_min_output_buffer(0);
-     //prefilter->set_min_output_buffer(0);
-     this->set_min_output_buffer(0);*/
 
   if (!qpsk_mod) {
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
-    connect(arb_resampler,        0,      fm_demod,             0);
+    connect(arb_resampler,        0, fm_demod,             0);
     connect(fm_demod,             0, baseband_amp,         0);
     connect(baseband_amp,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);
@@ -302,13 +254,6 @@ std::vector<unsigned long>p25_recorder::get_active_probe_offsets() {
   return active_probe->get_offsets("latency0");
 }
 
-bool p25_recorder::has_stopped() {
-  if (op25_frame_assembler->get_total_produced() > 0) {
-    return false;
-  } else {
-    return true;
-  }
-}
 
 void p25_recorder::clear_total_produced() {
   op25_frame_assembler->clear_total_produced();
@@ -328,14 +273,13 @@ std::vector<double>p25_recorder::get_active_probe_delays() {
 
 void p25_recorder::clear_probes() {
   last_probe->clear("latency0");
-
-  // active_probe->clear("latency0");
 }
 
 long p25_recorder::get_source_count() {
   return wav_sink->get_source_count();
 }
-Call_Source *p25_recorder::get_source_list() {
+
+Call_Source * p25_recorder::get_source_list() {
   return wav_sink->get_source_list();
 }
 
@@ -353,8 +297,6 @@ bool p25_recorder::is_active() {
   } else {
     return false;
   }
-
-  // return active;
 }
 
 double p25_recorder::get_freq() {
@@ -367,10 +309,6 @@ double p25_recorder::get_current_length() {
 
 int p25_recorder::lastupdate() {
   return time(NULL) - timestamp;
-}
-
-long p25_recorder::stopping_elapsed() {
-  return time(NULL) - stopping_time;
 }
 
 long p25_recorder::elapsed() {
@@ -389,76 +327,15 @@ State p25_recorder::get_state() {
   return state;
 }
 
-void p25_recorder::close() {
-  if (state == stopping) {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+void p25_recorder::stop() {
+  if (state == active) {
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
   } else {
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Closing a non-closing Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-    state = inactive;
-    valve->set_enabled(false);
-    wav_sink->close();
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }
-}
-
-void p25_recorder::stop() {
-  if (state == active) {
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-    state         = stopping;
-    stopping_time = time(NULL);
-  }       else {
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-  }
-
-  /*
-     std::cout << "Valve - noutput_items min: " << valve->min_noutput_items() <<
-        " max: " << valve->max_noutput_items() << " output_buffer - Min: " <<
-        valve->min_output_buffer(0) << " Max: " << valve->max_output_buffer(0)
-        << "\n";
-     std::cout << "P25 - noutput_items min: " <<
-        op25_frame_assembler->min_noutput_items() << " max: " <<
-        op25_frame_assembler->max_noutput_items() << " output_buffer - Min: " <<
-        op25_frame_assembler->min_output_buffer(0) << " Max: " <<
-        op25_frame_assembler->max_output_buffer(0) << "\n";
-     std::cout << "arb_resampler - noutput_items min: " <<
-        arb_resampler->min_noutput_items() << " max: " <<
-        arb_resampler->max_noutput_items() << " output_buffer - Min: " <<
-        arb_resampler->min_output_buffer(0) << " Max: " <<
-        arb_resampler->max_output_buffer(0) << "\n";
-     std::cout << "agc - noutput_items min: " << agc->min_noutput_items() << "
-        max: " << agc->max_noutput_items() << " output_buffer - Min: " <<
-        agc->min_output_buffer(0) << " Max: " << agc->max_output_buffer(0) <<
-        "\n";
-     std::cout << "costas_clock - noutput_items min: " <<
-        costas_clock->min_noutput_items() << " max: " <<
-        costas_clock->max_noutput_items() << " output_buffer - Min: " <<
-        costas_clock->min_output_buffer(0) << " Max: " <<
-        costas_clock->max_output_buffer(0) << "\n";
-     std::cout << "diffdec - noutput_items min: " <<
-        diffdec->min_noutput_items() << " max: " << diffdec->max_noutput_items()
-        << " output_buffer - Min: " << diffdec->min_output_buffer(0) << " Max: "
-        << diffdec->max_output_buffer(0) << "\n";
-     std::cout << "Slicer - noutput_items min: " << slicer->min_noutput_items()
-        << " max: " << slicer->max_noutput_items() << " output_buffer - Min: "
-        << slicer->min_output_buffer(0) << " Max: " <<
-        slicer->max_output_buffer(0) << "\n";
-   */
-
-  /*BOOST_LOG_TRIVIAL(info) <<
-          "Valve: \t" << valve->max_output_buffer(0) << "\n" <<
-          "Prefilter: \t" << prefilter->max_output_buffer(0) << "\n" <<
-          "arb_resampler: \t" << arb_resampler->max_output_buffer(0) << "\n" <<
-          "agc: \t\t" << agc->max_output_buffer(0) << "\n" <<
-          "costas_clock: \t" << costas_clock->max_output_buffer(0) << "\n" <<
-          "diffdec: \t" << diffdec->max_output_buffer(0) << "\n" <<
-     "to_float: \t" << to_float->max_output_buffer(0) << "\n" <<
-          "rescale: \t" << rescale->max_output_buffer(0) << "\n" <<
-     "slicer: \t" << slicer->max_output_buffer(0) << "\n" <<
-     "op25: \t\t" << op25_frame_assembler->max_output_buffer(0) << "\n" <<
-     "converter: \t" << converter->max_output_buffer(0) << "\n" <<
-                  "wav_sink: \t" <<  wav_sink->max_output_buffer(0);*/
 }
 
 void p25_recorder::start(Call *call, int n) {
@@ -471,7 +348,7 @@ void p25_recorder::start(Call *call, int n) {
 
     // num = n;
 
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Activating Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
     int offset_amount = (freq - center);
     prefilter->set_center_freq(offset_amount);
@@ -480,6 +357,6 @@ void p25_recorder::start(Call *call, int n) {
     state = active;
     valve->set_enabled(true);
   } else {
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an Active Logger!!!";
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";
   }
 }

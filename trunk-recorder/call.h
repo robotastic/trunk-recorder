@@ -25,9 +25,7 @@ public:
 								Call( long t, double f, System *s, Config c);
 								Call( TrunkMessage message, System *s, Config c);
 								~Call();
-								void close_call();
-								void stop_call();
-								bool has_stopped();
+								void end_call();
 								void set_debug_recorder(Recorder *r);
 								Recorder * get_debug_recorder();
 								void set_recorder(Recorder *r);
@@ -61,7 +59,6 @@ private:
 								System *sys;
 								time_t last_update;
 								time_t start_time;
-								time_t stopping_time;
 								bool debug_recording;
 								bool encrypted;
 								bool emergency;

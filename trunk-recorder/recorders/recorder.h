@@ -59,7 +59,6 @@ public:
 	virtual void tune_offset(double f) {};
 	virtual void start( Call *call, int n) {};
 	virtual void stop() {};
-	virtual void close() {};
 	virtual double get_freq() {return 0;};
   virtual Source *get_source() {return NULL;};
 	virtual Call_Source *get_source_list() {return NULL;};
@@ -68,7 +67,6 @@ public:
 	virtual long get_talkgroup() {return 0;};
 	virtual State get_state() {return inactive;};
 	virtual bool is_active() {return false;};
-	virtual bool has_stopped() {return true;};
 	virtual void clear_total_produced() {};
 	virtual long get_total_produced() {return 0;};
 	virtual double get_current_length(){return 0;};

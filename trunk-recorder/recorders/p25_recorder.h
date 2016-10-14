@@ -76,103 +76,100 @@ p25_recorder_sptr make_p25_recorder(Source *src, bool qpsk);
 
 class p25_recorder : public gr::hier_block2, public Recorder
 {
-	friend p25_recorder_sptr make_p25_recorder(Source *src, bool qpsk);
+								friend p25_recorder_sptr make_p25_recorder(Source *src, bool qpsk);
 protected:
-	p25_recorder(Source *src, bool qpsk);
+								p25_recorder(Source *src, bool qpsk);
 
 public:
-	~p25_recorder();
+								~p25_recorder();
 
-	void tune_offset(double f);
-	void start( Call *call, int n);
-	std::vector<unsigned long> get_active_probe_offsets();
-	std::vector<double> get_active_probe_delays();
-	std::vector<unsigned long> get_last_probe_offsets();
-	std::vector<double> get_last_probe_delays();
-	void clear_probes();
-	void stop();
-	void close();
-	double get_freq();
-	int get_num();
-	double get_current_length();
-	bool is_active();
-	bool has_stopped();
-	State get_state();
-	int lastupdate();
-	long elapsed();
-	long stopping_elapsed();
-    Source *get_source();
-		long get_source_count();
-		Call_Source *get_source_list();
-		void clear_total_produced();
-		long get_total_produced();
-	gr::msg_queue::sptr tune_queue;
-	gr::msg_queue::sptr traffic_queue;
-	gr::msg_queue::sptr rx_queue;
-	//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
+								void tune_offset(double f);
+								void start( Call *call, int n);
+								void stop();
+								std::vector<unsigned long> get_active_probe_offsets();
+								std::vector<double> get_active_probe_delays();
+								std::vector<unsigned long> get_last_probe_offsets();
+								std::vector<double> get_last_probe_delays();
+								void clear_probes();
+
+								double get_freq();
+								int get_num();
+								double get_current_length();
+								bool is_active();
+								State get_state();
+								int lastupdate();
+								long elapsed();
+								Source *get_source();
+								long get_source_count();
+								Call_Source *get_source_list();
+								void clear_total_produced();
+								long get_total_produced();
+								gr::msg_queue::sptr tune_queue;
+								gr::msg_queue::sptr traffic_queue;
+								gr::msg_queue::sptr rx_queue;
+								//void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 
 private:
-	double center, freq;
-	bool muted;
-  bool qpsk_mod;
-	long talkgroup;
-	time_t timestamp;
-	time_t starttime;
-	time_t stopping_time;
+								double center, freq;
+								bool muted;
+								bool qpsk_mod;
+								long talkgroup;
+								time_t timestamp;
+								time_t starttime;
 
-  Source *source;
-	char filename[160];
-	char raw_filename[160];
-	//int num;
+								Source *source;
+								char filename[160];
+								char raw_filename[160];
+								//int num;
 
-	bool iam_logging;
-	State state;
+								bool iam_logging;
+								State state;
 
 
-	//std::vector<gr_complex> lpf_coeffs;
-		std::vector<float> lpf_coeffs;
-	std::vector<float> arb_taps;
-	std::vector<float> sym_taps;
+								//std::vector<gr_complex> lpf_coeffs;
+								std::vector<float> lpf_coeffs;
+								std::vector<float> arb_taps;
+								std::vector<float> sym_taps;
 
-	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 
-freq_xlating_fft_filter_sptr prefilter;
-latency_tagger_sptr tagger;
-latency_probe_sptr active_probe;
-latency_probe_sptr last_probe;
-	/* GR blocks */
-	gr::filter::fir_filter_ccf::sptr lpf;
-	gr::filter::fir_filter_fff::sptr sym_filter;
+								freq_xlating_fft_filter_sptr prefilter;
+								latency_tagger_sptr tagger;
+								latency_probe_sptr active_probe;
+								latency_probe_sptr last_probe;
+								/* GR blocks */
+								gr::filter::fir_filter_ccf::sptr lpf;
+								gr::filter::fir_filter_fff::sptr sym_filter;
 
-	gr::analog::sig_source_c::sptr lo;
+								gr::analog::sig_source_c::sptr lo;
 
-gr::digital::diff_phasor_cc::sptr diffdec;
+								gr::digital::diff_phasor_cc::sptr diffdec;
 
-	gr::blocks::multiply_cc::sptr mixer;
-	gr::blocks::file_sink::sptr fs;
+								gr::blocks::multiply_cc::sptr mixer;
+								gr::blocks::file_sink::sptr fs;
 
-	gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
-	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
+								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
+								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
+								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 
-	gr::analog::quadrature_demod_cf::sptr fm_demod;
-	gr::analog::feedforward_agc_cc::sptr agc;
+								gr::analog::quadrature_demod_cf::sptr fm_demod;
+								gr::analog::feedforward_agc_cc::sptr agc;
 
-	gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
-	gr::blocks::short_to_float::sptr converter;
-	gr::blocks::copy::sptr valve;
+								gr::blocks::short_to_float::sptr converter;
+								gr::blocks::copy::sptr valve;
 
-	gr::blocks::multiply_const_ff::sptr multiplier;
-	gr::blocks::multiply_const_ff::sptr rescale;
-	gr::blocks::multiply_const_ff::sptr baseband_amp;
-	gr::blocks::complex_to_arg::sptr to_float;
-	gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
-	gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+								gr::blocks::multiply_const_ff::sptr multiplier;
+								gr::blocks::multiply_const_ff::sptr rescale;
+								gr::blocks::multiply_const_ff::sptr baseband_amp;
+								gr::blocks::complex_to_arg::sptr to_float;
+								gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
+								gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
 
-	gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-	gr::op25_repeater::vocoder::sptr op25_vocoder;
-	gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+								gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
+								gr::op25_repeater::vocoder::sptr op25_vocoder;
+								gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 };
 
 

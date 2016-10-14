@@ -82,7 +82,7 @@ State debug_recorder::get_state() {
 	return state;
 }
 
-void debug_recorder::close() {
+void debug_recorder::stop() {
 	raw_sink->close();
 	state = inactive;
 	valve->set_enabled(false);
@@ -116,17 +116,6 @@ void debug_recorder::tune_offset(double f) {
 	freq = f;
 	long offset_amount = (f - center);
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
-}
-void debug_recorder::stop() {
-
-	if (state == active) {
-		BOOST_LOG_TRIVIAL(info) << "debug_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-		state         = stopping;
-		stopping_time = time(NULL);
-	} else {
-		BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Stopping an Inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-	}
-
 }
 
 void debug_recorder::start(Call *call, int n) {
