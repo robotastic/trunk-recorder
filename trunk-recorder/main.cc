@@ -384,8 +384,8 @@ void stop_inactive_recorders() {
 
     if (call->since_last_update() > config.call_timeout) {
       call->end_call();
-      delete call;
       it = calls.erase(it);
+      delete call;
     } else {
       ++it;
     } // if rx is active
@@ -470,10 +470,12 @@ void assign_recorder(TrunkMessage message, System *sys) {
 
           if (!retuned) {
             // we failed to retune to the new freq, kill this call
-            delete call;
+
             BOOST_LOG_TRIVIAL(info) <<  "\t\tStopping call, starting new call on new source";
             call->end_call();
+
             it = calls.erase(it);
+            delete call;
             call_found = false; // since it is set to false, a new call will be started at the end of the function
           } else {
             call->update(message);
@@ -498,8 +500,9 @@ void assign_recorder(TrunkMessage message, System *sys) {
         BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Ending Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
         call->end_call();
-        delete call;
+
         it = calls.erase(it);
+                delete call;
         call_found = false;
 
       } else {
@@ -565,8 +568,9 @@ void update_recorder(TrunkMessage message, System *sys) {
 
           if (!retuned) {
             call->end_call();
-            delete call;
+
             it = calls.erase(it);
+            delete call;
             call_found = false;
           }
 
