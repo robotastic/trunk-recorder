@@ -32,6 +32,7 @@ class Source
 								int max_digital_recorders;
 								int max_debug_recorders;
 								int max_analog_recorders;
+								bool qpsk_mod;
 
 								std::vector<p25_recorder_sptr> digital_recorders;
 								std::vector<debug_recorder_sptr> debug_recorders;
@@ -64,6 +65,8 @@ public:
 								int get_gain();
 								void set_fsk_gain(double r);
 								double get_fsk_gain();
+								void set_qpsk_mod(bool m);
+								bool get_qpsk_mod();
 								void set_analog_levels(double r);
 								double get_analog_levels();
 								void set_digital_levels(double r);

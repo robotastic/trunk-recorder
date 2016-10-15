@@ -16,7 +16,12 @@ void Source::set_antenna(std::string ant)
 std::string Source::get_antenna() {
   return antenna;
 }
-
+void Source::set_qpsk_mod(bool m) {
+  qpsk_mod = m;
+}
+bool Source::get_qpsk_mod() {
+  return qpsk_mod;
+}
 
 void Source::set_fsk_gain(double r) {
   fsk_gain = r;

@@ -74,7 +74,7 @@ P25Parser *p25_parser;
 
 Config config;
 
-bool   qpsk_mod = true;
+
 string default_mode;
 
 
@@ -170,26 +170,11 @@ void load_config()
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
 
-    boost::optional<std::string> mod_exists = pt.get_optional<std::string>("modulation");
 
-    if (mod_exists) {
-      system_modulation = pt.get<std::string>("modulation");
-
-      if (boost::iequals(system_modulation, "QPSK"))
-      {
-        qpsk_mod = true;
-      } else if (boost::iequals(system_modulation, "FSK4")) {
-        qpsk_mod = false;
-      } else {
-        qpsk_mod = true;
-        BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, assuming QPSK";
-      }
-    } else {
-      qpsk_mod = true;
-    }
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("sources"))
     {
+      bool   qpsk_mod = true;
       double center         = node.second.get<double>("center", 0);
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
@@ -208,7 +193,23 @@ void load_config()
 
       std::string driver = node.second.get<std::string>("driver", "");
       std::string device = node.second.get<std::string>("device", "");
+      boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
+      if (mod_exists) {
+        system_modulation = node.second.get<std::string>("modulation");
+
+        if (boost::iequals(system_modulation, "QPSK"))
+        {
+          qpsk_mod = true;
+        } else if (boost::iequals(system_modulation, "FSK4")) {
+          qpsk_mod = false;
+        } else {
+          qpsk_mod = true;
+          BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, could be FSK4 or QPSK, assuming QPSK";
+        }
+      } else {
+        qpsk_mod = true;
+      }
 
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
       BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate", 0);
@@ -242,6 +243,7 @@ void load_config()
       source->set_fsk_gain(fsk_gain);
       source->set_analog_levels(analog_levels);
       source->set_digital_levels(digital_levels);
+      source->set_qpsk_mod(qpsk_mod);
 
       if (ppm != 0) {
         source->set_freq_corr(ppm);
@@ -864,7 +866,7 @@ bool monitor_system() {
                                                  source->get_center(),
                                                  source->get_rate(),
                                                  msg_queue,
-                                                 qpsk_mod,
+                                                 source->get_qpsk_mod(),
                                                  system->get_sys_id());
         tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
       }
