@@ -25,6 +25,7 @@
 
 #include <gnuradio/sync_block.h>
 #include <gnuradio/msg_queue.h>
+#include <boost/log/trivial.hpp>
 
 class smartnet_crc;
 
