@@ -93,8 +93,9 @@ void Call::end_call() {
     } else {
 
     }
-    int rc = system(shell_command);
-
+    if (sys->get_short_name() != "wmata") {
+      int rc = system(shell_command);
+    }
   }
 
   if (this->get_debug_recording() == true) {
