@@ -151,7 +151,7 @@ smartnet_crc::work (int noutput_items,
 
 	uint64_t abs_sample_cnt = nitems_read(0);
 	std::vector<gr::tag_t> frame_tags;
-
+/*
 	get_tags_in_range(frame_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_frame"));
 	if(frame_tags.size() == 0) {
 		return 0; //sad trombone
@@ -180,8 +180,8 @@ smartnet_crc::work (int noutput_items,
 			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()), pkt.command, this->sys_id, 0);
 			d_queue->insert_tail(msg);
 		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
-	}
+	}/*
 	BOOST_LOG_TRIVIAL(error) << "Size " << size << ", tags " << frame_tags.size() << " ninput items " << noutput_items;
 	//this->consume_each(noutput_items);
-	return noutput_items;
+	return size;
 }
