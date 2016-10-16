@@ -162,7 +162,7 @@ smartnet_crc::work (int noutput_items,
 		uint64_t mark = tag_iter->offset - abs_sample_cnt;
 		if(VERBOSE)
 			BOOST_LOG_TRIVIAL(info) << "found a frame at " << mark;
-	BOOST_LOG_TRIVIAL(error) << "\tStart: " << abs_sample_cnt, << "\t End: " << abs_sample_cnt + size << "\tOffset"<< tag_iter->offset;
+	BOOST_LOG_TRIVIAL(error) << "\tStart: " << abs_sample_cnt << "\t End: " << abs_sample_cnt + size << "\tOffset"<< tag_iter->offset;
 		char databits[38];
 		smartnet_ecc(databits, &in[mark]);
 		bool crc_ok = crc(databits);
