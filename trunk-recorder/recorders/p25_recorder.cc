@@ -66,11 +66,11 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
               lpf_coeffs,
               offset,
               samp_rate);
-
+/*
   prefilter = make_freq_xlating_fft_filter(decimation,
                                            dest,
                                            offset,
-                                           samp_rate);
+                                           samp_rate);*/
 
   tagger = latency_make_tagger(sizeof(gr_complex), 512, "latency0");
   std::vector<std::string> keys;
