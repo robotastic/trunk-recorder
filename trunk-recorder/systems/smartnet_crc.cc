@@ -49,7 +49,7 @@ smartnet_crc::smartnet_crc (gr::msg_queue::sptr queue, int sys_id)
 	                  gr::io_signature::make (1, 1, sizeof (char)),
 	                  gr::io_signature::make (0, 0, 0))
 {
-	set_output_multiple(38);
+	//set_output_multiple(38);
 	d_queue = queue;
 	this->sys_id = sys_id;
 }
