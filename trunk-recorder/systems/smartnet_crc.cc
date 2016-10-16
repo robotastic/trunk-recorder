@@ -181,7 +181,7 @@ smartnet_crc::work (int noutput_items,
 			d_queue->insert_tail(msg);
 		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
 	}
-	BOOST_LOG_TRIVIAL(error) << "Size " << size << ", tags " << frame_tags.size();
+	BOOST_LOG_TRIVIAL(error) << "Size " << size << ", tags " << frame_tags.size() << " ninput items " << noutput_items;
 	//this->consume_each(noutput_items);
 	return size;
 }
