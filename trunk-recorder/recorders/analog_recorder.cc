@@ -39,15 +39,15 @@ analog_recorder::analog_recorder(Source *src)
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
 
-					prefilter = make_freq_xlating_fft_filter(decim,
+		/*			prefilter = make_freq_xlating_fft_filter(decim,
 		            dest,
 		            offset,
-		            samp_rate);
-/*
+		            samp_rate);*/
+
 	prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
 	            lpf_taps,
 	            offset,
-	            samp_rate);*/
+	            samp_rate);
 	unsigned int d = GCD(channel_rate, pre_channel_rate); //4000 GCD(48000, 100000)
 	channel_rate = floor(channel_rate  / d);  // 12
 	pre_channel_rate = floor(pre_channel_rate / d);  // 25
