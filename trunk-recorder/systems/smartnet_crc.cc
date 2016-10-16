@@ -146,7 +146,7 @@ smartnet_crc::work (int noutput_items,
 
 	int size = noutput_items - 76;
 	if(size <= 0) {
-					BOOST_LOG_TRIVIAL(info) << "Sad TRombone: " << noutput_items << " size: " << size;
+					BOOST_LOG_TRIVIAL(info) << "Sad Trombone 1: " << noutput_items << " size: " << size;
 					return 0; //better luck next time
 	}
 
@@ -155,6 +155,7 @@ smartnet_crc::work (int noutput_items,
 
 	get_tags_in_range(frame_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_frame"));
 	if(frame_tags.size() == 0) {
+		BOOST_LOG_TRIVIAL(info) << "Sad Trombone 1: " << noutput_items << " size: " << size << " Tags: " << frame_tags.size(); 
 		return 0; //sad trombone
 	}
 

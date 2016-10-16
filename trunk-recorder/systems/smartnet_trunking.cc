@@ -94,10 +94,9 @@ null_sink = gr::blocks::null_sink::make(sizeof(int8_t));
   connect(carriertrack,     0, pll_demod,        0);
   connect(pll_demod,        0, softbits,         0);
   connect(softbits,         0, slicer,           0);
-    connect(slicer,           0, null_sink, 0);
-  /*connect(slicer,           0, start_correlator, 0);
+  connect(slicer,           0, start_correlator, 0);
   connect(start_correlator, 0, deinterleave,     0);
-  connect(deinterleave,     0, crc,              0);*/
+  connect(deinterleave,     0, crc,              0);
 }
 
 void smartnet_trunking::tune_offset(double f) {
