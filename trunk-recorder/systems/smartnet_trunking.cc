@@ -88,15 +88,16 @@ smartnet_trunking::smartnet_trunking(float               f,
   smartnet_deinterleave_sptr deinterleave = smartnet_make_deinterleave();
 
   smartnet_crc_sptr crc = smartnet_make_crc(queue, sys_id);
-
+null_sink = gr::blocks::null_sink::make(sizeof(int8_t));
   connect(self(),           0, prefilter,        0);
   connect(prefilter,        0, carriertrack,     0);
   connect(carriertrack,     0, pll_demod,        0);
   connect(pll_demod,        0, softbits,         0);
   connect(softbits,         0, slicer,           0);
-  connect(slicer,           0, start_correlator, 0);
+    connect(slicer,           0, null_sink, 0);
+  /*connect(slicer,           0, start_correlator, 0);
   connect(start_correlator, 0, deinterleave,     0);
-  connect(deinterleave,     0, crc,              0);
+  connect(deinterleave,     0, crc,              0);*/
 }
 
 void smartnet_trunking::tune_offset(double f) {

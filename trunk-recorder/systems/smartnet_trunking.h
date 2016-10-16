@@ -23,7 +23,7 @@
 #include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/analog/sig_source_f.h>
 #include <gnuradio/analog/sig_source_c.h>
-
+#include <gnuradio/blocks/null_sink.h>
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 #include "smartnet_crc.h"
 #include "smartnet_deinterleave.h"
@@ -45,6 +45,7 @@ protected:
 								double samp_rate, chan_freq, center_freq;
 								int sys_id;
 
+								gr::blocks::null_sink::sptr null_sink;
 };
 
 
