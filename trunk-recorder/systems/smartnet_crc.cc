@@ -182,6 +182,6 @@ smartnet_crc::work (int noutput_items,
 		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
 	}
 	BOOST_LOG_TRIVIAL(error) << "Size " << size << ", tags " << frame_tags.size();
-	this->consume_each(noutput_items)
+	this->consume_each(noutput_items);
 	return size;
 }
