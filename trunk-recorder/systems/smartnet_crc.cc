@@ -49,7 +49,7 @@ smartnet_crc::smartnet_crc (gr::msg_queue::sptr queue, int sys_id)
 	                  gr::io_signature::make (1, 1, sizeof (char)),
 	                  gr::io_signature::make (0, 0, 0))
 {
-	//set_output_multiple(38);
+	set_output_multiple(152);
 	d_queue = queue;
 	this->sys_id = sys_id;
 }
@@ -146,12 +146,13 @@ smartnet_crc::work (int noutput_items,
 
 	int size = noutput_items - 76;
 	if(size <= 0) {
-		return 0; //better luck next time
+					BOOST_LOG_TRIVIAL(info) << "Sad TRombone: " << noutput_items << " size: " << size;
+					return 0; //better luck next time
 	}
 
 	uint64_t abs_sample_cnt = nitems_read(0);
 	std::vector<gr::tag_t> frame_tags;
-/*
+
 	get_tags_in_range(frame_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_frame"));
 	if(frame_tags.size() == 0) {
 		return 0; //sad trombone
@@ -162,7 +163,6 @@ smartnet_crc::work (int noutput_items,
 		uint64_t mark = tag_iter->offset - abs_sample_cnt;
 		if(VERBOSE)
 			BOOST_LOG_TRIVIAL(info) << "found a frame at " << mark;
-	BOOST_LOG_TRIVIAL(error) << "\tStart: " << abs_sample_cnt << "\t End: " << abs_sample_cnt + size << "\tOffset"<< tag_iter->offset;
 		char databits[38];
 		smartnet_ecc(databits, &in[mark]);
 		bool crc_ok = crc(databits);
@@ -180,9 +180,8 @@ smartnet_crc::work (int noutput_items,
 			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()), pkt.command, this->sys_id, 0);
 			d_queue->insert_tail(msg);
 		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
-	}*/
-	BOOST_LOG_TRIVIAL(error) << "Size " << size << ", tags " << frame_tags.size() << " ninput items " << noutput_items;
+	}
 	//this->consume_each(noutput_items);
-	return noutput_items;
-	//return size;
+	//return noutput_items;
+	return size;
 }
