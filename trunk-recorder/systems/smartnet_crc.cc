@@ -183,5 +183,6 @@ smartnet_crc::work (int noutput_items,
 	}*/
 	BOOST_LOG_TRIVIAL(error) << "Size " << size << ", tags " << frame_tags.size() << " ninput items " << noutput_items;
 	//this->consume_each(noutput_items);
-	return size;
+	return noutput_items;
+	//return size;
 }
