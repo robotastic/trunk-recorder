@@ -287,6 +287,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
 
     // The handshake was successful. Send the request.
+
     boost::asio::write(socket, request_, ec);
 
     if (ec)
@@ -301,7 +302,8 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     // grow to accommodate the entire line. The growth may be limited by passing
     // a maximum size to the streambuf constructor.
     boost::asio::streambuf response;
-    boost::asio::read_until(socket, response, "\r\n");
+
+    boost::asio::read_until(socket, response, "\r\n",ec);
 
     // Check that response is OK.
     std::istream response_stream(&response);
@@ -325,7 +327,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     }
 
     // Read the response headers, which are terminated by a blank line.
-    boost::asio::read_until(socket, response, "\r\n\r\n");
+    boost::asio::read_until(socket, response, "\r\n\r\n", ec);
 
     // Process the response headers.
     std::string header;
@@ -339,8 +341,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     // Read until EOF, writing data to output as we go.
     boost::system::error_code error;
 
-    while (boost::asio::read(socket, response,
-                             boost::asio::transfer_at_least(1), error)) std::cout << &response;
+    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) std::cout << &response;
 
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
   }

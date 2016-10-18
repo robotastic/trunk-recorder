@@ -6,6 +6,7 @@
 #include <ostream>
 #include <string>
 #include <boost/asio.hpp>
+#include <boost/asio/detail/socket_option.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/regex.hpp>
