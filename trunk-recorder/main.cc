@@ -594,7 +594,7 @@ void update_recorder(TrunkMessage message, System *sys) {
   if (!call_found) {
     BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
 
-    assign_recorder(message, sys); // Treehouseman, Lets start the call if we
+  //  assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
   }
 }
