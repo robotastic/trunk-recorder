@@ -174,4 +174,3 @@ private:
 
 
 #endif
-multiplier
