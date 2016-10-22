@@ -188,7 +188,7 @@ int decimation = int(input_rate / (system_channel_rate*2));
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
-  converter = gr::blocks::short_to_float::make(1, 2048.0); // 8192.0);
+  converter = gr::blocks::short_to_float::make(1, 32768.0); // 8192.0); //2048.0 //1 / 32768.0
 
   tm *ltm = localtime(&starttime);
 
