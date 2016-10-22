@@ -189,7 +189,7 @@ int decimation = int(input_rate / (system_channel_rate*2));
 
 
   converter = gr::blocks::short_to_float::make(1, 32768.0); // 8192.0); //2048.0 //1 / 32768.0
-
+  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
@@ -211,7 +211,8 @@ int decimation = int(input_rate / (system_channel_rate*2));
     connect(fsk4_demod,           0, slicer,               0);
     connect(slicer,               0, op25_frame_assembler, 0);
     connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, wav_sink,             0);
+    connect(converter,            0, levels, 0);
+      connect(levels,            0, wav_sink,             0);
   } else {
     connect(self(),    0, valve,         0);
     connect(valve,     0, prefilter,     0);
@@ -230,8 +231,8 @@ int decimation = int(input_rate / (system_channel_rate*2));
     // connect(slicer,0, active_probe,0);
     // connect(active_probe,0, op25_frame_assembler,0);
     connect(op25_frame_assembler, 0, converter, 0);
-    connect(converter,            0, wav_sink,  0);
-
+    connect(converter,            0, levels,  0);
+    connect(levels,            0, wav_sink,  0);
     // connect(converter, 0, last_probe,0);
     // connect(last_probe,0, wav_sink,0);
   }

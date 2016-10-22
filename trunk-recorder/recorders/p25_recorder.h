@@ -160,7 +160,7 @@ private:
 								gr::blocks::short_to_float::sptr converter;
 								gr::blocks::copy::sptr valve;
 
-								gr::blocks::multiply_const_ff::sptr multiplier;
+								gr::blocks::multiply_const_ff::sptr levels;
 								gr::blocks::multiply_const_ff::sptr rescale;
 								gr::blocks::multiply_const_ff::sptr baseband_amp;
 								gr::blocks::complex_to_arg::sptr to_float;
