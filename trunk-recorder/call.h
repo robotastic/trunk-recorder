@@ -5,7 +5,15 @@
 
 struct Call_Source {
 								long source;
+								long time;
 								double position;
+
+};
+
+struct Call_Freq {
+	double freq;
+	long time;
+	double position;
 };
 
 class Recorder;
@@ -37,11 +45,15 @@ public:
 								long get_talkgroup();
 								long get_source_count();
 								Call_Source *get_source_list();
+								Call_Freq *get_freq_list();
+								long get_freq_count();
 								void update(TrunkMessage message);
 								int since_last_update();
 								long stopping_elapsed();
 								long elapsed();
 								long get_start_time();
+
+								long get_stop_time();
 								void set_debug_recording(bool m);
 								bool get_debug_recording();
 								void set_state(State s);
@@ -55,9 +67,13 @@ public:
 private:
 								State state;
 								long talkgroup;
-								double freq;
+								double curr_freq;
 								System *sys;
+								Call_Freq freq_list[50];
+								long freq_count;
 								time_t last_update;
+
+								time_t stop_time;
 								time_t start_time;
 								bool debug_recording;
 								bool encrypted;

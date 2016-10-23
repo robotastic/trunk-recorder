@@ -312,7 +312,7 @@ bool nonstop_wavfile_sink_impl::add_source(long src, double position) {
     return false;
   }
 
-  Call_Source call_source = { src, position };
+  Call_Source call_source = { src, time(NULL), position };
 
   if (d_src_count < 1) {
     src_list[d_src_count] = call_source;

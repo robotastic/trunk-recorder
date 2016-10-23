@@ -25,6 +25,8 @@ struct call_data_t {
         long talkgroup;
         double freq;
         long start_time;
+
+        long stop_time;
         bool encrypted;
         bool emergency;
         char filename[160];
@@ -40,6 +42,8 @@ struct call_data_t {
         int tdma;
         long source_count;
         Call_Source source_list[50];
+        long freq_count;
+        Call_Freq freq_list[50];
 };
 
 struct server_data_t {

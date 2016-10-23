@@ -10,9 +10,9 @@ void Call::create_filename() {
 
   boost::filesystem::create_directories(path_stream.str());
   sprintf(filename,        "%s/%ld-%ld_%g.wav",
-          path_stream.str().c_str(), talkgroup, start_time, freq);
+          path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   sprintf(status_filename, "%s/%ld-%ld_%g.json",
-          path_stream.str().c_str(), talkgroup, start_time, freq);
+          path_stream.str().c_str(), talkgroup, start_time, curr_freq);
 
   // sprintf(filename, "%s/%ld-%ld.wav",
   // path_stream.str().c_str(),talkgroup,start_time);
@@ -22,10 +22,13 @@ void Call::create_filename() {
 
 Call::Call(long t, double f, System *s, Config c) {
   config          = c;
+    freq_count = 0;
+    curr_freq = 0;
+    set_freq(f);
   talkgroup       = t;
-  freq            = f;
   sys         = s;
   start_time      = time(NULL);
+    stop_time      = time(NULL);
   last_update     = time(NULL);
   state           = monitoring;
   debug_recording = false;
@@ -33,15 +36,21 @@ Call::Call(long t, double f, System *s, Config c) {
   tdma            = false;
   encrypted       = false;
   emergency       = false;
+
   this->create_filename();
 }
 
 Call::Call(TrunkMessage message, System *s, Config c) {
   config          = c;
+    freq_count = 0;
+    curr_freq = 0;
+    set_freq(message.freq);
+
   talkgroup       = message.talkgroup;
-  freq            = message.freq;
   sys          = s;
   start_time      = time(NULL);
+
+  stop_time      = time(NULL);
   last_update     = time(NULL);
   state           = monitoring;
   debug_recording = false;
@@ -49,6 +58,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   tdma            = message.tdma;
   encrypted       = message.encrypted;
   emergency       = message.emergency;
+
   this->create_filename();
 }
 
@@ -59,6 +69,7 @@ Call::~Call() {
 void Call::end_call() {
   char shell_command[200];
 
+    stop_time      = time(NULL);
   if (state == recording) {
     BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
     std::ofstream myfile(status_filename);
@@ -68,7 +79,7 @@ void Call::end_call() {
     if (myfile.is_open())
     {
       myfile << "{\n";
-      myfile << "\"freq\": " << this->freq << ",\n";
+      myfile << "\"freq\": " << this->curr_freq << ",\n";
       myfile << "\"start_time\": " << this->start_time << ",\n";
       myfile << "\"emergency\": " << this->emergency << ",\n";
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
@@ -80,6 +91,15 @@ void Call::end_call() {
         } else {
           myfile << wav_src_list[i].source;
         }
+      }
+      myfile << " ]\n";
+      myfile << "\"freqList\": [ ";
+
+      for (int i = 0; i < freq_count; i++) {
+          if (i != 0) {
+          myfile << ", ";
+        }
+          myfile << "{ \"src:\" " <<  freq_list[i].freq <<", \"time:\" " << freq_list[i].time << ", \"pos:\" " << freq_list[i].position << "}";
       }
       myfile << " ]\n";
       myfile << "}\n";
@@ -120,17 +140,36 @@ Recorder * Call::get_recorder() {
 }
 
 double Call::get_freq() {
-  return freq;
+  return curr_freq;
 }
 
 void Call::set_freq(double f) {
-  freq = f;
+  if (f!=curr_freq){
+    long position;
+      if (state == recording) {
+        position = get_recorder()->get_current_length();
+      } else {
+        position = time(NULL) - start_time;
+      }
+      Call_Freq call_freq = { f, time(NULL), position };
+      freq_list[freq_count] = call_freq;
+      freq_count++;
+      curr_freq = f;
+  }
+
 }
 
 long Call::get_talkgroup() {
   return talkgroup;
 }
 
+Call_Freq * Call::get_freq_list() {
+  return freq_list;
+}
+
+long Call::get_freq_count() {
+
+}
 Call_Source * Call::get_source_list() {
   return get_recorder()->get_source_list();
 }
@@ -191,6 +230,9 @@ long Call::elapsed() {
   return time(NULL) - start_time;
 }
 
+long Call::get_stop_time() {
+  return stop_time;
+}
 long Call::get_start_time() {
   return start_time;
 }
