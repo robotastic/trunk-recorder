@@ -29,7 +29,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
 
   float  symbol_rate         = 4800;
-  double samples_per_symbol  = 5;    // was 10
+  double samples_per_symbol  = 15;    // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
   float  symbol_deviation    = 600.0; // was 600.0
 
