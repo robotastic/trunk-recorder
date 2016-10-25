@@ -236,6 +236,7 @@ p25p1_fdma::p25p1_fdma(int                  sys_id,
   if (port > 0) init_sock(d_udp_host, d_port);
 }
 
+
 void
 p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const buf[], int const len)
 {
@@ -267,7 +268,9 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
 long p25p1_fdma::get_curr_src_id() {
   return curr_src_id;
 }
-
+void p25p1_fdma::clear() {
+  p1voice_decode.clear();
+}
 void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
 {
   struct timeval currtime;

@@ -91,7 +91,7 @@ public:
 								std::vector<unsigned long> get_last_probe_offsets();
 								std::vector<double> get_last_probe_delays();
 								void clear_probes();
-
+								void clear();
 								double get_freq();
 								int get_num();
 								double get_current_length();

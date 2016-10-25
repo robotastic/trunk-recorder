@@ -55,7 +55,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 1500, gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 2000, gr::filter::firdes::WIN_HANN);
   //int decimation = int(input_rate / system_channel_rate);
 int decimation = int(input_rate / (system_channel_rate*2));
 
@@ -237,7 +237,9 @@ int decimation = int(input_rate / (system_channel_rate*2));
     // connect(last_probe,0, wav_sink,0);
   }
 }
-
+void p25_recorder::clear() {
+    op25_frame_assembler->clear();
+}
 p25_recorder::~p25_recorder() {}
 
 std::vector<unsigned long>p25_recorder::get_last_probe_offsets() {
@@ -333,6 +335,7 @@ State p25_recorder::get_state() {
 
 void p25_recorder::stop() {
   if (state == active) {
+    op25_frame_assembler->clear();
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = inactive;
     valve->set_enabled(false);

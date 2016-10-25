@@ -149,7 +149,9 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int& nof_inpu
     nof_input_items_reqd[i] = nof_samples_reqd;
   }
 }
-
+void p25_frame_assembler_impl::clear() {
+  p1fdma.clear();
+}
 int
 p25_frame_assembler_impl::general_work(int                        noutput_items,
                                        gr_vector_int            & ninput_items,

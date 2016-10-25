@@ -84,7 +84,7 @@ public:
   ~p25_frame_assembler_impl();
   void clear_total_produced();
   long get_total_produced();
-
+  void clear();
   // Where all the action really happens
 
   int general_work(int                        noutput_items,

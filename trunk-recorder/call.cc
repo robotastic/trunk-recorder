@@ -106,7 +106,7 @@ void Call::end_call() {
       myfile.close();
     }
     sprintf(shell_command, "./encode-upload.sh %s &", this->get_filename());
-
+    
     this->get_recorder()->stop();
     if (this->config.upload_server != "") {
       send_call(this, sys, config);
