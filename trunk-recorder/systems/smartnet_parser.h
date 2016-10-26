@@ -9,6 +9,8 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <boost/log/trivial.hpp>
+
 #define OSW_BACKGROUND_IDLE     0x02f8
 #define OSW_FIRST_CODED_PC      0x0304
 #define OSW_FIRST_NORMAL        0x0308

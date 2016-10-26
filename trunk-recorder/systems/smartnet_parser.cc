@@ -37,19 +37,50 @@ bool SmartnetParser::is_chan(int cmd) {
 }
 
 double SmartnetParser::getfreq(int cmd) {
-  float freq;
+  double freq;
 
 
   /* Different Systems will have different band plans. Below is the one for
      WMATA which is a bit werid:*/
-  if (cmd < 0x12e) {
-    freq = float((cmd) * 0.025 + 489.0875);
-  } else if (cmd < 0x2b0) {
-    freq = float((cmd - 380) * 0.025 + 489.0875);
+  /*if (cmd < 0x12e) {
+    freq = double(cmd) * 0.025 + 489.0875;
+  } else */if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
+    freq = (double(cmd) - 380) * 0.025 + 489.0875;
   } else {
     freq = 0;
   }
+  if (freq!=0 ){
+if ((freq== 489.5125) ||
+  (freq== 489.5375) ||
+  (freq== 490.7625) ||
+  (freq== 490.7875) ||
+  (freq== 490.8375) ||
+  (freq== 490.8625) ||
+  (freq==490.8875) ||
+ 	(freq==490.9125) ||
+  (freq==  490.9375) ||
+  (freq==  490.9625) ||
+  (freq== 496.3375) ||
+  (freq== 496.4375) ||
+  (freq==  496.4875) ||
+  (freq== 496.5375) ||
+ 	(freq== 496.5625) ||
+  (freq== 496.6125)) {
 
+
+  //  BOOST_LOG_TRIVIAL(info) << "\tValid Chan: " << fixed << freq << " \t cmd: " << cmd;
+
+
+
+  } else
+{
+  double test1 = (double(cmd) - 380) * 0.025;
+  double test2 = double(cmd)  * 0.025;
+//  BOOST_LOG_TRIVIAL(info) << "\tInvalid Chan: " << fixed << freq << " \t cmd: " << cmd;
+//  BOOST_LOG_TRIVIAL(info) << " Multi: " <<fixed << dec << test1 <<" diff: " << dec << cmd - 380 <<  " CMD: " << dec << cmd <<  endl;
+freq = 0;
+}
+}
   //      cout << "LCMD: 0x" <<  hex << cmd << " Freq: " << freq << " Multi: "
   // << (cmd - 308) * 0.025 << " CMD: " << dec << cmd << endl;
 
@@ -186,7 +217,7 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s) {
           }
    */
 
-	 cout << "MSG [ TG: " << dec << stack[0].full_address << "] \t CMD: ( " << hex << stack[0].cmd << " - \t" << hex << stack[1].cmd << " - \t " << hex << stack[2].cmd   << " ] " << " Grp: [ " << stack[0].grp << " - \t " << stack[1].grp << " - \t " << stack[2].grp << " ]" << endl;
+	 //cout << "MSG [ TG: " << dec << stack[0].full_address << "] \t CMD: ( " << hex << stack[0].cmd << " - \t" << hex << stack[1].cmd << " - \t " << hex << stack[2].cmd   << " ] " << " Grp: [ " << stack[0].grp << " - \t " << stack[1].grp << " - \t " << stack[2].grp << " ]" << endl;
 
   if (((command >= 0x340) && (command <= 0x34E)) || (command == 0x350)) {
     cout << "Patching Command: " << hex << command << " Freq: " << message.freq << " Talkgroup: " << dec << address  << endl;
@@ -200,7 +231,7 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s) {
   }
 
 
-  if (is_chan(stack[0].cmd) && stack[0].grp) {
+  if (is_chan(stack[0].cmd) && stack[0].grp && getfreq(stack[0].cmd)) {
     message.talkgroup = stack[0].full_address;
     message.freq      = getfreq(stack[0].cmd);
 
