@@ -29,7 +29,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
 
   double  symbol_rate         = 4800;
-  double samples_per_symbol  = 15;    // was 10
+  double samples_per_symbol  = 10;    // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
   double  symbol_deviation    = 600.0; // was 600.0
 
@@ -57,7 +57,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 1500, gr::filter::firdes::WIN_HANN);
   //int decimation = int(input_rate / system_channel_rate);
-int decimation = int(input_rate / (system_channel_rate*2));
+int decimation = int(input_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 /*
