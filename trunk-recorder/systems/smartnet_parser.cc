@@ -44,12 +44,20 @@ double SmartnetParser::getfreq(int cmd) {
      WMATA which is a bit werid:*/
   /*if (cmd < 0x12e) {
     freq = double(cmd) * 0.025 + 489.0875;
-  } else */if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
-    freq = (double(cmd) - 380) * 0.025 + 489.0875;
+  } else */
+
+  if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
+    freq = ((cmd - 380) * 25000)  + 489087500;
   } else {
     freq = 0;
   }
-  if (freq!=0 ){
+/*
+  if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
+    freq = (double(cmd) - 380) * 0.025 + 489.0875;
+  } else {
+    freq = 0;
+  }*/
+/*  if (freq!=0 ){
 if ((freq== 489.5125) ||
   (freq== 489.5375) ||
   (freq== 490.7625) ||
@@ -82,7 +90,7 @@ if ((freq== 489.5125) ||
   //BOOST_LOG_TRIVIAL(info) << " Multi: " <<fixed << dec << test1 <<" diff: " << dec << cmd - 380 <<  " CMD: " << dec << cmd <<  endl;
 
 }
-}
+}*/
   //      cout << "LCMD: 0x" <<  hex << cmd << " Freq: " << freq << " Multi: "
   // << (cmd - 308) * 0.025 << " CMD: " << dec << cmd << endl;
 
@@ -96,7 +104,7 @@ if ((freq== 489.5125) ||
                   freq = 0;
           }
    */
-  return freq * 1000000;
+  return freq;
 }
 
 std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s) {
