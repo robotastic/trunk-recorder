@@ -49,7 +49,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  double xlate_bandwidth = 7000; //24260.0
+  double xlate_bandwidth = 10000; //24260.0
 
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
@@ -98,7 +98,7 @@ int decimation = int(input_rate / (system_channel_rate*2));
     double bw       = percent * halfband;
     double tb       = (percent / 2.0) * halfband;
 
-
+    BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate < " Half band: " << halfband << " bw: " << bw << " tb: " << tb;
     // As we drop the bw factor, the optfir filter has a harder time converging;
     // using the firdes method here for better results.
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
