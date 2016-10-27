@@ -25,13 +25,13 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   state = inactive;
 
-  float offset = freq - center;
+  double offset = freq - center;
 
 
-  float  symbol_rate         = 4800;
+  double  symbol_rate         = 4800;
   double samples_per_symbol  = 15;    // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
-  float  symbol_deviation    = 600.0; // was 600.0
+  double  symbol_deviation    = 600.0; // was 600.0
 
 
   std::vector<float> sym_taps;
@@ -42,14 +42,14 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   double input_rate = capture_rate;
 
-  float gain_mu      = 0.025;               // 0.025
-  float costas_alpha = 0.04;
-  float bb_gain      = src->get_fsk_gain(); // was 1.0
+  double gain_mu      = 0.025;               // 0.025
+  double costas_alpha = 0.04;
+  double bb_gain      = src->get_fsk_gain(); // was 1.0
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  float xlate_bandwidth = 14000; //24260.0
+  double xlate_bandwidth = 14000; //24260.0
 
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
@@ -76,12 +76,12 @@ int decimation = int(input_rate / (system_channel_rate*2));
   keys.push_back("latency0");
   active_probe = latency_make_probe(sizeof(char), keys);
   last_probe   = latency_make_probe(sizeof(float), keys);
-  float resampled_rate = float(input_rate) / float(decimation); // rate at
+  double resampled_rate = double(input_rate) / double(decimation); // rate at
                                                                 // output of
                                                                 // self.lpf
-  float arb_rate       = (float(system_channel_rate) / resampled_rate);
-  float arb_size       = 32;
-  float arb_atten      = 100;
+  double arb_rate       = (double(system_channel_rate) / resampled_rate);
+  double arb_size       = 32;
+  double arb_atten      = 100;
 
 
   // Create a filter that covers the full bandwidth of the output signal
@@ -91,12 +91,12 @@ int decimation = int(input_rate / (system_channel_rate*2));
   // width of 0.5.  If rate < 1, we need to filter to less
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
-  float percent = 0.80;
+  double percent = 0.80;
 
   if (arb_rate <= 1) {
-    float halfband = 0.5 * arb_rate;
-    float bw       = percent * halfband;
-    float tb       = (percent / 2.0) * halfband;
+    double halfband = 0.5 * arb_rate;
+    double bw       = percent * halfband;
+    double tb       = (percent / 2.0) * halfband;
 
 
     // As we drop the bw factor, the optfir filter has a harder time converging;
@@ -108,10 +108,10 @@ int decimation = int(input_rate / (system_channel_rate*2));
     exit(0);
 
     /*
-       float halfband = 0.5;
-       float bw = percent*halfband;
-       float tb = (percent/2.0)*halfband;
-       float ripple = 0.1;
+       double halfband = 0.5;
+       double bw = percent*halfband;
+       double tb = (percent/2.0)*halfband;
+       double ripple = 0.1;
 
        bool made = False;
        while not made:
@@ -136,12 +136,12 @@ int decimation = int(input_rate / (system_channel_rate*2));
 
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
-  float omega      = float(system_channel_rate) / float(symbol_rate);
-  float gain_omega = 0.1  * gain_mu * gain_mu;
-  float alpha      = costas_alpha;
-  float beta       = 0.125 * alpha * alpha;
-  float fmax       = 2400; // Hz
-  fmax = 2 * pi * fmax / float(system_channel_rate);
+  double omega      = double(system_channel_rate) / double(symbol_rate);
+  double gain_omega = 0.1  * gain_mu * gain_mu;
+  double alpha      = costas_alpha;
+  double beta       = 0.125 * alpha * alpha;
+  double fmax       = 2400; // Hz
+  fmax = 2 * pi * fmax / double(system_channel_rate);
 
   costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
 
@@ -155,7 +155,7 @@ int decimation = int(input_rate / (system_channel_rate*2));
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
   // fm demodulator (needed in fsk4 case)
-  float fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
+  double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
   BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
 
