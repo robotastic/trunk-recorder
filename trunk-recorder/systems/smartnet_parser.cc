@@ -56,15 +56,17 @@ if ((freq== 489.5125) ||
   (freq== 490.7875) ||
   (freq== 490.8375) ||
   (freq== 490.8625) ||
-  (freq==490.8875) ||
- 	(freq==490.9125) ||
-  (freq==  490.9375) ||
-  (freq==  490.9625) ||
+  (freq== 490.8875) ||
+ 	(freq== 490.912500) ||
+  (freq== 490.9375) ||
+  (freq== 490.9625) ||
   (freq== 496.3375) ||
   (freq== 496.4375) ||
-  (freq==  496.4875) ||
+  (freq== 496.4625) ||
+  (freq== 496.4875) ||
   (freq== 496.5375) ||
  	(freq== 496.5625) ||
+  (freq== 496.5875) ||
   (freq== 496.6125)) {
 
 
@@ -76,9 +78,9 @@ if ((freq== 489.5125) ||
 {
   double test1 = (double(cmd) - 380) * 0.025;
   double test2 = double(cmd)  * 0.025;
-//  BOOST_LOG_TRIVIAL(info) << "\tInvalid Chan: " << fixed << freq << " \t cmd: " << cmd;
-//  BOOST_LOG_TRIVIAL(info) << " Multi: " <<fixed << dec << test1 <<" diff: " << dec << cmd - 380 <<  " CMD: " << dec << cmd <<  endl;
-freq = 0;
+  //BOOST_LOG_TRIVIAL(info) << "\tInvalid Chan: " << fixed << freq << " \t cmd: " << cmd;
+  //BOOST_LOG_TRIVIAL(info) << " Multi: " <<fixed << dec << test1 <<" diff: " << dec << cmd - 380 <<  " CMD: " << dec << cmd <<  endl;
+
 }
 }
   //      cout << "LCMD: 0x" <<  hex << cmd << " Freq: " << freq << " Multi: "
