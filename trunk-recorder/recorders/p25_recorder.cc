@@ -49,7 +49,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  double xlate_bandwidth = 10000; //24260.0
+  double xlate_bandwidth = 30000; //24260.0
 
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
