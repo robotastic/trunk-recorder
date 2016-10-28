@@ -159,9 +159,9 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   // fm demodulator (needed in fsk4 case)
   double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
-  fm_demod = gr::analog::quadrature_demod_cf::make(1);//fm_demod_gain);
+  fm_demod = gr::analog::quadrature_demod_cf::make(1.0);//fm_demod_gain);
   BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
-  demod_agc = gr::analog::agc2_ff::make(1e-1, 1e-2, 2.0, 0.0);
+  demod_agc = gr::analog::agc2_ff::make(1e-1, 1e-2, 2.0, 1.0);
   double symbol_decim = 1;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
@@ -176,6 +176,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   traffic_queue = gr::msg_queue::make(2);
   rx_queue      = gr::msg_queue::make(100);
   const float l[] = { -2.0, 0.0, 2.0, 4.0 };
+  //  const float l[] = { -3.0, -1.0, 1.0, 3.0 };
   std::vector<float> levels(l, l + sizeof(l) / sizeof(l[0]));
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
   slicer     = gr::op25_repeater::fsk4_slicer_fb::make(levels);
@@ -209,12 +210,13 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
-    connect(arb_resampler,        0, fm_demod,             0);
+    connect(arb_resampler,        0, agc,                  0);
+    connect(agc,           0, fm_demod,             0);
 
     connect(fm_demod,             0, demod_agc,            0);
     connect(demod_agc,            0,  sym_filter,           0);
     //connect(demod_agc,            0, baseband_amp,         0);
-    //connect(fm_demod,             0, baseband_amp,            0);
+  //  connect(fm_demod,             0, baseband_amp,            0);
     //connect(baseband_amp,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);
     connect(fsk4_demod,           0, slicer,               0);
