@@ -34,8 +34,8 @@ debug_recorder::debug_recorder(Source *src)
 	float bb_gain      = src->get_fsk_gain();  // was 1.0
 
 
-float xlate_bandwidth = 8000;
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 3000, gr::filter::firdes::WIN_BLACKMAN);
+float xlate_bandwidth = 50000;
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 40000, 3000, gr::filter::firdes::WIN_BLACKMAN);
 
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());

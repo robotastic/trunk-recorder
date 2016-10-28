@@ -29,7 +29,7 @@
 
 #include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
-
+#include <gnuradio/analog/agc2_ff.h>
 #include <gnuradio/digital/diff_phasor_cc.h>
 
 #include <gnuradio/blocks/complex_to_arg.h>
@@ -154,7 +154,7 @@ private:
 
 								gr::analog::quadrature_demod_cf::sptr fm_demod;
 								gr::analog::feedforward_agc_cc::sptr agc;
-
+								gr::analog::agc2_ff::sptr demod_agc;
 								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
 								gr::blocks::short_to_float::sptr converter;
