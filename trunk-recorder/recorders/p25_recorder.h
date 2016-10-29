@@ -158,7 +158,7 @@ private:
 								gr::analog::feedforward_agc_cc::sptr agc;
 								gr::analog::agc2_ff::sptr demod_agc;
 								gr::analog::agc2_cc::sptr pre_demod_agc;
-								rx_agc_ff::rx_agc_ff_sptr super_agc;
+								rx_agc_ff_sptr super_agc;
 								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
 								gr::blocks::short_to_float::sptr converter;
