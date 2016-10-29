@@ -68,7 +68,9 @@
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 #include "../../gr_blocks/latency_probe.h"
 #include "../../gr_blocks/latency_tagger.h"
-#include "../../gr_blocks/rx_agc_ff.h"
+
+
+#include "../../gr_blocks/rx_agc_cc.h"
 
 class Source;
 class p25_recorder;
@@ -158,7 +160,7 @@ private:
 								gr::analog::feedforward_agc_cc::sptr agc;
 								gr::analog::agc2_ff::sptr demod_agc;
 								gr::analog::agc2_cc::sptr pre_demod_agc;
-								rx_agc_ff_sptr super_agc;
+								rx_agc_cc_sptr super_agc;
 								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
 								gr::blocks::short_to_float::sptr converter;

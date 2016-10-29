@@ -23,7 +23,7 @@
 #include <math.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/gr_complex.h>
-#include <dsp/rx_agc_xx.h>
+#include "rx_agc_cc.h"
 
 rx_agc_cc_sptr make_rx_agc_cc(double sample_rate, bool agc_on, int threshold,
                               int manual_gain, int slope, int decay, bool use_hang)

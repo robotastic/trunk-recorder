@@ -163,7 +163,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
   demod_agc = gr::analog::agc2_ff::make(0.5, 1e-2, 2.0, 1.0);
   pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 1.0, 2.0, 1.0);
-  super_agc = make_rx_agc_ff(system_channel_rate, true, -50, 0, 0, 500, false);
+  super_agc = make_rx_agc_cc(system_channel_rate, true, -70, 0, 0, 500, false);
 
   double symbol_decim = 1;
 
@@ -213,11 +213,11 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
-    connect(arb_resampler,        0, agc,                  0);
-    connect(agc,           0, fm_demod,             0);
+    connect(arb_resampler,        0, super_agc,                  0);
+    connect(super_agc,           0, fm_demod,             0);
   //connect(fm_demod,             0, sym_filter,           0);
-    connect(fm_demod,             0, super_agc,            0);
-    connect(super_agc,            0,  sym_filter,           0);
+    connect(fm_demod,             0, demod_agc,            0);
+    connect(demod_agc,            0,  sym_filter,           0);
     //connect(demod_agc,            0, baseband_amp,         0);
   //  connect(fm_demod,             0, baseband_amp,            0);
     //connect(baseband_amp,         0, sym_filter,           0);
