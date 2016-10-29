@@ -210,8 +210,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroups.cc
   gr_blocks/nonstop_wavfile_sink_impl.cc
   gr_blocks/freq_xlating_fft_filter.cc
-  gr_blocks/agc_impl.ccp
-  gr_blocks/rx_agc_ff.ccp
+  gr_blocks/agc_impl.cpp
+  gr_blocks/rx_agc_ff.cpp
   gr_blocks/latency_probe.cc
   gr_blocks/latency_tagger.cc )
 
