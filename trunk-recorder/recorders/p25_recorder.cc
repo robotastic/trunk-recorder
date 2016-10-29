@@ -161,7 +161,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
   fm_demod = gr::analog::quadrature_demod_cf::make(1.0);//fm_demod_gain);
   BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
-  demod_agc = gr::analog::agc2_ff::make(0.5, 1e-2, 2.0, 0);
+  demod_agc = gr::analog::agc2_ff::make(0.5, 1e-2, 2.0, 1.0);
   pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 1.0, 2.0, 1.0);
 
   double symbol_decim = 1;
