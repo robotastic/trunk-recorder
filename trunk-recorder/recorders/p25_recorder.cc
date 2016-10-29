@@ -137,7 +137,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
-  agc = gr::analog::feedforward_agc_cc::make(64, 1.0);
+  agc = gr::analog::feedforward_agc_cc::make(64, 0.5);
 
   double omega      = double(system_channel_rate) / double(symbol_rate);
   double gain_omega = 0.1  * gain_mu * gain_mu;
@@ -213,8 +213,8 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
-    connect(arb_resampler,        0, super_agc,                  0);
-    connect(super_agc,           0, fm_demod,             0);
+    connect(arb_resampler,        0, agc,                  0);
+    connect(agc,           0, fm_demod,             0);
   //connect(fm_demod,             0, sym_filter,           0);
     connect(fm_demod,             0, demod_agc,            0);
     connect(demod_agc,            0,  sym_filter,           0);
