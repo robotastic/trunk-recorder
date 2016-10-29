@@ -49,13 +49,13 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  double xlate_bandwidth = 10000; // 24260.0
+  double xlate_bandwidth = 15000; // 24260.0
 
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 3000, gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth / 2, 1500, gr::filter::firdes::WIN_HANN);
 
   // int decimation = int(input_rate / system_channel_rate);
   int decimation = int(input_rate / 96000);
@@ -137,7 +137,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
-  agc = gr::analog::feedforward_agc_cc::make(1024, 1.0);
+  agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
   double omega      = double(system_channel_rate) / double(symbol_rate);
   double gain_omega = 0.1  * gain_mu * gain_mu;
