@@ -137,7 +137,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
-  agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
+  agc = gr::analog::feedforward_agc_cc::make(64, 1.0);
 
   double omega      = double(system_channel_rate) / double(symbol_rate);
   double gain_omega = 0.1  * gain_mu * gain_mu;
@@ -159,7 +159,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
 
   // fm demodulator (needed in fsk4 case)
   double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
-  fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
+  fm_demod = gr::analog::quadrature_demod_cf::make(1.0);//fm_demod_gain);
   BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
   demod_agc = gr::analog::agc2_ff::make(1e-1, 1e-2, 2.0, 1.0);
   pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 1e-2, 2.0, 1.0);
@@ -212,11 +212,11 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
-    connect(arb_resampler,        0, pre_demod_agc,                  0);
-    connect(pre_demod_agc,           0, fm_demod,             0);
-  connect(fm_demod,             0, sym_filter,           0);
-    //connect(fm_demod,             0, demod_agc,            0);
-    //connect(demod_agc,            0,  sym_filter,           0);
+    connect(arb_resampler,        0, agc,                  0);
+    connect(agc,           0, fm_demod,             0);
+  //connect(fm_demod,             0, sym_filter,           0);
+    connect(fm_demod,             0, demod_agc,            0);
+    connect(demod_agc,            0,  sym_filter,           0);
     //connect(demod_agc,            0, baseband_amp,         0);
   //  connect(fm_demod,             0, baseband_amp,            0);
     //connect(baseband_amp,         0, sym_filter,           0);
