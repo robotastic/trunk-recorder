@@ -45,6 +45,7 @@
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 
 
+#include "../../gr_blocks/rx_demod_fm.h"
 
 class Source;
 class analog_recorder;
@@ -115,6 +116,8 @@ private:
 								gr::analog::pwr_squelch_cc::sptr squelch;
 								gr::analog::pwr_squelch_ff::sptr squelch_two;
 								gr::analog::quadrature_demod_cf::sptr demod;
+								rx_demod_fm_sptr fm_demod;
+
 								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 								gr::blocks::file_sink::sptr raw_sink;
 								gr::blocks::file_sink::sptr debug_sink;

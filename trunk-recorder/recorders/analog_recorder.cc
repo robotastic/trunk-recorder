@@ -74,8 +74,8 @@ analog_recorder::analog_recorder(Source *src)
 
 
 	//k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
-
-	demod = gr::analog::quadrature_demod_cf::make(12); //1.527); //1.6 //1.4);
+	fm_demod = make_rx_demod_fm(channel_rate, 8000, 5000.0, 75.0e-6);
+	demod = gr::analog::quadrature_demod_cf::make(1.527); //1.6 //1.4);
 	levels = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); //33);
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
@@ -124,21 +124,24 @@ analog_recorder::analog_recorder(Source *src)
  		connect(prefilter, 0, downsample_sig, 0);
  		connect(downsample_sig, 0, squelch, 0);
  		connect(squelch, 0,	demod, 0);
- 		connect(demod, 0, deemph, 0);
+ 		connect(demod, 0, wav_sink, 0);
+
+			/*deemph, 0);
  		connect(deemph, 0, decim_audio, 0);
  		connect(decim_audio, 0, squelch_two, 0);
  		connect(squelch_two, 0, levels,0);
-		connect(levels,0,  wav_sink, 0);
+		connect(levels,0,  wav_sink, 0);*/
  	   } else {
  		// No squelch used
  		connect(self(),0, valve,0);
  		connect(valve,0, prefilter,0);
  		connect(prefilter, 0, downsample_sig, 0);
  		connect(downsample_sig, 0, demod, 0);
- 		connect(demod, 0, deemph, 0);
+ 		connect(demod, 0, wav_sink, 0);
+			/*deemph, 0);
  		connect(deemph, 0, decim_audio, 0);
  		connect(decim_audio, 0, levels,0);
-		connect(levels,0,  wav_sink, 0);
+		connect(levels,0,  wav_sink, 0);*/
  	}
 
 

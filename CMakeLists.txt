@@ -212,6 +212,8 @@ list(APPEND trunk_recorder_sources
   gr_blocks/freq_xlating_fft_filter.cc
   gr_blocks/agc_impl.cpp
   gr_blocks/rx_agc_ff.cpp
+
+    gr_blocks/rx_demod_fm.cpp
     gr_blocks/rx_agc_cc.cpp
   gr_blocks/latency_probe.cc
   gr_blocks/latency_tagger.cc )

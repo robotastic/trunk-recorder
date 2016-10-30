@@ -155,7 +155,6 @@ private:
 								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
-
 								gr::analog::quadrature_demod_cf::sptr fm_demod;
 								gr::analog::feedforward_agc_cc::sptr agc;
 								gr::analog::agc2_ff::sptr demod_agc;
