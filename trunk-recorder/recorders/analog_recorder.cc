@@ -30,11 +30,11 @@ analog_recorder::analog_recorder(Source *src)
 
 	int samp_per_sym = 10;
 	double decim = 80;
-	float xlate_bandwidth = 10000; //24260.0;
+	float xlate_bandwidth = 15000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
 
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 3000);
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth, 3000);
 	//lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 3000);
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
@@ -75,7 +75,7 @@ analog_recorder::analog_recorder(Source *src)
 
 	//k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
 
-	demod = gr::analog::quadrature_demod_cf::make(1.527); //1.6 //1.4);
+	demod = gr::analog::quadrature_demod_cf::make(12); //1.527); //1.6 //1.4);
 	levels = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); //33);
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
