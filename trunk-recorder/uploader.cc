@@ -272,7 +272,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     ssl_socket socket(io_service, ctx);
     try
     {
-      
+
     if (ec)
     {
       BOOST_LOG_TRIVIAL(info) << "SSL: Error resolve: " << ec.message() << "\n";
@@ -370,7 +370,6 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
 
     socket.shutdown(ec);
-
     if (ec)
     {
       BOOST_LOG_TRIVIAL(info) << "error when ssl shutdown: "    << boost::system::system_category().message(ec.value()).c_str();
@@ -381,6 +380,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     {
       BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: " << boost::system::system_category().message(ec.value()).c_str();
     }
+    socket.close();
   }
   catch (std::exception& e)
   {
@@ -397,6 +397,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     {
       BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: " << boost::system::system_category().message(ec.value()).c_str();
     }
+    socket.close();
     return 1;
   }
   return 0;
