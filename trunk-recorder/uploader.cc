@@ -366,12 +366,25 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) std::cout << &response;
 
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
+
+  
+      socket.shutdown(ec);
+    if (ec)
+    {
+        std::cout <<"error when ssl shutdown: "    <<boost::system::system_category().message(ec.value()).c_str();
+    }
+    socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    if (ec)
+    {
+        std::cout << "error when tcp shutdown: "<<boost::system::system_category().message(ec.value()).c_str();
+    }
   }
   catch (std::exception& e)
   {
     std::cout << "Exception: " << e.what() << "\n";
     return 1;
   }
+
   return 0;
 }
 
