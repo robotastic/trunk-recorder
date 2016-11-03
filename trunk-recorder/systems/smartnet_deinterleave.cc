@@ -101,6 +101,8 @@ smartnet_deinterleave::general_work (int noutput_items,
 	int size = ninput_items[0] - 84;
 
 	if(size <= 0) {
+		BOOST_LOG_TRIVIAL(info) << "deinterleave fail noutput: " << noutput_items << " size: " << size;
+
 		return 0; //better luck next time
 	}
 

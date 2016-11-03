@@ -146,7 +146,7 @@ smartnet_crc::work (int noutput_items,
 
 	int size = noutput_items - 76;
 	if(size <= 0) {
-					//BOOST_LOG_TRIVIAL(info) << "Sad Trombone 1: " << noutput_items << " size: " << size;
+					BOOST_LOG_TRIVIAL(info) << "CRC fail noutput: " << noutput_items << " size: " << size;
 					return 0; //better luck next time
 	}
 
