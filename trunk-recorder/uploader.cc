@@ -134,9 +134,9 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf& requ
     freq_list = "[]";
   }
   std::cout << source_list << "\n";
-  add_post_field(oss, "freq",          long_to_string(call->freq),  boundary);
+  add_post_field(oss, "freq",          long_to_string(call->freq),       boundary);
   add_post_field(oss, "start_time",    long_to_string(call->start_time), boundary);
-  add_post_field(oss, "stop_time",    long_to_string(call->stop_time), boundary);
+  add_post_field(oss, "stop_time",     long_to_string(call->stop_time),  boundary);
 
   add_post_field(oss, "talkgroup_num", long_to_string(call->talkgroup),  boundary);
   add_post_field(oss, "emergency",     long_to_string(call->emergency),  boundary);
@@ -368,23 +368,36 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
 
 
-      socket.shutdown(ec);
+    socket.shutdown(ec);
+
     if (ec)
     {
-        BOOST_LOG_TRIVIAL(info) <<"error when ssl shutdown: "    <<boost::system::system_category().message(ec.value()).c_str();
+      BOOST_LOG_TRIVIAL(info) << "error when ssl shutdown: "    << boost::system::system_category().message(ec.value()).c_str();
     }
     socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+
     if (ec)
     {
-        BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: "<<boost::system::system_category().message(ec.value()).c_str();
+      BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: " << boost::system::system_category().message(ec.value()).c_str();
     }
   }
   catch (std::exception& e)
   {
-    BOOST_LOG_TRIVIAL(info)  << "SSL Exception: " << e.what() << "\n";
+    BOOST_LOG_TRIVIAL(info) << "SSL Exception: " << e.what() << "\n";
+    socket.shutdown(ec);
+
+    if (ec)
+    {
+      BOOST_LOG_TRIVIAL(info) << "error when ssl shutdown: "    << boost::system::system_category().message(ec.value()).c_str();
+    }
+    socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+
+    if (ec)
+    {
+      BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: " << boost::system::system_category().message(ec.value()).c_str();
+    }
     return 1;
   }
-
   return 0;
 }
 
@@ -463,9 +476,9 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->emergency    = call->get_emergency();
   call_info->tdma         = call->get_tdma();
   call_info->source_count = call->get_source_count();
-    call_info->freq_count = call->get_freq_count();
+  call_info->freq_count   = call->get_freq_count();
   call_info->start_time   = call->get_start_time();
-    call_info->stop_time   = call->get_stop_time();
+  call_info->stop_time    = call->get_stop_time();
   call_info->api_key      = sys->get_api_key();
   call_info->short_name   = sys->get_short_name();
   std::stringstream ss;
