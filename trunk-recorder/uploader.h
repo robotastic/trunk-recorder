@@ -10,6 +10,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/regex.hpp>
+#include <boost/log/trivial.hpp>
 #include <pthread.h>
 #include <sstream>
 

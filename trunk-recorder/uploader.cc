@@ -212,7 +212,7 @@ int http_upload(struct server_data_t *server_info, boost::asio::streambuf& reque
 
     if (status_code != 200)
     {
-      std::cout << "Response returned with status code " << status_code << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Response returned with status code " << status_code << "\n";
       return 1;
     }
 
@@ -240,7 +240,7 @@ int http_upload(struct server_data_t *server_info, boost::asio::streambuf& reque
   }
   catch (std::exception& e)
   {
-    std::cout << "Exception: " << e.what() << "\n";
+    BOOST_LOG_TRIVIAL(info) << "SSL: Exception: " << e.what() << "\n";
   }
   return 0;
 }
@@ -274,7 +274,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      std::cout << "Error resolve: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Error resolve: " << ec.message() << "\n";
       return 1;
     }
 
@@ -289,7 +289,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      std::cout << "Connect failed: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Connect failed: " << ec.message() << "\n";
       return 1;
     }
 
@@ -298,7 +298,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      std::cout << "Handshake failed: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Handshake failed: " << ec.message() << "\n";
       return 1;
     }
 
@@ -314,7 +314,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      std::cout << "Error write req: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Error write req: " << ec.message() << "\n";
       return 1;
     }
 
@@ -338,13 +338,13 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (!response_stream || (http_version.substr(0, 5) != "HTTP/"))
     {
-      std::cout << "Invalid response\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Invalid response\n";
       return 1;
     }
 
     if (status_code != 200)
     {
-      std::cout << "Response returned with status code " << status_code << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Response returned with status code " << status_code << "\n";
       return 1;
     }
 
@@ -367,21 +367,21 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
 
-  
+
       socket.shutdown(ec);
     if (ec)
     {
-        std::cout <<"error when ssl shutdown: "    <<boost::system::system_category().message(ec.value()).c_str();
+        BOOST_LOG_TRIVIAL(info) <<"error when ssl shutdown: "    <<boost::system::system_category().message(ec.value()).c_str();
     }
     socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
     if (ec)
     {
-        std::cout << "error when tcp shutdown: "<<boost::system::system_category().message(ec.value()).c_str();
+        BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: "<<boost::system::system_category().message(ec.value()).c_str();
     }
   }
   catch (std::exception& e)
   {
-    std::cout << "Exception: " << e.what() << "\n";
+    BOOST_LOG_TRIVIAL(info)  << "SSL Exception: " << e.what() << "\n";
     return 1;
   }
 
@@ -419,7 +419,7 @@ void* convert_upload_call(void *thread_arg) {
   }
 
   if (call_info->scheme == "https") {
-    https_upload(server_info, request_);
+    BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
   }
 
   delete(call_info);
