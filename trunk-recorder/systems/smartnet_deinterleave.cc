@@ -99,9 +99,8 @@ smartnet_deinterleave::general_work (int noutput_items,
 	//you will need to look ahead 84 bits to post 76 bits of data
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
 	int size = ninput_items[0] - 84;
-	//if(size <= 0) {
+
 	if(size <= 0) {
-		consume_each(0);
 		return 0; //better luck next time
 	}
 
