@@ -250,8 +250,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
   // std::string server = "api.openmhz.com";
   // std::string path =  "/upload";
 
-  try
-  {
+
     boost::asio::io_service io_service;
     boost::asio::streambuf  response_;
 
@@ -271,7 +270,9 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     tcp::resolver::query query(server_info->hostname, "https");
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query, ec);
     ssl_socket socket(io_service, ctx);
-
+    try
+    {
+      
     if (ec)
     {
       BOOST_LOG_TRIVIAL(info) << "SSL: Error resolve: " << ec.message() << "\n";
