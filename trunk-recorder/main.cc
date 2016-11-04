@@ -494,6 +494,7 @@ void assign_recorder(TrunkMessage message, System *sys) {
       }
       // ++it; // move on to the next one
       // we found there has already been a Call created for the talkgroup, exit the loop
+
       break;
     } else {
       // The talkgroup for the call does not match
