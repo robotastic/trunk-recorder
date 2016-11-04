@@ -64,7 +64,9 @@ smartnet_deinterleave::smartnet_deinterleave ()
 	             gr::io_signature::make (MIN_OUT, MAX_OUT, sizeof (char)))
 {
 	set_relative_rate((double)(76.0/84.0));
-	set_output_multiple(168); //used to be 76
+	set_output_multiple(76); //used to be 76
+
+	//set_output_multiple(168); //used to be 76
 }
 
 /*
