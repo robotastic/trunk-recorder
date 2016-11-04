@@ -3,7 +3,7 @@
 using boost::asio::ip::tcp;
 namespace ssl = boost::asio::ssl;
 typedef ssl::stream<tcp::socket>ssl_socket;
-
+typedef boost::shared_ptr<tcp::socket> tcp_socket_ptr;
 
 ///@brief Helper class that prints the current certificate's subject
 ///       name and the verification results.
@@ -168,17 +168,19 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf& requ
 
 int http_upload(struct server_data_t *server_info, boost::asio::streambuf& request_)
 {
+
   try
   {
     boost::asio::io_service io_service;
-
+    boost::system::error_code ec;
     // Get a list of endpoints corresponding to the server name.
     tcp::resolver resolver(io_service);
     tcp::resolver::query query(server_info->hostname, server_info->port, tcp::resolver::query::canonical_name);
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
     // Try each endpoint until we successfully establish a connection.
-    tcp::socket socket(io_service);
+    boost::asio::ip::tcp::socket socket(io_service);
+    //tcp_socket_ptr socket = new socket(io_service);
     boost::asio::connect(socket, endpoint_iterator);
 
     // Form the request. We specify the "Connection: close" header so that the
@@ -237,10 +239,18 @@ int http_upload(struct server_data_t *server_info, boost::asio::streambuf& reque
                              boost::asio::transfer_at_least(1), error)) std::cout << &response;
 
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
+
+socket.close(ec);
+if (ec)
+{
+  BOOST_LOG_TRIVIAL(info) << "Error closing socket: " << ec << "\n";
+}
+
   }
   catch (std::exception& e)
   {
-    BOOST_LOG_TRIVIAL(info) << "SSL: Exception: " << e.what() << "\n";
+
+    BOOST_LOG_TRIVIAL(info) << "Socket: Exception: " << e.what() << "\n";
   }
   return 0;
 }
@@ -368,36 +378,12 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
 
-
-    socket.shutdown(ec);
-    if (ec)
-    {
-      BOOST_LOG_TRIVIAL(info) << "error when ssl shutdown: "    << boost::system::system_category().message(ec.value()).c_str();
-    }
-    socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-
-    if (ec)
-    {
-      BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: " << boost::system::system_category().message(ec.value()).c_str();
-    }
-    socket.close();
   }
   catch (std::exception& e)
   {
     BOOST_LOG_TRIVIAL(info) << "SSL Exception: " << e.what() << "\n";
-    socket.shutdown(ec);
 
-    if (ec)
-    {
-      BOOST_LOG_TRIVIAL(info) << "error when ssl shutdown: "    << boost::system::system_category().message(ec.value()).c_str();
-    }
-    socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 
-    if (ec)
-    {
-      BOOST_LOG_TRIVIAL(info) << "error when tcp shutdown: " << boost::system::system_category().message(ec.value()).c_str();
-    }
-    socket.close();
     return 1;
   }
   return 0;
@@ -428,9 +414,8 @@ void* convert_upload_call(void *thread_arg) {
   // std::cout << "Finished converting\n";
   boost::asio::streambuf request_;
   build_call_request(call_info, request_);
-
-  if (call_info->scheme == "http") {
-    http_upload(server_info, request_);
+ if (call_info->scheme == "http") {
+    BOOST_LOG_TRIVIAL(info) << "HTTP Upload result: " << http_upload(server_info, request_);
   }
 
   if (call_info->scheme == "https") {
@@ -438,6 +423,7 @@ void* convert_upload_call(void *thread_arg) {
   }
 
   delete(call_info);
+  pthread_detach(pthread_self());
   pthread_exit(NULL);
 }
 
@@ -502,7 +488,6 @@ void send_call(Call *call, System *sys, Config config) {
   // std::cout << "Creating Upload Thread\n";
   int rc = pthread_create(&thread, NULL, convert_upload_call, (void *)call_info);
 
-  // std::cout << "Finished creating Thread\n";
 
   if (rc) {
     printf("ERROR; return code from pthread_create() is %d\n", rc);
