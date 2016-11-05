@@ -63,7 +63,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
 }
 
 Call::~Call() {
-  delete config;
+  
   //  BOOST_LOG_TRIVIAL(info) << " This call is over!!";
 }
 
