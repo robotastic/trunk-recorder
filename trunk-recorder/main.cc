@@ -585,7 +585,7 @@ void update_recorder(TrunkMessage message, System *sys) {
       }
 
       // we found out call, exit the for loop
-      //break;
+      break;
     } else {
       ++it;
       // the talkgroups don't match
