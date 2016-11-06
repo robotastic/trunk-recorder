@@ -422,7 +422,10 @@ void* convert_upload_call(void *thread_arg) {
   if (call_info->scheme == "https") {
     BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
   }
+
   request_.consume(request_.size());
+  delete(thread_arg);
+  delete(server_info);
   delete(call_info);
   pthread_detach(pthread_self());
   pthread_exit(NULL);
