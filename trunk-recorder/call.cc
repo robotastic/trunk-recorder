@@ -63,7 +63,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
 }
 
 Call::~Call() {
-  
+
   //  BOOST_LOG_TRIVIAL(info) << " This call is over!!";
 }
 
@@ -169,7 +169,7 @@ Call_Freq * Call::get_freq_list() {
 }
 
 long Call::get_freq_count() {
-
+return freq_count;
 }
 Call_Source * Call::get_source_list() {
   return get_recorder()->get_source_list();
