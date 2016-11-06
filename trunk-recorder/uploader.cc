@@ -450,7 +450,7 @@ void* convert_upload_call(void *thread_arg) {
   }
   BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
   request_.consume(req_size);
-
+  post_stream.flush();
   delete(server_info);
   delete(call_info);
   pthread_exit(NULL);
