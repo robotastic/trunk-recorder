@@ -187,7 +187,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall")
 #        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 #endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing ")
 
 
 add_subdirectory(op25_repeater)

@@ -414,7 +414,7 @@ void* convert_upload_call(void *thread_arg) {
   // std::cout << "Finished converting\n";
   boost::asio::streambuf request_;
   build_call_request(call_info, request_);
-
+  size_t req_size = request_.size();
  if (call_info->scheme == "http") {
     BOOST_LOG_TRIVIAL(info) << "HTTP Upload result: " << http_upload(server_info, request_);
   }
@@ -423,7 +423,7 @@ void* convert_upload_call(void *thread_arg) {
     BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
   }
 
-  request_.consume(request_.size());
+  request_.consume(req_size);
 
   delete(server_info);
   delete(call_info);
