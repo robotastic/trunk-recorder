@@ -66,7 +66,7 @@ inline std::string double_to_string(double d)
   return ss.str();
 }
 
-void build_call_request(struct call_data_t *call,   boost::asio::streambuf& request_) {
+void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) { //boost::asio::streambuf& request_) {
   // boost::asio::streambuf request_;
   // std::string server = "api.openmhz.com";
   // std::string path =  "/upload";
@@ -149,7 +149,7 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf& requ
   // ------------------------------------------------------------------------
 
 
-  std::ostream post_stream(&request_);
+  //std::ostream post_stream(&request_);
   post_stream << "POST " << call->path << "" << " HTTP/1.1\r\n";
   post_stream << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
   post_stream << "User-Agent: OpenWebGlobe/1.0\r\n";
@@ -160,10 +160,13 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf& requ
   post_stream << "Accept: */*\r\n";
   post_stream << "Connection: Close\r\n";
   post_stream << "Cache-Control: no-cache\r\n";
-  post_stream << "Content-Length: " << oss.str().size() << "\r\n";
+  post_stream << "Content-Length: " << oss.tellp() << "\r\n";
   post_stream << "\r\n";
 
-  post_stream << oss.str();
+  post_stream << oss;
+
+  oss.clear();
+  oss.flush();
 }
 
 int http_upload(struct server_data_t *server_info, boost::asio::streambuf& request_)
@@ -413,7 +416,10 @@ void* convert_upload_call(void *thread_arg) {
 
   // std::cout << "Finished converting\n";
   boost::asio::streambuf request_;
-  build_call_request(call_info, request_);
+  std::ostream post_stream(&request_);
+  //build_call_request(call_info, request_);
+  build_call_request(call_info, post_stream);
+
   size_t req_size = request_.size();
  if (call_info->scheme == "http") {
     BOOST_LOG_TRIVIAL(info) << "HTTP Upload result: " << http_upload(server_info, request_);
@@ -422,7 +428,7 @@ void* convert_upload_call(void *thread_arg) {
   if (call_info->scheme == "https") {
     BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
   }
-
+  BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
   request_.consume(req_size);
 
   delete(server_info);
