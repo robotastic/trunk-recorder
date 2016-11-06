@@ -424,7 +424,7 @@ void* convert_upload_call(void *thread_arg) {
   }
 
   request_.consume(request_.size());
-  delete(thread_arg);
+
   delete(server_info);
   delete(call_info);
   pthread_detach(pthread_self());
