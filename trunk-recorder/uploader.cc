@@ -148,7 +148,7 @@ void build_call_request(struct call_data_t *call,   boost::asio::streambuf& requ
 
   // ------------------------------------------------------------------------
 
-  boost::asio::streambuf post;
+
   std::ostream post_stream(&request_);
   post_stream << "POST " << call->path << "" << " HTTP/1.1\r\n";
   post_stream << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
