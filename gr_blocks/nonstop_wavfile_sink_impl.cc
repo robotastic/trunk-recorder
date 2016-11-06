@@ -279,7 +279,7 @@ nonstop_wavfile_sink_impl::work(int                        noutput_items,
   }
 
   // fflush (d_fp);  // this is added so unbuffered content is written.
-
+  tags.clear();
   return nwritten;
 }
 
