@@ -133,7 +133,7 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
   } else {
     freq_list = "[]";
   }
-  std::cout << source_list << "\n";
+
   add_post_field(oss, "freq",          long_to_string(call->freq),       boundary);
   add_post_field(oss, "start_time",    long_to_string(call->start_time), boundary);
   add_post_field(oss, "stop_time",     long_to_string(call->stop_time),  boundary);
@@ -152,7 +152,7 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
   //std::ostream post_stream(&request_);
   post_stream << "POST " << call->path << "" << " HTTP/1.1\r\n";
   post_stream << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
-  post_stream << "User-Agent: OpenWebGlobe/1.0\r\n";
+  post_stream << "User-Agent: TrunkRecorder1.0\r\n";
   post_stream << "Host: " << call->hostname << "\r\n"; // The domain name of the
                                                        // server (for virtual
                                                        // hosting), mandatory
@@ -165,7 +165,6 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
 
   post_stream << oss;
 
-  oss.clear();
   oss.flush();
 }
 
@@ -407,7 +406,9 @@ void* convert_upload_call(void *thread_arg) {
 
   boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
-  strcpy(call_info->converted, m4a.string().c_str());
+  std::string m4a_str = m4a.string();
+  strcpy(call_info->converted, m4a_str.c_str());
+
   sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, m4a.string().c_str());
 
   // std::cout << "Converting: " << call_info->converted << "\n";
