@@ -65,6 +65,21 @@ inline std::string double_to_string(double d)
   ss << d;
   return ss.str();
 }
+std::stringstream::pos_type size_of_stream(const std::ostringstream& ss)
+{
+    std::streambuf* buf = ss.rdbuf();
+
+    // Get the current position so we can restore it later
+    std::stringstream::pos_type original = buf->pubseekoff(0, ss.cur, ss.out);
+
+    // Seek to end and get the position
+    std::stringstream::pos_type end = buf->pubseekoff(0, ss.end, ss.out);
+
+    // Restore the position
+    buf->pubseekpos(original, ss.out);
+
+    return end;
+}
 
 void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) { //boost::asio::streambuf& request_) {
   // boost::asio::streambuf request_;
@@ -160,7 +175,7 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
   post_stream << "Accept: */*\r\n";
   post_stream << "Connection: Close\r\n";
   post_stream << "Cache-Control: no-cache\r\n";
-  post_stream << "Content-Length: " << oss.tellp() << "\r\n";
+  post_stream << "Content-Length: " << size_of_stream(oss) << "\r\n";
   post_stream << "\r\n";
 
   post_stream << oss;
@@ -409,7 +424,7 @@ void* convert_upload_call(void *thread_arg) {
   std::string m4a_str = m4a.string();
   strcpy(call_info->converted, m4a_str.c_str());
 
-  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, m4a.string().c_str());
+  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, m4a_str.c_str());
 
   // std::cout << "Converting: " << call_info->converted << "\n";
   // std::cout << "Command: " << shell_command << "\n";
