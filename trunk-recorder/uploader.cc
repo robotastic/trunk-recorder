@@ -43,7 +43,7 @@ make_verbose_verification(Verifier verifier)
   return verbose_verification<Verifier>(verifier);
 }
 
-void add_post_field(std::ostringstream& post_stream, std::string name, std::string value, std::string boundary) {
+void add_post_field(std::stringstream& post_stream, std::string name, std::string value, std::string boundary) {
   post_stream << "\r\n--" << boundary << "\r\n";
   post_stream << "Content-Disposition: form-data; name=\"" << name << "\"\r\n";
   post_stream << "\r\n";
@@ -55,7 +55,8 @@ inline std::string long_to_string(long l)
   std::stringstream ss;
 
   ss << l;
-  return ss.str();
+  std::string varAsString = ss.str();
+  return varAsString;
 }
 
 inline std::string double_to_string(double d)
@@ -63,7 +64,8 @@ inline std::string double_to_string(double d)
   std::stringstream ss;
 
   ss << d;
-  return ss.str();
+  std::string varAsString = ss.str();
+  return varAsString;
 }
 std::stringstream::pos_type size_of_stream(const std::ostringstream& ss)
 {
@@ -105,7 +107,7 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
 
   // ------------------------------------------------------------------------
   // Create Disposition in a stringstream, because we need Content-Length...
-  std::ostringstream oss;
+  std::stringstream oss;
   oss << "--" << boundary << "\r\n";
   oss << "Content-Disposition: form-data; name=\"" << form_name << "\"; filename=\"" << form_filename << "\"\r\n";
 
@@ -149,21 +151,21 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
     freq_list = "[]";
   }
 
-  add_post_field(oss, "freq",          long_to_string(call->freq),       boundary);
-  add_post_field(oss, "start_time",    long_to_string(call->start_time), boundary);
-  add_post_field(oss, "stop_time",     long_to_string(call->stop_time),  boundary);
+  add_post_field(oss, "freq",          boost::lexical_cast<std::string>(call->freq),       boundary);
+  add_post_field(oss, "start_time",    boost::lexical_cast<std::string>(call->start_time), boundary);
+  add_post_field(oss, "stop_time",     boost::lexical_cast<std::string>(call->stop_time),  boundary);
 
-  add_post_field(oss, "talkgroup_num", long_to_string(call->talkgroup),  boundary);
-  add_post_field(oss, "emergency",     long_to_string(call->emergency),  boundary);
+  add_post_field(oss, "talkgroup_num", boost::lexical_cast<std::string>(call->talkgroup),  boundary);
+  add_post_field(oss, "emergency",     boost::lexical_cast<std::string>(call->emergency),  boundary);
   add_post_field(oss, "api_key",       call->api_key,                    boundary);
   add_post_field(oss, "source_list",   source_list,                      boundary);
   add_post_field(oss, "freq_list",     freq_list,                        boundary);
 
   oss << "\r\n--" << boundary << "--\r\n";
-
+  const std::string &body_str(oss.str());
   // ------------------------------------------------------------------------
 
-
+//BOOST_LOG_TRIVIAL(info) << oss;
   //std::ostream post_stream(&request_);
   post_stream << "POST " << call->path << "" << " HTTP/1.1\r\n";
   post_stream << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
@@ -175,10 +177,10 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
   post_stream << "Accept: */*\r\n";
   post_stream << "Connection: Close\r\n";
   post_stream << "Cache-Control: no-cache\r\n";
-  post_stream << "Content-Length: " << size_of_stream(oss) << "\r\n";
+  post_stream << "Content-Length: " << body_str.size() << "\r\n"; //size_of_stream(oss) << "\r\n";
   post_stream << "\r\n";
 
-  post_stream << oss;
+  post_stream << body_str;
 
   oss.flush();
 }
@@ -225,7 +227,7 @@ int http_upload(struct server_data_t *server_info, boost::asio::streambuf& reque
 
     if (!response_stream || (http_version.substr(0, 5) != "HTTP/"))
     {
-      std::cout << "Invalid response\n";
+      BOOST_LOG_TRIVIAL(info) << "Invalid response\n";
       return 1;
     }
 
@@ -411,7 +413,6 @@ void* convert_upload_call(void *thread_arg) {
   server_data_t *server_info = new server_data_t;
   char shell_command[400];
 
-
   call_info                  = static_cast<call_data_t *>(thread_arg);
   server_info->upload_server = call_info->upload_server;
   server_info->scheme        = call_info->scheme;
@@ -421,22 +422,25 @@ void* convert_upload_call(void *thread_arg) {
 
   boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
-  std::string m4a_str = m4a.string();
+  const std::string &m4a_str(m4a.string());
   strcpy(call_info->converted, m4a_str.c_str());
+  //strcpy(call_info->converted, m4a.string().c_str());
 
-  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, m4a_str.c_str());
 
-  // std::cout << "Converting: " << call_info->converted << "\n";
-  // std::cout << "Command: " << shell_command << "\n";
+  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename,m4a_str.c_str());
+
+  std::cout << "Converting: " << call_info->converted << "\n";
+//   std::cout << "Command: " << shell_command << "\n";
   int rc = system(shell_command);
 
-  // std::cout << "Finished converting\n";
+//   std::cout << "Finished converting\n";
   boost::asio::streambuf request_;
   std::ostream post_stream(&request_);
   //build_call_request(call_info, request_);
   build_call_request(call_info, post_stream);
 
   size_t req_size = request_.size();
+  BOOST_LOG_TRIVIAL(info) << "Trying server: " <<  request_.size();
  if (call_info->scheme == "http") {
     BOOST_LOG_TRIVIAL(info) << "HTTP Upload result: " << http_upload(server_info, request_);
   }
@@ -449,7 +453,6 @@ void* convert_upload_call(void *thread_arg) {
 
   delete(server_info);
   delete(call_info);
-  pthread_detach(pthread_self());
   pthread_exit(NULL);
 }
 
@@ -511,9 +514,9 @@ void send_call(Call *call, System *sys, Config config) {
     call_info->freq_list[i] = freq_list[i];
   }
 
-  // std::cout << "Creating Upload Thread\n";
+  BOOST_LOG_TRIVIAL(info) << "Creating Upload Thread\n";
   int rc = pthread_create(&thread, NULL, convert_upload_call, (void *)call_info);
-
+  pthread_detach(thread);
 
   if (rc) {
     printf("ERROR; return code from pthread_create() is %d\n", rc);
