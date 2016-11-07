@@ -50,40 +50,7 @@ void add_post_field(std::stringstream& post_stream, std::string name, std::strin
   post_stream << value;
 }
 
-inline std::string long_to_string(long l)
-{
-  std::stringstream ss;
-
-  ss << l;
-  std::string varAsString = ss.str();
-  return varAsString;
-}
-
-inline std::string double_to_string(double d)
-{
-  std::stringstream ss;
-
-  ss << d;
-  std::string varAsString = ss.str();
-  return varAsString;
-}
-std::stringstream::pos_type size_of_stream(const std::ostringstream& ss)
-{
-    std::streambuf* buf = ss.rdbuf();
-
-    // Get the current position so we can restore it later
-    std::stringstream::pos_type original = buf->pubseekoff(0, ss.cur, ss.out);
-
-    // Seek to end and get the position
-    std::stringstream::pos_type end = buf->pubseekoff(0, ss.end, ss.out);
-
-    // Restore the position
-    buf->pubseekpos(original, ss.out);
-
-    return end;
-}
-
-void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) { //boost::asio::streambuf& request_) {
+std::string build_call_request(struct call_data_t *call, boost::asio::streambuf& request_) {
   // boost::asio::streambuf request_;
   // std::string server = "api.openmhz.com";
   // std::string path =  "/upload";
@@ -123,7 +90,7 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
 
   if (call->source_count != 0) {
     for (int i = 0; i < call->source_count; i++) {
-      source_list = source_list + "{ \"pos\": " + double_to_string(call->source_list[i].position) + ", \"src\": " + long_to_string(call->source_list[i].source) + " }";
+      source_list = source_list + "{ \"pos\": " + boost::lexical_cast<std::string>(call->source_list[i].position) + ", \"src\": " + boost::lexical_cast<std::string>(call->source_list[i].source) + " }";
 
       if (i < (call->source_count - 1)) {
         source_list = source_list + ", ";
@@ -139,7 +106,7 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
 
   if (call->freq_count != 0) {
     for (int i = 0; i < call->freq_count; i++) {
-      freq_list = freq_list + "{ \"pos\": " + double_to_string(call->freq_list[i].position) + ", \"freq\": " + double_to_string(call->freq_list[i].freq) + " }";
+      freq_list = freq_list + "{ \"pos\": " + boost::lexical_cast<std::string>(call->freq_list[i].position) + ", \"freq\": " + boost::lexical_cast<std::string>(call->freq_list[i].freq) + " }";
 
       if (i < (call->freq_count - 1)) {
         freq_list = freq_list + ", ";
@@ -163,10 +130,13 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
 
   oss << "\r\n--" << boundary << "--\r\n";
   const std::string &body_str(oss.str());
+  oss.clear();
+  oss.flush();
   // ------------------------------------------------------------------------
 
-//BOOST_LOG_TRIVIAL(info) << oss;
-  //std::ostream post_stream(&request_);
+
+  std::ostream post_stream(&request_);
+
   post_stream << "POST " << call->path << "" << " HTTP/1.1\r\n";
   post_stream << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
   post_stream << "User-Agent: TrunkRecorder1.0\r\n";
@@ -181,11 +151,9 @@ void build_call_request(struct call_data_t *call,   std::ostream &post_stream ) 
   post_stream << "\r\n";
 
   post_stream << body_str;
-
-  oss.flush();
 }
 
-int http_upload(struct server_data_t *server_info, boost::asio::streambuf& request_)
+int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& request_)
 {
 
   try
@@ -424,8 +392,6 @@ void* convert_upload_call(void *thread_arg) {
   m4a = m4a.replace_extension(".m4a");
   const std::string &m4a_str(m4a.string());
   strcpy(call_info->converted, m4a_str.c_str());
-  //strcpy(call_info->converted, m4a.string().c_str());
-
 
   sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename,m4a_str.c_str());
 
@@ -434,14 +400,14 @@ void* convert_upload_call(void *thread_arg) {
   int rc = system(shell_command);
 
 //   std::cout << "Finished converting\n";
+
   boost::asio::streambuf request_;
-  std::ostream post_stream(&request_);
-  //build_call_request(call_info, request_);
-  build_call_request(call_info, post_stream);
+
+  build_call_request(call_info, request_);
 
   size_t req_size = request_.size();
-  BOOST_LOG_TRIVIAL(info) << "Trying server: " <<  request_.size();
- if (call_info->scheme == "http") {
+
+  if (call_info->scheme == "http") {
     BOOST_LOG_TRIVIAL(info) << "HTTP Upload result: " << http_upload(server_info, request_);
   }
 
@@ -450,10 +416,9 @@ void* convert_upload_call(void *thread_arg) {
   }
   BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
   request_.consume(req_size);
-  post_stream.flush();
   delete(server_info);
   delete(call_info);
-  pthread_exit(NULL);
+  //pthread_exit(NULL);
 }
 
 void send_call(Call *call, System *sys, Config config) {
