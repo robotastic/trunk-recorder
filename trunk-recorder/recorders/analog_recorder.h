@@ -45,6 +45,7 @@
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 
 
+#include "../../gr_blocks/rx_demod_fm.h"
 
 class Source;
 class analog_recorder;
@@ -56,71 +57,73 @@ analog_recorder_sptr make_analog_recorder(Source *src);
 
 class analog_recorder : public gr::hier_block2, public Recorder
 {
-	friend analog_recorder_sptr make_analog_recorder(Source *src);
+								friend analog_recorder_sptr make_analog_recorder(Source *src);
 protected:
-	analog_recorder(Source *src);
+								analog_recorder(Source *src);
 
 public:
-	~analog_recorder();
-	void tune_offset(double f);
-	void activate(Call *call, int n);
-
-	void deactivate();
-	double get_freq();
-    double get_squelch_in();
-    Source *get_source();
-	long get_talkgroup();
-	double get_current_length();
-	bool is_active();
-	int lastupdate();
-	long elapsed();
-	void close();
-	static bool logging;
+								~analog_recorder();
+								void tune_offset(double f);
+								void start(Call *call, int n);
+								void stop();
+								double get_freq();
+								double get_squelch_in();
+								Source *get_source();
+								long get_talkgroup();
+								double get_current_length();
+								bool is_active();
+								State get_state();
+								int lastupdate();
+								long elapsed();
+								static bool logging;
 private:
-	double center, freq;
-	bool muted;
-	long talkgroup;
-	long samp_rate;
-    double squelch_db;
-	time_t timestamp;
-	time_t starttime;
-	char filename[160];
-	char status_filename[160];
-	char raw_filename[160];
-	char debug_filename[160];
-	//int num;
+								double center, freq;
+								bool muted;
+								long talkgroup;
+								long samp_rate;
+								double squelch_db;
+								time_t timestamp;
+								time_t starttime;
+								char filename[160];
+								char status_filename[160];
+								char raw_filename[160];
+								char debug_filename[160];
+								//int num;
 
-	bool iam_logging;
-	bool active;
-	std::vector<float> lpf_taps;
-	std::vector<float> resampler_taps;
-	std::vector<float> audio_resampler_taps;
-	std::vector<float> sym_taps;
+								bool iam_logging;
+								State state;
+								std::vector<float> lpf_taps;
+								std::vector<float> resampler_taps;
+								std::vector<float> audio_resampler_taps;
+								std::vector<float> sym_taps;
 
-    Source *source;
-freq_xlating_fft_filter_sptr prefilter;
-	/* GR blocks */
-	gr::filter::iir_filter_ffd::sptr deemph;
-	gr::filter::fir_filter_ccf::sptr lpf;
-	gr::filter::fir_filter_fff::sptr sym_filter;
-	//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
-	gr::analog::sig_source_c::sptr offset_sig;
-	gr::blocks::multiply_cc::sptr mixer;
-	gr::blocks::file_sink::sptr fs;
-	gr::blocks::multiply_const_ff::sptr quiet;
-	gr::blocks::multiply_const_ff::sptr levels;
-	gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
-	gr::filter::fir_filter_fff::sptr decim_audio;
-	gr::filter::rational_resampler_base_fff::sptr upsample_audio;
-	gr::analog::pwr_squelch_cc::sptr squelch;
- 	gr::analog::pwr_squelch_ff::sptr squelch_two;
-	gr::analog::quadrature_demod_cf::sptr demod;
-	gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
-	gr::blocks::file_sink::sptr raw_sink;
-	gr::blocks::file_sink::sptr debug_sink;
-	gr::blocks::null_sink::sptr null_sink;
-	gr::blocks::head::sptr head_source;
-	gr::blocks::copy::sptr valve;
+								Source *source;
+								gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+								//freq_xlating_fft_filter_sptr prefilter;
+								/* GR blocks */
+								gr::filter::iir_filter_ffd::sptr deemph;
+								gr::filter::fir_filter_ccf::sptr lpf;
+								gr::filter::fir_filter_fff::sptr sym_filter;
+
+								gr::analog::sig_source_c::sptr offset_sig;
+								gr::blocks::multiply_cc::sptr mixer;
+								gr::blocks::file_sink::sptr fs;
+								gr::blocks::multiply_const_ff::sptr quiet;
+								gr::blocks::multiply_const_ff::sptr levels;
+								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
+								gr::filter::fir_filter_fff::sptr decim_audio;
+								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
+								gr::analog::pwr_squelch_cc::sptr squelch;
+								gr::analog::pwr_squelch_ff::sptr squelch_two;
+								gr::analog::quadrature_demod_cf::sptr demod;
+								rx_demod_fm_sptr fm_demod;
+
+								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+								gr::blocks::file_sink::sptr raw_sink;
+								gr::blocks::file_sink::sptr debug_sink;
+								gr::blocks::null_sink::sptr null_sink;
+								gr::blocks::head::sptr head_source;
+								gr::blocks::copy::sptr valve;
 
 };
 

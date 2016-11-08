@@ -21,7 +21,7 @@ analog_recorder::analog_recorder(Source *src)
 	samp_rate = source->get_rate();
 	talkgroup = 0;
 	num = 0;
-	active = false;
+	state = inactive;
 
 	timestamp = time(NULL);
 	starttime = time(NULL);
@@ -29,7 +29,7 @@ analog_recorder::analog_recorder(Source *src)
 	float offset = 0; //have to flip for 3.7
 
 	int samp_per_sym = 10;
-	double decim = int(samp_rate / 96000);;
+	double decim = int(samp_rate / 96000);
 	float xlate_bandwidth = 16000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
@@ -39,22 +39,22 @@ analog_recorder::analog_recorder(Source *src)
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
 
-					prefilter = make_freq_xlating_fft_filter(decim,
+		/*			prefilter = make_freq_xlating_fft_filter(decim,
 		            dest,
 		            offset,
-		            samp_rate);
-/*
+		            samp_rate);*/
+
 	prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
 	            lpf_taps,
 	            offset,
-	            samp_rate);*/
+	            samp_rate);
 	unsigned int d = GCD(channel_rate, pre_channel_rate); //4000 GCD(48000, 100000)
 	channel_rate = floor(channel_rate  / d);  // 12
 	pre_channel_rate = floor(pre_channel_rate / d);  // 25
 	resampler_taps = design_filter(channel_rate, pre_channel_rate);
-cout << "decim: " << decim << " channel rate: " << channel_rate << " pre_channel_rate: " << pre_channel_rate << " divider: " << d << endl;
-	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps); //downsample from 100k to 48k
+	cout << "decim: " << decim << " channel rate: " << channel_rate << " pre_channel_rate: " << pre_channel_rate << " divider: " << d << endl;
 
+	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps); //downsample from 100k to 48k
 	//on a trunked network where you know you will have good signal, a carrier power squelch works well. real FM receviers use a noise squelch, where
 	//the received audio is high-passed above the cutoff and then fed to a reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
@@ -74,9 +74,9 @@ cout << "decim: " << decim << " channel rate: " << channel_rate << " pre_channel
 
 
 	//k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
-
+	fm_demod = make_rx_demod_fm(channel_rate, channel_rate, 5000.0, 75.0e-6);
 	demod = gr::analog::quadrature_demod_cf::make(1.527); //1.6 //1.4);
-	levels = gr::blocks::multiply_const_ff::make(1); //33);
+	levels = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); //33);
 	valve = gr::blocks::copy::make(sizeof(gr_complex));
 	valve->set_enabled(false);
 
@@ -124,19 +124,24 @@ cout << "decim: " << decim << " channel rate: " << channel_rate << " pre_channel
  		connect(prefilter, 0, downsample_sig, 0);
  		connect(downsample_sig, 0, squelch, 0);
  		connect(squelch, 0,	demod, 0);
- 		connect(demod, 0, deemph, 0);
- 		connect(deemph, 0, decim_audio, 0);
+ 		connect(demod, 0, decim_audio, 0);
+
+			/*deemph, 0);
+ 		connect(deemph, 0, decim_audio, 0);*/
  		connect(decim_audio, 0, squelch_two, 0);
- 		connect(squelch_two, 0, wav_sink, 0);
+ 		connect(squelch_two, 0, levels,0);
+		connect(levels,0,  wav_sink, 0);
  	   } else {
  		// No squelch used
  		connect(self(),0, valve,0);
  		connect(valve,0, prefilter,0);
  		connect(prefilter, 0, downsample_sig, 0);
  		connect(downsample_sig, 0, demod, 0);
- 		connect(demod, 0, deemph, 0);
- 		connect(deemph, 0, decim_audio, 0);
- 		connect(decim_audio, 0, wav_sink, 0);
+ 		connect(demod, 0, decim_audio, 0);
+			/*deemph, 0);
+ 		connect(deemph, 0, decim_audio, 0);*/
+ 		connect(decim_audio, 0, levels,0);
+		connect(levels,0,  wav_sink, 0);
  	}
 
 
@@ -146,9 +151,28 @@ analog_recorder::~analog_recorder() {
 
 }
 
+State analog_recorder::get_state() {
+	return state;
+}
+
+void analog_recorder::stop() {
+	if (state == active) {
+		state = inactive;
+		valve->set_enabled(false);
+		wav_sink->close();
+	} else {
+		BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping an inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+
+	}
+}
+
 
 bool analog_recorder::is_active() {
-	return active;
+	if (state == active) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 long analog_recorder::get_talkgroup() {
@@ -162,6 +186,13 @@ double analog_recorder::get_freq() {
 Source *analog_recorder::get_source() {
     return source;
 }
+int analog_recorder::lastupdate() {
+  return time(NULL) - timestamp;
+}
+
+long analog_recorder::elapsed() {
+  return time(NULL) - starttime;
+}
 
 double analog_recorder::get_current_length() {
 	return wav_sink->length_in_seconds();
@@ -173,29 +204,7 @@ void analog_recorder::tune_offset(double f) {
 	prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
 }
 
-void analog_recorder::deactivate() {
-
-	active = false;
-
-	valve->set_enabled(false);
-
-	wav_sink->close();
-
-	ofstream myfile (status_filename);
-	if (myfile.is_open())
-	{
-		myfile << "{\n";
-		myfile << "\"freq\": " << freq << ",\n";
-		myfile << "\"num\": " << num << ",\n";
-		myfile << "\"talkgroup\": " << talkgroup << ",\n";
-		myfile << "\"mode\": \"analog\" \n";
-		myfile << "}\n";
-		myfile.close();
-	}
-	else cout << "Unable to open file";
-}
-
-void analog_recorder::activate(Call *call, int n) {
+void analog_recorder::start(Call *call, int n) {
 
 	starttime = time(NULL);
 
@@ -207,6 +216,6 @@ void analog_recorder::activate(Call *call, int n) {
 
 	wav_sink->open(call->get_filename());
 
-	active = true;
+	state = active;
 	valve->set_enabled(true);
 }
