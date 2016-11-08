@@ -30,11 +30,11 @@ analog_recorder::analog_recorder(Source *src)
 
 	int samp_per_sym = 10;
 	double decim = int(samp_rate / 96000);;
-	float xlate_bandwidth = 14000; //24260.0;
+	float xlate_bandwidth = 16000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
 
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 6000);
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 2000);
 	//lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 3000);
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
@@ -52,7 +52,7 @@ analog_recorder::analog_recorder(Source *src)
 	channel_rate = floor(channel_rate  / d);  // 12
 	pre_channel_rate = floor(pre_channel_rate / d);  // 25
 	resampler_taps = design_filter(channel_rate, pre_channel_rate);
-
+cout << "decim: " << decim << " channel rate: " << channel_rate << " pre_channel_rate: " << pre_channel_rate << " divider: " << d << endl;
 	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps); //downsample from 100k to 48k
 
 	//on a trunked network where you know you will have good signal, a carrier power squelch works well. real FM receviers use a noise squelch, where
