@@ -29,12 +29,12 @@ analog_recorder::analog_recorder(Source *src)
 	float offset = 0; //have to flip for 3.7
 
 	int samp_per_sym = 10;
-	double decim = 80;
-	float xlate_bandwidth = 9000; //24260.0;
+	double decim = int(samp_rate / 96000);
+	float xlate_bandwidth = 14000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
 
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 1500);
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 6000);
 	//lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 3000);
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
@@ -54,7 +54,6 @@ analog_recorder::analog_recorder(Source *src)
 	resampler_taps = design_filter(channel_rate, pre_channel_rate);
 
 	downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps); //downsample from 100k to 48k
-
 	//on a trunked network where you know you will have good signal, a carrier power squelch works well. real FM receviers use a noise squelch, where
 	//the received audio is high-passed above the cutoff and then fed to a reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
