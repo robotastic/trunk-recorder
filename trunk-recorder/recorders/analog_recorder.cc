@@ -113,7 +113,7 @@ analog_recorder::analog_recorder(Source *src)
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,timestamp,freq);
 
-	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
+	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,48000,16);
 
 
 
@@ -124,11 +124,7 @@ analog_recorder::analog_recorder(Source *src)
  		connect(prefilter, 0, downsample_sig, 0);
  		connect(downsample_sig, 0, squelch, 0);
  		connect(squelch, 0,	demod, 0);
- 		connect(demod, 0, decim_audio, 0);
-
-			/*deemph, 0);
- 		connect(deemph, 0, decim_audio, 0);*/
- 		connect(decim_audio, 0, squelch_two, 0);
+ 		connect(demod, 0,  squelch_two, 0);
  		connect(squelch_two, 0, levels,0);
 		connect(levels,0,  wav_sink, 0);
  	   } else {
@@ -137,10 +133,7 @@ analog_recorder::analog_recorder(Source *src)
  		connect(valve,0, prefilter,0);
  		connect(prefilter, 0, downsample_sig, 0);
  		connect(downsample_sig, 0, demod, 0);
- 		connect(demod, 0, decim_audio, 0);
-			/*deemph, 0);
- 		connect(deemph, 0, decim_audio, 0);*/
- 		connect(decim_audio, 0, levels,0);
+ 		connect(demod, 0, levels,0);
 		connect(levels,0,  wav_sink, 0);
  	}
 
