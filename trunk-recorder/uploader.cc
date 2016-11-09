@@ -418,7 +418,9 @@ void* convert_upload_call(void *thread_arg) {
   request_.consume(req_size);
   delete(server_info);
   delete(call_info);
-  //pthread_exit(NULL);
+  pthread_detach(pthread_self());
+  pthread_exit(1);
+
 }
 
 void send_call(Call *call, System *sys, Config config) {
