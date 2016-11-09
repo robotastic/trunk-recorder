@@ -421,7 +421,7 @@ void* convert_upload_call(void *thread_arg) {
 
   delete(call_info);
   pthread_detach(pthread_self());
-  //pthread_exit(null);
+  pthread_exit(null);
 
 }
 
