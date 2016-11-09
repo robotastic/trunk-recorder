@@ -43,7 +43,7 @@ make_verbose_verification(Verifier verifier)
   return verbose_verification<Verifier>(verifier);
 }
 
-void add_post_field(std::stringstream& post_stream, std::string name, std::string value, std::string boundary) {
+void add_post_field(std::ostringstream& post_stream, std::string name, std::string value, std::string boundary) {
   post_stream << "\r\n--" << boundary << "\r\n";
   post_stream << "Content-Disposition: form-data; name=\"" << name << "\"\r\n";
   post_stream << "\r\n";
@@ -74,7 +74,7 @@ std::string build_call_request(struct call_data_t *call, boost::asio::streambuf&
 
   // ------------------------------------------------------------------------
   // Create Disposition in a stringstream, because we need Content-Length...
-  std::stringstream oss;
+  std::ostringstream oss;
   oss << "--" << boundary << "\r\n";
   oss << "Content-Disposition: form-data; name=\"" << form_name << "\"; filename=\"" << form_filename << "\"\r\n";
 
@@ -130,8 +130,8 @@ std::string build_call_request(struct call_data_t *call, boost::asio::streambuf&
 
   oss << "\r\n--" << boundary << "--\r\n";
   const std::string &body_str(oss.str());
-  oss.clear();
-  oss.flush();
+  //oss.clear();
+  //oss.flush();
   // ------------------------------------------------------------------------
 
 
