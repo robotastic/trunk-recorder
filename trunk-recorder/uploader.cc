@@ -415,8 +415,10 @@ void* convert_upload_call(void *thread_arg) {
     BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
   }
   BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
-  request_.consume(req_size);
-  delete(server_info);
+
+  //request_.consume(req_size);
+  //delete(server_info);
+
   delete(call_info);
   pthread_detach(pthread_self());
   pthread_exit(1);
@@ -483,7 +485,7 @@ void send_call(Call *call, System *sys, Config config) {
 
   BOOST_LOG_TRIVIAL(info) << "Creating Upload Thread\n";
   int rc = pthread_create(&thread, NULL, convert_upload_call, (void *)call_info);
-  pthread_detach(thread);
+  //pthread_detach(thread);
 
   if (rc) {
     printf("ERROR; return code from pthread_create() is %d\n", rc);
