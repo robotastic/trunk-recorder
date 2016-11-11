@@ -1,0 +1,135 @@
+101,65,D,DCFD 01 Disp,Fire Dispatch,Fire Dispatch,Fire,1
+102,66,D,DCFD 02 Main,Fire Main,Fire,Fire,1
+142,08e,D,DCFD 0H1 UMC,United Medical Center ,Hospital,Medical,2
+143,08f,D,DCFD 0H2 CNM,Children's National Medical Center,Hospital,Medical,2
+145,91,D,DCFD 0H4 M*,Medstar,Hospital,Medical,2
+146,92,D,DCFD 0H5 How,Howard University ,Hospital,Medical,2
+148,94,D,DCFD 0H7 GU,Georgetown University Hospital,Hospital,Medical,2
+149,95,D,DCFD 0H8 GW,George Washington University Hospital,Hospital,Medical,2
+151,97,D,DCFD 0H10,Providence Hospital,Hospital,Medical,2
+152,98,D,DCFD 0H11,Poison Control,Hospital,Medical,2
+153,99,D,DCFD 0H12,Sibley Hospital,Hospital,Medical,2
+154,09a,D,DCFD 0H13 WH,Washington Hospital Center,Hospital,Medical,2
+155,09b,D,DCFD 0H14,Walter Reed,Hospital,Medical,2
+156,09c,D,DCFD 0H15,Veterans Hospital,Hospital,Medical,2
+157,09d,D,DCFD 0H16,Prince George's Hospital Center,Hospital,Medical,2
+162,0a2,D,MPD DCFD,MPD-DCFD,Interop,Emergency,1
+166,0a6,D,DC-01 UCC 1,Unified Comm Center 1,Interop,Emergency,2
+167,0a7,D,DC-02 UCC 2,Unified Comm Center 2,Interop,Emergency,2
+621,26d,D,DC-07 MAF1,Mutual Aid Fire 1,Interop,Emergency,1
+623,26f,D,DC-08 MAF2,Mutual Aid Fire 2,Interop,Emergency,1
+700,2bc,D,DCFD 3,Incident 10,Fire,Fire,1
+701,2bd,D,DCFD 5,Incident 11,Fire,Fire,1
+702,2be,D,DCFD 6,Incident 12,Fire,Fire,1
+703,2bf,D,DCFD 7,Incident 20,Fire,Fire,1
+704,2c0,D,DCFD 9,Incident 21,Fire,Fire,1
+705,2c1,D,DCFD 10,Incident 22,Fire,Fire,1
+706,2c2,E,DCFD 706 Enc,Encrypted,Fire,Fire,1
+707,2c3,E,DCFD 707 Enc,Encrypted,Fire,Fire,1
+708,2c4,E,DCFD 708 Enc,Encrypted,Fire,Fire,1
+709,2c5,E,DCFD 709 Enc,Encrypted,Fire,Fire,1
+710,2c6,E,DCFD 710 Enc,Encrypted,Fire,Fire,1
+712,2c8,E,DCFD 712 Enc,Encrypted,Fire,Fire,1
+713,2c9,E,DCFD 713 Enc,Encrypted,Fire,Fire,1
+715,2cb,E,DCFD 715 Enc,Encrypted,Fire,Fire,1
+716,2cc,D,DCFD 13,Special Events 1,Fire,Fire,1
+717,2cd,D,DCFD 14,Special Events 2,Fire,Fire,1
+718,2ce,E,DCFD 718 Enc,Encrypted,Fire,Fire,1
+719,2cf,E,DCFD 719 Enc,Encrypted,Fire,Fire,1
+720,2d0,E,DCFD 720 Enc,Encrypted,Fire,Fire,1
+728,2d8,D,DCFD 11,EMS 5,EMS,Medical,2
+729,2d9,D,DCFD 12,EMS 6,EMS,Medical,2
+1039,40f,D,DC-16 CW-1,MPD Citywide,Law Dispatch,Police,2
+1201,4b1,D,MPD DC MIRS,Metropolitan Interoperability Radio System,Interop,Police,2
+1203,4b3,D,DC-13 PMARS, Police Mutual Aid Radio System,Interop,Police,2
+1227,4cb,D,DCHA PD,Housing Authority Police,Law Dispatch,Police,100
+1312,520,D,MPD USCP 1,Capitol Police Patch 1,Interop,Police,2
+1314,522,D,MPD USCP 2,Capitol Police Patch 2,Interop,Police,2
+1316,524,D,MPD DCTF1,DC Task Force 1,Law Tac,Police,2
+1317,525,E,MPD DCTF SED,DC Task Force SED DES,Law Tac,Police,2
+1533,5fd,D,MPD WMATA 1,WMATA Patch 1,Interop,Emergency,2
+1535,5ff,D,MPD WMATA 2,WMATA Patch 2,Interop,Emergency,2
+2102,836,E,DC-11 Exec1,Executive 1,Interop,Emergency,2
+2103,837,D,DC-12 Exec2,Executive 2,Interop,Emergency,2
+2117,845,D,DC EMA,Emergency Management Agency,Emergency Ops,Emergency,3
+2133,855,D,DC Sch Sec,School Security,Security,Security,100
+2145,861,D,St. Eliz ExSec,St. Elizabeth's Hospital - Security - Exterior/Gates,St. Elizabeth,Services,100
+2147,863,D,St. Eliz Sec,St. Elizabeth's Hospital - Security,St. Elizabeth,Services,100
+2148,864,D,St. Eliz Mnt,St. Elizabeth's Hospital - Maintenance,St. Elizabeth,Services,100
+2163,873,D,DC Pkg Enf,Parking Enforcement,Parking,Services,100
+2175,87f,D,DC PkgEnf T2,Parking Enforcement Tac 2,Parking,Services,100
+2177,881,D,DC PrSrvDisp,DC Protective Services Dispatch,Security,Security,100
+2179,883,D,DC PrSrvTac,DC Protective Services Tac,Security,Security,100
+2189,88d,T,DC WASA 1,Water and Sewer Authority 1,Water,Services,100
+2191,88f,T,DC WASA 2,Water and Sewer Authority 2,Water,Services,100
+2193,891,T,DC WASA 3,Water and Sewer Authority 3,Water,Services,100
+2197,895,D,DC Lib Sec,Library Security,Security,Security,100
+2203,89b,D,DC Parks-Rec,Parks and Recreation,Parks,Services,100
+2213,8a5,D,DC UDC PD 1,University of the District of Columbia Police 1,Law Dispatch,Security,100
+2221,8ad,D,DC-09 EMA1,Emergency Management Agency 1,Interop,Emergency,3
+2223,8af,D,DC-10 EMA2,Emergency Management Agency 2,Interop,Emergency,3
+2225,8b1,D,DC TraffMgmt,Traffic Management Center (TMC),Transportation,Transportation,3
+2227,8b3,D,DC StcarYard,Streetcar Yard,Transportation,Transportation,100
+2229,8b5,T,DC Para 2229,Paratransit,Transportation,Transportation,100
+2231,8b7,T,DC Para 2231,Paratransit,Transportation,Transportation,100
+2237,8bd,D,DC StcarDisp,Streetcar DispatchÊ,Transportation,Transportation,100
+2305,901,D,DC DOH EHRN,Department of Health Emergency Healthcare Radio Network Ê,HospitalÊ,Medical,1
+2325,915,D,DC OCME,Office of the Chief Medical Examiner ,Medical,Medical,3
+2327,917,D,DC UDC PD 2,University of the District of Columbia Police 2,Law Tac,Security,100
+2341,925,D,DC-03 UCC 3,Unified Comm Center 3,Interop,Emergency,3
+2343,927,D,DC-04 UCC 4,Unified Comm Center 4,Interop,Emergency,3
+2353,931,D,DC-14 Spare1,Spare 1,Interop,Emergency,3
+2355,933,D,DC-15 Spare2,Spare 2,Interop,Emergency,3
+2500,9c4,D,DCFD Dispatch,Automated Fire Dispatch,Fire Dispatch,Fire,1
+2505,9c9,D,DC Taxi Comm,Taxicab Commission,Transportation,Transportation,100
+3747,ea3,D,DC-05 MA1,Mutual Aid 1,Interop,Emergency,3
+3748,ea4,D,DC-06 MA2,Mutual Aid 2,Interop,Emergency,3
+3749,ea5,D,DC MA3,Mutual Aid 3,Interop,Police,2
+3750,ea6,D,DC MA4,Mutual Aid 4,Interop,Police,2
+11025,2b11,E,MPD 1D,1st District,Law Dispatch,Police,2
+11027,2b13,E,MPD 2D,2nd District,Law Dispatch,Police,2
+11029,2b15,E,MPD 3D,3rd District,Law Dispatch,Police,2
+11031,2b17,E,MPD 4D,4th District,Law Dispatch,Police,2
+11033,2b19,E,MPD 5D,5th District,Law Dispatch,Police,2
+11035,2b1b,E,MPD 6D,6th District,Law Dispatch,Police,2
+11037,2b1d,E,MPD 7D,7th District,Law Dispatch,Police,2
+11041,2b21,E,MPD SOD1 Evt,Special Operations Division 1 Event,Law Dispatch,Police,2
+11049,2b29,E,MPD 1D Tac,1st District Tac,Law Tac,Police,2
+11051,2b2b,E,MPD 2D Tac,2nd District Tac,Law Tac,Police,2
+11053,2b2d,E,MPD 3D Tac,3rd District Tac,Law Tac,Police,2
+11055,2b2f,E,MPD 4D Tac,4th District Tac,Law Tac,Police,2
+11057,2b31,E,MPD 5D Tac,5th District Tac,Law Tac,Police,2
+11059,2b33,E,MPD 6D Tac,6th District Tac,Law Tac,Police,2
+11061,2b35,E,MPD 7D Tac,7th District Tac,Law Tac,Police,2
+11115,2b6b,E,MPD FIT-OPR,Force Investigation Team/Office of Professional Responsibility,Law Tac,Police,2
+11117,2b6d,E,MPD OIA,Office of Internal Affairs,Law Tac,Police,2
+11123,2b73,E,MPD OSD 1,Office of the Superintendent of Detectives 1,Law Tac,Police,2
+11131,2b7b,E,MPD MND1,Major Narcotics Division 1,Law Tac,Police,2
+11133,2b7d,E,MPD MND2,Major Narcotics Division 2,Law Tac,Police,2
+11139,2b83,E,MPD EPU,Executive Protection Unit,Law Tac,Police,2
+11143,2b87,E,MPD SOD3 Ops,Special Operations Division 3 Ops,Law Tac,Police,2
+11151,2b8f,E,MPD SOD2 ERT,Special Operations Division 2 Emergency Response Team,Law Tac,Police,2
+11155,2b93,E,MPD SOD4 Sec,Special Operations Division 4 Secure,Law Tac,Police,2
+11281,2c11,E,MPD 1D Sec,1st District Secure,Law Tac,Police,2
+11283,2c13,E,MPD 2D Sec,2nd District Secure,Law Tac,Police,2
+11285,2c15,E,MPD 3D Sec,3rd District Secure,Law Tac,Police,2
+11287,2c17,E,MPD 4D Sec,4th District Secure,Law Tac,Police,2
+11289,2c19,E,MPD 5D Sec,5th District Secure,Law Tac,Police,2
+11291,2c1b,E,MPD 6D Sec,6th District Secure,Law Tac,Police,2
+11293,2c1d,E,MPD 7D Sec,7th District Secure,Law Tac,Police,2
+11300,2c24,E,MPD Harbor,Harbor Patrol,Law Tac,Police,2
+11302,2c26,E,MPD HS/CT,Homeland Security/Counter-Terrorism ,Law Tac,Police,2
+11321,2c39,E,MPD MPD1,MPD1,Law Tac,Police,2
+11323,2c3b,E,MPD MPD2,MPD2,Law Tac,Police,2
+11327,2c3f,E,MPD MPD3,MPD3,Law Tac,Police,2
+11343,2c4f,E,MPD Sr Cmd,Senior Commanders,Law Tac,Police,2
+11540,2d14,E,MPD 1D Ops A,1st District Ops A,Law Tac,Police,2
+11541,2d15,E,MPD 2D Ops A,2nd District Ops A,Law Tac,Police,2
+11542,2d16,E,MPD 3D Ops A,3rd District Ops A,Law Tac,Police,2
+11543,2d17,E,MPD 4D Ops A,4th District Ops A,Law Tac,Police,2
+11545,2d19,E,MPD 6D Ops A,6th District Ops A,Law Tac,Police,2
+11546,2d1a,E,MPD 7D Ops A,7th District Ops A,Law Tac,Police,2
+11554,2d22,E,MPD 5D Ops B,5th District Ops B,Law Tac,Police,2
+11555,2d23,E,MPD 6D Ops B,6th District Ops B,Law Tac,Police,2
+11560,2d28,E,MPD NSID 1,Narcotics and Special Investigations Division 1,Law Tac,Police,2
+11561,2d29,E,MPD NSID 2,Narcotics and Special Investigations Division 2,Law Tac,Police,2

@@ -1,0 +1,34 @@
+{
+    "sources": [
+
+        {
+            "center": 496500000.0,
+            "rate": 2048000.0,
+            "error": 1100,
+            "gain": 24,
+            "digitalRecorders": 4,
+            "modulation": "fsk4",
+            "analogRecorders": 2,
+            "analogLevels": 32,
+            "driver": "osmosdr",
+            "device": "rtl=31"
+        }, {
+            "center": 490250000.0,
+            "rate": 2048000.0,
+            "error": 1400,
+            "gain": 24,
+            "digitalRecorders": 4,
+            "modulation": "fsk4",
+            "analogRecorders": 2,
+            "analogLevels": 32,
+            "driver": "osmosdr",
+            "device": "rtl=32"
+        }
+    ],
+    "systems": [{
+        "control_channels": [496537500],
+        "type": "smartnet",
+        "talkgroupsFile": "wmata.csv",
+        "shortName": "wmata"
+    }]
+}

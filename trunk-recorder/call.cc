@@ -6,7 +6,7 @@ void Call::create_filename() {
 
   std::stringstream path_stream;
 
-  path_stream << this->config.capture_dir <<  "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
   boost::filesystem::create_directories(path_stream.str());
   sprintf(filename,        "%s/%ld-%ld_%g.wav",
@@ -68,12 +68,12 @@ Call::~Call() {
 }
 
 void Call::end_call() {
-  char shell_command[200];
 
     stop_time      = time(NULL);
   if (state == recording) {
     BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
     std::ofstream myfile(status_filename);
+    std::stringstream shell_command;
     Call_Source *wav_src_list = get_recorder()->get_source_list();
     int wav_src_count = get_recorder()->get_source_count();
 
@@ -82,6 +82,7 @@ void Call::end_call() {
       myfile << "{\n";
       myfile << "\"freq\": " << this->curr_freq << ",\n";
       myfile << "\"start_time\": " << this->start_time << ",\n";
+      myfile << "\"stop_time\": " << this->stop_time << ",\n";
       myfile << "\"emergency\": " << this->emergency << ",\n";
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
       myfile << "\"srcList\": [ ";
@@ -100,22 +101,23 @@ void Call::end_call() {
           if (i != 0) {
           myfile << ", ";
         }
-          myfile << "{ \"src:\" " <<  freq_list[i].freq <<", \"time:\" " << freq_list[i].time << ", \"pos:\" " << freq_list[i].position << "}";
+          myfile << "{ \"freq:\" " <<  freq_list[i].freq <<", \"time:\" " << freq_list[i].time << ", \"pos:\" " << freq_list[i].position << "}";
       }
       myfile << " ]\n";
       myfile << "}\n";
       myfile.close();
     }
-    sprintf(shell_command, "./encode-upload.sh %s &", this->get_filename());
-
+    if (sys->get_upload_script().length() != 0) {
+      shell_command << "./"<< sys->get_upload_script() << " " << this->get_filename() << " &";
+    }
     this->get_recorder()->stop();
     if (this->config.upload_server != "") {
       send_call(this, sys, config);
     } else {
 
     }
-    if (sys->get_short_name() != "wmata") {
-      int rc = system(shell_command);
+    if (sys->get_upload_script().length() != 0) {
+      int rc = system(shell_command.str().c_str());
     }
   }
 

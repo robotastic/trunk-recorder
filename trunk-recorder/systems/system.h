@@ -13,6 +13,7 @@ public:
         std::string api_key;
         std::string default_mode;
         std::string system_type;
+        std::string upload_script;
         int message_count;
         int retune_attempts;
         time_t last_message_time;
@@ -26,6 +27,8 @@ public:
         void set_default_mode(std::string def_mode);
         std::string get_short_name();
         void set_short_name(std::string short_name);
+        std::string get_upload_script();
+        void set_upload_script(std::string script);
         std::string get_api_key();
         void set_api_key(std::string api_key);
         bool get_qpsk_mod();

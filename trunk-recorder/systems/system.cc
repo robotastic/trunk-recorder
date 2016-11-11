@@ -17,6 +17,13 @@ void System::set_short_name(std::string short_name) {
   this->short_name = short_name;
 }
 
+std::string System::get_upload_script() {
+  return this->upload_script;
+}
+
+void System::set_upload_script(std::string script) {
+  this->upload_script = script;
+}
 
 std::string System::get_default_mode() {
   return this->default_mode;

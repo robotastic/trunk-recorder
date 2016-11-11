@@ -376,24 +376,10 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
   return 0;
 }
 
-void* convert_upload_call(void *thread_arg) {
-  call_data_t   *call_info;
-  server_data_t *server_info = new server_data_t;
+
+void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
-
-  call_info                  = static_cast<call_data_t *>(thread_arg);
-  server_info->upload_server = call_info->upload_server;
-  server_info->scheme        = call_info->scheme;
-  server_info->hostname      = call_info->hostname;
-  server_info->port          = call_info->port;
-  server_info->path          = call_info->path;
-
-  boost::filesystem::path m4a(call_info->filename);
-  m4a = m4a.replace_extension(".m4a");
-  const std::string &m4a_str(m4a.string());
-  strcpy(call_info->converted, m4a_str.c_str());
-
-  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename,m4a_str.c_str());
+  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename,call_info->converted );
 
   std::cout << "Converting: " << call_info->converted << "\n";
 //   std::cout << "Command: " << shell_command << "\n";
@@ -416,13 +402,32 @@ void* convert_upload_call(void *thread_arg) {
   }
   BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
 
-  //request_.consume(req_size);
-  //delete(server_info);
+  request_.consume(req_size);
+}
 
-  delete(call_info);
+void* upload_thread(void *thread_arg) {
+  call_data_t   *call_info;
+  server_data_t *server_info = new server_data_t;
+
   pthread_detach(pthread_self());
-  pthread_exit(NULL);
 
+  call_info                  = static_cast<call_data_t *>(thread_arg);
+  server_info->upload_server = call_info->upload_server;
+  server_info->scheme        = call_info->scheme;
+  server_info->hostname      = call_info->hostname;
+  server_info->port          = call_info->port;
+  server_info->path          = call_info->path;
+
+  boost::filesystem::path m4a(call_info->filename);
+  m4a = m4a.replace_extension(".m4a");
+  const std::string &m4a_str(m4a.string());
+  strcpy(call_info->converted, m4a_str.c_str());
+
+
+  delete(server_info);
+  delete(call_info);
+  return NULL;
+  //pthread_exit(NULL);
 }
 
 void send_call(Call *call, System *sys, Config config) {
@@ -484,7 +489,7 @@ void send_call(Call *call, System *sys, Config config) {
   }
 
   BOOST_LOG_TRIVIAL(info) << "Creating Upload Thread\n";
-  int rc = pthread_create(&thread, NULL, convert_upload_call, (void *)call_info);
+  int rc = pthread_create(&thread, NULL, upload_thread, (void *)call_info);
   //pthread_detach(thread);
 
   if (rc) {

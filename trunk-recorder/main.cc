@@ -143,7 +143,8 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
       system->set_short_name(node.second.get<std::string>("shortName", ""));
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
-
+      system->set_upload_script(node.second.get<std::string>("uploadScript", "sys_" + sys_count));
+      BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
       system->set_system_type(node.second.get<std::string>("type"));
       BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
@@ -161,9 +162,7 @@ void load_config()
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
     config_dir = pt.get<std::string>("configDir", boost::filesystem::current_path().string());
     BOOST_LOG_TRIVIAL(info) << "Config Directory: " << config_dir;
-    config.upload_script = pt.get<std::string>("uploadScript", "");
-    BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
-    config.upload_server = pt.get<std::string>("uploadServer", "");
+    config.upload_server = pt.get<std::string>("uploadServer", "encode-upload.sh");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
     default_mode = pt.get<std::string>("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
@@ -174,7 +173,7 @@ void load_config()
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("sources"))
     {
-      bool   qpsk_mod = true;
+      bool   qpsk_mod       = true;
       double center         = node.second.get<double>("center", 0);
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
@@ -183,7 +182,7 @@ void load_config()
       int    if_gain        = node.second.get<int>("ifGain", 0);
       int    bb_gain        = node.second.get<int>("bbGain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
-      double digital_levels = node.second.get<double>("digitalLevels", 1.0);
+      double digital_levels = node.second.get<double>("digitalLevels", 8.0);
       double analog_levels  = node.second.get<double>("analogLevels", 1.0);
       double squelch_db     = node.second.get<double>("squelch", 0);
       std::string antenna   = node.second.get<string>("antenna", "");
@@ -193,23 +192,6 @@ void load_config()
 
       std::string driver = node.second.get<std::string>("driver", "");
       std::string device = node.second.get<std::string>("device", "");
-      boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
-
-      if (mod_exists) {
-        system_modulation = node.second.get<std::string>("modulation");
-
-        if (boost::iequals(system_modulation, "QPSK"))
-        {
-          qpsk_mod = true;
-        } else if (boost::iequals(system_modulation, "FSK4")) {
-          qpsk_mod = false;
-        } else {
-          qpsk_mod = true;
-          BOOST_LOG_TRIVIAL(error) << "\tSystem Modulation Not Specified, could be FSK4 or QPSK, assuming QPSK";
-        }
-      } else {
-        qpsk_mod = true;
-      }
 
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
       BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate", 0);
@@ -224,8 +206,27 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "driver: " << node.second.get<std::string>("driver",  "");
+      BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver",  "");
 
+      boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
+
+      if (mod_exists) {
+        system_modulation = node.second.get<std::string>("modulation");
+
+        if (boost::iequals(system_modulation, "qpsk"))
+        {
+          qpsk_mod = true;
+          BOOST_LOG_TRIVIAL(info) << "Modulation: qpks";
+        } else if (boost::iequals(system_modulation, "fsk4")) {
+          qpsk_mod = false;
+          BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";
+        } else {
+          qpsk_mod = true;
+          BOOST_LOG_TRIVIAL(error) << "! System Modulation Not Specified, could be fsk4 or qpsk, assuming qpsk";
+        }
+      } else {
+        qpsk_mod = true;
+      }
 
       if ((ppm != 0) && (error != 0)) {
         BOOST_LOG_TRIVIAL(info) <<  "Both PPM and Error should not be set at the same time. Setting Error to 0.";
@@ -478,7 +479,8 @@ void assign_recorder(TrunkMessage message, System *sys) {
 
             it = calls.erase(it);
             delete call;
-            call_found = false; // since it is set to false, a new call will be started at the end of the function
+            call_found = false; // since it is set to false, a new call will be
+                                // started at the end of the function
           } else {
             call->update(message);
           }
@@ -492,8 +494,10 @@ void assign_recorder(TrunkMessage message, System *sys) {
         // The freq hasn't changed
         call->update(message);
       }
+
       // ++it; // move on to the next one
-      // we found there has already been a Call created for the talkgroup, exit the loop
+      // we found there has already been a Call created for the talkgroup, exit
+      // the loop
 
       break;
     } else {
@@ -501,11 +505,12 @@ void assign_recorder(TrunkMessage message, System *sys) {
       // check is the freq is the same as the one being used by the call
       if ((call->get_freq() == message.freq) &&  (call->get_tdma() == message.tdma)) {
         BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
-/*
-        call->end_call();
 
-        it = calls.erase(it);
-                delete call;*/
+        /*
+                call->end_call();
+
+                it = calls.erase(it);
+                        delete call;*/
         call_found = false;
         ++it;
       } else {
@@ -550,7 +555,7 @@ void group_affiliation(long unit, long talkgroup) {
 void update_recorder(TrunkMessage message, System *sys) {
   bool call_found = false;
 
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ) {
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
     // This should help detect 2 calls being listed for the same tg
@@ -566,7 +571,8 @@ void update_recorder(TrunkMessage message, System *sys) {
         if (call->get_state() == recording) {
           BOOST_LOG_TRIVIAL(info) << "\t Update Retune - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
-          // see if we can retune the recorder, sometimes you can't if there are more than one
+          // see if we can retune the recorder, sometimes you can't if there are
+          // more than one
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
@@ -576,7 +582,6 @@ void update_recorder(TrunkMessage message, System *sys) {
             delete call;
             call_found = false;
           }
-
         } else {
           // the Call is not recording, update and continue
           call->set_freq(message.freq);
@@ -588,6 +593,7 @@ void update_recorder(TrunkMessage message, System *sys) {
       break;
     } else {
       ++it;
+
       // the talkgroups don't match
     }
   }
@@ -744,10 +750,9 @@ void check_message_count(float timeDiff) {
       }
     }
 
-      if (msgs_decoded_per_second < 10) {
-    BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
-
-     }
+    if (msgs_decoded_per_second < 10) {
+      BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
+    }
     sys->message_count = 0;
   }
 }
@@ -766,6 +771,7 @@ void monitor_messages() {
 
   while (1) {
     currentTime = time(NULL);
+
     if (exit_flag) { // my action when signal set it 1
       printf("\n Signal caught!\n");
       return;
