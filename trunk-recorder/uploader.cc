@@ -381,11 +381,11 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
   sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename,call_info->converted );
 
-  std::cout << "Converting: " << call_info->converted << "\n";
-//   std::cout << "Command: " << shell_command << "\n";
+  BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
+  BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
   int rc = system(shell_command);
 
-//   std::cout << "Finished converting\n";
+BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
 
   boost::asio::streambuf request_;
 
@@ -423,6 +423,7 @@ void* upload_thread(void *thread_arg) {
   const std::string &m4a_str(m4a.string());
   strcpy(call_info->converted, m4a_str.c_str());
 
+  convert_upload_call(call_info, server_info);
 
   delete(server_info);
   delete(call_info);

@@ -117,6 +117,7 @@ void Call::end_call() {
 
     }
     if (sys->get_upload_script().length() != 0) {
+      BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
       int rc = system(shell_command.str().c_str());
     }
   }
