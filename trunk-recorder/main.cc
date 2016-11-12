@@ -129,6 +129,8 @@ void load_config()
     {
       // each system should have a unique index value;
       System *system = new System(sys_count++);
+      std::stringstream default_script;
+      default_script << "sys_" << sys_count;
 
       BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
       BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
@@ -141,9 +143,9 @@ void load_config()
       BOOST_LOG_TRIVIAL(info);
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
-      system->set_short_name(node.second.get<std::string>("shortName", ""));
+      system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
-      system->set_upload_script(node.second.get<std::string>("uploadScript", "sys_" + sys_count));
+      system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
       system->set_system_type(node.second.get<std::string>("type"));
       BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
