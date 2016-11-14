@@ -50,7 +50,7 @@ void add_post_field(std::ostringstream& post_stream, std::string name, std::stri
   post_stream << value;
 }
 
-std::string build_call_request(struct call_data_t *call, boost::asio::streambuf& request_) {
+void build_call_request(struct call_data_t *call, boost::asio::streambuf& request_) {
   // boost::asio::streambuf request_;
   // std::string server = "api.openmhz.com";
   // std::string path =  "/upload";
@@ -151,6 +151,8 @@ std::string build_call_request(struct call_data_t *call, boost::asio::streambuf&
   post_stream << "\r\n";
 
   post_stream << body_str;
+
+  BOOST_LOG_TRIVIAL(info) << "all done: " << post_stream.str();
 }
 
 int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& request_)
@@ -381,15 +383,16 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
   sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename,call_info->converted );
 
-  BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
-  BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
+  //BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
+  //BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
   int rc = system(shell_command);
 
-BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
+  BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
 
   boost::asio::streambuf request_;
 
   build_call_request(call_info, request_);
+  BOOST_LOG_TRIVIAL(info) << "Finished Build Call Request\n";
 
   size_t req_size = request_.size();
 
@@ -402,7 +405,7 @@ BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
   }
   BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
 
-  request_.consume(req_size);
+  //request_.consume(req_size);
 }
 
 void* upload_thread(void *thread_arg) {
