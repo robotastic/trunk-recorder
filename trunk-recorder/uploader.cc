@@ -2,8 +2,8 @@
 
 using boost::asio::ip::tcp;
 namespace ssl = boost::asio::ssl;
-typedef ssl::stream<tcp::socket>ssl_socket;
-typedef boost::shared_ptr<tcp::socket> tcp_socket_ptr;
+typedef ssl::stream<tcp::socket>      ssl_socket;
+typedef boost::shared_ptr<tcp::socket>tcp_socket_ptr;
 
 ///@brief Helper class that prints the current certificate's subject
 ///       name and the verification results.
@@ -25,8 +25,7 @@ public:
 
     X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
     bool verified = verifier_(preverified, ctx);
-    std::cout << "Verifying: " << subject_name << "\n"
-                                                  "Verified: " << verified << std::endl;
+    BOOST_LOG_TRIVIAL(info)  << "Verifying: " << subject_name << "\n"  "Verified: " << verified << std::endl;
     return verified;
   }
 
@@ -64,7 +63,7 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 
   // Make sure we have something to read.
   if (!file.is_open()) {
-    std::cout << "Error opening file \n";
+    BOOST_LOG_TRIVIAL(info) << "Error opening file \n";
 
     // throw (std::exception("Could not open file."));
   }
@@ -124,14 +123,15 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 
   add_post_field(oss, "talkgroup_num", boost::lexical_cast<std::string>(call->talkgroup),  boundary);
   add_post_field(oss, "emergency",     boost::lexical_cast<std::string>(call->emergency),  boundary);
-  add_post_field(oss, "api_key",       call->api_key,                    boundary);
-  add_post_field(oss, "source_list",   source_list,                      boundary);
-  add_post_field(oss, "freq_list",     freq_list,                        boundary);
+  add_post_field(oss, "api_key",       call->api_key,                                      boundary);
+  add_post_field(oss, "source_list",   source_list,                                        boundary);
+  add_post_field(oss, "freq_list",     freq_list,                                          boundary);
 
   oss << "\r\n--" << boundary << "--\r\n";
-  const std::string &body_str(oss.str());
-  //oss.clear();
-  //oss.flush();
+  const std::string& body_str(oss.str());
+
+  // oss.clear();
+  // oss.flush();
   // ------------------------------------------------------------------------
 
 
@@ -147,21 +147,20 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
   post_stream << "Accept: */*\r\n";
   post_stream << "Connection: Close\r\n";
   post_stream << "Cache-Control: no-cache\r\n";
-  post_stream << "Content-Length: " << body_str.size() << "\r\n"; //size_of_stream(oss) << "\r\n";
+  post_stream << "Content-Length: " << body_str.size() << "\r\n"; // size_of_stream(oss)
+                                                                  // << "\r\n";
   post_stream << "\r\n";
 
   post_stream << body_str;
-
-  BOOST_LOG_TRIVIAL(info) << "all done: ";
 }
 
 int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& request_)
 {
-
   try
   {
-    boost::asio::io_service io_service;
+    boost::asio::io_service   io_service;
     boost::system::error_code ec;
+
     // Get a list of endpoints corresponding to the server name.
     tcp::resolver resolver(io_service);
     tcp::resolver::query query(server_info->hostname, server_info->port, tcp::resolver::query::canonical_name);
@@ -169,7 +168,8 @@ int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& req
 
     // Try each endpoint until we successfully establish a connection.
     boost::asio::ip::tcp::socket socket(io_service);
-    //tcp_socket_ptr socket = new socket(io_service);
+
+    // tcp_socket_ptr socket = new socket(io_service);
     boost::asio::connect(socket, endpoint_iterator);
 
     // Form the request. We specify the "Connection: close" header so that the
@@ -215,30 +215,35 @@ int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& req
     // Process the response headers.
     std::string header;
 
-    while (std::getline(response_stream, header) && header != "\r") std::cout << header << "\n";
-    std::cout << "\n";
+    while (std::getline(response_stream, header) && header != "\r") {
+      BOOST_LOG_TRIVIAL(info) << header << "\n";
+    }
+    BOOST_LOG_TRIVIAL(info) << "\n";
+
 
     // Write whatever content we already have to output.
-    if (response.size() > 0) std::cout << &response;
+    if (response.size() > 0) {
+      BOOST_LOG_TRIVIAL(info) << &response;
+    }
 
     // Read until EOF, writing data to output as we go.
     boost::system::error_code error;
 
-    while (boost::asio::read(socket, response,
-                             boost::asio::transfer_at_least(1), error)) std::cout << &response;
+    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) {
+      BOOST_LOG_TRIVIAL(info) << &response;
+    }
 
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
 
-socket.close(ec);
-if (ec)
-{
-  BOOST_LOG_TRIVIAL(info) << "Error closing socket: " << ec << "\n";
-}
+    socket.close(ec);
 
+    if (ec)
+    {
+      BOOST_LOG_TRIVIAL(info) << "Error closing socket: " << ec << "\n";
+    }
   }
   catch (std::exception& e)
   {
-
     BOOST_LOG_TRIVIAL(info) << "Socket: Exception: " << e.what() << "\n";
   }
   return 0;
@@ -250,28 +255,27 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
   // std::string path =  "/upload";
 
 
-    boost::asio::io_service io_service;
-    boost::asio::streambuf  response_;
+  boost::asio::io_service io_service;
+  boost::asio::streambuf  response_;
 
-    // Open the file for the shortest time possible.
+  // Open the file for the shortest time possible.
 
 
-    // Create a context that uses the default paths for
-    // finding CA certificates.
-    ssl::context ctx(ssl::context::sslv23);
+  // Create a context that uses the default paths for
+  // finding CA certificates.
+  ssl::context ctx(ssl::context::sslv23);
 
-    ctx.set_default_verify_paths();
-    boost::system::error_code ec;
+  ctx.set_default_verify_paths();
+  boost::system::error_code ec;
 
-    // Get a list of endpoints corresponding to the server name.
-    tcp::resolver resolver(io_service);
+  // Get a list of endpoints corresponding to the server name.
+  tcp::resolver resolver(io_service);
 
-    tcp::resolver::query query(server_info->hostname, "https");
-    tcp::resolver::iterator endpoint_iterator = resolver.resolve(query, ec);
-    ssl_socket socket(io_service, ctx);
-    try
-    {
-
+  tcp::resolver::query query(server_info->hostname, "https");
+  tcp::resolver::iterator endpoint_iterator = resolver.resolve(query, ec);
+  ssl_socket socket(io_service, ctx);
+  try
+  {
     if (ec)
     {
       BOOST_LOG_TRIVIAL(info) << "SSL: Error resolve: " << ec.message() << "\n";
@@ -318,7 +322,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
       return 1;
     }
 
-    std::cout << &request_;
+    BOOST_LOG_TRIVIAL(info) << &request_;
 
     // Read the response status line. The response streambuf will automatically
     // grow to accommodate the entire line. The growth may be limited by passing
@@ -354,19 +358,22 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     // Process the response headers.
     std::string header;
 
-    while (std::getline(response_stream, header) && header != "\r") std::cout << header << "\n";
-    std::cout << "\n";
+    while (std::getline(response_stream, header) && header != "\r") {
+      BOOST_LOG_TRIVIAL(info) <<header << "\n";
+    }
+    BOOST_LOG_TRIVIAL(info) << "\n";
 
     // Write whatever content we already have to output.
-    if (response.size() > 0) std::cout << &response;
-
+    if (response.size() > 0) {
+      BOOST_LOG_TRIVIAL(info) << &response;
+    }
     // Read until EOF, writing data to output as we go.
     boost::system::error_code error;
 
-    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) std::cout << &response;
-
+    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) {
+      BOOST_LOG_TRIVIAL(info) << &response;
+    }
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
-
   }
   catch (std::exception& e)
   {
@@ -378,21 +385,22 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
   return 0;
 }
 
-
 void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
-  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename,call_info->converted );
 
-  //BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
-  //BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
+  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
+
+  // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
+  // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
   int rc = system(shell_command);
 
-  BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
+  // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
 
   boost::asio::streambuf request_;
 
   build_call_request(call_info, request_);
-  BOOST_LOG_TRIVIAL(info) << "Finished Build Call Request\n";
+
+  // BOOST_LOG_TRIVIAL(info) << "Finished Build Call Request\n";
 
   size_t req_size = request_.size();
 
@@ -403,9 +411,9 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   if (call_info->scheme == "https") {
     BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
   }
-  BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
 
-  //request_.consume(req_size);
+  // BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
+  request_.consume(req_size);
 }
 
 void* upload_thread(void *thread_arg) {
@@ -423,7 +431,7 @@ void* upload_thread(void *thread_arg) {
 
   boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
-  const std::string &m4a_str(m4a.string());
+  const std::string& m4a_str(m4a.string());
   strcpy(call_info->converted, m4a_str.c_str());
 
   convert_upload_call(call_info, server_info);
@@ -431,7 +439,8 @@ void* upload_thread(void *thread_arg) {
   delete(server_info);
   delete(call_info);
   return NULL;
-  //pthread_exit(NULL);
+
+  // pthread_exit(NULL);
 }
 
 void send_call(Call *call, System *sys, Config config) {
@@ -494,7 +503,8 @@ void send_call(Call *call, System *sys, Config config) {
 
   BOOST_LOG_TRIVIAL(info) << "Creating Upload Thread\n";
   int rc = pthread_create(&thread, NULL, upload_thread, (void *)call_info);
-  //pthread_detach(thread);
+
+  // pthread_detach(thread);
 
   if (rc) {
     printf("ERROR; return code from pthread_create() is %d\n", rc);
