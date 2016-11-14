@@ -25,7 +25,7 @@ public:
 
     X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
     bool verified = verifier_(preverified, ctx);
-    BOOST_LOG_TRIVIAL(info)  << "Verifying: " << subject_name << "\n"  "Verified: " << verified << std::endl;
+    BOOST_LOG_TRIVIAL(info)  << "Verifying: " << subject_name << ""  "Verified: " << verified << std::endl;
     return verified;
   }
 
@@ -63,7 +63,7 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 
   // Make sure we have something to read.
   if (!file.is_open()) {
-    BOOST_LOG_TRIVIAL(info) << "Error opening file \n";
+    BOOST_LOG_TRIVIAL(info) << "Error opening file ";
 
     // throw (std::exception("Could not open file."));
   }
@@ -197,13 +197,13 @@ int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& req
 
     if (!response_stream || (http_version.substr(0, 5) != "HTTP/"))
     {
-      BOOST_LOG_TRIVIAL(info) << "Invalid response\n";
+      BOOST_LOG_TRIVIAL(info) << "Invalid response";
       return 1;
     }
 
     if (status_code != 200)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Response returned with status code " << status_code << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Response returned with status code " << status_code << "";
       return 1;
     }
 
@@ -216,9 +216,9 @@ int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& req
     std::string header;
 
     while (std::getline(response_stream, header) && header != "\r") {
-      BOOST_LOG_TRIVIAL(info) << header << "\n";
+      BOOST_LOG_TRIVIAL(info) << header << "";
     }
-    BOOST_LOG_TRIVIAL(info) << "\n";
+    BOOST_LOG_TRIVIAL(info) << "";
 
 
     // Write whatever content we already have to output.
@@ -239,12 +239,12 @@ int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& req
 
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "Error closing socket: " << ec << "\n";
+      BOOST_LOG_TRIVIAL(info) << "Error closing socket: " << ec << "";
     }
   }
   catch (std::exception& e)
   {
-    BOOST_LOG_TRIVIAL(info) << "Socket: Exception: " << e.what() << "\n";
+    BOOST_LOG_TRIVIAL(info) << "Socket: Exception: " << e.what() << "";
   }
   return 0;
 }
@@ -278,7 +278,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
   {
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Error resolve: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Error resolve: " << ec.message() << "";
       return 1;
     }
 
@@ -293,7 +293,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Connect failed: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Connect failed: " << ec.message() << "";
       return 1;
     }
 
@@ -302,7 +302,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Handshake failed: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Handshake failed: " << ec.message() << "";
       return 1;
     }
 
@@ -318,7 +318,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Error write req: " << ec.message() << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Error write req: " << ec.message() << "";
       return 1;
     }
 
@@ -342,13 +342,13 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (!response_stream || (http_version.substr(0, 5) != "HTTP/"))
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Invalid response\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Invalid response";
       return 1;
     }
 
     if (status_code != 200)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Response returned with status code " << status_code << "\n";
+      BOOST_LOG_TRIVIAL(info) << "SSL: Response returned with status code " << status_code << "";
       return 1;
     }
 
@@ -359,9 +359,9 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     std::string header;
 
     while (std::getline(response_stream, header) && header != "\r") {
-      BOOST_LOG_TRIVIAL(info) <<header << "\n";
+      BOOST_LOG_TRIVIAL(info) <<header << "";
     }
-    BOOST_LOG_TRIVIAL(info) << "\n";
+    BOOST_LOG_TRIVIAL(info) << "";
 
     // Write whatever content we already have to output.
     if (response.size() > 0) {
@@ -377,7 +377,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
   }
   catch (std::exception& e)
   {
-    BOOST_LOG_TRIVIAL(info) << "SSL Exception: " << e.what() << "\n";
+    BOOST_LOG_TRIVIAL(info) << "SSL Exception: " << e.what() << "";
 
 
     return 1;
@@ -501,12 +501,12 @@ void send_call(Call *call, System *sys, Config config) {
     call_info->freq_list[i] = freq_list[i];
   }
 
-  BOOST_LOG_TRIVIAL(info) << "Creating Upload Thread\n";
+  BOOST_LOG_TRIVIAL(info) << "Creating Upload Thread";
   int rc = pthread_create(&thread, NULL, upload_thread, (void *)call_info);
 
   // pthread_detach(thread);
 
   if (rc) {
-    printf("ERROR; return code from pthread_create() is %d\n", rc);
+    printf("ERROR; return code from pthread_create() is %d", rc);
   }
 }
