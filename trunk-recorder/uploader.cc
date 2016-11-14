@@ -152,7 +152,7 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 
   post_stream << body_str;
 
-  BOOST_LOG_TRIVIAL(info) << "all done: " << post_stream.str();
+  BOOST_LOG_TRIVIAL(info) << "all done: ";
 }
 
 int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& request_)
