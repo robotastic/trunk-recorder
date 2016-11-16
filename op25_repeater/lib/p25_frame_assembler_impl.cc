@@ -196,7 +196,10 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
         for (int i = 0; i < amt_produce; i++) {
           out[i] = output_queue[i];
         }
-
+        if (amt_produce < noutput_items) {
+          std::fill(out + amt_produce, out + noutput_items, 0);
+          amt_produce = noutput_items;
+        }
 
         /*
            if (amt_produce < noutput_items) {
@@ -215,11 +218,13 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
         }
       }
       output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
+    } else {
+      if (d_idle_silence && (amt_produce < noutput_items)) {
+        std::fill(out + amt_produce, out + noutput_items, 0);
+      }
     }
 
-    if (d_idle_silence && (amt_produce < noutput_items)) {
-      std::fill(out + amt_produce, out + noutput_items, 0);
-    }
+
   }
   consume_each(ninput_items[0]);
 
