@@ -218,11 +218,11 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
         }
       }
       output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
-    } else {
-      if (d_do_audio_output && d_idle_silence && (amt_produce < noutput_items)) {
+    }
+      if ( d_idle_silence && (amt_produce < noutput_items)) {
         std::fill(out + amt_produce, out + noutput_items, 0);
       }
-    }
+    
 
 
   }
