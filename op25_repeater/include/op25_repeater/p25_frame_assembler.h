@@ -50,7 +50,7 @@ namespace gr {
       virtual void clear() {};
       virtual  void clear_total_produced() {}
       virtual  long get_total_produced() {return 0; }
-      static sptr make(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma);
+      static sptr make(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool idle_silence, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma);
       virtual void set_xormask(const char*p) {}
       virtual void set_slotid(int slotid) {}
     };

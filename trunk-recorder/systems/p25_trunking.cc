@@ -138,11 +138,12 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   int verbosity              = 0;
   const char *wireshark_host = "127.0.0.1";
   bool do_imbe               = 0;
+  bool idle_silence          = 0;
   bool do_output             = 0;
   bool do_msgq               = 1;
   bool do_audio_output       = 0;
   bool do_tdma               = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_id, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_id, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
   /*

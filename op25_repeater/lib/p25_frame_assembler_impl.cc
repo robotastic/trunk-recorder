@@ -64,13 +64,14 @@ p25_frame_assembler::make(int                 sys_id,
                           int                 debug,
                           bool                do_imbe,
                           bool                do_output,
+                          bool                idle_silence,
                           bool                do_msgq,
                           gr::msg_queue::sptr queue,
                           bool                do_audio_output,
                           bool                do_phase2_tdma)
 {
   return gnuradio::get_initial_sptr
-           (new p25_frame_assembler_impl(sys_id, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma));
+           (new p25_frame_assembler_impl(sys_id, udp_host, port, debug, do_imbe, do_output, idle_silence, do_msgq, queue, do_audio_output, do_phase2_tdma));
 }
 
 /*
@@ -95,6 +96,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
                                                    int                 debug,
                                                    bool                do_imbe,
                                                    bool                do_output,
+                                                   bool                idle_silence,
                                                    bool                do_msgq,
                                                    gr::msg_queue::sptr queue,
                                                    bool                do_audio_output,
@@ -105,6 +107,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
                                      (do_audio_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0))),
   d_do_imbe(do_imbe),
   d_do_output(do_output),
+  d_idle_silence(idle_silence),
   output_queue(),
   p1fdma(sys_id, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
   d_do_audio_output(do_audio_output),
@@ -121,11 +124,9 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
 
   if (d_do_phase2_tdma && !d_do_audio_output) fprintf(stderr, "p25_frame_assembler: error: do_audio_output must be enabled if do_phase2_tdma is enabled\n");
 
-  if (d_do_audio_output)
-		set_output_multiple(864);
-	if (!d_do_audio_output && !d_do_imbe)
-		set_output_multiple(160);
+  if (d_do_audio_output) set_output_multiple(864);
 
+  if (!d_do_audio_output && !d_do_imbe) set_output_multiple(160);
 }
 
 void
@@ -149,9 +150,11 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int& nof_inpu
     nof_input_items_reqd[i] = nof_samples_reqd;
   }
 }
+
 void p25_frame_assembler_impl::clear() {
   p1fdma.clear();
 }
+
 int
 p25_frame_assembler_impl::general_work(int                        noutput_items,
                                        gr_vector_int            & ninput_items,
@@ -175,30 +178,35 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
 
   if (d_do_output) {
     amt_produce = noutput_items;
+    int16_t *out = (int16_t *)output_items[0];
 
     if (amt_produce > (int)output_queue.size()) amt_produce = output_queue.size();
+    BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " << noutput_items;
 
     if (amt_produce > 0) {
       if (d_do_audio_output) {
-        int16_t *out = (int16_t *)output_items[0];
-
         long src_id = p1fdma.get_curr_src_id();
+
         if (src_id) {
-          //fprintf(stderr,  "tagging source: %ld at %lu\n", src_id,  nitems_written(0));
+          // fprintf(stderr,  "tagging source: %ld at %lu\n", src_id,
+          //  nitems_written(0));
           add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
         }
+
         for (int i = 0; i < amt_produce; i++) {
           out[i] = output_queue[i];
         }
+
+
         /*
-        if (amt_produce < noutput_items) {
+           if (amt_produce < noutput_items) {
 
-          int delta = noutput_items - amt_produce;
+           int delta = noutput_items - amt_produce;
 
-          for (int i = 0; i < delta; i++) {
-            out[amt_produce + i] = 0.0;
-          }
-        }*/
+           for (int i = 0; i < delta; i++) {
+           out[amt_produce + i] = 0.0;
+           }
+           }*/
       } else {
         unsigned char *out = (unsigned char *)output_items[0];
 
@@ -208,16 +216,21 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
       }
       output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
     }
+
+    if (d_idle_silence && (amt_produce < noutput_items)) {
+      std::fill(out + amt_produce, out + noutput_items, 0);
+    }
   }
   consume_each(ninput_items[0]);
 
-
-  // Tell runtime system how many output items we produced.
-  return amt_produce;
-  total_produced = total_produced + amt_produce;
-
-  //total_produced = total_produced + noutput_items;
-  //return noutput_items;
+  if (d_idle_silence) {
+    total_produced = total_produced + noutput_items;
+    return noutput_items;
+  } else {
+    // Tell runtime system how many output items we produced.
+    total_produced = total_produced + amt_produce;
+    return amt_produce;
+  }
 }
 
 void p25_frame_assembler_impl::clear_total_produced() {

@@ -176,6 +176,7 @@ void load_config()
                   pt.get_child("sources"))
     {
       bool   qpsk_mod       = true;
+      bool   idle_silence   = node.second.get<bool>("idleSilence", false);
       double center         = node.second.get<double>("center", 0);
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
@@ -202,9 +203,8 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain", 0);
-      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch",
-                                                                        0);
-
+      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch",0);
+      BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence",0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
@@ -247,11 +247,12 @@ void load_config()
       source->set_analog_levels(analog_levels);
       source->set_digital_levels(digital_levels);
       source->set_qpsk_mod(qpsk_mod);
+      source->set_idle_silence(idle_silence);
 
       if (ppm != 0) {
         source->set_freq_corr(ppm);
       }
-      source->create_digital_recorders(tb, digital_recorders, qpsk_mod);
+      source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_debug_recorders(tb, debug_recorders);
 

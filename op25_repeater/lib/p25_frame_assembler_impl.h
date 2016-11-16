@@ -30,6 +30,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <deque>
+#include <boost/log/trivial.hpp>
 
 #include "p25p1_fdma.h"
 #include "p25p2_tdma.h"
@@ -48,6 +49,7 @@ private:
   bool d_do_phase2_tdma;
   p25p2_tdma p2tdma;
   bool d_do_msgq;
+  bool d_idle_silence;
   long total_produced;
   gr::msg_queue::sptr d_msg_queue;
 
@@ -77,6 +79,7 @@ public:
                            int                 debug,
                            bool                do_imbe,
                            bool                do_output,
+                           bool                idle_silence,
                            bool                do_msgq,
                            gr::msg_queue::sptr queue,
                            bool                do_audio_output,

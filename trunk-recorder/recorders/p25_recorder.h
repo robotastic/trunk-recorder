@@ -75,14 +75,14 @@
 class Source;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-p25_recorder_sptr make_p25_recorder(Source *src, bool qpsk);
+p25_recorder_sptr make_p25_recorder(Source *src);
 #include "../source.h"
 
 class p25_recorder : public gr::hier_block2, public Recorder
 {
-								friend p25_recorder_sptr make_p25_recorder(Source *src, bool qpsk);
+								friend p25_recorder_sptr make_p25_recorder(Source *src);
 protected:
-								p25_recorder(Source *src, bool qpsk);
+								p25_recorder(Source *src);
 
 public:
 								~p25_recorder();
@@ -117,6 +117,7 @@ private:
 								double center, freq;
 								bool muted;
 								bool qpsk_mod;
+								bool idle_silence;
 								long talkgroup;
 								time_t timestamp;
 								time_t starttime;

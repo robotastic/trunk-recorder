@@ -23,6 +23,13 @@ bool Source::get_qpsk_mod() {
   return qpsk_mod;
 }
 
+void Source::set_idle_silence(bool m) {
+  idle_silence = m;
+}
+bool Source::get_idle_silence() {
+  return idle_silence;
+}
+
 void Source::set_fsk_gain(double r) {
   fsk_gain = r;
 }
@@ -165,11 +172,11 @@ Recorder * Source::get_analog_recorder(int priority)
   return NULL;
 }
 
-void Source::create_digital_recorders(gr::top_block_sptr tb, int r, bool qpsk) {
+void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   max_digital_recorders = r;
 
   for (int i = 0; i < max_digital_recorders; i++) {
-    p25_recorder_sptr log = make_p25_recorder(this, qpsk);
+    p25_recorder_sptr log = make_p25_recorder(this);
     log->num = rec_num++;
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);

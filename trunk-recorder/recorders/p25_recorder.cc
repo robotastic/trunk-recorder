@@ -3,12 +3,12 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_recorder_sptr make_p25_recorder(Source *src, bool qpsk)
+p25_recorder_sptr make_p25_recorder(Source *src)
 {
-  return gnuradio::get_initial_sptr(new p25_recorder(src, qpsk));
+  return gnuradio::get_initial_sptr(new p25_recorder(src));
 }
 
-p25_recorder::p25_recorder(Source *src, bool qpsk)
+p25_recorder::p25_recorder(Source *src)
   : gr::hier_block2("p25_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
@@ -17,7 +17,8 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   freq   = source->get_center();
   center = source->get_center();
   long samp_rate = source->get_rate();
-  qpsk_mod  = qpsk;
+  qpsk_mod  = source->get_qpsk_mod();
+  idle_silence = source->get_idle_silence();
   talkgroup = 0;
   long capture_rate = samp_rate;
 
@@ -192,7 +193,7 @@ p25_recorder::p25_recorder(Source *src, bool qpsk)
   bool do_msgq               = 0;
   bool do_audio_output       = 1;
   bool do_tdma               = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
   converter  = gr::blocks::short_to_float::make(1, 32768.0); // 8192.0);
