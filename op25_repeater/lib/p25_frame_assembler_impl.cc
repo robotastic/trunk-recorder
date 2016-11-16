@@ -176,66 +176,45 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
   }
   int amt_produce = 0;
 
-  if (d_do_output) {
+  if (d_do_audio_output) {
     amt_produce = noutput_items;
     int16_t *out = (int16_t *)output_items[0];
 
     if (amt_produce > (int)output_queue.size()) amt_produce = output_queue.size();
-  //  BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " << noutput_items;
+
+    //  BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << "
+    // output_queue: " << output_queue.size() << " noutput_items: " <<
+    // noutput_items;
 
     if (amt_produce > 0) {
-      if (d_do_audio_output) {
-        long src_id = p1fdma.get_curr_src_id();
+      long src_id = p1fdma.get_curr_src_id();
 
-        if (src_id) {
-          // fprintf(stderr,  "tagging source: %ld at %lu\n", src_id,
-          //  nitems_written(0));
-          add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
-        }
+      if (src_id) {
+        // fprintf(stderr,  "tagging source: %ld at %lu\n", src_id,
+        //  nitems_written(0));
+        add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
+      }
 
-        for (int i = 0; i < amt_produce; i++) {
-          out[i] = output_queue[i];
-        }
-        /*if (amt_produce < noutput_items) {
-          std::fill(out + amt_produce, out + noutput_items, 0);
-          amt_produce = noutput_items;
-        }*/
-
-        /*
-           if (amt_produce < noutput_items) {
-
-           int delta = noutput_items - amt_produce;
-
-           for (int i = 0; i < delta; i++) {
-           out[amt_produce + i] = 0.0;
-           }
-           }*/
-      } else {
-        unsigned char *out = (unsigned char *)output_items[0];
-
-        for (int i = 0; i < amt_produce; i++) {
-          out[i] = output_queue[i];
-        }
+      for (int i = 0; i < amt_produce; i++) {
+        out[i] = output_queue[i];
       }
       output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
-    }
-      if ( d_idle_silence && (amt_produce < noutput_items)) {
+
+      if (amt_produce < noutput_items) {
         std::fill(out + amt_produce, out + noutput_items, 0);
+        amt_produce = noutput_items;
       }
-
-
-
+    } else if (d_idle_silence) {
+      std::fill(out, out + noutput_items, 0);
+      amt_produce = noutput_items;
+    }
   }
   consume_each(ninput_items[0]);
 
-  if (d_idle_silence) {
-    total_produced = total_produced + noutput_items;
-    return noutput_items;
-  } else {
     // Tell runtime system how many output items we produced.
     total_produced = total_produced + amt_produce;
     return amt_produce;
-  }
+  
 }
 
 void p25_frame_assembler_impl::clear_total_produced() {
