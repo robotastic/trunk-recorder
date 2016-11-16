@@ -181,7 +181,7 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
     int16_t *out = (int16_t *)output_items[0];
 
     if (amt_produce > (int)output_queue.size()) amt_produce = output_queue.size();
-    BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " << noutput_items;
+  //  BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " << noutput_items;
 
     if (amt_produce > 0) {
       if (d_do_audio_output) {
@@ -219,7 +219,7 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
       }
       output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
     } else {
-      if (d_idle_silence && (amt_produce < noutput_items)) {
+      if (d_do_audio_output && d_idle_silence && (amt_produce < noutput_items)) {
         std::fill(out + amt_produce, out + noutput_items, 0);
       }
     }
