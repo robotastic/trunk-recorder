@@ -176,7 +176,7 @@ void load_config()
                   pt.get_child("sources"))
     {
       bool   qpsk_mod       = true;
-      bool   idle_silence   = node.second.get<bool>("idleSilence", false);
+      int   silence_frames   = node.second.get<int>("silenceFrames", 0);
       double center         = node.second.get<double>("center", 0);
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
@@ -253,7 +253,7 @@ void load_config()
       source->set_analog_levels(analog_levels);
       source->set_digital_levels(digital_levels);
       source->set_qpsk_mod(qpsk_mod);
-      source->set_idle_silence(idle_silence);
+      source->set_silence_frames(silence_frames);
 
       if (ppm != 0) {
         source->set_freq_corr(ppm);

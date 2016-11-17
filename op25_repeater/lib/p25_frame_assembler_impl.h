@@ -49,7 +49,8 @@ private:
   bool d_do_phase2_tdma;
   p25p2_tdma p2tdma;
   bool d_do_msgq;
-  bool d_idle_silence;
+  int d_silence_frames;
+  int silence_frame_count;
   long total_produced;
   gr::msg_queue::sptr d_msg_queue;
 
@@ -79,13 +80,14 @@ public:
                            int                 debug,
                            bool                do_imbe,
                            bool                do_output,
-                           bool                idle_silence,
+                           int                silence_frames,
                            bool                do_msgq,
                            gr::msg_queue::sptr queue,
                            bool                do_audio_output,
                            bool                do_phase2_tdma);
   ~p25_frame_assembler_impl();
   void clear_total_produced();
+  void clear_silence_frame_count();
   long get_total_produced();
   void clear();
   // Where all the action really happens

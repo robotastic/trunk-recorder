@@ -23,11 +23,11 @@ bool Source::get_qpsk_mod() {
   return qpsk_mod;
 }
 
-void Source::set_idle_silence(bool m) {
-  idle_silence = m;
+void Source::set_silence_frames(int m) {
+  silence_frames = m;
 }
-bool Source::get_idle_silence() {
-  return idle_silence;
+int Source::get_silence_frames() {
+  return silence_frames;
 }
 
 void Source::set_fsk_gain(double r) {

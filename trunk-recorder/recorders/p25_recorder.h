@@ -117,7 +117,7 @@ private:
 								double center, freq;
 								bool muted;
 								bool qpsk_mod;
-								bool idle_silence;
+								int silence_frames;
 								long talkgroup;
 								time_t timestamp;
 								time_t starttime;

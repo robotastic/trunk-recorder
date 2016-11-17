@@ -64,14 +64,14 @@ p25_frame_assembler::make(int                 sys_id,
                           int                 debug,
                           bool                do_imbe,
                           bool                do_output,
-                          bool                idle_silence,
+                          int                silence_frames,
                           bool                do_msgq,
                           gr::msg_queue::sptr queue,
                           bool                do_audio_output,
                           bool                do_phase2_tdma)
 {
   return gnuradio::get_initial_sptr
-           (new p25_frame_assembler_impl(sys_id, udp_host, port, debug, do_imbe, do_output, idle_silence, do_msgq, queue, do_audio_output, do_phase2_tdma));
+           (new p25_frame_assembler_impl(sys_id, udp_host, port, debug, do_imbe, do_output, silence_frames, do_msgq, queue, do_audio_output, do_phase2_tdma));
 }
 
 /*
@@ -96,7 +96,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
                                                    int                 debug,
                                                    bool                do_imbe,
                                                    bool                do_output,
-                                                   bool                idle_silence,
+                                                   int                silence_frames,
                                                    bool                do_msgq,
                                                    gr::msg_queue::sptr queue,
                                                    bool                do_audio_output,
@@ -107,7 +107,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
                                      (do_audio_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0))),
   d_do_imbe(do_imbe),
   d_do_output(do_output),
-  d_idle_silence(idle_silence),
+  d_silence_frames(silence_frames),
   output_queue(),
   p1fdma(sys_id, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
   d_do_audio_output(do_audio_output),
@@ -199,14 +199,16 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
         out[i] = output_queue[i];
       }
       output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
-
+      /*
       if (amt_produce < noutput_items) {
         std::fill(out + amt_produce, out + noutput_items, 0);
         amt_produce = noutput_items;
-      }
-    } else if (d_idle_silence) {
+      }*/
+      silence_frame_count = d_silence_frames;
+    } else if (silence_frame_count > 0) {
       std::fill(out, out + noutput_items, 0);
       amt_produce = noutput_items;
+      silence_frame_count--;
     }
   }
   consume_each(ninput_items[0]);
@@ -214,9 +216,11 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
     // Tell runtime system how many output items we produced.
     total_produced = total_produced + amt_produce;
     return amt_produce;
-  
-}
 
+}
+  void p25_frame_assembler_impl::clear_silence_frame_count() {
+    silence_frame_count = 0;
+  }
 void p25_frame_assembler_impl::clear_total_produced() {
   total_produced = 0;
 }

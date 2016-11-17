@@ -35,7 +35,7 @@ class Source
 								int max_debug_recorders;
 								int max_analog_recorders;
 								bool qpsk_mod;
-								bool idle_silence;
+								int silence_frames;
 
 								std::vector<p25_recorder_sptr> digital_recorders;
 								std::vector<debug_recorder_sptr> debug_recorders;
@@ -70,8 +70,8 @@ public:
 								double get_fsk_gain();
 								void set_qpsk_mod(bool m);
 								bool get_qpsk_mod();
-								void set_idle_silence(bool m);
-								bool get_idle_silence();
+								void set_silence_frames(int m);
+								int get_silence_frames();
 								void set_analog_levels(double r);
 								double get_analog_levels();
 								void set_digital_levels(double r);
