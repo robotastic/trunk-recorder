@@ -184,6 +184,8 @@ void load_config()
       int    gain           = node.second.get<int>("gain", 0);
       int    if_gain        = node.second.get<int>("ifGain", 0);
       int    bb_gain        = node.second.get<int>("bbGain", 0);
+      int    mix_gain        = node.second.get<int>("mixGain", 0);
+      int    lna_gain        = node.second.get<int>("lnaGain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
       double analog_levels  = node.second.get<double>("analogLevels", 1.0);
@@ -203,6 +205,8 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<int>("lnaGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<int>("mixGain", 0);
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch",0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence",0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
@@ -240,6 +244,8 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
       source->set_if_gain(if_gain);
       source->set_bb_gain(bb_gain);
+      source->set_mix_gain(mix_gain);
+      source->set_lna_gain(lna_gain);
       source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);

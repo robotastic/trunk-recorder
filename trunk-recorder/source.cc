@@ -82,6 +82,36 @@ double Source::get_error() {
   return error;
 }
 
+void Source::set_mix_gain(int b)
+{
+  if (driver == "osmosdr") {
+    mix_gain = b;
+    cast_to_osmo_sptr(source_block)->set_gain(mix_gain, "MIX", 0);
+  }
+}
+
+int Source::get_mix_gain() {
+  if (driver == "osmosdr") {
+    mix_gain = cast_to_osmo_sptr(source_block)->get_gain( "MIX", 0);
+  }
+  return mix_gain;
+}
+
+void Source::set_lna_gain(int b)
+{
+  if (driver == "osmosdr") {
+    lna_gain = b;
+    cast_to_osmo_sptr(source_block)->set_gain(mix_gain, "LNA", 0);
+  }
+}
+
+int Source::get_lna_gain() {
+  if (driver == "osmosdr") {
+    lna_gain = cast_to_osmo_sptr(source_block)->get_gain( "LNA", 0);
+  }
+  return lna_gain;
+}
+
 void Source::set_bb_gain(int b)
 {
   if (driver == "osmosdr") {
@@ -93,6 +123,7 @@ void Source::set_bb_gain(int b)
 int Source::get_bb_gain() {
   return bb_gain;
 }
+
 
 void Source::set_gain(int r)
 {

@@ -29,6 +29,8 @@ class Source
 								int gain;
 								int bb_gain;
 								int if_gain;
+								int lna_gain;
+								int mix_gain;
 								int max_digital_recorders;
 								int max_debug_recorders;
 								int max_analog_recorders;
@@ -76,6 +78,10 @@ public:
 								double get_digital_levels();
 								void set_bb_gain(int b);
 								int get_bb_gain();
+								void set_mix_gain(int b);
+								int get_mix_gain();
+								void set_lna_gain(int b);
+								int get_lna_gain();
 								void set_freq_corr(double p);
 								void print_recorders();
 								void create_analog_recorders(gr::top_block_sptr tb, int r);
