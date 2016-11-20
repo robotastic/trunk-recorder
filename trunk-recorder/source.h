@@ -84,6 +84,7 @@ public:
 								int get_lna_gain();
 								void set_freq_corr(double p);
 								void print_recorders();
+								void tune_digital_recorders();
 								void create_analog_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_analog_recorder(int priority);
 								void create_digital_recorders(gr::top_block_sptr tb, int r);

@@ -16,9 +16,11 @@ void Source::set_antenna(std::string ant)
 std::string Source::get_antenna() {
   return antenna;
 }
+
 void Source::set_qpsk_mod(bool m) {
   qpsk_mod = m;
 }
+
 bool Source::get_qpsk_mod() {
   return qpsk_mod;
 }
@@ -26,6 +28,7 @@ bool Source::get_qpsk_mod() {
 void Source::set_silence_frames(int m) {
   silence_frames = m;
 }
+
 int Source::get_silence_frames() {
   return silence_frames;
 }
@@ -33,22 +36,26 @@ int Source::get_silence_frames() {
 void Source::set_fsk_gain(double r) {
   fsk_gain = r;
 }
+
 double Source::get_fsk_gain() {
   return fsk_gain;
 }
+
 void Source::set_analog_levels(double r) {
   analog_levels = r;
 }
+
 double Source::get_analog_levels() {
   return analog_levels;
 }
+
 void Source::set_digital_levels(double r) {
   digital_levels = r;
 }
+
 double Source::get_digital_levels() {
   return digital_levels;
 }
-
 
 double Source::get_min_hz() {
   return min_hz;
@@ -92,7 +99,7 @@ void Source::set_mix_gain(int b)
 
 int Source::get_mix_gain() {
   if (driver == "osmosdr") {
-    mix_gain = cast_to_osmo_sptr(source_block)->get_gain( "MIX", 0);
+    mix_gain = cast_to_osmo_sptr(source_block)->get_gain("MIX", 0);
   }
   return mix_gain;
 }
@@ -107,7 +114,7 @@ void Source::set_lna_gain(int b)
 
 int Source::get_lna_gain() {
   if (driver == "osmosdr") {
-    lna_gain = cast_to_osmo_sptr(source_block)->get_gain( "LNA", 0);
+    lna_gain = cast_to_osmo_sptr(source_block)->get_gain("LNA", 0);
   }
   return lna_gain;
 }
@@ -123,7 +130,6 @@ void Source::set_bb_gain(int b)
 int Source::get_bb_gain() {
   return bb_gain;
 }
-
 
 void Source::set_gain(int r)
 {
@@ -243,11 +249,23 @@ Recorder * Source::get_debug_recorder()
 
 void Source::print_recorders() {
   BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ]  ";
+
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-      BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state();
+  }
+}
+
+void Source::tune_digital_recorders() {
+  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
+    p25_recorder_sptr rx = *it;
+
+    if (rx->get_state() == active)
+    {
+      rx->autotune();
+    }
   }
 }
 
@@ -363,13 +381,13 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
     } else {
       std::ostringstream msg;
 
-      if (isdigit(dev[0])) { // Assume this is a serial number and fail back
-                             // to using rtl as default
-        msg << "rtl=" << dev; //<<  ",buflen=32764,buffers=8";
+      if (isdigit(dev[0])) {  // Assume this is a serial number and fail back
+                              // to using rtl as default
+        msg << "rtl=" << dev; // <<  ",buflen=32764,buffers=8";
         BOOST_LOG_TRIVIAL(info) <<
           "Source device name missing, defaulting to rtl device";
       } else {
-        msg << dev; //<< ",buflen=32764,buffers=8";
+        msg << dev; // << ",buflen=32764,buffers=8";
       }
       BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
       osmo_src = osmosdr::source::make(msg.str());

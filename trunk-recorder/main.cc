@@ -403,12 +403,12 @@ void stop_inactive_recorders() {
     } // if rx is active
   }   // foreach loggers
 
-  /*
-     for (vector<Source *>::iterator it = sources.begin(); it != sources.end();
+
+/*     for (vector<Source *>::iterator it = sources.begin(); it != sources.end();
          it++) {
       Source *source = *it;
-      source->get_mean_delay();
-     }*/
+      source->tune_digital_recorders();
+    }*/
 }
 
 void print_status() {

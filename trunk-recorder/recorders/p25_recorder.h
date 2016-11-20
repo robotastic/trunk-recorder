@@ -108,6 +108,7 @@ public:
 								Call_Source *get_source_list();
 								void clear_total_produced();
 								long get_total_produced();
+								void autotune();
 								gr::msg_queue::sptr tune_queue;
 								gr::msg_queue::sptr traffic_queue;
 								gr::msg_queue::sptr rx_queue;
