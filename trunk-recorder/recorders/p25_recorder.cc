@@ -58,8 +58,8 @@ p25_recorder::p25_recorder(Source *src)
 
   lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 3000, gr::filter::firdes::WIN_HANN);
 
-  // int decimation = int(input_rate / system_channel_rate);
-  int decimation = int(input_rate / 96000);
+   int decimation = int(input_rate / system_channel_rate);
+  //int decimation = int(input_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
@@ -213,8 +213,10 @@ p25_recorder::p25_recorder(Source *src)
   if (!qpsk_mod) {
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
-    connect(prefilter,            0, arb_resampler,        0);
-    connect(arb_resampler,        0, fm_demod,                  0);
+
+     connect(prefilter,        0, fm_demod,                  0);
+  //  connect(prefilter,            0, arb_resampler,        0);
+//    connect(arb_resampler,        0, fm_demod,                  0);
    //connect(fm_demod,             0, sym_filter,           0);
 
 //    connect(arb_resampler,        0, agc,                  0);
