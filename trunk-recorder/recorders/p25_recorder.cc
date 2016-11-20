@@ -215,12 +215,12 @@ p25_recorder::p25_recorder(Source *src)
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
     connect(arb_resampler,        0, fm_demod,                  0);
-    connect(fm_demod,             0, sym_filter,           0);
+//    connect(fm_demod,             0, sym_filter,           0);
 
 //    connect(arb_resampler,        0, agc,                  0);
   //  connect(agc,           0, fm_demod,             0);
-  //  connect(fm_demod,             0, demod_agc,            0);
-  //  connect(demod_agc,            0,  sym_filter,           0);
+    connect(fm_demod,             0, demod_agc,            0);
+    connect(demod_agc,            0,  sym_filter,           0);
     //connect(demod_agc,            0, baseband_amp,         0);
   //  connect(fm_demod,             0, baseband_amp,            0);
     //connect(baseband_amp,         0, sym_filter,           0);
