@@ -63,16 +63,16 @@ p25_recorder::p25_recorder(Source *src)
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
-
+  /*
      prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
                 lpf_coeffs,
                 offset,
-                samp_rate);
+                samp_rate);*/
 
-  /*prefilter = make_freq_xlating_fft_filter(decimation,
+  prefilter = make_freq_xlating_fft_filter(decimation,
                                            dest,
                                            offset,
-                                           samp_rate);*/
+                                           samp_rate);
 
   tagger = latency_make_tagger(sizeof(gr_complex), 512, "latency0");
   std::vector<std::string> keys;
