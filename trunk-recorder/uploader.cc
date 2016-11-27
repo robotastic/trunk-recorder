@@ -429,10 +429,10 @@ void* upload_thread(void *thread_arg) {
   server_info->port          = call_info->port;
   server_info->path          = call_info->path;
 
-  boost::filesystem::path m4a(call_info->filename);
+  /*boost::filesystem::path m4a(call_info->filename);
   m4a = m4a.replace_extension(".m4a");
   const std::string& m4a_str(m4a.string());
-  strcpy(call_info->converted, m4a_str.c_str());
+  strcpy(call_info->converted, m4a_str.c_str());*/
 
   convert_upload_call(call_info, server_info);
 
@@ -466,6 +466,7 @@ void send_call(Call *call, System *sys, Config config) {
     // call_info->hostname << " Port: " << call_info->port << " Path: " <<
     // call_info->path << "\n";
     strcpy(call_info->filename, call->get_filename());
+    strcpy(call_info->converted, call->get_converted_filename());
   } else {
     // std::cout << "Unable to parse Server URL\n";
     return;

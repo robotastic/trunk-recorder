@@ -9,15 +9,12 @@ void Call::create_filename() {
   path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
   boost::filesystem::create_directories(path_stream.str());
-  sprintf(filename,        "%s/%ld-%ld_%g.wav",
-          path_stream.str().c_str(), talkgroup, start_time, curr_freq);
-  sprintf(status_filename, "%s/%ld-%ld_%g.json",
-          path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  sprintf(filename,        "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  sprintf(status_filename, "%s/%ld-%ld_%g.json",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  sprintf(converted_filename, "%s/%ld-%ld.m4a",  path_stream.str().c_str(), talkgroup, start_time);
 
-  // sprintf(filename, "%s/%ld-%ld.wav",
-  // path_stream.str().c_str(),talkgroup,start_time);
-  // sprintf(status_filename, "%s/%ld-%ld.json",
-  // path_stream.str().c_str(),talkgroup,start_time);
+  // sprintf(filename, "%s/%ld-%ld.wav", path_stream.str().c_str(),talkgroup,start_time);
+  // sprintf(status_filename, "%s/%ld-%ld.json", path_stream.str().c_str(),talkgroup,start_time);
 }
 
 Call::Call(long t, double f, System *s, Config c) {
@@ -28,7 +25,7 @@ Call::Call(long t, double f, System *s, Config c) {
   talkgroup       = t;
   sys         = s;
   start_time      = time(NULL);
-    stop_time      = time(NULL);
+  stop_time      = time(NULL);
   last_update     = time(NULL);
   state           = monitoring;
   debug_recording = false;
@@ -239,6 +236,10 @@ long Call::get_stop_time() {
 }
 long Call::get_start_time() {
   return start_time;
+}
+
+char * Call::get_converted_filename() {
+  return converted_filename;
 }
 
 char * Call::get_filename() {

@@ -39,6 +39,8 @@ public:
 								void set_recorder(Recorder *r);
 								Recorder * get_recorder();
 								double get_freq();
+
+								char *get_converted_filename();
 								char *get_filename();
 								void create_filename();
 								void set_freq(double f);
@@ -79,6 +81,7 @@ private:
 								bool encrypted;
 								bool emergency;
 								char filename[160];
+								char converted_filename[160];
 								char status_filename[160];
 								int tdma;
 
