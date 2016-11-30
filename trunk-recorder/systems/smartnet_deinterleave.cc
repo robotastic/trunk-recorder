@@ -82,7 +82,7 @@ void smartnet_deinterleave::forecast (int noutput_items,
 																			//estimate number of input samples required for noutput_items samples
 {
 	int size = (noutput_items * 84) / 76;
-	BOOST_LOG_TRIVIAL(info) << "Forecast size: " << size;
+	//BOOST_LOG_TRIVIAL(info) << "Forecast size: " << size;
 	ninput_items_required[0] = size;
 }
 
