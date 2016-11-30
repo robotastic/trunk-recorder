@@ -76,17 +76,18 @@ smartnet_deinterleave::~smartnet_deinterleave ()
 {
 	// nothing else required in this example
 }
-
+/*
 void smartnet_deinterleave::forecast (int noutput_items,
                                       gr_vector_int &ninput_items_required)
 																			//estimate number of input samples required for noutput_items samples
 {
 	int size = (noutput_items * 84) / 76;
-	//BOOST_LOG_TRIVIAL(info) << "Forecast size: " << size;
+
+	BOOST_LOG_TRIVIAL(info) << "Forecast size: " << size << " output items: " << noutput_items;
 	ninput_items_required[0] = size;
 }
 
-
+*/
 int
 smartnet_deinterleave::general_work (int noutput_items,
                                      gr_vector_int &ninput_items,
@@ -103,7 +104,7 @@ smartnet_deinterleave::general_work (int noutput_items,
 	int size = ninput_items[0] - 84;
 
 	if(size < 0) {
-		BOOST_LOG_TRIVIAL(info) << "deinterleave fail noutput: " << noutput_items << " size: " << size;
+		//BOOST_LOG_TRIVIAL(info) << "deinterleave fail noutput: " << noutput_items << " size: " << size;
 
 		return 0; //better luck next time
 	}
