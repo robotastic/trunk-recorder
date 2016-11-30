@@ -29,12 +29,12 @@ analog_recorder::analog_recorder(Source *src)
 	float offset = 0; //have to flip for 3.7
 
 	int samp_per_sym = 10;
-	double decim = int(samp_rate / 96000);
-	float xlate_bandwidth = 16000; //24260.0;
+	int decim = floor(samp_rate / 96000);
+	float xlate_bandwidth = 5000; //24260.0;
 	float channel_rate = 4800 * samp_per_sym;
 	double pre_channel_rate = samp_rate/decim;
 
-	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 2000);
+	lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth, 1000);
 	//lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2, 3000);
 
 	std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
