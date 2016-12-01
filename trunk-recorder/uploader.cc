@@ -25,7 +25,7 @@ public:
 
     X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
     bool verified = verifier_(preverified, ctx);
-    BOOST_LOG_TRIVIAL(info)  << "Verifying: " << subject_name << ""  "Verified: " << verified << std::endl;
+    BOOST_LOG_TRIVIAL(trace)  << "Verifying: " << subject_name << ""  "Verified: " << verified << std::endl;
     return verified;
   }
 
@@ -216,21 +216,21 @@ int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& req
     std::string header;
 
     while (std::getline(response_stream, header) && header != "\r") {
-      BOOST_LOG_TRIVIAL(info) << header << "";
+      BOOST_LOG_TRIVIAL(trace) << header << "";
     }
-    BOOST_LOG_TRIVIAL(info) << "";
+    BOOST_LOG_TRIVIAL(trace) << "";
 
 
     // Write whatever content we already have to output.
     if (response.size() > 0) {
-      BOOST_LOG_TRIVIAL(info) << &response;
+      BOOST_LOG_TRIVIAL(trace) << &response;
     }
 
     // Read until EOF, writing data to output as we go.
     boost::system::error_code error;
 
     while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) {
-      BOOST_LOG_TRIVIAL(info) << &response;
+      BOOST_LOG_TRIVIAL(trace) << &response;
     }
 
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
@@ -322,7 +322,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
       return 1;
     }
 
-    BOOST_LOG_TRIVIAL(info) << &request_;
+    BOOST_LOG_TRIVIAL(trace) << &request_;
 
     // Read the response status line. The response streambuf will automatically
     // grow to accommodate the entire line. The growth may be limited by passing
@@ -359,19 +359,19 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     std::string header;
 
     while (std::getline(response_stream, header) && header != "\r") {
-      BOOST_LOG_TRIVIAL(info) <<header << "";
+      BOOST_LOG_TRIVIAL(trace) <<header << "";
     }
-    BOOST_LOG_TRIVIAL(info) << "";
+    BOOST_LOG_TRIVIAL(trace) << "";
 
     // Write whatever content we already have to output.
     if (response.size() > 0) {
-      BOOST_LOG_TRIVIAL(info) << &response;
+      BOOST_LOG_TRIVIAL(trace) << &response;
     }
     // Read until EOF, writing data to output as we go.
     boost::system::error_code error;
 
     while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) {
-      BOOST_LOG_TRIVIAL(info) << &response;
+      BOOST_LOG_TRIVIAL(trace) << &response;
     }
     if (error != boost::asio::error::eof) throw boost::system::system_error(error);
   }
@@ -502,7 +502,6 @@ void send_call(Call *call, System *sys, Config config) {
     call_info->freq_list[i] = freq_list[i];
   }
 
-  BOOST_LOG_TRIVIAL(info) << "Creating Upload Thread";
   int rc = pthread_create(&thread, NULL, upload_thread, (void *)call_info);
 
   // pthread_detach(thread);
