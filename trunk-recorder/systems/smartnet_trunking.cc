@@ -48,7 +48,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   std::vector<float> lpf_taps;
 
 
-  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 4000, 3000);
+  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 4000, 1000);
   std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
 /*  freq_xlating_fft_filter_sptr prefilter = make_freq_xlating_fft_filter(decim,
                                                                         dest,
