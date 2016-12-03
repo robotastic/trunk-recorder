@@ -27,7 +27,7 @@
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 #include "smartnet_crc.h"
 #include "smartnet_deinterleave.h"
-
+#include "smartnet_decode.h"
 class smartnet_trunking;
 
 typedef boost::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
