@@ -187,7 +187,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall")
 #        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 #endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing -g")
 
 
 add_subdirectory(op25_repeater)
@@ -202,6 +202,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/systems/p25_parser.cc
   trunk-recorder/systems/smartnet_crc.cc
   trunk-recorder/systems/smartnet_deinterleave.cc
+  trunk-recorder/systems/smartnet_decode.cc
   trunk-recorder/systems/system.cc
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
