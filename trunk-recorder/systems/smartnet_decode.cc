@@ -157,13 +157,12 @@ static smartnet_packet parse(const char *in) {
 
 
 
-void smartnet_decode::forecast (int noutput_items,
-                                      gr_vector_int &ninput_items_required)
+void smartnet_decode::forecast (int noutput_items,  gr_vector_int &ninput_items_required)
 																			//estimate number of input samples required for noutput_items samples
 {
 	int size = (noutput_items * 84) / 76;
 
-	BOOST_LOG_TRIVIAL(info) << "Forecast size: " << size << " output items: " << noutput_items;
+	//BOOST_LOG_TRIVIAL(info) << "Forecast size: " << size << " output items: " << noutput_items;
 	ninput_items_required[0] = size;
 }
 
