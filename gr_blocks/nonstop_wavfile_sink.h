@@ -24,6 +24,7 @@
 #define INCLUDED_GR_NONSTOP_WAVFILE_SINK_H
 
 #include "../trunk-recorder/call.h"
+#include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
 

@@ -25,6 +25,7 @@
 
 #include "nonstop_wavfile_sink.h"
 //#include "wavfile.h"
+#include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/wavfile.h>
 
 namespace gr {

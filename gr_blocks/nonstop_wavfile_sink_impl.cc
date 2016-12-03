@@ -108,12 +108,12 @@ nonstop_wavfile_sink_impl::open(const char *filename)
                    O_RDWR | O_CREAT | OUR_O_LARGEFILE | OUR_O_BINARY,
                    0664)) < 0) {
     perror(filename);
-    std::cout << "wav error opening: " << filename << std::endl;
+    BOOST_LOG_TRIVIAL(error)  << "wav error opening: " << filename << std::endl;
     return false;
   }
 
   if (d_fp) { // if we've already got a new one open, close it
-    std::cout << "d_fp alread open, closing " << d_fp << " more" << current_filename << " for " << filename << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "d_fp alread open, closing " << d_fp << " more" << current_filename << " for " << filename << std::endl;
 
     // fclose(d_fp);
     // d_fp = NULL;
@@ -123,7 +123,7 @@ nonstop_wavfile_sink_impl::open(const char *filename)
   if ((d_fp = fdopen(fd, "rb+")) == NULL) {
     perror(filename);
     ::close(fd); // don't leak file descriptor if fdopen fails.
-    std::cout << "wav open failed" << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "wav open failed" << std::endl;
     return false;
   }
 
@@ -149,7 +149,7 @@ nonstop_wavfile_sink_impl::open(const char *filename)
 
     // you have to rewind the d_new_fp because the read failed.
     if (fseek(d_fp, 0, SEEK_SET) != 0) {
-      std::cout << "Error rewinding " << std::endl;
+      BOOST_LOG_TRIVIAL(error) << "Error rewinding " << std::endl;
       return false;
     }
 
@@ -186,7 +186,7 @@ nonstop_wavfile_sink_impl::close()
   gr::thread::scoped_lock guard(d_mutex);
 
   if (!d_fp) {
-    std::cout << "wav error closing file" << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "wav error closing file" << std::endl;
     return;
   }
 
@@ -234,7 +234,7 @@ nonstop_wavfile_sink_impl::work(int                        noutput_items,
 
   if (!d_fp)                              // drop output on the floor
   {
-    std::cout << "Wav - Dropping items, no fp: " << noutput_items << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << std::endl;
     return noutput_items;
   }
   std::vector<gr::tag_t> tags;
@@ -248,7 +248,7 @@ nonstop_wavfile_sink_impl::work(int                        noutput_items,
       double   sec = (double)pos  / (double)d_sample_rate;
       if (curr_src_id != src_id) {
         add_source(src_id, sec);
-        std::cout << " [" << i << "]-[ " << src_id << " : Pos - "<< pos<< " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+        BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - "<< pos<< " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
       }
     }

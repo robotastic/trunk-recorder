@@ -108,13 +108,13 @@ wavheader_parse(FILE *fp,
 
 	fresult = fread(str_buf, 1, 4, fp);
 	if(fresult != 4 || strncmp(str_buf, "RIFF", 4) || feof(fp)) {
-        std::cout << "wav parse header fail - 1" << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "wav parse header fail - 1" << std::endl;
 		return false;
 	}
 	fresult = fread(&file_size, 1, 4, fp);
 	fresult = fread(str_buf, 1, 8, fp);
 	if(fresult != 8 || strncmp(str_buf, "WAVEfmt ", 8) || feof(fp)) {
-		std::cout << "wav parse header failed - 2" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse header failed - 2" << std::endl;
 		return false;
 	}
 
@@ -122,7 +122,7 @@ wavheader_parse(FILE *fp,
 
 	fresult = fread(&compression_type, 1, 2, fp);
 	if(wav_to_host(compression_type) != VALID_COMPRESSION_TYPE) {
-		std::cout << "wav parse header failed - compression_type" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse header failed - compression_type" << std::endl;
 		return false;
 	}
 
@@ -133,7 +133,7 @@ wavheader_parse(FILE *fp,
 	fresult = fread(&bits_per_sample,   1, 2, fp);
 
 	if(ferror(fp)) {
-		std::cout << "wav parse header failed - FP" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse header failed - FP" << std::endl;
 		return false;
 	}
 
@@ -143,14 +143,14 @@ wavheader_parse(FILE *fp,
 	bits_per_sample = wav_to_host(bits_per_sample);
 
 	if(bits_per_sample != 8 && bits_per_sample != 16) {
-		std::cout << "wav parse header failed - bits_per_sample" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse header failed - bits_per_sample" << std::endl;
 		return false;
 	}
 
 	fmt_hdr_skip -= 16;
 	if(fmt_hdr_skip) {
 		if (fseek(fp, fmt_hdr_skip, SEEK_CUR) != 0) {
-			std::cout << "wav parse header failed - fmt_hdr_skip" << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "wav parse header failed - fmt_hdr_skip" << std::endl;
 			return false;
 		}
 	}
@@ -162,18 +162,18 @@ wavheader_parse(FILE *fp,
 	{
 		// all good?
 		if(fresult != 4 || ferror(fp) || feof(fp)) {
-			std::cout << "wav parse header failed - fresult 1" << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "wav parse header failed - fresult 1" << std::endl;
 			return false;
 		}
 		// get chunk body size and skip
 		fresult = fread(&chunk_size, 1, 4, fp);
 		if(fresult != 4 || ferror(fp) || feof(fp)) {
-			std::cout << "wav parse header failed - fresult 2" << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "wav parse header failed - fresult 2" << std::endl;
 			return false;
 		}
 		chunk_size = wav_to_host(chunk_size);
 		if(fseek(fp, chunk_size, SEEK_CUR) != 0) {
-			std::cout << "wav parse header failed - chunk_size" << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "wav parse header failed - chunk_size" << std::endl;
 			return false;
 		}
 		// read next chunk type
@@ -182,7 +182,7 @@ wavheader_parse(FILE *fp,
 
 	fresult = fread(&chunk_size, 1, 4, fp);
 	if(ferror(fp)) {
-		std::cout << "wav parse header failed - chunk_size 2" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse header failed - chunk_size 2" << std::endl;
 		return false;
 	}
 
@@ -246,7 +246,7 @@ wavheader_write(FILE *fp,
 
 	fwrite(&wav_hdr, 1, header_len, fp);
 	if(ferror(fp)) {
-		std::cout << "wav  header write - fp failed" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav  header write - fp failed" << std::endl;
 
 		return false;
 	}
@@ -282,7 +282,7 @@ wavheader_complete(FILE *fp, unsigned int byte_count)
 	chunk_size = host_to_wav(chunk_size);
 
 	if (fseek(fp, 40, SEEK_SET) != 0) {
-		std::cout << "wav parse complete failed - 40" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse complete failed - 40" << std::endl;
 
 		return false;
 	}
@@ -291,14 +291,14 @@ wavheader_complete(FILE *fp, unsigned int byte_count)
 	chunk_size = (uint32_t)byte_count + 36; // fmt chunk and data header
 	chunk_size = host_to_wav(chunk_size);
 	if (fseek(fp, 4, SEEK_SET) != 0) {
-		std::cout << "wav parse complete failed - 4" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse complete failed - 4" << std::endl;
 		return false;
 	}
 
 	fwrite(&chunk_size, 1, 4, fp);
 
 	if(ferror(fp)) {
-		std::cout << "wav parse complete failed - fp" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "wav parse complete failed - fp" << std::endl;
 		return false;
 	}
 
