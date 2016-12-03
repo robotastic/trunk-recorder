@@ -824,7 +824,7 @@ void monitor_messages() {
     }
     float timeDiff = currentTime - lastMsgCountTime;
 
-    if (timeDiff >= 3.0) {
+    if (timeDiff >= 20.0) {
       check_message_count(timeDiff);
       lastMsgCountTime = currentTime;
     }

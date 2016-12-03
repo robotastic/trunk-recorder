@@ -63,7 +63,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_id)
 	             gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
 	             gr::io_signature::make (0,0,0))
 {
-	//set_relative_rate((double)(76.0/84.0));
+	set_relative_rate((double)(76.0/84.0));
 	set_output_multiple(76); //used to be 76
 	d_queue = queue;
 	this->sys_id = sys_id;
@@ -156,7 +156,7 @@ static smartnet_packet parse(const char *in) {
 
 
 
-/*
+
 void smartnet_decode::forecast (int noutput_items,
                                       gr_vector_int &ninput_items_required)
 																			//estimate number of input samples required for noutput_items samples
@@ -167,7 +167,7 @@ void smartnet_decode::forecast (int noutput_items,
 	ninput_items_required[0] = size;
 }
 
-*/
+
 int
 smartnet_decode::general_work (int noutput_items,
                                      gr_vector_int &ninput_items,
