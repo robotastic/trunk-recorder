@@ -759,7 +759,7 @@ void check_message_count(float timeDiff) {
       }
     }
 
-    if (msgs_decoded_per_second < 10) {
+    if (msgs_decoded_per_second < 3) {
       BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
     }
     sys->message_count = 0;
