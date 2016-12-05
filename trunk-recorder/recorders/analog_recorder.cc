@@ -113,7 +113,7 @@ analog_recorder::analog_recorder(Source *src)
 	sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(),talkgroup,timestamp,freq);
 	sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(),talkgroup,timestamp,freq);
 
-	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,16);
+	wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename,1,8000,8);
 
 
 
