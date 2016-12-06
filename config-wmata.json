@@ -1,37 +1,24 @@
 { "sources": [
-{        "center": 496500000.0,
+{        "center": 496700000.0,
         "rate": 2400000.0,
-        "error": 500,
+        "error": 1000,
         "gain": 32,
         "digitalRecorders": 5,
+        "debugRecorders": 1,
 	"silenceFrames": 0,
 	"modulation": "fsk4",
         "analogLevels": 32,
 	"digitalLevels": 2,
+
         "driver": "osmosdr",
-        "device": "rtl=31"
-    }, {
-        "center": 490250000.0,
-        "rate": 2400000.0,
-        "error": 500,
-        "gain": 32,
-        "digitalRecorders": 7,
-	"silenceFrames": 0,
-	"modulation": "fsk4",
-        "analogRecorders": 2,
-        "analogLevels": 32,
-	"digitalLevels": 2,
-        "driver": "osmosdr",
-        "device": "rtl=32"
+        "device": "rtl=30,buflen=32768,buffers=16"
     }
 ],
 "systems": [
 	 {
-        "control_channels": [496537500, 496437500],
+        "control_channels": [496337500, 496637500, 496437500, 496537500 ],
         "type": "smartnet",
-"apiKey": "7b4a101d772283f935fdf95c8d8a645fda2518c2ca7f9528ce1f3c82500a3a11",	
-"shortName": "wmata",
         "talkgroupsFile": "wmata.csv"
-    }],
-	"uploadServer": "https://api.openmhz.com"
+    }]
+
 }

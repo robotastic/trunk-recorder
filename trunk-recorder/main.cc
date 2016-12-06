@@ -130,6 +130,7 @@ void load_config()
       // each system should have a unique index value;
       System *system = new System(sys_count++);
       std::stringstream default_script;
+
       default_script << "sys_" << sys_count;
 
       BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
@@ -176,7 +177,7 @@ void load_config()
                   pt.get_child("sources"))
     {
       bool   qpsk_mod       = true;
-      int   silence_frames   = node.second.get<int>("silenceFrames", 0);
+      int    silence_frames = node.second.get<int>("silenceFrames", 0);
       double center         = node.second.get<double>("center", 0);
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
@@ -184,8 +185,8 @@ void load_config()
       int    gain           = node.second.get<int>("gain", 0);
       int    if_gain        = node.second.get<int>("ifGain", 0);
       int    bb_gain        = node.second.get<int>("bbGain", 0);
-      int    mix_gain        = node.second.get<int>("mixGain", 0);
-      int    lna_gain        = node.second.get<int>("lnaGain", 0);
+      int    mix_gain       = node.second.get<int>("mixGain", 0);
+      int    lna_gain       = node.second.get<int>("lnaGain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
       double analog_levels  = node.second.get<double>("analogLevels", 1.0);
@@ -207,8 +208,8 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain", 0);
       BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<int>("lnaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<int>("mixGain", 0);
-      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch",0);
-      BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence",0);
+      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
+      BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
@@ -242,10 +243,22 @@ void load_config()
       Source *source = new Source(center, rate, error, driver, device);
       BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
       BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
-      source->set_if_gain(if_gain);
-      source->set_bb_gain(bb_gain);
-      source->set_mix_gain(mix_gain);
-      source->set_lna_gain(lna_gain);
+
+      if (if_gain != 0) {
+        source->set_if_gain(if_gain);
+      }
+
+      if (bb_gain != 0) {
+        source->set_bb_gain(bb_gain);
+      }
+
+      if (mix_gain != 0) {
+        source->set_mix_gain(mix_gain);
+      }
+
+      if (lna_gain != 0) {
+        source->set_lna_gain(lna_gain);
+      }
       source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
@@ -404,11 +417,12 @@ void stop_inactive_recorders() {
   }   // foreach loggers
 
 
-/*     for (vector<Source *>::iterator it = sources.begin(); it != sources.end();
-         it++) {
-      Source *source = *it;
-      source->tune_digital_recorders();
-    }*/
+  /*     for (vector<Source *>::iterator it = sources.begin(); it !=
+     sources.end();
+           it++) {
+        Source *source = *it;
+        source->tune_digital_recorders();
+      }*/
 }
 
 void print_status() {
@@ -714,7 +728,7 @@ void retune_system(System *system) {
   Source *source               = NULL;
   double  control_channel_freq = system->get_next_control_channel();
 
-  BOOST_LOG_TRIVIAL(info) << "Retuning to Control Channel: " << control_channel_freq;
+  BOOST_LOG_TRIVIAL(error) << "Retuning to Control Channel: " << control_channel_freq;
 
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     source = *it;
@@ -735,14 +749,16 @@ void retune_system(System *system) {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
       system->smartnet_trunking->tune_offset(control_channel_freq);
-    }
-
-    if (system->get_system_type() == "p25") {
+    } else if (system->get_system_type() == "p25") {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
       system->p25_trunking->tune_offset(control_channel_freq);
+    } else {
+      BOOST_LOG_TRIVIAL(error) << "Unkown system type for Retune";
     }
     BOOST_LOG_TRIVIAL(info) << "Finished retuning";
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Source not found for Retune";
   }
 }
 
@@ -788,7 +804,7 @@ void monitor_messages() {
 
 
     msg = msg_queue->delete_head_nowait();
-
+    
     if (msg != 0) {
       sys_id = msg->arg1();
       sys    = find_system(sys_id);
@@ -927,7 +943,7 @@ int main(void)
   // }
 
   if (monitor_system()) {
-    tb->start(1000);
+    tb->start();
 
     monitor_messages();
 

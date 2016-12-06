@@ -35,8 +35,7 @@ smartnet_trunking::smartnet_trunking(float               f,
                                                         // swapped in the
                                                         // switch.
   float clockrec_oversample  = 3;
-  int   decim                =
-    int(samples_per_second / (syms_per_sec * clockrec_oversample));
+  int   decim                = int(samples_per_second / (syms_per_sec * clockrec_oversample));
   float sps       = samples_per_second / decim / syms_per_sec;
   const double pi = boost::math::constants::pi<double>();
   cout << "SmartNet Trunking - SysId: " << sys_id << endl;
