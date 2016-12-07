@@ -319,45 +319,6 @@ Recorder * Source::get_digital_recorder(int priority)
   return NULL;
 }
 
-std::vector<double>Source::get_mean_delay() {
-  std::vector<double> totals;
-  bool output = false;
-
-  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
-       it != digital_recorders.end(); it++) {
-    p25_recorder_sptr rx = *it;
-
-    if (rx->get_state() != inactive)
-    {
-      std::cout << " - [ " << rx->get_num() << " : ( " <<
-        rx->get_total_produced() << " )]";
-      output = true;
-      rx->clear_total_produced();
-
-      /*		//std::vector<double> v = rx->get_active_probe_delays();
-                      //double sum = std::accumulate(v.begin(), v.end(), 0.0);
-                      //double mean = sum / v.size();
-                      //totals.push_back(mean);
-                      std::vector<double> v2 = rx->get_last_probe_delays();
-                      double sum2 = std::accumulate(v2.begin(), v2.end(), 0.0);
-                      double mean2 = sum2 / v2.size();
-                      std::cout << " - [ " << rx->get_num() << " : (" <<
-                         mean2*1e3 <<" | " <<  v2.size() << ")]";
-
-                      //std::cout << " - [ " << rx->get_num() << " : (" <<
-                         mean*1e3 <<" | " <<  v.size() << ") (" << mean2*1e3 <<"
-       | " <<  v2.size() << ")]";
-                      output = true;
-                      rx->clear_probes();*/
-    }
-  }
-
-  if (output) {
-    std::cout << device << std::endl;
-  }
-  return totals;
-}
-
 gr::basic_block_sptr Source::get_src_block() {
   return source_block;
 }

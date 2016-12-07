@@ -282,44 +282,6 @@ void p25_recorder::autotune() {
 
 p25_recorder::~p25_recorder() {}
 
-std::vector<unsigned long>p25_recorder::get_last_probe_offsets() {
-  /*std::vector<std::string> keys = probe->get_keys();
-     std::vector<unsigned long>
-     for(vector<std::string>::iterator it = keys.begin(); it != keys.end();
-        it++) {
-                  std::string key = *it;*/
-  return last_probe->get_offsets("latency0");
-}
-
-std::vector<unsigned long>p25_recorder::get_active_probe_offsets() {
-  /*std::vector<std::string> keys = probe->get_keys();
-     std::vector<unsigned long>
-     for(vector<std::string>::iterator it = keys.begin(); it != keys.end();
-        it++) {
-                  std::string key = *it;*/
-  return active_probe->get_offsets("latency0");
-}
-
-void p25_recorder::clear_total_produced() {
-  op25_frame_assembler->clear_total_produced();
-}
-
-long p25_recorder::get_total_produced() {
-  return op25_frame_assembler->get_total_produced();
-}
-
-std::vector<double>p25_recorder::get_last_probe_delays() {
-  return last_probe->get_delays("latency0");
-}
-
-std::vector<double>p25_recorder::get_active_probe_delays() {
-  return active_probe->get_delays("latency0");
-}
-
-void p25_recorder::clear_probes() {
-  last_probe->clear("latency0");
-}
-
 long p25_recorder::get_source_count() {
   return wav_sink->get_source_count();
 }
@@ -374,7 +336,7 @@ State p25_recorder::get_state() {
 
 void p25_recorder::stop() {
   if (state == active) {
-    op25_frame_assembler->clear();
+    //op25_frame_assembler->clear();
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = inactive;
     valve->set_enabled(false);

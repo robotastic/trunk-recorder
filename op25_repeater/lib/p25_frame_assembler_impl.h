@@ -86,9 +86,7 @@ public:
                            bool                do_audio_output,
                            bool                do_phase2_tdma);
   ~p25_frame_assembler_impl();
-  void clear_total_produced();
   void clear_silence_frame_count();
-  long get_total_produced();
   void clear();
   // Where all the action really happens
 

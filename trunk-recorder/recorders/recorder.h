@@ -67,8 +67,6 @@ public:
 	virtual long get_talkgroup() {return 0;};
 	virtual State get_state() {return inactive;};
 	virtual bool is_active() {return false;};
-	virtual void clear_total_produced() {};
-	virtual long get_total_produced() {return 0;};
 	virtual double get_current_length(){return 0;};
 	virtual void clear(){};
 	int num;

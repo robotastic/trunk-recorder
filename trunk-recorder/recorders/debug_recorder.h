@@ -90,12 +90,6 @@ public:
 								void tune_offset(double f);
 								void start( Call *call, int n);
 								void stop();
-								std::vector<unsigned long> get_active_probe_offsets();
-								std::vector<double> get_active_probe_delays();
-								std::vector<unsigned long> get_last_probe_offsets();
-								std::vector<double> get_last_probe_delays();
-								void clear_probes();
-								void clear();
 								double get_freq();
 								int get_num();
 								double get_current_length();
@@ -106,8 +100,7 @@ public:
 								Source *get_source();
 								long get_source_count();
 								Call_Source *get_source_list();
-								void clear_total_produced();
-								long get_total_produced();
+
 								gr::msg_queue::sptr tune_queue;
 								gr::msg_queue::sptr traffic_queue;
 								gr::msg_queue::sptr rx_queue;
