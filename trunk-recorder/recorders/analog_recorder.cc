@@ -29,7 +29,7 @@ analog_recorder::analog_recorder(Source *src)
 
   int    samp_per_sym     = 10;
   int    decim            = floor(samp_rate / 96000);
-  float  xlate_bandwidth  = 10000; //5000; // 24260.0;
+  float  xlate_bandwidth  = 4000; // 24260.0;
   float  channel_rate     = 4800 * samp_per_sym;
   double pre_channel_rate = samp_rate / decim;
 
