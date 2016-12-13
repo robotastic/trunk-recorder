@@ -63,7 +63,7 @@ p25_recorder::p25_recorder(Source *src)
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
-  /*
+/*
      prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
                 lpf_coeffs,
                 offset,

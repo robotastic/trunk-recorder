@@ -34,10 +34,10 @@ smartnet_trunking::smartnet_trunking(float               f,
                                                         // for 3.7 because it
                                                         // swapped in the
                                                         // switch.
-  float clockrec_oversample  = 3;
-  int   decim                = int(samples_per_second / (syms_per_sec * clockrec_oversample));
-  float sps       = samples_per_second / decim / syms_per_sec;
-  const double pi = boost::math::constants::pi<double>();
+  float clockrec_oversample = 3;
+  int   decim               = int(samples_per_second / (syms_per_sec * clockrec_oversample));
+  float sps                 = samples_per_second / decim / syms_per_sec;
+  const double pi           = boost::math::constants::pi<double>();
   cout << "SmartNet Trunking - SysId: " << sys_id << endl;
   cout << "Control channel offset: " << offset << endl;
   cout << "Control channel: " << chan_freq << endl;
@@ -47,19 +47,21 @@ smartnet_trunking::smartnet_trunking(float               f,
   std::vector<float> lpf_taps;
 
 
-  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 4000, 1000);
+  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 4500, 2000);
   std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
- prefilter = make_freq_xlating_fft_filter(decim,
-                                                                        dest,
-                                                                        offset,
-                                                                        samp_rate);
+  cout << "Number of LPF taps: " << lpf_taps.size() << endl;
 
-/*
-         prefilter =
-             gr::filter::freq_xlating_fir_filter_ccf::make(decim,
-                  lpf_taps,
-                  offset,
-                  samp_rate);*/
+  /*prefilter = make_freq_xlating_fft_filter(decim,
+                                                                         dest,
+                                                                         offset,
+                                                                         samp_rate);*/
+
+
+  prefilter =
+    gr::filter::freq_xlating_fir_filter_ccf::make(decim,
+                                                  lpf_taps,
+                                                  offset,
+                                                  samp_rate);
 
   gr::digital::fll_band_edge_cc::sptr carriertrack =
     gr::digital::fll_band_edge_cc::make(sps, 0.6, 64, 0.35);
@@ -84,20 +86,21 @@ smartnet_trunking::smartnet_trunking(float               f,
                                                     0,
                                                     "smartnet_preamble");
 
-//  smartnet_deinterleave_sptr deinterleave = smartnet_make_deinterleave();
+  //  smartnet_deinterleave_sptr deinterleave = smartnet_make_deinterleave();
 
-//  smartnet_crc_sptr crc = smartnet_make_crc(queue, sys_id);
+  //  smartnet_crc_sptr crc = smartnet_make_crc(queue, sys_id);
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_id);
-null_sink = gr::blocks::null_sink::make(sizeof(int8_t));
+  null_sink = gr::blocks::null_sink::make(sizeof(int8_t));
   connect(self(),           0, prefilter,        0);
   connect(prefilter,        0, carriertrack,     0);
   connect(carriertrack,     0, pll_demod,        0);
   connect(pll_demod,        0, softbits,         0);
   connect(softbits,         0, slicer,           0);
   connect(slicer,           0, start_correlator, 0);
-  connect(start_correlator, 0, decode,              0);
-/*  connect(start_correlator, 0, deinterleave,     0);
-  connect(deinterleave,     0, crc,              0);*/
+  connect(start_correlator, 0, decode,           0);
+
+  /*  connect(start_correlator, 0, deinterleave,     0);
+     connect(deinterleave,     0, crc,              0);*/
 }
 
 void smartnet_trunking::tune_offset(double f) {
