@@ -41,7 +41,6 @@ p25_recorder::p25_recorder(Source *src)
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  double input_rate = capture_rate;
 
   double gain_mu      = 0.025;               // 0.025
   double costas_alpha = 0.04;
@@ -55,11 +54,11 @@ p25_recorder::p25_recorder(Source *src)
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, input_rate, 6000, 1500, 100,gr::filter::firdes::WIN_HANN);
-  //lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth, 1000, gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 5000, 1500, 100,gr::filter::firdes::WIN_HANN);
+  //lpf_coeffs = gr::filter::firdes::low_pass(1.0, capture_rate, xlate_bandwidth, 1000, gr::filter::firdes::WIN_HANN);
 
-   int decimation = int(input_rate / system_channel_rate);
-  //int decimation = int(input_rate / 96000);
+   int decimation = floor(capture_rate / system_channel_rate);
+  //int decimation = int(capture_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
@@ -74,12 +73,7 @@ p25_recorder::p25_recorder(Source *src)
                                            offset,
                                            samp_rate);
 
-  tagger = latency_make_tagger(sizeof(gr_complex), 512, "latency0");
-  std::vector<std::string> keys;
-  keys.push_back("latency0");
-  active_probe = latency_make_probe(sizeof(char), keys);
-  last_probe   = latency_make_probe(sizeof(float), keys);
-  double resampled_rate = double(input_rate) / double(decimation); // rate at
+  double resampled_rate = double(capture_rate) / double(decimation); // rate at
                                                                    // output of
                                                                    // self.lpf
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
@@ -217,8 +211,7 @@ p25_recorder::p25_recorder(Source *src)
 
     //   connect(prefilter,        0, fm_demod,                  0);
     connect(prefilter,     0, arb_resampler, 0);
-    connect(arb_resampler, 0, agc,                  0);
-    connect(agc,           0,fm_demod,      0);
+    connect(arb_resampler, 0, fm_demod,      0);
 
     // connect(fm_demod,             0, sym_filter,           0);
 
