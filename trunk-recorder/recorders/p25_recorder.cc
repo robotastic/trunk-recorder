@@ -355,7 +355,9 @@ void p25_recorder::start(Call *call, int n) {
     freq      = call->get_freq();
 
     // num = n;
-
+      if (!qpsk_mod) {
+        fsk4_demod->reset();
+      }
     BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
     int offset_amount = (freq - center);

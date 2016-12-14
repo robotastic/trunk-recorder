@@ -426,6 +426,73 @@
     </param>
   </block>
   <block>
+    <key>analog_fm_demod_cf</key>
+    <param>
+      <key>audio_decim</key>
+      <value></value>
+    </param>
+    <param>
+      <key>audio_pass</key>
+      <value>15000</value>
+    </param>
+    <param>
+      <key>audio_stop</key>
+      <value>16000</value>
+    </param>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>chan_rate</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>deviation</key>
+      <value>75000</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(792, 656)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>gain</key>
+      <value>1.0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>analog_fm_demod_cf_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>tau</key>
+      <value>75e-6</value>
+    </param>
+  </block>
+  <block>
     <key>analog_quadrature_demod_cf</key>
     <param>
       <key>alias</key>
@@ -488,7 +555,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/Users/luke/Programming/trunk-recorder/debug/34928-1481681446_4.96588e+08.raw</value>
+      <value>/Users/luke/Programming/trunk-recorder/debug/1648-1481632352_4.96488e+08.raw</value>
     </param>
     <param>
       <key>_coordinate</key>

@@ -30,52 +30,40 @@ debug_recorder::debug_recorder(Source *src)
 
 
   double symbol_rate         = 4800;
-  double samples_per_symbol  = 15;    // was 10
-  double system_channel_rate = symbol_rate * samples_per_symbol;
-  double symbol_deviation    = 600.0; // was 600.0
 
-
-  std::vector<float> sym_taps;
-  const double pi = M_PI; // boost::math::constants::pi<double>();
 
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  double input_rate = capture_rate;
-
-  double gain_mu      = 0.025;               // 0.025
-  double costas_alpha = 0.04;
-  double bb_gain      = src->get_fsk_gain(); // was 1.0
-
-  baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  double xlate_bandwidth = 15000; // 24260.0
+
+  double system_channel_rate = 96000;
+  double xlate_bandwidth = 50000; // 24260.0
 
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth/2, 3000, gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass(1.0, capture_rate, xlate_bandwidth/2, 3000, gr::filter::firdes::WIN_HANN);
 
-  // int decimation = int(input_rate / system_channel_rate);
-  int decimation = int(input_rate / 96000);
+  int decimation = floor(capture_rate / system_channel_rate);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
-/*
+
      prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
                 lpf_coeffs,
                 offset,
-                samp_rate);*/
-
+                samp_rate);
+/*
   prefilter = make_freq_xlating_fft_filter(decimation,
                                            dest,
                                            offset,
                                            samp_rate);
+*/
 
-
-  double resampled_rate = double(input_rate) / double(decimation); // rate at
+  double resampled_rate = double(capture_rate) / double(decimation); // rate at
                                                                    // output of
                                                                    // self.lpf
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
@@ -134,53 +122,6 @@ debug_recorder::debug_recorder(Source *src)
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
-  agc = gr::analog::feedforward_agc_cc::make(64, 0.5);
-
-  double omega      = double(system_channel_rate) / double(symbol_rate);
-  double gain_omega = 0.1  * gain_mu * gain_mu;
-  double alpha      = costas_alpha;
-  double beta       = 0.125 * alpha * alpha;
-  double fmax       = 2400; // Hz
-  fmax = 2 * pi * fmax / double(system_channel_rate);
-
-  costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
-
-  // Perform Differential decoding on the constellation
-  diffdec = gr::digital::diff_phasor_cc::make();
-
-  // take angle of the difference (in radians)
-  to_float = gr::blocks::complex_to_arg::make();
-
-  // convert from radians such that signal is in -3/-1/+1/+3
-  rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
-
-  // fm demodulator (needed in fsk4 case)
-  double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
-  fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
-  BOOST_LOG_TRIVIAL(info) << "debug_recorder.cc: fm_demod gain - " << fm_demod_gain;
-  demod_agc = gr::analog::agc2_ff::make(0.5, 1e-2, 2.0, 1.0);
-  pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 1.0, 2.0, 1.0);
-  super_agc = make_rx_agc_cc(system_channel_rate, true, -90, 0, 0, 500, true);
-
-  double symbol_decim = 1;
-
-  valve = gr::blocks::copy::make(sizeof(gr_complex));
-  valve->set_enabled(false);
-
-  for (int i = 0; i < samples_per_symbol; i++) {
-    sym_taps.push_back(1.0 / samples_per_symbol);
-  }
-
-  sym_filter    =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
-  tune_queue    = gr::msg_queue::make(2);
-  traffic_queue = gr::msg_queue::make(2);
-  rx_queue      = gr::msg_queue::make(100);
-  const float l[] = { -2.0, 0.0, 2.0, 4.0 };
-  //  const float l[] = { -3.0, -1.0, 1.0, 3.0 };
-  std::vector<float> levels(l, l + sizeof(l) / sizeof(l[0]));
-  fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
-  slicer     = gr::op25_repeater::fsk4_slicer_fb::make(levels);
-
 
   tm *ltm = localtime(&starttime);
 
@@ -192,39 +133,12 @@ debug_recorder::debug_recorder(Source *src)
 	raw_sink = gr::blocks::file_sink::make(sizeof(gr_complex), filename);
 
 
-  if (!qpsk_mod) {
+
     connect(self(),               0, valve,                0);
     connect(valve,                0, prefilter,            0);
     connect(prefilter,            0, arb_resampler,        0);
         connect(arb_resampler,        0,  raw_sink,             0);
-  //  connect(arb_resampler,        0,  fm_demod,             0);
-  //connect(fm_demod,             0, sym_filter,           0);
-  //  connect(fm_demod,             0,  raw_sink,0); //sym_filter,           0);
-    //connect(demod_agc,            0, baseband_amp,         0);
-  //  connect(fm_demod,             0, baseband_amp,            0);
-    //connect(baseband_amp,         0, sym_filter,           0);
-  /*  connect(sym_filter,           0, fsk4_demod,           0);
-    connect(fsk4_demod,           0, slicer,               0);
-    connect(slicer,               0, op25_frame_assembler, 0);
-    connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, multiplier,           0);
-    connect(multiplier,           0, wav_sink,             0);*/
-  } else {
-    connect(self(),    0, valve,         0);
-    connect(valve,     0, prefilter,     0);
-    connect(prefilter, 0, arb_resampler, 0);
-    connect(arb_resampler, 0, raw_sink,                  0);
-/*    connect(arb_resampler, 0, agc,                  0);
-    connect(agc,           0, costas_clock,         0);
-    connect(costas_clock,  0, diffdec,              0);
-    connect(diffdec,       0, to_float,             0);
-    connect(to_float,      0, rescale,              0);
-    connect(rescale,       0, slicer,               0);
-    connect(slicer,        0, op25_frame_assembler, 0);
-    connect(op25_frame_assembler, 0, converter,  0);
-    connect(converter,            0, multiplier, 0);
-    connect(multiplier,           0, wav_sink,   0);*/
-  }
+
 }
 
 

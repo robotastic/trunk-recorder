@@ -129,9 +129,9 @@ private:
 								std::vector<float> arb_taps;
 								std::vector<float> sym_taps;
 
-								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+								gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 
-								freq_xlating_fft_filter_sptr prefilter;
+								//freq_xlating_fft_filter_sptr prefilter;
 								latency_tagger_sptr tagger;
 								latency_probe_sptr active_probe;
 								latency_probe_sptr last_probe;

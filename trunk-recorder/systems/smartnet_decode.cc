@@ -95,7 +95,7 @@ static void smartnet_ecc(char *out, const char *in) {
 
 	for(int k = 0; k < 76; k++) {
 		syndrome[k] = expected[k] ^ (in[k] & 0x01); //calculate the syndrome
-		if(VERBOSE) if(syndrome[k]) BOOST_LOG_TRIVIAL(info) << "Bit error at bit " << k;
+		//if(VERBOSE) if(syndrome[k]) BOOST_LOG_TRIVIAL(info) << "Bit error at bit " << k;
 	}
 
 	for(int k = 0; k < 38-1; k++) {
@@ -103,7 +103,7 @@ static void smartnet_ecc(char *out, const char *in) {
 		//parity bits are flipped, you've got a bad previous bit
 		if(syndrome[2*k+1] && syndrome[2*k+3]) {
 			out[k] = (in[2*k] & 0x01) ? 0 : 1; //byte-safe bit flip
-			if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "I just flipped a bit!";
+			//if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "I just flipped a bit!";
 		}
 		else out[k] = in[2*k];
 	}
@@ -183,7 +183,7 @@ smartnet_decode::work (int noutput_items,
 	int size = noutput_items - 84;
 
 	if(size < 0) {
-		//BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
+		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
 
 		return 0; //better luck next time
 	}
@@ -206,8 +206,7 @@ smartnet_decode::work (int noutput_items,
 	for(tag_iter = preamble_tags.begin(); tag_iter != preamble_tags.end(); tag_iter++) {
 		uint64_t mark = tag_iter->offset - abs_sample_cnt;
 
-		if(VERBOSE)
-			BOOST_LOG_TRIVIAL(info) << "found a preamble at " << tag_iter->offset;
+		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "found a preamble at " << tag_iter->offset;
 
 		for(int k=0; k<76/4; k++) {
 			for(int l=0; l<4; l++) {

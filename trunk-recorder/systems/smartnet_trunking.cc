@@ -47,7 +47,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   std::vector<float> lpf_taps;
 
 
-  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 4500, 2000);
+  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 6000, 4000);
   std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
   cout << "Number of LPF taps: " << lpf_taps.size() << endl;
 

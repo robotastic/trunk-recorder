@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2010,2011 Steve Glass
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -55,10 +55,10 @@ namespace gr {
        * Nominal levels are -3, -1, +1, and +3.
        */
       static sptr make(gr::msg_queue::sptr queue, float sample_rate_Hz, float symbol_rate_Hz);
+      virtual void reset() {};
     };
 
   } // namespace op25
 } // namespace gr
 
 #endif /* INCLUDED_OP25_FSK4_DEMOD_FF_H */
-

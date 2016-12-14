@@ -206,6 +206,12 @@ namespace gr {
     {
     }
 
+    void fsk4_demod_ff_impl::reset()
+    {
+      d_history_last = 0;
+      d_symbol_clock = 0;
+    }
+
     void
     fsk4_demod_ff_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
@@ -252,7 +258,7 @@ namespace gr {
 
       if((coarse_frequency_correction < COARSE_FREQUENCY_DEADBAND) && (coarse_frequency_correction > -COARSE_FREQUENCY_DEADBAND))
 	return;
-  
+
       arg1 = coarse_frequency_correction;
       arg2 = 0.0;
       coarse_frequency_correction = 0.0;
@@ -303,12 +309,18 @@ namespace gr {
 	size_t j = d_history_last;
 	double interp = 0.0;
 	double interp_p1 = 0.0;
+  if ((j >= NTAPS) || (imu >= NSTEPS) || (j<0) || (imu < 0)) {
+    std::cout << "j: " << j << " Imu: " << imu << " symbol cloc: " << d_symbol_clock << " Time: " << d_symbol_time << std::endl;
+    d_symbol_clock = 0;
+    d_history_last = 0;
+  } else {
 	for(int i=0; i<NTAPS; i++)
 	  {
 	    interp    +=  TAPS[imu   ][i] * d_history[j];
 	    interp_p1 +=  TAPS[imu_p1][i] * d_history[j];
 	    j = (j+1) % NTAPS;
 	  }
+  }
 #endif
 
 	// our output symbol will be interpolated value corrected for
