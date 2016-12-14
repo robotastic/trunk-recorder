@@ -246,11 +246,38 @@
     </param>
     <param>
       <key>num_steps</key>
-      <value>10</value>
+      <value>100</value>
     </param>
     <param>
       <key>style</key>
       <value>wx.SL_HORIZONTAL</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(248, 44)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>pfb_taps</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>firdes.low_pass_2(1, samp_rate, 6250, 4000, 60, firdes.WIN_HANN)</value>
     </param>
   </block>
   <block>
@@ -292,7 +319,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(7, 82)</value>
+      <value>(8, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -319,7 +346,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>12500</value>
+      <value>6500</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -347,11 +374,11 @@
     </param>
     <param>
       <key>max</key>
-      <value>50000</value>
+      <value>10000</value>
     </param>
     <param>
       <key>min</key>
-      <value>5000</value>
+      <value>3000</value>
     </param>
     <param>
       <key>notebook</key>
@@ -411,6 +438,65 @@
     <param>
       <key>min</key>
       <value>-10000</value>
+    </param>
+    <param>
+      <key>notebook</key>
+      <value></value>
+    </param>
+    <param>
+      <key>num_steps</key>
+      <value>1000</value>
+    </param>
+    <param>
+      <key>style</key>
+      <value>wx.SL_HORIZONTAL</value>
+    </param>
+  </block>
+  <block>
+    <key>variable_slider</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>converver</key>
+      <value>float_converter</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>3000</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(560, 668)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>grid_pos</key>
+      <value></value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>xlate_trans</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>Xlate Trans</value>
+    </param>
+    <param>
+      <key>max</key>
+      <value>10000</value>
+    </param>
+    <param>
+      <key>min</key>
+      <value>1000</value>
     </param>
     <param>
       <key>notebook</key>
@@ -488,7 +574,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/Users/luke/Programming/trunk-recorder/debug/34928-1481681446_4.96588e+08.raw</value>
+      <value>/Users/luke/Programming/trunk-recorder/debug/34928-1481688174_4.90912e+08.raw</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -681,7 +767,7 @@
     </param>
     <param>
       <key>taps</key>
-      <value>firdes.low_pass(1, samp_rate, xlate_bandwidth, 2000)</value>
+      <value>firdes.low_pass_2(1, samp_rate, xlate_bandwidth, xlate_trans, 60, firdes.WIN_HANN)</value>
     </param>
     <param>
       <key>type</key>
