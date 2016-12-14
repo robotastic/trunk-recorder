@@ -191,10 +191,10 @@ p25_recorder::p25_recorder(Source *src)
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, silence_frames, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
-  converter = gr::blocks::short_to_float::make(1, 32768.0); // 8192.0);
+  converter = gr::blocks::short_to_float::make(1, 1); //8192.0); // 8192.0);
                                                             // //2048.0 //1 /
                                                             // 32768.0
-  multiplier = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+  multiplier = gr::blocks::multiply_const_ff::make(1/32768.0); //source->get_digital_levels());
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
@@ -208,20 +208,8 @@ p25_recorder::p25_recorder(Source *src)
   if (!qpsk_mod) {
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,     0);
-
-    //   connect(prefilter,        0, fm_demod,                  0);
     connect(prefilter,     0, arb_resampler, 0);
     connect(arb_resampler, 0, fm_demod,      0);
-
-    // connect(fm_demod,             0, sym_filter,           0);
-
-    //    connect(arb_resampler,        0, agc,                  0);
-    //  connect(agc,           0, fm_demod,             0);
-
-    //  connect(fm_demod,             0, demod_agc,            0);
-    //    connect(demod_agc,            0,  sym_filter,           0);
-
-    // connect(demod_agc,            0, baseband_amp,         0);
     connect(fm_demod,             0, baseband_amp,         0);
     connect(baseband_amp,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);
