@@ -54,7 +54,7 @@ p25_recorder::p25_recorder(Source *src)
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 5000, 1500, 100,gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 10000, 1500, 100,gr::filter::firdes::WIN_HANN);
   //lpf_coeffs = gr::filter::firdes::low_pass(1.0, capture_rate, xlate_bandwidth, 1000, gr::filter::firdes::WIN_HANN);
 
    int decimation = floor(capture_rate / system_channel_rate);
@@ -191,10 +191,10 @@ p25_recorder::p25_recorder(Source *src)
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, silence_frames, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
-  converter = gr::blocks::short_to_float::make(1, 1); //8192.0); // 8192.0);
+  converter = gr::blocks::short_to_float::make(1, 32768.0); //8192.0); // 8192.0);
                                                             // //2048.0 //1 /
                                                             // 32768.0
-  multiplier = gr::blocks::multiply_const_ff::make(1/32768.0); //source->get_digital_levels());
+  multiplier = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
