@@ -55,11 +55,11 @@ p25_recorder::p25_recorder(Source *src)
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, input_rate, 6500, 2000, 100,gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, input_rate, 6000, 1500, 100,gr::filter::firdes::WIN_HANN);
   //lpf_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, xlate_bandwidth, 1000, gr::filter::firdes::WIN_HANN);
 
-  // int decimation = int(input_rate / system_channel_rate);
-  int decimation = int(input_rate / 96000);
+   int decimation = int(input_rate / system_channel_rate);
+  //int decimation = int(input_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
