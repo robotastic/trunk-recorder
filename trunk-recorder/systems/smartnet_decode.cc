@@ -182,9 +182,9 @@ smartnet_decode::work (int noutput_items,
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
 	int size = noutput_items - 84;
 
-	if(size < 0) {
+	if(size <= 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
-
+		consume_each(0);
 		return 0; //better luck next time
 	}
 	if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode called with " << noutput_items << " outputs";
