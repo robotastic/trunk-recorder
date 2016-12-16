@@ -152,6 +152,60 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(1080, 788)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>audio_rate</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>44.1e3</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(512, 668)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>ch_rate</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>48000</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(219, 503)</value>
     </param>
     <param>
@@ -191,7 +245,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>samp_rate/channel_rate</value>
+      <value>int(samp_rate/channel_rate)</value>
     </param>
   </block>
   <block>
@@ -429,7 +483,7 @@
     <key>analog_fm_demod_cf</key>
     <param>
       <key>audio_decim</key>
-      <value></value>
+      <value>int(ch_rate/audio_rate)</value>
     </param>
     <param>
       <key>audio_pass</key>
@@ -445,7 +499,7 @@
     </param>
     <param>
       <key>chan_rate</key>
-      <value></value>
+      <value>ch_rate</value>
     </param>
     <param>
       <key>comment</key>
@@ -465,7 +519,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(792, 656)</value>
+      <value>(696, 612)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -493,7 +547,7 @@
     </param>
   </block>
   <block>
-    <key>analog_quadrature_demod_cf</key>
+    <key>audio_sink</key>
     <param>
       <key>alias</key>
       <value></value>
@@ -507,32 +561,36 @@
       <value></value>
     </param>
     <param>
+      <key>device_name</key>
+      <value></value>
+    </param>
+    <param>
       <key>_enabled</key>
       <value>True</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(598, 536)</value>
+      <value>(952, 804)</value>
     </param>
     <param>
       <key>_rotation</key>
       <value>0</value>
     </param>
     <param>
-      <key>gain</key>
-      <value>12.7324</value>
-    </param>
-    <param>
       <key>id</key>
-      <value>analog_quadrature_demod_cf_0</value>
+      <value>audio_sink</value>
     </param>
     <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
+      <key>num_inputs</key>
+      <value>1</value>
     </param>
     <param>
-      <key>minoutbuf</key>
-      <value>0</value>
+      <key>ok_to_block</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>samp_rate</key>
+      <value>int(audio_rate)</value>
     </param>
   </block>
   <block>
@@ -555,7 +613,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/Users/luke/Programming/trunk-recorder/debug/1648-1481632352_4.96488e+08.raw</value>
+      <value>/Users/lberndt/Programming/trunk-recorder/debug/1712-1481923373_4.96562e+08.raw</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -602,7 +660,7 @@
     </param>
     <param>
       <key>const</key>
-      <value>fsk_level*.01</value>
+      <value>50</value>
     </param>
     <param>
       <key>affinity</key>
@@ -614,7 +672,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(856, 540)</value>
+      <value>(776, 804)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -622,7 +680,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>blocks_multiply_const_vxx_0</value>
+      <value>blocks_multiply_const_vxx</value>
     </param>
     <param>
       <key>type</key>
@@ -685,7 +743,7 @@
     </param>
     <param>
       <key>samples_per_second</key>
-      <value>channel_rate</value>
+      <value>samp_rate</value>
     </param>
     <param>
       <key>type</key>
@@ -858,6 +916,69 @@
     <param>
       <key>note</key>
       <value>Enable your source!</value>
+    </param>
+  </block>
+  <block>
+    <key>pfb_arb_resampler_xxx</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(912, 672)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>pfb_arb_resampler_xxx_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>nfilts</key>
+      <value>32</value>
+    </param>
+    <param>
+      <key>rrate</key>
+      <value>audio_rate/ch_rate</value>
+    </param>
+    <param>
+      <key>samp_delay</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>atten</key>
+      <value>100</value>
+    </param>
+    <param>
+      <key>taps</key>
+      <value></value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>fff</value>
     </param>
   </block>
   <block>
@@ -1344,8 +1465,14 @@
     </param>
   </block>
   <connection>
-    <source_block_id>analog_quadrature_demod_cf_0</source_block_id>
-    <sink_block_id>blocks_multiply_const_vxx_0</sink_block_id>
+    <source_block_id>analog_fm_demod_cf_0</source_block_id>
+    <sink_block_id>pfb_arb_resampler_xxx_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>analog_fm_demod_cf_0</source_block_id>
+    <sink_block_id>wxgui_scopesink2_1</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -1356,8 +1483,8 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>blocks_multiply_const_vxx_0</source_block_id>
-    <sink_block_id>wxgui_scopesink2_1</sink_block_id>
+    <source_block_id>blocks_multiply_const_vxx</source_block_id>
+    <sink_block_id>audio_sink</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -1381,7 +1508,7 @@
   </connection>
   <connection>
     <source_block_id>freq_xlating_fir_filter_xxx_0</source_block_id>
-    <sink_block_id>analog_quadrature_demod_cf_0</sink_block_id>
+    <sink_block_id>analog_fm_demod_cf_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -1394,6 +1521,12 @@
   <connection>
     <source_block_id>freq_xlating_fir_filter_xxx_0</source_block_id>
     <sink_block_id>wxgui_waterfallsink2_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>pfb_arb_resampler_xxx_0</source_block_id>
+    <sink_block_id>blocks_multiply_const_vxx</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
