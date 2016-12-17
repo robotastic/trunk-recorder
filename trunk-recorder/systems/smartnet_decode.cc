@@ -184,7 +184,7 @@ smartnet_decode::work (int noutput_items,
 
 	if(size <= 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
-		consume_each(0);
+		//consume_each(0);
 		return 0; //better luck next time
 	}
 	if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode called with " << noutput_items << " outputs";
