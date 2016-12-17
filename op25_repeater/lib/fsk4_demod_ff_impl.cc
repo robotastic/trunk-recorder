@@ -210,6 +210,10 @@ namespace gr {
     {
       d_history_last = 0;
       d_symbol_clock = 0;
+      fine_frequency_correction = 0.0;
+      coarse_frequency_correction = 0.0;
+      std::fill(&d_history[0], &d_history[NTAPS], 0.0);
+      std::fill(&d_history[0], &d_history[NTAPS], 0.0);
     }
 
     void
