@@ -57,8 +57,8 @@ p25_recorder::p25_recorder(Source *src)
   lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 6250, 1500, 100,gr::filter::firdes::WIN_HANN);
   //lpf_coeffs = gr::filter::firdes::low_pass(1.0, capture_rate, xlate_bandwidth, 1000, gr::filter::firdes::WIN_HANN);
 
-   int decimation = floor(capture_rate / system_channel_rate);
-  //int decimation = int(capture_rate / 96000);
+   //int decimation = floor(capture_rate / system_channel_rate);
+  int decimation = int(capture_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
 
@@ -157,7 +157,7 @@ p25_recorder::p25_recorder(Source *src)
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
   BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
   demod_agc     = gr::analog::agc2_ff::make(0.1, 0.01, 2.0, 0.1);
-  pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 0.01, 1.0, 1.0);
+  pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 0.01, 1.0, );
   super_agc     = make_rx_agc_cc(system_channel_rate, true, -90, 0, 0, 500, true);
 
   double symbol_decim = 1;
