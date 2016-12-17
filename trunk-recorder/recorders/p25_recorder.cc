@@ -54,7 +54,7 @@ p25_recorder::p25_recorder(Source *src)
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 10000, 1500, 100,gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 6250, 1500, 100,gr::filter::firdes::WIN_HANN);
   //lpf_coeffs = gr::filter::firdes::low_pass(1.0, capture_rate, xlate_bandwidth, 1000, gr::filter::firdes::WIN_HANN);
 
    int decimation = floor(capture_rate / system_channel_rate);
@@ -157,7 +157,7 @@ p25_recorder::p25_recorder(Source *src)
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
   BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
   demod_agc     = gr::analog::agc2_ff::make(0.1, 0.01, 2.0, 0.1);
-  pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 1.0, 2.0, 1.0);
+  pre_demod_agc = gr::analog::agc2_cc::make(1e-1, 0.01, 1.0, 1.0);
   super_agc     = make_rx_agc_cc(system_channel_rate, true, -90, 0, 0, 500, true);
 
   double symbol_decim = 1;
@@ -209,7 +209,8 @@ p25_recorder::p25_recorder(Source *src)
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,     0);
     connect(prefilter,     0, arb_resampler, 0);
-    connect(arb_resampler, 0, fm_demod,      0);
+    connect(arb_resampler, 0, pre_demod_agc,      0);
+    connect(pre_demod_agc,             0,fm_demod,      0);
     connect(fm_demod,             0, baseband_amp,         0);
     connect(baseband_amp,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);

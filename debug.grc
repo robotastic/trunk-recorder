@@ -512,6 +512,69 @@
     </param>
   </block>
   <block>
+    <key>analog_agc2_xx</key>
+    <param>
+      <key>attack_rate</key>
+      <value>1e-1</value>
+    </param>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>decay_rate</key>
+      <value>1e-2</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(616, 380)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>gain</key>
+      <value>1.0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>analog_agc2_xx_0</value>
+    </param>
+    <param>
+      <key>max_gain</key>
+      <value>65536</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>reference</key>
+      <value>1.0</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+  </block>
+  <block>
     <key>analog_quadrature_demod_cf</key>
     <param>
       <key>alias</key>
@@ -531,7 +594,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(598, 536)</value>
+      <value>(672, 540)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -574,7 +637,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/Users/luke/Programming/trunk-recorder/debug/34928-1481688174_4.90912e+08.raw</value>
+      <value>/Users/luke/Programming/trunk-recorder/debug/32816-1481938304_4.96488e+08.raw</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -633,7 +696,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(856, 540)</value>
+      <value>(904, 532)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -704,7 +767,7 @@
     </param>
     <param>
       <key>samples_per_second</key>
-      <value>channel_rate</value>
+      <value>samp_rate</value>
     </param>
     <param>
       <key>type</key>
@@ -1363,6 +1426,24 @@
     </param>
   </block>
   <connection>
+    <source_block_id>analog_agc2_xx_0</source_block_id>
+    <sink_block_id>analog_quadrature_demod_cf_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>analog_agc2_xx_0</source_block_id>
+    <sink_block_id>wxgui_fftsink2_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>analog_agc2_xx_0</source_block_id>
+    <sink_block_id>wxgui_waterfallsink2_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
     <source_block_id>analog_quadrature_demod_cf_0</source_block_id>
     <sink_block_id>blocks_multiply_const_vxx_0</sink_block_id>
     <source_key>0</source_key>
@@ -1400,19 +1481,7 @@
   </connection>
   <connection>
     <source_block_id>freq_xlating_fir_filter_xxx_0</source_block_id>
-    <sink_block_id>analog_quadrature_demod_cf_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>freq_xlating_fir_filter_xxx_0</source_block_id>
-    <sink_block_id>wxgui_fftsink2_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>freq_xlating_fir_filter_xxx_0</source_block_id>
-    <sink_block_id>wxgui_waterfallsink2_0_0</sink_block_id>
+    <sink_block_id>analog_agc2_xx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
