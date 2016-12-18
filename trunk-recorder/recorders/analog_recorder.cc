@@ -17,6 +17,7 @@ analog_recorder::analog_recorder(Source *src)
   source    = src;
   freq      = source->get_center();
   center    = source->get_center();
+  config = source->get_config();
   samp_rate = source->get_rate();
   talkgroup = 0;
   num       = 0;
@@ -135,7 +136,8 @@ analog_recorder::analog_recorder(Source *src)
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
-  path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  //path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  path_stream << this->config->capture_dir << "/junk";
 
   boost::filesystem::create_directories(path_stream.str());
   sprintf(filename,        "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, timestamp, freq);

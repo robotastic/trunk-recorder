@@ -240,7 +240,7 @@ void load_config()
         error = 0;
       }
 
-      Source *source = new Source(center, rate, error, driver, device);
+      Source *source = new Source(center, rate, error, driver, device, &config);
       BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
       BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
 

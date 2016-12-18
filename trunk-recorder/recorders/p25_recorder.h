@@ -64,6 +64,7 @@
 #include <gnuradio/blocks/file_sink.h>
 
 #include "recorder.h"
+#include "../config.h"
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 #include "../../gr_blocks/latency_probe.h"
@@ -116,6 +117,7 @@ private:
 								time_t timestamp;
 								time_t starttime;
 
+								Config *config;
 								Source *source;
 								char filename[160];
 								char raw_filename[160];

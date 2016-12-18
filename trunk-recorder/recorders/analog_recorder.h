@@ -41,6 +41,7 @@
 #include <gnuradio/blocks/file_sink.h>
 
 #include "recorder.h"
+#include "../config.h"
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 
@@ -96,7 +97,8 @@ private:
 								std::vector<float> resampler_taps;
 								std::vector<float> audio_resampler_taps;
 								std::vector<float> sym_taps;
-
+								
+								Config *config;
 								Source *source;
 								gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 								//freq_xlating_fft_filter_sptr prefilter;

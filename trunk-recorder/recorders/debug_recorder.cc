@@ -16,6 +16,7 @@ debug_recorder::debug_recorder(Source *src)
   source = src;
   freq   = source->get_center();
   center = source->get_center();
+  config = source->get_config();
   long samp_rate = source->get_rate();
   qpsk_mod  = source->get_qpsk_mod();
   silence_frames = source->get_silence_frames();
@@ -126,7 +127,8 @@ debug_recorder::debug_recorder(Source *src)
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
-	path_stream << boost::filesystem::current_path().string() <<  "/debug";
+	//path_stream << boost::filesystem::current_path().string() <<  "/debug";
+  path_stream << this->config->capture_dir << "/debug";
 
   boost::filesystem::create_directories(path_stream.str());
   sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
@@ -225,7 +227,9 @@ void debug_recorder::start(Call *call, int n) {
     prefilter->set_center_freq(offset_amount);
 
   	std::stringstream path_stream;
-      path_stream << boost::filesystem::current_path().string() <<  "/debug";
+
+      //path_stream << boost::filesystem::current_path().string() <<  "/debug";
+      path_stream << this->config->capture_dir << "/debug";
 
     boost::filesystem::create_directories(path_stream.str());
     sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);

@@ -6,7 +6,7 @@
 #include <gnuradio/top_block.h>
 #include <osmosdr/source.h>
 #include <gnuradio/uhd/usrp_source.h>
-
+#include "config.h"
 #include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
@@ -36,6 +36,7 @@ class Source
 								int max_analog_recorders;
 								bool qpsk_mod;
 								int silence_frames;
+								Config * config;
 
 								std::vector<p25_recorder_sptr> digital_recorders;
 								std::vector<debug_recorder_sptr> debug_recorders;
@@ -47,7 +48,7 @@ class Source
 
 public:
 								int get_num_available_recorders();
-								Source(double c, double r, double e, std::string driver, std::string device);
+								Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
 								gr::basic_block_sptr get_src_block();
 								double get_min_hz();
 								double get_max_hz();
@@ -84,6 +85,7 @@ public:
 								void set_freq_corr(double p);
 								void print_recorders();
 								void tune_digital_recorders();
+								Config * get_config();
 								void create_analog_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_analog_recorder(int priority);
 								void create_digital_recorders(gr::top_block_sptr tb, int r);

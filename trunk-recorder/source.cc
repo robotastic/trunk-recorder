@@ -323,7 +323,11 @@ gr::basic_block_sptr Source::get_src_block() {
   return source_block;
 }
 
-Source::Source(double c, double r, double e, std::string drv, std::string dev)
+Config  * Source::get_config() {
+  return config;
+}
+
+Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg)
 {
   rate   = r;
   center = c;
@@ -332,6 +336,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev)
   max_hz = center + (rate / 2);
   driver = drv;
   device = dev;
+  config = cfg;
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;
