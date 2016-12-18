@@ -169,7 +169,7 @@ RUN      buildDeps="autoconf \
         --enable-openssl && \
         make && \
         make install && \
-        make distclean 
+        make distclean && \
 ## cleanup
        cd && \
        apt-get purge -y ${buildDeps} && \
