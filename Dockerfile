@@ -68,66 +68,6 @@ RUN      buildDeps="autoconf \
         make -C 8bit install && \
         rm -rf ${DIR} && \
         DIR=$(mktemp -d) && cd ${DIR} && \
-## libogg https://www.xiph.org/ogg/
-        curl -sL http://downloads.xiph.org/releases/ogg/libogg-${OGG_VERSION}.tar.gz | \
-        tar -zx --strip-components=1 && \
-        ./configure --prefix="${SRC}" --bindir="${SRC}/bin" --disable-static --datarootdir=${DIR} && \
-        make && \
-        make install && \
-        rm -rf ${DIR} && \
-        DIR=$(mktemp -d) && cd ${DIR} && \
-## libopus https://www.opus-codec.org/
-        curl -sL http://downloads.xiph.org/releases/opus/opus-${OPUS_VERSION}.tar.gz | \
-        tar -zx --strip-components=1 && \
-        autoreconf -fiv && \
-        ./configure --prefix="${SRC}" --disable-static --datadir="${DIR}" && \
-        make && \
-        make install && \
-        rm -rf ${DIR} && \
-        DIR=$(mktemp -d) && cd ${DIR} && \
-## libvorbis https://xiph.org/vorbis/
-        curl -sL http://downloads.xiph.org/releases/vorbis/libvorbis-${VORBIS_VERSION}.tar.gz | \
-        tar -zx --strip-components=1 && \
-        ./configure --prefix="${SRC}" --with-ogg="${SRC}" --bindir="${SRC}/bin" \
-        --disable-static --datadir="${DIR}" && \
-        make && \
-        make install && \
-        rm -rf ${DIR} && \
-        DIR=$(mktemp -d) && cd ${DIR} && \
-## libtheora http://www.theora.org/
-        curl -sL http://downloads.xiph.org/releases/theora/libtheora-${THEORA_VERSION}.tar.bz2 | \
-        tar -jx --strip-components=1 && \
-        ./configure --prefix="${SRC}" --with-ogg="${SRC}" --bindir="${SRC}/bin" \
-        --disable-static --datadir="${DIR}" && \
-        make && \
-        make install && \
-        rm -rf ${DIR} && \
-        DIR=$(mktemp -d) && cd ${DIR} && \
-## libvpx https://www.webmproject.org/code/
-        curl -sL https://codeload.github.com/webmproject/libvpx/tar.gz/v${VPX_VERSION} | \
-        tar -zx --strip-components=1 && \
-        ./configure --prefix="${SRC}" --enable-vp8 --enable-vp9 --enable-pic --disable-debug --disable-examples --disable-docs --disable-install-bins --enable-shared && \
-        make && \
-        make install && \
-        rm -rf ${DIR} && \
-        DIR=$(mktemp -d) && cd ${DIR} && \
-## libmp3lame http://lame.sourceforge.net/
-        curl -sL https://downloads.sf.net/project/lame/lame/${LAME_VERSION%.*}/lame-${LAME_VERSION}.tar.gz | \
-        tar -zx --strip-components=1 && \
-        ./configure --prefix="${SRC}" --bindir="${SRC}/bin" --disable-static --enable-nasm --datarootdir="${DIR}" && \
-        make && \
-        make install && \
-        rm -rf ${DIR} && \
-        DIR=$(mktemp -d) && cd ${DIR} && \
-## xvid https://www.xvid.com/
-        curl -sL http://downloads.xvid.org/downloads/xvidcore-${XVID_VERSION}.tar.gz | \
-        tar -zx && \
-        cd xvidcore/build/generic && \
-        ./configure --prefix="${SRC}" --bindir="${SRC}/bin" --datadir="${DIR}" --disable-static --enable-shared && \
-        make && \
-        make install && \
-        rm -rf ${DIR} && \
-        DIR=$(mktemp -d) && cd ${DIR} && \
 ## fdk-aac https://github.com/mstorsjo/fdk-aac
         curl -sL https://github.com/mstorsjo/fdk-aac/archive/v${FDKAAC_VERSION}.tar.gz | \
         tar -zx --strip-components=1 && \
@@ -152,14 +92,8 @@ RUN      buildDeps="autoconf \
         --extra-libs=-ldl \
         --enable-version3 \
         --enable-libfdk_aac \
-        --enable-libmp3lame \
-        --enable-libopus \
-        --enable-libtheora \
-        --enable-libvorbis \
-        --enable-libvpx \
         --enable-libx264 \
         --enable-libx265 \
-        --enable-libxvid \
 	--enable-gpl \
         --enable-avresample \
         --enable-postproc \
@@ -169,7 +103,6 @@ RUN      buildDeps="autoconf \
         --enable-openssl && \
         make && \
         make install && \
-        make distclean && \
 ## cleanup
        cd && \
        apt-get autoremove -y && \
