@@ -91,14 +91,14 @@ void Call::end_call() {
           myfile << wav_src_list[i].source;
         }
       }
-      myfile << " ]\n";
+      myfile << " ],\n";
       myfile << "\"freqList\": [ ";
 
       for (int i = 0; i < freq_count; i++) {
           if (i != 0) {
           myfile << ", ";
         }
-          myfile << "{ \"freq:\" " <<  freq_list[i].freq <<", \"time:\" " << freq_list[i].time << ", \"pos:\" " << freq_list[i].position << "}";
+          myfile << "{ \"freq\": " <<  freq_list[i].freq <<", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << "}";
       }
       myfile << " ]\n";
       myfile << "}\n";
