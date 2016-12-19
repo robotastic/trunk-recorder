@@ -405,7 +405,7 @@
     </param>
     <param>
       <key>min</key>
-      <value>5000</value>
+      <value>1000</value>
     </param>
     <param>
       <key>notebook</key>
@@ -806,7 +806,7 @@
     </param>
     <param>
       <key>taps</key>
-      <value>firdes.low_pass(1, samp_rate, xlate_bandwidth, 2000)</value>
+      <value>firdes.low_pass_2(1, samp_rate, xlate_bandwidth, 1500, 100)</value>
     </param>
     <param>
       <key>type</key>
