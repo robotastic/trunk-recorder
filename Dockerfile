@@ -172,7 +172,6 @@ RUN      buildDeps="autoconf \
         make distclean && \
 ## cleanup
        cd && \
-       apt-get purge -y ${buildDeps} && \
        apt-get autoremove -y && \
        apt-get clean -y && \
        rm -rf /var/lib/apt/lists && \
