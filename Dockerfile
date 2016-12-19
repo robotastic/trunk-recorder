@@ -94,7 +94,7 @@ RUN      buildDeps="autoconf \
         --enable-libfdk_aac \
         --enable-libx264 \
         --enable-libx265 \
-	--enable-gpl \
+	      --enable-gpl \
         --enable-avresample \
         --enable-postproc \
         --enable-nonfree \
@@ -102,10 +102,4 @@ RUN      buildDeps="autoconf \
         --enable-small \
         --enable-openssl && \
         make && \
-        make install && \
-## cleanup
-       cd && \
-       apt-get autoremove -y && \
-       apt-get clean -y && \
-       rm -rf /var/lib/apt/lists && \
-       ffmpeg -buildconf
+        make install
