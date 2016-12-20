@@ -33,7 +33,7 @@ If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio
 There are a few methods to install GNU Radio. Source, [PyBOMBS](https://github.com/gnuradio/pybombs), or Distribution package manager. In this setup we will be using apt-get to install GNURadio (fastest method I have used). GNU Radio Version in apt-get as of 07/11/2016 is 3.7.9.  
 Using a package manager is the currently preferred method from the GNU Radio Project, [Installing GNU Radio](http://gnuradio.org/redmine/projects/gnuradio/wiki/InstallingGR).
 
-** Using apt-get to get GNU Radio and other prerequisites for Trunk Recorder **
+**Using apt-get to get GNU Radio and other prerequisites for Trunk Recorder**
 Update currently install packages
 
 `sudo apt-get update`  
@@ -55,7 +55,7 @@ Note: I put all my Radio related code into ~/radio/, change this as you wish
 `cmake .`  
 `make`  
 
-***Running trunk recorder.***
+**Running trunk recorder.**
 If all goes well you should now have the executable named recorder.  
 Before you can run anything, you need to create a `config.json` file ( see below ).
 After you have done that, just run:  
