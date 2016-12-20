@@ -13,41 +13,50 @@ I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12.
 
 ##Compile
 
+###WIKI with install tips
+ [Installing on Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki)
+
 ###Requirements
  - GNURadio 3.7
- - (GR-DSD & OP25 used to be required, but I just bundled in a fork of OP25)
-
-**GNURadio**
-
-It is important to have a very recent version of GnuRadio (GR). There was a bug in earlier versions that messed up the SmartNet trunking. Make sure your install is up to date if you are having trouble decoding SmartNet trunking.
-
-If you are running Linux, the easiest way to install GR is by using [Pybombs](http://gnuradio.org/redmine/projects/pybombs/wiki). After you have installed using pybombs, make sure you setup you Environment variables. In your pybombs directory, run: `./pybombs env` and then load them `source $prefix/setup_env.sh`, with $prefix being the directory you installed GR in.
+  
+**OSX**
 
 If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
 
-**Boost**
-The Boost Libraries are needed. On Linux box, it can't hurt to do:
-```
-sudo apt-get install libboost-all-dev
-```
+###Setting up [GNU Radio](http://gnuradio.org/) on a fresh [Ubuntu](http://www.ubuntu.com/) Version 16.04 [Release](http://releases.ubuntu.com/16.04/)
 
-**GR-DSD**
+There are a few methods to install GNU Radio. Source, [PyBOMBS](https://github.com/gnuradio/pybombs), or Distribution package manager. In this setup we will be using apt-get to install GNURadio (fastest method I have used). GNU Radio Version in apt-get as of 07/11/2016 is 3.7.9.  
+Using a package manager is the currently preferred method from the GNU Radio Project, [Installing GNU Radio](http://gnuradio.org/redmine/projects/gnuradio/wiki/InstallingGR).
 
-*GR-DSD is no longer needed. I couldn't get it to do a good job of decoding QPSK systems.*
+**Using apt-get to get GNU Radio and other prerequisites for Trunk Recorder**
 
-**OP25**
+Update currently install packages
 
-*OP25 can do a good job of decoding QPSK systems. It has a bug though that causes it use lots of CPU. I have a branch that fixes this and have bundled it directly with Trunk Recorder. You do not need a separate install of OP25.*
+`sudo apt-get update`  
+`sudo apt-get upgrade`
 
-###Trunk Recorder
-Okay, with that out of the way, here is how you compile Trunk Recorder:
-```
-git clone https://github.com/robotastic/trunk-recorder.git
-cd trunk-recorder
-cmake -DCMAKE_PREFIX_PATH=/path/to/GR/install   .
-make
-```
-Hopefully this should compile with no errors.
+Install GNU Radio with other prerequisites  
+`sudo apt-get install gnuradio gr-osmosdr libhackrf-dev libuhd-dev`  
+
+Install tools to compile Trunk Recorder  
+`sudo apt-get install git cmake build-essential libboost-all-dev libusb-1.0-0.dev`  
+
+Get source for Trunk Recorder  
+Note: I put all my Radio related code into ~/radio/, change this as you wish  
+
+`mkdir ~/radio`  
+`cd ~/radio/`  
+`git clone https://github.com/robotastic/trunk-recorder.git`  
+`cd trunk-recorder`  
+`cmake .`  
+`make`  
+
+**Running trunk recorder.**
+
+If all goes well you should now have the executable named recorder.  
+Before you can run anything, you need to create a `config.json` file ( see below ).
+After you have done that, just run:  
+`./recorder`
 
 ##Configure
 Configuring Trunk Recorder and getting things setup can be rather complex. I am looking to make things simpler in the future.
