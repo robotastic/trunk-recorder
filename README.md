@@ -34,6 +34,7 @@ There are a few methods to install GNU Radio. Source, [PyBOMBS](https://github.c
 Using a package manager is the currently preferred method from the GNU Radio Project, [Installing GNU Radio](http://gnuradio.org/redmine/projects/gnuradio/wiki/InstallingGR).
 
 **Using apt-get to get GNU Radio and other prerequisites for Trunk Recorder**
+
 Update currently install packages
 
 `sudo apt-get update`  
@@ -56,6 +57,7 @@ Note: I put all my Radio related code into ~/radio/, change this as you wish
 `make`  
 
 **Running trunk recorder.**
+
 If all goes well you should now have the executable named recorder.  
 Before you can run anything, you need to create a `config.json` file ( see below ).
 After you have done that, just run:  
