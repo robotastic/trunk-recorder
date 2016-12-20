@@ -1,6 +1,11 @@
 Trunk Recorder
 =================
 ### Note: The format for the Config.json file has changed.
+
+Need help? Got something working? Share it!
+
+[![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder)
+
 Trunk Recorder is able to record the calls on a trunked radio system. It uses 1 or more Software Defined Radios (SDRs) to do. The SDRs capture large swatches of RF and then use software to process what was received. GNURadio is used to do this processing and provides lots of convenient RF blocks that can be pieced together to do complex RF processing. Right now it can only record one Trunked System at a time.
 
 Trunk Recorder currently supports the following:
