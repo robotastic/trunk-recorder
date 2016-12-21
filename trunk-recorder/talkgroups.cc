@@ -51,7 +51,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
       std::endl;
     return;
   }
-  
+
   boost::char_separator<char> sep(",");
   typedef boost::tokenizer<boost::char_separator<char> >t_tokenizer;
 
