@@ -927,7 +927,8 @@ int main(void)
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
   p25_parser      = new P25Parser();
 
-
+  tb->lock();
+  load_config();
 
   // Setup the talkgroups from the CSV file
   talkgroups = new Talkgroups();
@@ -940,9 +941,7 @@ int main(void)
     talkgroups->load_talkgroups(system->get_talkgroups_file());
   }
 
-  // }
-  tb->lock();
-  load_config();
+
   if (monitor_system()) {
     tb->unlock();
     tb->start();
