@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/*
+/* 
  * Copyright 2013 <+YOU OR YOUR COMPANY+>.
- *
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -47,9 +47,7 @@ namespace gr {
        * class. op25_repeater::p25_frame_assembler::make is the public interface for
        * creating new instances.
        */
-      virtual void clear() {};
-      virtual  void clear_silence_frame_count() {}
-      static sptr make(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, int silence_frames, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma);
+      static sptr make(const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma);
       virtual void set_xormask(const char*p) {}
       virtual void set_slotid(int slotid) {}
     };
@@ -58,3 +56,4 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_H */
+

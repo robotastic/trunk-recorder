@@ -1,21 +1,21 @@
 /* -*- c++ -*- */
-/*
+/* 
  * Copyright 2005,2006,2007 Free Software Foundation, Inc.
  *
  * Gardner symbol recovery block for GR - Copyright 2010, 2011, 2012, 2013 KA1RBI
- *
+ * 
  * This file is part of OP25 and part of GNU Radio
- *
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -65,7 +65,7 @@ namespace gr {
 		       gr_vector_void_star &output_items);
   void set_verbose (bool verbose) { d_verbose = verbose; }
 
-  //! Sets value of omega and its min and max values
+  //! Sets value of omega and its min and max values 
   void set_omega (float omega);
 
 protected:

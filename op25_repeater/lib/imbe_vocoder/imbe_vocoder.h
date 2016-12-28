@@ -20,7 +20,6 @@
 class imbe_vocoder
 {
 public:
-	void clear();
 	imbe_vocoder(void);	// constructor
 	~imbe_vocoder() {}	// destructor
 	// imbe_encode compresses 160 samples (in unsigned int format)

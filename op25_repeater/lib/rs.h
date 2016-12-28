@@ -11,8 +11,6 @@ void ProcHDU(const_bit_vector A);
 void ProcTDU(const_bit_vector A);
 void ProcLDU1(const_bit_vector A);
 void ProcLDU2(const_bit_vector A);
-
-uint32_t LDU1_to_Src(const_bit_vector A);
 uint32_t gly24128Dec (uint32_t n) ;
 uint32_t gly23127Dec (uint32_t n) ;
 
