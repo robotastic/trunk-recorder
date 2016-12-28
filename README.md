@@ -1,6 +1,16 @@
+<<<<<<< HEAD
 Trunk Recorder - v2.0
 =================
 ### Note: The format for the Config.json file changed in v2.x.
+=======
+
+
+Trunk Recorder
+=================
+Need help? Got something working? Share it!
+
+[![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder)
+>>>>>>> master
 
 Need help? Got something working? Share it!
 
@@ -23,11 +33,22 @@ I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12.
 
 ###Requirements
  - GNURadio 3.7
+<<<<<<< HEAD
 
+**OSX**
+=======
+  
 **OSX**
 
 If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
 
+###Setting up [GNU Radio](http://gnuradio.org/) on a fresh [Ubuntu](http://www.ubuntu.com/) Version 16.04 [Release](http://releases.ubuntu.com/16.04/)
+>>>>>>> master
+
+There are a few methods to install GNU Radio. Source, [PyBOMBS](https://github.com/gnuradio/pybombs), or Distribution package manager. In this setup we will be using apt-get to install GNURadio (fastest method I have used). GNU Radio Version in apt-get as of 07/11/2016 is 3.7.9.  
+Using a package manager is the currently preferred method from the GNU Radio Project, [Installing GNU Radio](http://gnuradio.org/redmine/projects/gnuradio/wiki/InstallingGR).
+
+<<<<<<< HEAD
 ###Setting up [GNU Radio](http://gnuradio.org/) on a fresh [Ubuntu](http://www.ubuntu.com/) Version 16.04 [Release](http://releases.ubuntu.com/16.04/)
 
 There are a few methods to install GNU Radio. Source, [PyBOMBS](https://github.com/gnuradio/pybombs), or Distribution package manager. In this setup we will be using apt-get to install GNURadio (fastest method I have used). GNU Radio Version in apt-get as of 07/11/2016 is 3.7.9.  
@@ -46,6 +67,21 @@ Install GNU Radio with other prerequisites
 Install tools to compile Trunk Recorder  
 `sudo apt-get install git cmake build-essential libboost-all-dev libusb-1.0-0.dev`  
 
+=======
+**Using apt-get to get GNU Radio and other prerequisites for Trunk Recorder**
+
+Update currently install packages
+
+`sudo apt-get update`  
+`sudo apt-get upgrade`
+
+Install GNU Radio with other prerequisites  
+`sudo apt-get install gnuradio gr-osmosdr libhackrf-dev libuhd-dev`  
+
+Install tools to compile Trunk Recorder  
+`sudo apt-get install git cmake build-essential libboost-all-dev libusb-1.0-0.dev`  
+
+>>>>>>> master
 Get source for Trunk Recorder  
 Note: I put all my Radio related code into ~/radio/, change this as you wish  
 
