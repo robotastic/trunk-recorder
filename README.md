@@ -2,15 +2,6 @@
 Trunk Recorder - v2.0
 =================
 ### Note: The format for the Config.json file changed in v2.x.
-=======
-
-
-Trunk Recorder
-=================
-Need help? Got something working? Share it!
-
-[![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder)
->>>>>>> master
 
 Need help? Got something working? Share it!
 
@@ -37,7 +28,7 @@ I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12.
 
 **OSX**
 =======
-  
+
 **OSX**
 
 If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
