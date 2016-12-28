@@ -111,7 +111,7 @@ find_package(UHD)
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to build " ${CMAKE_PROJECT_NAME})
 endif()
- 
+
 ########################################################################
 # Setup boost
 ########################################################################
@@ -124,6 +124,7 @@ SET(BOOST_REQUIRED_COMPONENTS
     program_options
     filesystem
     log
+    regex
 )
 
 if(UNIX AND NOT BOOST_ROOT AND EXISTS "/usr/lib64")
@@ -173,7 +174,52 @@ link_directories(
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall")
 
-add_subdirectory(op25_repeater)
 
-add_executable(recorder main.cc source.cc smartnet_trunking.cc p25_trunking.cc smartnet_parser.cc p25_parser.cc call.cc smartnet_crc.cc smartnet_deinterleave.cc debug_recorder.cc analog_recorder.cc p25_recorder.cc talkgroup.cc talkgroups.cc nonstop_wavfile_sink_impl.cc)
-target_link_libraries(recorder ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)
+
+#include(CheckCXXCompilerFlag)
+#CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+#CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+#if(COMPILER_SUPPORTS_CXX11)
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#elseif(COMPILER_SUPPORTS_CXX0X)
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+#else()
+#        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+#endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing -g")
+
+
+add_subdirectory(op25_repeater)
+list(APPEND trunk_recorder_sources
+  trunk-recorder/main.cc
+  trunk-recorder/source.cc
+  trunk-recorder/uploader.cc
+  trunk-recorder/call.cc
+  trunk-recorder/systems/smartnet_trunking.cc
+  trunk-recorder/systems/p25_trunking.cc
+  trunk-recorder/systems/smartnet_parser.cc
+  trunk-recorder/systems/p25_parser.cc
+  trunk-recorder/systems/smartnet_crc.cc
+  trunk-recorder/systems/smartnet_deinterleave.cc
+  trunk-recorder/systems/smartnet_decode.cc
+  trunk-recorder/systems/system.cc
+  trunk-recorder/recorders/debug_recorder.cc
+  trunk-recorder/recorders/analog_recorder.cc
+  trunk-recorder/recorders/p25_recorder.cc
+  trunk-recorder/talkgroup.cc
+  trunk-recorder/talkgroups.cc
+  gr_blocks/nonstop_wavfile_sink_impl.cc
+  gr_blocks/freq_xlating_fft_filter.cc
+  gr_blocks/agc_impl.cpp
+  gr_blocks/rx_agc_ff.cpp
+
+    gr_blocks/rx_demod_fm.cpp
+    gr_blocks/rx_agc_cc.cpp
+  gr_blocks/latency_probe.cc
+  gr_blocks/latency_tagger.cc )
+
+
+add_executable(recorder ${trunk_recorder_sources})
+
+target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)

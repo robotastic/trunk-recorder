@@ -1,20 +1,20 @@
 /* -*- c++ -*- */
-/* 
+/*
  * GNU Radio interface for Pavel Yazev's Project 25 IMBE Encoder/Decoder
- * 
+ *
  * Copyright 2009 Pavel Yazev E-mail: pyazev@gmail.com
  * Copyright 2009, 2010, 2011, 2012, 2013, 2014 KA1RBI
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -76,6 +76,9 @@ p25p1_voice_decode::p25p1_voice_decode(bool verbose_flag, const char* udp_host, 
     {
     }
 
+void p25p1_voice_decode::clear() {
+  vocoder.clear();
+}
 void p25p1_voice_decode::rxframe(const uint32_t u[])
 {
 	int16_t snd[FRAME];
