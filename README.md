@@ -1,6 +1,6 @@
-Trunk Recorder
+Trunk Recorder - v2.0
 =================
-### Note: The format for the Config.json file has changed.
+### Note: The format for the Config.json file changed in v2.x.
 
 Need help? Got something working? Share it!
 
@@ -23,7 +23,7 @@ I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12.
 
 ###Requirements
  - GNURadio 3.7
-  
+
 **OSX**
 
 If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
@@ -44,7 +44,7 @@ Install GNU Radio with other prerequisites
 `sudo apt-get install gnuradio gr-osmosdr libhackrf-dev libuhd-dev`  
 
 Install tools to compile Trunk Recorder  
-`sudo apt-get install git cmake build-essential libboost-all-dev libusb-1.0-0.dev`  
+`sudo apt-get install git cmake build-essential libboost-all-dev libusb-1.0-0.dev libssl-dev`  
 
 Get source for Trunk Recorder  
 Note: I put all my Radio related code into ~/radio/, change this as you wish  
