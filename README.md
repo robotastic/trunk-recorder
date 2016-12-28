@@ -23,7 +23,7 @@ I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12.
 
 ###Requirements
  - GNURadio 3.7
-  
+
 **OSX**
 
 If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
