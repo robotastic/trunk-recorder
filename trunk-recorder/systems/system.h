@@ -1,8 +1,12 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 #include <stdio.h>
+
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
+
+class analog_recorder;
+typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 
 class System
 {
@@ -20,6 +24,9 @@ public:
 
         std::vector<double> control_channels;
         int current_control_channel;
+        std::vector<double> channels;
+        std::vector<analog_recorder_sptr> conventional_recorders;
+
         bool qpsk_mod;
         smartnet_trunking_sptr smartnet_trunking;
         p25_trunking_sptr p25_trunking;
@@ -42,7 +49,11 @@ public:
         void add_control_channel(double channel);
         double get_next_control_channel();
         double get_current_control_channel();
-
+        int channel_count();
+        void add_channel(double channel);
+        void add_conventional_recorder(analog_recorder_sptr rec);
+        std::vector<analog_recorder_sptr> get_conventional_recorders();
+        std::vector<double> get_channels();
         System(int sys_id );
 };
 #endif

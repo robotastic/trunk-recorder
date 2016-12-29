@@ -24,12 +24,13 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include "talkgroups.h"
 #include "source.h"
 
-#include "call.h"
+
 #include "config.h"
 
 #include "recorders/recorder.h"
@@ -133,23 +134,36 @@ void load_config()
 
       default_script << "sys_" << sys_count;
 
-      BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-      BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
-      {
-        double control_channel = sub_node.second.get<double>("", 0);
+      system->set_system_type(node.second.get<std::string>("type"));
+      BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
-        BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
-        system->add_control_channel(control_channel);
+      if (system->get_system_type() == "conventional") {
+        BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
+        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("channels"))
+        {
+          double channel = sub_node.second.get<double>("", 0);
+
+          BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
+          system->add_channel(channel);
+        }
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
+        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
+        {
+          double control_channel = sub_node.second.get<double>("", 0);
+
+          BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
+          system->add_control_channel(control_channel);
+        }
       }
       BOOST_LOG_TRIVIAL(info);
+
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
       system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
-      system->set_system_type(node.second.get<std::string>("type"));
-      BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
@@ -189,7 +203,7 @@ void load_config()
       int    lna_gain       = node.second.get<int>("lnaGain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
-      double analog_levels  = node.second.get<double>("analogLevels", 1.0);
+      double analog_levels  = node.second.get<double>("analogLevels", 8.0);
       double squelch_db     = node.second.get<double>("squelch", 0);
       std::string antenna   = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
@@ -415,6 +429,52 @@ void stop_inactive_recorders() {
       ++it;
     } // if rx is active
   }   // foreach loggers
+
+  for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+    System *system = *sys_it;
+
+    if (system->get_system_type() == "conventional") {
+      std::vector<analog_recorder_sptr> recorders = system->get_conventional_recorders();
+
+      for (vector<analog_recorder_sptr>::iterator rec_it = recorders.begin(); rec_it != recorders.end(); rec_it++) {
+        analog_recorder_sptr recorder = *rec_it;
+
+        if (recorder->get_current_length() > 1.0) {    // checks to see if any
+          BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  recorder->get_current_length() << " Idle: " << recorder->is_idle() << " Count: " << recorder->get_idle_count();                                            // recording has happened
+          if (recorder->is_idle()) {                   // if it is idle, that
+                                                       // means the squelch is
+                                                       // on and it has stopped
+                                                       // recording
+            recorder->increase_idle_count();           // increase the number of
+                                                       // periods it has not
+                                                       // been recording for
+          } else if (recorder->get_idle_count() > 0) { // if it starts recording
+                                                       // again, then reset the
+                                                       // idle count
+            recorder->reset_idle_count();
+          }
+
+          if (recorder->get_idle_count() > 5) { // if no additional recording
+                                                // has happened in the past X
+                                                // periods, stop and open new
+                                                // file
+            recorder->stop();
+              BOOST_LOG_TRIVIAL(info) << "Conventional Recorder: Saved recording on: " << recorder->get_freq();
+
+            char   filename[160];
+            time_t rawtime;
+            time(&rawtime);
+            tm *ltm = localtime(&rawtime);
+            std::stringstream path_stream;
+            path_stream << config.capture_dir << "/" << system->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
+            boost::filesystem::create_directories(path_stream.str());
+            sprintf(filename, "%s/%ld_%g.wav", path_stream.str().c_str(), rawtime, recorder->get_freq());
+            recorder->start(filename);
+          }
+        }
+      }
+    }
+  }
 
 
   /*     for (vector<Source *>::iterator it = sources.begin(); it !=
@@ -765,6 +825,8 @@ void retune_system(System *system) {
 void check_message_count(float timeDiff) {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys                     = (System *)*it;
+
+    if (sys->system_type != "conventional") {
     float   msgs_decoded_per_second = sys->message_count / timeDiff;
 
     if (msgs_decoded_per_second < 1) {
@@ -779,6 +841,7 @@ void check_message_count(float timeDiff) {
       BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
     }
     sys->message_count = 0;
+    }
   }
 }
 
@@ -805,16 +868,16 @@ void monitor_messages() {
 
     msg = msg_queue->delete_head_nowait();
 
+    if ((currentTime - lastTalkgroupPurge) >= 1.0)
+    {
+      stop_inactive_recorders();
+      lastTalkgroupPurge = currentTime;
+    }
+
     if (msg != 0) {
       sys_id = msg->arg1();
       sys    = find_system(sys_id);
       sys->message_count++;
-
-      if ((currentTime - lastTalkgroupPurge) >= 1.0)
-      {
-        stop_inactive_recorders();
-        lastTalkgroupPurge = currentTime;
-      }
 
       if (sys) {
         if (sys->get_system_type() == "smartnet") {
@@ -858,49 +921,85 @@ bool monitor_system() {
   bool system_added = false;
   Source *source    = NULL;
 
-  for (vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
-    System *system               = *it;
+  for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+    System *system               = *sys_it;
     bool    source_found         = false;
-    double  control_channel_freq = system->get_current_control_channel();
-    BOOST_LOG_TRIVIAL(info) << "Control Channel: " << control_channel_freq;
 
-    for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-      source = *it;
 
-      if ((source->get_min_hz() <= control_channel_freq) &&
-          (source->get_max_hz() >= control_channel_freq)) {
-        // The source can cover the System's control channel, break out of the
-        // For Loop
-        source_found = true;
-        break;
+    if (system->get_system_type() == "conventional") {
+      std::vector<double> channels = system->get_channels();
+
+      for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
+        double channel = *chan_it;
+
+        for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+          source = *src_it;
+
+          if ((source->get_min_hz() <= channel) &&
+              (source->get_max_hz() >= channel)) {
+            // The source can cover the System's control channel, break out of
+            // the For Loop
+            system_added = true;
+            char filename[160];
+            analog_recorder_sptr rec;
+            time_t rawtime;
+            time(&rawtime);
+            tm *ltm = localtime(&rawtime);
+            std::stringstream path_stream;
+            path_stream << config.capture_dir << "/" << system->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
+            boost::filesystem::create_directories(path_stream.str());
+            sprintf(filename, "%s/%ld_%g.wav", path_stream.str().c_str(), rawtime, channel);
+
+
+            rec = source->create_conventional_recorder(tb);
+            rec->start(filename, channel);
+            system->add_conventional_recorder(rec);
+
+            break;
+          }
+        }
       }
-    }
+    } else {
+      double  control_channel_freq = system->get_current_control_channel();
+      BOOST_LOG_TRIVIAL(info) << "Control Channel: " << control_channel_freq;
+      for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+        source = *src_it;
 
-
-    if (source_found) {
-      system_added = true;
-
-      if (system->get_system_type() == "smartnet") {
-        // what you really need to do is go through all of the sources to find
-        // the one with the right frequencies
-        system->smartnet_trunking = make_smartnet_trunking(control_channel_freq,
-                                                           source->get_center(),
-                                                           source->get_rate(),
-                                                           msg_queue,
-                                                           system->get_sys_id());
-        tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
+        if ((source->get_min_hz() <= control_channel_freq) &&
+            (source->get_max_hz() >= control_channel_freq)) {
+          // The source can cover the System's control channel, break out of the
+          // For Loop
+          source_found = true;
+          break;
+        }
       }
 
-      if (system->get_system_type() == "p25") {
-        // what you really need to do is go through all of the sources to find
-        // the one with the right frequencies
-        system->p25_trunking = make_p25_trunking(control_channel_freq,
-                                                 source->get_center(),
-                                                 source->get_rate(),
-                                                 msg_queue,
-                                                 source->get_qpsk_mod(),
-                                                 system->get_sys_id());
-        tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
+
+      if (source_found) {
+        system_added = true;
+
+        if (system->get_system_type() == "smartnet") {
+          // what you really need to do is go through all of the sources to find
+          // the one with the right frequencies
+          system->smartnet_trunking = make_smartnet_trunking(control_channel_freq,
+                                                             source->get_center(),
+                                                             source->get_rate(),
+                                                             msg_queue,
+                                                             system->get_sys_id());
+          tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
+        }
+
+        if (system->get_system_type() == "p25") {
+          // what you really need to do is go through all of the sources to find
+          // the one with the right frequencies
+          system->p25_trunking = make_p25_trunking(control_channel_freq,
+                                                   source->get_center(),
+                                                   source->get_rate(),
+                                                   msg_queue,
+                                                   source->get_qpsk_mod(),
+                                                   system->get_sys_id());
+          tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
+        }
       }
     }
   }
@@ -955,6 +1054,7 @@ int main(void)
     tb->stop();
     tb->wait();
   } else {
+    tb->unlock();
     BOOST_LOG_TRIVIAL(error) << "Unable to setup Control Channel Monitor" <<  std::endl;
   }
 

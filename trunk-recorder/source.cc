@@ -177,6 +177,16 @@ double Source::get_squelch_db() {
   return squelch_db;
 }
 
+
+analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
+
+    analog_recorder_sptr log = make_analog_recorder(this);
+    log->set_conventional(true);
+    analog_recorders.push_back(log);
+    tb->connect(source_block, 0, log, 0);
+    return log;
+}
+
 void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
   max_analog_recorders = r;
 

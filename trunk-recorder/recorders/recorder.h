@@ -42,7 +42,7 @@
 
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
 
-class Call;
+
 #include "../state.h"
 #include "../call.h"
 
