@@ -424,9 +424,10 @@ void stop_inactive_recorders() {
     Call *call = *it;
 
     if (call->is_conventional() && call->get_recorder()) {
-      BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();                                            // recording has happened
 
       if (call->get_current_length() > 1.0) {    // checks to see if any
+        BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();                                            // recording has happened
+
         if (call->get_recorder()->is_idle()) {                   // if it is idle, that
                                                      // means the squelch is
                                                      // on and it has stopped
@@ -928,6 +929,7 @@ bool monitor_system() {
             system_added = true;
 
             Call *call = new Call(talkgroup, channel, system, config);
+            talkgroup++;
             call->set_conventional(true);
 
             analog_recorder_sptr rec;
