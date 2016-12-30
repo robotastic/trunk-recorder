@@ -21,9 +21,7 @@ analog_recorder::analog_recorder(Source *src)
   samp_rate = source->get_rate();
   talkgroup = 0;
   num       = 0;
-  idle_count = 0;
   state     = inactive;
-  conventional = false;
 
   timestamp = time(NULL);
   starttime = time(NULL);
@@ -197,25 +195,6 @@ bool analog_recorder::is_active() {
   }
 }
 
-bool analog_recorder::is_conventional() {
-  return conventional;
-}
-void analog_recorder::set_conventional(bool conv) {
-  conventional = conv;
-}
-
-int analog_recorder::get_idle_count() {
-  return idle_count;
-}
-
-void analog_recorder::reset_idle_count() {
-  idle_count = 0;
-}
-
-void analog_recorder::increase_idle_count() {
-  idle_count++;
-}
-
 bool analog_recorder::is_idle() {
   if (state == active) {
     return !squelch->unmuted();
@@ -243,6 +222,13 @@ long analog_recorder::elapsed() {
   return time(NULL) - starttime;
 }
 
+time_t analog_recorder::get_start_time() {
+  return starttime;
+}
+
+char * analog_recorder::get_filename() {
+  return filename;
+}
 double analog_recorder::get_current_length() {
   return wav_sink->length_in_seconds();
 }
@@ -256,7 +242,6 @@ void analog_recorder::tune_offset(double f) {
 
 void analog_recorder::start(char *filename) {
   starttime = time(NULL);
-  reset_idle_count();
 
   wav_sink->open(filename);
 
@@ -271,7 +256,6 @@ void analog_recorder::start(char *filename, double f) {
   talkgroup = 0;
   freq      = f;
   num       = 0;
-  reset_idle_count();
 
   prefilter->set_center_freq(freq - center); // have to flip for 3.7
 

@@ -18,7 +18,7 @@ struct Call_Freq {
 
 class Recorder;
 
-#include "uploader.h"
+#include "uploaders/call_uploader.h"
 #include "config.h"
 #include "state.h"
 #include "recorders/recorder.h"
@@ -33,6 +33,7 @@ public:
 								Call( long t, double f, System *s, Config c);
 								Call( TrunkMessage message, System *s, Config c);
 								~Call();
+								void restart_call();
 								void end_call();
 								void set_debug_recorder(Recorder *r);
 								Recorder * get_debug_recorder();
@@ -50,11 +51,14 @@ public:
 								Call_Freq *get_freq_list();
 								long get_freq_count();
 								void update(TrunkMessage message);
+								int get_idle_count();
+								void increase_idle_count();
+								void reset_idle_count();
 								int since_last_update();
 								long stopping_elapsed();
 								long elapsed();
 								long get_start_time();
-
+								double get_current_length();
 								long get_stop_time();
 								void set_debug_recording(bool m);
 								bool get_debug_recording();
@@ -62,6 +66,8 @@ public:
 								State get_state();
 								void set_tdma(int m);
 								int get_tdma();
+								bool is_conventional();
+								void set_conventional(bool conv);
 								void set_encrypted(bool m);
 								bool get_encrypted();
 								void set_emergency(bool m);
@@ -74,12 +80,13 @@ private:
 								Call_Freq freq_list[50];
 								long freq_count;
 								time_t last_update;
-
+								int idle_count;
 								time_t stop_time;
 								time_t start_time;
 								bool debug_recording;
 								bool encrypted;
 								bool emergency;
+								bool conventional;
 								char filename[160];
 								char converted_filename[160];
 								char status_filename[160];

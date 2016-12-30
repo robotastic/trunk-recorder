@@ -72,17 +72,14 @@ public:
 								void stop();
 								double get_freq();
 								double get_squelch_in();
-								int get_idle_count();
-								void increase_idle_count();
-								void reset_idle_count();
-								bool is_idle();
 								Source *get_source();
 								long get_talkgroup();
+								time_t get_start_time();
+								char *get_filename();
 								double get_current_length();
 								bool is_active();
 
-								bool is_conventional();
-								void set_conventional(bool conv);
+								bool is_idle();
 								State get_state();
 								int lastupdate();
 								long elapsed();
@@ -90,10 +87,10 @@ public:
 private:
 								double center, freq;
 								bool muted;
-								bool conventional;
+
 								long talkgroup;
 								long samp_rate;
-								int idle_count;
+
 								double squelch_db;
 								time_t timestamp;
 								time_t starttime;

@@ -194,7 +194,8 @@ add_subdirectory(op25_repeater)
 list(APPEND trunk_recorder_sources
   trunk-recorder/main.cc
   trunk-recorder/source.cc
-  trunk-recorder/uploader.cc
+  trunk-recorder/uploaders/uploader.cc
+  trunk-recorder/uploaders/call_uploader.cc
   trunk-recorder/call.cc
   trunk-recorder/systems/smartnet_trunking.cc
   trunk-recorder/systems/p25_trunking.cc

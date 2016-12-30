@@ -46,6 +46,8 @@
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
 
+#include "uploaders/conv_uploader.h"
+
 #include <osmosdr/source.h>
 
 #include <gnuradio/uhd/usrp_source.h>
@@ -421,6 +423,33 @@ void stop_inactive_recorders() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
+    if (call->is_conventional() && call->get_recorder()) {
+      BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();                                            // recording has happened
+
+      if (call->get_current_length() > 1.0) {    // checks to see if any
+        if (call->get_recorder()->is_idle()) {                   // if it is idle, that
+                                                     // means the squelch is
+                                                     // on and it has stopped
+                                                     // recording
+          call->increase_idle_count();           // increase the number of
+                                                     // periods it has not
+                                                     // been recording for
+        } else if (call->get_idle_count() > 0) { // if it starts recording
+                                                     // again, then reset the
+                                                     // idle count
+          call->reset_idle_count();
+        }
+
+        if (call->get_idle_count() > 5) { // if no additional recording
+                                              // has happened in the past X
+                                              // periods, stop and open new
+                                              // file
+          call->end_call();
+          call->restart_call();
+      }
+    }
+    ++it;
+    } else {
     if (call->since_last_update() > config.call_timeout) {
       call->end_call();
       it = calls.erase(it);
@@ -429,52 +458,9 @@ void stop_inactive_recorders() {
       ++it;
     } // if rx is active
   }   // foreach loggers
+}
 
-  for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
-    System *system = *sys_it;
 
-    if (system->get_system_type() == "conventional") {
-      std::vector<analog_recorder_sptr> recorders = system->get_conventional_recorders();
-
-      for (vector<analog_recorder_sptr>::iterator rec_it = recorders.begin(); rec_it != recorders.end(); rec_it++) {
-        analog_recorder_sptr recorder = *rec_it;
-
-        if (recorder->get_current_length() > 1.0) {    // checks to see if any
-          BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  recorder->get_current_length() << " Idle: " << recorder->is_idle() << " Count: " << recorder->get_idle_count();                                            // recording has happened
-          if (recorder->is_idle()) {                   // if it is idle, that
-                                                       // means the squelch is
-                                                       // on and it has stopped
-                                                       // recording
-            recorder->increase_idle_count();           // increase the number of
-                                                       // periods it has not
-                                                       // been recording for
-          } else if (recorder->get_idle_count() > 0) { // if it starts recording
-                                                       // again, then reset the
-                                                       // idle count
-            recorder->reset_idle_count();
-          }
-
-          if (recorder->get_idle_count() > 5) { // if no additional recording
-                                                // has happened in the past X
-                                                // periods, stop and open new
-                                                // file
-            recorder->stop();
-              BOOST_LOG_TRIVIAL(info) << "Conventional Recorder: Saved recording on: " << recorder->get_freq();
-
-            char   filename[160];
-            time_t rawtime;
-            time(&rawtime);
-            tm *ltm = localtime(&rawtime);
-            std::stringstream path_stream;
-            path_stream << config.capture_dir << "/" << system->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
-            boost::filesystem::create_directories(path_stream.str());
-            sprintf(filename, "%s/%ld_%g.wav", path_stream.str().c_str(), rawtime, recorder->get_freq());
-            recorder->start(filename);
-          }
-        }
-      }
-    }
-  }
 
 
   /*     for (vector<Source *>::iterator it = sources.begin(); it !=
@@ -928,7 +914,7 @@ bool monitor_system() {
 
     if (system->get_system_type() == "conventional") {
       std::vector<double> channels = system->get_channels();
-
+      int talkgroup = 1;
       for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
         double channel = *chan_it;
 
@@ -940,20 +926,17 @@ bool monitor_system() {
             // The source can cover the System's control channel, break out of
             // the For Loop
             system_added = true;
-            char filename[160];
+
+            Call *call = new Call(talkgroup, channel, system, config);
+            call->set_conventional(true);
+
             analog_recorder_sptr rec;
-            time_t rawtime;
-            time(&rawtime);
-            tm *ltm = localtime(&rawtime);
-            std::stringstream path_stream;
-            path_stream << config.capture_dir << "/" << system->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
-            boost::filesystem::create_directories(path_stream.str());
-            sprintf(filename, "%s/%ld_%g.wav", path_stream.str().c_str(), rawtime, channel);
-
-
             rec = source->create_conventional_recorder(tb);
-            rec->start(filename, channel);
+            rec->start(call, talkgroup+100);
+            call->set_recorder((Recorder *) rec.get());
+            call->set_state(recording);
             system->add_conventional_recorder(rec);
+            calls.push_back(call);
 
             break;
           }
