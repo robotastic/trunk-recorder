@@ -46,7 +46,6 @@
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
 
-#include "uploaders/conv_uploader.h"
 
 #include <osmosdr/source.h>
 
