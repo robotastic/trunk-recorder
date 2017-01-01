@@ -92,9 +92,7 @@ char * nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
 }
 
-bool
-nonstop_wavfile_sink_impl::open(const char *filename)
-{
+bool nonstop_wavfile_sink_impl::open(const char *filename) {
   int d_first_sample_pos;
   unsigned d_samples_per_chan;
   gr::thread::scoped_lock guard(d_mutex);
@@ -155,12 +153,9 @@ nonstop_wavfile_sink_impl::open(const char *filename)
 
     // std::cout << "Adding Wav header, bytes per sample: " <<
     // d_bytes_per_sample << std::endl;
-    if (!wavheader_write(d_fp,
-                         d_sample_rate,
-                         d_nchans,
-                         d_bytes_per_sample)) {
+    if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
       fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
-      exit(-1);
+      return false;
     }
   }
 
@@ -217,11 +212,7 @@ bool nonstop_wavfile_sink_impl::stop()
   return true;
 }
 
-int
-nonstop_wavfile_sink_impl::work(int                        noutput_items,
-                                gr_vector_const_void_star& input_items,
-                                gr_vector_void_star      & output_items)
-{
+int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star & output_items) {
   float **in         = (float **)&input_items[0];
   int     n_in_chans = input_items.size();
 
@@ -272,7 +263,7 @@ nonstop_wavfile_sink_impl::work(int                        noutput_items,
       if (feof(d_fp) || ferror(d_fp)) {
         fprintf(stderr, "[%s] file i/o error\n", __FILE__);
         close();
-        exit(-1);
+        return nwritten;
       }
       d_sample_count++;
     }
@@ -283,8 +274,7 @@ nonstop_wavfile_sink_impl::work(int                        noutput_items,
   return nwritten;
 }
 
-short int
-nonstop_wavfile_sink_impl::convert_to_short(float sample)
+short int nonstop_wavfile_sink_impl::convert_to_short(float sample)
 {
   sample += d_normalize_shift;
   sample *= d_normalize_fac;

@@ -424,44 +424,54 @@ void stop_inactive_recorders() {
     Call *call = *it;
 
     if (call->is_conventional() && call->get_recorder()) {
+      if (call->get_current_length() > 1.0) {                                                                                                                           //
+                                                                                                                                                                        // checks
+                                                                                                                                                                        // to
+                                                                                                                                                                        // see
+                                                                                                                                                                        // if
+                                                                                                                                                                        // any
+        BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count(); //
+                                                                                                                                                                        // recording
+                                                                                                                                                                        // has
+                                                                                                                                                                        // happened
 
-      if (call->get_current_length() > 1.0) {    // checks to see if any
-        BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();                                            // recording has happened
-
-        if (call->get_recorder()->is_idle()) {                   // if it is idle, that
-                                                     // means the squelch is
-                                                     // on and it has stopped
-                                                     // recording
+        if (call->get_recorder()->is_idle()) {                                                                                                                          //
+                                                                                                                                                                        // if
+                                                                                                                                                                        // it
+                                                                                                                                                                        // is
+                                                                                                                                                                        // idle,
+                                                                                                                                                                        // that
+          // means the squelch is
+          // on and it has stopped
+          // recording
           call->increase_idle_count();           // increase the number of
-                                                     // periods it has not
-                                                     // been recording for
+          // periods it has not
+          // been recording for
         } else if (call->get_idle_count() > 0) { // if it starts recording
-                                                     // again, then reset the
-                                                     // idle count
+          // again, then reset the
+          // idle count
           call->reset_idle_count();
         }
 
         if (call->get_idle_count() > 5) { // if no additional recording
-                                              // has happened in the past X
-                                              // periods, stop and open new
-                                              // file
+          // has happened in the past X
+          // periods, stop and open new
+          // file
           call->end_call();
           call->restart_call();
+        }
       }
-    }
-    ++it;
-    } else {
-    if (call->since_last_update() > config.call_timeout) {
-      call->end_call();
-      it = calls.erase(it);
-      delete call;
-    } else {
       ++it;
-    } // if rx is active
-  }   // foreach loggers
-}
-
-
+    } else {
+      if (call->since_last_update() > config.call_timeout) {
+        call->end_call();
+        it = calls.erase(it);
+        delete call;
+      } else {
+        ++it;
+      } // if rx is active
+    }   // foreach loggers
+  }
 
 
   /*     for (vector<Source *>::iterator it = sources.begin(); it !=
@@ -811,23 +821,23 @@ void retune_system(System *system) {
 
 void check_message_count(float timeDiff) {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System *sys                     = (System *)*it;
+    System *sys = (System *)*it;
 
     if (sys->system_type != "conventional") {
-    float   msgs_decoded_per_second = sys->message_count / timeDiff;
+      float msgs_decoded_per_second = sys->message_count / timeDiff;
 
-    if (msgs_decoded_per_second < 1) {
-      if (sys->control_channel_count() > 1) {
-        retune_system(sys);
-      } else {
-        BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
+      if (msgs_decoded_per_second < 1) {
+        if (sys->control_channel_count() > 1) {
+          retune_system(sys);
+        } else {
+          BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
+        }
       }
-    }
 
-    if (msgs_decoded_per_second < 3) {
-      BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
-    }
-    sys->message_count = 0;
+      if (msgs_decoded_per_second < 3) {
+        BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
+      }
+      sys->message_count = 0;
     }
   }
 }
@@ -909,13 +919,14 @@ bool monitor_system() {
   Source *source    = NULL;
 
   for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
-    System *system               = *sys_it;
-    bool    source_found         = false;
+    System *system       = *sys_it;
+    bool    source_found = false;
 
 
     if (system->get_system_type() == "conventional") {
       std::vector<double> channels = system->get_channels();
-      int talkgroup = 1;
+      int talkgroup                = 1;
+
       for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
         double channel = *chan_it;
 
@@ -924,66 +935,70 @@ bool monitor_system() {
 
           if ((source->get_min_hz() <= channel) &&
               (source->get_max_hz() >= channel)) {
-            // The source can cover the System's control channel, break out of
-            // the For Loop
-            system_added = true;
+            // The source can cover the System's control channel
 
+            system_added = true;
+            if (source->get_squelch_db() == 0 ) {
+                BOOST_LOG_TRIVIAL(error) << "Squelch needs to be specified for the Source for Conventional Systems";
+                system_added = false;
+            } else {
+              system_added = true;
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "Monitoring Conventional Channel: " << channel << " Talkgroup: " << talkgroup;
             Call *call = new Call(talkgroup, channel, system, config);
             talkgroup++;
             call->set_conventional(true);
 
             analog_recorder_sptr rec;
             rec = source->create_conventional_recorder(tb);
-            rec->start(call, talkgroup+100);
-            call->set_recorder((Recorder *) rec.get());
+            rec->start(call, talkgroup + 100);
+            call->set_recorder((Recorder *)rec.get());
             call->set_state(recording);
             system->add_conventional_recorder(rec);
             calls.push_back(call);
 
+            // break out of the for loop
             break;
           }
         }
       }
     } else {
-      double  control_channel_freq = system->get_current_control_channel();
+      double control_channel_freq = system->get_current_control_channel();
       BOOST_LOG_TRIVIAL(info) << "Control Channel: " << control_channel_freq;
+
       for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
         source = *src_it;
 
         if ((source->get_min_hz() <= control_channel_freq) &&
             (source->get_max_hz() >= control_channel_freq)) {
-          // The source can cover the System's control channel, break out of the
-          // For Loop
-          source_found = true;
+          // The source can cover the System's control channel
+          system_added = true;
+
+          if (system->get_system_type() == "smartnet") {
+            // what you really need to do is go through all of the sources to find
+            // the one with the right frequencies
+            system->smartnet_trunking = make_smartnet_trunking(control_channel_freq,
+                                                               source->get_center(),
+                                                               source->get_rate(),
+                                                               msg_queue,
+                                                               system->get_sys_id());
+            tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
+          }
+
+          if (system->get_system_type() == "p25") {
+            // what you really need to do is go through all of the sources to find
+            // the one with the right frequencies
+            system->p25_trunking = make_p25_trunking(control_channel_freq,
+                                                     source->get_center(),
+                                                     source->get_rate(),
+                                                     msg_queue,
+                                                     source->get_qpsk_mod(),
+                                                     system->get_sys_id());
+            tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
+          }
+          // break out of the For Loop
           break;
-        }
-      }
-
-
-      if (source_found) {
-        system_added = true;
-
-        if (system->get_system_type() == "smartnet") {
-          // what you really need to do is go through all of the sources to find
-          // the one with the right frequencies
-          system->smartnet_trunking = make_smartnet_trunking(control_channel_freq,
-                                                             source->get_center(),
-                                                             source->get_rate(),
-                                                             msg_queue,
-                                                             system->get_sys_id());
-          tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
-        }
-
-        if (system->get_system_type() == "p25") {
-          // what you really need to do is go through all of the sources to find
-          // the one with the right frequencies
-          system->p25_trunking = make_p25_trunking(control_channel_freq,
-                                                   source->get_center(),
-                                                   source->get_rate(),
-                                                   msg_queue,
-                                                   source->get_qpsk_mod(),
-                                                   system->get_sys_id());
-          tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
         }
       }
     }
@@ -1017,7 +1032,7 @@ int main(void)
   // Setup the talkgroups from the CSV file
   talkgroups = new Talkgroups();
 
-  // if (talkgroups_file.length() > 0) {
+
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups..." << std::endl;
 
   for (vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
@@ -1040,7 +1055,7 @@ int main(void)
     tb->wait();
   } else {
     tb->unlock();
-    BOOST_LOG_TRIVIAL(error) << "Unable to setup Control Channel Monitor" <<  std::endl;
+    BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." <<  std::endl;
   }
 
   return 0;

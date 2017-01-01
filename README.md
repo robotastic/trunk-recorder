@@ -1,4 +1,4 @@
-Trunk Recorder - v2.0
+Trunk Recorder - v2.1
 =================
 ### Note: The format for the Config.json file changed in v2.x.
 
@@ -6,13 +6,14 @@ Need help? Got something working? Share it!
 
 [![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder)
 
-Trunk Recorder is able to record the calls on a trunked radio system. It uses 1 or more Software Defined Radios (SDRs) to do. The SDRs capture large swatches of RF and then use software to process what was received. GNURadio is used to do this processing and provides lots of convenient RF blocks that can be pieced together to do complex RF processing. Right now it can only record one Trunked System at a time.
+Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swatches of RF and then use software to process what was received. GNURadio is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. Multiple radio systems can be recorded at the same time.
 
 Trunk Recorder currently supports the following:
  - P25 & SmartNet Trunking Systems
+ - Conventional analog systems, where each group has a dedicated RF channel
  - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
- - Ettus USRP
- - P25 Phase 1 & Analog voice
+ - Ettus USRPs
+ - P25 Phase 1 & Analog voice channels
 
 I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
@@ -81,14 +82,14 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
         "antenna": "TX/RX",
         "digitalRecorders": 2,
         "driver": "usrp",
-        "device": ""
+        "device": "",
+        "modulation": "qpsk"
     }],
     "systems": [{
         "control_channels": [855462500],
         "type": "p25",
         "talkgroupsFile": "ChanList.csv"
-    }],
-    "modulation": "QPSK"
+    }]
 }
 ```
 Here are the different arguments:
@@ -96,10 +97,12 @@ Here are the different arguments:
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
    - **squelch** - Analog Squelch, my rtl-sdr's are around -60. [0 = Disabled]
-   - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually recieve it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
+   - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
    - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
-   - **ifGain** - [hackrf only] sets the ifgain.
-   - **bbGain** - [hackrf only] sets the bbgain.
+   - **ifGain** - [hackrf only] sets the if gain.
+   - **bbGain** - [hackrf only] sets the bb gain.
+   - **mixGain** - [AirSpy only] sets the mix gain.
+   - **lnaGain** - [AirSpy only] sets the lna gain.
    - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
    - **digitLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 8.
@@ -110,12 +113,13 @@ Here are the different arguments:
    - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
    - **device** - osmosdr device name and possibly serial number or index of the device, see [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for each device and parameters. You only need to do this if there are more than one. (bladerf=00001 for BladeRF with serial 00001 or rtl=00923838 for RTL-SDR with serial 00923838, just airspy for an airspy)
  - **systems** - An array of JSON objects that define the trunking systems that will be recorded. The following options are used to configure each System.
-   - **control_channels** - an array of the control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel.
-   - **type** - the type of trunking system. The options are *smartnet* & *p25*.
+   - **control_channels** - *(For trunked systems)* an array of the control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel.
+   - **channels** - *(For conventional systems)* an array of the channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used.
+   - **type** - the type of trunking system. The options are *smartnet*, *p25* & *conventional*.
    - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
- - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** [digital/analog].
+ - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** the options are *digital* or *analog*.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
 
@@ -139,7 +143,7 @@ Most trunk systems use a wide range of spectrum. Often a more powerful SDR is ne
 
 In addition to being able to use a cheaper SDR, it also helps with performance. When a single SDR is used, each of the Recorders gets fed all of the sampled signal. Each Recorder needs to cut down the multi-megasamples per second into a small 12.5Khz sliver. When you use multiple SDRs, each SDR is capturing only partial slice of the system so the Recorders have to cut down a much smaller amount of sample to get to the sliver they are interested in. This menans that you can have a lot more recorders running!
 
-To user mutliple SDRs, simply define additional Sources in the Source array. The `confing-multi-rtl.json.sample` has an example of how to do this. In order to tell the different SDRs apart and make sure they get the right error correction value, give them a serial number using the `rtl_eeprom -s` command and then specifying that number in the `device` setting for that Source.
+To use mutliple SDRs, simply define additional Sources in the Source array. The `confing-multi-rtl.json.sample` has an example of how to do this. In order to tell the different SDRs apart and make sure they get the right error correction value, give them a serial number using the `rtl_eeprom -s` command and then specifying that number in the `device` setting for that Source, `rtl=2`.
 
 ###How Trunking Works
 Here is a little background on trunking radio systems, for those not familiar. In a Trunking system, one of the radio channels is set aside for to manage the assignment of radio channels to talkgroups. When someone wants to talk, they send a message on the control channel. The system then assigns them a channel and sends a Channel Grant message on the control channel. This lets the talker know what channel to transmit on and anyone who is a member of the talkgroup know that they should listen to that channel.
