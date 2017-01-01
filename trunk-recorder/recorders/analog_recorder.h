@@ -40,6 +40,9 @@
 #include <gnuradio/blocks/head.h>
 #include <gnuradio/blocks/file_sink.h>
 
+class Source;
+class analog_recorder;
+
 #include "recorder.h"
 #include "../config.h"
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
@@ -48,8 +51,6 @@
 
 #include "../../gr_blocks/rx_demod_fm.h"
 
-class Source;
-class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 
 #include "../source.h"
@@ -71,8 +72,12 @@ public:
 								double get_squelch_in();
 								Source *get_source();
 								long get_talkgroup();
+								time_t get_start_time();
+								char *get_filename();
 								double get_current_length();
 								bool is_active();
+
+								bool is_idle();
 								State get_state();
 								int lastupdate();
 								long elapsed();
@@ -80,8 +85,10 @@ public:
 private:
 								double center, freq;
 								bool muted;
+
 								long talkgroup;
 								long samp_rate;
+
 								double squelch_db;
 								time_t timestamp;
 								time_t starttime;
@@ -97,11 +104,11 @@ private:
 								std::vector<float> resampler_taps;
 								std::vector<float> audio_resampler_taps;
 								std::vector<float> sym_taps;
-								
+
 								Config *config;
 								Source *source;
-								gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
-								//freq_xlating_fft_filter_sptr prefilter;
+								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+								freq_xlating_fft_filter_sptr prefilter;
 								/* GR blocks */
 								gr::filter::iir_filter_ffd::sptr deemph;
 								gr::filter::fir_filter_ccf::sptr lpf;
