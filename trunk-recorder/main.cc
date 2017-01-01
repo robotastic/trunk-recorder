@@ -424,10 +424,7 @@ void stop_inactive_recorders() {
 
     if (call->is_conventional() && call->get_recorder()) {
       if (call->get_current_length() > 1.0) {                                                                                                                           //
-                                                                                                                                                                        // checks
-                                                                                                                                                                        // to
-                                                                                                                                                                        // see
-                                                                                                                                                                        // if
+                                                                                                                                    // if
                                                                                                                                                                         // any
         BOOST_LOG_TRIVIAL(info) << "Recorder: " <<  call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count(); //
                                                                                                                                                                         // recording
