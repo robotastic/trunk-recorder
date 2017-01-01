@@ -36,6 +36,7 @@ Call::Call(long t, double f, System *s, Config c) {
   tdma            = false;
   encrypted       = false;
   emergency       = false;
+  conventional    = false;
 
   this->create_filename();
 }
@@ -59,6 +60,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   tdma            = message.tdma;
   encrypted       = message.encrypted;
   emergency       = message.emergency;
+  conventional    = false;
 
   this->create_filename();
 }
