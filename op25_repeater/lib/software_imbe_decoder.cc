@@ -1023,7 +1023,9 @@ software_imbe_decoder::decode_spectral_amplitudes(int Start3, int Start8)
          ell = ell + 1; T[ell] = Tmp;
       }
    }
-   if(ell != L) exit(1);
+	 if(ell != L) return;
+
+	 //if(ell != L) exit(1);
 
 	// *******
 	// we have the residuals in T(ell); now to sum with the predictions
@@ -1204,14 +1206,17 @@ software_imbe_decoder::rearrange(uint32_t u0, uint32_t u1, uint32_t u2, uint32_t
 
    w0 = 4 * M_PI /(bee[0] + 39.5);
 
-   L =(int)(.9254 * floorf((M_PI / w0) + .25)); if(L < 9 || L > 56) exit(2);
+   L =(int)(.9254 * floorf((M_PI / w0) + .25));
+
+	 //if(L < 9 || L > 56) exit(2);
+	 if(L < 9 || L > 56) return 2;
 
    if( L > 36) {
       K = 12;
    } else {
       K =((L + 2) / 3);
-      if(K > 12)
-         exit(3);
+      //if(K > 12) exit(3);
+			if(K > 12) return 3;
    }
 
    for(I = 1; I <= L + 1; I++) { bee[I] = 0; }
@@ -1404,8 +1409,8 @@ software_imbe_decoder::synth_voiced()
 
    int ell, en;
 
-   if( L > OldL) { 
-      MaxL = L; 
+   if( L > OldL) {
+      MaxL = L;
    } else {
       MaxL = OldL;
    }
@@ -1427,7 +1432,7 @@ software_imbe_decoder::synth_voiced()
 
    for(ell = 1; ell <= MaxL; ell++) {
 
-      if(ell > L) { 
+      if(ell > L) {
          MNew = 0;
       } else {
          MNew = M[ell][ New];
@@ -1476,4 +1481,3 @@ software_imbe_decoder::synth_voiced()
       }
    }
 }
-

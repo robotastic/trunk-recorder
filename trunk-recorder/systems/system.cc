@@ -65,6 +65,33 @@ std::string System::get_talkgroups_file() {
 void System::set_talkgroups_file(std::string talkgroups_file) {
   this->talkgroups_file = talkgroups_file;
 }
+
+std::vector<double> System::get_channels(){
+  return channels;
+}
+
+
+int System::channel_count() {
+  return channels.size();
+}
+
+void System::add_conventional_recorder(analog_recorder_sptr rec) {
+    conventional_recorders.push_back(rec);
+  }
+std::vector<analog_recorder_sptr> System::get_conventional_recorders() {
+  return conventional_recorders;
+}
+void System::add_channel(double channel) {
+  if (channels.size() == 0) {
+    channels.push_back(channel);
+  } else {
+    if (std::find(channels.begin(), channels.end(), channel) == channels.end()) {
+      channels.push_back(channel);
+    }
+  }
+}
+
+
 int System::control_channel_count() {
   return control_channels.size();
 }

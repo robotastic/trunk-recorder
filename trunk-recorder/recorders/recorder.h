@@ -42,7 +42,7 @@
 
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
 
-class Call;
+
 #include "../state.h"
 #include "../call.h"
 
@@ -67,6 +67,7 @@ public:
 	virtual long get_talkgroup() {return 0;};
 	virtual State get_state() {return inactive;};
 	virtual bool is_active() {return false;};
+	virtual bool is_idle() {return true;};
 	virtual double get_current_length(){return 0;};
 	virtual void clear(){};
 	int num;

@@ -51,8 +51,6 @@ double SmartnetParser::getfreq(int cmd) {
   }
 */
 
-
-
           if (cmd < 0x1b8) {
                   freq = float(cmd * 25000 + 851012500);
           } else if (cmd < 0x230) {

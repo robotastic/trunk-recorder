@@ -17,7 +17,7 @@ analog_recorder::analog_recorder(Source *src)
   source    = src;
   freq      = source->get_center();
   center    = source->get_center();
-  config = source->get_config();
+  config    = source->get_config();
   samp_rate = source->get_rate();
   talkgroup = 0;
   num       = 0;
@@ -26,10 +26,10 @@ analog_recorder::analog_recorder(Source *src)
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  float offset = 0; // have to flip for 3.7
+  float offset = 0; 
 
-  int    samp_per_sym     = 10;
-  int    decim            = floor(samp_rate / 96000);
+  int samp_per_sym        = 10;
+  int decim               = floor(samp_rate / 96000);
   float  xlate_bandwidth  = 4000; // 24260.0;
   float  channel_rate     = 4800 * samp_per_sym;
   double pre_channel_rate = samp_rate / decim;
@@ -41,15 +41,15 @@ analog_recorder::analog_recorder(Source *src)
 
   std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
 
-  /*			prefilter = make_freq_xlating_fft_filter(decim,
-              dest,
-              offset,
-              samp_rate);*/
+  prefilter = make_freq_xlating_fft_filter(decim,
+                                           dest,
+                                           offset,
+                                           samp_rate);
 
-  prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
-                                                            lpf_taps,
-                                                            offset,
-                                                            samp_rate);
+  /*  prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
+                                                              lpf_taps,
+                                                              offset,
+                                                              samp_rate);*/
   unsigned int d = GCD(channel_rate, pre_channel_rate); // 4000 GCD(48000,
                                                         // 100000)
   channel_rate     = floor(channel_rate  / d);          // 12
@@ -71,37 +71,23 @@ analog_recorder::analog_recorder(Source *src)
   squelch_db = source->get_squelch_db();
 
   if (squelch_db != 0) {
-    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, // squelch point
-                                               0.01,       // alpha
-                                               10,         // ramp
-                                               false);     // Non-blocking as we
-                                                           // are using
-                                                           // squelch_two as a
-                                                           // gate.
+
+
+    // Non-blocking as we are using squelch_two as a gate.
+    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
     //  based on squelch code form ham2mon
-    squelch_two = gr::analog::pwr_squelch_ff::make(-200,   // set low -200 since
-                                                           // its after demod
-                                                           // and its just gate
-                                                           // for previous
-                                                           // squelch
-                                                   0.01,   // alpha
-                                                   0,      // ramp
-                                                   true);  // gated so that the
-                                                           // audio recording
-                                                           // doesn't contain
-                                                           // blank spaces
-                                                           // between
-                                                           // transmissions
+    // set low -200 since its after demod and its just gate for previous squelch so that the audio
+    // recording doesn't contain blank spaces between transmissions
+    squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
   }
 
 
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
   fm_demod = make_rx_demod_fm(channel_rate, channel_rate, 5000.0, 75.0e-6);
-  demod    = gr::analog::quadrature_demod_cf::make(1.527);                  // 1.6
-                                                                            // //1.4);
-  levels   = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); // 33);
-  valve    = gr::blocks::copy::make(sizeof(gr_complex));
+  demod    = gr::analog::quadrature_demod_cf::make(1.527);
+  levels = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); // 33);
+  valve  = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
   float tau  = 0.000075; // 75us
@@ -123,20 +109,16 @@ analog_recorder::analog_recorder(Source *src)
   deemph = gr::filter::iir_filter_ffd::make(btaps, ataps);
 
   audio_resampler_taps = design_filter(1, 6);
-  decim_audio          = gr::filter::fir_filter_fff::make(6, audio_resampler_taps); //
-                                                                                    // downsample
-                                                                                    // from
-                                                                                    // 48k
-                                                                                    // to
-                                                                                    // 8k
 
+  // downsample from 48k to 8k
+  decim_audio          = gr::filter::fir_filter_fff::make(6, audio_resampler_taps);
 
   iam_logging = false;
 
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
-  //path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+
   path_stream << this->config->capture_dir << "/junk";
 
   boost::filesystem::create_directories(path_stream.str());
@@ -144,7 +126,6 @@ analog_recorder::analog_recorder(Source *src)
   sprintf(status_filename, "%s/%ld-%ld_%g.json", path_stream.str().c_str(), talkgroup, timestamp, freq);
 
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
-
 
   if (squelch_db != 0) {
     // using squelch
@@ -183,7 +164,7 @@ void analog_recorder::stop() {
     valve->set_enabled(false);
     wav_sink->close();
   } else {
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping an inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an inactive Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
   }
 }
 
@@ -193,6 +174,13 @@ bool analog_recorder::is_active() {
   } else {
     return false;
   }
+}
+
+bool analog_recorder::is_idle() {
+  if (state == active) {
+    return !squelch->unmuted();
+  }
+  return true;
 }
 
 long analog_recorder::get_talkgroup() {
@@ -215,6 +203,14 @@ long analog_recorder::elapsed() {
   return time(NULL) - starttime;
 }
 
+time_t analog_recorder::get_start_time() {
+  return starttime;
+}
+
+char * analog_recorder::get_filename() {
+  return filename;
+}
+
 double analog_recorder::get_current_length() {
   return wav_sink->length_in_seconds();
 }
@@ -222,7 +218,7 @@ double analog_recorder::get_current_length() {
 void analog_recorder::tune_offset(double f) {
   freq = f;
   int offset_amount = (f - center);
-  prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
+  prefilter->set_center_freq(offset_amount);
 }
 
 void analog_recorder::start(Call *call, int n) {
@@ -232,7 +228,7 @@ void analog_recorder::start(Call *call, int n) {
   freq      = call->get_freq();
   num       = n;
 
-  prefilter->set_center_freq(freq - center); // have to flip for 3.7
+  prefilter->set_center_freq(freq - center);
 
   wav_sink->open(call->get_filename());
 
