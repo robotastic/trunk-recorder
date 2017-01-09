@@ -3,17 +3,17 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk, int sys_id)
+p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk, int sys_num)
 {
-  return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue, qpsk, sys_id));
+  return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue, qpsk, sys_num));
 }
 
-p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id)
+p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_num)
   : gr::hier_block2("p25_trunking",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
-  this->sys_id = sys_id;
+  this->sys_num = sys_num;
   freq         = f;
   center       = c;
   long samp_rate = s;
@@ -143,7 +143,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   bool do_msgq               = 1;
   bool do_audio_output       = 0;
   bool do_tdma               = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_id, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
   /*

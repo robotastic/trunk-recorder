@@ -33,13 +33,28 @@ void System::set_default_mode(std::string def_mode) {
   this->default_mode = def_mode;
 }
 
-System::System(int sys_id) {
-  this->sys_id = sys_id;
+System::System(int sys_num) {
+  this->sys_num = sys_num;
+  sys_id = 0;
+  wacn = 0;
+  nac = 0;
   current_control_channel = 0;
 }
 
-int System::get_sys_id() {
+int System::get_sys_num() {
+  return this->sys_num;
+}
+
+unsigned long System::get_sys_id() {
   return this->sys_id;
+}
+
+unsigned long System::get_nac() {
+  return this->wacn;
+}
+
+unsigned long System::get_wacn() {
+  return this->nac;
 }
 
 bool System::get_qpsk_mod() {

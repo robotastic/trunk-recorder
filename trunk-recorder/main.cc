@@ -349,11 +349,11 @@ void start_recorder(Call *call, TrunkMessage message) {
       if ((source->get_min_hz() <= call->get_freq()) &&
           (source->get_max_hz() >= call->get_freq())) {
         source_found = true;
-
+/*
         if (call->get_tdma()) {
           BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
           return;
-        }
+        }*/
 
         if (talkgroup)
         {
@@ -414,6 +414,8 @@ void start_recorder(Call *call, TrunkMessage message) {
       return;
     }
   } else {
+    BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because it is encrypted: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
+
     // anything for encrypted calls could go here...
   }
 }
@@ -603,13 +605,17 @@ void assign_recorder(TrunkMessage message, System *sys) {
   }
 }
 
-void current_system_id(int sysid) {
-  static int active_sysid = 0;
+void current_system_id(int sys_id) {
+  static int active_sys_id = 0;
 
-  if (active_sysid != sysid) {
-    BOOST_LOG_TRIVIAL(trace) << "Decoding System ID " << std::hex << std::uppercase << sysid << std::nouppercase << std::dec;
-    active_sysid = sysid;
+  if (active_sys_id != sys_id) {
+    BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::hex << std::uppercase << sys_id << std::nouppercase << std::dec;
+    active_sys_id = sys_id;
   }
+}
+
+void current_system_status(TrunkMessage message, System *sys) {
+  BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
 }
 
 void unit_registration(long unit) {}
@@ -677,7 +683,7 @@ void update_recorder(TrunkMessage message, System *sys) {
   if (!call_found) {
     BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
 
-    assign_recorder(message, sys); // Treehouseman, Lets start the call if we
+    //assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
   }
 }
@@ -752,23 +758,26 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
       break;
 
     case SYSID:
-      current_system_id(message.sysid);
+      current_system_id(message.sys_id);
       break;
 
     case STATUS:
+      current_system_status(message, sys);
+      break;
+
     case UNKNOWN:
       break;
     }
   }
 }
 
-System* find_system(int sys_id) {
+System* find_system(int sys_num) {
   System *sys_match = NULL;
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
-    if (sys->get_sys_id() == sys_id) {
+    if (sys->get_sys_num() == sys_num) {
       sys_match = sys;
       break;
     }
@@ -840,7 +849,7 @@ void check_message_count(float timeDiff) {
 
 void monitor_messages() {
   gr::message::sptr msg;
-  int sys_id;
+  int sys_num;
   System *sys;
 
 
@@ -868,8 +877,8 @@ void monitor_messages() {
     }
 
     if (msg != 0) {
-      sys_id = msg->arg1();
-      sys    = find_system(sys_id);
+      sys_num = msg->arg1();
+      sys    = find_system(sys_num);
       sys->message_count++;
 
       if (sys) {
@@ -978,7 +987,7 @@ bool monitor_system() {
                                                                source->get_center(),
                                                                source->get_rate(),
                                                                msg_queue,
-                                                               system->get_sys_id());
+                                                               system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
           }
 
@@ -990,7 +999,7 @@ bool monitor_system() {
                                                      source->get_rate(),
                                                      msg_queue,
                                                      source->get_qpsk_mod(),
-                                                     system->get_sys_id());
+                                                     system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
           }
           // break out of the For Loop

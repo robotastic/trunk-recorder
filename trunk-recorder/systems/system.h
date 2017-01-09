@@ -10,7 +10,10 @@ typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 
 class System
 {
-        int sys_id;
+        int sys_num;
+        unsigned long sys_id;
+        unsigned long wacn;
+        unsigned long nac;
 public:
         std::string talkgroups_file;
         std::string short_name;
@@ -41,7 +44,10 @@ public:
         bool get_qpsk_mod();
         void set_qpsk_mod(bool);
         std::string get_system_type();
-        int get_sys_id();
+        unsigned long get_sys_id();
+        unsigned long get_wacn();
+        unsigned long get_nac();
+        int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();
         void set_talkgroups_file(std::string);

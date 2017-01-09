@@ -206,7 +206,7 @@ block_deinterleave(bit_vector& bv, unsigned int start, uint8_t *buf)
   return -2;                  // trellis decode OK, but CRC error occurred
 }
 
-p25p1_fdma::p25p1_fdma(int                  sys_id,
+p25p1_fdma::p25p1_fdma(int                  sys_num,
                        const char          *udp_host,
                        int                  port,
                        int                  debug,
@@ -218,7 +218,7 @@ p25p1_fdma::p25p1_fdma(int                  sys_id,
                        bool                 do_audio_output) :
   write_bufp(0),
   write_sock(0),
-  d_sys_id(sys_id),
+  d_sys_num(sys_num),
   d_udp_host(udp_host),
   d_port(port),
   d_debug(debug),
@@ -249,7 +249,7 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
 
   assert(len + 4 <= sizeof(wbuf));
 
-  // wbuf[p++] = (char) (d_sys_id+'0'); // clever way to convert int to char
+  // wbuf[p++] = (char) (d_sys_num+'0'); // clever way to convert int to char
   // wbuf[p++] = ',';
   wbuf[p++] = (nac >> 8) & 0xff;
   wbuf[p++] = nac & 0xff;
@@ -258,7 +258,7 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
     memcpy(&wbuf[p], buf, len); // copy data
     p += len;
   }
-  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, d_sys_id, 0);
+  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, d_sys_num, 0);
   d_msg_queue->insert_tail(msg);
   gettimeofday(&last_qtime, 0);
 

@@ -113,6 +113,7 @@ private:
 								bool muted;
 								bool qpsk_mod;
 								int silence_frames;
+								int tdma_slot;
 								long talkgroup;
 								time_t timestamp;
 								time_t starttime;

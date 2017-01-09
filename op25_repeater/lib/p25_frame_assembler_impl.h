@@ -74,7 +74,7 @@ public:
 
 public:
 
-  p25_frame_assembler_impl(int                 sys_id,
+  p25_frame_assembler_impl(int                 sys_num,
                            const char         *udp_host,
                            int                 port,
                            int                 debug,

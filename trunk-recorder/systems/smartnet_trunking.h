@@ -32,19 +32,19 @@ class smartnet_trunking;
 
 typedef boost::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
 
-smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
+smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_num);
 
 class smartnet_trunking : public gr::hier_block2
 {
-								friend smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
+								friend smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_num);
 public:
 								void tune_offset(double f);
 protected:
 								gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 //freq_xlating_fft_filter_sptr prefilter;
-								smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
+								smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_num);
 								double samp_rate, chan_freq, center_freq;
-								int sys_id;
+								int sys_num;
 
 								gr::blocks::null_sink::sptr null_sink;
 };

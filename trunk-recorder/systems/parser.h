@@ -24,7 +24,10 @@ struct TrunkMessage {
 	bool emergency;
 	int tdma;
 	long source;
-	int sysid;
+	int sys_num;
+ 	unsigned long sys_id;
+	unsigned long nac;
+	unsigned long wacn;
 };
 
 

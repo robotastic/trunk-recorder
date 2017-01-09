@@ -36,9 +36,9 @@
  * Create a new instance of smartnet_decode and return
  * a boost shared_ptr.  This is effectively the public constructor.
  */
-smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_id)
+smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_num)
 {
-	return smartnet_decode_sptr (new smartnet_decode(queue, sys_id));
+	return smartnet_decode_sptr (new smartnet_decode(queue, sys_num));
 }
 
 /*
@@ -58,7 +58,7 @@ static const int MAX_OUT = 1;   // maximum number of output streams
 /*
  * The private constructor
  */
-smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_id)
+smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_num)
 	: gr::sync_block ("decode",
 	             gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
 	             gr::io_signature::make (0,0,0))
@@ -66,7 +66,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_id)
 	//set_relative_rate((double)(76.0/84.0));
 	set_output_multiple(512); //used to be 76
 	d_queue = queue;
-	this->sys_id = sys_id;
+	this->sys_num = sys_num;
 	//set_output_multiple(168); //used to be 76
 }
 
@@ -260,7 +260,7 @@ smartnet_decode::work (int noutput_items,
 			std::ostringstream payload;
 			payload.str("");
 			payload << pkt.address << "," << pkt.groupflag << "," << pkt.command;
-			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()), pkt.command, this->sys_id, 0);
+			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()), pkt.command, this->sys_num, 0);
 			d_queue->insert_tail(msg);
 		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
 	}

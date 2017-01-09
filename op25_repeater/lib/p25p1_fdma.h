@@ -58,7 +58,7 @@ private:
   struct sockaddr_in write_sock_addr;
   char write_buf[512];
   const char *d_udp_host;
-  int  d_sys_id;
+  int  d_sys_num;
   int  d_port;
   int  d_debug;
   bool d_do_imbe;
@@ -77,7 +77,7 @@ public:
   long get_curr_src_id();
   void rx_sym(const uint8_t *syms,
               int            nsyms);
-  p25p1_fdma(int                  sys_id,
+  p25p1_fdma(int                  sys_num,
              const char          *udp_host,
              int                  port,
              int                  debug,
