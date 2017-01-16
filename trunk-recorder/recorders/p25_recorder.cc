@@ -155,16 +155,15 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   // convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
-  // fm demodulator (needed in fsk4 case)
-  double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
-  fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
-  BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
+  double freq_to_norm_radians = pi/(system_channel_rate/2.0);
+  double fc = 0.0;
+  double fd = 600.0;
+  double pll_demod_gain = 1.0/(fd*freq_to_norm_radians);
+  pll_freq_lock = gr::analog::pll_freqdet_cf::make	(	(symbol_rate/2.0*1.2)*freq_to_norm_radians, (fc+(3*fd*1.9))*freq_to_norm_radians, (fc+(-3*fd*1.9))*freq_to_norm_radians);
+  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain);
 
-  demod_agc     = gr::analog::agc2_ff::make(0.1, 0.01, 1.0, 0.1);
-  pre_demod_agc = gr::analog::agc2_cc::make(0.1, 0.01, 1.0, 1.0);
-
-  super_agc     = make_rx_agc_cc(system_channel_rate, true, -90, 0, 0, 500, true);
-
+  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, system_channel_rate, symbol_rate/2.0*1.175, symbol_rate/2.0*0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
+  noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
   double symbol_decim = 1;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
@@ -215,10 +214,10 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,     0);
     connect(prefilter,     0, arb_resampler, 0);
-    connect(arb_resampler, 0, pre_demod_agc,      0);
-    connect(pre_demod_agc,             0,fm_demod,      0);
-    connect(fm_demod,             0, baseband_amp,         0);
-    connect(baseband_amp,         0, sym_filter,           0);
+    connect(arb_resampler, 0, pll_freq_lock,      0);
+    connect(pll_freq_lock,             0, pll_amp,         0);
+    connect(pll_amp,         0, noise_filter,         0);
+    connect(noise_filter,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);
     connect(fsk4_demod,           0, slicer,               0);
     connect(slicer,               0, op25_frame_assembler, 0);
@@ -229,9 +228,6 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
     connect(self(),    0, valve,         0);
     connect(valve,     0, prefilter,     0);
     connect(prefilter, 0, arb_resampler, 0);
-
-    // connect(prefilter, 0, tagger,0);
-    // connect(tagger,0, arb_resampler, 0);
     connect(arb_resampler, 0, agc,                  0);
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);
@@ -239,15 +235,9 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
     connect(to_float,      0, rescale,              0);
     connect(rescale,       0, slicer,               0);
     connect(slicer,        0, op25_frame_assembler, 0);
-
-    // connect(slicer,0, active_probe,0);
-    // connect(active_probe,0, op25_frame_assembler,0);
     connect(op25_frame_assembler, 0, converter,  0);
     connect(converter,            0, multiplier, 0);
     connect(multiplier,           0, wav_sink,   0);
-
-    // connect(converter, 0, last_probe,0);
-    // connect(last_probe,0, wav_sink,0);
   }
 }
 
