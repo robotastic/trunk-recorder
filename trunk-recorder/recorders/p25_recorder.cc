@@ -160,7 +160,7 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   double fd = 600.0;
   double pll_demod_gain = 1.0/(fd*freq_to_norm_radians);
   pll_freq_lock = gr::analog::pll_freqdet_cf::make	(	(symbol_rate/2.0*1.2)*freq_to_norm_radians, (fc+(3*fd*1.9))*freq_to_norm_radians, (fc+(-3*fd*1.9))*freq_to_norm_radians);
-  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain);
+  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * bb_gain);
 
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, system_channel_rate, symbol_rate/2.0*1.175, symbol_rate/2.0*0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
   noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
