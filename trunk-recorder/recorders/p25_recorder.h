@@ -21,16 +21,15 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
+#include <gnuradio/filter/fft_filter_fff.h>
 #include <gnuradio/filter/freq_xlating_fir_filter_ccf.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/rational_resampler_base_ccc.h>
 
-#include <gnuradio/analog/quadrature_demod_cf.h>
 
 #include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
-#include <gnuradio/analog/agc2_ff.h>
-#include <gnuradio/analog/agc2_cc.h>
+#include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/digital/diff_phasor_cc.h>
 
 #include <gnuradio/blocks/complex_to_arg.h>
@@ -53,9 +52,17 @@
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/char_to_float.h>
 
-#include <op25_repeater/fsk4_demod_ff.h>
+/*#include <op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/p25_frame_assembler.h>
+#include <op25_repeater/gardner_costas_cc.h>
+#include <op25_repeater/vocoder.h>*/
+
+
+#include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
+#include <op25_repeater/fsk4_slicer_fb.h>
+#include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
+
 #include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/vocoder.h>
 #include <gnuradio/msg_queue.h>
@@ -69,9 +76,6 @@
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 #include "../../gr_blocks/latency_probe.h"
 #include "../../gr_blocks/latency_tagger.h"
-
-
-#include "../../gr_blocks/rx_agc_cc.h"
 
 class Source;
 class p25_recorder;
@@ -131,6 +135,8 @@ private:
 								std::vector<float> lpf_coeffs;
 								std::vector<float> arb_taps;
 								std::vector<float> sym_taps;
+								std::vector<float> baseband_noise_filter_taps;
+
 
 								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 
@@ -141,6 +147,8 @@ private:
 								/* GR blocks */
 								gr::filter::fir_filter_ccf::sptr lpf;
 								gr::filter::fir_filter_fff::sptr sym_filter;
+								gr::filter::fft_filter_fff::sptr noise_filter;
+
 
 								gr::analog::sig_source_c::sptr lo;
 
@@ -152,11 +160,9 @@ private:
 								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
-								gr::analog::quadrature_demod_cf::sptr fm_demod;
 								gr::analog::feedforward_agc_cc::sptr agc;
-								gr::analog::agc2_ff::sptr demod_agc;
-								gr::analog::agc2_cc::sptr pre_demod_agc;
-								rx_agc_cc_sptr super_agc;
+								gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
+
 								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
 								gr::blocks::short_to_float::sptr converter;
@@ -165,6 +171,7 @@ private:
 								gr::blocks::multiply_const_ff::sptr multiplier;
 								gr::blocks::multiply_const_ff::sptr rescale;
 								gr::blocks::multiply_const_ff::sptr baseband_amp;
+								gr::blocks::multiply_const_ff::sptr pll_amp;
 								gr::blocks::complex_to_arg::sptr to_float;
 								gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 								gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
