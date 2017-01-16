@@ -1,4 +1,4 @@
-Trunk Recorder - v2.1
+Trunk Recorder - v2.1.1
 =================
 ### Note: The format for the Config.json file changed in v2.x.
 
