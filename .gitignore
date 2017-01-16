@@ -4,6 +4,8 @@ sys_*/
 junk/
 2015/
 2016/
+fake/
+wmata/
 CMakeFiles/
 build/
 debug/
