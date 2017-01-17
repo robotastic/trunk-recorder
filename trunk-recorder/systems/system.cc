@@ -81,6 +81,15 @@ void System::add_conventional_recorder(analog_recorder_sptr rec) {
 std::vector<analog_recorder_sptr> System::get_conventional_recorders() {
   return conventional_recorders;
 }
+
+void System::add_conventionalP25_recorder(p25_recorder_sptr rec) {
+	conventionalP25_recorders.push_back(rec);
+}
+
+std::vector<p25_recorder_sptr> System::get_conventionalP25_recorders() {
+  return conventionalP25_recorders;
+}
+
 void System::add_channel(double channel) {
   if (channels.size() == 0) {
     channels.push_back(channel);

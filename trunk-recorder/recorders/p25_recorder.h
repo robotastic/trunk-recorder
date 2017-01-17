@@ -26,7 +26,8 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/rational_resampler_base_ccc.h>
 
-
+#include <gnuradio/analog/pwr_squelch_cc.h>
+#include <gnuradio/analog/pwr_squelch_ff.h>
 #include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
 #include <gnuradio/analog/pll_freqdet_cf.h>
@@ -100,6 +101,7 @@ public:
 								int get_num();
 								double get_current_length();
 								bool is_active();
+								bool is_idle();
 								State get_state();
 								int lastupdate();
 								long elapsed();
@@ -116,6 +118,7 @@ private:
 								double center, freq;
 								bool muted;
 								bool qpsk_mod;
+								double squelch_db;
 								int silence_frames;
 								long talkgroup;
 								time_t timestamp;
@@ -162,13 +165,14 @@ private:
 								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 								gr::analog::feedforward_agc_cc::sptr agc;
 								gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
-
+								gr::analog::pwr_squelch_cc::sptr squelch;
+								gr::analog::pwr_squelch_ff::sptr squelch_two;
 								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
 								gr::blocks::short_to_float::sptr converter;
 								gr::blocks::copy::sptr valve;
 
-								gr::blocks::multiply_const_ff::sptr multiplier;
+								gr::blocks::multiply_const_ff::sptr levels;
 								gr::blocks::multiply_const_ff::sptr rescale;
 								gr::blocks::multiply_const_ff::sptr baseband_amp;
 								gr::blocks::multiply_const_ff::sptr pll_amp;
