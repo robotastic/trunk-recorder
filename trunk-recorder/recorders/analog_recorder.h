@@ -69,7 +69,6 @@ public:
 								void start(Call *call, int n);
 								void stop();
 								double get_freq();
-								double get_squelch_in();
 								Source *get_source();
 								long get_talkgroup();
 								time_t get_start_time();

@@ -181,8 +181,17 @@ double Source::get_squelch_db() {
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
 
     analog_recorder_sptr log = make_analog_recorder(this);
-  
+
     analog_recorders.push_back(log);
+    tb->connect(source_block, 0, log, 0);
+    return log;
+}
+
+p25_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb) {
+
+    p25_recorder_sptr log = make_p25_recorder(this);
+
+    digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
     return log;
 }
