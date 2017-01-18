@@ -135,6 +135,26 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
+  // on a trunked network where you know you will have good signal, a carrier
+  // power squelch works well. real FM receviers use a noise squelch, where
+  // the received audio is high-passed above the cutoff and then fed to a
+  // reverse squelch. If the power is then BELOW a threshold, open the squelch.
+
+  squelch_db = source->get_squelch_db();
+
+  if (squelch_db != 0) {
+
+
+    // Non-blocking as we are using squelch_two as a gate.
+    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
+
+    //  based on squelch code form ham2mon
+    // set low -200 since its after demod and its just gate for previous squelch so that the audio
+    // recording doesn't contain blank spaces between transmissions
+    squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
+  }
+
+
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
   double omega      = double(system_channel_rate) / double(symbol_rate);
@@ -180,9 +200,9 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   const float l[] = { -2.0, 0.0, 2.0, 4.0 };
 
   //  const float l[] = { -3.0, -1.0, 1.0, 3.0 };
-  std::vector<float> levels(l, l + sizeof(l) / sizeof(l[0]));
+  std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
-  slicer     = gr::op25_repeater::fsk4_slicer_fb::make(levels);
+  slicer     = gr::op25_repeater::fsk4_slicer_fb::make(slices);
 
   int udp_port               = 0;
   int verbosity              = 1; // 10 = lots of debug messages
@@ -198,7 +218,7 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   converter = gr::blocks::short_to_float::make(1, 32768.0); //8192.0); // 8192.0);
                                                             // //2048.0 //1 /
                                                             // 32768.0
-  multiplier = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
@@ -214,7 +234,12 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,     0);
     connect(prefilter,     0, arb_resampler, 0);
-    connect(arb_resampler, 0, pll_freq_lock,      0);
+    if (squelch_db != 0) {
+      connect(arb_resampler, 0,  squelch,        0);
+      connect(squelch,        0, pll_freq_lock,      0);
+    } else {
+      connect(arb_resampler, 0, pll_freq_lock,      0);
+    }
     connect(pll_freq_lock,             0, pll_amp,         0);
     connect(pll_amp,         0, noise_filter,         0);
     connect(noise_filter,         0, sym_filter,           0);
@@ -222,13 +247,23 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
     connect(fsk4_demod,           0, slicer,               0);
     connect(slicer,               0, op25_frame_assembler, 0);
     connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, multiplier,           0);
-    connect(multiplier,           0, wav_sink,             0);
+    connect(converter,            0, levels,           0);
+    if (squelch_db != 0) {
+      connect(levels,           0, squelch_two,    0);
+      connect(squelch_two,    0, wav_sink,             0);
+    } else {
+    connect(levels,           0, wav_sink,             0);
+    }
   } else {
     connect(self(),    0, valve,         0);
     connect(valve,     0, prefilter,     0);
     connect(prefilter, 0, arb_resampler, 0);
-    connect(arb_resampler, 0, agc,                  0);
+    if (squelch_db != 0) {
+      connect(arb_resampler, 0,  squelch,        0);
+      connect(squelch,        0, agc,      0);
+    } else {
+      connect(arb_resampler, 0, agc,      0);
+    }
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);
     connect(diffdec,       0, to_float,             0);
@@ -236,8 +271,13 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
     connect(rescale,       0, slicer,               0);
     connect(slicer,        0, op25_frame_assembler, 0);
     connect(op25_frame_assembler, 0, converter,  0);
-    connect(converter,            0, multiplier, 0);
-    connect(multiplier,           0, wav_sink,   0);
+    connect(converter,            0, levels, 0);
+    if (squelch_db != 0) {
+      connect(levels,           0, squelch_two,    0);
+      connect(squelch_two,    0, wav_sink,             0);
+    } else {
+    connect(levels,           0, wav_sink,             0);
+    }
   }
 }
 
@@ -284,6 +324,12 @@ bool p25_recorder::is_active() {
   }
 }
 
+bool p25_recorder::is_idle() {
+  if (state == active) {
+    return !squelch->unmuted();
+  }
+  return true;
+}
 double p25_recorder::get_freq() {
   return freq;
 }

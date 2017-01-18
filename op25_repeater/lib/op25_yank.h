@@ -2,6 +2,7 @@
 #define INCLUDED_SWAB_H
 
 #include <stdint.h>
+#include <algorithm>
 
 /**
  * Yank in[bits[0]..bits[bits_sz]) to out[where,where+bits_sz).
