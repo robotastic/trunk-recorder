@@ -18,17 +18,32 @@ Trunk Recorder currently supports the following:
 
 I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
-##Compile
+## Wiki Pages
+### Installing
+* [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
+* [Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu-16.04-Install)
+* [Raspberry Pi - Jessie](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Jessie-Install)
 
-###WIKI with install tips
- [Installing on Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki)
+### Setup
+* [Configuring a system](https://github.com/robotastic/trunk-recorder/wiki/Configuring-a-System)
+
+###Playback & Sharing
+By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.
+* [OpenMHz](https://github.com/robotastic/trunk-recorder/wiki/Uploading-to-OpenMHz) - This is my free hosted platform for sharing recordings
+* [Trunk Player](https://github.com/ScanOC/trunk-player) - A great Python based server, if you want to you want to run your own
+
+* [FAQ](https://github.com/robotastic/trunk-recorder/wiki/FAQ)
+
+___
+
+##Install
 
 ###Requirements
  - GNURadio 3.7
 
 **OSX**
 
-If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
+If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install of GNU Radio has worked for me.
 
 ###Setting up [GNU Radio](http://gnuradio.org/) on a fresh [Ubuntu](http://www.ubuntu.com/) Version 16.04 [Release](http://releases.ubuntu.com/16.04/)
 
