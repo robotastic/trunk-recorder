@@ -227,7 +227,7 @@ void load_config()
       if ((driver != "osmosdr") && (driver != "usrp")) {
         BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
       }
-      
+
       std::string device = node.second.get<std::string>("device", "");
 
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
@@ -254,7 +254,7 @@ void load_config()
         if (boost::iequals(system_modulation, "qpsk"))
         {
           qpsk_mod = true;
-          BOOST_LOG_TRIVIAL(info) << "Modulation: qpks";
+          BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
         } else if (boost::iequals(system_modulation, "fsk4")) {
           qpsk_mod = false;
           BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";
