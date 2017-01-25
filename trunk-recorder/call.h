@@ -87,9 +87,9 @@ private:
 								bool encrypted;
 								bool emergency;
 								bool conventional;
-								char filename[160];
-								char converted_filename[160];
-								char status_filename[160];
+								char filename[255];
+								char converted_filename[255];
+								char status_filename[255];
 								int tdma;
 
 								Config config;

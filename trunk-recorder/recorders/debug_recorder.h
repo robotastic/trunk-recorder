@@ -119,10 +119,7 @@ private:
 								Config *config;
 								Source *source;
 								char filename[160];
-								char raw_filename[160];
 								//int num;
-
-								bool iam_logging;
 								State state;
 
 

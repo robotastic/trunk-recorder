@@ -92,12 +92,8 @@ private:
 								time_t timestamp;
 								time_t starttime;
 								char filename[160];
-								char status_filename[160];
-								char raw_filename[160];
-								char debug_filename[160];
-								//int num;
 
-								bool iam_logging;
+
 								State state;
 								std::vector<float> lpf_taps;
 								std::vector<float> resampler_taps;
