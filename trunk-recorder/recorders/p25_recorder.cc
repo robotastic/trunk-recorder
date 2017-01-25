@@ -226,7 +226,10 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   path_stream << this->config->capture_dir << "/junk";
 
   boost::filesystem::create_directories(path_stream.str());
-  sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, freq);
+  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, freq);
+  if (nchars >= 160) {
+    BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";
+  }
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
 
 
