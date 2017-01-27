@@ -99,6 +99,7 @@ private:
 								std::vector<float> resampler_taps;
 								std::vector<float> audio_resampler_taps;
 								std::vector<float> sym_taps;
+								std::vector<float> high_f_taps;
 
 								Config *config;
 								Source *source;
@@ -116,6 +117,7 @@ private:
 								gr::blocks::multiply_const_ff::sptr levels;
 								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 								gr::filter::fir_filter_fff::sptr decim_audio;
+								gr::filter::fir_filter_fff::sptr high_f;
 								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 								gr::analog::pwr_squelch_cc::sptr squelch;
 								gr::analog::pwr_squelch_ff::sptr squelch_two;
