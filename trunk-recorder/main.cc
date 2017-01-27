@@ -156,7 +156,7 @@ void load_config()
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_channel(channel);
         }
-      } else {
+      } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
         BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
         {
@@ -165,6 +165,9 @@ void load_config()
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_control_channel(control_channel);
         }
+      } else {
+        BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
+        exit(1);
       }
       BOOST_LOG_TRIVIAL(info);
 
@@ -221,6 +224,10 @@ void load_config()
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
 
       std::string driver = node.second.get<std::string>("driver", "");
+      if ((driver != "osmosdr") && (driver != "usrp")) {
+        BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
+      }
+
       std::string device = node.second.get<std::string>("device", "");
 
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
@@ -247,7 +254,7 @@ void load_config()
         if (boost::iequals(system_modulation, "qpsk"))
         {
           qpsk_mod = true;
-          BOOST_LOG_TRIVIAL(info) << "Modulation: qpks";
+          BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
         } else if (boost::iequals(system_modulation, "fsk4")) {
           qpsk_mod = false;
           BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";

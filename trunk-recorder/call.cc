@@ -9,10 +9,19 @@ void Call::create_filename() {
   path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
   boost::filesystem::create_directories(path_stream.str());
-  sprintf(filename,           "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
-  sprintf(status_filename,    "%s/%ld-%ld_%g.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
-  sprintf(converted_filename, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
-
+  int nchars;
+  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 160 charecters";
+  }
+  nchars = snprintf(status_filename,  255,  "%s/%ld-%ld_%g.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 160 charecters";
+  }
+  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+  }
   // sprintf(filename, "%s/%ld-%ld.wav",
   // path_stream.str().c_str(),talkgroup,start_time);
   // sprintf(status_filename, "%s/%ld-%ld.json",
@@ -91,6 +100,9 @@ void Call::end_call() {
   stop_time = time(NULL);
 
   if (state == recording) {
+    if (!recorder) {
+      BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
+    }
     BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
     std::ofstream myfile(status_filename);
     std::stringstream shell_command;
@@ -169,7 +181,10 @@ double Call::get_freq() {
 }
 
 double Call::get_current_length() {
-  if ((state == recording) && recorder) {
+  if (state == recording)  {
+    if (!recorder) {
+      BOOST_LOG_TRIVIAL(error) << "Call::get_current_length() State is recording, but no recorder assigned!";
+    }
     return get_recorder()->get_current_length();
   } else {
     return -1;
@@ -181,13 +196,23 @@ void Call::set_freq(double f) {
     long position;
 
     if (state == recording) {
-      position = get_recorder()->get_current_length();
+      if (!recorder) {
+        BOOST_LOG_TRIVIAL(error) << "Call::get_current_length() State is recording, but no recorder assigned!";
+      }
+        position = time(NULL) - start_time;//Segfault bandaid
+        //position = get_recorder()->get_current_length();
     } else {
       position = time(NULL) - start_time;
     }
+
     Call_Freq call_freq = { f, time(NULL), position };
+    if (freq_count < 49) {
     freq_list[freq_count] = call_freq;
     freq_count++;
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Call: more than 50 Freq";
+
+  }
     curr_freq = f;
   }
 }
@@ -205,10 +230,16 @@ long Call::get_freq_count() {
 }
 
 Call_Source * Call::get_source_list() {
+  if (!recorder) {
+    BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is recording, but no recorder assigned!";
+  }
   return get_recorder()->get_source_list();
 }
 
 long Call::get_source_count() {
+  if (!recorder) {
+    BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
+  }
   return get_recorder()->get_source_count();
 }
 
@@ -283,7 +314,6 @@ void Call::reset_idle_count() {
 void Call::increase_idle_count() {
   idle_count++;
 }
-
 
 long Call::get_stop_time() {
   return stop_time;
