@@ -4,7 +4,8 @@ Trunk Recorder - v2.1.2
 
 Need help? Got something working? Share it!
 
-[![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder)
+
+[![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
 Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swatches of RF and then use software to process what was received. GNURadio is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. Multiple radio systems can be recorded at the same time.
 
@@ -17,17 +18,32 @@ Trunk Recorder currently supports the following:
 
 I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
-##Compile
+## Wiki Pages
+### Installing
+* [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
+* [Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu-16.04-Install)
+* [Raspberry Pi - Jessie](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Jessie-Install)
 
-###WIKI with install tips
- [Installing on Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki)
+### Setup
+* [Configuring a system](https://github.com/robotastic/trunk-recorder/wiki/Configuring-a-System)
+
+###Playback & Sharing
+By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.
+* [OpenMHz](https://github.com/robotastic/trunk-recorder/wiki/Uploading-to-OpenMHz) - This is my free hosted platform for sharing recordings
+* [Trunk Player](https://github.com/ScanOC/trunk-player) - A great Python based server, if you want to you want to run your own
+
+* [FAQ](https://github.com/robotastic/trunk-recorder/wiki/FAQ)
+
+___
+
+##Install
 
 ###Requirements
  - GNURadio 3.7
 
 **OSX**
 
-If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
+If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install of GNU Radio has worked for me.
 
 ###Setting up [GNU Radio](http://gnuradio.org/) on a fresh [Ubuntu](http://www.ubuntu.com/) Version 16.04 [Release](http://releases.ubuntu.com/16.04/)
 
@@ -106,7 +122,7 @@ Here are the different arguments:
    - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
    - **digitLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 8.
-   - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using FSK4 and QPSK demodulation.
+   - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
    - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
    - **analogLevels** - the amount of amplification that will be applied to the analog audio. The value should be between 1-32. The default value is 8.
    - **debugRecorders** - the number of Debug Recorder to have attached to this source. Debug Recorders capture a raw sample that you can examine later using GNURadio Companion. This is helpful if you want to fine tune your the error and gain for this Source.
