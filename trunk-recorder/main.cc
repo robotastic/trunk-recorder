@@ -40,8 +40,6 @@
 #include "systems/system.h"
 #include "systems/smartnet_trunking.h"
 #include "systems/p25_trunking.h"
-#include "systems/smartnet_crc.h"
-#include "systems/smartnet_deinterleave.h"
 #include "systems/smartnet_parser.h"
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
