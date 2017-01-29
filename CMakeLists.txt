@@ -201,8 +201,6 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/systems/p25_trunking.cc
   trunk-recorder/systems/smartnet_parser.cc
   trunk-recorder/systems/p25_parser.cc
-  trunk-recorder/systems/smartnet_crc.cc
-  trunk-recorder/systems/smartnet_deinterleave.cc
   trunk-recorder/systems/smartnet_decode.cc
   trunk-recorder/systems/system.cc
   trunk-recorder/recorders/debug_recorder.cc

@@ -297,8 +297,8 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk) {
           message.talkgroup    = ta;
           message.source       = sa;
           message.tdma         = get_tdma_slot(ch);
-          message.emergency    = false;
-          message.encrypted    = false;
+          message.emergency    = emergency;
+          message.encrypted    = encrypted;
           BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
           "\tSource ID: " << sa;
 
@@ -323,8 +323,8 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk) {
           message.talkgroup    = ta;
           message.source       = sa;
           message.tdma         = get_tdma_slot(ch);
-          message.emergency    = false;
-          message.encrypted    = false;
+          message.emergency    = emergency;
+          message.encrypted    = encrypted;
           BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Update\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
           "\tSource ID: " << sa;
 
