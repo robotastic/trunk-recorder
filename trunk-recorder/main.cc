@@ -40,8 +40,6 @@
 #include "systems/system.h"
 #include "systems/smartnet_trunking.h"
 #include "systems/p25_trunking.h"
-#include "systems/smartnet_crc.h"
-#include "systems/smartnet_deinterleave.h"
 #include "systems/smartnet_parser.h"
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
@@ -209,11 +207,11 @@ void load_config()
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
       double ppm            = node.second.get<double>("ppm", 0);
-      int    gain           = node.second.get<int>("gain", 0);
-      int    if_gain        = node.second.get<int>("ifGain", 0);
-      int    bb_gain        = node.second.get<int>("bbGain", 0);
-      int    mix_gain       = node.second.get<int>("mixGain", 0);
-      int    lna_gain       = node.second.get<int>("lnaGain", 0);
+      int    gain           = node.second.get<double>("gain", 0);
+      int    if_gain        = node.second.get<double>("ifGain", 0);
+      int    bb_gain        = node.second.get<double>("bbGain", 0);
+      int    mix_gain       = node.second.get<double>("mixGain", 0);
+      int    lna_gain       = node.second.get<double>("lnaGain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
       double analog_levels  = node.second.get<double>("analogLevels", 8.0);
@@ -234,11 +232,11 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate", 0);
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
       BOOST_LOG_TRIVIAL(info) << "PPM Error: " <<  node.second.get<double>("ppm", 0);
-      BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<int>("gain", 0);
-      BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<int>("ifGain", 0);
-      BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<int>("bbGain", 0);
-      BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<int>("lnaGain", 0);
-      BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<int>("mixGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
+      BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<double>("lnaGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
