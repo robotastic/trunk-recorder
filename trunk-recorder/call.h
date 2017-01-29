@@ -72,6 +72,9 @@ public:
 								bool get_encrypted();
 								void set_emergency(bool m);
 								bool get_emergency();
+								long get_analog_source_count();
+								long *get_analog_source_list();
+								bool add_analog_source(long src);
 private:
 								State state;
 								long talkgroup;
@@ -91,6 +94,8 @@ private:
 								char converted_filename[255];
 								char status_filename[255];
 								int tdma;
+								long analog_src_count;
+								long analog_src_list[50];
 
 								Config config;
 								Recorder *recorder;

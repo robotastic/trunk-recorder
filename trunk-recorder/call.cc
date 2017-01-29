@@ -46,6 +46,7 @@ Call::Call(long t, double f, System *s, Config c) {
   encrypted       = false;
   emergency       = false;
   conventional    = false;
+  analog_src_count = 0;
 
   this->create_filename();
 }
@@ -70,8 +71,10 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   encrypted       = message.encrypted;
   emergency       = message.emergency;
   conventional    = false;
+  analog_src_count = 0;
 
   this->create_filename();
+  this->add_analog_source(message.source);
 }
 
 Call::~Call() {
@@ -119,11 +122,22 @@ void Call::end_call() {
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
       myfile << "\"srcList\": [ ";
 
-      for (int i = 0; i < wav_src_count; i++) {
-        if (i != 0) {
-          myfile << ", " <<  wav_src_list[i].source;
-        } else {
-          myfile << wav_src_list[i].source;
+      if(wav_src_count) {
+        for (int i = 0; i < wav_src_count; i++) {
+          if (i != 0) {
+            myfile << ", " <<  wav_src_list[i].source;
+          } else {
+            myfile << wav_src_list[i].source;
+          }
+        }
+      } else {
+        /* Check if there is source info from analog calls */
+        for (int i=0; i < this->analog_src_count; i++ ){
+          if (i != 0) {
+            myfile << ", " <<  this->analog_src_list[i];
+          } else {
+             myfile << this->analog_src_list[i];
+          }
         }
       }
       myfile << " ],\n";
@@ -259,6 +273,30 @@ State Call::get_state() {
   return state;
 }
 
+long  *Call::get_analog_source_list() {
+	return analog_src_list;
+}
+
+long  Call::get_analog_source_count() {
+	return analog_src_count;
+}
+
+bool Call::add_analog_source(long src) {
+    if (src==0) {
+        return false;
+    }
+    if (analog_src_count < 1 ) {
+        analog_src_list[analog_src_count] = src;
+        analog_src_count++;
+        return true;
+    } else if ((analog_src_count < 48) && (analog_src_list[analog_src_count-1] != src)) {
+        analog_src_list[analog_src_count] = src;
+        analog_src_count++;
+        return true;
+    }
+    return false;
+}
+
 void Call::set_encrypted(bool m) {
   encrypted = m;
 }
@@ -284,6 +322,7 @@ int Call::get_tdma() {
 }
 
 void Call::update(TrunkMessage message) {
+  this->add_analog_source(message.source);
   last_update = time(NULL);
 }
 
