@@ -23,7 +23,7 @@
 #ifndef smartnet_decode_H
 #define smartnet_decode_H
 
-#include <gnuradio/sync_block.h>
+#include <gnuradio/block.h>
 #include <gnuradio/msg_queue.h>
 
 class smartnet_decode;
@@ -57,7 +57,7 @@ smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_id)
  *
  * This uses the preferred technique: subclassing gr_block.
  */
-class smartnet_decode : public gr::sync_block
+class smartnet_decode : public gr::block
 {
 private:
 	// The friend declaration allows smartnet_make_decode to
@@ -75,8 +75,8 @@ public:
 
 	// Where all the action really happens
 
-	int work (int noutput_items,
-	            
+	int general_work (int noutput_items,
+	                  gr_vector_int &ninput_items,
 	                  gr_vector_const_void_star &input_items,
 	                  gr_vector_void_star &output_items);
 
