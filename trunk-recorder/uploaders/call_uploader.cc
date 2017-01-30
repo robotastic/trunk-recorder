@@ -133,7 +133,11 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   }
 
   if (call_info->scheme == "https") {
-    BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
+    int result = https_upload(server_info, request_);
+    if (result==1) {
+      BOOST_LOG_TRIVIAL(info) << "HTTPS Upload success [ " << call_info->short_name <<  " ]: " << req_size;
+    }
+
   }
 
   // BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
