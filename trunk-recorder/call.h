@@ -77,6 +77,9 @@ private:
 								long talkgroup;
 								double curr_freq;
 								System *sys;
+								int src_count;
+								long curr_src_id;
+								Call_Source src_list[50];
 								Call_Freq freq_list[50];
 								long freq_count;
 								time_t last_update;
@@ -95,6 +98,8 @@ private:
 								Config config;
 								Recorder *recorder;
 								Recorder *debug_recorder;
+								bool add_source(long src);
+
 };
 
 #endif

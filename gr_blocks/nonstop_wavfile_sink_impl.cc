@@ -130,9 +130,6 @@ bool nonstop_wavfile_sink_impl::open(const char *filename) {
     return false;
   }
 
-  d_src_count = 0;
-  curr_src_id = 0;
-
   // Scan headers, check file validity
   if (wavheader_parse(d_fp,
                       d_sample_rate,
@@ -243,12 +240,12 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
       long src_id  = pmt::to_long(tags[i].value);
       unsigned pos = d_sample_count + (tags[i].offset - nitems_read(0));
       double   sec = (double)pos  / (double)d_sample_rate;
-
+      /*
       if (curr_src_id != src_id) {
         add_source(src_id, sec);
         BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
-      }
+      }*/
     }
   }
 
@@ -297,32 +294,10 @@ short int nonstop_wavfile_sink_impl::convert_to_short(float sample)
   return (short int)boost::math::iround(sample);
 }
 
-Call_Source * nonstop_wavfile_sink_impl::get_source_list() {
-  return src_list;
-}
 
-int nonstop_wavfile_sink_impl::get_source_count() {
-  return d_src_count;
-}
 
-bool nonstop_wavfile_sink_impl::add_source(long src, double position) {
-  if (src == 0) {
-    return false;
-  }
 
-  Call_Source call_source = { src, time(NULL), position };
 
-  if (d_src_count < 1) {
-    src_list[d_src_count] = call_source;
-    d_src_count++;
-    return true;
-  } else if ((d_src_count < 48) && (src_list[d_src_count - 1].source != src)) {
-    src_list[d_src_count] = call_source;
-    d_src_count++;
-    return true;
-  }
-  return false;
-}
 
 void
 nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample)

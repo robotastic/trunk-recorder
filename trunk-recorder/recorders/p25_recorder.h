@@ -106,8 +106,6 @@ public:
 								int lastupdate();
 								long elapsed();
 								Source *get_source();
-								long get_source_count();
-								Call_Source *get_source_list();
 								void autotune();
 								gr::msg_queue::sptr tune_queue;
 								gr::msg_queue::sptr traffic_queue;
