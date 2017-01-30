@@ -178,7 +178,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
       return 1;
     }
 
-     std::cout << "Resolve OK" << "\n";
+     //std::cout << "Resolve OK" << "\n";
     socket.set_verify_mode(boost::asio::ssl::verify_peer);
 
     // socket.set_verify_callback(boost::bind(&client::verify_certificate, this,
@@ -189,23 +189,23 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Connect failed: " << ec.message() << "";
+      BOOST_LOG_TRIVIAL(error) << "SSL: Connect failed: " << ec.message() << "";
       return 1;
     }
 
-     std::cout << "Connect OK " << "\n";
+     //std::cout << "Connect OK " << "\n";
     socket.handshake(boost::asio::ssl::stream_base::client, ec);
 
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Handshake failed: " << ec.message() << "";
+      BOOST_LOG_TRIVIAL(error) << "SSL: Handshake failed: " << ec.message() << "";
       return 1;
     }
 
-     std::cout << "Request: " << "\n";
+     //std::cout << "Request: " << "\n";
     const char *req_header = boost::asio::buffer_cast<const char *>(request_.data());
 
-     std::cout << req_header << "\n";
+     //std::cout << req_header << "\n";
 
 
     // The handshake was successful. Send the request.
@@ -214,7 +214,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
 
     if (ec)
     {
-      BOOST_LOG_TRIVIAL(info) << "SSL: Error write req: " << ec.message() << "";
+      BOOST_LOG_TRIVIAL(error) << "SSL: Error write req: " << ec.message() << "";
       return 1;
     }
 
@@ -255,21 +255,22 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     std::string header;
 
     while (std::getline(response_stream, header) && header != "\r") {
-      BOOST_LOG_TRIVIAL(info) <<"Header: " << header << "";
+      BOOST_LOG_TRIVIAL(trace) <<"Header: " <<header << "";
     }
-    BOOST_LOG_TRIVIAL(info) << "";
+    BOOST_LOG_TRIVIAL(trace) << "";
 
     // Write whatever content we already have to output.
     if (response.size() > 0) {
-      BOOST_LOG_TRIVIAL(info) << "Response1: " <<&response;
-    }
-    // Read until EOF, writing data to output as we go.
-  /*  boost::system::error_code error;
+  //    BOOST_LOG_TRIVIAL(trace) << "Response1: " <<&response;
 
-    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(0), error)) {
+    // Read until EOF, writing data to output as we go.
+    boost::system::error_code error;
+
+    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) {
       BOOST_LOG_TRIVIAL(info) << "Response2: " << &response;
     }
-    if (error != boost::asio::error::eof) throw boost::system::system_error(error);*/
+    if (error != boost::asio::error::eof) throw boost::system::system_error(error);
+    }
   }
   catch (std::exception& e)
   {
