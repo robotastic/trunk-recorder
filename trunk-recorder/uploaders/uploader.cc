@@ -264,12 +264,12 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
       BOOST_LOG_TRIVIAL(info) << "Response1: " <<&response;
     }
     // Read until EOF, writing data to output as we go.
-    boost::system::error_code error;
+  /*  boost::system::error_code error;
 
-    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) {
+    while (boost::asio::read(socket, response, boost::asio::transfer_at_least(0), error)) {
       BOOST_LOG_TRIVIAL(info) << "Response2: " << &response;
     }
-    if (error != boost::asio::error::eof) throw boost::system::system_error(error);
+    if (error != boost::asio::error::eof) throw boost::system::system_error(error);*/
   }
   catch (std::exception& e)
   {
