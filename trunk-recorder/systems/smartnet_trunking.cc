@@ -38,11 +38,11 @@ smartnet_trunking::smartnet_trunking(float               f,
   int   decim               = int(samples_per_second / (syms_per_sec * clockrec_oversample));
   float sps                 = samples_per_second / decim / syms_per_sec;
   const double pi           = boost::math::constants::pi<double>();
-  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_id << endl;
-  BOOST_LOG_TRIVIAL(info) <<  "Control channel offset: " << offset << endl;
-  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq << endl;
-  BOOST_LOG_TRIVIAL(info) <<  "Decim: " << decim << endl;
-  BOOST_LOG_TRIVIAL(info) <<  "Samples per symbol: " << sps << endl;
+  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_id;
+  BOOST_LOG_TRIVIAL(info) <<  "Control channel offset: " << offset;
+  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
+  BOOST_LOG_TRIVIAL(info) <<  "Decim: " << decim;
+  BOOST_LOG_TRIVIAL(info) <<  "Samples per symbol: " << sps;
 
   std::vector<float> lpf_taps;
 
