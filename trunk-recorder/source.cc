@@ -94,6 +94,7 @@ void Source::set_mix_gain(int b)
   if (driver == "osmosdr") {
     mix_gain = b;
     cast_to_osmo_sptr(source_block)->set_gain(mix_gain, "MIX", 0);
+    BOOST_LOG_TRIVIAL(info) << "MIX Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("MIX");
   }
 }
 
@@ -108,7 +109,8 @@ void Source::set_lna_gain(int b)
 {
   if (driver == "osmosdr") {
     lna_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(mix_gain, "LNA", 0);
+    cast_to_osmo_sptr(source_block)->set_gain(lna_gain, "LNA", 0);
+    BOOST_LOG_TRIVIAL(info) << "LNA Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("LNA");
   }
 }
 
@@ -124,6 +126,7 @@ void Source::set_bb_gain(int b)
   if (driver == "osmosdr") {
     bb_gain = b;
     cast_to_osmo_sptr(source_block)->set_bb_gain(bb_gain);
+    BOOST_LOG_TRIVIAL(info) << "BB Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("BB");
   }
 }
 
@@ -136,7 +139,7 @@ void Source::set_gain(int r)
   if (driver == "osmosdr") {
     gain = r;
     cast_to_osmo_sptr(source_block)->set_gain(gain);
-    cast_to_osmo_sptr(source_block)->get_gain();
+    BOOST_LOG_TRIVIAL(info) << "Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain();
   }
 
   if (driver == "usrp") {
@@ -154,6 +157,7 @@ void Source::set_if_gain(int i)
   if (driver == "osmosdr") {
     if_gain = i;
     cast_to_osmo_sptr(source_block)->set_if_gain(if_gain);
+    BOOST_LOG_TRIVIAL(info) << "IF Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("IF");
   }
 }
 
