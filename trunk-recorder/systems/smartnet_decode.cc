@@ -64,7 +64,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_id)
 	             gr::io_signature::make (0,0,0))
 {
 	//set_relative_rate((double)(76.0/84.0));
-	set_output_multiple(512); //used to be 76
+	set_output_multiple(420); //used to be 76  //504
 	d_queue = queue;
 	this->sys_id = sys_id;
 	//set_output_multiple(168); //used to be 76
@@ -206,7 +206,7 @@ smartnet_decode::work (int noutput_items,
 	for(tag_iter = preamble_tags.begin(); tag_iter != preamble_tags.end(); tag_iter++) {
 		uint64_t mark = tag_iter->offset - abs_sample_cnt;
 
-		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "found a preamble at " << tag_iter->offset;
+		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "found a preamble at " << tag_iter->offset << " Mark: " << mark;
 
 		for(int k=0; k<76/4; k++) {
 			for(int l=0; l<4; l++) {
@@ -271,5 +271,5 @@ smartnet_decode::work (int noutput_items,
 	//return noutput_items;
 
 
-	return noutput_items;
+	return preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
 }

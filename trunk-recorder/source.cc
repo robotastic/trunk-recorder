@@ -94,6 +94,7 @@ void Source::set_mix_gain(int b)
   if (driver == "osmosdr") {
     mix_gain = b;
     cast_to_osmo_sptr(source_block)->set_gain(mix_gain, "MIX", 0);
+    BOOST_LOG_TRIVIAL(info) << "MIX Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("MIX");
   }
 }
 
@@ -108,7 +109,8 @@ void Source::set_lna_gain(int b)
 {
   if (driver == "osmosdr") {
     lna_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(mix_gain, "LNA", 0);
+    cast_to_osmo_sptr(source_block)->set_gain(lna_gain, "LNA", 0);
+    BOOST_LOG_TRIVIAL(info) << "LNA Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("LNA");
   }
 }
 
@@ -124,6 +126,7 @@ void Source::set_bb_gain(int b)
   if (driver == "osmosdr") {
     bb_gain = b;
     cast_to_osmo_sptr(source_block)->set_bb_gain(bb_gain);
+    BOOST_LOG_TRIVIAL(info) << "BB Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("BB");
   }
 }
 
@@ -136,6 +139,7 @@ void Source::set_gain(int r)
   if (driver == "osmosdr") {
     gain = r;
     cast_to_osmo_sptr(source_block)->set_gain(gain);
+    BOOST_LOG_TRIVIAL(info) << "Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain();
   }
 
   if (driver == "usrp") {
@@ -153,6 +157,7 @@ void Source::set_if_gain(int i)
   if (driver == "osmosdr") {
     if_gain = i;
     cast_to_osmo_sptr(source_block)->set_if_gain(if_gain);
+    BOOST_LOG_TRIVIAL(info) << "IF Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("IF");
   }
 }
 
@@ -359,7 +364,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;
-
+    std::vector<std::string> gain_names;
     if (dev == "") {
       BOOST_LOG_TRIVIAL(info) << "Source Device not specified";
       osmo_src = osmosdr::source::make();
@@ -384,6 +389,27 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
     BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
     osmo_src->set_center_freq(center + error, 0);
+    gain_names = osmo_src->get_gain_names();
+    std::string gain_list;
+    for (std::vector<std::string>::iterator it = gain_names.begin(); it != gain_names.end(); it++) {
+       std::string gain_name = *it;
+       osmosdr::gain_range_t range = osmo_src->get_gain_range(gain_name);
+       std::vector<double> gains = range.values();
+       std::string gain_opt_str;
+       for (std::vector<double>::iterator gain_it = gains.begin(); gain_it != gains.end(); gain_it++) {
+         double gain_opt =  *gain_it;
+         std::ostringstream ss;
+         //gain_opt = floor(gain_opt * 10) / 10;
+         ss << gain_opt << " ";
+
+         gain_opt_str += ss.str();
+       }
+       BOOST_LOG_TRIVIAL(info) << "Gain Stage: " << gain_name << " supported values: " <<  gain_opt_str;
+    }
+
+
+
+
 
     source_block = osmo_src;
   }

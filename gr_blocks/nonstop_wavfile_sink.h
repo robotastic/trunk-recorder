@@ -81,8 +81,6 @@ public:
 	 * is kept.
 	 */
 	virtual void set_bits_per_sample(int bits_per_sample) = 0;
-	virtual Call_Source * get_source_list() = 0;
-	virtual int get_source_count() = 0;
 	virtual double length_in_seconds() = 0;
 };
 

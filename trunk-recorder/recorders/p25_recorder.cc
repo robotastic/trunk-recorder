@@ -303,13 +303,7 @@ void p25_recorder::autotune() {
 
 p25_recorder::~p25_recorder() {}
 
-long p25_recorder::get_source_count() {
-  return wav_sink->get_source_count();
-}
 
-Call_Source * p25_recorder::get_source_list() {
-  return wav_sink->get_source_list();
-}
 
 Source * p25_recorder::get_source() {
   return source;
