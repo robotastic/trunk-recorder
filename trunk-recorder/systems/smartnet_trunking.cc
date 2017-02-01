@@ -38,18 +38,18 @@ smartnet_trunking::smartnet_trunking(float               f,
   int   decim               = int(samples_per_second / (syms_per_sec * clockrec_oversample));
   float sps                 = samples_per_second / decim / syms_per_sec;
   const double pi           = boost::math::constants::pi<double>();
-  cout << "SmartNet Trunking - SysId: " << sys_id << endl;
-  cout << "Control channel offset: " << offset << endl;
-  cout << "Control channel: " << chan_freq << endl;
-  cout << "Decim: " << decim << endl;
-  cout << "Samples per symbol: " << sps << endl;
+  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_id;
+  BOOST_LOG_TRIVIAL(info) <<  "Control channel offset: " << offset;
+  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
+  BOOST_LOG_TRIVIAL(info) <<  "Decim: " << decim;
+  BOOST_LOG_TRIVIAL(info) <<  "Samples per symbol: " << sps;
 
   std::vector<float> lpf_taps;
 
 
-  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, 6000, 4000);
+  lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
   std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
-  cout << "Number of LPF taps: " << lpf_taps.size() << endl;
+  BOOST_LOG_TRIVIAL(info) << "Number of LPF taps: " << lpf_taps.size() << endl;
 
   /*prefilter = make_freq_xlating_fft_filter(decim,
                                                                          dest,

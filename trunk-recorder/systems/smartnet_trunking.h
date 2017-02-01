@@ -2,6 +2,7 @@
 #define SMARTNET_TRUNKING
 
 #include <boost/math/constants/constants.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/msg_queue.h>
