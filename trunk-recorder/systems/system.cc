@@ -127,3 +127,11 @@ double System::get_next_control_channel() {
   }
   return this->control_channels[current_control_channel];
 }
+
+void System::set_bandplan(std::string bandplan) {
+  this->bandplan = bandplan;
+}
+
+std::string System::get_bandplan() {
+  return this->bandplan;
+}
