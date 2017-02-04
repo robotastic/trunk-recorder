@@ -179,6 +179,11 @@ void load_config()
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       systems.push_back(system);
+
+      system->set_bandplan(node.second.get<std::string>("bandplan", "800_Reband"));
+      if(system->get_system_type() == "smartnet") {
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
+      }
     }
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
     size_t pos = config.capture_dir.find_last_of("/");
@@ -873,7 +878,7 @@ void monitor_messages() {
 
       if (sys) {
         if (sys->get_system_type() == "smartnet") {
-          trunk_messages = smartnet_parser->parse_message(msg->to_string());
+          trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys->get_bandplan());
           handle_message(trunk_messages, sys);
         }
 

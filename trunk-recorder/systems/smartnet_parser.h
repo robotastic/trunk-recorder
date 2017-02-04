@@ -54,9 +54,9 @@ public:
 	short numStacked;
 	short numConsumed;
 	SmartnetParser();
-	double getfreq(int cmd);
+	double getfreq(int cmd, std::string band);
 	void print_osw(std::string s);
 	bool is_chan(int cmd);
-	std::vector<TrunkMessage> parse_message(std::string s);
+	std::vector<TrunkMessage> parse_message(std::string s, std::string bandplan);
 };
 #endif

@@ -23,6 +23,7 @@ public:
         int message_count;
         int retune_attempts;
         time_t last_message_time;
+        std::string bandplan;
 
         std::vector<double> control_channels;
         int current_control_channel;
@@ -60,5 +61,7 @@ public:
         std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
         std::vector<double> get_channels();
         System(int sys_id );
+        void set_bandplan(std::string);
+        std::string get_bandplan();
 };
 #endif
