@@ -195,8 +195,8 @@ smartnet_decode::work (int noutput_items,
 	uint64_t outlen = 0; //output sample count
 
 	get_tags_in_range(preamble_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_preamble"));
-	if(preamble_tags.size() == 0) {
-		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "No tags found, consumed: " << size << " inputs, abs_sample_cnt: " << abs_sample_cnt;
+	if(preamble_tags.size() <= 0) {
+		 BOOST_LOG_TRIVIAL(info) << "No tags found, consumed: " << noutput_items << " inputs, abs_sample_cnt: " << abs_sample_cnt;
 
 		//consume_each(size);
 		return noutput_items; //size;
@@ -266,7 +266,7 @@ smartnet_decode::work (int noutput_items,
 	}
   //consume_each(outlen); //preamble_tags.back().offset - abs_sample_cnt + 84);
 
-	//preamble_tags.clear();
+	preamble_tags.clear();
 	//this->consume_each(noutput_items);
 	//return noutput_items;
 
