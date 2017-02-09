@@ -199,7 +199,7 @@ smartnet_decode::work (int noutput_items,
 		 BOOST_LOG_TRIVIAL(info) << "No tags found, consumed: " << noutput_items << " inputs, abs_sample_cnt: " << abs_sample_cnt;
 
 		//consume_each(size);
-		return noutput_items; //size;
+		return size;
 	}
 
 	std::vector<gr::tag_t>::iterator tag_iter;
