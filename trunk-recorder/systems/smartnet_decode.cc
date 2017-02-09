@@ -196,10 +196,10 @@ smartnet_decode::work (int noutput_items,
 
 	get_tags_in_range(preamble_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_preamble"));
 	if(preamble_tags.size() <= 0) {
-		 BOOST_LOG_TRIVIAL(info) << "No tags found, consumed: " << noutput_items << " inputs, abs_sample_cnt: " << abs_sample_cnt;
+		 BOOST_LOG_TRIVIAL(info) << "No tags found, consumed: " << noutput_items << " inputs, abs_sample_cnt: " << abs_sample_cnt << " Tags: " << preamble_tags.size();
 
 		//consume_each(size);
-		return size;
+		return noutput_items; //size;
 	}
 
 	std::vector<gr::tag_t>::iterator tag_iter;
