@@ -30,7 +30,7 @@
 #include <gnuradio/tags.h>
 #include <boost/log/trivial.hpp>
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 /*
  * Create a new instance of smartnet_decode and return
@@ -180,7 +180,7 @@ smartnet_decode::work (int noutput_items,
 
 	//you will need to look ahead 84 bits to post 76 bits of data
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
-	int size = noutput_items - 84;
+	uint64_t  size = noutput_items - 84;
 
 	if(size <= 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
@@ -199,7 +199,7 @@ smartnet_decode::work (int noutput_items,
 		 BOOST_LOG_TRIVIAL(info) << "No tags found, consumed: " << noutput_items << " inputs, abs_sample_cnt: " << abs_sample_cnt << " Tags: " << preamble_tags.size();
 
 		//consume_each(size);
-		return noutput_items; //size;
+		return size; //size;
 	}
 
 	std::vector<gr::tag_t>::iterator tag_iter;
