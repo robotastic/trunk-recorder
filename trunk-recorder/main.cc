@@ -222,6 +222,7 @@ void load_config()
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
 
       std::string driver = node.second.get<std::string>("driver", "");
+
       if ((driver != "osmosdr") && (driver != "usrp")) {
         BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
       }
@@ -1052,6 +1053,17 @@ int main(void)
     tb->unlock();
     tb->start();
 
+    for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+      System *system = *sys_it;
+
+      if (system->get_system_type() == "smartnet") {
+        system->smartnet_trunking->enable();
+      }
+
+      if (system->get_system_type() == "p25") {
+        system->p25_trunking->enable();
+      }
+    }
     monitor_messages();
 
     // ------------------------------------------------------------------
