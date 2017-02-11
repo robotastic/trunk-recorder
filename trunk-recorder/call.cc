@@ -74,7 +74,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   state           = monitoring;
   debug_recording = false;
   recorder        = NULL;
-  tdma            = message.tdma+1;
+  tdma            = message.tdma;
   encrypted       = message.encrypted;
   emergency       = message.emergency;
   conventional    = false;
