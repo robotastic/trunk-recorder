@@ -46,23 +46,26 @@ smartnet_trunking::smartnet_trunking(float               f,
 
   std::vector<float> lpf_taps;
 
+  valve = gr::blocks::copy::make(sizeof(gr_complex));
+  valve->set_enabled(false);
 
   lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
   std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
   BOOST_LOG_TRIVIAL(info) << "Number of LPF taps: " << lpf_taps.size() << endl;
 
-  /*prefilter = make_freq_xlating_fft_filter(decim,
-                                                                         dest,
-                                                                         offset,
-                                                                         samp_rate);*/
+  prefilter = make_freq_xlating_fft_filter(decim,
+                                                                           dest,
+                                                                           offset,
+                                                                           samp_rate);
 
 
+/*
   prefilter =
     gr::filter::freq_xlating_fir_filter_ccf::make(decim,
                                                   lpf_taps,
                                                   offset,
                                                   samp_rate);
-
+*/
   gr::digital::fll_band_edge_cc::sptr carriertrack =
     gr::digital::fll_band_edge_cc::make(sps, 0.6, 64, 0.35);
 
@@ -88,8 +91,9 @@ smartnet_trunking::smartnet_trunking(float               f,
 
 
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_id);
-  null_sink = gr::blocks::null_sink::make(sizeof(int8_t));
-  connect(self(),           0, prefilter,        0);
+
+  connect(self(),           0, valve,         0);
+  connect(valve,            0, prefilter,        0);
   connect(prefilter,        0, carriertrack,     0);
   connect(carriertrack,     0, pll_demod,        0);
   connect(pll_demod,        0, softbits,         0);
@@ -98,6 +102,10 @@ smartnet_trunking::smartnet_trunking(float               f,
   connect(start_correlator, 0, decode,           0);
 
 }
+
+void smartnet_trunking::enable() {
+    valve->set_enabled(true);
+  }
 
 void smartnet_trunking::tune_offset(double f) {
   chan_freq = f;
