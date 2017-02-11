@@ -50,26 +50,14 @@ p25_recorder::p25_recorder(Source *src)
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
 
-  double xlate_bandwidth = 5000; // 24260.0
-
-
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
   lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 6250, 1500, 100,gr::filter::firdes::WIN_HANN);
-
-  //lpf_coeffs = gr::filter::firdes::low_pass(1.0, capture_rate, xlate_bandwidth, 1000, gr::filter::firdes::WIN_HANN);
-
-   //int decimation = floor(capture_rate / system_channel_rate);
   int decimation = int(capture_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
-BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
-/*
-     prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
-                lpf_coeffs,
-                offset,
-                samp_rate);*/
+//BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
 
   prefilter = make_freq_xlating_fft_filter(decimation,
                                            dest,
@@ -135,6 +123,26 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
+  // on a trunked network where you know you will have good signal, a carrier
+  // power squelch works well. real FM receviers use a noise squelch, where
+  // the received audio is high-passed above the cutoff and then fed to a
+  // reverse squelch. If the power is then BELOW a threshold, open the squelch.
+
+  squelch_db = source->get_squelch_db();
+
+  if (squelch_db != 0) {
+
+
+    // Non-blocking as we are using squelch_two as a gate.
+    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
+
+    //  based on squelch code form ham2mon
+    // set low -200 since its after demod and its just gate for previous squelch so that the audio
+    // recording doesn't contain blank spaces between transmissions
+    squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
+  }
+
+
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
   double omega      = double(system_channel_rate) / double(symbol_rate);
@@ -155,16 +163,15 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   // convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
-  // fm demodulator (needed in fsk4 case)
-  double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
-  fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
-  BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: fm_demod gain - " << fm_demod_gain;
+  double freq_to_norm_radians = pi/(system_channel_rate/2.0);
+  double fc = 0.0;
+  double fd = 600.0;
+  double pll_demod_gain = 1.0/(fd*freq_to_norm_radians);
+  pll_freq_lock = gr::analog::pll_freqdet_cf::make	(	(symbol_rate/2.0*1.2)*freq_to_norm_radians, (fc+(3*fd*1.9))*freq_to_norm_radians, (fc+(-3*fd*1.9))*freq_to_norm_radians);
+  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * bb_gain);
 
-  demod_agc     = gr::analog::agc2_ff::make(0.1, 0.01, 1.0, 0.1);
-  pre_demod_agc = gr::analog::agc2_cc::make(0.1, 0.01, 1.0, 1.0);
-
-  super_agc     = make_rx_agc_cc(system_channel_rate, true, -90, 0, 0, 500, true);
-
+  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, system_channel_rate, symbol_rate/2.0*1.175, symbol_rate/2.0*0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
+  noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
   double symbol_decim = 1;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
@@ -181,9 +188,9 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   const float l[] = { -2.0, 0.0, 2.0, 4.0 };
 
   //  const float l[] = { -3.0, -1.0, 1.0, 3.0 };
-  std::vector<float> levels(l, l + sizeof(l) / sizeof(l[0]));
+  std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
-  slicer     = gr::op25_repeater::fsk4_slicer_fb::make(levels);
+  slicer     = gr::op25_repeater::fsk4_slicer_fb::make(slices);
 
   int udp_port               = 0;
   int verbosity              = 1; // 10 = lots of debug messages
@@ -202,7 +209,7 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   converter = gr::blocks::short_to_float::make(1, 32768.0); //8192.0); // 8192.0);
                                                             // //2048.0 //1 /
                                                             // 32768.0
-  multiplier = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
@@ -210,7 +217,10 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
   path_stream << this->config->capture_dir << "/junk";
 
   boost::filesystem::create_directories(path_stream.str());
-  sprintf(filename, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, freq);
+  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, freq);
+  if (nchars >= 160) {
+    BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";
+  }
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
 
 
@@ -218,39 +228,50 @@ BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,     0);
     connect(prefilter,     0, arb_resampler, 0);
-    connect(arb_resampler, 0, pre_demod_agc,      0);
-    connect(pre_demod_agc,             0,fm_demod,      0);
-    connect(fm_demod,             0, baseband_amp,         0);
-    connect(baseband_amp,         0, sym_filter,           0);
+    if (squelch_db != 0) {
+      connect(arb_resampler, 0,  squelch,        0);
+      connect(squelch,        0, pll_freq_lock,      0);
+    } else {
+      connect(arb_resampler, 0, pll_freq_lock,      0);
+    }
+    connect(pll_freq_lock,             0, pll_amp,         0);
+    connect(pll_amp,         0, noise_filter,         0);
+    connect(noise_filter,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);
     connect(fsk4_demod,           0, slicer,               0);
     connect(slicer,               0, op25_frame_assembler, 0);
     connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, multiplier,           0);
-    connect(multiplier,           0, wav_sink,             0);
+    connect(converter,            0, levels,           0);
+    if (squelch_db != 0) {
+      connect(levels,           0, squelch_two,    0);
+      connect(squelch_two,    0, wav_sink,             0);
+    } else {
+    connect(levels,           0, wav_sink,             0);
+    }
   } else {
     connect(self(),    0, valve,         0);
     connect(valve,     0, prefilter,     0);
     connect(prefilter, 0, arb_resampler, 0);
-
-    // connect(prefilter, 0, tagger,0);
-    // connect(tagger,0, arb_resampler, 0);
-    connect(arb_resampler, 0, agc,                  0);
+    if (squelch_db != 0) {
+      connect(arb_resampler, 0,  squelch,        0);
+      connect(squelch,        0, agc,      0);
+    } else {
+      connect(arb_resampler, 0, agc,      0);
+    }
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);
     connect(diffdec,       0, to_float,             0);
     connect(to_float,      0, rescale,              0);
     connect(rescale,       0, slicer,               0);
     connect(slicer,        0, op25_frame_assembler, 0);
-
-    // connect(slicer,0, active_probe,0);
-    // connect(active_probe,0, op25_frame_assembler,0);
     connect(op25_frame_assembler, 0, converter,  0);
-    connect(converter,            0, multiplier, 0);
-    connect(multiplier,           0, wav_sink,   0);
-
-    // connect(converter, 0, last_probe,0);
-    // connect(last_probe,0, wav_sink,0);
+    connect(converter,            0, levels, 0);
+    if (squelch_db != 0) {
+      connect(levels,           0, squelch_two,    0);
+      connect(squelch_two,    0, wav_sink,             0);
+    } else {
+    connect(levels,           0, wav_sink,             0);
+    }
   }
 }
 
@@ -273,13 +294,7 @@ void p25_recorder::autotune() {
 
 p25_recorder::~p25_recorder() {}
 
-long p25_recorder::get_source_count() {
-  return wav_sink->get_source_count();
-}
 
-Call_Source * p25_recorder::get_source_list() {
-  return wav_sink->get_source_list();
-}
 
 Source * p25_recorder::get_source() {
   return source;
@@ -297,6 +312,12 @@ bool p25_recorder::is_active() {
   }
 }
 
+bool p25_recorder::is_idle() {
+  if (state == active) {
+    return !squelch->unmuted();
+  }
+  return true;
+}
 double p25_recorder::get_freq() {
   return freq;
 }

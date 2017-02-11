@@ -2,6 +2,7 @@
 #define SMARTNET_TRUNKING
 
 #include <boost/math/constants/constants.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/msg_queue.h>
@@ -23,10 +24,10 @@
 #include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/analog/sig_source_f.h>
 #include <gnuradio/analog/sig_source_c.h>
+#include <gnuradio/blocks/copy.h>
 #include <gnuradio/blocks/null_sink.h>
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
-#include "smartnet_crc.h"
-#include "smartnet_deinterleave.h"
+
 #include "smartnet_decode.h"
 class smartnet_trunking;
 
@@ -39,10 +40,14 @@ class smartnet_trunking : public gr::hier_block2
 								friend smartnet_trunking_sptr make_smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_num);
 public:
 								void tune_offset(double f);
+								void enable();
 protected:
-								gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
-//freq_xlating_fft_filter_sptr prefilter;
+
+								gr::blocks::copy::sptr valve;
+								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+								freq_xlating_fft_filter_sptr prefilter;
 								smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_num);
+
 								double samp_rate, chan_freq, center_freq;
 								int sys_num;
 

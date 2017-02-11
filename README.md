@@ -1,33 +1,49 @@
-Trunk Recorder - v2.1
+Trunk Recorder - v2.1.2
 =================
 ### Note: The format for the Config.json file changed in v2.x.
 
 Need help? Got something working? Share it!
 
-[![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder)
+
+[![Chat](http://img.shields.io/badge/gitter-USER / REPO-blue.svg)]( https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
 Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swatches of RF and then use software to process what was received. GNURadio is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. Multiple radio systems can be recorded at the same time.
 
 Trunk Recorder currently supports the following:
- - P25 & SmartNet Trunking Systems
- - Conventional analog systems, where each group has a dedicated RF channel
+ - Trunked P25 & SmartNet Systems
+ - Conventional P25 & analog systems, where each group has a dedicated RF channel
  - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
  - Ettus USRPs
  - P25 Phase 1 & Analog voice channels
 
 I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
-##Compile
+## Wiki Pages
+### Installing
+* [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
+* [Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu-16.04-Install)
+* [Raspberry Pi - Jessie](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Jessie-Install)
 
-###WIKI with install tips
- [Installing on Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki)
+### Setup
+* [Configuring a system](https://github.com/robotastic/trunk-recorder/wiki/Configuring-a-System)
+
+###Playback & Sharing
+By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.
+* [OpenMHz](https://github.com/robotastic/trunk-recorder/wiki/Uploading-to-OpenMHz) - This is my free hosted platform for sharing recordings
+* [Trunk Player](https://github.com/ScanOC/trunk-player) - A great Python based server, if you want to you want to run your own
+
+* [FAQ](https://github.com/robotastic/trunk-recorder/wiki/FAQ)
+
+___
+
+##Install
 
 ###Requirements
  - GNURadio 3.7
 
 **OSX**
 
-If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install has worked for me.
+If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install of GNU Radio has worked for me.
 
 ###Setting up [GNU Radio](http://gnuradio.org/) on a fresh [Ubuntu](http://www.ubuntu.com/) Version 16.04 [Release](http://releases.ubuntu.com/16.04/)
 
@@ -96,7 +112,7 @@ Here are the different arguments:
  - **sources** - an array of JSON objects that define the different SDRs available. The following options are used to configure each Source:
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
-   - **squelch** - Analog Squelch, my rtl-sdr's are around -60. [0 = Disabled]
+   - **squelch** - Analog Squelch, my rtl-sdr's are around -60. [0 = Disabled] _Squelch needs to be set if the System using the source is conventional._
    - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
    - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
    - **ifGain** - [hackrf only] sets the if gain.
@@ -106,7 +122,7 @@ Here are the different arguments:
    - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
    - **digitLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 8.
-   - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using FSK4 and QPSK demodulation.
+   - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
    - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
    - **analogLevels** - the amount of amplification that will be applied to the analog audio. The value should be between 1-32. The default value is 8.
    - **debugRecorders** - the number of Debug Recorder to have attached to this source. Debug Recorders capture a raw sample that you can examine later using GNURadio Companion. This is helpful if you want to fine tune your the error and gain for this Source.
@@ -115,7 +131,7 @@ Here are the different arguments:
  - **systems** - An array of JSON objects that define the trunking systems that will be recorded. The following options are used to configure each System.
    - **control_channels** - *(For trunked systems)* an array of the control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel.
    - **channels** - *(For conventional systems)* an array of the channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used.
-   - **type** - the type of trunking system. The options are *smartnet*, *p25* & *conventional*.
+   - **type** - the type of trunking system. The options are *smartnet*, *p25*,  *conventional* & *conventionalP25*.
    - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.

@@ -106,7 +106,7 @@ bool nonstop_wavfile_sink_impl::open(const char *filename) {
                    O_RDWR | O_CREAT | OUR_O_LARGEFILE | OUR_O_BINARY,
                    0664)) < 0) {
     perror(filename);
-    BOOST_LOG_TRIVIAL(error)  << "wav error opening: " << filename << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "wav error opening: " << filename << std::endl;
     return false;
   }
 
@@ -116,7 +116,12 @@ bool nonstop_wavfile_sink_impl::open(const char *filename) {
     // fclose(d_fp);
     // d_fp = NULL;
   }
-  strcpy(current_filename, filename);
+
+  if (strlen(filename) >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "nonstop_wavfile_sink: Error! filename longer than 255";
+  } else {
+    strcpy(current_filename, filename);
+  }
 
   if ((d_fp = fdopen(fd, "rb+")) == NULL) {
     perror(filename);
@@ -124,9 +129,6 @@ bool nonstop_wavfile_sink_impl::open(const char *filename) {
     BOOST_LOG_TRIVIAL(error) << "wav open failed" << std::endl;
     return false;
   }
-
-  d_src_count = 0;
-  curr_src_id = 0;
 
   // Scan headers, check file validity
   if (wavheader_parse(d_fp,
@@ -212,7 +214,7 @@ bool nonstop_wavfile_sink_impl::stop()
   return true;
 }
 
-int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star & output_items) {
+int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   float **in         = (float **)&input_items[0];
   int     n_in_chans = input_items.size();
 
@@ -221,9 +223,10 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
   int nwritten;
 
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
-                                          // block
 
-  if (!d_fp)                              // drop output on the floor
+  // block
+
+  if (!d_fp) // drop output on the floor
   {
     BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << std::endl;
     return noutput_items;
@@ -235,16 +238,18 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
   for (int i = 0; i < tags.size(); i++) {
     if (pmt::eq(this_key, tags[i].key)) {
       long src_id  = pmt::to_long(tags[i].value);
-      unsigned pos = d_sample_count + ( tags[i].offset - nitems_read(0));
+      unsigned pos = d_sample_count + (tags[i].offset - nitems_read(0));
       double   sec = (double)pos  / (double)d_sample_rate;
+      /*
       if (curr_src_id != src_id) {
         add_source(src_id, sec);
-        BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - "<< pos<< " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+        BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
-      }
+      }*/
     }
   }
-  //std::cout << std::endl;
+
+  // std::cout << std::endl;
 
   for (nwritten = 0; nwritten < noutput_items; nwritten++) {
     for (int chan = 0; chan < d_nchans; chan++) {
@@ -289,32 +294,10 @@ short int nonstop_wavfile_sink_impl::convert_to_short(float sample)
   return (short int)boost::math::iround(sample);
 }
 
-Call_Source * nonstop_wavfile_sink_impl::get_source_list() {
-  return src_list;
-}
 
-int nonstop_wavfile_sink_impl::get_source_count() {
-  return d_src_count;
-}
 
-bool nonstop_wavfile_sink_impl::add_source(long src, double position) {
-  if (src == 0) {
-    return false;
-  }
 
-  Call_Source call_source = { src, time(NULL), position };
 
-  if (d_src_count < 1) {
-    src_list[d_src_count] = call_source;
-    d_src_count++;
-    return true;
-  } else if ((d_src_count < 48) && (src_list[d_src_count - 1].source != src)) {
-    src_list[d_src_count] = call_source;
-    d_src_count++;
-    return true;
-  }
-  return false;
-}
 
 void
 nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample)

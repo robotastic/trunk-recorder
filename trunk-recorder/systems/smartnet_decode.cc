@@ -64,7 +64,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_num)
 	             gr::io_signature::make (0,0,0))
 {
 	//set_relative_rate((double)(76.0/84.0));
-	set_output_multiple(512); //used to be 76
+	set_output_multiple(420); //used to be 76  //504
 	d_queue = queue;
 	this->sys_num = sys_num;
 	//set_output_multiple(168); //used to be 76
@@ -180,7 +180,7 @@ smartnet_decode::work (int noutput_items,
 
 	//you will need to look ahead 84 bits to post 76 bits of data
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
-	int size = noutput_items - 84;
+	uint64_t size = noutput_items - 84;
 
 	if(size <= 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
@@ -196,17 +196,16 @@ smartnet_decode::work (int noutput_items,
 
 	get_tags_in_range(preamble_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_preamble"));
 	if(preamble_tags.size() == 0) {
-		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "No tags found, consumed: " << size << " inputs, abs_sample_cnt: " << abs_sample_cnt;
+	  BOOST_LOG_TRIVIAL(info) << "Smartnet Trunking: No tags found, consumed: " << size << " inputs, abs_sample_cnt: " << abs_sample_cnt;
 
-		//consume_each(size);
-		return noutput_items; //size;
+		return size;
 	}
 
 	std::vector<gr::tag_t>::iterator tag_iter;
 	for(tag_iter = preamble_tags.begin(); tag_iter != preamble_tags.end(); tag_iter++) {
 		uint64_t mark = tag_iter->offset - abs_sample_cnt;
 
-		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "found a preamble at " << tag_iter->offset;
+		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "found a preamble at " << tag_iter->offset << " Mark: " << mark;
 
 		for(int k=0; k<76/4; k++) {
 			for(int l=0; l<4; l++) {
@@ -271,5 +270,5 @@ smartnet_decode::work (int noutput_items,
 	//return noutput_items;
 
 
-	return noutput_items;
+	return preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
 }

@@ -930,7 +930,7 @@ void
 software_imbe_decoder::decode_tap(int _L, int _K, float _w0, const int * _v, const float * _mu)
 {
 	int ell;
-	uint32_t ET;
+	uint32_t ET = 0;
 	float SE = 0, ER = 0;
 	int en, tmp_f;
 
@@ -962,7 +962,7 @@ software_imbe_decoder::decode_tap(int _L, int _K, float _w0, const int * _v, con
          if(abs((int)sample) > 32767) {
             sample = (sample < 0) ? -32767 : 32767; // * sgn(sample)
          }
-         samples->push_back((short)sample);
+         samples->push_back(sample);
       }
    OldL = L;
    Oldw0 = w0;

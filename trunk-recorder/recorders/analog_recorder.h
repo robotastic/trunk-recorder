@@ -69,7 +69,6 @@ public:
 								void start(Call *call, int n);
 								void stop();
 								double get_freq();
-								double get_squelch_in();
 								Source *get_source();
 								long get_talkgroup();
 								time_t get_start_time();
@@ -93,17 +92,14 @@ private:
 								time_t timestamp;
 								time_t starttime;
 								char filename[160];
-								char status_filename[160];
-								char raw_filename[160];
-								char debug_filename[160];
-								//int num;
 
-								bool iam_logging;
+
 								State state;
 								std::vector<float> lpf_taps;
 								std::vector<float> resampler_taps;
 								std::vector<float> audio_resampler_taps;
 								std::vector<float> sym_taps;
+								std::vector<float> high_f_taps;
 
 								Config *config;
 								Source *source;
@@ -121,6 +117,7 @@ private:
 								gr::blocks::multiply_const_ff::sptr levels;
 								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 								gr::filter::fir_filter_fff::sptr decim_audio;
+								gr::filter::fir_filter_fff::sptr high_f;
 								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 								gr::analog::pwr_squelch_cc::sptr squelch;
 								gr::analog::pwr_squelch_ff::sptr squelch_two;

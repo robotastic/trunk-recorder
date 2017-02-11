@@ -9,9 +9,22 @@ void Call::create_filename() {
   path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
   boost::filesystem::create_directories(path_stream.str());
-  sprintf(filename,           "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
-  sprintf(status_filename,    "%s/%ld-%ld_%g.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
-  sprintf(converted_filename, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
+  int nchars;
+  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 160 charecters";
+  }
+  nchars = snprintf(status_filename,  255,  "%s/%ld-%ld_%g.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 160 charecters";
+  }
+  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
+
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+  }
 
   // sprintf(filename, "%s/%ld-%ld.wav",
   // path_stream.str().c_str(),talkgroup,start_time);
@@ -20,10 +33,12 @@ void Call::create_filename() {
 }
 
 Call::Call(long t, double f, System *s, Config c) {
-  config     = c;
-  idle_count = 0;
-  freq_count = 0;
-  curr_freq  = 0;
+  config      = c;
+  idle_count  = 0;
+  freq_count  = 0;
+  curr_freq   = 0;
+  src_count   = 0;
+  curr_src_id = 0;
   set_freq(f);
   talkgroup       = t;
   sys             = s;
@@ -42,11 +57,13 @@ Call::Call(long t, double f, System *s, Config c) {
 }
 
 Call::Call(TrunkMessage message, System *s, Config c) {
-  config     = c;
-  idle_count = 0;
-  freq_count = 0;
-  curr_freq  = 0;
-  set_freq(message.freq);
+  config      = c;
+  idle_count  = 0;
+  freq_count  = 0;
+  src_count   = 0;
+  curr_src_id = 0;
+  curr_freq   = 0;
+
 
   talkgroup  = message.talkgroup;
   sys        = s;
@@ -61,7 +78,8 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   encrypted       = message.encrypted;
   emergency       = message.emergency;
   conventional    = false;
-
+  set_freq(message.freq);
+  add_source(message.source);
   this->create_filename();
 }
 
@@ -73,6 +91,8 @@ void Call::restart_call() {
   if (conventional) {
     idle_count      = 0;
     freq_count      = 0;
+    src_count       = 0;
+    curr_src_id     = 0;
     start_time      = time(NULL);
     stop_time       = time(NULL);
     last_update     = time(NULL);
@@ -91,11 +111,13 @@ void Call::end_call() {
   stop_time = time(NULL);
 
   if (state == recording) {
+    if (!recorder) {
+      BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
+    }
     BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
     std::ofstream myfile(status_filename);
     std::stringstream shell_command;
-    Call_Source *wav_src_list = get_recorder()->get_source_list();
-    int wav_src_count         = get_recorder()->get_source_count();
+
 
     if (myfile.is_open())
     {
@@ -107,11 +129,11 @@ void Call::end_call() {
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
       myfile << "\"srcList\": [ ";
 
-      for (int i = 0; i < wav_src_count; i++) {
+      for (int i = 0; i < src_count; i++) {
         if (i != 0) {
-          myfile << ", " <<  wav_src_list[i].source;
+          myfile << ", " <<  src_list[i].source;
         } else {
-          myfile << wav_src_list[i].source;
+          myfile << src_list[i].source;
         }
       }
       myfile << " ],\n";
@@ -169,25 +191,28 @@ double Call::get_freq() {
 }
 
 double Call::get_current_length() {
-  if ((state == recording) && recorder) {
-    return get_recorder()->get_current_length();
+  if ((state == recording) && recorder)  {
+    if (!recorder) {
+      BOOST_LOG_TRIVIAL(error) << "Call::get_current_length() State is recording, but no recorder assigned!";
+    }
+    return get_recorder()->get_current_length(); // This could SegFault
   } else {
-    return -1;
+    return time(NULL) - start_time;
   }
 }
 
 void Call::set_freq(double f) {
   if (f != curr_freq) {
-    long position;
+    double position=get_current_length();
 
-    if (state == recording) {
-      position = get_recorder()->get_current_length();
-    } else {
-      position = time(NULL) - start_time;
-    }
     Call_Freq call_freq = { f, time(NULL), position };
-    freq_list[freq_count] = call_freq;
-    freq_count++;
+
+    if (freq_count < 49) {
+      freq_list[freq_count] = call_freq;
+      freq_count++;
+    } else {
+      BOOST_LOG_TRIVIAL(error) << "Call: more than 50 Freq";
+    }
     curr_freq = f;
   }
 }
@@ -205,11 +230,17 @@ long Call::get_freq_count() {
 }
 
 Call_Source * Call::get_source_list() {
-  return get_recorder()->get_source_list();
+  if (!recorder) {
+    BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is recording, but no recorder assigned!";
+  }
+  return src_list;
 }
 
 long Call::get_source_count() {
-  return get_recorder()->get_source_count();
+  if (!recorder) {
+    BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
+  }
+  return src_count;
 }
 
 void Call::set_debug_recording(bool m) {
@@ -252,8 +283,29 @@ int Call::get_tdma() {
   return tdma;
 }
 
+bool Call::add_source(long src) {
+  if (src == 0) {
+    return false;
+  }
+
+  double position = get_current_length();
+    Call_Source call_source = { src, time(NULL), position };
+
+  if (src_count < 1) {
+    src_list[src_count] = call_source;
+    src_count++;
+    return true;
+  } else if ((src_count < 48) && (src_list[src_count - 1].source != src)) {
+    src_list[src_count] = call_source;
+    src_count++;
+    return true;
+  }
+  return false;
+}
+
 void Call::update(TrunkMessage message) {
   last_update = time(NULL);
+  add_source(message.source);
 }
 
 int Call::since_last_update() {
@@ -283,7 +335,6 @@ void Call::reset_idle_count() {
 void Call::increase_idle_count() {
   idle_count++;
 }
-
 
 long Call::get_stop_time() {
   return stop_time;

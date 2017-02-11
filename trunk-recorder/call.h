@@ -77,6 +77,9 @@ private:
 								long talkgroup;
 								double curr_freq;
 								System *sys;
+								int src_count;
+								long curr_src_id;
+								Call_Source src_list[50];
 								Call_Freq freq_list[50];
 								long freq_count;
 								time_t last_update;
@@ -87,14 +90,16 @@ private:
 								bool encrypted;
 								bool emergency;
 								bool conventional;
-								char filename[160];
-								char converted_filename[160];
-								char status_filename[160];
+								char filename[255];
+								char converted_filename[255];
+								char status_filename[255];
 								int tdma;
 
 								Config config;
 								Recorder *recorder;
 								Recorder *debug_recorder;
+								bool add_source(long src);
+
 };
 
 #endif

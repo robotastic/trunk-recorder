@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>
@@ -34,7 +35,7 @@
 
 #include <gnuradio/blocks/complex_to_arg.h>
 
-
+#include <gnuradio/blocks/copy.h>
 #include <gnuradio/blocks/multiply_cc.h>
 #include <gnuradio/blocks/multiply_const_ff.h>
 #include <gnuradio/blocks/multiply_const_cc.h>
@@ -52,7 +53,7 @@
 
 #include <op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/p25_frame_assembler.h>
+#include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
 #include <op25_repeater/gardner_costas_cc.h>
 
 #include <gnuradio/msg_queue.h>
@@ -82,6 +83,7 @@ public:
 
 								void tune_offset(double f);
 								double get_freq();
+								void enable();
 
 								gr::msg_queue::sptr tune_queue;
 								gr::msg_queue::sptr traffic_queue;
@@ -96,7 +98,9 @@ private:
 								std::vector<float> arb_taps;
 								std::vector<float> sym_taps;
 
+								gr::blocks::copy::sptr valve;
 								freq_xlating_fft_filter_sptr prefilter;
+								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 
 								/* GR blocks */
 								gr::filter::fir_filter_ccf::sptr lpf;
@@ -105,14 +109,14 @@ private:
 								gr::digital::diff_phasor_cc::sptr diffdec;
 
 								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
+
 								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
 
 								gr::analog::quadrature_demod_cf::sptr fm_demod;
 								gr::analog::feedforward_agc_cc::sptr agc;
 
-
+								gr::blocks::null_sink::sptr null_sink;
 								gr::blocks::short_to_float::sptr converter;
 
 								gr::blocks::multiply_const_ff::sptr rescale;

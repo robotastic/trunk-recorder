@@ -110,8 +110,10 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
 
-  sprintf(shell_command, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
-
+  int nchars = snprintf(shell_command, 400, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
+  if (nchars >= 400) {
+    BOOST_LOG_TRIVIAL(error) << "Call Uploader: Path longer than 400 charecters";
+  }
   // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
   // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
   int rc = system(shell_command);
@@ -131,7 +133,14 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   }
 
   if (call_info->scheme == "https") {
-    BOOST_LOG_TRIVIAL(info) << "HTTPS Upload result: " << https_upload(server_info, request_);
+    int error = https_upload(server_info, request_);
+    if (!error) {
+      BOOST_LOG_TRIVIAL(info) << "HTTPS Upload Success [ " << call_info->short_name <<  " ] [ " << call_info->converted <<  " ] size: " << req_size;
+    } else {
+      BOOST_LOG_TRIVIAL(info) << "HTTPS Upload Error [ " << call_info->short_name << " ] [ " << call_info->converted <<  " ] size: " << req_size;
+
+    }
+
   }
 
   // BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
