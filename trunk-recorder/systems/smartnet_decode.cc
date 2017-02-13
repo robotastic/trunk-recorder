@@ -30,7 +30,7 @@
 #include <gnuradio/tags.h>
 #include <boost/log/trivial.hpp>
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 /*
  * Create a new instance of smartnet_decode and return
