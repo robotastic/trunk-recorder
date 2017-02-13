@@ -615,7 +615,7 @@ void current_system_id(int sys_id) {
 }
 
 void current_system_status(TrunkMessage message, System *sys) {
-  BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
+  //BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
 }
 
 void unit_registration(long unit) {}
