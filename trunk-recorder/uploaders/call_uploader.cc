@@ -36,6 +36,7 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 
   oss << file.rdbuf();
   file.close();
+  oss.clear();
 
   std::string source_list = "[";
 
