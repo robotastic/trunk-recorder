@@ -364,11 +364,11 @@ void start_recorder(Call *call, TrunkMessage message) {
       if ((source->get_min_hz() <= call->get_freq()) &&
           (source->get_max_hz() >= call->get_freq())) {
         source_found = true;
-
+        /*
         if (call->get_tdma()) {
           BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
           return;
-        }
+        }*/
 
         if (talkgroup)
         {
@@ -615,7 +615,7 @@ void current_system_id(int sys_id) {
 }
 
 void current_system_status(TrunkMessage message, System *sys) {
-  //BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
+  BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
 }
 
 void unit_registration(long unit) {}
