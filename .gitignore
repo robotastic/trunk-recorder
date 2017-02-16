@@ -18,6 +18,5 @@ recorder
 config.json
 ChanList.csv
 *.so
-*.py
 *.a
 *.dylib
