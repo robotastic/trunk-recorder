@@ -41,7 +41,7 @@ analog_recorder::analog_recorder(Source *src)
   // lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2,
   // 3000);
 
-  std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
+  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
   prefilter = make_freq_xlating_fft_filter(decim,
                                            dest,
