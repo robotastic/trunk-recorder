@@ -36,7 +36,7 @@ analog_recorder::analog_recorder(Source *src)
   double pre_channel_rate = samp_rate / decim;
 
   inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
-  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1, samp_rate, xlate_bandwidth, 2000, 60);
+  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, xlate_bandwidth, 2000, 60);
 
   // lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2,
   // 3000);
@@ -69,7 +69,7 @@ analog_recorder::analog_recorder(Source *src)
     double halfband = 0.5 * arb_rate;
     double bw       = percent * halfband;
     double tb       = (percent / 2.0) * halfband;
-    
+
     //BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " << tb;
 
     // As we drop the bw factor, the optfir filter has a harder time converging;
