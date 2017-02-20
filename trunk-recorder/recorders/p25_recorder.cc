@@ -53,10 +53,12 @@ p25_recorder::p25_recorder(Source *src)
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 6250, 1500, 100,gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
+
   int decimation = int(capture_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
+  BOOST_LOG_TRIVIAL(info) << "Number of P25 Recorder taps: " << lpf_coeffs.size();
 //BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
 
   prefilter = make_freq_xlating_fft_filter(decimation,
@@ -67,6 +69,11 @@ p25_recorder::p25_recorder(Source *src)
   double resampled_rate = double(capture_rate) / double(decimation); // rate at
                                                                    // output of
                                                                    // self.lpf
+
+
+  BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
+  lpf2_coeffs = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
+  lpf =  gr::filter::fft_filter_ccf::make(1.0, lpf2_coeffs);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
@@ -92,6 +99,7 @@ p25_recorder::p25_recorder(Source *src)
     // using the firdes method here for better results.
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+    BOOST_LOG_TRIVIAL(info) << "Number of ARB taps: " << arb_taps.size();
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(0);
@@ -224,7 +232,8 @@ p25_recorder::p25_recorder(Source *src)
   if (!qpsk_mod) {
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,     0);
-    connect(prefilter,     0, arb_resampler, 0);
+    connect(prefilter,     0, lpf,0);
+    connect(lpf,           0, arb_resampler, 0);
     if (squelch_db != 0) {
       connect(arb_resampler, 0,  squelch,        0);
       connect(squelch,        0, pll_freq_lock,      0);
@@ -248,7 +257,8 @@ p25_recorder::p25_recorder(Source *src)
   } else {
     connect(self(),    0, valve,         0);
     connect(valve,     0, prefilter,     0);
-    connect(prefilter, 0, arb_resampler, 0);
+    connect(prefilter, 0, lpf, 0);
+    connect(lpf,           0,arb_resampler, 0);
     if (squelch_db != 0) {
       connect(arb_resampler, 0,  squelch,        0);
       connect(squelch,        0, agc,      0);

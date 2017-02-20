@@ -22,6 +22,7 @@
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/fft_filter_fff.h>
+#include <gnuradio/filter/fft_filter_ccf.h>
 #include <gnuradio/filter/freq_xlating_fir_filter_ccf.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/rational_resampler_base_ccc.h>
@@ -134,6 +135,7 @@ private:
 
 								//std::vector<gr_complex> lpf_coeffs;
 								std::vector<float> lpf_coeffs;
+								std::vector<float> lpf2_coeffs;
 								std::vector<float> arb_taps;
 								std::vector<float> sym_taps;
 								std::vector<float> baseband_noise_filter_taps;
@@ -146,7 +148,7 @@ private:
 								latency_probe_sptr active_probe;
 								latency_probe_sptr last_probe;
 								/* GR blocks */
-								gr::filter::fir_filter_ccf::sptr lpf;
+								gr::filter::fft_filter_ccf::sptr lpf;
 								gr::filter::fir_filter_fff::sptr sym_filter;
 								gr::filter::fft_filter_fff::sptr noise_filter;
 

@@ -42,7 +42,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
+  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
+  //lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
   int decimation = int(samp_rate / 96000);
 
   std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
@@ -61,6 +62,10 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double resampled_rate = double(samp_rate) / double(decimation); // rate at
                                                                    // output of
                                                                    // self.lpf
+
+   BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
+   lpf2_coeffs = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
+   lpf2 =  gr::filter::fft_filter_ccf::make(1.0, lpf2_coeffs);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
@@ -165,7 +170,8 @@ null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
   if (!qpsk_mod) {
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,            0);
-    connect(prefilter,     0,  arb_resampler,        0);
+    connect(prefilter,     0,  lpf2,0);
+    connect(lpf2,           0,arb_resampler,        0);
     connect(arb_resampler, 0, fm_demod,             0);
     connect(fm_demod,      0, baseband_amp,         0);
     connect(baseband_amp,  0, sym_filter,           0);
@@ -175,7 +181,8 @@ null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
   } else {
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,            0);
-    connect(prefilter,     0, arb_resampler,        0);
+    connect(prefilter,     0, lpf2,0);
+    connect(lpf2,           0,arb_resampler,        0);
     connect(arb_resampler, 0, agc,                  0);
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);

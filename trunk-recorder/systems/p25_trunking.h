@@ -22,6 +22,7 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
+#include <gnuradio/filter/fft_filter_ccf.h>
 #include <gnuradio/filter/freq_xlating_fir_filter_ccf.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/rational_resampler_base_ccc.h>
@@ -95,6 +96,7 @@ private:
 								bool qpsk_mod;
 								int sys_id;
 								std::vector<float> lpf_coeffs;
+								std::vector<float> lpf2_coeffs;
 								std::vector<float> arb_taps;
 								std::vector<float> sym_taps;
 
@@ -104,6 +106,8 @@ private:
 
 								/* GR blocks */
 								gr::filter::fir_filter_ccf::sptr lpf;
+
+								gr::filter::fft_filter_ccf::sptr lpf2;
 								gr::filter::fir_filter_fff::sptr sym_filter;
 
 								gr::digital::diff_phasor_cc::sptr diffdec;
