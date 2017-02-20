@@ -35,7 +35,8 @@ analog_recorder::analog_recorder(Source *src)
   float  channel_rate     = 4800 * samp_per_sym;
   double pre_channel_rate = samp_rate / decim;
 
-  lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth, 2000);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1, samp_rate, xlate_bandwidth, 2000, 60);
 
   // lpf_taps =  gr::filter::firdes::low_pass(1, samp_rate, xlate_bandwidth/2,
   // 3000);
@@ -47,23 +48,44 @@ analog_recorder::analog_recorder(Source *src)
                                            offset,
                                            samp_rate);
 
-  /*  prefilter = gr::filter::freq_xlating_fir_filter_ccf::make(decim,
-                                                              lpf_taps,
-                                                              offset,
-                                                              samp_rate);*/
-  unsigned int d = GCD(channel_rate, pre_channel_rate); // 4000 GCD(48000,
-                                                        // 100000)
-  channel_rate     = floor(channel_rate  / d);          // 12
-  pre_channel_rate = floor(pre_channel_rate / d);       // 25
-  resampler_taps   = design_filter(channel_rate, pre_channel_rate);
-  cout << "decim: " << decim << " channel rate: " << channel_rate << " pre_channel_rate: " << pre_channel_rate << " divider: " << d << endl;
 
-  downsample_sig = gr::filter::rational_resampler_base_ccf::make(channel_rate, pre_channel_rate, resampler_taps); //
-                                                                                                                  // downsample
-                                                                                                                  // from
-                                                                                                                  // 100k
-                                                                                                                  // to
-                                                                                                                  // 48k
+  channel_lpf =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+
+  double arb_rate  = (double(channel_rate) / double(pre_channel_rate));
+  double arb_size  = 32;
+  double arb_atten = 100;
+
+
+  // Create a filter that covers the full bandwidth of the output signal
+
+  // If rate >= 1, we need to prevent images in the output,
+  // so we have to filter it to less than half the channel
+  // width of 0.5.  If rate < 1, we need to filter to less
+  // than half the output signal's bw to avoid aliasing, so
+  // the half-band here is 0.5*rate.
+  double percent = 0.80;
+
+  if (arb_rate <= 1) {
+    double halfband = 0.5 * arb_rate;
+    double bw       = percent * halfband;
+    double tb       = (percent / 2.0) * halfband;
+    
+    //BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " << tb;
+
+    // As we drop the bw factor, the optfir filter has a harder time converging;
+    // using the firdes method here for better results.
+    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
+                                              gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+    double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
+    BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+    exit(0);
+  }
+
+
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+
   // on a trunked network where you know you will have good signal, a carrier
   // power squelch works well. real FM receviers use a noise squelch, where
   // the received audio is high-passed above the cutoff and then fed to a
@@ -135,8 +157,9 @@ analog_recorder::analog_recorder(Source *src)
     // using squelch
     connect(self(),         0, valve,          0);
     connect(valve,          0, prefilter,      0);
-    connect(prefilter,      0, downsample_sig, 0);
-    connect(downsample_sig, 0, squelch,        0);
+    connect(prefilter,      0, channel_lpf, 0);
+    connect(channel_lpf,    0, arb_resampler, 0);
+    connect(arb_resampler,  0, squelch,        0);
     connect(squelch,        0, demod,          0);
     connect(demod,          0, deemph,         0);
     connect(deemph,         0, decim_audio,    0);
@@ -150,8 +173,9 @@ analog_recorder::analog_recorder(Source *src)
     // No squelch used
     connect(self(),         0, valve,          0);
     connect(valve,          0, prefilter,      0);
-    connect(prefilter,      0, downsample_sig, 0);
-    connect(downsample_sig, 0, demod,          0);
+    connect(prefilter,      0, channel_lpf, 0);
+    connect(channel_lpf,    0, arb_resampler, 0);
+    connect(arb_resampler,  0, demod,          0);
     connect(demod,          0, deemph,         0);
     connect(deemph,         0, decim_audio,    0);
     connect(decim_audio,    0, levels,         0);

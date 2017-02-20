@@ -44,21 +44,23 @@ smartnet_trunking::smartnet_trunking(float               f,
   BOOST_LOG_TRIVIAL(info) <<  "Decim: " << decim;
   BOOST_LOG_TRIVIAL(info) <<  "Samples per symbol: " << sps;
 
-  std::vector<float> lpf_taps;
+  std::vector<float> inital_lpf_taps;
+  std::vector<float> channel_lpf_taps;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
-  std::vector<gr_complex> dest(lpf_taps.begin(), lpf_taps.end());
-  BOOST_LOG_TRIVIAL(info) << "Number of LPF taps: " << lpf_taps.size() << endl;
+  double resampled_rate = double(samp_rate) / double(decim);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
+  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
   prefilter = make_freq_xlating_fft_filter(decim,
                                                                            dest,
                                                                            offset,
                                                                            samp_rate);
 
-
+gr::filter::fft_filter_ccf::sptr channel_lpf = gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
 /*
   prefilter =
     gr::filter::freq_xlating_fir_filter_ccf::make(decim,
@@ -93,7 +95,8 @@ smartnet_trunking::smartnet_trunking(float               f,
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_id);
 
   connect(self(),           0, valve,         0);
-  connect(valve,            0, prefilter,        0);
+  connect(valve,            0, channel_lpf,   0);
+  connect(channel_lpf,      0, prefilter,        0);
   connect(prefilter,        0, carriertrack,     0);
   connect(carriertrack,     0, pll_demod,        0);
   connect(pll_demod,        0, softbits,         0);

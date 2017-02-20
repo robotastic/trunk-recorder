@@ -148,7 +148,7 @@ private:
 								latency_probe_sptr active_probe;
 								latency_probe_sptr last_probe;
 								/* GR blocks */
-								gr::filter::fft_filter_ccf::sptr lpf;
+								gr::filter::fft_filter_ccf::sptr channel_lpf;
 								gr::filter::fir_filter_fff::sptr sym_filter;
 								gr::filter::fft_filter_fff::sptr noise_filter;
 

@@ -22,6 +22,7 @@
 #include <gnuradio/filter/iir_filter_ffd.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
+#include <gnuradio/filter/fft_filter_ccf.h>
 #include <gnuradio/filter/freq_xlating_fir_filter_ccf.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/rational_resampler_base_ccc.h>
@@ -32,6 +33,7 @@
 #include <gnuradio/analog/pwr_squelch_ff.h>
 #include <gnuradio/blocks/multiply_cc.h>
 #include <gnuradio/blocks/file_sink.h>
+#include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 #include <gnuradio/filter/rational_resampler_base_ccf.h>
 #include <gnuradio/filter/rational_resampler_base_fff.h>
 #include <gnuradio/block.h>
@@ -95,11 +97,15 @@ private:
 
 
 								State state;
+								std::vector<float> inital_lpf_taps;
+								std::vector<float> channel_lpf_taps;
 								std::vector<float> lpf_taps;
 								std::vector<float> resampler_taps;
 								std::vector<float> audio_resampler_taps;
 								std::vector<float> sym_taps;
 								std::vector<float> high_f_taps;
+								std::vector<float> arb_taps;
+
 
 								Config *config;
 								Source *source;
@@ -109,12 +115,14 @@ private:
 								gr::filter::iir_filter_ffd::sptr deemph;
 								gr::filter::fir_filter_ccf::sptr lpf;
 								gr::filter::fir_filter_fff::sptr sym_filter;
+								gr::filter::fft_filter_ccf::sptr channel_lpf;
 
 								gr::analog::sig_source_c::sptr offset_sig;
 								gr::blocks::multiply_cc::sptr mixer;
 								gr::blocks::file_sink::sptr fs;
 								gr::blocks::multiply_const_ff::sptr quiet;
 								gr::blocks::multiply_const_ff::sptr levels;
+								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
 								gr::filter::fir_filter_fff::sptr decim_audio;
 								gr::filter::fir_filter_fff::sptr high_f;

@@ -42,11 +42,11 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
-  //lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
+  //lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
   int decimation = int(samp_rate / 96000);
 
-  std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
+  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
   BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
 
 
@@ -55,7 +55,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 /*
   prefilter =
     gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
-                                                  lpf_coeffs,
+                                                  lpf_taps,
                                                   offset,
                                                   samp_rate);*/
 
@@ -64,8 +64,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
                                                                    // self.lpf
 
    BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
-   lpf2_coeffs = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
-   lpf2 =  gr::filter::fft_filter_ccf::make(1.0, lpf2_coeffs);
+   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
+   channel_lpf =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
@@ -90,6 +90,9 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
     // using the firdes method here for better results.
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+    double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
+    BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
+
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(0);
@@ -170,8 +173,8 @@ null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
   if (!qpsk_mod) {
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,            0);
-    connect(prefilter,     0,  lpf2,0);
-    connect(lpf2,           0,arb_resampler,        0);
+    connect(prefilter,     0,  channel_lpf,0);
+    connect(channel_lpf,           0,arb_resampler,        0);
     connect(arb_resampler, 0, fm_demod,             0);
     connect(fm_demod,      0, baseband_amp,         0);
     connect(baseband_amp,  0, sym_filter,           0);
@@ -181,8 +184,8 @@ null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
   } else {
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,            0);
-    connect(prefilter,     0, lpf2,0);
-    connect(lpf2,           0,arb_resampler,        0);
+    connect(prefilter,     0, channel_lpf,0);
+    connect(channel_lpf,           0,arb_resampler,        0);
     connect(arb_resampler, 0, agc,                  0);
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);

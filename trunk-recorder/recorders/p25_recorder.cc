@@ -73,7 +73,7 @@ p25_recorder::p25_recorder(Source *src)
 
 
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
-  lpf =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+  channel_lpf =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
@@ -234,8 +234,8 @@ p25_recorder::p25_recorder(Source *src)
   if (!qpsk_mod) {
     connect(self(),        0, valve,         0);
     connect(valve,         0, prefilter,     0);
-    connect(prefilter,     0, lpf,0);
-    connect(lpf,           0, arb_resampler, 0);
+    connect(prefilter,     0, channel_lpf,0);
+    connect(channel_lpf,           0, arb_resampler, 0);
     if (squelch_db != 0) {
       connect(arb_resampler, 0,  squelch,        0);
       connect(squelch,        0, pll_freq_lock,      0);
@@ -259,8 +259,8 @@ p25_recorder::p25_recorder(Source *src)
   } else {
     connect(self(),    0, valve,         0);
     connect(valve,     0, prefilter,     0);
-    connect(prefilter, 0, lpf, 0);
-    connect(lpf,           0,arb_resampler, 0);
+    connect(prefilter, 0, channel_lpf, 0);
+    connect(channel_lpf,           0,arb_resampler, 0);
     if (squelch_db != 0) {
       connect(arb_resampler, 0,  squelch,        0);
       connect(squelch,        0, agc,      0);
