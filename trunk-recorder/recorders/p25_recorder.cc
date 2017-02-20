@@ -53,12 +53,13 @@ p25_recorder::p25_recorder(Source *src)
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, capture_rate, 96000, 25000, 60,gr::filter::firdes::WIN_HANN);
+
 
   int decimation = int(capture_rate / 96000);
 
-  std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
-  BOOST_LOG_TRIVIAL(info) << "Number of P25 Recorder taps: " << lpf_coeffs.size();
+  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
+
 //BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
 
   prefilter = make_freq_xlating_fft_filter(decimation,
@@ -71,9 +72,8 @@ p25_recorder::p25_recorder(Source *src)
                                                                    // self.lpf
 
 
-  BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
-  lpf2_coeffs = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
-  lpf =  gr::filter::fft_filter_ccf::make(1.0, lpf2_coeffs);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
+  lpf =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
@@ -92,14 +92,16 @@ p25_recorder::p25_recorder(Source *src)
     double halfband = 0.5 * arb_rate;
     double bw       = percent * halfband;
     double tb       = (percent / 2.0) * halfband;
+    BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
-    BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " << tb;
+    //BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " << tb;
 
     // As we drop the bw factor, the optfir filter has a harder time converging;
     // using the firdes method here for better results.
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-    BOOST_LOG_TRIVIAL(info) << "Number of ARB taps: " << arb_taps.size();
+    double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
+    BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(0);

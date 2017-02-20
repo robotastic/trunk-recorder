@@ -133,9 +133,9 @@ private:
 								State state;
 
 
-								//std::vector<gr_complex> lpf_coeffs;
-								std::vector<float> lpf_coeffs;
-								std::vector<float> lpf2_coeffs;
+								//std::vector<gr_complex> inital_lpf_taps;
+								std::vector<float> inital_lpf_taps;
+								std::vector<float> channel_lpf_taps;
 								std::vector<float> arb_taps;
 								std::vector<float> sym_taps;
 								std::vector<float> baseband_noise_filter_taps;
