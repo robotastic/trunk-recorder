@@ -16,9 +16,11 @@
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fft_filter_ccf.h>
+#include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 #include <gnuradio/digital/fll_band_edge_cc.h>
 #include <gnuradio/digital/clock_recovery_mm_ff.h>
 #include <gnuradio/digital/binary_slicer_fb.h>
+
 #include <gnuradio/digital/correlate_access_code_tag_bb.h>
 
 #include <gnuradio/analog/pll_freqdet_cf.h>
@@ -43,6 +45,7 @@ public:
 								void enable();
 protected:
 								gr::blocks::copy::sptr valve;
+								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 								freq_xlating_fft_filter_sptr prefilter;
 								smartnet_trunking(float f, float c, long s, gr::msg_queue::sptr queue, int sys_id);
