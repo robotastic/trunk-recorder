@@ -14,24 +14,23 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
   this->sys_id = sys_id;
-  freq         = f;
-  center       = c;
+  chan_freq    = f;
+  center_freq  = c;
   long samp_rate = s;
 
-  double offset = freq - center;
+  double offset = chan_freq - center_freq;
 
-
-  double  symbol_rate         = 4800;
+  double symbol_rate         = 4800;
   double samples_per_symbol  = 10;
   double system_channel_rate = symbol_rate * samples_per_symbol;
-  double  symbol_deviation    = 600.0;
+  double symbol_deviation    = 600.0;
+  int    decimation          = floor(samp_rate / 96000);
+  double resampled_rate      = double(samp_rate) / double(decimation);
   qpsk_mod = qpsk;
 
 
   std::vector<float> sym_taps;
   const double pi = M_PI; // boost::math::constants::pi<double>();
-
-
 
   double gain_mu      = 0.025;
   double costas_alpha = 0.04;
@@ -39,28 +38,15 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
-  valve = gr::blocks::copy::make(sizeof(gr_complex));
-  valve->set_enabled(false);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
 
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, samp_rate, 6250, 1500, 60,gr::filter::firdes::WIN_HANN);
-  int decimation = int(samp_rate / 96000);
-
-  std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
-  BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
-
+  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
   prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
-/*
-  prefilter =
-    gr::filter::freq_xlating_fir_filter_ccf::make(decimation,
-                                                  lpf_coeffs,
-                                                  offset,
-                                                  samp_rate);*/
-
-  double resampled_rate = double(samp_rate) / double(decimation); // rate at
-                                                                   // output of
-                                                                   // self.lpf
+  BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
+  channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
@@ -85,6 +71,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
     // using the firdes method here for better results.
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+    double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
+    BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(0);
@@ -143,29 +131,10 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   bool do_tdma               = 0;
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_id, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
 
-
-  /*
-          to_float->set_max_output_buffer(4096);
-          rescale->set_max_output_buffer(4096);
-          slicer->set_max_output_buffer(4096);
-          op25_frame_assembler->set_max_output_buffer(4096);
-          //prefilter->set_max_output_buffer(512);
-          arb_resampler->set_max_output_buffer(4096);
-          fm_demod->set_max_output_buffer(4096);
-          baseband_amp->set_max_output_buffer(4096);
-          sym_filter->set_max_output_buffer(4096);
-          fsk4_demod->set_max_output_buffer(4096);
-          agc->set_max_output_buffer(4096);
-          costas_clock->set_max_output_buffer(4096);
-          diffdec->set_max_output_buffer(4096);*/
-
-  // this->set_max_output_buffer(4096);
-
-null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
   if (!qpsk_mod) {
-    connect(self(),        0, valve,         0);
-    connect(valve,         0, prefilter,            0);
-    connect(prefilter,     0,  arb_resampler,        0);
+    connect(self(),        0, prefilter,            0);
+    connect(prefilter,     0, channel_lpf,          0);
+    connect(channel_lpf,   0, arb_resampler,        0);
     connect(arb_resampler, 0, fm_demod,             0);
     connect(fm_demod,      0, baseband_amp,         0);
     connect(baseband_amp,  0, sym_filter,           0);
@@ -173,9 +142,9 @@ null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
     connect(fsk4_demod,    0, slicer,               0);
     connect(slicer,        0, op25_frame_assembler, 0);
   } else {
-    connect(self(),        0, valve,         0);
-    connect(valve,         0, prefilter,            0);
-    connect(prefilter,     0, arb_resampler,        0);
+    connect(self(),        0, prefilter,            0);
+    connect(prefilter,     0, channel_lpf,          0);
+    connect(channel_lpf,   0, arb_resampler,        0);
     connect(arb_resampler, 0, agc,                  0);
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);
@@ -189,18 +158,11 @@ null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
 p25_trunking::~p25_trunking() {}
 
 double p25_trunking::get_freq() {
-  return freq;
+  return chan_freq;
 }
 
-void p25_trunking::enable() {
-    valve->set_enabled(true);
-  }
-
-
 void p25_trunking::tune_offset(double f) {
-  freq = f;
-  int offset_amount = (f - center);
-  prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
-  // BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "
-  //  << freq;
+  chan_freq = f;
+  int offset_amount = (f - center_freq);
+  prefilter->set_center_freq(offset_amount);
 }

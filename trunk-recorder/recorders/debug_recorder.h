@@ -67,11 +67,7 @@
 #include "../config.h"
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
-#include "../../gr_blocks/latency_probe.h"
-#include "../../gr_blocks/latency_tagger.h"
 
-
-#include "../../gr_blocks/rx_agc_cc.h"
 
 class Source;
 class debug_recorder;
@@ -130,10 +126,6 @@ private:
 
 								gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
 
-								//freq_xlating_fft_filter_sptr prefilter;
-								latency_tagger_sptr tagger;
-								latency_probe_sptr active_probe;
-								latency_probe_sptr last_probe;
 								/* GR blocks */
 								gr::filter::fir_filter_ccf::sptr lpf;
 								gr::filter::fir_filter_fff::sptr sym_filter;
@@ -152,7 +144,6 @@ private:
 								gr::analog::feedforward_agc_cc::sptr agc;
 								gr::analog::agc2_ff::sptr demod_agc;
 								gr::analog::agc2_cc::sptr pre_demod_agc;
-								rx_agc_cc_sptr super_agc;
 								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 								gr::blocks::file_sink::sptr raw_sink;
 								gr::blocks::short_to_float::sptr converter;

@@ -13,21 +13,20 @@ p25_recorder::p25_recorder(Source *src)
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
-  source = src;
-  freq   = source->get_center();
-  center = source->get_center();
-  config = source->get_config();
+  source      = src;
+  chan_freq   = source->get_center();
+  center_freq = source->get_center();
+  config      = source->get_config();
   long samp_rate = source->get_rate();
   qpsk_mod       = source->get_qpsk_mod();
   silence_frames = source->get_silence_frames();
   talkgroup      = 0;
-  long capture_rate = samp_rate;
 
   num = 0;
 
   state = inactive;
 
-  double offset = freq - center;
+  double offset = chan_freq - center_freq;
 
 
   double symbol_rate         = 4800;
@@ -35,8 +34,9 @@ p25_recorder::p25_recorder(Source *src)
   double system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
+  int decimation        = int(samp_rate / 96000);
+  double resampled_rate = double(samp_rate) / double(decimation);
 
-  std::vector<float> sym_taps;
   const double pi = M_PI; // boost::math::constants::pi<double>();
 
   timestamp = time(NULL);
@@ -53,24 +53,17 @@ p25_recorder::p25_recorder(Source *src)
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  lpf_coeffs = gr::filter::firdes::low_pass_2(1.0, capture_rate, 6250, 1500, 100,gr::filter::firdes::WIN_HANN);
-  int decimation = int(capture_rate / 96000);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
+  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  std::vector<gr_complex> dest(lpf_coeffs.begin(), lpf_coeffs.end());
-//BOOST_LOG_TRIVIAL(error) << "Size of LPF: " << dest.size();
+  prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
-  prefilter = make_freq_xlating_fft_filter(decimation,
-                                           dest,
-                                           offset,
-                                           samp_rate);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
+  channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
 
-  double resampled_rate = double(capture_rate) / double(decimation); // rate at
-                                                                   // output of
-                                                                   // self.lpf
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
-
 
   // Create a filter that covers the full bandwidth of the output signal
 
@@ -85,39 +78,20 @@ p25_recorder::p25_recorder(Source *src)
     double halfband = 0.5 * arb_rate;
     double bw       = percent * halfband;
     double tb       = (percent / 2.0) * halfband;
+    BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
-    BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " << tb;
+    // BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
+    // tb;
 
     // As we drop the bw factor, the optfir filter has a harder time converging;
     // using the firdes method here for better results.
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+    double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
+    BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(0);
-
-    /*
-       double halfband = 0.5;
-       double bw = percent*halfband;
-       double tb = (percent/2.0)*halfband;
-       double ripple = 0.1;
-
-       bool made = False;
-       while not made:
-        try:
-            self._taps = optfir.low_pass(self._size, self._size, bw, bw+tb,
-               ripple, atten)
-            made = True
-        except RuntimeError:
-            ripple += 0.01
-            made = False
-            print("Warning: set ripple to %.4f dB. If this is a problem, adjust
-               the attenuation or create your own filter taps." % (ripple))
-
-     # Build in an exit strategy; if we've come this far, it ain't working.
-            if(ripple >= 1.0):
-                raise RuntimeError("optfir could not generate an appropriate
-     #filter.")*/
   }
 
 
@@ -131,8 +105,6 @@ p25_recorder::p25_recorder(Source *src)
   squelch_db = source->get_squelch_db();
 
   if (squelch_db != 0) {
-
-
     // Non-blocking as we are using squelch_two as a gate.
     squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
@@ -163,15 +135,15 @@ p25_recorder::p25_recorder(Source *src)
   // convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
-  double freq_to_norm_radians = pi/(system_channel_rate/2.0);
-  double fc = 0.0;
-  double fd = 600.0;
-  double pll_demod_gain = 1.0/(fd*freq_to_norm_radians);
-  pll_freq_lock = gr::analog::pll_freqdet_cf::make	(	(symbol_rate/2.0*1.2)*freq_to_norm_radians, (fc+(3*fd*1.9))*freq_to_norm_radians, (fc+(-3*fd*1.9))*freq_to_norm_radians);
-  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * bb_gain);
+  double freq_to_norm_radians = pi / (system_channel_rate / 2.0);
+  double fc                   = 0.0;
+  double fd                   = 600.0;
+  double pll_demod_gain       = 1.0 / (fd * freq_to_norm_radians);
+  pll_freq_lock = gr::analog::pll_freqdet_cf::make((symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
+  pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * bb_gain);
 
-  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, system_channel_rate, symbol_rate/2.0*1.175, symbol_rate/2.0*0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
-  noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
+  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, system_channel_rate, symbol_rate / 2.0 * 1.175, symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
+  noise_filter               = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
   double symbol_decim = 1;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
@@ -203,71 +175,74 @@ p25_recorder::p25_recorder(Source *src)
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, silence_frames, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
-  converter = gr::blocks::short_to_float::make(1, 32768.0); //8192.0); // 8192.0);
-                                                            // //2048.0 //1 /
-                                                            // 32768.0
-  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+  converter = gr::blocks::short_to_float::make(1, 32768.0);
+  levels    = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
-  //path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
   path_stream << this->config->capture_dir << "/junk";
 
   boost::filesystem::create_directories(path_stream.str());
-  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, freq);
+  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, chan_freq);
+
   if (nchars >= 160) {
-    BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";
+    BOOST_LOG_TRIVIAL(error) << "P25 Recorder: Path longer than 160 charecters";
   }
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
 
-
   if (!qpsk_mod) {
-    connect(self(),        0, valve,         0);
-    connect(valve,         0, prefilter,     0);
-    connect(prefilter,     0, arb_resampler, 0);
+    connect(self(),      0, valve,         0);
+    connect(valve,       0, prefilter,     0);
+    connect(prefilter,   0, channel_lpf,   0);
+    connect(channel_lpf, 0, arb_resampler, 0);
+
     if (squelch_db != 0) {
-      connect(arb_resampler, 0,  squelch,        0);
-      connect(squelch,        0, pll_freq_lock,      0);
+      connect(arb_resampler, 0, squelch,       0);
+      connect(squelch,       0, pll_freq_lock, 0);
     } else {
-      connect(arb_resampler, 0, pll_freq_lock,      0);
+      connect(arb_resampler, 0, pll_freq_lock, 0);
     }
-    connect(pll_freq_lock,             0, pll_amp,         0);
-    connect(pll_amp,         0, noise_filter,         0);
+    connect(pll_freq_lock,        0, pll_amp,              0);
+    connect(pll_amp,              0, noise_filter,         0);
     connect(noise_filter,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);
     connect(fsk4_demod,           0, slicer,               0);
     connect(slicer,               0, op25_frame_assembler, 0);
     connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, levels,           0);
+    connect(converter,            0, levels,               0);
+
     if (squelch_db != 0) {
-      connect(levels,           0, squelch_two,    0);
-      connect(squelch_two,    0, wav_sink,             0);
+      connect(levels,      0, squelch_two, 0);
+      connect(squelch_two, 0, wav_sink,    0);
     } else {
-    connect(levels,           0, wav_sink,             0);
+      connect(levels, 0, wav_sink, 0);
     }
   } else {
-    connect(self(),    0, valve,         0);
-    connect(valve,     0, prefilter,     0);
-    connect(prefilter, 0, arb_resampler, 0);
+    connect(self(),      0, valve,         0);
+    connect(valve,       0, prefilter,     0);
+    connect(prefilter,   0, channel_lpf,   0);
+    connect(channel_lpf, 0, arb_resampler, 0);
+
     if (squelch_db != 0) {
-      connect(arb_resampler, 0,  squelch,        0);
-      connect(squelch,        0, agc,      0);
+      connect(arb_resampler, 0, squelch, 0);
+      connect(squelch,       0, agc,     0);
     } else {
-      connect(arb_resampler, 0, agc,      0);
+      connect(arb_resampler, 0, agc, 0);
     }
-    connect(agc,           0, costas_clock,         0);
-    connect(costas_clock,  0, diffdec,              0);
-    connect(diffdec,       0, to_float,             0);
-    connect(to_float,      0, rescale,              0);
-    connect(rescale,       0, slicer,               0);
-    connect(slicer,        0, op25_frame_assembler, 0);
-    connect(op25_frame_assembler, 0, converter,  0);
-    connect(converter,            0, levels, 0);
+    connect(agc,                  0, costas_clock,         0);
+    connect(costas_clock,         0, diffdec,              0);
+    connect(diffdec,              0, to_float,             0);
+    connect(to_float,             0, rescale,              0);
+    connect(rescale,              0, slicer,               0);
+    connect(slicer,               0, op25_frame_assembler, 0);
+    connect(op25_frame_assembler, 0, converter,            0);
+    connect(converter,            0, levels,               0);
+
     if (squelch_db != 0) {
-      connect(levels,           0, squelch_two,    0);
-      connect(squelch_two,    0, wav_sink,             0);
+      connect(levels,      0, squelch_two, 0);
+      connect(squelch_two, 0, wav_sink,    0);
     } else {
-    connect(levels,           0, wav_sink,             0);
+      connect(levels, 0, wav_sink, 0);
     }
   }
 }
@@ -282,15 +257,15 @@ void p25_recorder::autotune() {
     msg = tune_queue->delete_head_nowait();
 
     if (msg != 0) {
-      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << freq << "\t Tune: " << msg->arg1();
-      //tune_offset(freq + (msg->arg1()*100));
+      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << chan_freq << "\t Tune: " << msg->arg1();
+
+      // tune_offset(freq + (msg->arg1()*100));
       tune_queue->flush();
     }
   }
 }
 
 p25_recorder::~p25_recorder() {}
-
 
 
 Source * p25_recorder::get_source() {
@@ -315,8 +290,9 @@ bool p25_recorder::is_idle() {
   }
   return true;
 }
+
 double p25_recorder::get_freq() {
-  return freq;
+  return chan_freq;
 }
 
 double p25_recorder::get_current_length() {
@@ -332,11 +308,9 @@ long p25_recorder::elapsed() {
 }
 
 void p25_recorder::tune_offset(double f) {
-  freq = f;
-  int offset_amount = (f - center);
-  prefilter->set_center_freq(offset_amount); // have to flip this for 3.7
-  // BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "
-  //  << freq;
+  chan_freq = f;
+  int offset_amount = (f - center_freq);
+  prefilter->set_center_freq(offset_amount);
 }
 
 State p25_recorder::get_state() {
@@ -345,8 +319,8 @@ State p25_recorder::get_state() {
 
 void p25_recorder::stop() {
   if (state == active) {
-    //op25_frame_assembler->clear();
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    // op25_frame_assembler->clear();
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
@@ -361,15 +335,14 @@ void p25_recorder::start(Call *call, int n) {
     starttime = time(NULL);
 
     talkgroup = call->get_talkgroup();
-    freq      = call->get_freq();
+    chan_freq = call->get_freq();
 
-    // num = n;
-      if (!qpsk_mod) {
-        fsk4_demod->reset();
-      }
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    if (!qpsk_mod) {
+      fsk4_demod->reset();
+    }
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
 
-    int offset_amount = (freq - center);
+    int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);
 
     wav_sink->open(call->get_filename());
