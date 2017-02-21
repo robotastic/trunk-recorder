@@ -180,7 +180,10 @@ smartnet_decode::work (int noutput_items,
 
 	//you will need to look ahead 84 bits to post 76 bits of data
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
+
+
 	uint64_t size = noutput_items - 84;
+
 
 	if(size <= 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
@@ -195,6 +198,7 @@ smartnet_decode::work (int noutput_items,
 	uint64_t outlen = 0; //output sample count
 
 	get_tags_in_range(preamble_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_preamble"));
+
 	if(preamble_tags.size() == 0) {
 	  BOOST_LOG_TRIVIAL(info) << "Smartnet Trunking: No tags found, consumed: " << size << " inputs, abs_sample_cnt: " << abs_sample_cnt;
 
