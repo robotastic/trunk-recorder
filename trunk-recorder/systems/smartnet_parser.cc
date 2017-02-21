@@ -43,21 +43,21 @@ double SmartnetParser::getfreq(int cmd) {
   /* Different Systems will have different band plans. Below is the one for
      WMATA which is a bit werid:*/
 
-
+/*
   if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
     freq = ((cmd - 380) * 25000)  + 489087500;
   } else {
     freq = 0;
   }
+*/
 
-/*
           if (cmd < 0x1b8) {
                   freq = float(cmd * 25000 + 851012500);
           } else if (cmd < 0x230) {
                   freq = float(cmd * 25000 + 851012500 - 10987500);
           } else {
                   freq = 0;
-          }*/
+          }
 
   return freq;
 }
