@@ -24,25 +24,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   center_freq  = c;
   chan_freq    = f;
   samp_rate    = s;
-<<<<<<< HEAD
-  this->sys_num = sys_num;
-  float samples_per_second   = samp_rate;
-  float syms_per_sec         = 3600;
-  float gain_mu              = 0.01;
-  float mu                   = 0.5;
-  float omega_relative_limit = 0.3;
-  float offset               = chan_freq - center_freq; // have to reverse it
-                                                        // for 3.7 because it
-                                                        // swapped in the
-                                                        // switch.
-  float clockrec_oversample = 3;
-  int   decim               = int(samples_per_second / (syms_per_sec * clockrec_oversample));
-  float sps                 = samples_per_second / decim / syms_per_sec;
-  const double pi           = boost::math::constants::pi<double>();
 
-  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - Sys Num: " << sys_num;
-  BOOST_LOG_TRIVIAL(info) <<  "Control channel offset: " << offset;
-=======
   this->sys_id = sys_id;
 
   double symbol_rate         = 3600;
@@ -59,14 +41,8 @@ smartnet_trunking::smartnet_trunking(float               f,
 
   const double pi = boost::math::constants::pi<double>();
   BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_id;
->>>>>>> master
+
   BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
-
-<<<<<<< HEAD
-
-  std::vector<float> lpf_taps;
-=======
->>>>>>> master
 
   inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
@@ -134,19 +110,13 @@ smartnet_trunking::smartnet_trunking(float               f,
     gr::digital::correlate_access_code_tag_bb::make("10101100", 0, "smartnet_preamble");
 
 
-<<<<<<< HEAD
-  smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_num);
-  connect(self(),           0, valve,         0);
-  connect(valve,            0, prefilter,        0);
-  connect(prefilter,        0, carriertrack,     0);
-=======
+
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_id);
 
   connect(self(),           0, prefilter,        0);
   connect(prefilter,        0, channel_lpf,      0);
   connect(channel_lpf,      0, arb_resampler,    0);
   connect(arb_resampler,    0, carriertrack,     0);
->>>>>>> master
   connect(carriertrack,     0, pll_demod,        0);
   connect(pll_demod,        0, softbits,         0);
   connect(softbits,         0, slicer,           0);

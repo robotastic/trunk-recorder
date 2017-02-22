@@ -13,15 +13,10 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
-<<<<<<< HEAD
-  this->sys_num = sys_num;
-  freq         = f;
-  center       = c;
-=======
+
   this->sys_id = sys_id;
   chan_freq    = f;
   center_freq  = c;
->>>>>>> master
   long samp_rate = s;
 
   double offset = chan_freq - center_freq;

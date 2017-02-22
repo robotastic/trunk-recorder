@@ -90,82 +90,12 @@ public:
   gr::msg_queue::sptr rx_queue;
 
 private:
-<<<<<<< HEAD
-								double center, freq;
-								bool muted;
-								bool qpsk_mod;
-								double squelch_db;
-								int silence_frames;
-								int tdma_slot;
-								long talkgroup;
-								time_t timestamp;
-								time_t starttime;
-
-								Config *config;
-								Source *source;
-								char filename[160];
-								char raw_filename[160];
-								//int num;
-
-								bool iam_logging;
-								State state;
-
-
-								//std::vector<gr_complex> lpf_coeffs;
-								std::vector<float> lpf_coeffs;
-								std::vector<float> arb_taps;
-								std::vector<float> sym_taps;
-								std::vector<float> baseband_noise_filter_taps;
-
-
-								//gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
-
-								freq_xlating_fft_filter_sptr prefilter;
-								latency_tagger_sptr tagger;
-								latency_probe_sptr active_probe;
-								latency_probe_sptr last_probe;
-								/* GR blocks */
-								gr::filter::fir_filter_ccf::sptr lpf;
-								gr::filter::fir_filter_fff::sptr sym_filter;
-								gr::filter::fft_filter_fff::sptr noise_filter;
-
-
-								gr::analog::sig_source_c::sptr lo;
-
-								gr::digital::diff_phasor_cc::sptr diffdec;
-
-								gr::blocks::multiply_cc::sptr mixer;
-								gr::blocks::file_sink::sptr fs;
-
-								gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-								gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
-								gr::filter::rational_resampler_base_fff::sptr upsample_audio;
-								gr::analog::feedforward_agc_cc::sptr agc;
-								gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
-								gr::analog::pwr_squelch_cc::sptr squelch;
-								gr::analog::pwr_squelch_ff::sptr squelch_two;
-								gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
-
-								gr::blocks::short_to_float::sptr converter;
-								gr::blocks::copy::sptr valve;
-
-								gr::blocks::multiply_const_ff::sptr levels;
-								gr::blocks::multiply_const_ff::sptr rescale;
-								gr::blocks::multiply_const_ff::sptr baseband_amp;
-								gr::blocks::multiply_const_ff::sptr pll_amp;
-								gr::blocks::complex_to_arg::sptr to_float;
-								gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
-								gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
-
-								gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-								gr::op25_repeater::vocoder::sptr op25_vocoder;
-								gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
-=======
 
   double center_freq, chan_freq;
   bool   qpsk_mod;
   double squelch_db;
   int    silence_frames;
+  int    tdma_slot;
   long   talkgroup;
   time_t timestamp;
   time_t starttime;
@@ -215,7 +145,7 @@ private:
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
   gr::op25_repeater::vocoder::sptr op25_vocoder;
   gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
->>>>>>> master
+
 };
 
 
