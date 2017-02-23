@@ -66,6 +66,7 @@ public:
 								State get_state();
 								void set_tdma(int m);
 								int get_tdma();
+								const char * get_xor_mask(); 
 								bool is_conventional();
 								void set_conventional(bool conv);
 								void set_encrypted(bool m);

@@ -1,9 +1,11 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 #include <stdio.h>
-
+#include <boost/log/trivial.hpp>
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
+#include "parser.h"
+#include "../../lfsr/lfsr.h"
 
 class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
@@ -27,6 +29,8 @@ public:
         int retune_attempts;
         time_t last_message_time;
 
+        unsigned xor_mask_len;
+        const char *xor_mask;
         std::vector<double> control_channels;
         int current_control_channel;
         std::vector<double> channels;
@@ -50,6 +54,8 @@ public:
         unsigned long get_sys_id();
         unsigned long get_wacn();
         unsigned long get_nac();
+        const char * get_xor_mask();
+        void update_status(TrunkMessage message);
         int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();

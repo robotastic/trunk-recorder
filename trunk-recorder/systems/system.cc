@@ -39,11 +39,35 @@ System::System(int sys_num) {
   wacn = 0;
   nac = 0;
   current_control_channel = 0;
+  xor_mask_len=0;
+  xor_mask = NULL;
+}
+void System::update_status(TrunkMessage message) {
+ if(!sys_id || !wacn || !nac) {
+   sys_id = message.sys_id;
+   wacn = message.wacn;
+   nac = message.nac;
+   BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
+   if(sys_id && wacn && nac) {
+     p25p2_lfsr my_lfsr(nac, sys_id, wacn);
+     xor_mask = my_lfsr.getXorChars(xor_mask_len);
+
+     BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
+     for (unsigned i=0; i<xor_mask_len; i++) {
+       std::cout << (short)xor_mask[i] << ", ";
+     }
+   }
+ }
+}
+
+const char * System::get_xor_mask(){
+  return xor_mask;
 }
 
 int System::get_sys_num() {
   return this->sys_num;
 }
+
 
 unsigned long System::get_sys_id() {
   return this->sys_id;

@@ -282,7 +282,9 @@ void Call::set_tdma(int m) {
 int Call::get_tdma() {
   return tdma;
 }
-
+const char * Call::get_xor_mask() {
+  return sys->get_xor_mask();
+}
 bool Call::add_source(long src) {
   if (src == 0) {
     return false;
