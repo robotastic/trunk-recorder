@@ -75,7 +75,8 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s) {
   // print_osw(s);
   message.message_type = UNKNOWN;
   message.encrypted    = false;
-  message.tdma         = false;
+  message.phase2_tdma         = false;
+  message.tdma_slot = 0;
   message.source       = 0;
   message.sys_id        = 0;
   message.emergency    = false;

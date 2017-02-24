@@ -31,7 +31,7 @@ p25_recorder::p25_recorder(Source *src)
 
   double symbol_rate         = 4800;
   double samples_per_symbol  = 10;    // was 10
-  double system_channel_rate = symbol_rate * samples_per_symbol;
+  system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
   int decimation        = int(samp_rate / 96000);
@@ -340,15 +340,21 @@ void p25_recorder::start(Call *call, int n) {
     talkgroup = call->get_talkgroup();
 
     chan_freq      = call->get_freq();
-    tdma_slot = call->get_tdma() ;
-    op25_frame_assembler->set_slotid(tdma_slot);
-    if (call->get_xor_mask()) {
-      op25_frame_assembler->set_xormask(call->get_xor_mask());
+    op25_frame_assembler->set_phase2_tdma(call->get_phase2_tdma());
+    if (call->get_phase2_tdma()) {
+      tdma_slot = call->get_tdma_slot() ;
+      op25_frame_assembler->set_slotid(tdma_slot);
+      costas_clock->set_omega(double(system_channel_rate) / double(6000));
+      if (call->get_xor_mask()) {
+        op25_frame_assembler->set_xormask(call->get_xor_mask());
+      }
+    } else {
+      costas_clock->set_omega(double(system_channel_rate) / double(4800));
     }
     if (!qpsk_mod) {
       fsk4_demod->reset();
     }
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ] Phase 2: " << call->get_phase2_tdma() << " Slot: " << call->get_tdma_slot();
 
     int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);

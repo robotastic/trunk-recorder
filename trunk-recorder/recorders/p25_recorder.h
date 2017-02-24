@@ -71,8 +71,7 @@ public:
   ~p25_recorder();
 
   void    tune_offset(double f);
-  void    start(Call *call,
-                int   n);
+  void    start(Call *call, int   n);
   void    stop();
   void    clear();
   double  get_freq();
@@ -92,6 +91,7 @@ public:
 private:
 
   double center_freq, chan_freq;
+  double system_channel_rate;
   bool   qpsk_mod;
   double squelch_db;
   int    silence_frames;

@@ -509,7 +509,8 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
   // set the call to the new Freq / TDMA slot
   call->set_freq(message.freq);
-  call->set_tdma(message.tdma);
+  call->set_phase2_tdma(message.phase2_tdma);
+  call->set_tdma_slot(message.tdma_slot);
 
 
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
@@ -566,7 +567,8 @@ void assign_recorder(TrunkMessage message, System *sys) {
           // This call is not being recorded, just update the Freq and move on
           call->update(message);
           call->set_freq(message.freq);
-          call->set_tdma(message.tdma);
+          call->set_phase2_tdma(message.phase2_tdma);
+          call->set_tdma_slot(message.tdma_slot);
         }
       } else {
         // The freq hasn't changed
@@ -581,8 +583,8 @@ void assign_recorder(TrunkMessage message, System *sys) {
     } else {
       // The talkgroup for the call does not match
       // check is the freq is the same as the one being used by the call
-      if ((call->get_freq() == message.freq) &&  (call->get_tdma() == message.tdma)) {
-        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
+      if ((call->get_freq() == message.freq) &&  (call->get_tdma_slot() == message.tdma_slot)) {
+        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma_slot << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma_slot() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
         /*
                 call->end_call();
@@ -667,7 +669,8 @@ void update_recorder(TrunkMessage message, System *sys) {
         } else {
           // the Call is not recording, update and continue
           call->set_freq(message.freq);
-          call->set_tdma(message.tdma);
+          call->set_phase2_tdma(message.phase2_tdma);
+          call->set_tdma_slot(message.tdma_slot);
         }
       }
 

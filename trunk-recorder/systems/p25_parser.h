@@ -15,7 +15,8 @@ struct Channel {
 								unsigned long offset;
 								unsigned long step;
 								unsigned long frequency;
-								int tdma;
+								bool phase2_tdma;
+								int slots_per_carrier;
 								double bandwidth;
 };
 

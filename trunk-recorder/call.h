@@ -64,9 +64,11 @@ public:
 								bool get_debug_recording();
 								void set_state(State s);
 								State get_state();
-								void set_tdma(int m);
-								int get_tdma();
-								const char * get_xor_mask(); 
+								void set_phase2_tdma(bool m);
+								bool get_phase2_tdma();
+								void set_tdma_slot(int s);
+								int get_tdma_slot();
+								const char * get_xor_mask();
 								bool is_conventional();
 								void set_conventional(bool conv);
 								void set_encrypted(bool m);
@@ -94,7 +96,8 @@ private:
 								char filename[255];
 								char converted_filename[255];
 								char status_filename[255];
-								int tdma;
+								bool phase2_tdma;
+								int tdma_slot;
 
 								Config config;
 								Recorder *recorder;

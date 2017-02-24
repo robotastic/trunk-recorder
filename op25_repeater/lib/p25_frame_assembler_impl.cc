@@ -220,6 +220,9 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
   void p25_frame_assembler_impl::clear_silence_frame_count() {
     silence_frame_count = 0;
   }
-
+void p25_frame_assembler_impl::set_phase2_tdma(bool p)
+{
+  d_do_phase2_tdma = p;
+}
 } /* namespace op25_repeater */
 } /* namespace gr */

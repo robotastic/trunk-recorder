@@ -48,7 +48,8 @@ Call::Call(long t, double f, System *s, Config c) {
   state           = monitoring;
   debug_recording = false;
   recorder        = NULL;
-  tdma            = false;
+  phase2_tdma            = false;
+  tdma_slot = 0;
   encrypted       = false;
   emergency       = false;
   conventional    = false;
@@ -74,7 +75,8 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   state           = monitoring;
   debug_recording = false;
   recorder        = NULL;
-  tdma            = message.tdma;
+  phase2_tdma     = message.phase2_tdma;
+  tdma_slot       = message.tdma_slot;
   encrypted       = message.encrypted;
   emergency       = message.emergency;
   conventional    = false;
@@ -98,7 +100,8 @@ void Call::restart_call() {
     last_update     = time(NULL);
     state           = recording;
     debug_recording = false;
-    tdma            = false;
+    phase2_tdma            = false;
+    tdma_slot =0;
     encrypted       = false;
     emergency       = false;
 
@@ -275,13 +278,22 @@ bool Call::get_emergency() {
   return emergency;
 }
 
-void Call::set_tdma(int m) {
-  tdma = m;
+void Call::set_tdma_slot(int m) {
+  tdma_slot = m;
 }
 
-int Call::get_tdma() {
-  return tdma;
+int Call::get_tdma_slot() {
+  return tdma_slot;
 }
+
+void Call::set_phase2_tdma(bool p) {
+  phase2_tdma = p;
+}
+
+bool Call::get_phase2_tdma() {
+  return phase2_tdma;
+}
+
 const char * Call::get_xor_mask() {
   return sys->get_xor_mask();
 }

@@ -211,7 +211,7 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->freq         = call->get_freq();
   call_info->encrypted    = call->get_encrypted();
   call_info->emergency    = call->get_emergency();
-  call_info->tdma         = call->get_tdma();
+  call_info->tdma         = call->get_tdma_slot();
   call_info->source_count = call->get_source_count();
   call_info->freq_count   = call->get_freq_count();
   call_info->start_time   = call->get_start_time();
