@@ -30,7 +30,7 @@ p25_recorder::p25_recorder(Source *src)
 
 
   double symbol_rate         = 4800;
-  double samples_per_symbol  = 10;    // was 10
+  double samples_per_symbol  = 15;    // was 10
   system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
@@ -58,7 +58,7 @@ p25_recorder::p25_recorder(Source *src)
 
   prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 60, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);

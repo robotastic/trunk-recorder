@@ -684,9 +684,9 @@ void update_recorder(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq << " TDMA: " << message.tdma_slot << " Encrypted: " << message.encrypted;
 
-    assign_recorder(message, sys); // Treehouseman, Lets start the call if we
+    //assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
   }
 }
@@ -839,10 +839,13 @@ void check_message_count(float timeDiff) {
           retune_system(sys);
         } else {
           BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
+          if (sys->system_type == "smartnet") {
+            sys->reset();
+          }
         }
       }
 
-      if (msgs_decoded_per_second < 3) {
+      if (msgs_decoded_per_second < 50) {
         BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
       sys->message_count = 0;
@@ -855,6 +858,13 @@ void monitor_messages() {
   int sys_num;
   System *sys;
 
+
+  time_t messageProcessing;
+  double minProcessing=1000000;
+  double maxProcessing=0;
+  double totalProcessingTime=0;
+  double totalMessages=0;
+  double processingTime=0;
 
   time_t lastStatusTime     = time(NULL);
   time_t lastMsgCountTime   = time(NULL);
@@ -870,8 +880,10 @@ void monitor_messages() {
       return;
     }
 
-
+    messageProcessing = time(NULL);
+    //BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
+
 
     if ((currentTime - lastTalkgroupPurge) >= 1.0)
     {
@@ -902,14 +914,30 @@ void monitor_messages() {
                   lastUnitCheckTime = currentTime;
               }
        */
+      processingTime = messageProcessing - time(NULL);
+
+      totalProcessingTime = totalProcessingTime + processingTime;
+      if (processingTime < minProcessing) {
+        minProcessing = processingTime;
+      }
+      if (processingTime > maxProcessing) {
+        maxProcessing = processingTime;
+      }
+      totalMessages++;
       msg.reset();
     } else {
-      usleep(1000 * 100);
+      usleep(1000 * 10);
     }
     float timeDiff = currentTime - lastMsgCountTime;
 
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
+      BOOST_LOG_TRIVIAL(info) << "Processing - Min: " << minProcessing << " Max: " << maxProcessing << " Avg: " << totalProcessingTime / totalMessages;
+      double minProcessing=1000000;
+      double maxProcessing=0;
+      double totalProcessingTime=0;
+      double totalMessages=0;
+      double processingTime=0;
       lastMsgCountTime = currentTime;
     }
 

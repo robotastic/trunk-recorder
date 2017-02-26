@@ -89,25 +89,23 @@ smartnet_trunking::smartnet_trunking(float               f,
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
 
-  gr::digital::fll_band_edge_cc::sptr carriertrack = gr::digital::fll_band_edge_cc::make(system_channel_rate, 0.6, 64, 0.35);
+  carriertrack = gr::digital::fll_band_edge_cc::make(system_channel_rate, 0.6, 64, 0.35);
 
-  gr::analog::pll_freqdet_cf::sptr pll_demod = gr::analog::pll_freqdet_cf::make(
+  pll_demod = gr::analog::pll_freqdet_cf::make(
     2.0 / samples_per_symbol,
     1 * pi / samples_per_symbol,
     -1 * pi / samples_per_symbol);
 
 
-  gr::digital::clock_recovery_mm_ff::sptr softbits =
-    gr::digital::clock_recovery_mm_ff::make(samples_per_symbol,
+  softbits = gr::digital::clock_recovery_mm_ff::make(samples_per_symbol,
                                             0.25 * gain_mu * gain_mu,
                                             mu,
                                             gain_mu,
                                             omega_relative_limit);
 
-  gr::digital::binary_slicer_fb::sptr slicer =  gr::digital::binary_slicer_fb::make();
+  slicer =  gr::digital::binary_slicer_fb::make();
 
-  gr::digital::correlate_access_code_tag_bb::sptr start_correlator =
-    gr::digital::correlate_access_code_tag_bb::make("10101100", 0, "smartnet_preamble");
+  start_correlator =  gr::digital::correlate_access_code_tag_bb::make("10101100", 0, "smartnet_preamble");
 
 
 
@@ -124,6 +122,16 @@ smartnet_trunking::smartnet_trunking(float               f,
   connect(start_correlator, 0, decode,           0);
 }
 
+void smartnet_trunking::reset() {
+cout << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << pll_demod->get_min_freq() << " Max Freq: " << pll_demod->get_max_freq()
+  carriertrack->set_rolloff(0.6);
+  pll_demod->update_gains();
+  pll_demod->frequency_limit();
+  pll_demod->phase_wrap();
+  softbits->set_verbose(true);
+  //pll_demod->set_phase(0);
+
+}
 
 void smartnet_trunking::tune_offset(double f) {
   chan_freq = f;

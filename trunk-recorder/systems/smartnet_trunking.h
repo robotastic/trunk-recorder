@@ -43,6 +43,7 @@ class smartnet_trunking : public gr::hier_block2 {
 
 public:
   void tune_offset(double f);
+  void reset();
 
 protected:
 
@@ -50,6 +51,12 @@ protected:
   std::vector<float> channel_lpf_taps;
   std::vector<float> arb_taps;
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
+  gr::digital::fll_band_edge_cc::sptr carriertrack;
+  gr::analog::pll_freqdet_cf::sptr pll_demod;
+  gr::digital::clock_recovery_mm_ff::sptr softbits;
+  gr::digital::binary_slicer_fb::sptr slicer;
+  gr::digital::correlate_access_code_tag_bb::sptr start_correlator;
+
   freq_xlating_fft_filter_sptr prefilter;
   smartnet_trunking(float               f,
                     float               c,
