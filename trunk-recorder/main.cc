@@ -932,7 +932,7 @@ void monitor_messages() {
 
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
-      BOOST_LOG_TRIVIAL(info) << "Processing - Min: " << minProcessing << " Max: " << maxProcessing << " Avg: " << totalProcessingTime / totalMessages;
+      //BOOST_LOG_TRIVIAL(info) << "Processing - Min: " << minProcessing << " Max: " << maxProcessing << " Avg: " << totalProcessingTime / totalMessages;
       double minProcessing=1000000;
       double maxProcessing=0;
       double totalProcessingTime=0;
