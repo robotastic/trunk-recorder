@@ -25,7 +25,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   chan_freq    = f;
   samp_rate    = s;
 
-  this->sys_id = sys_id;
+  this->sys_num = sys_num;
 
   double symbol_rate         = 3600;
   double samples_per_symbol  = 10; // was 10
@@ -40,7 +40,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   float offset               = chan_freq - center_freq;
 
   const double pi = boost::math::constants::pi<double>();
-  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_id;
+  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_num;
 
   BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
 
@@ -109,7 +109,7 @@ smartnet_trunking::smartnet_trunking(float               f,
 
 
 
-  smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_id);
+  smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_num);
 
   connect(self(),           0, prefilter,        0);
   connect(prefilter,        0, channel_lpf,      0);
