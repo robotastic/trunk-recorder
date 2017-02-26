@@ -840,7 +840,7 @@ void check_message_count(float timeDiff) {
         } else {
           BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
           if (sys->system_type == "smartnet") {
-            sys->reset();
+            sys->smartnet_trunking->reset();
           }
         }
       }
