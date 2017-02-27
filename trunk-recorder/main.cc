@@ -179,6 +179,25 @@ void load_config()
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       systems.push_back(system);
+
+      system->set_bandplan(node.second.get<std::string>("bandplan", "800_Reband"));
+      system->set_bandfreq(800); // Default to 800
+      if(boost::starts_with(system->get_bandplan(), "400")) {
+          system->set_bandfreq(400);
+      }
+      system->set_bandplan_base(node.second.get<double>("bandplan_base", 0.0));
+      system->set_bandplan_spacing(node.second.get<double>("bandplan_spacing", 0.0));
+      system->set_bandplan_offset(node.second.get<int>("bandplan_offset",0));
+
+      if(system->get_system_type() == "smartnet") {
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet band: " << system->get_bandfreq();
+          if(system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset() ) {
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base: " << system->get_bandplan_base();
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan spacing: " << system->get_bandplan_spacing();
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
+          }
+      }
     }
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
     size_t pos = config.capture_dir.find_last_of("/");
@@ -858,14 +877,6 @@ void monitor_messages() {
   int sys_num;
   System *sys;
 
-
-  time_t messageProcessing;
-  double minProcessing=1000000;
-  double maxProcessing=0;
-  double totalProcessingTime=0;
-  double totalMessages=0;
-  double processingTime=0;
-
   time_t lastStatusTime     = time(NULL);
   time_t lastMsgCountTime   = time(NULL);
   time_t lastTalkgroupPurge = time(NULL);
@@ -880,7 +891,7 @@ void monitor_messages() {
       return;
     }
 
-    messageProcessing = time(NULL);
+
     //BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
 
@@ -898,7 +909,7 @@ void monitor_messages() {
 
       if (sys) {
         if (sys->get_system_type() == "smartnet") {
-          trunk_messages = smartnet_parser->parse_message(msg->to_string());
+          trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys);
           handle_message(trunk_messages, sys);
         }
 
@@ -914,16 +925,7 @@ void monitor_messages() {
                   lastUnitCheckTime = currentTime;
               }
        */
-      processingTime = messageProcessing - time(NULL);
 
-      totalProcessingTime = totalProcessingTime + processingTime;
-      if (processingTime < minProcessing) {
-        minProcessing = processingTime;
-      }
-      if (processingTime > maxProcessing) {
-        maxProcessing = processingTime;
-      }
-      totalMessages++;
       msg.reset();
     } else {
       usleep(1000 * 10);
@@ -932,12 +934,6 @@ void monitor_messages() {
 
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
-      //BOOST_LOG_TRIVIAL(info) << "Processing - Min: " << minProcessing << " Max: " << maxProcessing << " Avg: " << totalProcessingTime / totalMessages;
-      double minProcessing=1000000;
-      double maxProcessing=0;
-      double totalProcessingTime=0;
-      double totalMessages=0;
-      double processingTime=0;
       lastMsgCountTime = currentTime;
     }
 

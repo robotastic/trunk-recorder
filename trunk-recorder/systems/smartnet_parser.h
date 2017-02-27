@@ -1,6 +1,7 @@
 #ifndef SMARTNET_PARSE_H
 #define SMARTNET_PARSE_H
 #include "parser.h"
+#include "system.h"
 #include <iostream>
 #include <vector>
 
@@ -54,9 +55,9 @@ public:
 	short numStacked;
 	short numConsumed;
 	SmartnetParser();
-	double getfreq(int cmd);
+	double getfreq(int cmd, System *system);
 	void print_osw(std::string s);
-	bool is_chan(int cmd);
-	std::vector<TrunkMessage> parse_message(std::string s);
+	bool is_chan(int cmd, System *system);
+	std::vector<TrunkMessage> parse_message(std::string s, System *system);
 };
 #endif

@@ -166,3 +166,43 @@ double System::get_next_control_channel() {
   }
   return this->control_channels[current_control_channel];
 }
+
+void System::set_bandplan(std::string bandplan) {
+  this->bandplan = bandplan;
+}
+
+std::string System::get_bandplan() {
+  return this->bandplan;
+}
+
+void System::set_bandfreq(int freq) {
+  this->bandfreq = freq;
+}
+
+int System::get_bandfreq() {
+  return this->bandfreq;
+}
+
+void System::set_bandplan_base(double base) {
+  this->bandplan_base = base;
+}
+
+double System::get_bandplan_base() {
+  return this->bandplan_base;
+}
+
+void System::set_bandplan_spacing(double space) {
+  this->bandplan_spacing = space / 1000;
+}
+
+double System::get_bandplan_spacing() {
+  return this->bandplan_spacing;
+}
+
+void System::set_bandplan_offset(int offset) {
+  this->bandplan_offset = offset;
+}
+
+int System::get_bandplan_offset() {
+  return this->bandplan_offset;
+}

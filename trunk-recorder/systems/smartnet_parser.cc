@@ -8,61 +8,61 @@ SmartnetParser::SmartnetParser() {
   numConsumed = 0;
 }
 
-bool SmartnetParser::is_chan(int cmd) {
-  if (cmd < 0x2F8)
-  {
-    return true;
-  }
-
-  if (cmd < 0x32F)
-  {
+bool SmartnetParser::is_chan(int cmd, System *sys) {
+    if(sys->get_bandfreq() == 800) {
+        if((cmd >= 0 && cmd <= 0x2F7) || (cmd >= 0x32f && cmd <= 0x33F) ||
+           (cmd >= 0x3c1 && cmd <= 0x3FE) ||cmd == 0x3BE ) {
+            return true;
+         }
+    } else if(sys->get_bandfreq() == 400) {
+        if(cmd >= sys->get_bandplan_offset() && cmd <= sys->get_bandplan_offset() + 380) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     return false;
-  }
-
-  if (cmd < 0x340)
-  {
-    return true;
-  }
-
-  if (cmd == 0x3BE)
-  {
-    return true;
-  }
-
-  if ((cmd > 0x3C0) && (cmd <= 0x3FE))
-  {
-    return true;
-  }
-  return false;
 }
 
-double SmartnetParser::getfreq(int cmd) {
-  double freq;
-
-
-  /* Different Systems will have different band plans. Below is the one for
-     WMATA which is a bit werid:*/
-
-
-  if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
-    freq = ((cmd - 380) * 25000)  + 489087500;
-  } else {
-    freq = 0;
-  }
-
-/*
-          if (cmd < 0x1b8) {
-                  freq = float(cmd * 25000 + 851012500);
-          } else if (cmd < 0x230) {
-                  freq = float(cmd * 25000 + 851012500 - 10987500);
-          } else {
-                  freq = 0;
-          }
-*/
-  return freq;
+double SmartnetParser::getfreq(int cmd, System *sys) {
+    double freq = 0.0;
+    std::string band = sys->get_bandplan();
+    if(sys->get_bandfreq() == 800) {
+        /*
+          BANDPLAN 800Mhz:
+          800_Standard * Is default base plan
+          800_Splinter
+          800_Reband
+        */
+        if(cmd < 0 || cmd > 0x3FE)
+            return freq;
+        if(cmd <= 0x2CF) {
+            if(band == "800_Reband" && cmd >= 0x1B8 && cmd <= 0x22F) { /* Re Banded Site */
+                freq = 851.0250 + (0.025 * ((double) (cmd-0x1B8)));
+            } else if(band == "800_Splinter" && cmd <= 0x257) { /* Splinter Site */
+                freq = 851.0 + (0.025 * ((double) cmd));
+            } else {
+                freq = 851.0125 + (0.025 * ((double) cmd));
+            }
+        } else if(cmd <= 0x2f7) {
+            freq = 866.0000 + (0.025 * ((double) (cmd-0x2D0)));
+        } else if(cmd >= 0x32F && cmd <= 0x33F ) {
+            freq = 867.0000 + (0.025 * ((double) (cmd-0x32F)));
+        } else if( cmd == 0x3BE) {
+            freq = 868.9750;
+        } else if (cmd >= 0x3C1 && cmd <= 0x3FE) {
+            freq = 867.4250 + (0.025 * ((double) (cmd-0x3C1)));
+        }
+    } else if (sys->get_bandfreq() == 400) {
+        if(cmd >= sys->get_bandplan_base() && cmd <= sys->get_bandplan_base() + 380) {
+            freq = sys->get_bandplan_base() + (sys->get_bandplan_spacing() * (cmd - sys->get_bandplan_offset() ));
+        }
+    }
+  return freq * 1000000;
 }
 
-std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s) {
+
+std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s, System *system) {
   std::vector<TrunkMessage> messages;
   TrunkMessage message;
 
@@ -197,9 +197,9 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s) {
   }
 
 
-  if (is_chan(stack[0].cmd) && stack[0].grp && getfreq(stack[0].cmd)) {
+  if (is_chan(stack[0].cmd, system) && stack[0].grp && getfreq(stack[0].cmd, system)) {
     message.talkgroup = stack[0].full_address;
-    message.freq      = getfreq(stack[0].cmd);
+    message.freq      = getfreq(stack[0].cmd, system);
 
     if (((stack[2].cmd == 0x308) || (stack[2].cmd == 0x321) || (stack[2].cmd == 0x320))) {
       //cout << "NEW GRANT!! CMD1: " << fixed << hex << stack[1].cmd << " 0add: " << dec <<  stack[0].address << " 0full_add: " << stack[0].full_address  << " 1add: " << stack[1].address << " 1full_add: " << stack[1].full_address  << endl;
@@ -218,7 +218,7 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s) {
     return messages;
   }
   message.talkgroup = address;
-  message.freq      = getfreq(command);
+  message.freq      = getfreq(command, system);
 
   // cout << "Command: " << hex << command << " Last CMD: 0x" <<  hex <<
   // lastcmd << " Freq: " << message.freq << " Talkgroup: " << dec << address

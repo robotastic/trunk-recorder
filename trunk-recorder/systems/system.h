@@ -28,6 +28,11 @@ public:
         int message_count;
         int retune_attempts;
         time_t last_message_time;
+        std::string bandplan;
+        int bandfreq;
+        double bandplan_base;
+        double bandplan_spacing;
+        int bandplan_offset;
 
         unsigned xor_mask_len;
         const char *xor_mask;
@@ -72,5 +77,15 @@ public:
         std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
         std::vector<double> get_channels();
         System(int sys_id );
+        void set_bandplan(std::string);
+        std::string get_bandplan();
+        void set_bandfreq(int);
+        int get_bandfreq();
+        void set_bandplan_base(double);
+        double get_bandplan_base();
+        void set_bandplan_spacing(double);
+        double get_bandplan_spacing();
+        void set_bandplan_offset(int);
+        int get_bandplan_offset();
 };
 #endif
