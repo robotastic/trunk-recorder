@@ -180,7 +180,7 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       systems.push_back(system);
 
-      system->set_bandplan(node.second.get<std::string>("bandplan", "800_Reband"));
+      system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
       system->set_bandfreq(800); // Default to 800
       if(boost::starts_with(system->get_bandplan(), "400")) {
           system->set_bandfreq(400);

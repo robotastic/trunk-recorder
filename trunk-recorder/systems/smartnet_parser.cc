@@ -30,16 +30,16 @@ double SmartnetParser::getfreq(int cmd, System *sys) {
     if(sys->get_bandfreq() == 800) {
         /*
           BANDPLAN 800Mhz:
-          800_Standard * Is default base plan
-          800_Splinter
-          800_Reband
+          800_standard * Is default base plan
+          800_splinter
+          800_reband
         */
         if(cmd < 0 || cmd > 0x3FE)
             return freq;
         if(cmd <= 0x2CF) {
-            if(band == "800_Reband" && cmd >= 0x1B8 && cmd <= 0x22F) { /* Re Banded Site */
+            if(band == "800_reband" && cmd >= 0x1B8 && cmd <= 0x22F) { /* Re Banded Site */
                 freq = 851.0250 + (0.025 * ((double) (cmd-0x1B8)));
-            } else if(band == "800_Splinter" && cmd <= 0x257) { /* Splinter Site */
+            } else if(band == "800_splinter" && cmd <= 0x257) { /* Splinter Site */
                 freq = 851.0 + (0.025 * ((double) cmd));
             } else {
                 freq = 851.0125 + (0.025 * ((double) cmd));
@@ -54,6 +54,13 @@ double SmartnetParser::getfreq(int cmd, System *sys) {
             freq = 867.4250 + (0.025 * ((double) (cmd-0x3C1)));
         }
     } else if (sys->get_bandfreq() == 400) {
+              /*
+          if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
+            freq = ((cmd - 380) * 25000)  + 489087500;
+          } else {
+            freq = 0;
+          }
+        */
         if(cmd >= sys->get_bandplan_base() && cmd <= sys->get_bandplan_base() + 380) {
             freq = sys->get_bandplan_base() + (sys->get_bandplan_spacing() * (cmd - sys->get_bandplan_offset() ));
         }
