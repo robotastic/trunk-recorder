@@ -126,7 +126,7 @@ void smartnet_trunking::reset() {
 cout << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << pll_demod->get_min_freq() << " Max Freq: " << pll_demod->get_max_freq();
   carriertrack->set_rolloff(0.6);
   pll_demod->update_gains();
-  pll_demod->frequency_limit();
+  //pll_demod->frequency_limit();
   pll_demod->phase_wrap();
   softbits->set_verbose(true);
   //pll_demod->set_phase(0);
