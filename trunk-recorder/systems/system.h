@@ -31,8 +31,10 @@ public:
         std::string bandplan;
         int bandfreq;
         double bandplan_base;
+        double bandplan_high;
         double bandplan_spacing;
         int bandplan_offset;
+
 
         unsigned xor_mask_len;
         const char *xor_mask;
@@ -83,6 +85,8 @@ public:
         int get_bandfreq();
         void set_bandplan_base(double);
         double get_bandplan_base();
+        void set_bandplan_high(double high);
+        double get_bandplan_high();
         void set_bandplan_spacing(double);
         double get_bandplan_spacing();
         void set_bandplan_offset(int);

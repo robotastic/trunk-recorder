@@ -84,6 +84,7 @@ public:
   long    elapsed();
   Source* get_source();
   void    autotune();
+  void    reset();
   gr::msg_queue::sptr tune_queue;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;

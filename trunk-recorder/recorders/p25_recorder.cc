@@ -314,6 +314,9 @@ void p25_recorder::tune_offset(double f) {
   chan_freq = f;
   int offset_amount = (f - center_freq);
   prefilter->set_center_freq(offset_amount);
+  if (!qpsk_mod) {
+    reset();
+  }
 }
 
 State p25_recorder::get_state() {
@@ -331,7 +334,15 @@ void p25_recorder::stop() {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }
 }
+void p25_recorder::reset() {
+//std::cout << "Pll Phase: " << pll_freq_lock->get_phase() << " min Freq: " << pll_freq_lock->get_min_freq() << " Max Freq: " << pll_freq_lock->get_max_freq() << std::endl;
+  pll_freq_lock->update_gains();
+  pll_freq_lock->frequency_limit();
+  pll_freq_lock->phase_wrap();
+  fsk4_demod->reset();
+  //pll_demod->set_phase(0);
 
+}
 void p25_recorder::start(Call *call, int n) {
   if (state == inactive) {
     timestamp = time(NULL);
@@ -352,7 +363,7 @@ void p25_recorder::start(Call *call, int n) {
       costas_clock->set_omega(double(system_channel_rate) / double(4800));
     }
     if (!qpsk_mod) {
-      fsk4_demod->reset();
+      reset();
     }
     BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ] Phase 2: " << call->get_phase2_tdma() << " Slot: " << call->get_tdma_slot();
 

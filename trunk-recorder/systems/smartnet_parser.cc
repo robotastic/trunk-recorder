@@ -54,16 +54,20 @@ double SmartnetParser::getfreq(int cmd, System *sys) {
             freq = 867.4250 + (0.025 * ((double) (cmd-0x3C1)));
         }
     } else if (sys->get_bandfreq() == 400) {
-              /*
+      double test_freq;
+          //Step * (channel - low) + Base
           if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
-            freq = ((cmd - 380) * 25000)  + 489087500;
+            test_freq = ((cmd - 380) * 25000)  + 489087500;
           } else {
-            freq = 0;
+            test_freq = 0;
           }
-        */
-        if(cmd >= sys->get_bandplan_base() && cmd <= sys->get_bandplan_base() + 380) {
+
+        double high_cmd = sys->get_bandplan_offset() + (sys->get_bandplan_high() - sys->get_bandplan_base()) / sys->get_bandplan_spacing();
+
+        if((cmd >= sys->get_bandplan_offset()) && (cmd < high_cmd)) { // (cmd <= sys->get_bandplan_base() + sys->get_bandplan_offset() )) {
             freq = sys->get_bandplan_base() + (sys->get_bandplan_spacing() * (cmd - sys->get_bandplan_offset() ));
         }
+        //cout << "Orig: " <<fixed <<test_freq << " Freq: " << freq << endl;
     }
   return freq * 1000000;
 }

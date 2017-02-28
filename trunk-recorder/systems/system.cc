@@ -183,16 +183,24 @@ int System::get_bandfreq() {
   return this->bandfreq;
 }
 
+void System::set_bandplan_high(double high) {
+  this->bandplan_high = high;
+}
+
+double System::get_bandplan_high() {
+  return this->bandplan_high / 1000000;
+}
+
 void System::set_bandplan_base(double base) {
   this->bandplan_base = base;
 }
 
 double System::get_bandplan_base() {
-  return this->bandplan_base;
+  return this->bandplan_base / 1000000;
 }
 
 void System::set_bandplan_spacing(double space) {
-  this->bandplan_spacing = space / 1000;
+  this->bandplan_spacing = space / 1000000;
 }
 
 double System::get_bandplan_spacing() {

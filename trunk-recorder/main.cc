@@ -185,15 +185,17 @@ void load_config()
       if(boost::starts_with(system->get_bandplan(), "400")) {
           system->set_bandfreq(400);
       }
-      system->set_bandplan_base(node.second.get<double>("bandplan_base", 0.0));
-      system->set_bandplan_spacing(node.second.get<double>("bandplan_spacing", 0.0));
-      system->set_bandplan_offset(node.second.get<int>("bandplan_offset",0));
+      system->set_bandplan_base(node.second.get<double>("bandplanBase", 0.0));
+      system->set_bandplan_high(node.second.get<double>("bandplanHigh", 0.0));
+      system->set_bandplan_spacing(node.second.get<double>("bandplanSpacing", 0.0));
+      system->set_bandplan_offset(node.second.get<int>("bandplanOffset",0));
 
       if(system->get_system_type() == "smartnet") {
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
           BOOST_LOG_TRIVIAL(info) << "Smartnet band: " << system->get_bandfreq();
           if(system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset() ) {
-              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base: " << system->get_bandplan_base();
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base freq: " << system->get_bandplan_base();
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan high freq: " << system->get_bandplan_high();
               BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan spacing: " << system->get_bandplan_spacing();
               BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
           }
