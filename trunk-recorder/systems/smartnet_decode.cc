@@ -201,8 +201,8 @@ smartnet_decode::work (int noutput_items,
 
 	if(preamble_tags.size() == 0) {
 	  BOOST_LOG_TRIVIAL(info) << "Smartnet Trunking: No tags found, consumed: " << size << " inputs, abs_sample_cnt: " << abs_sample_cnt;
-
-		return size;
+		return noutput_items;
+		//return size;
 	}
 
 	std::vector<gr::tag_t>::iterator tag_iter;
