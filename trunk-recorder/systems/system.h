@@ -1,9 +1,11 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 #include <stdio.h>
-
+#include <boost/log/trivial.hpp>
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
+#include "parser.h"
+#include "../../lfsr/lfsr.h"
 
 class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
@@ -12,7 +14,10 @@ typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 
 class System
 {
-        int sys_id;
+        int sys_num;
+        unsigned long sys_id;
+        unsigned long wacn;
+        unsigned long nac;
 public:
         std::string talkgroups_file;
         std::string short_name;
@@ -23,7 +28,16 @@ public:
         int message_count;
         int retune_attempts;
         time_t last_message_time;
+        std::string bandplan;
+        int bandfreq;
+        double bandplan_base;
+        double bandplan_high;
+        double bandplan_spacing;
+        int bandplan_offset;
 
+
+        unsigned xor_mask_len;
+        const char *xor_mask;
         std::vector<double> control_channels;
         int current_control_channel;
         std::vector<double> channels;
@@ -44,7 +58,12 @@ public:
         bool get_qpsk_mod();
         void set_qpsk_mod(bool);
         std::string get_system_type();
-        int get_sys_id();
+        unsigned long get_sys_id();
+        unsigned long get_wacn();
+        unsigned long get_nac();
+        const char * get_xor_mask();
+        void update_status(TrunkMessage message);
+        int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();
         void set_talkgroups_file(std::string);
@@ -60,5 +79,17 @@ public:
         std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
         std::vector<double> get_channels();
         System(int sys_id );
+        void set_bandplan(std::string);
+        std::string get_bandplan();
+        void set_bandfreq(int);
+        int get_bandfreq();
+        void set_bandplan_base(double);
+        double get_bandplan_base();
+        void set_bandplan_high(double high);
+        double get_bandplan_high();
+        void set_bandplan_spacing(double);
+        double get_bandplan_spacing();
+        void set_bandplan_offset(int);
+        int get_bandplan_offset();
 };
 #endif

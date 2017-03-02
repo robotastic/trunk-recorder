@@ -36,9 +36,9 @@
  * Create a new instance of smartnet_decode and return
  * a boost shared_ptr.  This is effectively the public constructor.
  */
-smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_id)
+smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_num)
 {
-	return smartnet_decode_sptr (new smartnet_decode(queue, sys_id));
+	return smartnet_decode_sptr (new smartnet_decode(queue, sys_num));
 }
 
 /*
@@ -58,7 +58,7 @@ static const int MAX_OUT = 1;   // maximum number of output streams
 /*
  * The private constructor
  */
-smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_id)
+smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_num)
 	: gr::sync_block ("decode",
 	             gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
 	             gr::io_signature::make (0,0,0))
@@ -66,7 +66,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_id)
 	//set_relative_rate((double)(76.0/84.0));
 	set_output_multiple(420); //used to be 76  //504
 	d_queue = queue;
-	this->sys_id = sys_id;
+	this->sys_num = sys_num;
 	//set_output_multiple(168); //used to be 76
 }
 
@@ -180,7 +180,10 @@ smartnet_decode::work (int noutput_items,
 
 	//you will need to look ahead 84 bits to post 76 bits of data
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
+
+
 	uint64_t size = noutput_items - 84;
+
 
 	if(size <= 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
@@ -195,10 +198,11 @@ smartnet_decode::work (int noutput_items,
 	uint64_t outlen = 0; //output sample count
 
 	get_tags_in_range(preamble_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_preamble"));
+
 	if(preamble_tags.size() == 0) {
 	  BOOST_LOG_TRIVIAL(info) << "Smartnet Trunking: No tags found, consumed: " << size << " inputs, abs_sample_cnt: " << abs_sample_cnt;
-
-		return size;
+		return noutput_items;
+		//return size;
 	}
 
 	std::vector<gr::tag_t>::iterator tag_iter;
@@ -259,7 +263,7 @@ smartnet_decode::work (int noutput_items,
 			std::ostringstream payload;
 			payload.str("");
 			payload << pkt.address << "," << pkt.groupflag << "," << pkt.command;
-			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()), pkt.command, this->sys_id, 0);
+			gr::message::sptr msg = gr::message::make_from_string(std::string(payload.str()), pkt.command, this->sys_num, 0);
 			d_queue->insert_tail(msg);
 		} else if (VERBOSE) BOOST_LOG_TRIVIAL(info) << "CRC FAILED";
 	}

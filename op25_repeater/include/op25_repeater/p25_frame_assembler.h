@@ -49,9 +49,10 @@ namespace gr {
        */
       virtual void clear() {};
       virtual  void clear_silence_frame_count() {}
-      static sptr make(int sys_id, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, int silence_frames, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma);
+      static sptr make(int sys_num, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, int silence_frames, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma);
       virtual void set_xormask(const char*p) {}
       virtual void set_slotid(int slotid) {}
+      virtual void set_phase2_tdma(bool p) {}
     };
 
   } // namespace op25_repeater

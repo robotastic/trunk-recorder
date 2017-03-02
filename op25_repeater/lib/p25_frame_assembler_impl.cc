@@ -58,7 +58,7 @@ void p25_frame_assembler_impl::set_slotid(int slotid) {
 }
 
 p25_frame_assembler::sptr
-p25_frame_assembler::make(int                 sys_id,
+p25_frame_assembler::make(int                 sys_num,
                           const char         *udp_host,
                           int                 port,
                           int                 debug,
@@ -71,7 +71,7 @@ p25_frame_assembler::make(int                 sys_id,
                           bool                do_phase2_tdma)
 {
   return gnuradio::get_initial_sptr
-           (new p25_frame_assembler_impl(sys_id, udp_host, port, debug, do_imbe, do_output, silence_frames, do_msgq, queue, do_audio_output, do_phase2_tdma));
+           (new p25_frame_assembler_impl(sys_num, udp_host, port, debug, do_imbe, do_output, silence_frames, do_msgq, queue, do_audio_output, do_phase2_tdma));
 }
 
 /*
@@ -90,7 +90,7 @@ static const int MAX_IN = 1; // maximum number of input streams
 /*
  * The private constructor
  */
-p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
+p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
                                                    const char         *udp_host,
                                                    int                 port,
                                                    int                 debug,
@@ -109,7 +109,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_id,
   d_do_output(do_output),
   d_silence_frames(silence_frames),
   output_queue(),
-  p1fdma(sys_id, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
+  p1fdma(sys_num, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
   d_do_audio_output(do_audio_output),
   d_do_phase2_tdma(do_phase2_tdma),
   p2tdma(0, debug, output_queue),
@@ -220,6 +220,9 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
   void p25_frame_assembler_impl::clear_silence_frame_count() {
     silence_frame_count = 0;
   }
-
+void p25_frame_assembler_impl::set_phase2_tdma(bool p)
+{
+  d_do_phase2_tdma = p;
+}
 } /* namespace op25_repeater */
 } /* namespace gr */

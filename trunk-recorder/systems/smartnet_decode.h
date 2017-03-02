@@ -48,7 +48,7 @@ typedef boost::shared_ptr<smartnet_decode> smartnet_decode_sptr;
  * constructor is private.  smartnet_make_decode is the public
  * interface for creating new instances.
  */
-smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_id);
+smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_num);
 
 /*!
  * \brief unstuff a packed stream of bits.
@@ -63,12 +63,12 @@ private:
 	// The friend declaration allows smartnet_make_decode to
 	// access the private constructor.
 	gr::msg_queue::sptr d_queue;
-	int sys_id;
+	int sys_num;
 
 
-	friend smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_id);
+	friend smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_num);
 
-	smartnet_decode(gr::msg_queue::sptr queue, int sys_id);   // private constructor
+	smartnet_decode(gr::msg_queue::sptr queue, int sys_num);   // private constructor
 
 public:
 	~smartnet_decode();  // public destructor
@@ -76,7 +76,7 @@ public:
 	// Where all the action really happens
 
 	int work (int noutput_items,
-	            
+
 	                  gr_vector_const_void_star &input_items,
 	                  gr_vector_void_star &output_items);
 

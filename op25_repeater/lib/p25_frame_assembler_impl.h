@@ -62,6 +62,7 @@ private:
   void p25p2_queue_msg(int duid);
   void set_xormask(const char *p);
   void set_slotid(int slotid);
+  void set_phase2_tdma(bool p);
   typedef std::vector<bool>bit_vector;
   std::deque<int16_t> output_queue;
 
@@ -74,7 +75,7 @@ public:
 
 public:
 
-  p25_frame_assembler_impl(int                 sys_id,
+  p25_frame_assembler_impl(int                 sys_num,
                            const char         *udp_host,
                            int                 port,
                            int                 debug,
@@ -88,6 +89,7 @@ public:
   ~p25_frame_assembler_impl();
   void clear_silence_frame_count();
   void clear();
+
   // Where all the action really happens
 
   int general_work(int                        noutput_items,

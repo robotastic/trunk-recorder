@@ -179,6 +179,27 @@ void load_config()
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       systems.push_back(system);
+
+      system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
+      system->set_bandfreq(800); // Default to 800
+      if(boost::starts_with(system->get_bandplan(), "400")) {
+          system->set_bandfreq(400);
+      }
+      system->set_bandplan_base(node.second.get<double>("bandplanBase", 0.0));
+      system->set_bandplan_high(node.second.get<double>("bandplanHigh", 0.0));
+      system->set_bandplan_spacing(node.second.get<double>("bandplanSpacing", 0.0));
+      system->set_bandplan_offset(node.second.get<int>("bandplanOffset",0));
+
+      if(system->get_system_type() == "smartnet") {
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet band: " << system->get_bandfreq();
+          if(system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset() ) {
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base freq: " << system->get_bandplan_base();
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan high freq: " << system->get_bandplan_high();
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan spacing: " << system->get_bandplan_spacing();
+              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
+          }
+      }
     }
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
     size_t pos = config.capture_dir.find_last_of("/");
@@ -364,11 +385,11 @@ void start_recorder(Call *call, TrunkMessage message) {
       if ((source->get_min_hz() <= call->get_freq()) &&
           (source->get_max_hz() >= call->get_freq())) {
         source_found = true;
-
+        /*
         if (call->get_tdma()) {
           BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
           return;
-        }
+        }*/
 
         if (talkgroup)
         {
@@ -429,6 +450,8 @@ void start_recorder(Call *call, TrunkMessage message) {
       return;
     }
   } else {
+    BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because it is encrypted: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
+
     // anything for encrypted calls could go here...
   }
 }
@@ -507,7 +530,8 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
   // set the call to the new Freq / TDMA slot
   call->set_freq(message.freq);
-  call->set_tdma(message.tdma);
+  call->set_phase2_tdma(message.phase2_tdma);
+  call->set_tdma_slot(message.tdma_slot);
 
 
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
@@ -564,7 +588,8 @@ void assign_recorder(TrunkMessage message, System *sys) {
           // This call is not being recorded, just update the Freq and move on
           call->update(message);
           call->set_freq(message.freq);
-          call->set_tdma(message.tdma);
+          call->set_phase2_tdma(message.phase2_tdma);
+          call->set_tdma_slot(message.tdma_slot);
         }
       } else {
         // The freq hasn't changed
@@ -579,8 +604,8 @@ void assign_recorder(TrunkMessage message, System *sys) {
     } else {
       // The talkgroup for the call does not match
       // check is the freq is the same as the one being used by the call
-      if ((call->get_freq() == message.freq) &&  (call->get_tdma() == message.tdma)) {
-        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
+      if ((call->get_freq() == message.freq) &&  (call->get_tdma_slot() == message.tdma_slot)) {
+        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma_slot << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma_slot() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
         /*
                 call->end_call();
@@ -603,13 +628,17 @@ void assign_recorder(TrunkMessage message, System *sys) {
   }
 }
 
-void current_system_id(int sysid) {
-  static int active_sysid = 0;
+void current_system_id(int sys_id) {
+  static int active_sys_id = 0;
 
-  if (active_sysid != sysid) {
-    BOOST_LOG_TRIVIAL(trace) << "Decoding System ID " << std::hex << std::uppercase << sysid << std::nouppercase << std::dec;
-    active_sysid = sysid;
+  if (active_sys_id != sys_id) {
+    BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::hex << std::uppercase << sys_id << std::nouppercase << std::dec;
+    active_sys_id = sys_id;
   }
+}
+
+void current_system_status(TrunkMessage message, System *sys) {
+  sys->update_status(message);
 }
 
 void unit_registration(long unit) {}
@@ -661,7 +690,8 @@ void update_recorder(TrunkMessage message, System *sys) {
         } else {
           // the Call is not recording, update and continue
           call->set_freq(message.freq);
-          call->set_tdma(message.tdma);
+          call->set_phase2_tdma(message.phase2_tdma);
+          call->set_tdma_slot(message.tdma_slot);
         }
       }
 
@@ -675,7 +705,7 @@ void update_recorder(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq << " TDMA: " << message.tdma_slot << " Encrypted: " << message.encrypted;
 
     assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
@@ -752,23 +782,26 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
       break;
 
     case SYSID:
-      current_system_id(message.sysid);
+      current_system_id(message.sys_id);
       break;
 
     case STATUS:
+      current_system_status(message, sys);
+      break;
+
     case UNKNOWN:
       break;
     }
   }
 }
 
-System* find_system(int sys_id) {
+System* find_system(int sys_num) {
   System *sys_match = NULL;
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
-    if (sys->get_sys_id() == sys_id) {
+    if (sys->get_sys_num() == sys_num) {
       sys_match = sys;
       break;
     }
@@ -827,10 +860,13 @@ void check_message_count(float timeDiff) {
           retune_system(sys);
         } else {
           BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
+          if (sys->system_type == "smartnet") {
+            sys->smartnet_trunking->reset();
+          }
         }
       }
 
-      if (msgs_decoded_per_second < 3) {
+      if (msgs_decoded_per_second < 50) {
         BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
       sys->message_count = 0;
@@ -840,9 +876,8 @@ void check_message_count(float timeDiff) {
 
 void monitor_messages() {
   gr::message::sptr msg;
-  int sys_id;
+  int sys_num;
   System *sys;
-
 
   time_t lastStatusTime     = time(NULL);
   time_t lastMsgCountTime   = time(NULL);
@@ -859,7 +894,9 @@ void monitor_messages() {
     }
 
 
+    //BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
+
 
     if ((currentTime - lastTalkgroupPurge) >= 1.0)
     {
@@ -868,13 +905,13 @@ void monitor_messages() {
     }
 
     if (msg != 0) {
-      sys_id = msg->arg1();
-      sys    = find_system(sys_id);
+      sys_num = msg->arg1();
+      sys    = find_system(sys_num);
       sys->message_count++;
 
       if (sys) {
         if (sys->get_system_type() == "smartnet") {
-          trunk_messages = smartnet_parser->parse_message(msg->to_string());
+          trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys);
           handle_message(trunk_messages, sys);
         }
 
@@ -890,9 +927,10 @@ void monitor_messages() {
                   lastUnitCheckTime = currentTime;
               }
        */
+
       msg.reset();
     } else {
-      usleep(1000 * 100);
+      usleep(1000 * 10);
     }
     float timeDiff = currentTime - lastMsgCountTime;
 
@@ -989,7 +1027,7 @@ bool monitor_system() {
                                                                source->get_center(),
                                                                source->get_rate(),
                                                                msg_queue,
-                                                               system->get_sys_id());
+                                                               system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
           }
 
@@ -1001,7 +1039,7 @@ bool monitor_system() {
                                                      source->get_rate(),
                                                      msg_queue,
                                                      source->get_qpsk_mod(),
-                                                     system->get_sys_id());
+                                                     system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
           }
 
@@ -1053,17 +1091,6 @@ int main(void)
     tb->unlock();
     tb->start();
 
-    for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
-      System *system = *sys_it;
-
-      if (system->get_system_type() == "smartnet") {
-        system->smartnet_trunking->enable();
-      }
-
-      if (system->get_system_type() == "p25") {
-        system->p25_trunking->enable();
-      }
-    }
     monitor_messages();
 
     // ------------------------------------------------------------------
