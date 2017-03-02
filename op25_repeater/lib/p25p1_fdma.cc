@@ -281,7 +281,11 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
     if (framer->rx_sym(syms[i1])) { // complete frame was detected
       if (d_debug >= 10) {
         fprintf(stderr, "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
+        //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
+
       }
+      float avg = framer->bch_errors / (framer->frame_size >> 1);
+      //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
 
       if ((framer->duid == 0x03) ||
           (framer->duid == 0x05) ||
@@ -308,14 +312,17 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           bv1[b++] = framer->frame_body[d * 2 + 1];
         }
 
+        int errors = 0;
         for (int sz = 0; sz < 3; sz++) {
           if (framer->frame_size >= sizes[sz]) {
             rc[sz] = block_deinterleave(bv1, 48 + 64 + sz * 196, deinterleave_buf[sz]);
-
+            if (rc[sz] < 0) {
+              errors++;
+            }
             if ((framer->duid == 0x07) && (rc[sz] == 0)) process_duid(framer->duid, framer->nac, deinterleave_buf[sz], 10);
           }
         }
-
+        printf(" rc errors: %d\n",errors);
         // two-block mbt is the only format currently supported
         if ((framer->duid == 0x0c)
             && (framer->frame_size == 576)
