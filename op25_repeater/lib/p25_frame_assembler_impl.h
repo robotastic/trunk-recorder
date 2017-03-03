@@ -63,6 +63,9 @@ private:
   void set_xormask(const char *p);
   void set_slotid(int slotid);
   void set_phase2_tdma(bool p);
+  void reset();
+  double get_error_count();
+  double get_total_len();
   typedef std::vector<bool>bit_vector;
   std::deque<int16_t> output_queue;
 

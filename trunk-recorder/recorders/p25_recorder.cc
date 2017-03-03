@@ -330,6 +330,8 @@ void p25_recorder::stop() {
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
+    BOOST_LOG_TRIVIAL(error) << "Errors: " << op25_frame_assembler->get_error_count() << " Len: " << op25_frame_assembler->get_total_len();
+    op25_frame_assembler->reset();
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }

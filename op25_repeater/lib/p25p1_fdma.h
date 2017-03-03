@@ -28,6 +28,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <deque>
+#include <array>
+#include <math.h>
 
 #include "p25_framer.h"
 #include "p25p1_voice_encode.h"
@@ -64,6 +66,9 @@ private:
   bool d_do_imbe;
   bool d_do_output;
   bool d_do_msgq;
+  double total_len;
+  double error_count;
+  double error_history[20];
   gr::msg_queue::sptr  d_msg_queue;
   std::deque<int16_t>& output_queue;
   p25_framer *framer;
@@ -89,7 +94,9 @@ public:
              bool                 do_audio_output);
   ~p25p1_fdma();
   void clear();
-
+  void reset();
+  double get_error_count();
+  double get_total_len();
   // Where all the action really happens
 
   int general_work(int                        noutput_items,

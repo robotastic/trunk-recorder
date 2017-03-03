@@ -53,6 +53,9 @@ namespace gr {
       virtual void set_xormask(const char*p) {}
       virtual void set_slotid(int slotid) {}
       virtual void set_phase2_tdma(bool p) {}
+      virtual void reset() {}
+      virtual double get_error_count() {}
+      virtual double get_total_len() {}
     };
 
   } // namespace op25_repeater
