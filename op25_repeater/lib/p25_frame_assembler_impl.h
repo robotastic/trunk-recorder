@@ -23,7 +23,7 @@
 #define INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_IMPL_H
 
 #include "../include/op25_repeater/p25_frame_assembler.h"
-
+#include "../include/op25_repeater/rx_status.h"
 #include <gnuradio/msg_queue.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -63,9 +63,8 @@ private:
   void set_xormask(const char *p);
   void set_slotid(int slotid);
   void set_phase2_tdma(bool p);
-  void reset();
-  double get_error_count();
-  double get_total_len();
+  void reset_rx_status();
+  RxStatus get_rx_status();
   typedef std::vector<bool>bit_vector;
   std::deque<int16_t> output_queue;
 

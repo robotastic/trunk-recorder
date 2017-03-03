@@ -151,17 +151,15 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int& nof_inpu
   }
 }
 
-void p25_frame_assembler_impl::reset() {
-  p1fdma.reset();
+void p25_frame_assembler_impl::reset_rx_status() {
+  p1fdma.reset_rx_status();
 }
 
-double p25_frame_assembler_impl::get_total_len() {
-  return p1fdma.get_total_len();
+RxStatus p25_frame_assembler_impl::get_rx_status() {
+  return p1fdma.get_rx_status();
 }
 
-double p25_frame_assembler_impl::get_error_count() {
-  return p1fdma.get_error_count();
-}
+
 
 void p25_frame_assembler_impl::clear() {
   p1fdma.clear();

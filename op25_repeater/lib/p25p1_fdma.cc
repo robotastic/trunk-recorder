@@ -232,8 +232,9 @@ p25p1_fdma::p25p1_fdma(int                  sys_num,
   p1voice_decode((debug > 0), udp_host, port, output_queue)
 {
   gettimeofday(&last_qtime, 0);
-  error_count = 0;
-  total_len = 0;
+  rx_status.error_count = 0;
+  rx_status.total_len = 0;
+  rx_status.spike_count = 0;
   for (int i=0; i<20; i++)
     error_history[i] = -1;
   if (port > 0) init_sock(d_udp_host, d_port);
@@ -268,20 +269,18 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
   //	msg.reset();
 }
 
-void p25p1_fdma::reset() {
-  error_count = 0;
-  total_len = 0;
+void p25p1_fdma::reset_rx_status() {
+  rx_status.error_count = 0;
+  rx_status.total_len = 0;
+  rx_status.spike_count = 0;
   /*for (int i=0; i<20; i++)
     error_history[i] = -1;*/
 }
 
-double p25p1_fdma::get_total_len() {
-  return total_len;
+RxStatus p25p1_fdma::get_rx_status() {
+  return rx_status;
 }
 
-double p25p1_fdma::get_error_count() {
-  return error_count;
-}
 
 long p25p1_fdma::get_curr_src_id() {
   return curr_src_id;
@@ -322,10 +321,12 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
       }
       float std_dev = sqrt(error_history_sqrt/error_history_len);
       if (framer->bch_errors >  std_dev) {
+        rx_status.spike_count++;
         fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
       }
-      error_count += framer->bch_errors;
-      total_len += framer->frame_size;
+
+      rx_status.error_count += framer->bch_errors;
+      rx_status.total_len += framer->frame_size;
       //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
 
       if ((framer->duid == 0x03) ||

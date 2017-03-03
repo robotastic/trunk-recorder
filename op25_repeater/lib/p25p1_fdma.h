@@ -30,7 +30,7 @@
 #include <deque>
 #include <array>
 #include <math.h>
-
+#include "../include/op25_repeater/rx_status.h"
 #include "p25_framer.h"
 #include "p25p1_voice_encode.h"
 #include "p25p1_voice_decode.h"
@@ -66,8 +66,7 @@ private:
   bool d_do_imbe;
   bool d_do_output;
   bool d_do_msgq;
-  double total_len;
-  double error_count;
+  RxStatus rx_status;
   double error_history[20];
   gr::msg_queue::sptr  d_msg_queue;
   std::deque<int16_t>& output_queue;
@@ -94,9 +93,8 @@ public:
              bool                 do_audio_output);
   ~p25p1_fdma();
   void clear();
-  void reset();
-  double get_error_count();
-  double get_total_len();
+  void reset_rx_status();
+  RxStatus get_rx_status();
   // Where all the action really happens
 
   int general_work(int                        noutput_items,
