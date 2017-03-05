@@ -317,12 +317,16 @@ void p25_recorder::tune_offset(double f) {
   if (!qpsk_mod) {
     reset();
   }
+  op25_frame_assembler->reset_rx_status();
 }
 
 State p25_recorder::get_state() {
   return state;
 }
 
+Rx_Status p25_recorder::get_rx_status() {
+  return op25_frame_assembler->get_rx_status();
+}
 void p25_recorder::stop() {
   if (state == active) {
     // op25_frame_assembler->clear();
@@ -330,7 +334,7 @@ void p25_recorder::stop() {
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
-    RxStatus rx_status = op25_frame_assembler->get_rx_status();
+    Rx_Status rx_status = op25_frame_assembler->get_rx_status();
     BOOST_LOG_TRIVIAL(error) << "Errors: " << rx_status.error_count << " Len: " << rx_status.total_len << " Spikes: " << rx_status.spike_count;
     op25_frame_assembler->reset_rx_status();
   } else {

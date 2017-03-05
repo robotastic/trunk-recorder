@@ -155,7 +155,7 @@ void p25_frame_assembler_impl::reset_rx_status() {
   p1fdma.reset_rx_status();
 }
 
-RxStatus p25_frame_assembler_impl::get_rx_status() {
+Rx_Status p25_frame_assembler_impl::get_rx_status() {
   return p1fdma.get_rx_status();
 }
 

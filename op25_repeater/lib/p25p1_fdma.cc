@@ -277,7 +277,7 @@ void p25p1_fdma::reset_rx_status() {
     error_history[i] = -1;*/
 }
 
-RxStatus p25p1_fdma::get_rx_status() {
+Rx_Status p25p1_fdma::get_rx_status() {
   return rx_status;
 }
 

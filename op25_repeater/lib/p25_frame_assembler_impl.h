@@ -64,7 +64,7 @@ private:
   void set_slotid(int slotid);
   void set_phase2_tdma(bool p);
   void reset_rx_status();
-  RxStatus get_rx_status();
+  Rx_Status get_rx_status();
   typedef std::vector<bool>bit_vector;
   std::deque<int16_t> output_queue;
 

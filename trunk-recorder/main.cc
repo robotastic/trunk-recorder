@@ -535,6 +535,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
 
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
+
     recorder->tune_offset(message.freq);
 
     if (call->get_debug_recording() == true) {

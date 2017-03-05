@@ -274,5 +274,5 @@ smartnet_decode::work (int noutput_items,
 	//return noutput_items;
 
 
-	return preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
+	return noutput_items;//preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
 }

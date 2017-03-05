@@ -14,10 +14,20 @@ struct Call_Freq {
 	double freq;
 	long time;
 	double position;
+	double total_len;
+	double error_count;
+	double spike_count;
+};
+
+struct Call_Error {
+	double freq;
+	double sample_count;
+	double error_count;
+	double spike_count;
 };
 
 class Recorder;
-
+#include "../op25_repeater/include/op25_repeater/rx_status.h"
 #include "uploaders/call_uploader.h"
 #include "config.h"
 #include "state.h"
@@ -44,11 +54,14 @@ public:
 								char *get_converted_filename();
 								char *get_filename();
 								void create_filename();
+								void set_error(Rx_Status rx_status);
 								void set_freq(double f);
 								long get_talkgroup();
 								long get_source_count();
 								Call_Source *get_source_list();
 								Call_Freq *get_freq_list();
+								Call_Error *get_error_list();
+								long get_error_list_count();
 								long get_freq_count();
 								void update(TrunkMessage message);
 								int get_idle_count();
@@ -82,8 +95,10 @@ private:
 								System *sys;
 								int src_count;
 								long curr_src_id;
+								Call_Error error_list[50];
 								Call_Source src_list[50];
 								Call_Freq freq_list[50];
+								long error_list_count;
 								long freq_count;
 								time_t last_update;
 								int idle_count;

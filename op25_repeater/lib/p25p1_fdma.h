@@ -66,7 +66,7 @@ private:
   bool d_do_imbe;
   bool d_do_output;
   bool d_do_msgq;
-  RxStatus rx_status;
+  Rx_Status rx_status;
   double error_history[20];
   gr::msg_queue::sptr  d_msg_queue;
   std::deque<int16_t>& output_queue;
@@ -94,7 +94,7 @@ public:
   ~p25p1_fdma();
   void clear();
   void reset_rx_status();
-  RxStatus get_rx_status();
+  Rx_Status get_rx_status();
   // Where all the action really happens
 
   int general_work(int                        noutput_items,

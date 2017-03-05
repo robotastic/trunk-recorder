@@ -81,6 +81,7 @@ public:
   bool    is_active();
   bool    is_idle();
   State   get_state();
+  Rx_Status get_rx_status();
   int     lastupdate();
   long    elapsed();
   Source* get_source();
