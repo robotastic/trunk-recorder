@@ -125,7 +125,6 @@ void Call::end_call() {
     std::stringstream shell_command;
 
     Rx_Status rx_status = recorder->get_rx_status();
-    recorder->reset();
     freq_list[freq_count-1].total_len = rx_status.total_len;
     freq_list[freq_count-1].spike_count = rx_status.spike_count;
     freq_list[freq_count-1].error_count = rx_status.error_count;
@@ -142,10 +141,10 @@ void Call::end_call() {
 
       for (int i = 0; i < src_count; i++) {
         if (i != 0) {
-          myfile << ", " <<  src_list[i].source;
-        } else {
-          myfile << src_list[i].source;
+          myfile << ", ";
         }
+        myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << "}";
+
       }
       myfile << " ],\n";
       myfile << "\"freqList\": [ ";
@@ -154,7 +153,7 @@ void Call::end_call() {
         if (i != 0) {
           myfile << ", ";
         }
-        myfile << "{ \"freq\": " <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position <<", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
+        myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position <<", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
       }
       myfile << " ]\n";
       myfile << "}\n";

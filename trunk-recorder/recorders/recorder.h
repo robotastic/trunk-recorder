@@ -67,7 +67,7 @@ public:
 	virtual long get_source_count() {return 0;};
 	virtual long get_talkgroup() {return 0;};
 	virtual State get_state() {return inactive;};
-	virtual Rx_Status get_rx_status() {Rx_Status rx_status; return rx_status; }
+	virtual Rx_Status get_rx_status() {Rx_Status rx_status={0,0,0}; return rx_status; }
 	virtual bool is_active() {return false;};
 	virtual bool is_idle() {return true;};
 	virtual double get_current_length(){return 0;};

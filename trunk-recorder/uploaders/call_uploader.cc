@@ -10,7 +10,7 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 
   std::string form_name("call");
   std::string form_filename(call->converted);
-
+  std::ostringstream conv;
   std::ifstream file(call->converted, std::ios::binary);
 
   // Make sure we have something to read.
@@ -38,48 +38,55 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
   file.close();
   oss.clear();
 
-  std::string source_list = "[";
+  std::ostringstream  source_list;
+  source_list << std::fixed << std::setprecision(2);
+  source_list << "[";
 
   if (call->source_count != 0) {
     for (int i = 0; i < call->source_count; i++) {
-      source_list = source_list + "{ \"pos\": " + boost::lexical_cast<std::string>(call->source_list[i].position) + ", \"src\": " + boost::lexical_cast<std::string>(call->source_list[i].source) + " }";
+      source_list << "{ \"pos\": " << call->source_list[i].position << ", \"src\": " << std::setprecision(0) << call->source_list[i].source << " }";
 
       if (i < (call->source_count - 1)) {
-        source_list = source_list + ", ";
+        source_list <<  ", ";
       } else {
-        source_list = source_list + "]";
+        source_list << "]";
       }
     }
   } else {
-    source_list = "[]";
+    source_list << "]";
   }
 
-  std::string freq_list = "[";
+    std::ostringstream freq_list;
+    freq_list << std::fixed << std::setprecision(2);
+    freq_list << "[";
 
   if (call->freq_count != 0) {
     for (int i = 0; i < call->freq_count; i++) {
-      freq_list = freq_list + "{ \"pos\": " + boost::lexical_cast<std::string>(call->freq_list[i].position) + ", \"freq\": " + boost::lexical_cast<std::string>(call->freq_list[i].freq) +", \"len\": " + boost::lexical_cast<std::string>(call->freq_list[i].total_len) + ", \"errors\": " + boost::lexical_cast<std::string>(call->freq_list[i].error_count) + ", \"spikes\": " + boost::lexical_cast<std::string>(call->freq_list[i].spike_count) + " }";
+      freq_list << "{ \"pos\": " << call->freq_list[i].position << ", \"freq\": " << std::setprecision(0) << call->freq_list[i].freq << ", \"len\": " << call->freq_list[i].total_len << ", \"errors\": " << call->freq_list[i].error_count << ", \"spikes\": " << call->freq_list[i].spike_count << " }";
 
       if (i < (call->freq_count - 1)) {
-        freq_list = freq_list + ", ";
+        freq_list << ", ";
       } else {
-        freq_list = freq_list + "]";
+        freq_list << "]";
       }
     }
   } else {
-    freq_list = "[]";
+    freq_list << "]";
   }
 
-
-  add_post_field(oss, "freq",          boost::lexical_cast<std::string>(call->freq),       boundary);
+  conv << std::fixed << std::setprecision(0);
+  conv << call->freq;
+  add_post_field(oss, "freq",          conv.str(),       boundary);
+  conv.clear();
+  conv.str("");
   add_post_field(oss, "start_time",    boost::lexical_cast<std::string>(call->start_time), boundary);
   add_post_field(oss, "stop_time",     boost::lexical_cast<std::string>(call->stop_time),  boundary);
 
   add_post_field(oss, "talkgroup_num", boost::lexical_cast<std::string>(call->talkgroup),  boundary);
   add_post_field(oss, "emergency",     boost::lexical_cast<std::string>(call->emergency),  boundary);
   add_post_field(oss, "api_key",       call->api_key,                                      boundary);
-  add_post_field(oss, "source_list",   source_list,                                        boundary);
-  add_post_field(oss, "freq_list",     freq_list,                                          boundary);
+  add_post_field(oss, "source_list",   source_list.str(),                                        boundary);
+  add_post_field(oss, "freq_list",     freq_list.str(),                                          boundary);
   oss << "\r\n--" << boundary << "--\r\n";
   const std::string& body_str(oss.str());
 

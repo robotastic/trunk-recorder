@@ -130,7 +130,7 @@ bool p25_framer::rx_sym(uint8_t dibit) {
 				// fall back to max. size and wait for next FS
 				frame_size_limit = P25_VOICE_FRAME_SIZE;
 		} else {
-			fprintf(stderr, "Error with NID Codeword\n");
+			//fprintf(stderr, "Error with NID Codeword\n");
 		}
 	}
 	if (nid_syms > 0) // if nid accumulation in progress

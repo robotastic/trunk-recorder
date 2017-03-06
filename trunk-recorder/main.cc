@@ -64,7 +64,6 @@ std::map<long, long>  unit_affiliations;
 
 std::vector<Call *> calls;
 Talkgroups *talkgroups;
-string config_dir;
 gr::top_block_sptr  tb;
 gr::msg_queue::sptr msg_queue;
 
@@ -113,17 +112,17 @@ std::vector<float>design_filter(double interpolation, double deci) {
  * Description: <#description#>
  * Parameters: <#parameters#>
  */
-void load_config()
+void load_config(string config_file)
 {
   string system_modulation;
   int    sys_count = 0;
 
   try
   {
-    const std::string json_filename = "config.json";
+    //const std::string json_filename = "config.json";
 
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(json_filename, pt);
+    boost::property_tree::read_json(config_file, pt);
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))
     {
@@ -209,8 +208,6 @@ void load_config()
       config.capture_dir.erase(config.capture_dir.length() - 1);
     }
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config_dir = pt.get<std::string>("configDir", boost::filesystem::current_path().string());
-    BOOST_LOG_TRIVIAL(info) << "Config Directory: " << config_dir;
     config.upload_server = pt.get<std::string>("uploadServer", "encode-upload.sh");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
     default_mode = pt.get<std::string>("defaultMode", "digital");
@@ -1053,7 +1050,7 @@ bool monitor_system() {
   return system_added;
 }
 
-int main(void)
+int main(int argc, char** argv)
 {
   BOOST_STATIC_ASSERT(true) __attribute__((unused));
   signal(SIGINT, exit_interupt);
@@ -1061,6 +1058,25 @@ int main(void)
   (
     logging::trivial::severity >= logging::trivial::info
   );
+
+  boost::program_options::options_description desc("Options");
+    desc.add_options()
+      ("help,h", "Help screen")
+      ("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File");
+      boost::program_options::variables_map vm;
+    boost::program_options::store(parse_command_line(argc, argv, desc), vm);
+    boost::program_options::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << "Usage: options_description [options]\n";
+        std::cout << desc;
+        exit(0);
+    }
+    string config_file = vm["config"].as<string>();
+    if (vm.count("config"))
+    {
+        BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
+    }
 
   /*
      logging::add_console_log(
@@ -1074,7 +1090,9 @@ int main(void)
   p25_parser      = new P25Parser();
 
   tb->lock();
-  load_config();
+
+
+  load_config(config_file);
 
   // Setup the talkgroups from the CSV file
   talkgroups = new Talkgroups();

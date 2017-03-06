@@ -322,7 +322,9 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
       float std_dev = sqrt(error_history_sqrt/error_history_len);
       if (framer->bch_errors >  std_dev) {
         rx_status.spike_count++;
-        fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
+        if (d_debug >= 10) {
+          fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
+        }
       }
 
       rx_status.error_count += framer->bch_errors;
@@ -364,7 +366,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
             if ((framer->duid == 0x07) && (rc[sz] == 0)) process_duid(framer->duid, framer->nac, deinterleave_buf[sz], 10);
           }
         }
-        printf(" rc errors: %d\n",errors);
+        
         // two-block mbt is the only format currently supported
         if ((framer->duid == 0x0c)
             && (framer->frame_size == 576)
