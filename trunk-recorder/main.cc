@@ -1,8 +1,20 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/log/sources/logger.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/core/null_deleter.hpp>
 #include <boost/program_options.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -57,6 +69,8 @@
 
 using namespace std;
 namespace logging = boost::log;
+namespace src     = boost::log::sources;
+namespace sinks   = boost::log::sinks;
 
 std::vector<Source *> sources;
 std::vector<System *> systems;
@@ -119,7 +133,7 @@ void load_config(string config_file)
 
   try
   {
-    //const std::string json_filename = "config.json";
+    // const std::string json_filename = "config.json";
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
@@ -181,23 +195,25 @@ void load_config(string config_file)
 
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
       system->set_bandfreq(800); // Default to 800
-      if(boost::starts_with(system->get_bandplan(), "400")) {
-          system->set_bandfreq(400);
+
+      if (boost::starts_with(system->get_bandplan(), "400")) {
+        system->set_bandfreq(400);
       }
       system->set_bandplan_base(node.second.get<double>("bandplanBase", 0.0));
       system->set_bandplan_high(node.second.get<double>("bandplanHigh", 0.0));
       system->set_bandplan_spacing(node.second.get<double>("bandplanSpacing", 0.0));
-      system->set_bandplan_offset(node.second.get<int>("bandplanOffset",0));
+      system->set_bandplan_offset(node.second.get<int>("bandplanOffset", 0));
 
-      if(system->get_system_type() == "smartnet") {
-          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
-          BOOST_LOG_TRIVIAL(info) << "Smartnet band: " << system->get_bandfreq();
-          if(system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset() ) {
-              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base freq: " << system->get_bandplan_base();
-              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan high freq: " << system->get_bandplan_high();
-              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan spacing: " << system->get_bandplan_spacing();
-              BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
-          }
+      if (system->get_system_type() == "smartnet") {
+        BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
+        BOOST_LOG_TRIVIAL(info) << "Smartnet band: " << system->get_bandfreq();
+
+        if (system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset()) {
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base freq: " << system->get_bandplan_base();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan high freq: " << system->get_bandplan_high();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan spacing: " << system->get_bandplan_spacing();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
+        }
       }
     }
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
@@ -322,12 +338,6 @@ void load_config(string config_file)
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_debug_recorders(tb, debug_recorders);
-
-      // std::cout << "Source - output_buffer - Min: " <<
-      // source->get_src_block()->min_output_buffer(0) << " Max: " <<
-      // source->get_src_block()->max_output_buffer(0) << "\n";
-      // source->get_src_block()->set_max_output_buffer(4096);
-
       sources.push_back(source);
     }
   }
@@ -382,11 +392,13 @@ void start_recorder(Call *call, TrunkMessage message) {
       if ((source->get_min_hz() <= call->get_freq()) &&
           (source->get_max_hz() >= call->get_freq())) {
         source_found = true;
+
         /*
-        if (call->get_tdma()) {
-          BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
-          return;
-        }*/
+           if (call->get_tdma()) {
+           BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " <<
+              call->get_talkgroup();
+           return;
+           }*/
 
         if (talkgroup)
         {
@@ -532,7 +544,6 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
 
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
-
     recorder->tune_offset(message.freq);
 
     if (call->get_debug_recording() == true) {
@@ -853,14 +864,15 @@ void check_message_count(float timeDiff) {
     if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
 
-      if (msgs_decoded_per_second < 1) {
+      if (msgs_decoded_per_second < 2) {
+
+        if (sys->system_type == "smartnet") {
+          sys->smartnet_trunking->reset();
+        }
         if (sys->control_channel_count() > 1) {
           retune_system(sys);
         } else {
           BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
-          if (sys->system_type == "smartnet") {
-            sys->smartnet_trunking->reset();
-          }
         }
       }
 
@@ -892,7 +904,7 @@ void monitor_messages() {
     }
 
 
-    //BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
+    // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
 
 
@@ -904,7 +916,7 @@ void monitor_messages() {
 
     if (msg != 0) {
       sys_num = msg->arg1();
-      sys    = find_system(sys_num);
+      sys     = find_system(sys_num);
       sys->message_count++;
 
       if (sys) {
@@ -1050,40 +1062,65 @@ bool monitor_system() {
   return system_added;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   BOOST_STATIC_ASSERT(true) __attribute__((unused));
   signal(SIGINT, exit_interupt);
   logging::core::get()->set_filter
   (
     logging::trivial::severity >= logging::trivial::info
+
   );
 
+  boost::log::add_common_attributes();
+  boost::log::core::get()->add_global_attribute("Scope",
+                                                boost::log::attributes::named_scope());
+  boost::log::core::get()->set_filter(
+    boost::log::trivial::severity >= boost::log::trivial::info
+    );
+
+  /* log formatter:
+   * [TimeStamp] [ThreadId] [Severity Level] [Scope] Log message
+   */
+  auto fmtTimeStamp = boost::log::expressions::
+                      format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f");
+  auto fmtSeverity = boost::log::expressions::
+                     attr<boost::log::trivial::severity_level>(                  "Severity");
+  auto fmtScope = boost::log::expressions::format_named_scope("Scope",
+                                                              boost::log::keywords::format = "%n(%f:%l)",
+                                                              boost::log::keywords::iteration = boost::log::expressions::reverse,
+                                                              boost::log::keywords::depth = 2);
+  boost::log::formatter logFmt =
+    boost::log::expressions::format("[%1%] (%2%)   %3%")
+    % fmtTimeStamp % fmtSeverity % boost::log::expressions::smessage;
+
+  /* console sink */
+  auto consoleSink = boost::log::add_console_log(std::clog);
+  consoleSink->set_formatter(logFmt);
+
+
+
   boost::program_options::options_description desc("Options");
-    desc.add_options()
-      ("help,h", "Help screen")
-      ("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File");
-      boost::program_options::variables_map vm;
-    boost::program_options::store(parse_command_line(argc, argv, desc), vm);
-    boost::program_options::notify(vm);
+  desc.add_options()
+    ("help,h", "Help screen")
+    ("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File");
+  boost::program_options::variables_map vm;
+  boost::program_options::store(parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);
 
-    if (vm.count("help")) {
-        std::cout << "Usage: options_description [options]\n";
-        std::cout << desc;
-        exit(0);
-    }
-    string config_file = vm["config"].as<string>();
-    if (vm.count("config"))
-    {
-        BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
-    }
+  if (vm.count("help")) {
+    std::cout << "Usage: options_description [options]\n";
+    std::cout << desc;
+    exit(0);
+  }
+  string config_file = vm["config"].as<string>();
 
-  /*
-     logging::add_console_log(
-       cout,
-       logging::keywords::format = "[%TimeStamp%]: %Message%",
-       logging::keywords::auto_flush = true
-     );*/
+  if (vm.count("config"))
+  {
+    BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
+  }
+
+
   tb              = gr::make_top_block("Trunking");
   msg_queue       = gr::msg_queue::make(100);
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
