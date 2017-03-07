@@ -1062,6 +1062,12 @@ bool monitor_system() {
   return system_added;
 }
 
+template <class F>
+void add_logs(const F & fmt)
+{
+  boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
+}
+
 int main(int argc, char **argv)
 {
   BOOST_STATIC_ASSERT(true) __attribute__((unused));
@@ -1082,10 +1088,11 @@ int main(int argc, char **argv)
   /* log formatter:
    * [TimeStamp] [ThreadId] [Severity Level] [Scope] Log message
    */
+   /*
   auto fmtTimeStamp = boost::log::expressions::
                       format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f");
   auto fmtSeverity = boost::log::expressions::
-                     attr<boost::log::trivial::severity_level>(                  "Severity");
+                     attr<boost::log::trivial::severity_level>("Severity");
   auto fmtScope = boost::log::expressions::format_named_scope("Scope",
                                                               boost::log::keywords::format = "%n(%f:%l)",
                                                               boost::log::keywords::iteration = boost::log::expressions::reverse,
@@ -1094,10 +1101,18 @@ int main(int argc, char **argv)
     boost::log::expressions::format("[%1%] (%2%)   %3%")
     % fmtTimeStamp % fmtSeverity % boost::log::expressions::smessage;
 
-  /* console sink */
-  auto consoleSink = boost::log::add_console_log(std::clog);
-  consoleSink->set_formatter(logFmt);
 
+  auto consoleSink = boost::log::add_console_log(std::clog);
+  consoleSink->set_formatter(logFmt);*/
+  //consoleSink->set_formatter(expr::stream << boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f"));
+add_logs(
+  boost::log::expressions::format("[%1%] (%2%)   %3%")
+  % boost::log::expressions::
+                      format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+  % boost::log::expressions::
+                     attr<boost::log::trivial::severity_level>("Severity")
+  % boost::log::expressions::smessage
+);
 
 
   boost::program_options::options_description desc("Options");
