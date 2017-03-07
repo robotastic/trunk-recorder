@@ -28,7 +28,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <deque>
-#include <array>
 #include <math.h>
 #include "../include/op25_repeater/rx_status.h"
 #include "p25_framer.h"
