@@ -136,7 +136,7 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s, System *sy
     break;
 
   default:
-    cout << "corrupt value for nstacked" << endl;
+    BOOST_LOG_TRIVIAL(info) << "corrupt value for nstacked" << endl;
     break;
   }
 
@@ -197,7 +197,7 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s, System *sy
 	// BOOST_LOG_TRIVIAL(info) << "MSG [ TG: " << dec << stack[0].full_address << "] \t CMD: ( " << hex << stack[0].cmd << " - \t" << hex << stack[1].cmd << " - \t " << hex << stack[2].cmd   << " ] " << " Grp: [ " << stack[0].grp << " - \t " << stack[1].grp << " - \t " << stack[2].grp << " ]";
 
   if (((command >= 0x340) && (command <= 0x34E)) || (command == 0x350)) {
-    cout << "Patching Command: " << hex << command << " Freq: " << message.freq << " Talkgroup: " << dec << address  << endl;
+    BOOST_LOG_TRIVIAL(info) << "Patching Command: " << hex << command << " Freq: " << message.freq << " Talkgroup: " << dec << address  << endl;
   }
 
   if ((address & 0xfc00) == 0x2800) {

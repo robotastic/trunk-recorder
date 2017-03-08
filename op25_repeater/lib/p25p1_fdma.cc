@@ -232,7 +232,11 @@ p25p1_fdma::p25p1_fdma(int                  sys_num,
   p1voice_decode((debug > 0), udp_host, port, output_queue)
 {
   gettimeofday(&last_qtime, 0);
-
+  rx_status.error_count = 0;
+  rx_status.total_len = 0;
+  rx_status.spike_count = 0;
+  for (int i=0; i<20; i++)
+    error_history[i] = -1;
   if (port > 0) init_sock(d_udp_host, d_port);
 }
 
@@ -265,6 +269,19 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
   //	msg.reset();
 }
 
+void p25p1_fdma::reset_rx_status() {
+  rx_status.error_count = 0;
+  rx_status.total_len = 0;
+  rx_status.spike_count = 0;
+  /*for (int i=0; i<20; i++)
+    error_history[i] = -1;*/
+}
+
+Rx_Status p25p1_fdma::get_rx_status() {
+  return rx_status;
+}
+
+
 long p25p1_fdma::get_curr_src_id() {
   return curr_src_id;
 }
@@ -280,11 +297,38 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
   for (int i1 = 0; i1 < nsyms; i1++) {
     if (framer->rx_sym(syms[i1])) { // complete frame was detected
       if (d_debug >= 10) {
-        fprintf(stderr, "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
+        fprintf(stderr, "%d: NAC 0x%X DUID 0x%X len %u errs %u \n ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
         //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
 
       }
-      float avg = framer->bch_errors / (framer->frame_size >> 1);
+      for (int j=19; j>0; j--) {
+        error_history[j] = error_history[j-1];
+      }
+      error_history[0] = framer->bch_errors;
+      double error_history_total=0;
+      double error_history_len=0;
+      for (int j=0; j<20; j++) {
+        if (error_history[j]>=0) {
+          error_history_len++;
+          error_history_total += error_history[j];
+        }
+      }
+      double error_history_avg = error_history_total / error_history_len;
+
+      double error_history_sqrt;
+      for (int j=0; j<error_history_len; j++){
+        error_history_sqrt += pow((error_history[j] - error_history_avg), 2);
+      }
+      float std_dev = sqrt(error_history_sqrt/error_history_len);
+      if (framer->bch_errors >  std_dev) {
+        rx_status.spike_count++;
+        if (d_debug >= 10) {
+          fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
+        }
+      }
+
+      rx_status.error_count += framer->bch_errors;
+      rx_status.total_len += framer->frame_size;
       //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
 
       if ((framer->duid == 0x03) ||
@@ -322,7 +366,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
             if ((framer->duid == 0x07) && (rc[sz] == 0)) process_duid(framer->duid, framer->nac, deinterleave_buf[sz], 10);
           }
         }
-        printf(" rc errors: %d\n",errors);
+        
         // two-block mbt is the only format currently supported
         if ((framer->duid == 0x0c)
             && (framer->frame_size == 576)

@@ -39,6 +39,7 @@
 #include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
+#include "../../op25_repeater/include/op25_repeater/rx_status.h"
 #include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/vocoder.h>
 
@@ -80,6 +81,7 @@ public:
   bool    is_active();
   bool    is_idle();
   State   get_state();
+  Rx_Status get_rx_status();
   int     lastupdate();
   long    elapsed();
   Source* get_source();

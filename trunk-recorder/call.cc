@@ -33,12 +33,13 @@ void Call::create_filename() {
 }
 
 Call::Call(long t, double f, System *s, Config c) {
-  config      = c;
-  idle_count  = 0;
-  freq_count  = 0;
-  curr_freq   = 0;
-  src_count   = 0;
-  curr_src_id = 0;
+  config           = c;
+  idle_count       = 0;
+  freq_count       = 0;
+  error_list_count = 0;
+  curr_freq        = 0;
+  src_count        = 0;
+  curr_src_id      = 0;
   set_freq(f);
   talkgroup       = t;
   sys             = s;
@@ -48,8 +49,8 @@ Call::Call(long t, double f, System *s, Config c) {
   state           = monitoring;
   debug_recording = false;
   recorder        = NULL;
-  phase2_tdma            = false;
-  tdma_slot = 0;
+  phase2_tdma     = false;
+  tdma_slot       = 0;
   encrypted       = false;
   emergency       = false;
   conventional    = false;
@@ -58,12 +59,13 @@ Call::Call(long t, double f, System *s, Config c) {
 }
 
 Call::Call(TrunkMessage message, System *s, Config c) {
-  config      = c;
-  idle_count  = 0;
-  freq_count  = 0;
-  src_count   = 0;
-  curr_src_id = 0;
-  curr_freq   = 0;
+  config           = c;
+  idle_count       = 0;
+  freq_count       = 0;
+  error_list_count = 0;
+  src_count        = 0;
+  curr_src_id      = 0;
+  curr_freq        = 0;
 
 
   talkgroup  = message.talkgroup;
@@ -91,19 +93,20 @@ Call::~Call() {
 
 void Call::restart_call() {
   if (conventional) {
-    idle_count      = 0;
-    freq_count      = 0;
-    src_count       = 0;
-    curr_src_id     = 0;
-    start_time      = time(NULL);
-    stop_time       = time(NULL);
-    last_update     = time(NULL);
-    state           = recording;
-    debug_recording = false;
-    phase2_tdma            = false;
-    tdma_slot =0;
-    encrypted       = false;
-    emergency       = false;
+    idle_count       = 0;
+    freq_count       = 0;
+    src_count        = 0;
+    error_list_count = 0;
+    curr_src_id      = 0;
+    start_time       = time(NULL);
+    stop_time        = time(NULL);
+    last_update      = time(NULL);
+    state            = recording;
+    debug_recording  = false;
+    phase2_tdma      = false;
+    tdma_slot        = 0;
+    encrypted        = false;
+    emergency        = false;
 
     this->create_filename();
     recorder->start(this, talkgroup + 100);
@@ -121,6 +124,10 @@ void Call::end_call() {
     std::ofstream myfile(status_filename);
     std::stringstream shell_command;
 
+    Rx_Status rx_status = recorder->get_rx_status();
+    freq_list[freq_count-1].total_len = rx_status.total_len;
+    freq_list[freq_count-1].spike_count = rx_status.spike_count;
+    freq_list[freq_count-1].error_count = rx_status.error_count;
 
     if (myfile.is_open())
     {
@@ -134,10 +141,10 @@ void Call::end_call() {
 
       for (int i = 0; i < src_count; i++) {
         if (i != 0) {
-          myfile << ", " <<  src_list[i].source;
-        } else {
-          myfile << src_list[i].source;
+          myfile << ", ";
         }
+        myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << "}";
+
       }
       myfile << " ],\n";
       myfile << "\"freqList\": [ ";
@@ -146,7 +153,7 @@ void Call::end_call() {
         if (i != 0) {
           myfile << ", ";
         }
-        myfile << "{ \"freq\": " <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << "}";
+        myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position <<", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
       }
       myfile << " ]\n";
       myfile << "}\n";
@@ -204,9 +211,28 @@ double Call::get_current_length() {
   }
 }
 
+void Call::set_error(Rx_Status rx_status) {
+  Call_Error call_error = {curr_freq, rx_status.total_len, rx_status.error_count, rx_status.spike_count};
+
+  if (error_list_count < 49) {
+    error_list[error_list_count] = call_error;
+    error_list_count++;
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Call: more than 50 Errors";
+  }
+}
+
 void Call::set_freq(double f) {
   if (f != curr_freq) {
-    double position=get_current_length();
+    double position = get_current_length();
+
+    // if there call is being recorded and it isn't the first time the freq is being set
+    if (recorder && (freq_count>0)) {
+      Rx_Status rx_status = recorder->get_rx_status();
+      freq_list[freq_count-1].total_len = rx_status.total_len;
+      freq_list[freq_count-1].spike_count = rx_status.spike_count;
+      freq_list[freq_count-1].error_count = rx_status.error_count;
+    }
 
     Call_Freq call_freq = { f, time(NULL), position };
 
@@ -222,6 +248,14 @@ void Call::set_freq(double f) {
 
 long Call::get_talkgroup() {
   return talkgroup;
+}
+
+Call_Error * Call::get_error_list() {
+  return error_list;
+}
+
+long Call::get_error_list_count() {
+  return error_list_count;
 }
 
 Call_Freq * Call::get_freq_list() {
@@ -297,13 +331,14 @@ bool Call::get_phase2_tdma() {
 const char * Call::get_xor_mask() {
   return sys->get_xor_mask();
 }
+
 bool Call::add_source(long src) {
   if (src == 0) {
     return false;
   }
 
-  double position = get_current_length();
-    Call_Source call_source = { src, time(NULL), position };
+  double position         = get_current_length();
+  Call_Source call_source = { src, time(NULL), position };
 
   if (src_count < 1) {
     src_list[src_count] = call_source;

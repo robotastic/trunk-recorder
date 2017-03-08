@@ -64,7 +64,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_num)
 	             gr::io_signature::make (0,0,0))
 {
 	//set_relative_rate((double)(76.0/84.0));
-	set_output_multiple(420); //used to be 76  //504
+	set_output_multiple(388); //used to be 76  //504  //460
 	d_queue = queue;
 	this->sys_num = sys_num;
 	//set_output_multiple(168); //used to be 76
@@ -200,7 +200,7 @@ smartnet_decode::work (int noutput_items,
 	get_tags_in_range(preamble_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_preamble"));
 
 	if(preamble_tags.size() == 0) {
-	  BOOST_LOG_TRIVIAL(info) << "Smartnet Trunking: No tags found, consumed: " << size << " inputs, abs_sample_cnt: " << abs_sample_cnt;
+	  //BOOST_LOG_TRIVIAL(info) << "Smartnet Trunking: No tags found, consumed: " << noutput_items << " inputs, abs_sample_cnt: " << abs_sample_cnt;
 		return noutput_items;
 		//return size;
 	}
@@ -219,34 +219,6 @@ smartnet_decode::work (int noutput_items,
 
 
 		outlen += 76;
-
-
-/*
-	if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "consumed " << size << ", produced " << outlen;
-	consume_each(preamble_tags.back().offset - abs_sample_cnt + 84);
-
-
-	const char *in = (const char *) input_items[0];
-
-	int size = noutput_items - 76;
-	if(size <= 0) {
-					BOOST_LOG_TRIVIAL(info) << "CRC fail noutput: " << noutput_items << " size: " << size;
-					return 0; //better luck next time
-	}
-
-	uint64_t abs_sample_cnt = nitems_read(0);
-	std::vector<gr::tag_t> frame_tags;
-
-	get_tags_in_range(frame_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_frame"));
-	if(frame_tags.size() == 0) {
-		//BOOST_LOG_TRIVIAL(info) << "Sad Trombone 1: " << noutput_items << " size: " << size << " Tags: " << frame_tags.size();
-		return 0; //sad trombone
-	}
-
-	std::vector<gr::tag_t>::iterator tag_iter;
-	for(tag_iter = frame_tags.begin(); tag_iter != frame_tags.end(); tag_iter++) {
-
-		uint64_t mark = tag_iter->offset - abs_sample_cnt;*/
 		if(VERBOSE)
 			BOOST_LOG_TRIVIAL(info) << "found a frame at " << mark;
 		char databits[38];
@@ -273,6 +245,6 @@ smartnet_decode::work (int noutput_items,
 	//this->consume_each(noutput_items);
 	//return noutput_items;
 
-
-	return preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
+	//BOOST_LOG_TRIVIAL(info) << "Consumed: " << preamble_tags.back().offset - abs_sample_cnt + 84;
+	return noutput_items;//preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
 }

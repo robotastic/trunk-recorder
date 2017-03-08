@@ -123,7 +123,7 @@ smartnet_trunking::smartnet_trunking(float               f,
 }
 
 void smartnet_trunking::reset() {
-cout << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << pll_demod->get_min_freq() << " Max Freq: " << pll_demod->get_max_freq();
+  BOOST_LOG_TRIVIAL(info) << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << pll_demod->get_min_freq() << " Max Freq: " << pll_demod->get_max_freq();
   carriertrack->set_rolloff(0.6);
   pll_demod->update_gains();
   //pll_demod->frequency_limit();
@@ -137,5 +137,5 @@ void smartnet_trunking::tune_offset(double f) {
   chan_freq = f;
   int offset_amount = (f - center_freq);
   prefilter->set_center_freq(offset_amount);
-  cout << "Offset set to: " << offset_amount << " Freq: " << chan_freq << endl;
+  BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: " << chan_freq << endl;
 }

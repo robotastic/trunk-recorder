@@ -22,6 +22,7 @@
 #ifndef INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_H
 #define INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_H
 
+#include <op25_repeater/rx_status.h>
 #include <op25_repeater/api.h>
 #include <gnuradio/block.h>
 #include <gnuradio/msg_queue.h>
@@ -53,6 +54,8 @@ namespace gr {
       virtual void set_xormask(const char*p) {}
       virtual void set_slotid(int slotid) {}
       virtual void set_phase2_tdma(bool p) {}
+      virtual void reset_rx_status() {}
+      virtual Rx_Status get_rx_status() {Rx_Status rx_status; return rx_status; }
     };
 
   } // namespace op25_repeater

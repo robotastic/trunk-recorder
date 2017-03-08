@@ -129,6 +129,8 @@ bool p25_framer::rx_sym(uint8_t dibit) {
 				// size isn't known a priori -
 				// fall back to max. size and wait for next FS
 				frame_size_limit = P25_VOICE_FRAME_SIZE;
+		} else {
+			//fprintf(stderr, "Error with NID Codeword\n");
 		}
 	}
 	if (nid_syms > 0) // if nid accumulation in progress
@@ -142,7 +144,7 @@ bool p25_framer::rx_sym(uint8_t dibit) {
 		reverse_p ^= 0x02;   // auto flip polarity reversal
 		fprintf(stderr, "Reversed FS polarity detected - autocorrecting\n");
 	}
-/*	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0x001050551155LL, 0)) {
+	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0x001050551155LL, 0)) {
 		fprintf(stderr, "tuning error -1200\n");
 	}
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0xFFEFAFAAEEAALL, 0)) {
@@ -150,7 +152,7 @@ bool p25_framer::rx_sym(uint8_t dibit) {
 	}
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0xAA8A0A008800LL, 0)) {
 		fprintf(stderr, "tuning error +/- 2400\n");
-	}*/
+	}
 	if (next_bit > 0) {
 		frame_body[next_bit++] = (dibit >> 1) & 1;
 		frame_body[next_bit++] =  dibit       & 1;

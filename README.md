@@ -14,7 +14,7 @@ Trunk Recorder currently supports the following:
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
  - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
  - Ettus USRPs
- - P25 Phase 1 & Analog voice channels
+ - P25 Phase 1, P25 Phase 2 & Analog voice channels
 
 I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
@@ -85,7 +85,7 @@ Configuring Trunk Recorder and getting things setup can be rather complex. I am 
 
 **config.json**
 
-This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. The following is an example for my local system in DC, using an Ettus B200:
+This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. Trunk Recorder will look for a *config.json* file in the same directory as it is being run in. You can point it to a different config file by using the *--config* argument on the command line, for example: `./recorder --config=examples/config-wmata-rtl.json`. The following is an example for my local system in DC, using an Ettus B200:
 
 ```
 {
@@ -135,6 +135,11 @@ Here are the different arguments:
    - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
+   - **bandplan** - [SmartNet only] this is the SmartNet bandplan that will be used. The options are *800_standard*, *800_reband*, *800_splinter*, and *400_custom*. *800_standard* is the default.
+   - **bandplanBase** - [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz.
+   - **bandplanHigh** - [SmartNet, 400_custom only] this is the highest channel in the system, specified in Hz.
+   - **bandplanSpacing** - [SmartNet, 400_custom only] this is the channel spacing, specified in Hz. Typically this is *25000*.
+   - **bandplanOffset** - [SmartNet, 400_custom only] this is the offset used to calculate frequencies.
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** the options are *digital* or *analog*.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.

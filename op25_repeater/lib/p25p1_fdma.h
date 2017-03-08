@@ -28,7 +28,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <deque>
-
+#include <math.h>
+#include "../include/op25_repeater/rx_status.h"
 #include "p25_framer.h"
 #include "p25p1_voice_encode.h"
 #include "p25p1_voice_decode.h"
@@ -64,6 +65,8 @@ private:
   bool d_do_imbe;
   bool d_do_output;
   bool d_do_msgq;
+  Rx_Status rx_status;
+  double error_history[20];
   gr::msg_queue::sptr  d_msg_queue;
   std::deque<int16_t>& output_queue;
   p25_framer *framer;
@@ -89,7 +92,8 @@ public:
              bool                 do_audio_output);
   ~p25p1_fdma();
   void clear();
-
+  void reset_rx_status();
+  Rx_Status get_rx_status();
   // Where all the action really happens
 
   int general_work(int                        noutput_items,
