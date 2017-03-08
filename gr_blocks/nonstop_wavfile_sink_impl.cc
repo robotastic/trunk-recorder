@@ -111,7 +111,7 @@ bool nonstop_wavfile_sink_impl::open(const char *filename) {
   }
 
   if (d_fp) { // if we've already got a new one open, close it
-    BOOST_LOG_TRIVIAL(error) << "d_fp alread open, closing " << d_fp << " more" << current_filename << " for " << filename << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "File pointer already open, closing " << d_fp << " more" << current_filename << " for " << filename << std::endl;
 
     // fclose(d_fp);
     // d_fp = NULL;

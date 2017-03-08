@@ -14,7 +14,7 @@ Trunk Recorder currently supports the following:
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
  - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
  - Ettus USRPs
- - P25 Phase 1 & Analog voice channels
+ - P25 Phase 1, P25 Phase 2 & Analog voice channels
 
 I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
@@ -85,7 +85,7 @@ Configuring Trunk Recorder and getting things setup can be rather complex. I am 
 
 **config.json**
 
-This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. The following is an example for my local system in DC, using an Ettus B200:
+This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. Trunk Recorder will look for a *config.json* file in the same directory as it is being run in. You can point it to a different config file by using the *--config* argument on the command line, for example: `./recorder --config=examples/config-wmata-rtl.json`. The following is an example for my local system in DC, using an Ettus B200:
 
 ```
 {

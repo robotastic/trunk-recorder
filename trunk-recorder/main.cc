@@ -393,13 +393,6 @@ void start_recorder(Call *call, TrunkMessage message) {
           (source->get_max_hz() >= call->get_freq())) {
         source_found = true;
 
-        /*
-           if (call->get_tdma()) {
-           BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " <<
-              call->get_talkgroup();
-           return;
-           }*/
-
         if (talkgroup)
         {
           if (talkgroup->mode == 'A') {
@@ -714,7 +707,7 @@ void update_recorder(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq << " TDMA: " << message.tdma_slot << " Encrypted: " << message.encrypted;
+    BOOST_LOG_TRIVIAL(info) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq << " TDMA: " << message.tdma_slot << " Encrypted: " << message.encrypted;
 
     assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
@@ -876,7 +869,7 @@ void check_message_count(float timeDiff) {
         }
       }
 
-      if (msgs_decoded_per_second < 50) {
+      if (msgs_decoded_per_second < 10) {
         BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
       sys->message_count = 0;

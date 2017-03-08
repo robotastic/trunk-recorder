@@ -226,7 +226,8 @@ void Call::set_freq(double f) {
   if (f != curr_freq) {
     double position = get_current_length();
 
-    if (recorder) {
+    // if there call is being recorded and it isn't the first time the freq is being set
+    if (recorder && (freq_count>0)) {
       Rx_Status rx_status = recorder->get_rx_status();
       freq_list[freq_count-1].total_len = rx_status.total_len;
       freq_list[freq_count-1].spike_count = rx_status.spike_count;
