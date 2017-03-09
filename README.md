@@ -1,6 +1,5 @@
-Trunk Recorder - v2.1.2
+Trunk Recorder - v2.2.0
 =================
-### Note: The format for the Config.json file changed in v2.x.
 
 Need help? Got something working? Share it!
 
@@ -14,7 +13,7 @@ Trunk Recorder currently supports the following:
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
  - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
  - Ettus USRPs
- - P25 Phase 1, P25 Phase 2 & Analog voice channels
+ - P25 Phase 1, **P25 Phase 2** & Analog voice channels
 
 I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
 
