@@ -188,7 +188,10 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
-
+      system->set_call_log(node.second.get<bool>("callLog", true));
+      BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
+      system->set_audio_archive(node.second.get<bool>("audioArchive", true));
+      BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       systems.push_back(system);

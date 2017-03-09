@@ -14,7 +14,11 @@
             "type": "conventional",
             "channels": [166725000, 166925000, 167075000, 166850000],
             "shortName": "park",
-            "talkgroupsFile": "park-conv.csv"
-        }
-    ]
+            "talkgroupsFile": "park-conv.csv",
+            "callLog": true,
+            "audioArchive": true
+}
+],
+  "uploadServer": "https://api.openmhz.com"
+
 }

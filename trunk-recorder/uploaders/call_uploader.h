@@ -17,6 +17,7 @@ struct call_data_t {
         long stop_time;
         bool encrypted;
         bool emergency;
+        bool audio_archive;
         char filename[160];
         char converted[160];
         std::string upload_server;

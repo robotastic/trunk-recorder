@@ -114,6 +114,7 @@ void Call::restart_call() {
 }
 
 void Call::end_call() {
+  std::stringstream shell_command;
   stop_time = time(NULL);
 
   if (state == recording) {
@@ -121,43 +122,48 @@ void Call::end_call() {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
     BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
-    std::ofstream myfile(status_filename);
-    std::stringstream shell_command;
 
-    Rx_Status rx_status = recorder->get_rx_status();
-    freq_list[freq_count-1].total_len = rx_status.total_len;
-    freq_list[freq_count-1].spike_count = rx_status.spike_count;
-    freq_list[freq_count-1].error_count = rx_status.error_count;
 
-    if (myfile.is_open())
-    {
-      myfile << "{\n";
-      myfile << "\"freq\": " << this->curr_freq << ",\n";
-      myfile << "\"start_time\": " << this->start_time << ",\n";
-      myfile << "\"stop_time\": " << this->stop_time << ",\n";
-      myfile << "\"emergency\": " << this->emergency << ",\n";
-      myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
-      myfile << "\"srcList\": [ ";
+    if (freq_count > 0) {
+      Rx_Status rx_status = recorder->get_rx_status();
+      freq_list[freq_count - 1].total_len   = rx_status.total_len;
+      freq_list[freq_count - 1].spike_count = rx_status.spike_count;
+      freq_list[freq_count - 1].error_count = rx_status.error_count;
+    }
 
-      for (int i = 0; i < src_count; i++) {
-        if (i != 0) {
-          myfile << ", ";
+    if (sys->get_call_log()) {
+      std::ofstream myfile(status_filename);
+
+
+      if (myfile.is_open())
+      {
+        myfile << "{\n";
+        myfile << "\"freq\": " << this->curr_freq << ",\n";
+        myfile << "\"start_time\": " << this->start_time << ",\n";
+        myfile << "\"stop_time\": " << this->stop_time << ",\n";
+        myfile << "\"emergency\": " << this->emergency << ",\n";
+        myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
+        myfile << "\"srcList\": [ ";
+
+        for (int i = 0; i < src_count; i++) {
+          if (i != 0) {
+            myfile << ", ";
+          }
+          myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << "}";
         }
-        myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << "}";
+        myfile << " ],\n";
+        myfile << "\"freqList\": [ ";
 
-      }
-      myfile << " ],\n";
-      myfile << "\"freqList\": [ ";
-
-      for (int i = 0; i < freq_count; i++) {
-        if (i != 0) {
-          myfile << ", ";
+        for (int i = 0; i < freq_count; i++) {
+          if (i != 0) {
+            myfile << ", ";
+          }
+          myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
         }
-        myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position <<", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
+        myfile << " ]\n";
+        myfile << "}\n";
+        myfile.close();
       }
-      myfile << " ]\n";
-      myfile << "}\n";
-      myfile.close();
     }
 
     if (sys->get_upload_script().length() != 0) {
@@ -212,7 +218,7 @@ double Call::get_current_length() {
 }
 
 void Call::set_error(Rx_Status rx_status) {
-  Call_Error call_error = {curr_freq, rx_status.total_len, rx_status.error_count, rx_status.spike_count};
+  Call_Error call_error = { curr_freq, rx_status.total_len, rx_status.error_count, rx_status.spike_count };
 
   if (error_list_count < 49) {
     error_list[error_list_count] = call_error;
@@ -227,11 +233,11 @@ void Call::set_freq(double f) {
     double position = get_current_length();
 
     // if there call is being recorded and it isn't the first time the freq is being set
-    if (recorder && (freq_count>0)) {
+    if (recorder && (freq_count > 0)) {
       Rx_Status rx_status = recorder->get_rx_status();
-      freq_list[freq_count-1].total_len = rx_status.total_len;
-      freq_list[freq_count-1].spike_count = rx_status.spike_count;
-      freq_list[freq_count-1].error_count = rx_status.error_count;
+      freq_list[freq_count - 1].total_len   = rx_status.total_len;
+      freq_list[freq_count - 1].spike_count = rx_status.spike_count;
+      freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
     Call_Freq call_freq = { f, time(NULL), position };

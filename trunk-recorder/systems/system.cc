@@ -81,6 +81,22 @@ unsigned long System::get_wacn() {
   return this->nac;
 }
 
+bool System::get_call_log() {
+  return this->call_log;
+}
+
+void System::set_call_log(bool call_log) {
+  this->call_log = call_log;
+}
+
+bool System::get_audio_archive() {
+  return this->audio_archive;
+}
+
+void System::set_audio_archive(bool audio_archive) {
+  this->audio_archive = audio_archive;
+}
+
 bool System::get_qpsk_mod() {
   return this->qpsk_mod;
 }
@@ -88,6 +104,8 @@ bool System::get_qpsk_mod() {
 void System::set_qpsk_mod(bool qpsk_mod) {
   this->qpsk_mod = qpsk_mod;
 }
+
+
 
 std::string System::get_system_type() {
   return this->system_type;

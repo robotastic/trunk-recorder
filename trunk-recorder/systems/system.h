@@ -45,6 +45,8 @@ public:
         std::vector<p25_recorder_sptr> conventionalP25_recorders;
 
         bool qpsk_mod;
+        bool audio_archive;
+        bool call_log;
         smartnet_trunking_sptr smartnet_trunking;
         p25_trunking_sptr p25_trunking;
         std::string get_default_mode();
@@ -57,6 +59,10 @@ public:
         void set_api_key(std::string api_key);
         bool get_qpsk_mod();
         void set_qpsk_mod(bool);
+        bool get_audio_archive();
+        void set_audio_archive(bool);
+        bool get_call_log();
+        void set_call_log(bool);
         std::string get_system_type();
         unsigned long get_sys_id();
         unsigned long get_wacn();

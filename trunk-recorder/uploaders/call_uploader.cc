@@ -146,6 +146,10 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
     if (!error) {
       BOOST_LOG_TRIVIAL(info) << "HTTPS Upload Success [ " << call_info->short_name <<  " ] [ " << call_info->converted <<  " ] size: " << req_size;
+      if (!call_info->audio_archive) {
+        std::remove(call_info->filename);
+        std::remove(call_info->converted);
+      }
     } else {
       BOOST_LOG_TRIVIAL(info) << "HTTPS Upload Error [ " << call_info->short_name << " ] [ " << call_info->converted <<  " ] size: " << req_size;
     }
@@ -228,6 +232,7 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->stop_time        = call->get_stop_time();
   call_info->api_key          = sys->get_api_key();
   call_info->short_name       = sys->get_short_name();
+  call_info->audio_archive    = sys->get_audio_archive();
   std::stringstream ss;
   ss << "/" << sys->get_short_name() << "/upload";
   call_info->path = ss.str();
