@@ -51,11 +51,11 @@ void System::update_status(TrunkMessage message) {
    if(sys_id && wacn && nac) {
      p25p2_lfsr my_lfsr(nac, sys_id, wacn);
      xor_mask = my_lfsr.getXorChars(xor_mask_len);
-
+     /*
      BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
      for (unsigned i=0; i<xor_mask_len; i++) {
        std::cout << (short)xor_mask[i] << ", ";
-     }
+     }*/
    }
  }
 }
