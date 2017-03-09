@@ -637,7 +637,7 @@ void current_system_id(int sys_id) {
   static int active_sys_id = 0;
 
   if (active_sys_id != sys_id) {
-    BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::hex << std::uppercase << sys_id << std::nouppercase << std::dec;
+    BOOST_LOG_TRIVIAL(trace) << "Decoding System ID " << std::hex << std::uppercase << sys_id << std::nouppercase << std::dec;
     active_sys_id = sys_id;
   }
 }
