@@ -328,7 +328,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
       }
 
       rx_status.error_count += framer->bch_errors;
-      rx_status.total_len += framer->frame_size;
+      rx_status.total_len++;// += framer->frame_size;
       //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
 
       if ((framer->duid == 0x03) ||
@@ -366,7 +366,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
             if ((framer->duid == 0x07) && (rc[sz] == 0)) process_duid(framer->duid, framer->nac, deinterleave_buf[sz], 10);
           }
         }
-        
+
         // two-block mbt is the only format currently supported
         if ((framer->duid == 0x0c)
             && (framer->frame_size == 576)
