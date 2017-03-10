@@ -120,7 +120,7 @@ Here are the different arguments:
    - **lnaGain** - [AirSpy only] sets the lna gain.
    - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
-   - **digitLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 8.
+   - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 8.
    - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
    - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
    - **analogLevels** - the amount of amplification that will be applied to the analog audio. The value should be between 1-32. The default value is 8.
