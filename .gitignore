@@ -21,3 +21,4 @@ ChanList.csv
 *.so
 *.a
 *.dylib
+.DS_Store
