@@ -320,13 +320,14 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
         error_history_sqrt += pow((error_history[j] - error_history_avg), 2);
       }
       float std_dev = sqrt(error_history_sqrt/error_history_len);
+      /*
       if (framer->bch_errors >  std_dev) {
         rx_status.spike_count++;
         if (d_debug >= 10) {
           fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
         }
-      }
-
+      }*/
+      rx_status.spike_count += framer->bch_fails;
       rx_status.error_count += framer->bch_errors;
       rx_status.total_len++;// += framer->frame_size;
       //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );

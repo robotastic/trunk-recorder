@@ -38,6 +38,7 @@ p25_framer::p25_framer() :
 	nid_accum(0),
 	frame_size_limit(0),
 	symbols_received(0),
+	bch_fails(0),
 	frame_body(P25_VOICE_FRAME_SIZE)
 {
 }
@@ -78,7 +79,8 @@ bool p25_framer::nid_codeword(uint64_t acc) {
 
 	// check if bch decode unsuccessful
 	if (rc < 0) {
-		bch_errors = bch_errors + 64;
+		//bch_errors = bch_errors + 64;
+		bch_fails++;
 		return false;
 	}
 
