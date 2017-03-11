@@ -40,7 +40,6 @@ Call::Call(long t, double f, System *s, Config c) {
   curr_freq        = 0;
   src_count        = 0;
   curr_src_id      = 0;
-  set_freq(f);
   talkgroup       = t;
   sys             = s;
   start_time      = time(NULL);
@@ -54,7 +53,7 @@ Call::Call(long t, double f, System *s, Config c) {
   encrypted       = false;
   emergency       = false;
   conventional    = false;
-
+  set_freq(f);
   this->create_filename();
 }
 
@@ -66,12 +65,9 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   src_count        = 0;
   curr_src_id      = 0;
   curr_freq        = 0;
-
-
   talkgroup  = message.talkgroup;
   sys        = s;
   start_time = time(NULL);
-
   stop_time       = time(NULL);
   last_update     = time(NULL);
   state           = monitoring;
@@ -238,6 +234,7 @@ void Call::set_freq(double f) {
       freq_list[freq_count - 1].total_len   = rx_status.total_len;
       freq_list[freq_count - 1].spike_count = rx_status.spike_count;
       freq_list[freq_count - 1].error_count = rx_status.error_count;
+      BOOST_LOG_TRIVIAL(error) << "changing freq from: " << curr_freq << " to: " << f;
     }
 
     Call_Freq call_freq = { f, time(NULL), position };

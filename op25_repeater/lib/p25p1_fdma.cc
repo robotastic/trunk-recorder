@@ -414,12 +414,10 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           if (imbe_error >  std_dev) {
             rx_status.spike_count++;
             //if (d_debug >= 10) {
-              fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
+              fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", imbe_error, std_dev, error_history_avg, std_dev + error_history_avg );
             //}
           }
           rx_status.error_count += imbe_error;
-          rx_status.spike_count += framer->bch_fails;
-
           rx_status.total_len += 144;
           // output one 32-byte msg per 0.020 sec.
           // also, 32*9 = 288 byte pkts (for use via UDP)
