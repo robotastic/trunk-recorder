@@ -415,7 +415,8 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           imbe_deinterleave(framer->frame_body, cw, i);
 
           // recover 88-bit IMBE voice code word
-          imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+
+          rx_status.error_count += imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
 
           // output one 32-byte msg per 0.020 sec.
           // also, 32*9 = 288 byte pkts (for use via UDP)
