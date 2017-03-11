@@ -301,33 +301,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
         //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
 
       }
-      for (int j=19; j>0; j--) {
-        error_history[j] = error_history[j-1];
-      }
-      error_history[0] = framer->bch_errors;
-      double error_history_total=0;
-      double error_history_len=0;
-      for (int j=0; j<20; j++) {
-        if (error_history[j]>=0) {
-          error_history_len++;
-          error_history_total += error_history[j];
-        }
-      }
-      double error_history_avg = error_history_total / error_history_len;
 
-      double error_history_sqrt;
-      for (int j=0; j<error_history_len; j++){
-        error_history_sqrt += pow((error_history[j] - error_history_avg), 2);
-      }
-      float std_dev = sqrt(error_history_sqrt/error_history_len);
-      /*
-      if (framer->bch_errors >  std_dev) {
-        rx_status.spike_count++;
-        if (d_debug >= 10) {
-          fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
-        }
-      }*/
-      rx_status.spike_count += framer->bch_fails;
       rx_status.error_count += framer->bch_errors;
       rx_status.total_len += 64;// += framer->frame_size;
       //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
@@ -416,7 +390,36 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
 
           // recover 88-bit IMBE voice code word
 
-          rx_status.error_count += imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+          uint16_t imbe_error = imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+          for (int j=19; j>0; j--) {
+            error_history[j] = error_history[j-1];
+          }
+          error_history[0] = imbe_error;
+          double error_history_total=0;
+          double error_history_len=0;
+          for (int j=0; j<20; j++) {
+            if (error_history[j]>=0) {
+              error_history_len++;
+              error_history_total += error_history[j];
+            }
+          }
+          double error_history_avg = error_history_total / error_history_len;
+
+          double error_history_sqrt;
+          for (int j=0; j<error_history_len; j++){
+            error_history_sqrt += pow((error_history[j] - error_history_avg), 2);
+          }
+          float std_dev = sqrt(error_history_sqrt/error_history_len);
+
+          if (imbe_error >  std_dev) {
+            rx_status.spike_count++;
+            //if (d_debug >= 10) {
+              fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", framer->bch_errors, std_dev, error_history_avg, std_dev + error_history_avg );
+            //}
+          }
+          rx_status.error_count += imbe_error;
+          rx_status.spike_count += framer->bch_fails;
+
           rx_status.total_len += 144;
           // output one 32-byte msg per 0.020 sec.
           // also, 32*9 = 288 byte pkts (for use via UDP)
