@@ -329,7 +329,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
       }*/
       rx_status.spike_count += framer->bch_fails;
       rx_status.error_count += framer->bch_errors;
-      rx_status.total_len++;// += framer->frame_size;
+      rx_status.total_len += 64;// += framer->frame_size;
       //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
 
       if ((framer->duid == 0x03) ||
@@ -417,7 +417,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           // recover 88-bit IMBE voice code word
 
           rx_status.error_count += imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
-
+          rx_status.total_len += 144;
           // output one 32-byte msg per 0.020 sec.
           // also, 32*9 = 288 byte pkts (for use via UDP)
           sprintf(s, "%03x %03x %03x %03x %03x %03x %03x %03x\n", u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
