@@ -62,7 +62,7 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 
   if (call->freq_count != 0) {
     for (int i = 0; i < call->freq_count; i++) {
-      freq_list << "{ \"pos\": " << << std::setprecision(2) << call->freq_list[i].position << ", \"freq\": " << std::setprecision(0) << call->freq_list[i].freq << ", \"len\": " << call->freq_list[i].total_len << ", \"errors\": " << call->freq_list[i].error_count << ", \"spikes\": " << call->freq_list[i].spike_count << " }";
+      freq_list << "{ \"pos\": " << std::setprecision(2) << call->freq_list[i].position << ", \"freq\": " << std::setprecision(0) << call->freq_list[i].freq << ", \"len\": " << call->freq_list[i].total_len << ", \"errors\": " << call->freq_list[i].error_count << ", \"spikes\": " << call->freq_list[i].spike_count << " }";
 
       if (i < (call->freq_count - 1)) {
         freq_list << ", ";
