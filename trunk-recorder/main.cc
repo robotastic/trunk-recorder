@@ -533,14 +533,17 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
   BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " <<  message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
-  // set the call to the new Freq / TDMA slot
-  call->set_freq(message.freq);
-  call->set_phase2_tdma(message.phase2_tdma);
-  call->set_tdma_slot(message.tdma_slot);
-
 
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
     recorder->tune_offset(message.freq);
+
+      // only set the call freq, if the recorder can be retuned.
+      // set the call to the new Freq / TDMA slot
+      call->set_freq(message.freq);
+      call->set_phase2_tdma(message.phase2_tdma);
+      call->set_tdma_slot(message.tdma_slot);
+
+
 
     if (call->get_debug_recording() == true) {
       call->get_debug_recorder()->tune_offset(message.freq);
