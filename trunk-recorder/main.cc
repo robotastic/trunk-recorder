@@ -14,7 +14,6 @@
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/attributes/named_scope.hpp>
-#include <boost/core/null_deleter.hpp>
 #include <boost/program_options.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/algorithm/string/split.hpp>
