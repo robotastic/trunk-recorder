@@ -562,12 +562,12 @@ void assign_recorder(TrunkMessage message, System *sys) {
     Call *call = *it;
 
 
-    if (call_found && (call->get_talkgroup() == message.talkgroup)) {
+    if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Assign - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
     }
 
     // Does the call have the same talkgroup
-    if (call->get_talkgroup() == message.talkgroup) {
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)){
       call_found = true;
 
       // Is the freq the same?
@@ -671,11 +671,11 @@ void update_recorder(TrunkMessage message, System *sys) {
     Call *call = *it;
 
     // This should help detect 2 calls being listed for the same tg
-    if (call_found && (call->get_talkgroup() == message.talkgroup)) {
+    if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
     }
 
-    if (call->get_talkgroup() == message.talkgroup) {
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       call_found = true;
       call->update(message);
 

@@ -248,6 +248,9 @@ void Call::set_freq(double f) {
     curr_freq = f;
   }
 }
+int Call::get_sys_num() {
+  return sys->get_sys_num();
+}
 
 long Call::get_talkgroup() {
   return talkgroup;
