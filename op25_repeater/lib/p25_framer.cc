@@ -146,8 +146,9 @@ bool p25_framer::rx_sym(uint8_t dibit) {
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ P25_FRAME_SYNC_REV_P, 0)) {
 		nid_syms = 1;
 		reverse_p ^= 0x02;   // auto flip polarity reversal
-		fprintf(stderr, "Reversed FS polarity detected - autocorrecting\n");
+		//fprintf(stderr, "Reversed FS polarity detected - autocorrecting\n");
 	}
+	/*
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0x001050551155LL, 0)) {
 		fprintf(stderr, "tuning error -1200\n");
 	}
@@ -156,7 +157,7 @@ bool p25_framer::rx_sym(uint8_t dibit) {
 	}
 	if(check_frame_sync((nid_accum & P25_FRAME_SYNC_MASK) ^ 0xAA8A0A008800LL, 0)) {
 		fprintf(stderr, "tuning error +/- 2400\n");
-	}
+	}*/
 	if (next_bit > 0) {
 		frame_body[next_bit++] = (dibit >> 1) & 1;
 		frame_body[next_bit++] =  dibit       & 1;
