@@ -90,6 +90,7 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s, System *sy
   message.tdma_slot = 0;
   message.source       = 0;
   message.sys_id        = 0;
+  message.sys_num = system->get_sys_num();
   message.emergency    = false;
 
   std::vector<std::string> x;

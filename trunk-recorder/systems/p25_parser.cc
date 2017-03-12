@@ -77,7 +77,7 @@ unsigned long P25Parser::bitset_shift_mask(boost::dynamic_bitset<>& tsbk, int sh
   return result;
 }
 
-std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, unsigned long nac) {
+std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, unsigned long nac, int sys_num) {
   // self.stats['tsbks'] += 1
   long updated = 0;
   std::vector<TrunkMessage> messages;
@@ -90,6 +90,7 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
   message.wacn         =0;
   message.nac = nac;
   message.sys_id = 0;
+  message.sys_num = sys_num;
   message.talkgroup = 0;
   message.emergency = false;
   message.phase2_tdma = false;
@@ -578,14 +579,16 @@ void printbincharpad(char c)
 }
 
 std::vector<TrunkMessage>P25Parser::parse_message(gr::message::sptr msg) {
-  TrunkMessage message;
   std::vector<TrunkMessage> messages;
 
-  message.message_type = UNKNOWN;
-  message.source       = 0;
+
 
   long type = msg->type();
-
+  int sys_num = msg->arg1();
+  TrunkMessage message;
+  message.message_type = UNKNOWN;
+  message.source       = 0;
+  message.sys_num     = sys_num;
   if (type == -2) { // # request from gui
     std::string cmd = msg->to_string();
 
@@ -650,7 +653,7 @@ std::vector<TrunkMessage>P25Parser::parse_message(gr::message::sptr msg) {
     }
     b <<= 16;              // for missing crc
 
-    return decode_tsbk(b, nac);
+    return decode_tsbk(b, nac, sys_num);
   } else if (type == 12) { // # trunk: MBT
     std::string s1 = s.substr(0, 10);
     std::string s2 = s.substr(10);

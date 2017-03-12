@@ -761,7 +761,7 @@ void unit_check() {
 void handle_message(std::vector<TrunkMessage>messages, System *sys) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
     TrunkMessage message = *it;
-
+    
     switch (message.message_type) {
     case GRANT:
       assign_recorder(message, sys);
