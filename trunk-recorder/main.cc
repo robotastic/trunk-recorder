@@ -38,7 +38,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "talkgroups.h"
+
 #include "source.h"
 
 
@@ -76,7 +76,6 @@ std::vector<System *> systems;
 std::map<long, long>  unit_affiliations;
 
 std::vector<Call *> calls;
-Talkgroups *talkgroups;
 gr::top_block_sptr  tb;
 gr::msg_queue::sptr msg_queue;
 
@@ -376,8 +375,8 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
   return true;
 }
 
-void start_recorder(Call *call, TrunkMessage message) {
-  Talkgroup *talkgroup = talkgroups->find_talkgroup(call->get_talkgroup());
+void start_recorder(Call *call, TrunkMessage message, System *sys) {
+  Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
   bool source_found    = false;
   bool recorder_found  = false;
   Recorder *recorder;
@@ -628,7 +627,7 @@ void assign_recorder(TrunkMessage message, System *sys) {
 
   if (!call_found) {
     Call *call = new Call(message, sys, config);
-    start_recorder(call, message);
+    start_recorder(call, message, sys);
     calls.push_back(call);
   }
 }
@@ -761,7 +760,7 @@ void unit_check() {
 void handle_message(std::vector<TrunkMessage>messages, System *sys) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
     TrunkMessage message = *it;
-    
+
     switch (message.message_type) {
     case GRANT:
       assign_recorder(message, sys);
@@ -1141,17 +1140,6 @@ add_logs(
 
 
   load_config(config_file);
-
-  // Setup the talkgroups from the CSV file
-  talkgroups = new Talkgroups();
-
-
-  BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups..." << std::endl;
-
-  for (vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
-    System *system = *it;
-    talkgroups->load_talkgroups(system->get_talkgroups_file());
-  }
 
 
   if (monitor_system()) {

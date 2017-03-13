@@ -2,6 +2,7 @@
 #define SYSTEM_H
 #include <stdio.h>
 #include <boost/log/trivial.hpp>
+#include "../talkgroups.h"
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
 #include "parser.h"
@@ -19,6 +20,7 @@ class System
         unsigned long wacn;
         unsigned long nac;
 public:
+        Talkgroups *talkgroups;
         std::string talkgroups_file;
         std::string short_name;
         std::string api_key;
@@ -72,6 +74,7 @@ public:
         int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();
+        Talkgroup *find_talkgroup(long tg);
         void set_talkgroups_file(std::string);
         int control_channel_count();
         void add_control_channel(double channel);
