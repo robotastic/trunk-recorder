@@ -45,13 +45,11 @@
 
 
 #include "../state.h"
-#include "../call.h"
+
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
 
-
-class Source;
 
 class Recorder
 {

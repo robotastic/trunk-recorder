@@ -172,7 +172,7 @@ link_directories(
 )
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall -Wno-error=deprecated-declarations")
 
 
 

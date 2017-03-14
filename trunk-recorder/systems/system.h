@@ -3,11 +3,13 @@
 #include <stdio.h>
 #include <boost/log/trivial.hpp>
 #include "../talkgroups.h"
+//#include "../source.h"
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
 #include "parser.h"
 #include "../../lfsr/lfsr.h"
 
+class Source;
 class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 class p25_recorder;
@@ -21,6 +23,7 @@ class System
         unsigned long nac;
 public:
         Talkgroups *talkgroups;
+        Source *source;
         std::string talkgroups_file;
         std::string short_name;
         std::string api_key;
@@ -48,6 +51,7 @@ public:
 
         bool qpsk_mod;
         bool audio_archive;
+        bool record_unknown;
         bool call_log;
         smartnet_trunking_sptr smartnet_trunking;
         p25_trunking_sptr p25_trunking;
@@ -63,6 +67,8 @@ public:
         void set_qpsk_mod(bool);
         bool get_audio_archive();
         void set_audio_archive(bool);
+        bool get_record_unknown();
+        void set_record_unknown(bool);
         bool get_call_log();
         void set_call_log(bool);
         std::string get_system_type();
@@ -74,6 +80,8 @@ public:
         int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();
+        Source *get_source();
+        void set_source(Source *);
         Talkgroup *find_talkgroup(long tg);
         void set_talkgroups_file(std::string);
         int control_channel_count();

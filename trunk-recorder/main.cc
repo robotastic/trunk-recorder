@@ -192,6 +192,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
+      system->set_record_unknown(node.second.get<bool>("recordUnknown",true));
+      BOOST_LOG_TRIVIAL(info) << "Record Unkown Talkgroups: " << system->get_record_unknown();
       systems.push_back(system);
 
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
@@ -386,7 +388,17 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
   // << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " <<
   // call->get_encrypted() << "\tFreq: " << call->get_freq();
 
-  if (call->get_encrypted() == false) {
+  if (call->get_encrypted() == true) {
+
+      BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because it is encrypted: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
+      return;
+    }
+
+  if (!talkgroup && (sys->get_record_unknown() == false)) {
+    BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because talkgroup is not in Talkgroup File: " <<  call->get_freq() << " TG: " << call->get_talkgroup();
+    return;
+  }
+
     for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
       Source *source = *it;
 
@@ -452,11 +464,7 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
       BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because there was no source covering: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
       return;
     }
-  } else {
-    BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because it is encrypted: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
 
-    // anything for encrypted calls could go here...
-  }
 }
 
 void stop_inactive_recorders() {
@@ -815,26 +823,18 @@ System* find_system(int sys_num) {
 
 void retune_system(System *system) {
   bool source_found            = false;
-  Source *source               = NULL;
+  Source *source               = system->get_source();
   double  control_channel_freq = system->get_next_control_channel();
 
   BOOST_LOG_TRIVIAL(error) << "Retuning to Control Channel: " << control_channel_freq;
 
-  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-    source = *it;
-    BOOST_LOG_TRIVIAL(info) << "Min: " << source->get_min_hz() << " Max: " << source->get_max_hz();
+
+    BOOST_LOG_TRIVIAL(info) << "System Source - Min Freq: " << source->get_min_hz() << " Max Freq: " << source->get_max_hz();
 
     if ((source->get_min_hz() <= control_channel_freq) &&
         (source->get_max_hz() >= control_channel_freq)) {
       // The source can cover the System's control channel, break out of the
       // For Loop
-      source_found = true;
-      break;
-    }
-  }
-
-
-  if (source_found) {
     if (system->get_system_type() == "smartnet") {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
@@ -848,7 +848,7 @@ void retune_system(System *system) {
     }
     BOOST_LOG_TRIVIAL(info) << "Finished retuning";
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Source not found for Retune";
+    BOOST_LOG_TRIVIAL(error) << "Unable to retune System control channel, freq not covered by the Source used for the inital control channel freq.";
   }
 }
 
@@ -975,7 +975,7 @@ bool monitor_system() {
           if ((source->get_min_hz() <= channel) &&
               (source->get_max_hz() >= channel)) {
             // The source can cover the System's control channel
-
+            system->set_source(source);
             system_added = true;
 
             if (source->get_squelch_db() == 0) {
@@ -1024,6 +1024,7 @@ bool monitor_system() {
             (source->get_max_hz() >= control_channel_freq)) {
           // The source can cover the System's control channel
           system_added = true;
+          system->set_source(source);
 
           if (system->get_system_type() == "smartnet") {
             // what you really need to do is go through all of the sources to find
@@ -1080,26 +1081,6 @@ int main(int argc, char **argv)
     boost::log::trivial::severity >= boost::log::trivial::info
     );
 
-  /* log formatter:
-   * [TimeStamp] [ThreadId] [Severity Level] [Scope] Log message
-   */
-   /*
-  auto fmtTimeStamp = boost::log::expressions::
-                      format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f");
-  auto fmtSeverity = boost::log::expressions::
-                     attr<boost::log::trivial::severity_level>("Severity");
-  auto fmtScope = boost::log::expressions::format_named_scope("Scope",
-                                                              boost::log::keywords::format = "%n(%f:%l)",
-                                                              boost::log::keywords::iteration = boost::log::expressions::reverse,
-                                                              boost::log::keywords::depth = 2);
-  boost::log::formatter logFmt =
-    boost::log::expressions::format("[%1%] (%2%)   %3%")
-    % fmtTimeStamp % fmtSeverity % boost::log::expressions::smessage;
-
-
-  auto consoleSink = boost::log::add_console_log(std::clog);
-  consoleSink->set_formatter(logFmt);*/
-  //consoleSink->set_formatter(expr::stream << boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f"));
 add_logs(
   boost::log::expressions::format("[%1%] (%2%)   %3%")
   % boost::log::expressions::
