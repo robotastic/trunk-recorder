@@ -59,8 +59,8 @@ p25_recorder::p25_recorder(Source *src)
   prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
 
-  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 60, gr::filter::firdes::WIN_HANN);
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 5000, 1500, 100, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 100, gr::filter::firdes::WIN_HANN);
+  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 5000, 1500, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
@@ -343,9 +343,10 @@ void p25_recorder::stop() {
   }
 }
 void p25_recorder::reset() {
+
 //std::cout << "Pll Phase: " << pll_freq_lock->get_phase() << " min Freq: " << pll_freq_lock->get_min_freq() << " Max Freq: " << pll_freq_lock->get_max_freq() << std::endl;
   pll_freq_lock->update_gains();
-  //pll_freq_lock->frequency_limit();
+  pll_freq_lock->frequency_limit();
   pll_freq_lock->phase_wrap();
   fsk4_demod->reset();
   //pll_demod->set_phase(0);
