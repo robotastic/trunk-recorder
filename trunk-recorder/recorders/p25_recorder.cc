@@ -34,7 +34,7 @@ p25_recorder::p25_recorder(Source *src)
   system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
-  int decimation        = int(samp_rate / 96000);
+  int decimation        = int(samp_rate / 384000);
   double resampled_rate = double(samp_rate) / double(decimation);
 
   const double pi = M_PI; // boost::math::constants::pi<double>();

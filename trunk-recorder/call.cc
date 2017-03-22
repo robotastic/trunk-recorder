@@ -138,6 +138,7 @@ void Call::end_call() {
         myfile << "\"start_time\": " << this->start_time << ",\n";
         myfile << "\"stop_time\": " << this->stop_time << ",\n";
         myfile << "\"emergency\": " << this->emergency << ",\n";
+        //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
         myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
         myfile << "\"srcList\": [ ";
 

@@ -31,7 +31,7 @@ analog_recorder::analog_recorder(Source *src)
   float offset = 0;
 
   int samp_per_sym        = 10;
-  int decim               = floor(samp_rate / 96000);
+  int decim               = floor(samp_rate / 384000);
   float  channel_rate     = 4800 * samp_per_sym;
   double pre_channel_rate = samp_rate / decim;
 

@@ -43,7 +43,6 @@
 #include "../../op25_repeater/include/op25_repeater/rx_status.h"
 #include "../../gr_blocks/nonstop_wavfile_sink.h"
 
-
 #include "../state.h"
 
 
