@@ -9,6 +9,7 @@ Lot's of fun things added!
 * audioArchive - config lets you select if you don't want to save the audio recordings after they are uploaded.
 * callLog - config lets you turn off JSON file creation.
 * logs - I changed the formatting of the logs that are printed to the screen.
+* Specify the config file from the command line using the `--config=x.json` argument.
 
 ### Version 2.1.2
 * Added support for Conventional Analog and P25 systems
