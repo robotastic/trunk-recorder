@@ -1,8 +1,19 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/log/sources/logger.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/log/attributes/named_scope.hpp>
 #include <boost/program_options.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -27,7 +38,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "talkgroups.h"
+
 #include "source.h"
 
 
@@ -57,14 +68,14 @@
 
 using namespace std;
 namespace logging = boost::log;
+namespace src     = boost::log::sources;
+namespace sinks   = boost::log::sinks;
 
 std::vector<Source *> sources;
 std::vector<System *> systems;
 std::map<long, long>  unit_affiliations;
 
 std::vector<Call *> calls;
-Talkgroups *talkgroups;
-string config_dir;
 gr::top_block_sptr  tb;
 gr::msg_queue::sptr msg_queue;
 
@@ -113,17 +124,17 @@ std::vector<float>design_filter(double interpolation, double deci) {
  * Description: <#description#>
  * Parameters: <#parameters#>
  */
-void load_config()
+void load_config(string config_file)
 {
   string system_modulation;
   int    sys_count = 0;
 
   try
   {
-    const std::string json_filename = "config.json";
+    // const std::string json_filename = "config.json";
 
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(json_filename, pt);
+    boost::property_tree::read_json(config_file, pt);
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))
     {
@@ -175,10 +186,38 @@ void load_config()
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
-
+      system->set_call_log(node.second.get<bool>("callLog", true));
+      BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
+      system->set_audio_archive(node.second.get<bool>("audioArchive", true));
+      BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
+      system->set_record_unknown(node.second.get<bool>("recordUnknown",true));
+      BOOST_LOG_TRIVIAL(info) << "Record Unkown Talkgroups: " << system->get_record_unknown();
       systems.push_back(system);
+
+      system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
+      system->set_bandfreq(800); // Default to 800
+
+      if (boost::starts_with(system->get_bandplan(), "400")) {
+        system->set_bandfreq(400);
+      }
+      system->set_bandplan_base(node.second.get<double>("bandplanBase", 0.0));
+      system->set_bandplan_high(node.second.get<double>("bandplanHigh", 0.0));
+      system->set_bandplan_spacing(node.second.get<double>("bandplanSpacing", 0.0));
+      system->set_bandplan_offset(node.second.get<int>("bandplanOffset", 0));
+
+      if (system->get_system_type() == "smartnet") {
+        BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
+        BOOST_LOG_TRIVIAL(info) << "Smartnet band: " << system->get_bandfreq();
+
+        if (system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset()) {
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base freq: " << system->get_bandplan_base();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan high freq: " << system->get_bandplan_high();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan spacing: " << system->get_bandplan_spacing();
+          BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
+        }
+      }
     }
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
     size_t pos = config.capture_dir.find_last_of("/");
@@ -188,8 +227,6 @@ void load_config()
       config.capture_dir.erase(config.capture_dir.length() - 1);
     }
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config_dir = pt.get<std::string>("configDir", boost::filesystem::current_path().string());
-    BOOST_LOG_TRIVIAL(info) << "Config Directory: " << config_dir;
     config.upload_server = pt.get<std::string>("uploadServer", "encode-upload.sh");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
     default_mode = pt.get<std::string>("defaultMode", "digital");
@@ -304,12 +341,6 @@ void load_config()
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_debug_recorders(tb, debug_recorders);
-
-      // std::cout << "Source - output_buffer - Min: " <<
-      // source->get_src_block()->min_output_buffer(0) << " Max: " <<
-      // source->get_src_block()->max_output_buffer(0) << "\n";
-      // source->get_src_block()->set_max_output_buffer(4096);
-
       sources.push_back(source);
     }
   }
@@ -346,8 +377,8 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
   return true;
 }
 
-void start_recorder(Call *call, TrunkMessage message) {
-  Talkgroup *talkgroup = talkgroups->find_talkgroup(call->get_talkgroup());
+void start_recorder(Call *call, TrunkMessage message, System *sys) {
+  Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
   bool source_found    = false;
   bool recorder_found  = false;
   Recorder *recorder;
@@ -357,18 +388,23 @@ void start_recorder(Call *call, TrunkMessage message) {
   // << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " <<
   // call->get_encrypted() << "\tFreq: " << call->get_freq();
 
-  if (call->get_encrypted() == false) {
+  if (call->get_encrypted() == true) {
+
+      BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because it is encrypted: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
+      return;
+    }
+
+  if (!talkgroup && (sys->get_record_unknown() == false)) {
+    BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because talkgroup is not in Talkgroup File: " <<  call->get_freq() << " TG: " << call->get_talkgroup();
+    return;
+  }
+
     for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
       Source *source = *it;
 
       if ((source->get_min_hz() <= call->get_freq()) &&
           (source->get_max_hz() >= call->get_freq())) {
         source_found = true;
-
-        if (call->get_tdma()) {
-          BOOST_LOG_TRIVIAL(error) << "\tTrying to record TDMA: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
-          return;
-        }
 
         if (talkgroup)
         {
@@ -428,9 +464,7 @@ void start_recorder(Call *call, TrunkMessage message) {
       BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because there was no source covering: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
       return;
     }
-  } else {
-    // anything for encrypted calls could go here...
-  }
+
 }
 
 void stop_inactive_recorders() {
@@ -505,13 +539,17 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
   BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " <<  message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
-  // set the call to the new Freq / TDMA slot
-  call->set_freq(message.freq);
-  call->set_tdma(message.tdma);
-
 
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
     recorder->tune_offset(message.freq);
+
+      // only set the call freq, if the recorder can be retuned.
+      // set the call to the new Freq / TDMA slot
+      call->set_freq(message.freq);
+      call->set_phase2_tdma(message.phase2_tdma);
+      call->set_tdma_slot(message.tdma_slot);
+
+
 
     if (call->get_debug_recording() == true) {
       call->get_debug_recorder()->tune_offset(message.freq);
@@ -531,12 +569,12 @@ void assign_recorder(TrunkMessage message, System *sys) {
     Call *call = *it;
 
 
-    if (call_found && (call->get_talkgroup() == message.talkgroup)) {
+    if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Assign - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
     }
 
     // Does the call have the same talkgroup
-    if (call->get_talkgroup() == message.talkgroup) {
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)){
       call_found = true;
 
       // Is the freq the same?
@@ -564,7 +602,8 @@ void assign_recorder(TrunkMessage message, System *sys) {
           // This call is not being recorded, just update the Freq and move on
           call->update(message);
           call->set_freq(message.freq);
-          call->set_tdma(message.tdma);
+          call->set_phase2_tdma(message.phase2_tdma);
+          call->set_tdma_slot(message.tdma_slot);
         }
       } else {
         // The freq hasn't changed
@@ -579,37 +618,39 @@ void assign_recorder(TrunkMessage message, System *sys) {
     } else {
       // The talkgroup for the call does not match
       // check is the freq is the same as the one being used by the call
-      if ((call->get_freq() == message.freq) &&  (call->get_tdma() == message.tdma)) {
-        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
-        /*
-                call->end_call();
+      /*
+      if ((call->get_freq() == message.freq) &&  (call->get_tdma_slot() == message.tdma_slot)) {
+        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma_slot << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma_slot() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
 
-                it = calls.erase(it);
-                        delete call;*/
         call_found = false;
         ++it;
       } else {
         ++it; // move on to the next one
-      }
+      }*/
+      ++it; // move on to the next one
     }
   }
 
 
   if (!call_found) {
     Call *call = new Call(message, sys, config);
-    start_recorder(call, message);
+    start_recorder(call, message, sys);
     calls.push_back(call);
   }
 }
 
-void current_system_id(int sysid) {
-  static int active_sysid = 0;
+void current_system_id(int sys_id) {
+  static int active_sys_id = 0;
 
-  if (active_sysid != sysid) {
-    BOOST_LOG_TRIVIAL(trace) << "Decoding System ID " << std::hex << std::uppercase << sysid << std::nouppercase << std::dec;
-    active_sysid = sysid;
+  if (active_sys_id != sys_id) {
+    BOOST_LOG_TRIVIAL(trace) << "Decoding System ID " << std::hex << std::uppercase << sys_id << std::nouppercase << std::dec;
+    active_sys_id = sys_id;
   }
+}
+
+void current_system_status(TrunkMessage message, System *sys) {
+  sys->update_status(message);
 }
 
 void unit_registration(long unit) {}
@@ -635,11 +676,11 @@ void update_recorder(TrunkMessage message, System *sys) {
     Call *call = *it;
 
     // This should help detect 2 calls being listed for the same tg
-    if (call_found && (call->get_talkgroup() == message.talkgroup)) {
+    if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
     }
 
-    if (call->get_talkgroup() == message.talkgroup) {
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       call_found = true;
       call->update(message);
 
@@ -661,7 +702,8 @@ void update_recorder(TrunkMessage message, System *sys) {
         } else {
           // the Call is not recording, update and continue
           call->set_freq(message.freq);
-          call->set_tdma(message.tdma);
+          call->set_phase2_tdma(message.phase2_tdma);
+          call->set_tdma_slot(message.tdma_slot);
         }
       }
 
@@ -675,7 +717,7 @@ void update_recorder(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(error) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq;
+    BOOST_LOG_TRIVIAL(info) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq << " TDMA: " << message.tdma_slot << " Encrypted: " << message.encrypted;
 
     assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
@@ -752,23 +794,26 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
       break;
 
     case SYSID:
-      current_system_id(message.sysid);
+      current_system_id(message.sys_id);
       break;
 
     case STATUS:
+      current_system_status(message, sys);
+      break;
+
     case UNKNOWN:
       break;
     }
   }
 }
 
-System* find_system(int sys_id) {
+System* find_system(int sys_num) {
   System *sys_match = NULL;
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
-    if (sys->get_sys_id() == sys_id) {
+    if (sys->get_sys_num() == sys_num) {
       sys_match = sys;
       break;
     }
@@ -778,26 +823,18 @@ System* find_system(int sys_id) {
 
 void retune_system(System *system) {
   bool source_found            = false;
-  Source *source               = NULL;
+  Source *source               = system->get_source();
   double  control_channel_freq = system->get_next_control_channel();
 
   BOOST_LOG_TRIVIAL(error) << "Retuning to Control Channel: " << control_channel_freq;
 
-  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-    source = *it;
-    BOOST_LOG_TRIVIAL(info) << "Min: " << source->get_min_hz() << " Max: " << source->get_max_hz();
+
+    BOOST_LOG_TRIVIAL(info) << "System Source - Min Freq: " << source->get_min_hz() << " Max Freq: " << source->get_max_hz();
 
     if ((source->get_min_hz() <= control_channel_freq) &&
         (source->get_max_hz() >= control_channel_freq)) {
       // The source can cover the System's control channel, break out of the
       // For Loop
-      source_found = true;
-      break;
-    }
-  }
-
-
-  if (source_found) {
     if (system->get_system_type() == "smartnet") {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
@@ -811,7 +848,7 @@ void retune_system(System *system) {
     }
     BOOST_LOG_TRIVIAL(info) << "Finished retuning";
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Source not found for Retune";
+    BOOST_LOG_TRIVIAL(error) << "Unable to retune System control channel, freq not covered by the Source used for the inital control channel freq.";
   }
 }
 
@@ -822,7 +859,11 @@ void check_message_count(float timeDiff) {
     if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
 
-      if (msgs_decoded_per_second < 1) {
+      if (msgs_decoded_per_second < 2) {
+
+        if (sys->system_type == "smartnet") {
+          sys->smartnet_trunking->reset();
+        }
         if (sys->control_channel_count() > 1) {
           retune_system(sys);
         } else {
@@ -830,7 +871,7 @@ void check_message_count(float timeDiff) {
         }
       }
 
-      if (msgs_decoded_per_second < 3) {
+      if (msgs_decoded_per_second < 10) {
         BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
       sys->message_count = 0;
@@ -840,9 +881,8 @@ void check_message_count(float timeDiff) {
 
 void monitor_messages() {
   gr::message::sptr msg;
-  int sys_id;
+  int sys_num;
   System *sys;
-
 
   time_t lastStatusTime     = time(NULL);
   time_t lastMsgCountTime   = time(NULL);
@@ -859,7 +899,9 @@ void monitor_messages() {
     }
 
 
+    // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
+
 
     if ((currentTime - lastTalkgroupPurge) >= 1.0)
     {
@@ -868,13 +910,13 @@ void monitor_messages() {
     }
 
     if (msg != 0) {
-      sys_id = msg->arg1();
-      sys    = find_system(sys_id);
+      sys_num = msg->arg1();
+      sys     = find_system(sys_num);
       sys->message_count++;
 
       if (sys) {
         if (sys->get_system_type() == "smartnet") {
-          trunk_messages = smartnet_parser->parse_message(msg->to_string());
+          trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys);
           handle_message(trunk_messages, sys);
         }
 
@@ -890,9 +932,10 @@ void monitor_messages() {
                   lastUnitCheckTime = currentTime;
               }
        */
+
       msg.reset();
     } else {
-      usleep(1000 * 100);
+      usleep(1000 * 10);
     }
     float timeDiff = currentTime - lastMsgCountTime;
 
@@ -932,7 +975,7 @@ bool monitor_system() {
           if ((source->get_min_hz() <= channel) &&
               (source->get_max_hz() >= channel)) {
             // The source can cover the System's control channel
-
+            system->set_source(source);
             system_added = true;
 
             if (source->get_squelch_db() == 0) {
@@ -981,6 +1024,7 @@ bool monitor_system() {
             (source->get_max_hz() >= control_channel_freq)) {
           // The source can cover the System's control channel
           system_added = true;
+          system->set_source(source);
 
           if (system->get_system_type() == "smartnet") {
             // what you really need to do is go through all of the sources to find
@@ -989,7 +1033,7 @@ bool monitor_system() {
                                                                source->get_center(),
                                                                source->get_rate(),
                                                                msg_queue,
-                                                               system->get_sys_id());
+                                                               system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
           }
 
@@ -1001,7 +1045,7 @@ bool monitor_system() {
                                                      source->get_rate(),
                                                      msg_queue,
                                                      source->get_qpsk_mod(),
-                                                     system->get_sys_id());
+                                                     system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
           }
 
@@ -1014,39 +1058,69 @@ bool monitor_system() {
   return system_added;
 }
 
-int main(void)
+template <class F>
+void add_logs(const F & fmt)
+{
+  boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
+}
+
+int main(int argc, char **argv)
 {
   BOOST_STATIC_ASSERT(true) __attribute__((unused));
   signal(SIGINT, exit_interupt);
   logging::core::get()->set_filter
   (
     logging::trivial::severity >= logging::trivial::info
+
   );
 
-  /*
-     logging::add_console_log(
-       cout,
-       logging::keywords::format = "[%TimeStamp%]: %Message%",
-       logging::keywords::auto_flush = true
-     );*/
+  boost::log::add_common_attributes();
+  boost::log::core::get()->add_global_attribute("Scope",
+                                                boost::log::attributes::named_scope());
+  boost::log::core::get()->set_filter(
+    boost::log::trivial::severity >= boost::log::trivial::info
+    );
+
+add_logs(
+  boost::log::expressions::format("[%1%] (%2%)   %3%")
+  % boost::log::expressions::
+                      format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+  % boost::log::expressions::
+                     attr<boost::log::trivial::severity_level>("Severity")
+  % boost::log::expressions::smessage
+);
+
+
+  boost::program_options::options_description desc("Options");
+  desc.add_options()
+    ("help,h", "Help screen")
+    ("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File");
+  boost::program_options::variables_map vm;
+  boost::program_options::store(parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);
+
+  if (vm.count("help")) {
+    std::cout << "Usage: options_description [options]\n";
+    std::cout << desc;
+    exit(0);
+  }
+  string config_file = vm["config"].as<string>();
+
+  if (vm.count("config"))
+  {
+    BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
+  }
+
+
   tb              = gr::make_top_block("Trunking");
   msg_queue       = gr::msg_queue::make(100);
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
   p25_parser      = new P25Parser();
 
   tb->lock();
-  load_config();
-
-  // Setup the talkgroups from the CSV file
-  talkgroups = new Talkgroups();
 
 
-  BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups..." << std::endl;
-
-  for (vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
-    System *system = *it;
-    talkgroups->load_talkgroups(system->get_talkgroups_file());
-  }
+  load_config(config_file);
 
 
   if (monitor_system()) {

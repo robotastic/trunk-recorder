@@ -3,16 +3,17 @@
 #include <boost/log/trivial.hpp>
 
 
-p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk, int sys_id)
+p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk, int sys_num)
 {
-  return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue, qpsk, sys_id));
+  return gnuradio::get_initial_sptr(new p25_trunking(freq, center, s, queue, qpsk, sys_num));
 }
 
-p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_id)
+p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue, bool qpsk, int sys_num)
   : gr::hier_block2("p25_trunking",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
+
   this->sys_id = sys_id;
   chan_freq    = f;
   center_freq  = c;
@@ -24,7 +25,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double samples_per_symbol  = 10;
   double system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
-  int    decimation          = floor(samp_rate / 96000);
+  int    decimation          = floor(samp_rate / 384000);
   double resampled_rate      = double(samp_rate) / double(decimation);
   qpsk_mod = qpsk;
 
@@ -129,7 +130,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   bool do_msgq               = 1;
   bool do_audio_output       = 0;
   bool do_tdma               = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_id, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
 
   if (!qpsk_mod) {
     connect(self(),        0, prefilter,            0);

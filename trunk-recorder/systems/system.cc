@@ -33,13 +33,72 @@ void System::set_default_mode(std::string def_mode) {
   this->default_mode = def_mode;
 }
 
-System::System(int sys_id) {
-  this->sys_id = sys_id;
+System::System(int sys_num) {
+  this->sys_num = sys_num;
+  sys_id = 0;
+  wacn = 0;
+  nac = 0;
   current_control_channel = 0;
+  xor_mask_len=0;
+  xor_mask = NULL;
+  // Setup the talkgroups from the CSV file
+  talkgroups = new Talkgroups();
 }
 
-int System::get_sys_id() {
+
+void System::update_status(TrunkMessage message) {
+ if(!sys_id || !wacn || !nac) {
+   sys_id = message.sys_id;
+   wacn = message.wacn;
+   nac = message.nac;
+   BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
+   if(sys_id && wacn && nac) {
+     p25p2_lfsr my_lfsr(nac, sys_id, wacn);
+     xor_mask = my_lfsr.getXorChars(xor_mask_len);
+     /*
+     BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
+     for (unsigned i=0; i<xor_mask_len; i++) {
+       std::cout << (short)xor_mask[i] << ", ";
+     }*/
+   }
+ }
+}
+
+const char * System::get_xor_mask(){
+  return xor_mask;
+}
+
+int System::get_sys_num() {
+  return this->sys_num;
+}
+
+
+unsigned long System::get_sys_id() {
   return this->sys_id;
+}
+
+unsigned long System::get_nac() {
+  return this->wacn;
+}
+
+unsigned long System::get_wacn() {
+  return this->nac;
+}
+
+bool System::get_call_log() {
+  return this->call_log;
+}
+
+void System::set_call_log(bool call_log) {
+  this->call_log = call_log;
+}
+
+bool System::get_audio_archive() {
+  return this->audio_archive;
+}
+
+void System::set_audio_archive(bool audio_archive) {
+  this->audio_archive = audio_archive;
 }
 
 bool System::get_qpsk_mod() {
@@ -48,6 +107,14 @@ bool System::get_qpsk_mod() {
 
 void System::set_qpsk_mod(bool qpsk_mod) {
   this->qpsk_mod = qpsk_mod;
+}
+
+bool System::get_record_unknown() {
+  return this->record_unknown;
+}
+
+void System::set_record_unknown(bool unknown) {
+  this->record_unknown = unknown;
 }
 
 std::string System::get_system_type() {
@@ -63,7 +130,21 @@ std::string System::get_talkgroups_file() {
 }
 
 void System::set_talkgroups_file(std::string talkgroups_file) {
+  BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;
+  this->talkgroups->load_talkgroups(talkgroups_file);
+}
+
+Source *System::get_source(){
+  return this->source;
+}
+
+void System::set_source(Source *s) {
+  this->source = s;
+}
+
+Talkgroup * System::find_talkgroup(long tg_number) {
+  return talkgroups->find_talkgroup(tg_number);
 }
 
 std::vector<double> System::get_channels(){
@@ -126,4 +207,52 @@ double System::get_next_control_channel() {
     current_control_channel = 0;
   }
   return this->control_channels[current_control_channel];
+}
+
+void System::set_bandplan(std::string bandplan) {
+  this->bandplan = bandplan;
+}
+
+std::string System::get_bandplan() {
+  return this->bandplan;
+}
+
+void System::set_bandfreq(int freq) {
+  this->bandfreq = freq;
+}
+
+int System::get_bandfreq() {
+  return this->bandfreq;
+}
+
+void System::set_bandplan_high(double high) {
+  this->bandplan_high = high;
+}
+
+double System::get_bandplan_high() {
+  return this->bandplan_high / 1000000;
+}
+
+void System::set_bandplan_base(double base) {
+  this->bandplan_base = base;
+}
+
+double System::get_bandplan_base() {
+  return this->bandplan_base / 1000000;
+}
+
+void System::set_bandplan_spacing(double space) {
+  this->bandplan_spacing = space / 1000000;
+}
+
+double System::get_bandplan_spacing() {
+  return this->bandplan_spacing;
+}
+
+void System::set_bandplan_offset(int offset) {
+  this->bandplan_offset = offset;
+}
+
+int System::get_bandplan_offset() {
+  return this->bandplan_offset;
 }

@@ -1,0 +1,24 @@
+{
+    "sources": [{
+        "center": 167000000,
+        "rate": 2048000,
+        "error": 0,
+        "gain": 28,
+        "debugRecorders": 0,
+        "digitalRecorders": 0,
+        "squelch": -50,
+        "driver": "osmosdr"
+    }],
+    "systems": [
+        {
+            "type": "conventional",
+            "channels": [166725000, 166925000, 167075000, 166850000],
+            "shortName": "park",
+            "talkgroupsFile": "park-conv.csv",
+            "callLog": true,
+            "audioArchive": true
+}
+],
+  "uploadServer": "https://api.openmhz.com"
+
+}

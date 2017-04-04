@@ -2,6 +2,8 @@
 /*.csv
 sys_*/
 junk/
+tester/
+fake/
 2015/
 2016/
 fake/
@@ -17,6 +19,6 @@ recorder
 config.json
 ChanList.csv
 *.so
-*.py
 *.a
 *.dylib
+.DS_Store

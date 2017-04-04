@@ -172,7 +172,7 @@ link_directories(
 )
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall -Wno-error=deprecated-declarations")
 
 
 
@@ -209,7 +209,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
   gr_blocks/nonstop_wavfile_sink_impl.cc
-  gr_blocks/freq_xlating_fft_filter.cc )
+  gr_blocks/freq_xlating_fft_filter.cc
+  lfsr/lfsr.cxx)
 
 
 add_executable(recorder ${trunk_recorder_sources})

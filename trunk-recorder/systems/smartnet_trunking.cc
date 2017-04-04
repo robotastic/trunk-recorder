@@ -6,17 +6,17 @@ smartnet_trunking_sptr make_smartnet_trunking(float               freq,
                                               float               center,
                                               long                samp,
                                               gr::msg_queue::sptr queue,
-                                              int                 sys_id)
+                                              int                 sys_num)
 {
   return gnuradio::get_initial_sptr(new smartnet_trunking(freq, center, samp,
-                                                          queue, sys_id));
+                                                          queue, sys_num));
 }
 
 smartnet_trunking::smartnet_trunking(float               f,
                                      float               c,
                                      long                s,
                                      gr::msg_queue::sptr queue,
-                                     int                 sys_id)
+                                     int                 sys_num)
   : gr::hier_block2("smartnet_trunking",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
@@ -24,12 +24,13 @@ smartnet_trunking::smartnet_trunking(float               f,
   center_freq  = c;
   chan_freq    = f;
   samp_rate    = s;
-  this->sys_id = sys_id;
+
+  this->sys_num = sys_num;
 
   double symbol_rate         = 3600;
   double samples_per_symbol  = 10; // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
-  int    decimation          = int(samp_rate / 96000);
+  int    decimation          = int(samp_rate / 384000);
   double resampled_rate      = double(samp_rate) / double(decimation);
 
 
@@ -39,9 +40,9 @@ smartnet_trunking::smartnet_trunking(float               f,
   float offset               = chan_freq - center_freq;
 
   const double pi = boost::math::constants::pi<double>();
-  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_id;
-  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
+  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_num;
 
+  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
 
   inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
@@ -88,28 +89,27 @@ smartnet_trunking::smartnet_trunking(float               f,
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
 
-  gr::digital::fll_band_edge_cc::sptr carriertrack = gr::digital::fll_band_edge_cc::make(system_channel_rate, 0.6, 64, 0.35);
+  carriertrack = gr::digital::fll_band_edge_cc::make(system_channel_rate, 0.6, 64, 0.35);
 
-  gr::analog::pll_freqdet_cf::sptr pll_demod = gr::analog::pll_freqdet_cf::make(
+  pll_demod = gr::analog::pll_freqdet_cf::make(
     2.0 / samples_per_symbol,
     1 * pi / samples_per_symbol,
     -1 * pi / samples_per_symbol);
 
 
-  gr::digital::clock_recovery_mm_ff::sptr softbits =
-    gr::digital::clock_recovery_mm_ff::make(samples_per_symbol,
+  softbits = gr::digital::clock_recovery_mm_ff::make(samples_per_symbol,
                                             0.25 * gain_mu * gain_mu,
                                             mu,
                                             gain_mu,
                                             omega_relative_limit);
 
-  gr::digital::binary_slicer_fb::sptr slicer =  gr::digital::binary_slicer_fb::make();
+  slicer =  gr::digital::binary_slicer_fb::make();
 
-  gr::digital::correlate_access_code_tag_bb::sptr start_correlator =
-    gr::digital::correlate_access_code_tag_bb::make("10101100", 0, "smartnet_preamble");
+  start_correlator =  gr::digital::correlate_access_code_tag_bb::make("10101100", 0, "smartnet_preamble");
 
 
-  smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_id);
+
+  smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_num);
 
   connect(self(),           0, prefilter,        0);
   connect(prefilter,        0, channel_lpf,      0);
@@ -122,10 +122,20 @@ smartnet_trunking::smartnet_trunking(float               f,
   connect(start_correlator, 0, decode,           0);
 }
 
+void smartnet_trunking::reset() {
+  BOOST_LOG_TRIVIAL(info) << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << pll_demod->get_min_freq() << " Max Freq: " << pll_demod->get_max_freq();
+  carriertrack->set_rolloff(0.6);
+  pll_demod->update_gains();
+  //pll_demod->frequency_limit();
+  pll_demod->phase_wrap();
+  softbits->set_verbose(true);
+  //pll_demod->set_phase(0);
+
+}
 
 void smartnet_trunking::tune_offset(double f) {
   chan_freq = f;
   int offset_amount = (f - center_freq);
   prefilter->set_center_freq(offset_amount);
-  cout << "Offset set to: " << offset_amount << " Freq: " << chan_freq << endl;
+  BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: " << chan_freq << endl;
 }

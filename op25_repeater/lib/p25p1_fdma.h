@@ -28,7 +28,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <deque>
-
+#include <math.h>
+#include "../include/op25_repeater/rx_status.h"
 #include "p25_framer.h"
 #include "p25p1_voice_encode.h"
 #include "p25p1_voice_decode.h"
@@ -58,12 +59,14 @@ private:
   struct sockaddr_in write_sock_addr;
   char write_buf[512];
   const char *d_udp_host;
-  int  d_sys_id;
+  int  d_sys_num;
   int  d_port;
   int  d_debug;
   bool d_do_imbe;
   bool d_do_output;
   bool d_do_msgq;
+  Rx_Status rx_status;
+  double error_history[20];
   gr::msg_queue::sptr  d_msg_queue;
   std::deque<int16_t>& output_queue;
   p25_framer *framer;
@@ -77,7 +80,7 @@ public:
   long get_curr_src_id();
   void rx_sym(const uint8_t *syms,
               int            nsyms);
-  p25p1_fdma(int                  sys_id,
+  p25p1_fdma(int                  sys_num,
              const char          *udp_host,
              int                  port,
              int                  debug,
@@ -89,7 +92,8 @@ public:
              bool                 do_audio_output);
   ~p25p1_fdma();
   void clear();
-
+  void reset_rx_status();
+  Rx_Status get_rx_status();
   // Where all the action really happens
 
   int general_work(int                        noutput_items,

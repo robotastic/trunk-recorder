@@ -30,11 +30,11 @@ p25_recorder::p25_recorder(Source *src)
 
 
   double symbol_rate         = 4800;
-  double samples_per_symbol  = 10;    // was 10
-  double system_channel_rate = symbol_rate * samples_per_symbol;
+  double samples_per_symbol  = 15;    // was 10
+  system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
-  int decimation        = int(samp_rate / 96000);
+  int decimation        = int(samp_rate / 384000);
   double resampled_rate = double(samp_rate) / double(decimation);
 
   const double pi = M_PI; // boost::math::constants::pi<double>();
@@ -53,12 +53,14 @@ p25_recorder::p25_recorder(Source *src)
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
   prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
+
+  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 100, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
@@ -117,7 +119,7 @@ p25_recorder::p25_recorder(Source *src)
 
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
-  double omega      = double(system_channel_rate) / double(symbol_rate);
+  double omega      = double(system_channel_rate) / double(6000); // set to 6000 for TDMA, should be symbol_rate
   double gain_omega = 0.1  * gain_mu * gain_mu;
   double alpha      = costas_alpha;
   double beta       = 0.125 * alpha * alpha;
@@ -165,18 +167,21 @@ p25_recorder::p25_recorder(Source *src)
   slicer     = gr::op25_repeater::fsk4_slicer_fb::make(slices);
 
   int udp_port               = 0;
-  int verbosity              = 1; // 10 = lots of debug messages
+  int verbosity              = 0; // 10 = lots of debug messages
   const char *wireshark_host = "127.0.0.1";
   bool do_imbe               = 1;
   bool do_output             = 1;
   bool do_msgq               = 0;
   bool do_audio_output       = 1;
-  bool do_tdma               = 0;
+  bool do_tdma               = 1;
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, silence_frames, do_msgq, rx_queue, do_audio_output, do_tdma);
 
 
+  char xor_mask[] = {2, 3, 3, 2, 3, 2, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 3, 3, 0, 3, 2, 0, 3, 1, 2, 3, 0, 1, 2, 3, 1, 1, 1, 1, 2, 2, 2, 1, 2, 1, 1, 2, 3, 2, 1, 3, 3, 1, 3, 2, 1, 3, 1, 2, 2, 2, 3, 3, 2, 0, 1, 1, 0, 3, 3, 1, 1, 1, 2, 1, 1, 1, 3, 0, 2, 0, 2, 2, 1, 3, 2, 1, 1, 3, 0, 2, 1, 0, 2, 2, 1, 0, 1, 1, 2, 1, 3, 1, 3, 0, 1, 2, 3, 2, 2, 2, 0, 3, 0, 2, 1, 0, 1, 0, 2, 0, 1, 1, 3, 1, 1, 0, 0, 0, 2, 3, 1, 3, 1, 1, 2, 3, 0, 2, 2, 1, 0, 1, 0, 3, 2, 2, 2, 2, 0, 1, 3, 3, 0, 2, 3, 0, 0, 3, 3, 0, 0, 0, 3, 3, 3, 3, 3, 2, 2, 2, 0, 0, 2, 2, 1, 1, 1, 2, 3, 3, 0, 3, 2, 3, 3, 3, 3, 1, 1, 2, 3, 3, 1, 1, 1, 2, 1, 1, 3, 2, 2, 1, 0, 3, 1, 0, 0, 1, 1, 3, 2, 3, 3, 1, 1, 0, 2, 0, 0, 3, 1, 1, 2, 1, 0, 1, 2, 1, 1, 3, 3, 2, 1, 2, 1, 3, 2, 3, 3, 1, 1, 1, 0, 1, 1, 3, 0, 0, 3, 0, 3, 1, 1, 0, 3, 1, 3, 0, 0, 3, 0, 1, 1, 2, 2, 1, 3, 0, 3, 0, 0, 1, 2, 0, 3, 0, 1, 1, 1, 1, 3, 2, 0, 2, 3, 2, 2, 0, 3, 0, 3, 0, 1, 1, 0, 1, 2, 1, 2, 0, 3, 0, 0, 2, 1, 3, 0, 3, 2, 1, 0, 0, 2, 2, 0, 1, 1, 3, 1, 2, 2, 0, 2, 3, 3, 0, 0, 0, 2, 0, 1, 2, 1, 0, 3, 1, 1, 0, 0, 3, 3, 3, 2, 0, 2, 3, 2, 1, 2, 1, 0, 0, 0, 0, 1, 0, 3, 1, 3, 0, 2, 3, 3, 1, 2, 1, 3, 0, 0, 2, 1, 0, 2, 0, 3, 0, 1, 2, 2, 1, 1, 1, 3, 1, 2, 3, 0, 1, 0, 0, 1, 3, 0, 1, 2, 1, 2, 1, 2, 2, 3, 1, 2, 3, 3, 2, 1, 1, 1, 2, 2, 0, 1, 1, 0, 2, 2, 2, 2, 2, 2, 0, 2, 1, 1, 0, 2, 3, 3, 2, 0, 3, 3, 2, 0, 3, 0, 3, 0, 3, 2, 2, 0, 1, 3, 3, 1, 3, 2, 3, 3, 3, 0, 2, 3, 3, 2, 3, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 2, 3, 3, 3, 0, 1, 0, 1, 2, 3, 2, 1, 0, 2, 3, 1, 2, 2, 3, 2, 0, 1, 0, 0, 0, 1, 0, 0, 2, 1, 0, 0, 2, 1, 2, 0, 2, 3, 0, 1, 2, 1, 3, 0, 3, 0, 3, 3, 2, 1, 0, 1, 2, 2, 1, 0, 2, 2, 3, 2, 3, 0, 0, 2, 1, 3, 2, 1, 1, 1, 0, 1, 1, 1, 2, 1, 3, 3, 3, 2, 3, 0, 1, 3, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 3, 3, 3, 3, 3, 2, 0, 0, 3, 1, 0, 2, 1, 3, 0, 3, 3, 1, 0, 2, 3, 2, 0, 0, 0, 2, 0, 0, 1, 2, 2, 1, 0, 3, 1, 2, 2, 2, 0, 0, 2, 0, 0, 0, 1, 3, 1, 0, 0, 3, 2, 2, 1, 2, 3, 3, 2, 3, 0, 1, 2, 2, 3, 2, 2, 2, 3, 0, 0, 0, 2, 1, 1, 2, 2, 2, 1, 1, 0, 2, 3, 3, 1, 1, 3, 0, 3, 2, 1, 1, 3, 0, 0, 2, 3, 2, 2, 3, 2, 1, 0, 0, 3, 3, 0, 2, 1, 3, 2, 0, 2, 3, 2, 2, 3, 2, 3, 3, 3, 3, 0, 3, 0, 2, 2, 3, 0, 3, 1, 2, 2, 2, 1, 1, 2, 0, 1, 2, 2, 3, 3, 0, 0, 3, 1, 3, 1, 2, 1, 0, 1, 1, 0, 1, 1, 3, 1, 2, 1, 1, 3, 3, 0, 3, 3, 1, 3, 3, 2, 0, 3, 2, 0, 2, 3, 3, 0, 0, 2, 1, 0, 0, 0, 0, 2, 3, 1, 3, 3, 0, 1, 1, 3, 3, 2, 1, 0, 2, 2, 1, 0, 1, 1, 1, 3, 2, 3, 2, 2, 2, 1, 1, 2, 1, 3, 1, 1, 2, 3, 2, 3, 1, 0, 3, 2, 2, 3, 3, 3, 2, 3, 2, 1, 3, 1, 3, 0, 0, 2, 3, 0, 3, 2, 1, 2, 2, 0, 1, 1, 2, 1, 1, 0, 1, 3, 2, 0, 0, 3, 1, 1, 2, 1, 2, 3, 2, 1, 0, 1, 3, 3, 3, 2, 3, 0, 0, 3, 1, 1, 0, 3, 1, 0, 2, 2, 1, 1, 1, 1, 1, 3, 0, 2, 2, 2, 1, 0, 1, 0, 0, 3, 3, 1, 3, 3, 0, 2, 1, 3, 2, 1, 1, 3, 0, 3, 3, 3, 2, 0, 0, 3, 0, 0, 2, 1, 3, 3, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 0, 2, 2, 0, 3, 0, 0, 0, 2, 3, 1, 1, 0, 3, 0, 2, 1, 1, 0, 3, 2, 1, 1, 1, 2, 3, 0, 2, 2, 2, 1, 2, 3, 0, 1, 2, 2, 2, 3, 2, 0, 0, 0, 3, 3, 3, 2, 2, 0, 2, 0, 3, 0, 2, 3, 3, 1, 2, 3, 3, 0, 3, 1, 2, 1, 2, 0, 2, 3, 2, 2, 1, 2, 2, 1, 0, 1, 1, 0, 1, 2, 0, 2, 1, 1, 2, 2, 0, 1, 3, 3, 2, 0, 1, 1, 2, 0, 3, 1, 0, 3, 1, 2, 0, 1, 2, 2, 1, 1, 1, 3, 2, 1, 3, 0, 0, 1, 0, 0, 0, 1, 3, 1, 3, 0, 1, 3, 3, 2, 1, 1, 2, 0, 1, 0, 3, 3, 3, 2, 2, 3, 1, 1, 2, 1, 1, 0, 0, 1, 1, 0, 1, 1, 2, 1, 0, 3, 1, 0, 2, 2, 2, 1, 1, 2, 1, 0, 2, 3, 1, 2, 1, 2, 2, 2, 0, 0, 2, 3, 0, 1, 1, 1, 3, 1, 2, 2, 0, 0, 1, 2, 1, 2, 2, 0, 1, 3, 2, 2, 3, 2, 0, 2, 3, 3, 0, 0, 0, 2, 2, 3, 0, 1, 0, 3, 3, 1, 3, 3, 2, 1, 0, 2, 1, 0, 2, 2, 2, 1, 1, 3, 3, 0, 0, 0, 2, 3, 1, 0, 2, 0, 1, 0, 3, 2, 3, 3, 2, 1, 1, 2, 1, 2, 3, 1, 0, 1, 2, 0, 3, 0, 3, 3, 3, 1, 0, 1, 2, 0, 0, 1, 2, 2, 1, 0, 1, 2, 3, 1, 3, 0, 0, 0, 3, 2, 3, 2, 2, 3, 0, 0, 2, 0, 0, 2, 3, 1, 0, 0, 2, 0, 2, 2, 3, 0, 1, 3, 3, 0, 2, 1, 3, 2, 1, 1, 1, 0, 1, 2, 0, 2, 3, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 2, 1, 2, 0, 0, 0, 2, 1, 0, 2, 2, 2, 2, 3, 3, 0, 0, 2, 3, 0, 0, 1, 3, 3, 2, 2, 1, 1, 1, 0, 1, 1, 3, 2, 3, 0, 0, 2, 3, 2, 1, 1, 3, 0, 3, 1, 1, 2, 1, 3, 3, 3, 3, 3, 1, 0, 1, 3, 0, 0, 3, 3, 0, 0, 2, 0, 1, 0, 1, 3, 0, 1, 3, 0, 1, 3, 1, 0, 2, 0, 2, 1, 0, 1, 2, 2, 0, 3, 1, 3, 2, 2, 2, 0, 1, 3, 2, 2, 2, 3, 0, 2, 0, 1, 1, 2, 3, 2, 0, 3, 0, 2, 2, 3, 2, 2, 3, 0, 1, 1, 2, 0, 3, 1, 2, 2, 0, 1, 3, 0, 0, 2, 3, 0, 3, 2, 3, 1, 3, 0, 0, 2, 3, 1, 0, 3, 2, 2, 0, 0, 2, 2, 2, 1, 0, 0, 0, 1, 2, 2, 2, 2, 0, 2, 0, 1, 1, 1, 2, 3, 2, 3, 3, 0, 1, 0, 0, 2, 1, 1, 1, 1, 3, 0, 0, 2, 2, 3, 3, 2, 3, 0, 0, 1, 1, 3, 0, 0, 2, 0, 2, 3, 3, 3, 3, 3, 2, 0, 0, 3, 0, 0, 0, 1, 1, 1, 3, 2, 2, 0, 0, 2, 2, 1, 3, 3, 1, 2, 3, 0, 0, 0, 1, 2, 3, 3, 1, 3, 2, 0, 0, 1, 2, 2, 2, 0, 3, 1, 1, 1, 0, 0, 3, 0, 3, 2, 0, 0, 0, 2, 2, 1, 2, 2, 3, 3, 2, 3, 0, 3, 1, 0, 0, 0, 3, 3, 1, 2, 3, 0, 2, 3, 1, 0, 1, 1, 0, 2, 0, 1, 2, 3, 3, 0, 2, 3, 2, 1, 0, 1, 0, 2, 3, 2, 0, 2, 3, 1, 1, 1, 3, 2, 2, 2, 1, 1, 2, 1, 0, 1, 3, 2, 3, 2, 3, 1, 1, 1, 2, 0, 3, 1, 3, 1, 0, 3, 2, 3, 0, 3, 0, 3, 2, 3, 3, 3, 0, 1, 2, 0, 2, 0, 0, 2, 2, 3, 1, 1, 3, 1, 1, 2, 0, 3, 1, 1, 1, 2, 3, 0, 1, 1, 3, 3, 0, 0, 3, 3, 3, 1, 0, 1, 0, 2, 3, 1, 1, 1, 3, 1, 0, 3, 0, 3, 3, 0, 3, 2, 0, 0, 1, 1, 2, 3, 3, 0, 1, 2, 2, 2, 2, 1, 3, 3, 0, 1, 0, 0, 2, 1, 2, 1, 1, 0, 2, 1, 1, 2, 2, 0, 1, 1, 2, 2, 0, 1, 3, 1, 2, 3, 3, 3, 1, 3, 3, 0, 1, 1, 3, 2, 3, 0, 3, 2, 0, 3, 0, 2, 1, 0, 2, 1, 3, 1, 3, 2, 3, 0, 0, 2, 0, 0, 0, 1, 0, 0, 2, 1, 1, 2, 0, 3, 2, 2, 1, 0, 2, 2, 1, 1, 0, 1, 0, 2, 3, 2, 3, 3, 2, 0, 1, 0, 1, 2, 1, 2, 2, 2, 1, 3, 1, 0, 1, 2, 0, 2, 2, 2, 2, 2, 1, 2, 3, 2, 1, 1, 1, 3, 2, 1, 1, 3, 0, 1, 3, 0, 2, 2, 0, 2, 0, 0, 2, 2, 0, 2, 2, 1, 0, 0, 3, 2, 3, 0, 0, 2, 2, 0, 3, 0, 1, 0, 0, 1, 3, 2, 3, 3, 1, 2, 1, 2, 1, 1, 2, 1, 2, 3, 1, 1, 3, 2, 3, 1, 0, 1, 0, 0, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 3, 1, 3, 2, 0, 1, 3, 1, 1, 3, 0, 1, 2, 3, 2, 0, 2, 3, 3, 2, 3, 3, 0, 0, 0, 3, 0, 0, 2, 2, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 3, 3, 1, 3, 3, 3, 1, 0, 3, 3, 0, 0, 3, 2, 0, 0, 2, 3, 2, 0, 3, 2, 3, 3, 2, 3, 1, 1, 2, 2, 1, 2, 0, 0, 0, 3, 0, 1, 1, 2, 3, 2, 0, 0, 3, 3, 0, 1, 0, 1, 3, 0, 0, 0, 1, 2, 3, 0, 3, 3, 0, 0, 2, 0, 2, 3, 1, 1, 3, 3, 1, 0, 0, 2, 2, 3, 2, 3, 1, 3, 1, 2, 1, 1, 3, 0, 3, 1, 3, 1, 0, 3, 2, 3, 2, 2, 1, 2, 0, 3, 1, 0, 3, 3, 0, 1, 3, 2, 3, 3, 2, 1, 2, 0, 2, 3, 0, 1, 3, 1, 0, 2, 0, 1, 1, 0, 0, 0, 2, 3, 1, 2, 3, 3, 3, 2, 0, 0, 0, 0, 0, 1, 0, 0, 3, 1, 3, 0, 0, 3, 2, 1, 3, 1, 2, 3, 0, 0, 2, 1, 0, 0, 2, 1, 2, 3, 3, 2, 0, 0, 2, 1, 0, 2, 3, 2, 1, 3, 0, 0, 0, 0, 2, 1, 2, 0, 0, 2, 1, 1, 3, 0, 1, 3, 2, 3, 3, 3, 2, 2, 0, 0, 3, 1, 2, 1, 2, 3, 3, 3, 0, 2, 0, 0, 3, 2, 2, 0, 2, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 2, 1, 0, 2, 2, 3, 0, 0, 3, 3, 0, 3, 0, 3, 0, 3, 2, 2, 3, 1, 0, 0, 1, 3, 2, 0, 3, 0, 0, 1, 2, 3, 0, 0, 1, 1, 1, 1, 2, 3, 2, 1, 3, 1, 2, 0, 2, 2, 3, 2, 2, 1, 3, 0, 0};
+  //op25_frame_assembler->set_xormask(xor_mask);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
-  levels    = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+
   tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
@@ -311,12 +316,19 @@ void p25_recorder::tune_offset(double f) {
   chan_freq = f;
   int offset_amount = (f - center_freq);
   prefilter->set_center_freq(offset_amount);
+  if (!qpsk_mod) {
+    reset();
+  }
+  op25_frame_assembler->reset_rx_status();
 }
 
 State p25_recorder::get_state() {
   return state;
 }
 
+Rx_Status p25_recorder::get_rx_status() {
+  return op25_frame_assembler->get_rx_status();
+}
 void p25_recorder::stop() {
   if (state == active) {
     // op25_frame_assembler->clear();
@@ -324,23 +336,45 @@ void p25_recorder::stop() {
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
+    Rx_Status rx_status = op25_frame_assembler->get_rx_status();
+    op25_frame_assembler->reset_rx_status();
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }
 }
+void p25_recorder::reset() {
 
+//std::cout << "Pll Phase: " << pll_freq_lock->get_phase() << " min Freq: " << pll_freq_lock->get_min_freq() << " Max Freq: " << pll_freq_lock->get_max_freq() << std::endl;
+  pll_freq_lock->update_gains();
+  pll_freq_lock->frequency_limit();
+  pll_freq_lock->phase_wrap();
+  fsk4_demod->reset();
+  //pll_demod->set_phase(0);
+
+}
 void p25_recorder::start(Call *call, int n) {
   if (state == inactive) {
     timestamp = time(NULL);
     starttime = time(NULL);
 
     talkgroup = call->get_talkgroup();
-    chan_freq = call->get_freq();
 
-    if (!qpsk_mod) {
-      fsk4_demod->reset();
+    chan_freq      = call->get_freq();
+    op25_frame_assembler->set_phase2_tdma(call->get_phase2_tdma());
+    if (call->get_phase2_tdma()) {
+      tdma_slot = call->get_tdma_slot() ;
+      op25_frame_assembler->set_slotid(tdma_slot);
+      costas_clock->set_omega(double(system_channel_rate) / double(6000));
+      if (call->get_xor_mask()) {
+        op25_frame_assembler->set_xormask(call->get_xor_mask());
+      }
+    } else {
+      costas_clock->set_omega(double(system_channel_rate) / double(4800));
     }
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
+    if (!qpsk_mod) {
+      reset();
+    }
+    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ] Phase 2: " << call->get_phase2_tdma() << " Slot: " << call->get_tdma_slot();
 
     int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);

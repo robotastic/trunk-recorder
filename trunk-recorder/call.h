@@ -14,10 +14,20 @@ struct Call_Freq {
 	double freq;
 	long time;
 	double position;
+	double total_len;
+	double error_count;
+	double spike_count;
+};
+
+struct Call_Error {
+	double freq;
+	double sample_count;
+	double error_count;
+	double spike_count;
 };
 
 class Recorder;
-
+#include "../op25_repeater/include/op25_repeater/rx_status.h"
 #include "uploaders/call_uploader.h"
 #include "config.h"
 #include "state.h"
@@ -25,6 +35,8 @@ class Recorder;
 #include "systems/system.h"
 #include "systems/parser.h"
 
+
+class System;
 //enum  CallState { monitoring=0, recording=1, stopping=2};
 
 class Call {
@@ -43,12 +55,16 @@ public:
 
 								char *get_converted_filename();
 								char *get_filename();
+								int get_sys_num();
 								void create_filename();
+								void set_error(Rx_Status rx_status);
 								void set_freq(double f);
 								long get_talkgroup();
 								long get_source_count();
 								Call_Source *get_source_list();
 								Call_Freq *get_freq_list();
+								Call_Error *get_error_list();
+								long get_error_list_count();
 								long get_freq_count();
 								void update(TrunkMessage message);
 								int get_idle_count();
@@ -64,8 +80,11 @@ public:
 								bool get_debug_recording();
 								void set_state(State s);
 								State get_state();
-								void set_tdma(int m);
-								int get_tdma();
+								void set_phase2_tdma(bool m);
+								bool get_phase2_tdma();
+								void set_tdma_slot(int s);
+								int get_tdma_slot();
+								const char * get_xor_mask();
 								bool is_conventional();
 								void set_conventional(bool conv);
 								void set_encrypted(bool m);
@@ -79,8 +98,10 @@ private:
 								System *sys;
 								int src_count;
 								long curr_src_id;
+								Call_Error error_list[50];
 								Call_Source src_list[50];
 								Call_Freq freq_list[50];
+								long error_list_count;
 								long freq_count;
 								time_t last_update;
 								int idle_count;
@@ -93,7 +114,8 @@ private:
 								char filename[255];
 								char converted_filename[255];
 								char status_filename[255];
-								int tdma;
+								bool phase2_tdma;
+								int tdma_slot;
 
 								Config config;
 								Recorder *recorder;

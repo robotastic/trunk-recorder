@@ -39,6 +39,7 @@
 #include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
+#include "../../op25_repeater/include/op25_repeater/rx_status.h"
 #include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/vocoder.h>
 
@@ -71,8 +72,7 @@ public:
   ~p25_recorder();
 
   void    tune_offset(double f);
-  void    start(Call *call,
-                int   n);
+  void    start(Call *call, int   n);
   void    stop();
   void    clear();
   double  get_freq();
@@ -81,10 +81,12 @@ public:
   bool    is_active();
   bool    is_idle();
   State   get_state();
+  Rx_Status get_rx_status();
   int     lastupdate();
   long    elapsed();
   Source* get_source();
   void    autotune();
+  void    reset();
   gr::msg_queue::sptr tune_queue;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
@@ -92,9 +94,11 @@ public:
 private:
 
   double center_freq, chan_freq;
+  double system_channel_rate;
   bool   qpsk_mod;
   double squelch_db;
   int    silence_frames;
+  int    tdma_slot;
   long   talkgroup;
   time_t timestamp;
   time_t starttime;
@@ -144,6 +148,7 @@ private:
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
   gr::op25_repeater::vocoder::sptr op25_vocoder;
   gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+
 };
 
 

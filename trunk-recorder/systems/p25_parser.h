@@ -15,7 +15,8 @@ struct Channel {
 								unsigned long offset;
 								unsigned long step;
 								unsigned long frequency;
-								int tdma;
+								bool phase2_tdma;
+								int slots_per_carrier;
 								double bandwidth;
 };
 
@@ -27,7 +28,7 @@ public:
 								P25Parser();
 								long get_tdma_slot(int chan_id);
 								double get_bandwidth(int chan_id);
-								std::vector<TrunkMessage> decode_tsbk(boost::dynamic_bitset<> &tsbk);
+								std::vector<TrunkMessage> decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac, int sys_num);
 								unsigned long bitset_shift_mask(boost::dynamic_bitset<> &tsbk, int shift, unsigned long long mask);
 								std::string  channel_id_to_string(int chan_id);
 								void print_bitset(boost::dynamic_bitset<> &tsbk);

@@ -57,6 +57,7 @@ p25_trunking_sptr make_p25_trunking(double              f,
                                     bool                qpsk,
                                     int                 sys_id);
 
+
 class p25_trunking : public gr::hier_block2 {
   friend p25_trunking_sptr make_p25_trunking(double              f,
                                              double              c,
@@ -81,9 +82,11 @@ public:
   double get_freq();
   void   enable();
 
+
   gr::msg_queue::sptr tune_queue;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
+
 
 private:
 

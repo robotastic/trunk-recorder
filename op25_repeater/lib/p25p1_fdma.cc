@@ -206,7 +206,7 @@ block_deinterleave(bit_vector& bv, unsigned int start, uint8_t *buf)
   return -2;                  // trellis decode OK, but CRC error occurred
 }
 
-p25p1_fdma::p25p1_fdma(int                  sys_id,
+p25p1_fdma::p25p1_fdma(int                  sys_num,
                        const char          *udp_host,
                        int                  port,
                        int                  debug,
@@ -218,7 +218,7 @@ p25p1_fdma::p25p1_fdma(int                  sys_id,
                        bool                 do_audio_output) :
   write_bufp(0),
   write_sock(0),
-  d_sys_id(sys_id),
+  d_sys_num(sys_num),
   d_udp_host(udp_host),
   d_port(port),
   d_debug(debug),
@@ -232,7 +232,11 @@ p25p1_fdma::p25p1_fdma(int                  sys_id,
   p1voice_decode((debug > 0), udp_host, port, output_queue)
 {
   gettimeofday(&last_qtime, 0);
-
+  rx_status.error_count = 0;
+  rx_status.total_len = 0;
+  rx_status.spike_count = 0;
+  for (int i=0; i<20; i++)
+    error_history[i] = -1;
   if (port > 0) init_sock(d_udp_host, d_port);
 }
 
@@ -249,7 +253,7 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
 
   assert(len + 4 <= sizeof(wbuf));
 
-  // wbuf[p++] = (char) (d_sys_id+'0'); // clever way to convert int to char
+  // wbuf[p++] = (char) (d_sys_num+'0'); // clever way to convert int to char
   // wbuf[p++] = ',';
   wbuf[p++] = (nac >> 8) & 0xff;
   wbuf[p++] = nac & 0xff;
@@ -258,12 +262,25 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const 
     memcpy(&wbuf[p], buf, len); // copy data
     p += len;
   }
-  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, d_sys_id, 0);
+  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, d_sys_num, 0);
   d_msg_queue->insert_tail(msg);
   gettimeofday(&last_qtime, 0);
 
   //	msg.reset();
 }
+
+void p25p1_fdma::reset_rx_status() {
+  rx_status.error_count = 0;
+  rx_status.total_len = 0;
+  rx_status.spike_count = 0;
+  /*for (int i=0; i<20; i++)
+    error_history[i] = -1;*/
+}
+
+Rx_Status p25p1_fdma::get_rx_status() {
+  return rx_status;
+}
+
 
 long p25p1_fdma::get_curr_src_id() {
   return curr_src_id;
@@ -280,8 +297,14 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
   for (int i1 = 0; i1 < nsyms; i1++) {
     if (framer->rx_sym(syms[i1])) { // complete frame was detected
       if (d_debug >= 10) {
-        fprintf(stderr, "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
+        fprintf(stderr, "%d: NAC 0x%X DUID 0x%X len %u errs %u \n ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
+        //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
+
       }
+
+      rx_status.error_count += framer->bch_errors;
+      rx_status.total_len += 64;// += framer->frame_size;
+      //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
 
       if ((framer->duid == 0x03) ||
           (framer->duid == 0x05) ||
@@ -308,10 +331,13 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           bv1[b++] = framer->frame_body[d * 2 + 1];
         }
 
+        int errors = 0;
         for (int sz = 0; sz < 3; sz++) {
           if (framer->frame_size >= sizes[sz]) {
             rc[sz] = block_deinterleave(bv1, 48 + 64 + sz * 196, deinterleave_buf[sz]);
-
+            if (rc[sz] < 0) {
+              errors++;
+            }
             if ((framer->duid == 0x07) && (rc[sz] == 0)) process_duid(framer->duid, framer->nac, deinterleave_buf[sz], 10);
           }
         }
@@ -363,8 +389,36 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           imbe_deinterleave(framer->frame_body, cw, i);
 
           // recover 88-bit IMBE voice code word
-          imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
 
+          uint16_t imbe_error = imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+          for (int j=19; j>0; j--) {
+            error_history[j] = error_history[j-1];
+          }
+          error_history[0] = imbe_error;
+          double error_history_total=0;
+          double error_history_len=0;
+          for (int j=0; j<20; j++) {
+            if (error_history[j]>=0) {
+              error_history_len++;
+              error_history_total += error_history[j];
+            }
+          }
+          double error_history_avg = error_history_total / error_history_len;
+
+          double error_history_sqrt;
+          for (int j=0; j<error_history_len; j++){
+            error_history_sqrt += pow((error_history[j] - error_history_avg), 2);
+          }
+          float std_dev = sqrt(error_history_sqrt/error_history_len);
+
+          if (imbe_error >  std_dev) {
+            rx_status.spike_count++;
+            if (d_debug >= 10) {
+              fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", imbe_error, std_dev, error_history_avg, std_dev + error_history_avg );
+            }
+          }
+          rx_status.error_count += imbe_error;
+          rx_status.total_len += 144;
           // output one 32-byte msg per 0.020 sec.
           // also, 32*9 = 288 byte pkts (for use via UDP)
           sprintf(s, "%03x %03x %03x %03x %03x %03x %03x %03x\n", u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);

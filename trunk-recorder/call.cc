@@ -33,13 +33,13 @@ void Call::create_filename() {
 }
 
 Call::Call(long t, double f, System *s, Config c) {
-  config      = c;
-  idle_count  = 0;
-  freq_count  = 0;
-  curr_freq   = 0;
-  src_count   = 0;
-  curr_src_id = 0;
-  set_freq(f);
+  config           = c;
+  idle_count       = 0;
+  freq_count       = 0;
+  error_list_count = 0;
+  curr_freq        = 0;
+  src_count        = 0;
+  curr_src_id      = 0;
   talkgroup       = t;
   sys             = s;
   start_time      = time(NULL);
@@ -48,33 +48,33 @@ Call::Call(long t, double f, System *s, Config c) {
   state           = monitoring;
   debug_recording = false;
   recorder        = NULL;
-  tdma            = false;
+  phase2_tdma     = false;
+  tdma_slot       = 0;
   encrypted       = false;
   emergency       = false;
   conventional    = false;
-
+  set_freq(f);
   this->create_filename();
 }
 
 Call::Call(TrunkMessage message, System *s, Config c) {
-  config      = c;
-  idle_count  = 0;
-  freq_count  = 0;
-  src_count   = 0;
-  curr_src_id = 0;
-  curr_freq   = 0;
-
-
+  config           = c;
+  idle_count       = 0;
+  freq_count       = 0;
+  error_list_count = 0;
+  src_count        = 0;
+  curr_src_id      = 0;
+  curr_freq        = 0;
   talkgroup  = message.talkgroup;
   sys        = s;
   start_time = time(NULL);
-
   stop_time       = time(NULL);
   last_update     = time(NULL);
   state           = monitoring;
   debug_recording = false;
   recorder        = NULL;
-  tdma            = message.tdma;
+  phase2_tdma     = message.phase2_tdma;
+  tdma_slot       = message.tdma_slot;
   encrypted       = message.encrypted;
   emergency       = message.emergency;
   conventional    = false;
@@ -89,18 +89,20 @@ Call::~Call() {
 
 void Call::restart_call() {
   if (conventional) {
-    idle_count      = 0;
-    freq_count      = 0;
-    src_count       = 0;
-    curr_src_id     = 0;
-    start_time      = time(NULL);
-    stop_time       = time(NULL);
-    last_update     = time(NULL);
-    state           = recording;
-    debug_recording = false;
-    tdma            = false;
-    encrypted       = false;
-    emergency       = false;
+    idle_count       = 0;
+    freq_count       = 0;
+    src_count        = 0;
+    error_list_count = 0;
+    curr_src_id      = 0;
+    start_time       = time(NULL);
+    stop_time        = time(NULL);
+    last_update      = time(NULL);
+    state            = recording;
+    debug_recording  = false;
+    phase2_tdma      = false;
+    tdma_slot        = 0;
+    encrypted        = false;
+    emergency        = false;
 
     this->create_filename();
     recorder->start(this, talkgroup + 100);
@@ -108,6 +110,7 @@ void Call::restart_call() {
 }
 
 void Call::end_call() {
+  std::stringstream shell_command;
   stop_time = time(NULL);
 
   if (state == recording) {
@@ -115,39 +118,49 @@ void Call::end_call() {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
     BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
-    std::ofstream myfile(status_filename);
-    std::stringstream shell_command;
 
 
-    if (myfile.is_open())
-    {
-      myfile << "{\n";
-      myfile << "\"freq\": " << this->curr_freq << ",\n";
-      myfile << "\"start_time\": " << this->start_time << ",\n";
-      myfile << "\"stop_time\": " << this->stop_time << ",\n";
-      myfile << "\"emergency\": " << this->emergency << ",\n";
-      myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
-      myfile << "\"srcList\": [ ";
+    if (freq_count > 0) {
+      Rx_Status rx_status = recorder->get_rx_status();
+      freq_list[freq_count - 1].total_len   = rx_status.total_len;
+      freq_list[freq_count - 1].spike_count = rx_status.spike_count;
+      freq_list[freq_count - 1].error_count = rx_status.error_count;
+    }
 
-      for (int i = 0; i < src_count; i++) {
-        if (i != 0) {
-          myfile << ", " <<  src_list[i].source;
-        } else {
-          myfile << src_list[i].source;
+    if (sys->get_call_log()) {
+      std::ofstream myfile(status_filename);
+
+
+      if (myfile.is_open())
+      {
+        myfile << "{\n";
+        myfile << "\"freq\": " << this->curr_freq << ",\n";
+        myfile << "\"start_time\": " << this->start_time << ",\n";
+        myfile << "\"stop_time\": " << this->stop_time << ",\n";
+        myfile << "\"emergency\": " << this->emergency << ",\n";
+        //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
+        myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
+        myfile << "\"srcList\": [ ";
+
+        for (int i = 0; i < src_count; i++) {
+          if (i != 0) {
+            myfile << ", ";
+          }
+          myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << "}";
         }
-      }
-      myfile << " ],\n";
-      myfile << "\"freqList\": [ ";
+        myfile << " ],\n";
+        myfile << "\"freqList\": [ ";
 
-      for (int i = 0; i < freq_count; i++) {
-        if (i != 0) {
-          myfile << ", ";
+        for (int i = 0; i < freq_count; i++) {
+          if (i != 0) {
+            myfile << ", ";
+          }
+          myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
         }
-        myfile << "{ \"freq\": " <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << "}";
+        myfile << " ]\n";
+        myfile << "}\n";
+        myfile.close();
       }
-      myfile << " ]\n";
-      myfile << "}\n";
-      myfile.close();
     }
 
     if (sys->get_upload_script().length() != 0) {
@@ -201,9 +214,29 @@ double Call::get_current_length() {
   }
 }
 
+void Call::set_error(Rx_Status rx_status) {
+  Call_Error call_error = { curr_freq, rx_status.total_len, rx_status.error_count, rx_status.spike_count };
+
+  if (error_list_count < 49) {
+    error_list[error_list_count] = call_error;
+    error_list_count++;
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Call: more than 50 Errors";
+  }
+}
+
 void Call::set_freq(double f) {
   if (f != curr_freq) {
-    double position=get_current_length();
+    double position = get_current_length();
+
+    // if there call is being recorded and it isn't the first time the freq is being set
+    if (recorder && (freq_count > 0)) {
+      Rx_Status rx_status = recorder->get_rx_status();
+      freq_list[freq_count - 1].total_len   = rx_status.total_len;
+      freq_list[freq_count - 1].spike_count = rx_status.spike_count;
+      freq_list[freq_count - 1].error_count = rx_status.error_count;
+      BOOST_LOG_TRIVIAL(error) << "changing freq from: " << curr_freq << " to: " << f;
+    }
 
     Call_Freq call_freq = { f, time(NULL), position };
 
@@ -216,9 +249,20 @@ void Call::set_freq(double f) {
     curr_freq = f;
   }
 }
+int Call::get_sys_num() {
+  return sys->get_sys_num();
+}
 
 long Call::get_talkgroup() {
   return talkgroup;
+}
+
+Call_Error * Call::get_error_list() {
+  return error_list;
+}
+
+long Call::get_error_list_count() {
+  return error_list_count;
 }
 
 Call_Freq * Call::get_freq_list() {
@@ -275,12 +319,24 @@ bool Call::get_emergency() {
   return emergency;
 }
 
-void Call::set_tdma(int m) {
-  tdma = m;
+void Call::set_tdma_slot(int m) {
+  tdma_slot = m;
 }
 
-int Call::get_tdma() {
-  return tdma;
+int Call::get_tdma_slot() {
+  return tdma_slot;
+}
+
+void Call::set_phase2_tdma(bool p) {
+  phase2_tdma = p;
+}
+
+bool Call::get_phase2_tdma() {
+  return phase2_tdma;
+}
+
+const char * Call::get_xor_mask() {
+  return sys->get_xor_mask();
 }
 
 bool Call::add_source(long src) {
@@ -288,8 +344,8 @@ bool Call::add_source(long src) {
     return false;
   }
 
-  double position = get_current_length();
-    Call_Source call_source = { src, time(NULL), position };
+  double position         = get_current_length();
+  Call_Source call_source = { src, time(NULL), position };
 
   if (src_count < 1) {
     src_list[src_count] = call_source;
