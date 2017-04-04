@@ -52,7 +52,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
     return;
   }
 
-  boost::char_separator<char> sep(",");
+  boost::char_separator<char> sep(",\t");
   typedef boost::tokenizer<boost::char_separator<char> >t_tokenizer;
 
   std::vector<std::string> vec;
@@ -60,6 +60,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
 
   int lines_read   = 0;
   int lines_pushed = 0;
+  int priority;
 
   while (safeGetline(in, line)) // this works with \r, \n, or \r\n
   {
@@ -76,12 +77,18 @@ void Talkgroups::load_talkgroups(std::string filename) {
 
     vec.assign(tok.begin(), tok.end());
 
-    if (vec.size() < 8) continue;  // yuck
+    if (vec.size() < 7) continue;  // yuck
+
+    if (vec.size() < 6) {
+      priority = 1;
+    } else {
+      priority = atoi(vec[7].c_str());
+    }
 
     Talkgroup *tg = new Talkgroup(atoi(vec[0].c_str()), vec[2].at(
                                     0), vec[3].c_str(),
                                   vec[4].c_str(), vec[5].c_str(), vec[6].c_str(),
-                                  atoi(vec[7].c_str()));
+                                  priority);
 
     talkgroups.push_back(tg);
     lines_pushed++;
