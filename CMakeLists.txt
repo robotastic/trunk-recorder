@@ -107,6 +107,7 @@ find_package(GnuradioUHD)
 find_package(GrOsmoSDR)
 find_package(LibHackRF)
 find_package(UHD)
+find_package(OpenSSL REQUIRED)
 
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to build " ${CMAKE_PROJECT_NAME})
@@ -161,6 +162,7 @@ include_directories(
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/op25_repeater/lib
     ${CMAKE_SOURCE_DIR}/op25_repeater/include
+    ${OPENSSL_INCLUDE_DIR}
 )
 
 link_directories(
@@ -169,6 +171,7 @@ link_directories(
     ${GROSMOSDR_LIBRARIES_DIRS}
     ${GNURADIO_UHD_LIBRARIES_DIRS}
     ${UHD_LIBRARIES_DIRS}
+    ${OPENSSL_ROOT_DIR}/lib
 )
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
