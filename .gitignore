@@ -6,7 +6,6 @@ tester/
 fake/
 2015/
 2016/
-fake/
 wmata/
 CMakeFiles/
 build/
@@ -22,3 +21,5 @@ ChanList.csv
 *.a
 *.dylib
 .DS_Store
+.idea/
+cmake-build-debug/
