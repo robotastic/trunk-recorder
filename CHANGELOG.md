@@ -1,5 +1,5 @@
-# Trunk Recorder ChangeLog
-========
+Trunk Recorder ChangeLog
+========================
 
 ### Version 2.2
 Lot's of fun things added!
