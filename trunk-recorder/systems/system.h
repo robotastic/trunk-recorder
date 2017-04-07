@@ -23,6 +23,7 @@ class System
         unsigned long nac;
 public:
         Talkgroups *talkgroups;
+        p25p2_lfsr *lfsr;
         Source *source;
         std::string talkgroups_file;
         std::string short_name;

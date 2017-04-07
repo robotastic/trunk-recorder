@@ -143,6 +143,12 @@ uint8_t gardner_costas_cc_impl::slicer(float sym) {
   delete d_interp;
     }
 
+void gardner_costas_cc_impl::update_omega (float samples_per_symbol) {
+  set_omega(samples_per_symbol);
+  set_relative_rate (1.0 / d_omega);
+  set_history(d_twice_sps);		
+}
+
 void gardner_costas_cc_impl::set_omega (float omega) {
     assert (omega >= 2.0);
     d_omega = omega;

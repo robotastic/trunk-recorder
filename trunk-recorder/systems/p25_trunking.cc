@@ -14,7 +14,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
 
-  this->sys_id = sys_id;
+  this->sys_num = sys_num;
   chan_freq    = f;
   center_freq  = c;
   long samp_rate = s;

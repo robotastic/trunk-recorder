@@ -611,7 +611,11 @@ std::vector<TrunkMessage>P25Parser::parse_message(gr::message::sptr msg) {
   std::string s = msg->to_string();
 
   // # nac is always 1st two bytes
-  long nac = ((int)s[0] << 8) + (int)s[1];
+  //ac = (ord(s[0]) << 8) + ord(s[1])
+  uint8_t s0 = (int) s[0];
+  uint8_t s1 = (int) s[1];
+  int shift = s0 << 8;
+  long nac = shift + s1;
 
   if (nac == 0xffff) {
     // # TDMA

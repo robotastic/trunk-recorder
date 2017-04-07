@@ -53,8 +53,8 @@ void System::update_status(TrunkMessage message) {
    nac = message.nac;
    BOOST_LOG_TRIVIAL(info) << "Decoding System ID " << std::dec << message.sys_id << " WACN: " << message.wacn << " NAC: " << message.nac <<  std::dec;
    if(sys_id && wacn && nac) {
-     p25p2_lfsr my_lfsr(nac, sys_id, wacn);
-     xor_mask = my_lfsr.getXorChars(xor_mask_len);
+     lfsr = new p25p2_lfsr(nac, sys_id, wacn);
+     xor_mask =  lfsr->getXorChars(xor_mask_len);
      /*
      BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
      for (unsigned i=0; i<xor_mask_len; i++) {

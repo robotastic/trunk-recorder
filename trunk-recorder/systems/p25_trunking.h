@@ -55,7 +55,7 @@ p25_trunking_sptr make_p25_trunking(double              f,
                                     long                s,
                                     gr::msg_queue::sptr queue,
                                     bool                qpsk,
-                                    int                 sys_id);
+                                    int                 sys_num);
 
 
 class p25_trunking : public gr::hier_block2 {
@@ -64,7 +64,7 @@ class p25_trunking : public gr::hier_block2 {
                                              long                s,
                                              gr::msg_queue::sptr queue,
                                              bool                qpsk,
-                                             int                 sys_id);
+                                             int                 sys_num);
 
 protected:
   p25_trunking(double              f,
@@ -72,7 +72,7 @@ protected:
                long                s,
                gr::msg_queue::sptr queue,
                bool                qpsk,
-               int                 sys_id);
+               int                 sys_num);
 
 public:
 
@@ -92,7 +92,7 @@ private:
 
   double center_freq, chan_freq;
   bool   qpsk_mod;
-  int    sys_id;
+  int    sys_num;
 
   std::vector<float> inital_lpf_taps;
   std::vector<float> channel_lpf_taps;
