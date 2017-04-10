@@ -126,6 +126,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
 
   if (d_do_audio_output) set_output_multiple(864);
 
+
   if (!d_do_audio_output && !d_do_imbe) set_output_multiple(160);
 }
 
@@ -139,12 +140,20 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int& nof_inpu
   double samples_reqd     = 4.0 * nof_output_items;
   int    nof_samples_reqd;
 
-  if (d_do_imbe) samples_reqd = 3.0 * nof_output_items;
   samples_reqd = nof_output_items;
 
-  if (d_do_audio_output) samples_reqd = 0.6 * nof_output_items;
+  if (d_do_imbe) {
+     samples_reqd = 3.0 * nof_output_items;
+}
 
-  nof_samples_reqd = (int)ceil(samples_reqd);
+  if (d_do_audio_output) {
+   if (d_do_phase2_tdma) {
+   samples_reqd = 0.75 * nof_output_items;
+ } else{
+   samples_reqd = 0.6 * nof_output_items;
+ }
+ }
+  nof_samples_reqd = (int)floor(samples_reqd);
 
   for (int i = 0; i < nof_inputs; i++) {
     nof_input_items_reqd[i] = nof_samples_reqd;
@@ -190,11 +199,13 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
     amt_produce = noutput_items;
     int16_t *out = (int16_t *)output_items[0];
 
-    if (amt_produce > (int)output_queue.size()) amt_produce = output_queue.size();
 
-    //  BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << "
-    // output_queue: " << output_queue.size() << " noutput_items: " <<
-    // noutput_items;
+    if (amt_produce > (int)output_queue.size()){
+
+      //BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
+      amt_produce = output_queue.size();
+    }
+
 
     if (amt_produce > 0) {
       long src_id = p1fdma.get_curr_src_id();
@@ -233,6 +244,13 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
 void p25_frame_assembler_impl::set_phase2_tdma(bool p)
 {
   d_do_phase2_tdma = p;
+  if (d_do_audio_output) {
+  if (d_do_phase2_tdma) {
+       set_output_multiple(640);
+  } else {
+    set_output_multiple(864);
+  }
+ }
 }
 } /* namespace op25_repeater */
 } /* namespace gr */

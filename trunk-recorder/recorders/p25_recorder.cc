@@ -58,8 +58,7 @@ p25_recorder::p25_recorder(Source *src)
 
   prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
-
-  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 100, gr::filter::firdes::WIN_HANN);
+  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 7250, 725, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
 
@@ -119,7 +118,7 @@ p25_recorder::p25_recorder(Source *src)
 
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
-  double omega      = double(system_channel_rate) / double(4800); // set to 6000 for TDMA, should be symbol_rate
+  double omega      = double(system_channel_rate) / symbol_rate; // set to 6000 for TDMA, should be symbol_rate
   double gain_omega = 0.1  * gain_mu * gain_mu;
   double alpha      = costas_alpha;
   double beta       = 0.125 * alpha * alpha;
@@ -361,7 +360,7 @@ void p25_recorder::start(Call *call, int n) {
     if (call->get_phase2_tdma()) {
       tdma_slot = call->get_tdma_slot() ;
       op25_frame_assembler->set_slotid(tdma_slot);
-      omega = double(system_channel_rate) / double(6000);
+     omega = double(system_channel_rate) / double(6000);
 
       if (call->get_xor_mask()) {
         op25_frame_assembler->set_xormask(call->get_xor_mask());

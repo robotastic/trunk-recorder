@@ -39,14 +39,14 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
   prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
   BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;

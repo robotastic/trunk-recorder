@@ -1117,14 +1117,14 @@ add_logs(
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
   p25_parser      = new P25Parser();
 
-  tb->lock();
+
 
 
   load_config(config_file);
 
 
   if (monitor_system()) {
-    tb->unlock();
+
     tb->start();
 
     monitor_messages();
