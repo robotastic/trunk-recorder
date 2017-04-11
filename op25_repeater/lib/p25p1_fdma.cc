@@ -41,7 +41,7 @@
 
 namespace gr {
 namespace op25_repeater {
-static const int64_t TIMEOUT_THRESHOLD = 1000000;
+static const int64_t TIMEOUT_THRESHOLD = 1250000;
 
 p25p1_fdma::~p25p1_fdma()
 {
@@ -288,6 +288,14 @@ long p25p1_fdma::get_curr_src_id() {
 void p25p1_fdma::clear() {
   p1voice_decode.clear();
 }
+
+void
+p25p1_fdma::reset_timer()
+{
+  // update last_qtime with current time
+  gettimeofday(&last_qtime, 0);
+}
+
 void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
 {
   struct timeval currtime;
@@ -373,7 +381,6 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
       if (framer->duid == 0x05) {
        uint32_t src_id = LDU1_to_Src(framer->frame_body);
        if (src_id){
-         //fprintf(stderr, "%d: updating new src_id: %u \n",i1,src_id);
          curr_src_id = src_id;
        }
      }

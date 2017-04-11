@@ -93,6 +93,7 @@ public:
   ~p25p1_fdma();
   void clear();
   void reset_rx_status();
+  void reset_timer();
   Rx_Status get_rx_status();
   // Where all the action really happens
 

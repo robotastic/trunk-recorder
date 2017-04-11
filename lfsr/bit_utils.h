@@ -37,7 +37,7 @@ unsigned rev_int(unsigned n, unsigned l) {
 Eigen::VectorXi * bits_to_dibits(Eigen::VectorXi &bits) {
   Eigen::VectorXi *d = new Eigen::VectorXi;
   for (unsigned i=0; i<bits.size()/2; i++) {
-    (*d)(i) = (bits(i*2)&1)<<1 + (bits(i*2+1)&1);
+    (*d)(i) = ((bits(i*2)&1)<<1) + (bits(i*2+1)&1);
   }
   return d;
 }

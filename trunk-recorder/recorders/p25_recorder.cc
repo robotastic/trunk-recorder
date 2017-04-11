@@ -249,7 +249,7 @@ p25_recorder::p25_recorder(Source *src)
 }
 
 void p25_recorder::clear() {
-  op25_frame_assembler->clear();
+  //op25_frame_assembler->clear();
 }
 
 void p25_recorder::autotune() {

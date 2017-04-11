@@ -1,5 +1,4 @@
 /* -*- c++ -*- */
-
 /*
  * Copyright 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI
  *
@@ -20,8 +19,8 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif // ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <gnuradio/io_signature.h>
 #include "p25_frame_assembler_impl.h"
@@ -64,7 +63,7 @@ p25_frame_assembler::make(int                 sys_num,
                           int                 debug,
                           bool                do_imbe,
                           bool                do_output,
-                          int                silence_frames,
+                          int                 silence_frames,
                           bool                do_msgq,
                           gr::msg_queue::sptr queue,
                           bool                do_audio_output,
@@ -96,7 +95,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
                                                    int                 debug,
                                                    bool                do_imbe,
                                                    bool                do_output,
-                                                   int                silence_frames,
+                                                   int                 silence_frames,
                                                    bool                do_msgq,
                                                    gr::msg_queue::sptr queue,
                                                    bool                do_audio_output,
@@ -123,11 +122,11 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
   if (d_do_audio_output && !d_do_imbe) fprintf(stderr, "p25_frame_assembler: error: do_imbe must be enabled if do_audio_output is enabled\n");
 
   if (d_do_phase2_tdma && !d_do_audio_output) fprintf(stderr, "p25_frame_assembler: error: do_audio_output must be enabled if do_phase2_tdma is enabled\n");
-
+/*
   if (d_do_audio_output) set_output_multiple(864);
 
 
-  if (!d_do_audio_output && !d_do_imbe) set_output_multiple(160);
+  if (!d_do_audio_output && !d_do_imbe) set_output_multiple(160);*/
 }
 
 void
@@ -143,17 +142,17 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int& nof_inpu
   samples_reqd = nof_output_items;
 
   if (d_do_imbe) {
-     samples_reqd = 3.0 * nof_output_items;
-}
+    samples_reqd = 3.0 * nof_output_items;
+  }
 
   if (d_do_audio_output) {
-   if (d_do_phase2_tdma) {
-   samples_reqd = 0.75 * nof_output_items;
- } else{
-   samples_reqd = 0.6 * nof_output_items;
- }
- }
-  nof_samples_reqd = (int)floor(samples_reqd);
+    if (d_do_phase2_tdma) {
+      samples_reqd = floor(0.4 * nof_output_items);
+    } else {
+      samples_reqd = floor(0.6 * nof_output_items);
+    }
+  }
+  nof_samples_reqd = (int) samples_reqd;
 
   for (int i = 0; i < nof_inputs; i++) {
     nof_input_items_reqd[i] = nof_samples_reqd;
@@ -167,8 +166,6 @@ void p25_frame_assembler_impl::reset_rx_status() {
 Rx_Status p25_frame_assembler_impl::get_rx_status() {
   return p1fdma.get_rx_status();
 }
-
-
 
 void p25_frame_assembler_impl::clear() {
   p1fdma.clear();
@@ -189,7 +186,10 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
       if (p2tdma.rx_sym(in[i])) {
         int rc = p2tdma.handle_frame();
 
-        if (rc > -1) p25p2_queue_msg(rc);
+        if (rc > -1) {
+          p1fdma.reset_timer();
+          p25p2_queue_msg(rc);
+        }
       }
     }
   }
@@ -200,9 +200,9 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
     int16_t *out = (int16_t *)output_items[0];
 
 
-    if (amt_produce > (int)output_queue.size()){
-
-      //BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
+    if (amt_produce > (int)output_queue.size()) {
+      // BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << "
+      // noutput_items: " <<  noutput_items;
       amt_produce = output_queue.size();
     }
 
@@ -220,11 +220,12 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
         out[i] = output_queue[i];
       }
       output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
+
       /*
-      if (amt_produce < noutput_items) {
-        std::fill(out + amt_produce, out + noutput_items, 0);
-        amt_produce = noutput_items;
-      }*/
+         if (amt_produce < noutput_items) {
+         std::fill(out + amt_produce, out + noutput_items, 0);
+         amt_produce = noutput_items;
+         }*/
       silence_frame_count = d_silence_frames;
     } else if (silence_frame_count > 0) {
       std::fill(out, out + noutput_items, 0);
@@ -234,23 +235,26 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
   }
   consume_each(ninput_items[0]);
 
-    // Tell runtime system how many output items we produced.
-    return amt_produce;
-
+  // Tell runtime system how many output items we produced.
+  return amt_produce;
 }
-  void p25_frame_assembler_impl::clear_silence_frame_count() {
-    silence_frame_count = 0;
-  }
+
+void p25_frame_assembler_impl::clear_silence_frame_count() {
+  silence_frame_count = 0;
+}
+
 void p25_frame_assembler_impl::set_phase2_tdma(bool p)
 {
   d_do_phase2_tdma = p;
+
+
   if (d_do_audio_output) {
-  if (d_do_phase2_tdma) {
-       set_output_multiple(640);
-  } else {
-    set_output_multiple(864);
+    if (d_do_phase2_tdma) {
+      set_output_multiple(640);
+    } else {
+      set_output_multiple(864);
+    }
   }
- }
 }
 } /* namespace op25_repeater */
 } /* namespace gr */
