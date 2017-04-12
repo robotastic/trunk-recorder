@@ -124,7 +124,7 @@ p25_recorder::p25_recorder(Source *src)
   double gain_omega = 0.1  * gain_mu * gain_mu;
   double alpha      = costas_alpha;
   double beta       = 0.125 * alpha * alpha;
-  double fmax       = 3000; // Hz
+  double fmax       = 2400; // Hz
   fmax = 2 * pi * fmax / double(system_channel_rate);
 
   costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
