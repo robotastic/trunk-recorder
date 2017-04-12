@@ -34,7 +34,7 @@ p25_recorder::p25_recorder(Source *src)
   system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
-  int initial_decim      = floor(samp_rate / 288000);
+  int initial_decim      = floor(samp_rate / 240000);
   double initial_rate = double(samp_rate) / double(initial_decim);
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
@@ -124,7 +124,7 @@ p25_recorder::p25_recorder(Source *src)
   double gain_omega = 0.1  * gain_mu * gain_mu;
   double alpha      = costas_alpha;
   double beta       = 0.125 * alpha * alpha;
-  double fmax       = 2400; // Hz
+  double fmax       = 3000; // Hz
   fmax = 2 * pi * fmax / double(system_channel_rate);
 
   costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
