@@ -178,12 +178,13 @@ void load_config(string config_file)
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
         exit(1);
       }
-      BOOST_LOG_TRIVIAL(info);
+      BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSystem Number: " << sys_count;
+      system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
+      BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
 
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
-      system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
-      BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
+
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
       system->set_call_log(node.second.get<bool>("callLog", true));
@@ -218,7 +219,9 @@ void load_config(string config_file)
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
         }
       }
+      BOOST_LOG_TRIVIAL(info);
     }
+
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
     size_t pos = config.capture_dir.find_last_of("/");
 
@@ -390,12 +393,12 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (call->get_encrypted() == true) {
 
-      BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because it is encrypted: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tNot Recording: ENCRYPTED ";
       return;
     }
 
   if (!talkgroup && (sys->get_record_unknown() == false)) {
-    BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because talkgroup is not in Talkgroup File: " <<  call->get_freq() << " TG: " << call->get_talkgroup();
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tNot Recording: TG not in Talkgroup File ";
     return;
   }
 
@@ -414,7 +417,7 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
             recorder = source->get_digital_recorder(talkgroup->get_priority());
           }
         } else {
-          BOOST_LOG_TRIVIAL(error) << "\tTalkgroup not found: " << call->get_freq() << " For TG: " << call->get_talkgroup();
+          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tTG not in Talkgroup File ";
 
           // A talkgroup was not found from the talkgroup file.
           if (default_mode == "analog") {
@@ -428,9 +431,9 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
 
         if (recorder) {
           if (message.meta.length()) {
-            BOOST_LOG_TRIVIAL(info) << message.meta;
+            BOOST_LOG_TRIVIAL(trace) << message.meta;
           }
-          BOOST_LOG_TRIVIAL(info) << "Starting Recorder on Src: " << source->get_device();
+          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tStarting Recorder on Src: " << source->get_device();
 
           recorder->start(call, total_recorders);
           call->set_recorder(recorder);
@@ -461,7 +464,8 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
     }
 
     if (!source_found) {
-      BOOST_LOG_TRIVIAL(info) <<  "\tRecording not started because there was no source covering: " <<  call->get_freq() << " For TG: " << call->get_talkgroup();
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tNot Recording: no source covering Freq";
+
       return;
     }
 
@@ -513,12 +517,12 @@ void stop_inactive_recorders() {
 }
 
 void print_status() {
-  BOOST_LOG_TRIVIAL(info) << "Total Calls: " << calls.size();
+  BOOST_LOG_TRIVIAL(info) << "Currently Active Calls: " << calls.size();
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call         = *it;
     Recorder *recorder = call->get_recorder();
-    BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " Freq: " << call->get_freq() << " elapsed: " << call->elapsed() << " State: " << call->get_state();
+    BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " Freq: " << call->get_freq() << " Elapsed: " << call->elapsed() << " State: " << call->get_state();
 
     if (recorder) {
       BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << recorder->get_state();
@@ -537,7 +541,6 @@ bool retune_recorder(TrunkMessage message, Call *call) {
   Recorder *recorder = call->get_recorder();
   Source   *source   = recorder->get_source();
 
-  BOOST_LOG_TRIVIAL(info) << "\tRetune - Elapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \tTalkgroup: " <<  message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
 
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
@@ -556,6 +559,8 @@ bool retune_recorder(TrunkMessage message, Call *call) {
     }
     return true;
   } else {
+    BOOST_LOG_TRIVIAL(info) << "\t - Retune failed, New Freq out of range for Source: " << source->get_device();
+    BOOST_LOG_TRIVIAL(info) << "\t - Starting a new recording using a new source";
     return false;
   }
 }
@@ -579,16 +584,16 @@ void assign_recorder(TrunkMessage message, System *sys) {
 
       // Is the freq the same?
       if (call->get_freq() != message.freq) {
-        BOOST_LOG_TRIVIAL(trace) << "\tAssign Retune - Total calls: " <<  calls.size() << "\tRecorders: " << get_total_recorders() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
         // are we currently recording the call?
         if (call->get_state() == recording) {
+          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tAssign Retuning - New Freq: " << message.freq << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
+
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
             // we failed to retune to the new freq, kill this call
 
-            BOOST_LOG_TRIVIAL(info) <<  "\t\tStopping call, starting new call on new source";
             call->end_call();
 
             it = calls.erase(it);
@@ -640,15 +645,6 @@ void assign_recorder(TrunkMessage message, System *sys) {
   }
 }
 
-void current_system_id(int sys_id) {
-  static int active_sys_id = 0;
-
-  if (active_sys_id != sys_id) {
-    BOOST_LOG_TRIVIAL(trace) << "Decoding System ID " << std::hex << std::uppercase << sys_id << std::nouppercase << std::dec;
-    active_sys_id = sys_id;
-  }
-}
-
 void current_system_status(TrunkMessage message, System *sys) {
   sys->update_status(message);
 }
@@ -686,13 +682,14 @@ void update_recorder(TrunkMessage message, System *sys) {
 
       if (call->get_freq() != message.freq) {
         if (call->get_state() == recording) {
-          BOOST_LOG_TRIVIAL(info) << "\t Update Retune - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
 
           // see if we can retune the recorder, sometimes you can't if there are
           // more than one
+          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tUpdate Retuning - New Freq: " << message.freq << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
+
             call->end_call();
 
             it = calls.erase(it);
@@ -717,7 +714,7 @@ void update_recorder(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(info) << "\t Call not found for Update Message, Starting one...  Talkgroup: " << message.talkgroup << "\tFreq: " << message.freq << " TDMA: " << message.tdma_slot << " Encrypted: " << message.encrypted;
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << message.talkgroup << "\tFreq: " << message.freq << "\tCall not found for Update Message, Starting one...";
 
     assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
@@ -794,7 +791,6 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
       break;
 
     case SYSID:
-      current_system_id(message.sys_id);
       break;
 
     case STATUS:
@@ -826,10 +822,8 @@ void retune_system(System *system) {
   Source *source               = system->get_source();
   double  control_channel_freq = system->get_next_control_channel();
 
-  BOOST_LOG_TRIVIAL(error) << "Retuning to Control Channel: " << control_channel_freq;
-
-
-    BOOST_LOG_TRIVIAL(info) << "System Source - Min Freq: " << source->get_min_hz() << " Max Freq: " << source->get_max_hz();
+    BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << control_channel_freq;
+    BOOST_LOG_TRIVIAL(info) << "\tSystem Source - Min Freq: " << source->get_min_hz() << " Max Freq: " << source->get_max_hz();
 
     if ((source->get_min_hz() <= control_channel_freq) &&
         (source->get_max_hz() >= control_channel_freq)) {
@@ -844,11 +838,10 @@ void retune_system(System *system) {
       // the one with the right frequencies
       system->p25_trunking->tune_offset(control_channel_freq);
     } else {
-      BOOST_LOG_TRIVIAL(error) << "Unkown system type for Retune";
+      BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
     }
-    BOOST_LOG_TRIVIAL(info) << "Finished retuning";
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Unable to retune System control channel, freq not covered by the Source used for the inital control channel freq.";
+    BOOST_LOG_TRIVIAL(error) << "\t - Unable to retune System control channel, freq not covered by the Source used for the inital control channel freq.";
   }
 }
 
