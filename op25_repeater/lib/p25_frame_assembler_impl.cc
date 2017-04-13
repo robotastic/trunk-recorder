@@ -125,7 +125,6 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
 
   if (d_do_audio_output) set_output_multiple(864);
 
-
   if (!d_do_audio_output && !d_do_imbe) set_output_multiple(160);
 }
 
