@@ -84,6 +84,7 @@ private:
   long   talkgroup;
   long   samp_rate;
 
+  double system_channel_rate;
   double squelch_db;
   time_t timestamp;
   time_t starttime;
@@ -99,11 +100,15 @@ private:
   std::vector<float> sym_taps;
   std::vector<float> high_f_taps;
   std::vector<float> arb_taps;
+  /* De-emph IIR filter taps */
+std::vector<double> d_fftaps;  /*! Feed forward taps. */
+std::vector<double> d_fbtaps;  /*! Feed back taps. */
+    double      d_tau;           /*! De-emphasis time constant. */
 
 
   Config *config;
   Source *source;
-
+void calculate_iir_taps(double tau);
   freq_xlating_fft_filter_sptr prefilter;
 
   /* GR blocks */

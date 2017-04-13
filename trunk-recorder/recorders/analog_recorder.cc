@@ -9,6 +9,32 @@ analog_recorder_sptr make_analog_recorder(Source *src)
   return gnuradio::get_initial_sptr(new analog_recorder(src));
 }
 
+/*! \brief Calculate taps for FM de-emph IIR filter. */
+void analog_recorder::calculate_iir_taps(double tau)
+{
+    // copied from fm_emph.py in gr-analog
+    double  w_c;    // Digital corner frequency
+    double  w_ca;   // Prewarped analog corner frequency
+    double  k, z1, p1, b0;
+    double  fs = system_channel_rate;
+
+    w_c = 1.0 / tau;
+    w_ca = 2.0 * fs * tan(w_c / (2.0 * fs));
+
+    // Resulting digital pole, zero, and gain term from the bilinear
+    // transformation of H(s) = w_ca / (s + w_ca) to
+    // H(z) = b0 (1 - z1 z^-1)/(1 - p1 z^-1)
+    k = -w_ca / (2.0 * fs);
+    z1 = -1.0;
+    p1 = (1.0 + k) / (1.0 - k);
+    b0 = -k / (1.0 - k);
+
+    d_fftaps[0] = b0;
+    d_fftaps[1] = -z1 * b0;
+    d_fbtaps[0] = 1.0;
+    d_fbtaps[1] = -p1;
+}
+
 analog_recorder::analog_recorder(Source *src)
   : gr::hier_block2("analog_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -31,7 +57,7 @@ analog_recorder::analog_recorder(Source *src)
   float offset = 0;
 
   int samp_per_sym        = 10;
-  float  system_channel_rate     = 4800 * samp_per_sym;
+  system_channel_rate     = 96000;//4800 * samp_per_sym;
 /*  int decim               = floor(samp_rate / 384000);
 
   double pre_channel_rate = samp_rate / decim;*/
@@ -107,12 +133,16 @@ analog_recorder::analog_recorder(Source *src)
 
 
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
-  demod    = gr::analog::quadrature_demod_cf::make(1.527);
+  float quad_gain;
+  int d_max_dev = 5000;
+    /* demodulator gain */
+    quad_gain = system_channel_rate / (2.0 * M_PI * d_max_dev);
+  demod    = gr::analog::quadrature_demod_cf::make(quad_gain);
   levels   = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); // 33);
   valve    = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  float tau  = 0.000075; // 75us
+/*
   float w_p  = 1 / tau;
   float w_pp = tan(w_p / (48000.0 * 2));
 
@@ -129,6 +159,14 @@ analog_recorder::analog_recorder(Source *src)
   ataps[1] = a1;
 
   deemph = gr::filter::iir_filter_ffd::make(btaps, ataps);
+*/
+  /* de-emphasis */
+    d_tau  = 0.000075; // 75us
+  d_fftaps.resize(2);
+  d_fbtaps.resize(2);
+  calculate_iir_taps(d_tau);
+  deemph = gr::filter::iir_filter_ffd::make(d_fftaps, d_fbtaps);
+
 
   audio_resampler_taps = design_filter(1, 6);
 
