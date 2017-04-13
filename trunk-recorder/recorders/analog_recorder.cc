@@ -142,24 +142,7 @@ analog_recorder::analog_recorder(Source *src)
   valve    = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-/*
-  float w_p  = 1 / tau;
-  float w_pp = tan(w_p / (48000.0 * 2));
 
-  float a1 = (w_pp - 1) / (w_pp + 1);
-  float b0 = w_pp / (1 + w_pp);
-  float b1 = b0;
-
-  std::vector<double> btaps(2); // = {b0, b1};
-  std::vector<double> ataps(2); // = {1, a1};
-
-  btaps[0] = b0;
-  btaps[1] = b1;
-  ataps[0] = 1;
-  ataps[1] = a1;
-
-  deemph = gr::filter::iir_filter_ffd::make(btaps, ataps);
-*/
   /* de-emphasis */
     d_tau  = 0.000075; // 75us
   d_fftaps.resize(2);
@@ -168,7 +151,7 @@ analog_recorder::analog_recorder(Source *src)
   deemph = gr::filter::iir_filter_ffd::make(d_fftaps, d_fbtaps);
 
 
-  audio_resampler_taps = design_filter(1, 6);
+  audio_resampler_taps = design_filter(1, 12);
 
   // downsample from 48k to 8k
   decim_audio = gr::filter::fir_filter_fff::make(6, audio_resampler_taps);
