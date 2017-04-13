@@ -154,7 +154,7 @@ analog_recorder::analog_recorder(Source *src)
   audio_resampler_taps = design_filter(1, 12);
 
   // downsample from 48k to 8k
-  decim_audio = gr::filter::fir_filter_fff::make(6, audio_resampler_taps);
+  decim_audio = gr::filter::fir_filter_fff::make(12, audio_resampler_taps);
 
   tm *ltm = localtime(&starttime);
 
