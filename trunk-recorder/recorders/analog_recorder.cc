@@ -31,22 +31,28 @@ analog_recorder::analog_recorder(Source *src)
   float offset = 0;
 
   int samp_per_sym        = 10;
-  int decim               = floor(samp_rate / 384000);
-  float  channel_rate     = 4800 * samp_per_sym;
-  double pre_channel_rate = samp_rate / decim;
+  float  system_channel_rate     = 4800 * samp_per_sym;
+/*  int decim               = floor(samp_rate / 384000);
 
-  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
+  double pre_channel_rate = samp_rate / decim;*/
+
+  int initial_decim      = floor(samp_rate / 240000);
+  double initial_rate = double(samp_rate) / double(initial_decim);
+  int decim = floor(initial_rate / system_channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
+
+  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
 //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
-  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 1500, 80);
+  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, initial_rate, 5000, 1500, 100);
 
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  prefilter = make_freq_xlating_fft_filter(decim, dest, offset, samp_rate);
+  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-  channel_lpf =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+  channel_lpf =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
-  double arb_rate  = (double(channel_rate) / double(pre_channel_rate));
+  double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
 
