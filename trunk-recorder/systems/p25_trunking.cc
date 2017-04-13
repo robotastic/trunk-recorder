@@ -25,7 +25,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double samples_per_symbol  = 10;
   double system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
-  int    decimation          = floor(samp_rate / 384000);
+  int    decimation          = floor(samp_rate / 240000);
   double resampled_rate      = double(samp_rate) / double(decimation);
   qpsk_mod = qpsk;
 
@@ -46,6 +46,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
 
   BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
+
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);

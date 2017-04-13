@@ -41,8 +41,8 @@
 #define ENABLE_COSTAS_CQPSK_HACK 0
 
 static const float M_TWOPI = 2 * M_PI;
-#define VERBOSE_GARDNER 0    // Used for debugging symbol timing loop
-#define VERBOSE_COSTAS 0     // Used for debugging phase and frequency tracking
+#define VERBOSE_GARDNER 0   // Used for debugging symbol timing loop
+#define VERBOSE_COSTAS 0    // Used for debugging phase and frequency tracking
 static const gr_complex PT_45 = gr_expj( M_PI / 4.0 );
 static const int NUM_COMPLEX=100;
 

@@ -30,7 +30,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   double symbol_rate         = 3600;
   double samples_per_symbol  = 10; // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
-  int    decimation          = int(samp_rate / 384000);
+  int    decimation          = int(samp_rate / 240000);
   double resampled_rate      = double(samp_rate) / double(decimation);
 
 
