@@ -34,10 +34,10 @@ p25_recorder::p25_recorder(Source *src)
   system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
-  /*int initial_decim      = floor(samp_rate / 240000);
-  double initial_rate = double(samp_rate) / double(initial_decim);*/
-  int decim = floor(samp_rate / 240000);
-  double resampled_rate = double(samp_rate) / double(decim);
+  int initial_decim      = floor(samp_rate / 288000);
+  double initial_rate = double(samp_rate) / double(initial_decim);
+  int decim = floor(initial_rate / system_channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
 
   const double pi = M_PI; // boost::math::constants::pi<double>();
 
@@ -58,11 +58,11 @@ p25_recorder::p25_recorder(Source *src)
   inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 12000, 100, gr::filter::firdes::WIN_HANN);
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  prefilter = make_freq_xlating_fft_filter(decim, dest, offset, samp_rate);
+  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
   //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
-  channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+  channel_lpf      =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
