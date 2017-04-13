@@ -36,7 +36,7 @@ p25_recorder::p25_recorder(Source *src)
 
 /*  int initial_decim      = floor(samp_rate / 20000);
   double initial_rate = double(samp_rate) / double(initial_decim);*/
-  int decim = floor(samp_rate / 384000);
+  int decim = floor(samp_rate / 240000);
   double resampled_rate = double(samp_rate) / double(decim);
 
   const double pi = M_PI; // boost::math::constants::pi<double>();
