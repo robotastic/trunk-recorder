@@ -100,6 +100,8 @@ private:
   int    silence_frames;
   int    tdma_slot;
   long   talkgroup;
+  bool phase2_tdma;
+  std::string short_name;
   time_t timestamp;
   time_t starttime;
 

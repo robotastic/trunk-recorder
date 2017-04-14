@@ -330,7 +330,7 @@ Rx_Status p25_recorder::get_rx_status() {
 void p25_recorder::stop() {
   if (state == active) {
     // op25_frame_assembler->clear();
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << phase2_tdma << "\tSlot: " << tdma_slot;
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
@@ -356,13 +356,14 @@ void p25_recorder::start(Call *call, int n) {
     starttime = time(NULL);
     double omega;
     talkgroup = call->get_talkgroup();
-
+    short_name = call->get_short_name();
     chan_freq      = call->get_freq();
     op25_frame_assembler->set_phase2_tdma(call->get_phase2_tdma());
     if (call->get_phase2_tdma()) {
+      phase2_tdma = true;
       tdma_slot = call->get_tdma_slot() ;
       op25_frame_assembler->set_slotid(tdma_slot);
-     omega = double(system_channel_rate) / double(6000);
+      omega = double(system_channel_rate) / double(6000);
 
       if (call->get_xor_mask()) {
         op25_frame_assembler->set_xormask(call->get_xor_mask());
@@ -371,6 +372,7 @@ void p25_recorder::start(Call *call, int n) {
           BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       }
     } else {
+      phase2_tdma = false;
       omega = double(system_channel_rate) / double(4800);
 
     }
@@ -379,7 +381,7 @@ void p25_recorder::start(Call *call, int n) {
     if (!qpsk_mod) {
       reset();
     }
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ] Phase 2: " << call->get_phase2_tdma() << " Slot: " << call->get_tdma_slot();
+    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
     int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);
