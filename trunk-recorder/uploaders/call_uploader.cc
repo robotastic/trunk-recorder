@@ -151,7 +151,7 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
         std::remove(call_info->converted);
       }
     } else {
-      BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tTDMA: " << call_info->phase2_tdma << "\tHTTPS Upload Error - file size: " << req_size;
+      BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tHTTPS Upload Error - file size: " << req_size;
 
     }
   }
