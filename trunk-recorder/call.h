@@ -56,6 +56,7 @@ public:
 								char *get_converted_filename();
 								char *get_filename();
 								int get_sys_num();
+								std::string get_short_name();
 								void create_filename();
 								void set_error(Rx_Status rx_status);
 								void set_freq(double f);
@@ -96,6 +97,7 @@ private:
 								long talkgroup;
 								double curr_freq;
 								System *sys;
+								std::string short_name;
 								int src_count;
 								long curr_src_id;
 								Call_Error error_list[50];

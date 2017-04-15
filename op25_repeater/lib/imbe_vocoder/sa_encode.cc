@@ -2,17 +2,17 @@
  * Project 25 IMBE Encoder/Decoder Fixed-Point implementation
  * Developed by Pavel Yazev E-mail: pyazev@gmail.com
  * Version 1.0 (c) Copyright 2009
- * 
+ *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * The software is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this; see the file COPYING.  If not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Boston, MA
@@ -59,14 +59,14 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 
 	// Calculate num_harms_prev2/num_harms. Result save in unsigned format Q8.24
 	if(num_harms == num_harms_prev2)
-		k_coef = (Word32)CNST_ONE_Q8_24;  
+		k_coef = (Word32)CNST_ONE_Q8_24;
 	else if(num_harms > num_harms_prev2)
 		k_coef = (Word32)div_s(num_harms_prev2 << 9, num_harms << 9) << 9;
 	else
-	{   
+	{
 		// imbe_param->num_harms < num_harms_prev2
 		k_coef = 0;
-		tmp = num_harms_prev2; 
+		tmp = num_harms_prev2;
 		while(tmp > num_harms)
 		{
 			tmp -= num_harms;
@@ -93,34 +93,37 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 	for(i = 0; i < num_harms; i++)
 	{
 		index   = (UWord16)(k_acc >> 24);                    // Get integer part
-		si_coef = (Word16)((k_acc - ((UWord32)index << 24)) >> 9); // Get fractional part 
+		si_coef = (Word16)((k_acc - ((UWord32)index << 24)) >> 9); // Get fractional part
 
 
 		if(si_coef == 0)
 		{
-			tmp_word32 = L_mpy_ls(sa_prev2[index], ro_coef);                        // sa_prev2 here is in Q10.22 format 
-			*vec32_ptr++ = L_sub(Log2(*sa_ptr++), tmp_word32);       
+			tmp_word32 = L_mpy_ls(sa_prev2[index], ro_coef);                        // sa_prev2 here is in Q10.22 format
+			*vec32_ptr = L_sub(Log2(*sa_ptr++), tmp_word32);
 			sum = L_add(sum, sa_prev2[index]);                                      // sum in Q10.22 format
 		}
 		else
 		{
-			tmp_word32 = L_mpy_ls(sa_prev2[index], sub(0x7FFF, si_coef)); 
-			sum = L_add(sum, tmp_word32);    
+			tmp_word32 = L_mpy_ls(sa_prev2[index], sub(0x7FFF, si_coef));
+			sum = L_add(sum, tmp_word32);
 			*vec32_ptr  = L_sub(Log2(*sa_ptr++), L_mpy_ls(tmp_word32, ro_coef));
 
-			tmp_word32 = L_mpy_ls(sa_prev2[index + 1], si_coef); 
-			sum = L_add(sum, tmp_word32); 
+			tmp_word32 = L_mpy_ls(sa_prev2[index + 1], si_coef);
+			sum = L_add(sum, tmp_word32);
 			*vec32_ptr = L_sub(*vec32_ptr, L_mpy_ls(tmp_word32, ro_coef));
 
-			vec32_ptr++;
 		}
+		/*if (d_gain_adjust)
+			*vec32_ptr = L_sub(*vec32_ptr, d_gain_adjust << 22);	// would be nicer to allow fractional increments...*/
+
+		vec32_ptr++;
 
 		k_acc += k_coef;
 	}
-	
-	imbe_param->div_one_by_num_harm_sh = tmp = norm_s(num_harms);	
+
+	imbe_param->div_one_by_num_harm_sh = tmp = norm_s(num_harms);
 	imbe_param->div_one_by_num_harm = tmp1 = div_s(0x4000, num_harms << tmp); // calculate 1/num_harms with scaling for better pricision
-	                                                                          // save result to use late  
+	                                                                          // save result to use late
 	sum = L_shr(L_mpy_ls(L_mpy_ls(sum, ro_coef), tmp1), (14 - tmp));
 
 	for(i = 0; i < num_harms; i++)
@@ -131,7 +134,7 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 	//
 	//////////////////////////////////////////////
 	index = num_harms - NUM_HARMS_MIN;
-		
+
 	// Unpack bit allocation table's item
 	get_bit_allocation(num_harms, imbe_param->bit_alloc);
 	lmprbl_item = lmprbl_tbl[index];
@@ -163,17 +166,17 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 				step_size = extract_h(((Word32)hi_ord_std_tbl[j - 1] * hi_ord_step_size_tbl[num_bits - 1]) << 1);
 				*b_vec_ptr = qnt_by_step(c_vec[j], step_size, num_bits);
 			}
-			else			
-				*b_vec_ptr = 0;		
+			else
+				*b_vec_ptr = 0;
 
 			b_vec_ptr++;
 		}
-		t_vec_ptr += bl_len; 
+		t_vec_ptr += bl_len;
 	}
 
 	// Encoding the Gain Vector
 	dct(gain_vec, NUM_PRED_RES_BLKS, NUM_PRED_RES_BLKS, gain_r);
-	
+
 	b_vec_ptr = &imbe_param->b_vec[2];
 	ba_ptr    = &imbe_param->bit_alloc[0];
 	gss_ptr   = (Word16 *)&gain_step_size_tbl[index * 5];
@@ -181,7 +184,7 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 	*b_vec_ptr++ = tbl_quant(gain_r[0], (Word16 *)&gain_qnt_tbl[0], GAIN_QNT_TBL_SIZE);
 	for(j = 1; j < 6; j++)
 		*b_vec_ptr++ = qnt_by_step(gain_r[j], *gss_ptr++, *ba_ptr++);
-		
+
 /*
 	for(j = 0; j < NUM_PRED_RES_BLKS; j++)
 		printf("%g ", (double)gain_vec[j]/2048.);
@@ -204,7 +207,7 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 
 	// Decoding the Gain Vector. gain_vec has signed Q5.11 format
 	gss_ptr = (Word16 *)&gain_step_size_tbl[index * 5];
-	gain_vec[0] = gain_qnt_tbl[*b_vec_ptr++]; 
+	gain_vec[0] = gain_qnt_tbl[*b_vec_ptr++];
 
 	for(i = 1; i < 6; i++)
 		gain_vec[i] = extract_l(L_shr(deqnt_by_step(*b_vec_ptr++, *gss_ptr++, *ba_ptr++), 5));
@@ -234,8 +237,8 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 				step_size = extract_h(((Word32)hi_ord_std_tbl[j - 1] * hi_ord_step_size_tbl[num_bits - 1]) << 1);
 				c_vec[j]  = extract_l(L_shr(deqnt_by_step(*b_vec_ptr, step_size, num_bits), 5));
 			}
-			else			
-				c_vec[j] = 0;		
+			else
+				c_vec[j] = 0;
 
 			b_vec_ptr++;
 		}
@@ -246,7 +249,7 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 		printf("\n");
 */
 		idct(c_vec, bl_len, bl_len, t_vec_ptr);
-		t_vec_ptr += bl_len; 
+		t_vec_ptr += bl_len;
 	}
 /*
 	printf("\n====t_vec_rec ===\n");
@@ -268,19 +271,19 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 	for(i = 0; i < num_harms; i++)
 	{
 		index   = (UWord16)(k_acc >> 24);                    // Get integer part
-		si_coef = (Word16)((k_acc - ((UWord32)index << 24)) >> 9); // Get fractional part 
+		si_coef = (Word16)((k_acc - ((UWord32)index << 24)) >> 9); // Get fractional part
 
 		if(si_coef == 0)
 		{
-			tmp_word32 = L_mpy_ls(sa_prev2[index], ro_coef);                        // sa_prev2 here is in Q10.22 format 
+			tmp_word32 = L_mpy_ls(sa_prev2[index], ro_coef);                        // sa_prev2 here is in Q10.22 format
 			*vec32_ptr++ = L_add(L_shr(L_deposit_h(t_vec[i]), 5), tmp_word32);     // Convert t_vec to Q10.22 and add ...
 		}
 		else
 		{
-			tmp_word32 = L_mpy_ls(sa_prev2[index], sub(0x7FFF, si_coef)); 
+			tmp_word32 = L_mpy_ls(sa_prev2[index], sub(0x7FFF, si_coef));
 			*vec32_ptr  = L_add(L_shr(L_deposit_h(t_vec[i]), 5), L_mpy_ls(tmp_word32, ro_coef));
 
-			tmp_word32 = L_mpy_ls(sa_prev2[index + 1], si_coef); 
+			tmp_word32 = L_mpy_ls(sa_prev2[index + 1], si_coef);
 			*vec32_ptr = L_add(*vec32_ptr, L_mpy_ls(tmp_word32, ro_coef));
 
 			vec32_ptr++;

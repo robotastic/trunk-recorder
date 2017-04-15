@@ -117,7 +117,8 @@ void Call::end_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "Ending Recorded Call \tTG: " <<   this->get_talkgroup() << "\tLast Update: " << this->since_last_update() << " Call Elapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << get_talkgroup() << "\tFreq: " << get_freq() << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
+
 
 
     if (freq_count > 0) {
@@ -235,7 +236,6 @@ void Call::set_freq(double f) {
       freq_list[freq_count - 1].total_len   = rx_status.total_len;
       freq_list[freq_count - 1].spike_count = rx_status.spike_count;
       freq_list[freq_count - 1].error_count = rx_status.error_count;
-      BOOST_LOG_TRIVIAL(error) << "changing freq from: " << curr_freq << " to: " << f;
     }
 
     Call_Freq call_freq = { f, time(NULL), position };
@@ -252,7 +252,9 @@ void Call::set_freq(double f) {
 int Call::get_sys_num() {
   return sys->get_sys_num();
 }
-
+std::string Call::get_short_name() {
+  return sys->short_name;
+}
 long Call::get_talkgroup() {
   return talkgroup;
 }

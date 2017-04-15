@@ -25,8 +25,10 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double samples_per_symbol  = 10;
   double system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
-  int    decimation          = floor(samp_rate / 384000);
-  double resampled_rate      = double(samp_rate) / double(decimation);
+  int initial_decim      = floor(samp_rate / 240000);
+  double initial_rate = double(samp_rate) / double(initial_decim);
+  int decim = floor(initial_rate / system_channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
   qpsk_mod = qpsk;
 
 
@@ -39,19 +41,21 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
+  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-  BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate;
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
-  channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
+
+//  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
+  channel_lpf      =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
 
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
   // Create a filter that covers the full bandwidth of the output signal
 

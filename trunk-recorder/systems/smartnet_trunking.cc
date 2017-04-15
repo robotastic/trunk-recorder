@@ -30,8 +30,10 @@ smartnet_trunking::smartnet_trunking(float               f,
   double symbol_rate         = 3600;
   double samples_per_symbol  = 10; // was 10
   double system_channel_rate = symbol_rate * samples_per_symbol;
-  int    decimation          = int(samp_rate / 384000);
-  double resampled_rate      = double(samp_rate) / double(decimation);
+  int initial_decim      = floor(samp_rate / 240000);
+  double initial_rate = double(samp_rate) / double(initial_decim);
+  int decim = floor(initial_rate / system_channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
 
 
   float gain_mu              = 0.01;
@@ -45,12 +47,12 @@ smartnet_trunking::smartnet_trunking(float               f,
   BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
 
   inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6250, 1500, 60, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 60, gr::filter::firdes::WIN_HANN);
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
+  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-  gr::filter::fft_filter_ccf::sptr channel_lpf = gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+  gr::filter::fft_filter_ccf::sptr channel_lpf = gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
@@ -79,7 +81,7 @@ smartnet_trunking::smartnet_trunking(float               f,
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
     double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
-    BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
+    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(0);

@@ -10,6 +10,8 @@
 #include <sys/time.h>
 #include <p25p2_framer.h>
 
+#include "check_frame_sync.h"
+
 // constructor
 p25p2_framer::p25p2_framer() :
 	d_reverse_p(0),
@@ -24,17 +26,6 @@ p25p2_framer::p25p2_framer() :
 // destructor
 p25p2_framer::~p25p2_framer ()
 {
-}
-
-// count no. of 1 bits in masked, xor'ed, FS, return true if < threshold
-static inline bool check_frame_sync(uint64_t ch, int err_threshold) {
-	int errs=0;
-	for (int i=0; i < 40; i++) {
-		errs += (ch & 1);
-		ch = ch >> 1;
-	}
-	if (errs <= err_threshold) return 1;
-	return 0;
 }
 
 /*
@@ -58,10 +49,10 @@ bool p25p2_framer::rx_sym(uint8_t dibit) {
 	nid_accum |= dibit;
 
 	int found=0;
-	if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_MAGIC, 4)) {
+	if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_MAGIC, 4, 40)) {
 		found = 1;
 	}
-	else if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_REV_P, 0)) {
+	else if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_REV_P, 0, 40)) {
 		found = 1;
 		d_reverse_p ^= 0x02;   // auto flip polarity reversal
 		fprintf(stderr, "TDMA: Reversed FS polarity detected - autocorrecting\n");

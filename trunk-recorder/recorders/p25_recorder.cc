@@ -34,8 +34,10 @@ p25_recorder::p25_recorder(Source *src)
   system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
-  int decimation        = int(samp_rate / 384000);
-  double resampled_rate = double(samp_rate) / double(decimation);
+  int initial_decim      = floor(samp_rate / 240000);
+  double initial_rate = double(samp_rate) / double(initial_decim);
+  int decim = floor(initial_rate / system_channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
 
   const double pi = M_PI; // boost::math::constants::pi<double>();
 
@@ -53,15 +55,14 @@ p25_recorder::p25_recorder(Source *src)
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 12000, 100, gr::filter::firdes::WIN_HANN);
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  prefilter = make_freq_xlating_fft_filter(decimation, dest, offset, samp_rate);
+  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-
-  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 100, gr::filter::firdes::WIN_HANN);
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
-  channel_lpf      =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
+  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
+  channel_lpf      =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
@@ -75,12 +76,12 @@ p25_recorder::p25_recorder(Source *src)
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
   double percent = 0.80;
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
   if (arb_rate <= 1) {
     double halfband = 0.5 * arb_rate;
     double bw       = percent * halfband;
     double tb       = (percent / 2.0) * halfband;
-    BOOST_LOG_TRIVIAL(info) << "Resampled Rate: " << resampled_rate << " Decimation: " << decimation << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
     // BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
     // tb;
@@ -119,7 +120,7 @@ p25_recorder::p25_recorder(Source *src)
 
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
-  double omega      = double(system_channel_rate) / double(4800); // set to 6000 for TDMA, should be symbol_rate
+  double omega      = double(system_channel_rate) / symbol_rate; // set to 6000 for TDMA, should be symbol_rate
   double gain_omega = 0.1  * gain_mu * gain_mu;
   double alpha      = costas_alpha;
   double beta       = 0.125 * alpha * alpha;
@@ -250,7 +251,7 @@ p25_recorder::p25_recorder(Source *src)
 }
 
 void p25_recorder::clear() {
-  op25_frame_assembler->clear();
+  //op25_frame_assembler->clear();
 }
 
 void p25_recorder::autotune() {
@@ -329,7 +330,7 @@ Rx_Status p25_recorder::get_rx_status() {
 void p25_recorder::stop() {
   if (state == active) {
     // op25_frame_assembler->clear();
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << phase2_tdma << "\tSlot: " << tdma_slot;
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
@@ -355,10 +356,11 @@ void p25_recorder::start(Call *call, int n) {
     starttime = time(NULL);
     double omega;
     talkgroup = call->get_talkgroup();
-
+    short_name = call->get_short_name();
     chan_freq      = call->get_freq();
     op25_frame_assembler->set_phase2_tdma(call->get_phase2_tdma());
     if (call->get_phase2_tdma()) {
+      phase2_tdma = true;
       tdma_slot = call->get_tdma_slot() ;
       op25_frame_assembler->set_slotid(tdma_slot);
       omega = double(system_channel_rate) / double(6000);
@@ -370,6 +372,7 @@ void p25_recorder::start(Call *call, int n) {
           BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       }
     } else {
+      phase2_tdma = false;
       omega = double(system_channel_rate) / double(4800);
 
     }
@@ -378,7 +381,7 @@ void p25_recorder::start(Call *call, int n) {
     if (!qpsk_mod) {
       reset();
     }
-    BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ] Phase 2: " << call->get_phase2_tdma() << " Slot: " << call->get_tdma_slot();
+    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
     int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);

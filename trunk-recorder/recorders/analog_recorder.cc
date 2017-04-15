@@ -9,6 +9,32 @@ analog_recorder_sptr make_analog_recorder(Source *src)
   return gnuradio::get_initial_sptr(new analog_recorder(src));
 }
 
+/*! \brief Calculate taps for FM de-emph IIR filter. */
+void analog_recorder::calculate_iir_taps(double tau)
+{
+    // copied from fm_emph.py in gr-analog
+    double  w_c;    // Digital corner frequency
+    double  w_ca;   // Prewarped analog corner frequency
+    double  k, z1, p1, b0;
+    double  fs = system_channel_rate;
+
+    w_c = 1.0 / tau;
+    w_ca = 2.0 * fs * tan(w_c / (2.0 * fs));
+
+    // Resulting digital pole, zero, and gain term from the bilinear
+    // transformation of H(s) = w_ca / (s + w_ca) to
+    // H(z) = b0 (1 - z1 z^-1)/(1 - p1 z^-1)
+    k = -w_ca / (2.0 * fs);
+    z1 = -1.0;
+    p1 = (1.0 + k) / (1.0 - k);
+    b0 = -k / (1.0 - k);
+
+    d_fftaps[0] = b0;
+    d_fftaps[1] = -z1 * b0;
+    d_fbtaps[0] = 1.0;
+    d_fbtaps[1] = -p1;
+}
+
 analog_recorder::analog_recorder(Source *src)
   : gr::hier_block2("analog_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -31,22 +57,28 @@ analog_recorder::analog_recorder(Source *src)
   float offset = 0;
 
   int samp_per_sym        = 10;
-  int decim               = floor(samp_rate / 384000);
-  float  channel_rate     = 4800 * samp_per_sym;
-  double pre_channel_rate = samp_rate / decim;
+  system_channel_rate     = 96000;//4800 * samp_per_sym;
+/*  int decim               = floor(samp_rate / 384000);
 
-  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
+  double pre_channel_rate = samp_rate / decim;*/
+
+  int initial_decim      = floor(samp_rate / 240000);
+  double initial_rate = double(samp_rate) / double(initial_decim);
+  int decim = floor(initial_rate / system_channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
+
+  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
 //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
-  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 1500, 80);
+  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, initial_rate, 5000, 1500, 100);
 
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  prefilter = make_freq_xlating_fft_filter(decim, dest, offset, samp_rate);
+  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-  channel_lpf =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+  channel_lpf =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
-  double arb_rate  = (double(channel_rate) / double(pre_channel_rate));
+  double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
 
@@ -101,33 +133,28 @@ analog_recorder::analog_recorder(Source *src)
 
 
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
-  demod    = gr::analog::quadrature_demod_cf::make(1.527);
+  float quad_gain;
+  int d_max_dev = 5000;
+    /* demodulator gain */
+    quad_gain = system_channel_rate / (2.0 * M_PI * d_max_dev);
+  demod    = gr::analog::quadrature_demod_cf::make(quad_gain);
   levels   = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); // 33);
   valve    = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  float tau  = 0.000075; // 75us
-  float w_p  = 1 / tau;
-  float w_pp = tan(w_p / (48000.0 * 2));
 
-  float a1 = (w_pp - 1) / (w_pp + 1);
-  float b0 = w_pp / (1 + w_pp);
-  float b1 = b0;
+  /* de-emphasis */
+    d_tau  = 0.000075; // 75us
+  d_fftaps.resize(2);
+  d_fbtaps.resize(2);
+  calculate_iir_taps(d_tau);
+  deemph = gr::filter::iir_filter_ffd::make(d_fftaps, d_fbtaps);
 
-  std::vector<double> btaps(2); // = {b0, b1};
-  std::vector<double> ataps(2); // = {1, a1};
 
-  btaps[0] = b0;
-  btaps[1] = b1;
-  ataps[0] = 1;
-  ataps[1] = a1;
-
-  deemph = gr::filter::iir_filter_ffd::make(btaps, ataps);
-
-  audio_resampler_taps = design_filter(1, 6);
+  audio_resampler_taps = design_filter(1, 12);
 
   // downsample from 48k to 8k
-  decim_audio = gr::filter::fir_filter_fff::make(6, audio_resampler_taps);
+  decim_audio = gr::filter::fir_filter_fff::make(12, audio_resampler_taps);
 
   tm *ltm = localtime(&starttime);
 
