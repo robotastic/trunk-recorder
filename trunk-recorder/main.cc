@@ -823,7 +823,7 @@ void retune_system(System *system) {
   double  control_channel_freq = system->get_next_control_channel();
 
     BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << control_channel_freq;
-    BOOST_LOG_TRIVIAL(info) << "\tSystem Source - Min Freq: " << source->get_min_hz() << " Max Freq: " << source->get_max_hz();
+    BOOST_LOG_TRIVIAL(info) << "\t - System Source - Min Freq: " << source->get_min_hz() << " Max Freq: " << source->get_max_hz();
 
     if ((source->get_min_hz() <= control_channel_freq) &&
         (source->get_max_hz() >= control_channel_freq)) {
@@ -860,12 +860,12 @@ void check_message_count(float timeDiff) {
         if (sys->control_channel_count() > 1) {
           retune_system(sys);
         } else {
-          BOOST_LOG_TRIVIAL(error) << "There is only one control channel defined";
+          BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tThere is only one control channel defined";
         }
       }
 
       if (msgs_decoded_per_second < 10) {
-        BOOST_LOG_TRIVIAL(error) << "\tControl Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
+        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
       sys->message_count = 0;
     }
@@ -972,13 +972,13 @@ bool monitor_system() {
             system_added = true;
 
             if (source->get_squelch_db() == 0) {
-              BOOST_LOG_TRIVIAL(error) << "Squelch needs to be specified for the Source for Conventional Systems";
+              BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
               system_added = false;
             } else {
               system_added = true;
             }
 
-            BOOST_LOG_TRIVIAL(info) << "Monitoring Conventional Channel: " << channel << " Talkgroup: " << talkgroup;
+            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << channel << " Talkgroup: " << talkgroup;
             Call *call = new Call(talkgroup, channel, system, config);
             talkgroup++;
             call->set_conventional(true);
@@ -1008,7 +1008,7 @@ bool monitor_system() {
       }
     } else {
       double control_channel_freq = system->get_current_control_channel();
-      BOOST_LOG_TRIVIAL(info) << "Control Channel: " << control_channel_freq;
+      BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tStarted with Control Channel: " << control_channel_freq;
 
       for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
         source = *src_it;
@@ -1129,7 +1129,6 @@ add_logs(
     tb->stop();
     tb->wait();
   } else {
-    tb->unlock();
     BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." <<  std::endl;
   }
 
