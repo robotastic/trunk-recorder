@@ -542,11 +542,18 @@ bool retune_recorder(TrunkMessage message, Call *call) {
   Source   *source   = recorder->get_source();
 
 
-if ((call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
-  BOOST_LOG_TRIVIAL(info) << "\t - Retune failed, TDMA Mismatch: ";
+if (call->get_phase2_tdma() != message.phase2_tdma) {
+  BOOST_LOG_TRIVIAL(info) << "\t - Retune failed, TDMA Mismatch! ";
+  BOOST_LOG_TRIVIAL(info) << "\t - Message - \tTMDA: " << message.phase2_tdma << " \tSlot: " << message.tdma_slot <<"\tCall - \tTMDA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
   BOOST_LOG_TRIVIAL(info) << "\t - Starting a new recording using a new recorder";
   return false;
 }
+if (call->get_tdma_slot() != message.tdma_slot) {
+  BOOST_LOG_TRIVIAL(info) << "\t - Message - \tTMDA: " << message.phase2_tdma << " \tSlot: " << message.tdma_slot <<"\tCall - \tTMDA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+  recorder->set_tdma_slot(message.tdma_slot);
+  call->set_tdma_slot(message.tdma_slot);
+}
+  if (message.freq != call->get_freq()) {
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
     recorder->tune_offset(message.freq);
 
@@ -567,6 +574,8 @@ if ((call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != 
     BOOST_LOG_TRIVIAL(info) << "\t - Starting a new recording using a new source";
     return false;
   }
+}
+    return true;
 }
 
 void assign_recorder(TrunkMessage message, System *sys) {

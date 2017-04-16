@@ -77,6 +77,7 @@ public:
   void    clear();
   double  get_freq();
   int     get_num();
+  void    set_tdma_slot(int slot); 
   double  get_current_length();
   bool    is_active();
   bool    is_idle();

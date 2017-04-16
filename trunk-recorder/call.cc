@@ -323,6 +323,9 @@ bool Call::get_emergency() {
 
 void Call::set_tdma_slot(int m) {
   tdma_slot = m;
+  if (!phase2_tdma && tdma_slot) {
+    BOOST_LOG_TRIVIAL(error) << "WHAT! SLot is 1 and TDMA is off";
+  }
 }
 
 int Call::get_tdma_slot() {

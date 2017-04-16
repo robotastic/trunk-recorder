@@ -350,6 +350,15 @@ void p25_recorder::reset() {
   //pll_demod->set_phase(0);
 
 }
+
+void p25_recorder::set_tdma_slot(int slot) {
+  if (phase2_tdma) {
+  tdma_slot = slot;
+  op25_frame_assembler->set_slotid(tdma_slot);
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Problem!! trying to set slot, but not TDMA call";
+  }
+}
 void p25_recorder::start(Call *call, int n) {
   if (state == inactive) {
     timestamp = time(NULL);
@@ -367,14 +376,14 @@ void p25_recorder::start(Call *call, int n) {
 
       if (call->get_xor_mask()) {
         op25_frame_assembler->set_xormask(call->get_xor_mask());
-          BOOST_LOG_TRIVIAL(info) << "Set XOR Mask " << call->get_xor_mask();
       } else {
           BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       }
     } else {
       phase2_tdma = false;
+      op25_frame_assembler->set_slotid(0);
+      tdma_slot = 0;
       omega = double(system_channel_rate) / double(4800);
-
     }
     costas_clock->update_omega(omega);
 
