@@ -60,8 +60,8 @@ p25_recorder::p25_recorder(Source *src)
 
   prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
-  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
+  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
@@ -251,7 +251,7 @@ p25_recorder::p25_recorder(Source *src)
 }
 
 void p25_recorder::clear() {
-  //op25_frame_assembler->clear();
+  op25_frame_assembler->clear();
 }
 
 void p25_recorder::autotune() {
@@ -329,7 +329,7 @@ Rx_Status p25_recorder::get_rx_status() {
 }
 void p25_recorder::stop() {
   if (state == active) {
-    // op25_frame_assembler->clear();
+    op25_frame_assembler->clear();
     BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << phase2_tdma << "\tSlot: " << tdma_slot;
     state = inactive;
     valve->set_enabled(false);
