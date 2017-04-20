@@ -15,16 +15,17 @@ GSUTIL="/usr/bin/gsutil"
 BUCKET="p25-player-audio"   # add path to BUCKET as needed (e.g. "bucket-name/subdir/")
 #
 DELAY="2s"
+TIMEFORMAT="+%F %T.%6N"
 FILENAME="$1"
-echo "Uploading: ${FILENAME}"
+# echo "Uploading: ${FILENAME}"
 BASENAME="${FILENAME%.*}"
 JSON="${BASENAME}.json"
 sleep ${DELAY}
-${GSUTIL} cp ${FILENAME} ${JSON} gs://${BUCKET}
+${GSUTIL} -q cp ${FILENAME} ${JSON} gs://${BUCKET}
 if [ $? -eq 0 ]
 then
-    echo "Uploaded ${FILENAME}"
+    echo "[$(date "${TIMEFORMAT}")] Uploaded: ${BASENAME} Bucket: ${BUCKET}"
 else
-    echo "Failed to upload ${FILENAME}"
+    echo "[$(date "${TIMEFORMAT}")] Upload failed: ${BASENAME} Bucket: ${BUCKET}"
     exit 1
 fi
