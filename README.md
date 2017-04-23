@@ -6,7 +6,7 @@ Need help? Got something working? Share it!
 
 [![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
-Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swatches of RF and then use software to process what was received. GNURadio is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. Multiple radio systems can be recorded at the same time.
+Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swatches of RF and then use software to process what was received. [GNURadio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
 
 Trunk Recorder currently supports the following:
  - Trunked P25 & SmartNet Systems
@@ -15,16 +15,27 @@ Trunk Recorder currently supports the following:
  - Ettus USRPs
  - P25 Phase 1, **P25 Phase 2** & Analog voice channels
 
-I have tested things on both Unbuntu: 16.04, 14.04; OSX 10.10, OSX 10.11, 10.12. I have been using it with an Ettus b200, 3xRTL-SDR dongles and a HackRF Jawbreaker.
+Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04), Arch Linux (2017.03.01), and macOS (10.10, 10.11, 10.12). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
 
-## Wiki Pages
-### Installing
+# Wiki Pages
+
+## Install
+
+### Install Required Prequisites
 * [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
-* [Ubuntu 16.04](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu-16.04-Install)
+* [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
+* [Arch Linux](https://github.com/robotastic/trunk-recorder/wiki/Arch-Linux)
+* [macOS](https://github.com/robotastic/trunk-recorder/wiki/macOS)
 * [Raspberry Pi - Jessie](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Jessie-Install)
+
+### Building
+* [Building Trunk Recorder](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder)
 
 ### Setup
 * [Configuring a system](https://github.com/robotastic/trunk-recorder/wiki/Configuring-a-System)
+
+### Running
+* [Running Trunk Recorder](https://github.com/robotastic/trunk-recorder/wiki/Running-Trunk-Recorder)
 
 ### Playback & Sharing
 By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.
@@ -34,61 +45,6 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 * [FAQ](https://github.com/robotastic/trunk-recorder/wiki/FAQ)
 
 ___
-
-## Install
-
-### Requirements
- - GNURadio 3.7
-
-**OSX**
-
-If you are on OSX, the [MacPorts](https://gnuradio.org/redmine/projects/gnuradio/wiki/MacInstall) install of GNU Radio has worked for me.
-
-### Setting up [GNU Radio](http://gnuradio.org/) on a fresh [Ubuntu](http://www.ubuntu.com/) Version 16.04 [Release](http://releases.ubuntu.com/16.04/)
-
-There are a few methods to install GNU Radio. Source, [PyBOMBS](https://github.com/gnuradio/pybombs), or Distribution package manager. In this setup we will be using apt-get to install GNURadio (fastest method I have used). GNU Radio Version in apt-get as of 07/11/2016 is 3.7.9.  
-Using a package manager is the currently preferred method from the GNU Radio Project, [Installing GNU Radio](http://gnuradio.org/redmine/projects/gnuradio/wiki/InstallingGR).
-
-**Using apt-get to get GNU Radio and other prerequisites for Trunk Recorder**
-
-Update currently install packages
-
-```bash
-sudo apt-get update  
-sudo apt-get upgrade
-```
-
-Install GNU Radio with other prerequisites
-```bash
-sudo apt-get install gnuradio gr-osmosdr libhackrf-dev libuhd-dev
-```
-
-Install tools to compile Trunk Recorder
-```bash
-sudo apt-get install git cmake build-essential libboost-all-dev libusb-1.0-0.dev libssl-dev
-```
-
-Get source for Trunk Recorder  
-Note: I put all my Radio related code into ~/radio/, change this as you wish  
-
-```bash
-mkdir ~/radio
-cd ~/radio/
-git clone https://github.com/robotastic/trunk-recorder.git
-cd trunk-recorder
-cmake .
-make
-```
-
-
-**Running trunk recorder.**
-
-If all goes well you should now have the executable named recorder.  
-Before you can run anything, you need to create a `config.json` file ( see below ).
-After you have done that, just run:
-```bash
-./recorder
-```
 
 ## Configure
 Configuring Trunk Recorder and getting things setup can be rather complex. I am looking to make things simpler in the future.
@@ -157,11 +113,13 @@ Here are the different arguments:
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
 
-**ChanList.csv**
+** talkgroupsFile **
 
-This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the Radio Reference website. You need to be a site member to download the table for your system. If you are not, try clicking on the "List All in one table" link, selecting everything in the table and copying it into Excel or a spreadsheet.
+This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. If you are not a Radio Reference member, try clicking on the "List All in one table" link, selecting everything in the table and copying it into Excel or a spreadsheet, and then exporting or saving as a CSV file. 
 
-You will have to add an additional column that adds a priority for each talkgroup. You need that number of recorders available to record a call at that priority. So, 1 is the highest, you would need 2 recorders available to record a priority 2, 3 record for a priority 3 and so on.
+**Note** - Fields in preformatted CSV downloads from Radio Reference are now in a different order than Trunk Recorder expects. See below for the correct field order. Additionally, Radio Reference inserts a header line at the tope of the CSV file which should be removed. 
+
+You may add an additional column that adds a priority for each talkgroup. The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed.
 
 The Trunk Record program really only uses the priority information and the Dec Talkgroup ID. The Website uses the same file though to help display information about each talkgroup.
 

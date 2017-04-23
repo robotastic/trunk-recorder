@@ -329,7 +329,7 @@ Rx_Status p25_recorder::get_rx_status() {
 }
 void p25_recorder::stop() {
   if (state == active) {
-    // op25_frame_assembler->clear();
+    op25_frame_assembler->clear();
     BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << phase2_tdma << "\tSlot: " << tdma_slot;
     state = inactive;
     valve->set_enabled(false);
@@ -341,14 +341,22 @@ void p25_recorder::stop() {
   }
 }
 void p25_recorder::reset() {
-
-//std::cout << "Pll Phase: " << pll_freq_lock->get_phase() << " min Freq: " << pll_freq_lock->get_min_freq() << " Max Freq: " << pll_freq_lock->get_max_freq() << std::endl;
+/*
   pll_freq_lock->update_gains();
   pll_freq_lock->frequency_limit();
   pll_freq_lock->phase_wrap();
-  fsk4_demod->reset();
+  fsk4_demod->reset();*/
   //pll_demod->set_phase(0);
 
+}
+
+void p25_recorder::set_tdma_slot(int slot) {
+  if (phase2_tdma) {
+  tdma_slot = slot;
+  op25_frame_assembler->set_slotid(tdma_slot);
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Problem!! trying to set slot, but not TDMA call";
+  }
 }
 void p25_recorder::start(Call *call, int n) {
   if (state == inactive) {
@@ -367,14 +375,14 @@ void p25_recorder::start(Call *call, int n) {
 
       if (call->get_xor_mask()) {
         op25_frame_assembler->set_xormask(call->get_xor_mask());
-          BOOST_LOG_TRIVIAL(info) << "Set XOR Mask " << call->get_xor_mask();
       } else {
           BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       }
     } else {
       phase2_tdma = false;
+      op25_frame_assembler->set_slotid(0);
+      tdma_slot = 0;
       omega = double(system_channel_rate) / double(4800);
-
     }
     costas_clock->update_omega(omega);
 

@@ -57,6 +57,7 @@ public:
 	virtual void tune_offset(double f) {};
 	virtual void start( Call *call, int n) {};
 	virtual void stop() {};
+  virtual void set_tdma_slot(int slot) {}; 
 	virtual double get_freq() {return 0;};
   virtual Source *get_source() {return NULL;};
 	virtual Call_Source *get_source_list() {return NULL;};

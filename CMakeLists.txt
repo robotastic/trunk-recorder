@@ -175,7 +175,7 @@ link_directories(
 )
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall -Wno-error=deprecated-declarations")
+set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall -Wno-error=deprecated-declarations -g")
 
 
 
@@ -190,7 +190,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall -Wno-error=deprecated-declarations")
 #        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 #endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing -g")
+SET(CMAKE_CXX_STANDARD 98)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
 
 
 add_subdirectory(op25_repeater)
