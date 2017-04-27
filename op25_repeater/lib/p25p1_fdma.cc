@@ -472,9 +472,7 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           obuf[obuf_ct++] = b;
         }
 
-        if (write_sock > 0) {
-          sendto(write_sock, obuf, obuf_ct, 0, (struct sockaddr *)&write_sock_addr, sizeof(write_sock_addr));
-        }
+
 
         if (d_do_output) {
           for (size_t j = 0; j < obuf_ct; j++) {

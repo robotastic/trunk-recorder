@@ -68,6 +68,7 @@
 
 using namespace std;
 namespace logging = boost::log;
+namespace keywords = boost::log::keywords;
 namespace src     = boost::log::sources;
 namespace sinks   = boost::log::sinks;
 
@@ -236,6 +237,8 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
+    config.log_file = pt.get<bool>("logFile", false);
+    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
 
 
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
@@ -1127,6 +1130,14 @@ add_logs(
 
 
   load_config(config_file);
+
+  if(config.log_file){
+	  logging::add_file_log(
+	  keywords::file_name = "logs/%m-%d-%Y_%H%M_%2N.log",
+	  keywords::rotation_size = 10*1024*1024,
+	  keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
+	  keywords::auto_flush = true);
+	}
 
 
   if (monitor_system()) {

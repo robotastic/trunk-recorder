@@ -19,6 +19,7 @@ config.json
 ChanList.csv
 *.so
 *.a
+*.log
 *.dylib
 .DS_Store
 .idea/

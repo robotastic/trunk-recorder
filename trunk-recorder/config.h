@@ -9,6 +9,7 @@ struct Config {
         std::string upload_server;
         std::string capture_dir;
         int call_timeout;
+        bool log_file;
 };
 
 #endif
