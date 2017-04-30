@@ -2,6 +2,7 @@
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 
+#define LOCK_PHASE1 false;
 
 p25_recorder_sptr make_p25_recorder(Source *src)
 {
@@ -174,7 +175,12 @@ p25_recorder::p25_recorder(Source *src)
   bool do_output             = 1;
   bool do_msgq               = 0;
   bool do_audio_output       = 1;
+#ifdef LOCK_PHASE1
+  bool do_tdma               = 0;
+#else
   bool do_tdma               = 1;
+#endif
+
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, silence_frames, do_msgq, rx_queue, do_audio_output, do_tdma);
 
   converter = gr::blocks::short_to_float::make(1, 32768.0);
@@ -366,6 +372,8 @@ void p25_recorder::start(Call *call, int n) {
     talkgroup = call->get_talkgroup();
     short_name = call->get_short_name();
     chan_freq      = call->get_freq();
+
+#ifndef LOCK_PHASE1
     op25_frame_assembler->set_phase2_tdma(call->get_phase2_tdma());
     if (call->get_phase2_tdma()) {
       phase2_tdma = true;
@@ -385,6 +393,7 @@ void p25_recorder::start(Call *call, int n) {
       omega = double(system_channel_rate) / double(4800);
     }
     costas_clock->update_omega(omega);
+#endif
 
     if (!qpsk_mod) {
       reset();
