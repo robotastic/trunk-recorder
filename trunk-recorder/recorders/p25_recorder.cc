@@ -175,6 +175,7 @@ p25_recorder::p25_recorder(Source *src)
   bool do_output             = 1;
   bool do_msgq               = 0;
   bool do_audio_output       = 1;
+  
 #ifdef LOCK_PHASE1
   bool do_tdma               = 0;
 #else

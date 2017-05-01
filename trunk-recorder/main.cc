@@ -41,9 +41,6 @@
 
 #include "source.h"
 
-
-#include "config.h"
-
 #include "recorders/recorder.h"
 #include "recorders/p25_recorder.h"
 #include "recorders/analog_recorder.h"
@@ -581,85 +578,6 @@ if (call->get_tdma_slot() != message.tdma_slot) {
     return true;
 }
 
-void assign_recorder(TrunkMessage message, System *sys) {
-  bool call_found = false;
-  char shell_command[200];
-
-  // go through all the talkgroups
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
-    Call *call = *it;
-
-
-    if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
-      BOOST_LOG_TRIVIAL(info) << "\tALERT! Assign - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " << call->get_freq() << "\tNew Freq: " << message.freq;
-    }
-
-    // Does the call have the same talkgroup
-    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)){
-      call_found = true;
-
-      // Is the freq the same?
-      if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
-
-        // are we currently recording the call?
-        if (call->get_state() == recording) {
-          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tAssign Retuning - New Freq: " << message.freq << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
-
-          int retuned = retune_recorder(message, call);
-
-          if (!retuned) {
-            // we failed to retune to the new freq, kill this call
-
-            call->end_call();
-
-            it = calls.erase(it);
-            delete call;
-            call_found = false; // since it is set to false, a new call will be
-                                // started at the end of the function
-          } else {
-            call->update(message);
-          }
-        } else {
-          // This call is not being recorded, just update the Freq and move on
-          call->update(message);
-          call->set_freq(message.freq);
-          call->set_phase2_tdma(message.phase2_tdma);
-          call->set_tdma_slot(message.tdma_slot);
-        }
-      } else {
-        // The freq hasn't changed
-        call->update(message);
-      }
-
-      // ++it; // move on to the next one
-      // we found there has already been a Call created for the talkgroup, exit
-      // the loop
-
-      break;
-    } else {
-      // The talkgroup for the call does not match
-      // check is the freq is the same as the one being used by the call
-
-      /*
-      if ((call->get_freq() == message.freq) &&  (call->get_tdma_slot() == message.tdma_slot)) {
-        BOOST_LOG_TRIVIAL(info) << "\tFreq in use -  TG: " << message.talkgroup << "\tFreq: " << message.freq << "\tTDMA: " << message.tdma_slot << "\t Existing call\tTG: " << call->get_talkgroup() << "\tTMDA: " << call->get_tdma_slot() << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update();
-
-        call_found = false;
-        ++it;
-      } else {
-        ++it; // move on to the next one
-      }*/
-      ++it; // move on to the next one
-    }
-  }
-
-
-  if (!call_found) {
-    Call *call = new Call(message, sys, config);
-    start_recorder(call, message, sys);
-    calls.push_back(call);
-  }
-}
 
 void current_system_status(TrunkMessage message, System *sys) {
   sys->update_status(message);
@@ -681,7 +599,7 @@ void group_affiliation(long unit, long talkgroup) {
   unit_affiliations[unit] = talkgroup;
 }
 
-void update_recorder(TrunkMessage message, System *sys) {
+void handle_call(TrunkMessage message, System *sys) {
   bool call_found = false;
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
@@ -730,10 +648,9 @@ void update_recorder(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << message.talkgroup << "\tFreq: " << message.freq << "\tCall not found for Update Message, Starting one...";
-
-    assign_recorder(message, sys); // Treehouseman, Lets start the call if we
-                                   // missed the GRANT message!
+     Call *call = new Call(message, sys, config);
+     start_recorder(call, message, sys);
+     calls.push_back(call);
   }
 }
 
@@ -784,11 +701,8 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
 
     switch (message.message_type) {
     case GRANT:
-      assign_recorder(message, sys);
-      break;
-
     case UPDATE:
-      update_recorder(message, sys);
+      handle_call(message, sys);
       break;
 
     case CONTROL_CHANNEL:
