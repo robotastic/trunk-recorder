@@ -35,7 +35,7 @@ p25_recorder::p25_recorder(Source *src)
   system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0; // was 600.0
 
-  int initial_decim      = floor(samp_rate / 240000);
+  int initial_decim      = floor(samp_rate / 480000);
   double initial_rate = double(samp_rate) / double(initial_decim);
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
@@ -61,8 +61,8 @@ p25_recorder::p25_recorder(Source *src)
 
   prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
-  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
+  //channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 1500, 100, gr::filter::firdes::WIN_HANN);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 6000, 1500, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf      =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
@@ -175,7 +175,7 @@ p25_recorder::p25_recorder(Source *src)
   bool do_output             = 1;
   bool do_msgq               = 0;
   bool do_audio_output       = 1;
-  
+
 #ifdef LOCK_PHASE1
   bool do_tdma               = 0;
 #else

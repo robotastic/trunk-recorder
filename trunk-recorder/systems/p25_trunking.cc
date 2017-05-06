@@ -25,7 +25,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double samples_per_symbol  = 10;
   double system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
-  int initial_decim      = floor(samp_rate / 240000);
+  int initial_decim      = floor(samp_rate / 480000);
   double initial_rate = double(samp_rate) / double(initial_decim);
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);

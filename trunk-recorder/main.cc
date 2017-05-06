@@ -40,6 +40,7 @@
 
 
 #include "source.h"
+#include "config.h"
 
 #include "recorders/recorder.h"
 #include "recorders/p25_recorder.h"
