@@ -53,6 +53,13 @@
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
 
+#include <websocketpp/config/asio_no_tls_client.hpp>
+#include <websocketpp/client.hpp>
+
+// This header pulls in the WebSocket++ abstracted thread support that will
+// select between boost::thread and std::thread based on how the build system
+// is configured.
+#include <websocketpp/common/thread.hpp>
 
 #include <osmosdr/source.h>
 

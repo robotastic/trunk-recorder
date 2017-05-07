@@ -24,9 +24,19 @@ void imbe_vocoder::clear() {
 	memset(vu_dsn_prev, 0, sizeof(vu_dsn_prev));
 	memset(sa_prev3, 0, sizeof(sa_prev3));
 	memset(v_uv_dsn, 0, sizeof(v_uv_dsn));
-
 	memset(&my_imbe_param, 0, sizeof(IMBE_PARAM));
-
+	prev_pitch = 0;
+	prev_prev_pitch = 0;
+	prev_e_p = 0;
+	prev_prev_e_p = 0;
+	seed = 1;
+	num_harms_prev1 = 0;
+	num_harms_prev2 = 0;
+	num_harms_prev3 = 0;
+	fund_freq_prev = 0;
+	th_max = 0;
+	dc_rmv_mem = 0;
+	
 	decode_init(&my_imbe_param);
 }
 

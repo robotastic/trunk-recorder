@@ -7,7 +7,7 @@
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
 #include "parser.h"
-#include "../../lfsr/lfsr.h"
+#include <lfsr/lfsr.h>
 
 class Source;
 class analog_recorder;

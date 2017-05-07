@@ -36,10 +36,10 @@
 #include <gnuradio/blocks/multiply_const_ff.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 
-#include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
+#include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
-#include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
-#include "../../op25_repeater/include/op25_repeater/rx_status.h"
+#include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
+#include <op25_repeater/include/op25_repeater/rx_status.h>
 #include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/vocoder.h>
 
@@ -50,8 +50,8 @@
 
 #include "recorder.h"
 #include "../config.h"
-#include "../../gr_blocks/nonstop_wavfile_sink.h"
-#include "../../gr_blocks/freq_xlating_fft_filter.h"
+#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/freq_xlating_fft_filter.h>
 
 
 class Source;
@@ -77,7 +77,7 @@ public:
   void    clear();
   double  get_freq();
   int     get_num();
-  void    set_tdma_slot(int slot); 
+  void    set_tdma_slot(int slot);
   double  get_current_length();
   bool    is_active();
   bool    is_idle();

@@ -126,6 +126,7 @@ SET(BOOST_REQUIRED_COMPONENTS
     filesystem
     log
     regex
+    random
 )
 
 if(UNIX AND NOT BOOST_ROOT AND EXISTS "/usr/lib64")
@@ -160,9 +161,10 @@ include_directories(
     ${GROSMOSDR_INCLUDE_DIR}
     ${CMAKE_BINARY_DIR}/lib
     ${CMAKE_BINARY_DIR}/include
-    ${CMAKE_SOURCE_DIR}/op25_repeater/lib
-    ${CMAKE_SOURCE_DIR}/op25_repeater/include
+    ${CMAKE_SOURCE_DIR}/lib/op25_repeater/lib
+    ${CMAKE_SOURCE_DIR}/lib/op25_repeater/include
     ${OPENSSL_INCLUDE_DIR}
+    "lib"
 )
 
 link_directories(
@@ -195,12 +197,13 @@ SET(CMAKE_CXX_STANDARD 98)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
 
 
-add_subdirectory(op25_repeater)
+add_subdirectory(lib/op25_repeater)
 list(APPEND trunk_recorder_sources
   trunk-recorder/main.cc
   trunk-recorder/source.cc
   trunk-recorder/uploaders/uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
+  trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call.cc
   trunk-recorder/systems/smartnet_trunking.cc
   trunk-recorder/systems/p25_trunking.cc
@@ -213,9 +216,9 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/recorders/p25_recorder.cc
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
-  gr_blocks/nonstop_wavfile_sink_impl.cc
-  gr_blocks/freq_xlating_fft_filter.cc
-  lfsr/lfsr.cxx)
+  lib/gr_blocks/nonstop_wavfile_sink_impl.cc
+  lib/gr_blocks/freq_xlating_fft_filter.cc
+  lib/lfsr/lfsr.cxx)
 
 
 add_executable(recorder ${trunk_recorder_sources})

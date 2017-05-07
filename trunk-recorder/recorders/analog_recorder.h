@@ -40,8 +40,8 @@ class analog_recorder;
 
 #include "recorder.h"
 #include "../config.h"
-#include "../../gr_blocks/nonstop_wavfile_sink.h"
-#include "../../gr_blocks/freq_xlating_fft_filter.h"
+#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/freq_xlating_fft_filter.h>
 
 
 typedef boost::shared_ptr<analog_recorder>analog_recorder_sptr;
