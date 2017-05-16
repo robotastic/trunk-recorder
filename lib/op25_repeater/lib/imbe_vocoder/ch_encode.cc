@@ -59,7 +59,7 @@ void encode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 		bit_mask = shr(bit_mask, 1);
 	}
 
-	frame_vector[0] = shl(imbe_param->b_vec[0] & 0xFC, 4) | (imbe_param->b_vec[2] & 0x38);
+	frame_vector[0] = shl(imbe_param->b_vec[0] & 0xFC, 4) | imbe_param->b_vec[2] & 0x38;
 
 	index0 = 0;
 	frame_vector[0] |= (bit_stream[index0++])?4:0;

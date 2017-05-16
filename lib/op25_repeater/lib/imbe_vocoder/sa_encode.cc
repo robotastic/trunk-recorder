@@ -2,17 +2,17 @@
  * Project 25 IMBE Encoder/Decoder Fixed-Point implementation
  * Developed by Pavel Yazev E-mail: pyazev@gmail.com
  * Version 1.0 (c) Copyright 2009
- *
+ * 
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- *
+ * 
  * The software is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this; see the file COPYING.  If not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Boston, MA
@@ -59,14 +59,14 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 
 	// Calculate num_harms_prev2/num_harms. Result save in unsigned format Q8.24
 	if(num_harms == num_harms_prev2)
-		k_coef = (Word32)CNST_ONE_Q8_24;
+		k_coef = (Word32)CNST_ONE_Q8_24;  
 	else if(num_harms > num_harms_prev2)
 		k_coef = (Word32)div_s(num_harms_prev2 << 9, num_harms << 9) << 9;
 	else
-	{
+	{   
 		// imbe_param->num_harms < num_harms_prev2
 		k_coef = 0;
-		tmp = num_harms_prev2;
+		tmp = num_harms_prev2; 
 		while(tmp > num_harms)
 		{
 			tmp -= num_harms;
@@ -113,9 +113,8 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 			*vec32_ptr = L_sub(*vec32_ptr, L_mpy_ls(tmp_word32, ro_coef));
 
 		}
-		/*if (d_gain_adjust)
-			*vec32_ptr = L_sub(*vec32_ptr, d_gain_adjust << 22);	// would be nicer to allow fractional increments...*/
-
+		if (d_gain_adjust)
+			*vec32_ptr = L_sub(*vec32_ptr, d_gain_adjust << 22);	// would be nicer to allow fractional increments...
 		vec32_ptr++;
 
 		k_acc += k_coef;

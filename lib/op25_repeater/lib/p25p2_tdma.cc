@@ -23,6 +23,7 @@
 #include <string>
 #include <iostream>
 #include <assert.h>
+#include <errno.h>
 
 #include "p25p2_duid.h"
 #include "p25p2_sync.h"

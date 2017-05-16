@@ -25,6 +25,10 @@ include(GrPlatform) #define LIB_SUFFIX
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 list(APPEND op25_repeater_sources
+    ambe_encoder_sb_impl.cc
+    dmr_bs_tx_bb_impl.cc
+    ysf_tx_sb_impl.cc
+    dstar_tx_sb_impl.cc
     vocoder_impl.cc
     gardner_costas_cc_impl.cc
     p25_frame_assembler_impl.cc
@@ -48,6 +52,7 @@ list(APPEND op25_repeater_sources
     software_imbe_decoder.cc
     ambe.c
     mbelib.c
+    ambe_encoder.cc
 )
 
 

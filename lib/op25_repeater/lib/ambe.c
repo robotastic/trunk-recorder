@@ -18,9 +18,10 @@
 #include <stdlib.h>
 #include "mbelib.h"
 #include "ambe3600x2250_const.h"
+#include "ambe3600x2400_const.h"
 
-int
-mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b)
+static int
+mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, int dstar)
 {
 
   int ji, i, j, k, l, L, L9, m, am, ak;
@@ -85,6 +86,9 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
 
   if (silence == 0)
     {
+      if (dstar)
+        f0 = powf(2, (-4.311767578125 - (2.1336e-2 * ((float)b0+0.5))));
+      else
       // w0 from specification document
       f0 = AmbeW0table[b0];
       cur_mp->w0 = f0 * (float) 2 *M_PI;
@@ -102,6 +106,9 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
     {
       // L from specification document 
       // lookup L in tabl3
+      if (dstar)
+        L = AmbePlusLtable[b0];
+      else
       L = AmbeLtable[b0];
       // L formula form patent filings
       //L=(int)((float)0.4627 / f0);
@@ -119,6 +126,9 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
 
       if (silence == 0)
         {
+          if (dstar)
+            cur_mp->Vl[l] = AmbePlusVuv[b1][jl];
+          else
           cur_mp->Vl[l] = AmbeVuv[b1][jl];
         }
 #ifdef AMBE_DEBUG
@@ -139,6 +149,16 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
   // decode PRBA vectors
   Gm[1] = 0;
 
+  if (dstar) {
+    Gm[2] = AmbePlusPRBA24[b3][0];
+    Gm[3] = AmbePlusPRBA24[b3][1];
+    Gm[4] = AmbePlusPRBA24[b3][2];
+
+    Gm[5] = AmbePlusPRBA58[b4][0];
+    Gm[6] = AmbePlusPRBA58[b4][1];
+    Gm[7] = AmbePlusPRBA58[b4][2];
+    Gm[8] = AmbePlusPRBA58[b4][3];
+  } else {
   Gm[2] = AmbePRBA24[b3][0];
   Gm[3] = AmbePRBA24[b3][1];
   Gm[4] = AmbePRBA24[b3][2];
@@ -147,6 +167,7 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
   Gm[6] = AmbePRBA58[b4][1];
   Gm[7] = AmbePRBA58[b4][2];
   Gm[8] = AmbePRBA58[b4][3];
+  }
 
 #ifdef AMBE_DEBUG
   printf ("b3: %i Gm[2]: %f Gm[3]: %f Gm[4]: %f b4: %i Gm[5]: %f Gm[6]: %f Gm[7]: %f Gm[8]: %f\n", b3, Gm[2], Gm[3], Gm[4], b4, Gm[5], Gm[6], Gm[7], Gm[8]);
@@ -191,10 +212,17 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
   // decode HOC
 
   // lookup Ji
+  if (dstar) {
+    Ji[1] = AmbePlusLmprbl[L][0];
+    Ji[2] = AmbePlusLmprbl[L][1];
+    Ji[3] = AmbePlusLmprbl[L][2];
+    Ji[4] = AmbePlusLmprbl[L][3];
+  } else {
   Ji[1] = AmbeLmprbl[L][0];
   Ji[2] = AmbeLmprbl[L][1];
   Ji[3] = AmbeLmprbl[L][2];
   Ji[4] = AmbeLmprbl[L][3];
+  }
 #ifdef AMBE_DEBUG
   printf ("Ji[1]: %i Ji[2]: %i Ji[3]: %i Ji[4]: %i\n", Ji[1], Ji[2], Ji[3], Ji[4]);
   printf ("b5: %i b6: %i b7: %i b8: %i\n", b5, b6, b7, b8);
@@ -211,6 +239,9 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
         }
       else
         {
+          if (dstar)
+            Cik[1][k] = AmbePlusHOCb5[b5][k - 3];
+          else
           Cik[1][k] = AmbeHOCb5[b5][k - 3];
 #ifdef AMBE_DEBUG
           printf ("C1,%i: %f ", k, Cik[1][k]);
@@ -225,6 +256,9 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
         }
       else
         {
+          if (dstar)
+            Cik[2][k] = AmbePlusHOCb6[b6][k - 3];
+          else
           Cik[2][k] = AmbeHOCb6[b6][k - 3];
 #ifdef AMBE_DEBUG
           printf ("C2,%i: %f ", k, Cik[2][k]);
@@ -239,6 +273,9 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
         }
       else
         {
+          if (dstar)
+            Cik[3][k] = AmbePlusHOCb7[b7][k - 3];
+          else
           Cik[3][k] = AmbeHOCb7[b7][k - 3];
 #ifdef AMBE_DEBUG
           printf ("C3,%i: %f ", k, Cik[3][k]);
@@ -253,6 +290,9 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
         }
       else
         {
+          if (dstar)
+            Cik[4][k] = AmbePlusHOCb8[b8][k - 3];
+          else
           Cik[4][k] = AmbeHOCb8[b8][k - 3];
 #ifdef AMBE_DEBUG
           printf ("C4,%i: %f ", k, Cik[4][k]);
@@ -367,4 +407,16 @@ mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int 
     }
 
   return (0);
+}
+
+int
+mbe_dequantizeAmbe2400Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b){
+	int dstar = 1;
+	return (mbe_dequantizeAmbeParms (cur_mp, prev_mp, b, dstar));
+}
+
+int
+mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b){
+	int dstar = 0;
+	return (mbe_dequantizeAmbeParms (cur_mp, prev_mp, b, dstar));
 }

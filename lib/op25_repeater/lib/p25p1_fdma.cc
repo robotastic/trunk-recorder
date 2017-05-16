@@ -332,9 +332,9 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
           fprintf(stderr, "warning trunk frame size %u exceeds maximum\n", framer->frame_size);
           framer->frame_size = 720;
         }
-
-        for (d = 0, b = 0; d < (framer->frame_size >> 1); d++) {
-          if ((d + 1) % 36 == 0) continue; // skip SS
+			for (d=0, b=0; d < framer->frame_size >> 1; d++) {
+				if ((d+1) % 36 == 0)
+					continue;	// skip SS
           bv1[b++] = framer->frame_body[d * 2];
           bv1[b++] = framer->frame_body[d * 2 + 1];
         }

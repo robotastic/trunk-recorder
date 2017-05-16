@@ -33,6 +33,8 @@ public:
 	void imbe_decode(int16_t *frame_vector, int16_t *snd) {
 		decode(&my_imbe_param, frame_vector, snd);
 	}
+	// hack to enable ambe encoder read access to speech parameters
+	const IMBE_PARAM* param(void) {return &my_imbe_param;}
 private:
 	IMBE_PARAM my_imbe_param;
 
@@ -58,6 +60,7 @@ private:
 	Word32 dc_rmv_mem;
 	Cmplx16 fft_buf[FFTLENGTH];
 	Word16 pe_lpf_mem[PE_LPF_ORD];
+	Word32 d_gain_adjust;
 
 	/* member functions */
 	void idct(Word16 *in, Word16 m_lim, Word16 i_lim, Word16 *out);

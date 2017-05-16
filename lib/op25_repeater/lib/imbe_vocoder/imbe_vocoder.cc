@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "imbe_vocoder.h"
 
@@ -51,7 +52,8 @@ imbe_vocoder::imbe_vocoder (void) :
 	num_harms_prev3(0),
 	fund_freq_prev(0),
 	th_max(0),
-	dc_rmv_mem(0)
+	dc_rmv_mem(0),
+	d_gain_adjust(0)
 {
 	memset(wr_array, 0, sizeof(wr_array));
 	memset(wi_array, 0, sizeof(wi_array));
@@ -71,6 +73,16 @@ imbe_vocoder::imbe_vocoder (void) :
 
 	decode_init(&my_imbe_param);
 	encode_init();
+
+	// this is a hack to cut down on overloading
+	// value is in log2
+	char *gfp = getenv("GAIN_ADJUST_FULLRATE");
+	if (gfp) {
+		int gain_adj = 0;
+		sscanf(gfp, "%d", &gain_adj);
+		if (gain_adj)
+			d_gain_adjust = (Word32) gain_adj;
+	}
 
 	if (!already_printed) {
 		already_printed = 1;

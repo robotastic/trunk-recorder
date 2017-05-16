@@ -41,7 +41,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 

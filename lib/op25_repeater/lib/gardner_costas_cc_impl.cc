@@ -37,6 +37,7 @@
 #include <string.h>
 
 #include "p25_frame.h"
+#include "check_frame_sync.h"
 
 #define ENABLE_COSTAS_CQPSK_HACK 0
 
@@ -48,17 +49,6 @@ static const int NUM_COMPLEX=100;
 
 namespace gr {
   namespace op25_repeater {
-
-// count no. of 1 bits in masked, xor'ed, FS, return true if < threshold
-static inline bool check_frame_sync(uint64_t ch, int err_threshold, int len) {
-	int errs=0;
-	for (int i=0; i < len; i++) {
-		errs += (ch & 1);
-		ch = ch >> 1;
-	}
-	if (errs <= err_threshold) return true;
-	return false;
-}
 
 static inline std::complex<float> sgn(std::complex<float>c) {
 	if (c == std::complex<float>(0.0,0.0))
