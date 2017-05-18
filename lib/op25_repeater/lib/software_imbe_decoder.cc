@@ -914,9 +914,9 @@ software_imbe_decoder::decode_audio(uint8_t *A)
          // in the synth_unvoiced procedure.  The final tweak is done by raising the
          // voiced samples:
          float sample = suv[en] + sv[en] * 4; //balance v/uv loudness
-//         if(abs((int)sample) > 32767) {
-//            sample = 32767 * (sample < 0) ? -1 : 1; // * sgn(sample)
-//         }
+         if(abs((int)sample) > 32767) {
+            sample = 32767 * (sample < 0) ? -1 : 1; // * sgn(sample)
+         }
          sample /= 32768.0;
          samples->push_back(sample);
       }
