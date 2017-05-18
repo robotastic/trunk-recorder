@@ -228,7 +228,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
 
   if (!d_fp) // drop output on the floor
   {
-    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
     return noutput_items;
   }
   std::vector<gr::tag_t> tags;
