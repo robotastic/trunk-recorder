@@ -32,7 +32,7 @@
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
-#include <gnuradio/blocks/short_to_float.h>
+#include <gnuradio/blocks/int_to_float.h>
 #include <gnuradio/blocks/multiply_const_ff.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 
@@ -137,7 +137,7 @@ private:
   gr::analog::pwr_squelch_ff::sptr       squelch_two;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
-  gr::blocks::short_to_float::sptr converter;
+  gr::blocks::int_to_float::sptr converter;
   gr::blocks::copy::sptr valve;
 
   gr::blocks::multiply_const_ff::sptr levels;
