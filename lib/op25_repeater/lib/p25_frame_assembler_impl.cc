@@ -146,13 +146,13 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int& nof_inpu
   }
 
   if (d_do_audio_output) {
-    samples_reqd = (int)std::ceil(float(d_input_rate / 8000) * float(nof_output_items));
-  /*
+    //samples_reqd = (int)std::ceil(float(d_input_rate / 8000) * float(nof_output_items));
+
     if (d_do_phase2_tdma) {
       samples_reqd = floor(0.4 * nof_output_items);
     } else {
       samples_reqd = floor(0.6 * nof_output_items);
-    }*/
+    }
   }
   nof_samples_reqd = (int) samples_reqd;
 
