@@ -114,6 +114,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
   p2tdma(0, debug, output_queue),
   d_do_msgq(do_msgq),
   d_msg_queue(queue),
+  d_input_rate(4800),
   d_tag_key(pmt::intern("src_id")),
   d_tag_src(pmt::intern(name()))
 {
@@ -145,11 +146,13 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int& nof_inpu
   }
 
   if (d_do_audio_output) {
+    samples_reqd = (int)std::ceil(float(d_input_rate / 8000) * float(nof_output_items));
+  /*
     if (d_do_phase2_tdma) {
       samples_reqd = floor(0.4 * nof_output_items);
     } else {
       samples_reqd = floor(0.6 * nof_output_items);
-    }
+    }*/
   }
   nof_samples_reqd = (int) samples_reqd;
 
@@ -249,8 +252,10 @@ void p25_frame_assembler_impl::set_phase2_tdma(bool p)
 
   if (d_do_audio_output) {
     if (d_do_phase2_tdma) {
+      d_input_rate = 6000;
       set_output_multiple(640);
     } else {
+      d_input_rate = 4800;
       set_output_multiple(864);
     }
   }

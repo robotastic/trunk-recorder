@@ -53,7 +53,8 @@ private:
   int silence_frame_count;
   long total_produced;
   gr::msg_queue::sptr d_msg_queue;
-
+  int d_input_rate;
+  
   pmt::pmt_t d_tag_key;
   pmt::pmt_t d_tag_src;
 
