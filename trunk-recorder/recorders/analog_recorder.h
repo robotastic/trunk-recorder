@@ -31,6 +31,7 @@
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/pwr_squelch_ff.h>
 
+#include <gnuradio/blocks/float_to_short.h>
 
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 
@@ -123,6 +124,8 @@ void calculate_iir_taps(double tau);
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::analog::pwr_squelch_ff::sptr squelch_two;
   gr::analog::quadrature_demod_cf::sptr demod;
+  gr::blocks::float_to_short::sptr converter;
+
 
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;

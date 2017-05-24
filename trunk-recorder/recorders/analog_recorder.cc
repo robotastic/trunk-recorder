@@ -141,7 +141,7 @@ analog_recorder::analog_recorder(Source *src)
   levels   = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); // 33);
   valve    = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
-
+  converter =  gr::blocks::float_to_short::make();
 
   /* de-emphasis */
     d_tau  = 0.000075; // 75us
@@ -188,7 +188,8 @@ analog_recorder::analog_recorder(Source *src)
     connect(decim_audio,   0, high_f,        0);
     connect(high_f,        0, squelch_two,   0);
     connect(squelch_two,   0, levels,        0);
-    connect(levels,        0, wav_sink,      0);
+    connect(levels,        0, converter, 0);
+    connect(converter,    0, wav_sink,      0);
   } else {
     // No squelch used
     connect(self(),        0, valve,         0);
@@ -199,7 +200,8 @@ analog_recorder::analog_recorder(Source *src)
     connect(demod,         0, deemph,        0);
     connect(deemph,        0, decim_audio,   0);
     connect(decim_audio,   0, levels,        0);
-    connect(levels,        0, wav_sink,      0);
+    connect(levels,        0, converter, 0);
+    connect(converter,    0, wav_sink,      0);
   }
 }
 
