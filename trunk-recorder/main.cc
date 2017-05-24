@@ -53,6 +53,8 @@
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
 
+#include "uploaders/stat_socket.h"
+
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 
@@ -1064,7 +1066,13 @@ add_logs(
 
 
   if (monitor_system()) {
+/*
+    stat_socket c;
 
+    std::string uri = "ws://localhost:3005";
+
+    c.run_stat(uri);
+*/
     tb->start();
 
     monitor_messages();

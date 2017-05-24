@@ -114,10 +114,6 @@ p25_recorder::p25_recorder(Source *src)
     // Non-blocking as we are using squelch_two as a gate.
     squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
-    //  based on squelch code form ham2mon
-    // set low -200 since its after demod and its just gate for previous squelch so that the audio
-    // recording doesn't contain blank spaces between transmissions
-    squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
   }
 
 
@@ -182,8 +178,7 @@ p25_recorder::p25_recorder(Source *src)
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, silence_frames, do_msgq, rx_queue, do_audio_output, do_tdma);
 
-  converter = gr::blocks::short_to_float::make(1, 32768.0);
-  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+  levels = gr::blocks::multiply_const_ss::make(source->get_digital_levels());
 
   tm *ltm = localtime(&starttime);
 
@@ -215,16 +210,7 @@ p25_recorder::p25_recorder(Source *src)
     connect(noise_filter,         0, sym_filter,           0);
     connect(sym_filter,           0, fsk4_demod,           0);
     connect(fsk4_demod,           0, slicer,               0);
-    connect(slicer,               0, op25_frame_assembler, 0);
-    connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, levels,               0);
 
-    if (squelch_db != 0) {
-      connect(levels,      0, squelch_two, 0);
-      connect(squelch_two, 0, wav_sink,    0);
-    } else {
-      connect(levels, 0, wav_sink, 0);
-    }
   } else {
     connect(self(),      0, valve,         0);
     connect(valve,       0, prefilter,     0);
@@ -242,17 +228,13 @@ p25_recorder::p25_recorder(Source *src)
     connect(diffdec,              0, to_float,             0);
     connect(to_float,             0, rescale,              0);
     connect(rescale,              0, slicer,               0);
+        }
     connect(slicer,               0, op25_frame_assembler, 0);
-    connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, levels,               0);
-
-    if (squelch_db != 0) {
-      connect(levels,      0, squelch_two, 0);
-      connect(squelch_two, 0, wav_sink,    0);
-    } else {
+    connect(op25_frame_assembler, 0, levels,               0);
       connect(levels, 0, wav_sink, 0);
-    }
-  }
+
+
+
 }
 
 void p25_recorder::clear() {

@@ -72,7 +72,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char  *filename,
                                                      unsigned int sample_rate,
                                                      int          bits_per_sample)
   : sync_block("nonstop_wavfile_sink",
-               io_signature::make(1, n_channels, sizeof(float)),
+               io_signature::make(1, n_channels, sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
   d_sample_rate(sample_rate), d_nchans(n_channels),
   d_fp(0)
@@ -215,7 +215,7 @@ bool nonstop_wavfile_sink_impl::stop()
 }
 
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
-  float **in         = (float **)&input_items[0];
+  int16_t **in         = (int16_t **)&input_items[0];
   int     n_in_chans = input_items.size();
 
   short int sample_buf_s;
@@ -256,8 +256,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
       // Write zeros to channels which are in the WAV file
       // but don't have any inputs here
       if (chan < n_in_chans) {
-        sample_buf_s =
-          convert_to_short(in[chan][nwritten]);
+        sample_buf_s = in[chan][nwritten];
       }
       else {
         sample_buf_s = 0;
