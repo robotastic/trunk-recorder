@@ -141,7 +141,7 @@ analog_recorder::analog_recorder(Source *src)
   levels   = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); // 33);
   valve    = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
-  converter =  gr::blocks::float_to_short::make();
+  converter =  gr::blocks::float_to_short::make(1, (1/32767.0));
 
   /* de-emphasis */
     d_tau  = 0.000075; // 75us
