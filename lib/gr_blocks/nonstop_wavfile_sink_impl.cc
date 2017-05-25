@@ -217,8 +217,14 @@ bool nonstop_wavfile_sink_impl::stop()
 }
 
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
-  int16_t **in         = (int16_t **)&input_items[0];
+
+  if (d_use_float) {
+    float **in         = (float **)&input_items[0];
+  } else {
+    int16_t **in         = (int16_t **)&input_items[0];
+  }
   int     n_in_chans = input_items.size();
+
 
   short int sample_buf_s;
 
