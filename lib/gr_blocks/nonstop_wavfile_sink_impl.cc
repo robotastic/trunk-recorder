@@ -60,22 +60,24 @@ nonstop_wavfile_sink::sptr
 nonstop_wavfile_sink::make(const char  *filename,
                            int          n_channels,
                            unsigned int sample_rate,
-                           int          bits_per_sample)
+                           int          bits_per_sample,
+                           bool         use_float)
 {
   return gnuradio::get_initial_sptr
            (new nonstop_wavfile_sink_impl(filename, n_channels,
-                                          sample_rate, bits_per_sample));
+                                          sample_rate, bits_per_sample, use_float));
 }
 
 nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char  *filename,
                                                      int          n_channels,
                                                      unsigned int sample_rate,
-                                                     int          bits_per_sample)
+                                                     int          bits_per_sample,
+                                                     bool use_float)
   : sync_block("nonstop_wavfile_sink",
-               io_signature::make(1, n_channels, sizeof(int16_t)),
+               io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
   d_sample_rate(sample_rate), d_nchans(n_channels),
-  d_fp(0)
+  d_fp(0), d_use_float(use_float)
 {
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
@@ -256,7 +258,11 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
       // Write zeros to channels which are in the WAV file
       // but don't have any inputs here
       if (chan < n_in_chans) {
+        if (d_use_float) {
+          sample_buf_s = convert_to_short(in[chan][nwritten]);
+        } else {
         sample_buf_s = in[chan][nwritten];
+      }
       }
       else {
         sample_buf_s = 0;

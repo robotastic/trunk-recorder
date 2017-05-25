@@ -191,7 +191,7 @@ p25_recorder::p25_recorder(Source *src)
   if (nchars >= 160) {
     BOOST_LOG_TRIVIAL(error) << "P25 Recorder: Path longer than 160 charecters";
   }
-  wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
+  wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16, false);
 
   if (!qpsk_mod) {
     connect(self(),      0, valve,         0);

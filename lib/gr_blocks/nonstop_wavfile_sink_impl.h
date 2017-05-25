@@ -42,13 +42,14 @@ private:
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
+	bool d_use_float;
 
   char current_filename[255];
 
 	FILE *d_fp;
 	boost::mutex d_mutex;
 
-	
+
 	/*!
 	 * \brief Convert a sample value within [-1;+1] to a corresponding
 	 *  short integer value
@@ -77,7 +78,8 @@ public:
 	nonstop_wavfile_sink_impl(const char *filename,
 	                          int n_channels,
 	                          unsigned int sample_rate,
-	                          int bits_per_sample);
+	                          int bits_per_sample,
+													bool use_float);
 	~nonstop_wavfile_sink_impl();
 char *get_filename();
 	bool open(const char* filename);

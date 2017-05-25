@@ -54,7 +54,8 @@ public:
 	static sptr make(const char *filename,
 	                 int n_channels,
 	                 unsigned int sample_rate,
-	                 int bits_per_sample = 16);
+	                 int bits_per_sample = 16,
+								 		bool use_float=true);
 
 	/*!
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.
