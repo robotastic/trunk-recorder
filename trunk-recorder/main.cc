@@ -793,7 +793,7 @@ void check_message_count(float timeDiff) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
 
 
-      stats.send_stat(to_string(msgs_decoded_per_second));
+      //stats.send_stat(to_string(msgs_decoded_per_second));
       if (msgs_decoded_per_second < 2) {
 
         if (sys->system_type == "smartnet") {
