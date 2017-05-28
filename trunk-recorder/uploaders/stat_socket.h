@@ -13,11 +13,13 @@ typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
 class stat_socket {
   public:
   stat_socket();
+  void send_stat(std::string val);
+  void poll_one();
   void telemetry_loop();
   void on_fail(websocketpp::connection_hdl);
   void on_close(websocketpp::connection_hdl);
   void on_open(websocketpp::connection_hdl);
-  void run_stat(const std::string & uri);
+  void open_stat(const std::string & uri);
 
 private:
     client m_client;

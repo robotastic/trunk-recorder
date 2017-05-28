@@ -78,7 +78,10 @@ public:
   void    clear();
   double  get_freq();
   int     get_num();
+  void    set_tdma(bool phase2);
+  void    switch_tdma(bool phase2);
   void    set_tdma_slot(int slot);
+  void    generate_arb_taps();
   double  get_current_length();
   bool    is_active();
   bool    is_idle();
@@ -97,12 +100,18 @@ private:
 
   double center_freq, chan_freq;
   double system_channel_rate;
+  double arb_rate;
+  double samples_per_symbol;
+  double symbol_rate;
+  double initial_rate;
+  int decim;
+  double resampled_rate;
   bool   qpsk_mod;
   double squelch_db;
   int    silence_frames;
   int    tdma_slot;
   long   talkgroup;
-  bool phase2_tdma;
+  bool   d_phase2_tdma;
   std::string short_name;
   time_t timestamp;
   time_t starttime;

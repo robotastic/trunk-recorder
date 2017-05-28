@@ -92,7 +92,7 @@ SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 
 Config config;
-
+stat_socket stats;
 
 string default_mode;
 
@@ -792,6 +792,8 @@ void check_message_count(float timeDiff) {
     if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
 
+
+      stats.send_stat(to_string(msgs_decoded_per_second));
       if (msgs_decoded_per_second < 2) {
 
         if (sys->system_type == "smartnet") {
@@ -823,6 +825,14 @@ void monitor_messages() {
   time_t currentTime        = time(NULL);
   std::vector<TrunkMessage> trunk_messages;
 
+  websocketpp::lib::error_code ec;
+
+
+
+  std::string uri = "ws://localhost:3005";
+
+  //stats.open_stat(uri);
+
   while (1) {
     currentTime = time(NULL);
 
@@ -831,7 +841,7 @@ void monitor_messages() {
       return;
     }
 
-
+    //stats.poll_one();
     // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
 
@@ -1066,13 +1076,8 @@ add_logs(
 
 
   if (monitor_system()) {
-/*
-    stat_socket c;
 
-    std::string uri = "ws://localhost:3005";
 
-    c.run_stat(uri);
-*/
     tb->start();
 
     monitor_messages();

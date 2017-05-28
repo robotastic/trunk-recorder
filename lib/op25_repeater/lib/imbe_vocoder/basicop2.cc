@@ -99,12 +99,12 @@ saturate (Word32 L_var1)
     if (L_var1 > 0X00007fffL)
     {
         Overflow = 1;
-        var_out = 0; //MAX_16;
+        var_out = MAX_16;
     }
     else if (L_var1 < (Word32) 0xffff8000L)
     {
         Overflow = 1;
-        var_out = 0; //MIN_16;
+        var_out = MIN_16;
     }
     else
     {
@@ -245,7 +245,7 @@ Word16 abs_s (Word16 var1)
 
     if (var1 == (Word16) 0X8000)
     {
-        var_out = 0;//MAX_16;
+        var_out = MAX_16;
     }
     else
     {

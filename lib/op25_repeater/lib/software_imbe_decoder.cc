@@ -958,7 +958,7 @@ software_imbe_decoder::decode_tap(int _L, int _K, float _w0, const int * _v, con
          // Most of the difference is compensated by removing the 146.6433 factor
          // in the synth_unvoiced procedure.  The final tweak is done by raising the
          // voiced samples:
-         float sample = suv[en] + sv[en] * 4; //balance v/uv loudness
+				 float sample = (suv[en]/4) + sv[en]; //balance v/uv loudness
          if(abs((int)sample) > 32767) {
             sample = (sample < 0) ? -32767 : 32767; // * sgn(sample)
          }

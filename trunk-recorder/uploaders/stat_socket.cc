@@ -29,7 +29,7 @@
     }
 
     // This method will block until the connection is complete
-    void stat_socket::run_stat(const std::string & uri) {
+    void stat_socket::open_stat(const std::string & uri) {
         // Create a new connection to the given URI
         websocketpp::lib::error_code ec;
         client::connection_ptr con = m_client.get_connection(uri, ec);
@@ -48,15 +48,18 @@
         m_client.connect(con);
 
         // Create a thread to run the ASIO io_service event loop
-        websocketpp::lib::thread asio_thread(&client::run, &m_client);
+        //websocketpp::lib::thread asio_thread(&client::run, &m_client);
 
         // Create a thread to run the telemetry loop
-        websocketpp::lib::thread telemetry_thread(&stat_socket::telemetry_loop,this);
+        //websocketpp::lib::thread telemetry_thread(&stat_socket::telemetry_loop,this);
 
-        asio_thread.join();
-        telemetry_thread.join();
+        //asio_thread.join();
+        //telemetry_thread.join();
     }
 
+    void stat_socket::poll_one() {
+      m_client.poll_one();
+    }
     // The open handler will signal that we are ready to start sending telemetry
     void stat_socket::on_open(websocketpp::connection_hdl) {
         m_client.get_alog().write(websocketpp::log::alevel::app,
@@ -84,6 +87,21 @@
         m_done = true;
     }
 
+    void stat_socket::send_stat(std::string val) {
+      websocketpp::lib::error_code ec;
+      m_client.get_alog().write(websocketpp::log::alevel::app, val);
+      m_client.send(m_hdl,val,websocketpp::frame::opcode::text,ec);
+
+      // The most likely error that we will get is that the connection is
+      // not in the right state. Usually this means we tried to send a
+      // message to a connection that was closed or in the process of
+      // closing. While many errors here can be easily recovered from,
+      // in this simple example, we'll stop the telemetry loop.
+      if (ec) {
+          m_client.get_alog().write(websocketpp::log::alevel::app,
+              "Send Error: "+ec.message());
+      }
+    }
     void stat_socket::telemetry_loop() {
         uint64_t count = 0;
         std::stringstream val;
