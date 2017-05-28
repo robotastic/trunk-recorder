@@ -66,6 +66,12 @@ p25_recorder::p25_recorder(Source *src)
 
   symbol_rate         = 6000;
   system_channel_rate = symbol_rate * samples_per_symbol;
+
+  double phase1_symbol_rate = 4800;
+  double phase2_symbol_rate = 6000;
+  double phase1_channel_rate = phase1_symbol_rate * samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * samples_per_symbol;
+
   decim = floor(initial_rate / system_channel_rate);
   resampled_rate = double(initial_rate) / double(decim);
   arb_rate  = (double(system_channel_rate) / resampled_rate);
@@ -96,6 +102,7 @@ p25_recorder::p25_recorder(Source *src)
   channel_lpf      =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
 
+  // Constructs the ARB resampler, which gets to the exact sample rate.
   generate_arb_taps();
 
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
@@ -119,6 +126,8 @@ p25_recorder::p25_recorder(Source *src)
 
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
 
+
+  // Gardner Costas Clock
   double omega      = double(system_channel_rate) / symbol_rate; // set to 6000 for TDMA, should be symbol_rate
   double gain_omega = 0.1  * gain_mu * gain_mu;
   double alpha      = costas_alpha;
@@ -128,43 +137,50 @@ p25_recorder::p25_recorder(Source *src)
 
   costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
 
-  // Perform Differential decoding on the constellation
+  // QPSK: Perform Differential decoding on the constellation
   diffdec = gr::digital::diff_phasor_cc::make();
 
-  // take angle of the difference (in radians)
+  // QPSK: take angle of the difference (in radians)
   to_float = gr::blocks::complex_to_arg::make();
 
-  // convert from radians such that signal is in -3/-1/+1/+3
+  // QPSK: convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
-  double freq_to_norm_radians = pi / (system_channel_rate / 2.0);
+  // FSK4: Phase Loop Lock - can only be Phase 1, so locking at that rate.
+  double freq_to_norm_radians = pi / (phase1_channel_rate / 2.0);
   double fc                   = 0.0;
   double fd                   = 600.0;
   double pll_demod_gain       = 1.0 / (fd * freq_to_norm_radians);
-  pll_freq_lock = gr::analog::pll_freqdet_cf::make((symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
+  pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
   pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * bb_gain);
 
-  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, system_channel_rate, symbol_rate / 2.0 * 1.175, symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
+  //FSK4: noise filter - can only be Phase 1, so locking at that rate.
+  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
   noise_filter               = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
-  double symbol_decim = 1;
 
+  //FSK4: Symbol Taps
+  double symbol_decim = 1;
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
-
   for (int i = 0; i < samples_per_symbol; i++) {
     sym_taps.push_back(1.0 / samples_per_symbol);
   }
-
   sym_filter    =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
+
+  //FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
   tune_queue    = gr::msg_queue::make(20);
+  fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
+
+  //OP25 Slicer
+  const float l[] = { -2.0, 0.0, 2.0, 4.0 };
+  std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
+  slicer     = gr::op25_repeater::fsk4_slicer_fb::make(slices);
+
+
+  //OP25 Frame Assembler
   traffic_queue = gr::msg_queue::make(2);
   rx_queue      = gr::msg_queue::make(100);
-  const float l[] = { -2.0, 0.0, 2.0, 4.0 };
 
-  //  const float l[] = { -3.0, -1.0, 1.0, 3.0 };
-  std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
-  fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
-  slicer     = gr::op25_repeater::fsk4_slicer_fb::make(slices);
 
   int udp_port               = 0;
   int verbosity              = 0; // 10 = lots of debug messages
@@ -193,11 +209,13 @@ p25_recorder::p25_recorder(Source *src)
   }
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16, false);
 
+  connect(self(),      0, valve,         0);
+  connect(valve,       0, prefilter,     0);
+  connect(prefilter,   0, channel_lpf,   0);
+  connect(channel_lpf, 0, arb_resampler, 0);
+
   if (!qpsk_mod) {
-    connect(self(),      0, valve,         0);
-    connect(valve,       0, prefilter,     0);
-    connect(prefilter,   0, channel_lpf,   0);
-    connect(channel_lpf, 0, arb_resampler, 0);
+
 
     if (squelch_db != 0) {
       connect(arb_resampler, 0, squelch,       0);
@@ -212,10 +230,6 @@ p25_recorder::p25_recorder(Source *src)
     connect(fsk4_demod,           0, slicer,               0);
 
   } else {
-    connect(self(),      0, valve,         0);
-    connect(valve,       0, prefilter,     0);
-    connect(prefilter,   0, channel_lpf,   0);
-    connect(channel_lpf, 0, arb_resampler, 0);
 
     if (squelch_db != 0) {
       connect(arb_resampler, 0, squelch, 0);
