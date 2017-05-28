@@ -52,7 +52,7 @@ p25_recorder::p25_recorder(Source *src)
   qpsk_mod       = source->get_qpsk_mod();
   silence_frames = source->get_silence_frames();
   talkgroup      = 0;
-
+  d_phase2_tdma = true;
   num = 0;
 
   state = inactive;
@@ -376,12 +376,10 @@ void p25_recorder::reset() {
 }
 
 void p25_recorder::set_tdma_slot(int slot) {
-  if (d_phase2_tdma) {
+
   tdma_slot = slot;
   op25_frame_assembler->set_slotid(tdma_slot);
-  } else {
-    BOOST_LOG_TRIVIAL(error) << "Problem!! trying to set slot, but not TDMA call";
-  }
+
 }
 
 
@@ -395,6 +393,7 @@ void p25_recorder::start(Call *call, int n) {
     short_name = call->get_short_name();
     chan_freq      = call->get_freq();
 
+    set_tdma(call->get_phase2_tdma());
 
     if (call->get_phase2_tdma()) {
 
@@ -409,7 +408,7 @@ void p25_recorder::start(Call *call, int n) {
       set_tdma_slot(0);
     }
 
-    set_tdma(call->get_phase2_tdma());
+
 
 
 
