@@ -35,10 +35,10 @@
 
 #include <gnuradio/digital/diff_phasor_cc.h>
 
-#include <op25_repeater/fsk4_demod_ff.h>
-#include <op25_repeater/fsk4_slicer_fb.h>
+#include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
+#include "../../op25_repeater/include/op25_repeater/fsk4_slicer_fb.h"
 #include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
-#include <op25_repeater/gardner_costas_cc.h>
+#include "../../op25_repeater/include/op25_repeater/gardner_costas_cc.h"
 
 #include <gnuradio/msg_queue.h>
 #include <gnuradio/message.h>
