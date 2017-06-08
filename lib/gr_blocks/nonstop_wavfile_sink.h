@@ -51,8 +51,7 @@ public:
 	 * \param sample_rate Sample rate [S/s]
 	 * \param bits_per_sample 16 or 8 bit, default is 16
 	 */
-	static sptr make(const char *filename,
-	                 int n_channels,
+	static sptr make(int n_channels,
 	                 unsigned int sample_rate,
 	                 int bits_per_sample = 16,
 								 		bool use_float=true);

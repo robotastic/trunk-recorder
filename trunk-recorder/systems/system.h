@@ -56,16 +56,13 @@ public:
         bool call_log;
         smartnet_trunking_sptr smartnet_trunking;
         p25_trunking_sptr p25_trunking;
-        std::string get_default_mode();
-        void set_default_mode(std::string def_mode);
+
         std::string get_short_name();
         void set_short_name(std::string short_name);
         std::string get_upload_script();
         void set_upload_script(std::string script);
         std::string get_api_key();
         void set_api_key(std::string api_key);
-        bool get_qpsk_mod();
-        void set_qpsk_mod(bool);
         bool get_audio_archive();
         void set_audio_archive(bool);
         bool get_record_unknown();
@@ -96,6 +93,7 @@ public:
         void add_conventionalP25_recorder(p25_recorder_sptr rec);
         std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
         std::vector<double> get_channels();
+        std::vector<double> get_control_channels();
         System(int sys_id );
         void set_bandplan(std::string);
         std::string get_bandplan();

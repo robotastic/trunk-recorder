@@ -25,13 +25,7 @@ void System::set_upload_script(std::string script) {
   this->upload_script = script;
 }
 
-std::string System::get_default_mode() {
-  return this->default_mode;
-}
 
-void System::set_default_mode(std::string def_mode) {
-  this->default_mode = def_mode;
-}
 
 System::System(int sys_num) {
   this->sys_num = sys_num;
@@ -101,13 +95,6 @@ void System::set_audio_archive(bool audio_archive) {
   this->audio_archive = audio_archive;
 }
 
-bool System::get_qpsk_mod() {
-  return this->qpsk_mod;
-}
-
-void System::set_qpsk_mod(bool qpsk_mod) {
-  this->qpsk_mod = qpsk_mod;
-}
 
 bool System::get_record_unknown() {
   return this->record_unknown;
@@ -184,6 +171,10 @@ void System::add_channel(double channel) {
 
 int System::control_channel_count() {
   return control_channels.size();
+}
+
+std::vector<double> System::get_control_channels() {
+  return control_channels;
 }
 
 void System::add_control_channel(double control_channel) {

@@ -75,8 +75,7 @@ protected:
 	bool stop();
 
 public:
-	nonstop_wavfile_sink_impl(const char *filename,
-	                          int n_channels,
+	nonstop_wavfile_sink_impl(int n_channels,
 	                          unsigned int sample_rate,
 	                          int bits_per_sample,
 													bool use_float);

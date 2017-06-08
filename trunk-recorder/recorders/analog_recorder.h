@@ -62,8 +62,7 @@ public:
 
   ~analog_recorder();
   void    tune_offset(double f);
-  void    start(Call *call,
-                int   n);
+  void    start(Call *call);
   void    stop();
   double  get_freq();
   Source* get_source();
@@ -75,6 +74,7 @@ public:
 
   bool    is_idle();
   State   get_state();
+  int     get_num();
   int     lastupdate();
   long    elapsed();
   static bool logging;

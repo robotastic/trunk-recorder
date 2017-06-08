@@ -1,7 +1,7 @@
 #include "source.h"
 
-int Source::rec_num = 0;
 
+static int src_counter=0;
 
 void Source::set_antenna(std::string ant)
 {
@@ -238,7 +238,6 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
   for (int i = 0; i < max_digital_recorders; i++) {
     p25_recorder_sptr log = make_p25_recorder(this);
-    log->num = rec_num++;
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
   }
@@ -292,6 +291,21 @@ void Source::tune_digital_recorders() {
     }
   }
 }
+
+int Source::digital_recorder_count() {
+  return digital_recorders.size();
+}
+
+int Source::analog_recorder_count() {
+  return analog_recorders.size();
+}
+
+int Source::debug_recorder_count() {
+  return debug_recorders.size();
+}
+int Source::get_num() {
+  return src_num;
+};
 
 int Source::get_num_available_recorders() {
   int num_available_recorders = 0;
@@ -361,6 +375,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   driver = drv;
   device = dev;
   config = cfg;
+  gain = 0;
+  lna_gain = 0;
+  mix_gain = 0;
+  if_gain = 0;
+  src_num = src_counter++;
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;

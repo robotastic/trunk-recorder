@@ -55,7 +55,7 @@ class Recorder
 
 public:
 	virtual void tune_offset(double f) {};
-	virtual void start( Call *call, int n) {};
+	virtual void start( Call *call) {};
 	virtual void stop() {};
   virtual void set_tdma_slot(int slot) {};
 	virtual double get_freq() {return 0;};
@@ -70,7 +70,9 @@ public:
 	virtual bool is_idle() {return true;};
 	virtual double get_current_length(){return 0;};
 	virtual void clear(){};
-	int num;
+	int rec_num;
+
+
 };
 
 

@@ -85,7 +85,7 @@ public:
 								~debug_recorder();
 
 								void tune_offset(double f);
-								void start( Call *call, int n);
+								void start( Call *call);
 								void stop();
 								double get_freq();
 								int get_num();

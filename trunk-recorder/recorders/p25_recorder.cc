@@ -2,7 +2,7 @@
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 
-
+static int rec_counter=0;
 
 p25_recorder_sptr make_p25_recorder(Source *src)
 {
@@ -53,7 +53,7 @@ p25_recorder::p25_recorder(Source *src)
   silence_frames = source->get_silence_frames();
   talkgroup      = 0;
   d_phase2_tdma = true;
-  num = 0;
+  rec_num = rec_counter++;
 
   state = inactive;
 
@@ -198,16 +198,7 @@ p25_recorder::p25_recorder(Source *src)
 
   tm *ltm = localtime(&starttime);
 
-  std::stringstream path_stream;
-  path_stream << this->config->capture_dir << "/junk";
-
-  boost::filesystem::create_directories(path_stream.str());
-  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.wav", path_stream.str().c_str(), talkgroup, timestamp, chan_freq);
-
-  if (nchars >= 160) {
-    BOOST_LOG_TRIVIAL(error) << "P25 Recorder: Path longer than 160 charecters";
-  }
-  wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16, false);
+  wav_sink = gr::blocks::nonstop_wavfile_sink::make(1, 8000, 16, false);
 
   connect(self(),      0, valve,         0);
   connect(valve,       0, prefilter,     0);
@@ -315,7 +306,7 @@ Source * p25_recorder::get_source() {
 }
 
 int p25_recorder::get_num() {
-  return num;
+  return rec_num;
 }
 
 bool p25_recorder::is_active() {
@@ -369,7 +360,7 @@ Rx_Status p25_recorder::get_rx_status() {
 void p25_recorder::stop() {
   if (state == active) {
     //op25_frame_assembler->clear();
-    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
@@ -398,7 +389,7 @@ void p25_recorder::set_tdma_slot(int slot) {
 
 
 
-void p25_recorder::start(Call *call, int n) {
+void p25_recorder::start(Call *call) {
   if (state == inactive) {
     timestamp = time(NULL);
     starttime = time(NULL);
@@ -429,7 +420,7 @@ void p25_recorder::start(Call *call, int n) {
     if (!qpsk_mod) {
       reset();
     }
-    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
     int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);

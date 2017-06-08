@@ -14,7 +14,8 @@
 
 class Source
 {
-								static int rec_num;
+								
+								int src_num;
 								double min_hz;
 								double max_hz;
 								double center;
@@ -48,6 +49,7 @@ class Source
 
 public:
 								int get_num_available_recorders();
+								int get_num();
 								Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
 								gr::basic_block_sptr get_src_block();
 								double get_min_hz();
@@ -85,6 +87,9 @@ public:
 								void set_freq_corr(double p);
 								void print_recorders();
 								void tune_digital_recorders();
+								int debug_recorder_count();
+								int digital_recorder_count();
+								int analog_recorder_count();
 								Config * get_config();
 								analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
 								p25_recorder_sptr create_conventionalP25_recorder(gr::top_block_sptr tb);

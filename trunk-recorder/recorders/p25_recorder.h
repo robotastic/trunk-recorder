@@ -73,7 +73,7 @@ public:
   ~p25_recorder();
 
   void    tune_offset(double f);
-  void    start(Call *call, int   n);
+  void    start(Call *call);
   void    stop();
   void    clear();
   double  get_freq();

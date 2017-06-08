@@ -1,4 +1,5 @@
 #include "call.h"
+static int rec_counter=0;
 
 void Call::create_filename() {
   tm *ltm = localtime(&start_time);
@@ -105,7 +106,7 @@ void Call::restart_call() {
     emergency        = false;
 
     this->create_filename();
-    recorder->start(this, talkgroup + 100);
+    recorder->start(this);
   }
 }
 

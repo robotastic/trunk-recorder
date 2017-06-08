@@ -57,18 +57,17 @@
 namespace gr {
 namespace blocks {
 nonstop_wavfile_sink::sptr
-nonstop_wavfile_sink::make(const char  *filename,
-                           int          n_channels,
+nonstop_wavfile_sink::make(int          n_channels,
                            unsigned int sample_rate,
                            int          bits_per_sample,
                            bool         use_float)
 {
   return gnuradio::get_initial_sptr
-           (new nonstop_wavfile_sink_impl(filename, n_channels,
+           (new nonstop_wavfile_sink_impl( n_channels,
                                           sample_rate, bits_per_sample, use_float));
 }
 
-nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char  *filename,
+nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
                                                      int          n_channels,
                                                      unsigned int sample_rate,
                                                      int          bits_per_sample,
@@ -83,11 +82,6 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(const char  *filename,
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
   d_bytes_per_sample = bits_per_sample / 8;
-
-
-  if (!open(filename)) {
-    throw std::runtime_error("can't open file");
-  }
 }
 
 char * nonstop_wavfile_sink_impl::get_filename() {
