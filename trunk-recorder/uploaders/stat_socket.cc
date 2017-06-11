@@ -7,7 +7,33 @@
  * testing, etc.
  */
 
+ void stat_socket::send_sys_rates(std::vector<System *> systems, float timeDiff) {
 
+ boost::property_tree::ptree root;
+ boost::property_tree::ptree systems_node;
+
+ for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
+   System *sys = (System *)*it;
+
+   if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
+     float msgs_decoded_per_second = sys->message_count / timeDiff;
+     // Create a node
+     boost::property_tree::ptree sys_node;
+     // Add animals as childs
+     sys_node.put<double>(sys->short_name, (float) msgs_decoded_per_second);
+         //sys_node.add_child("shortName", sys->short_name);
+         //sys_node.add_child("messages", msgs_decoded_per_second);
+     // Add the new node to the root
+     systems_node.push_back(std::make_pair("", sys_node));
+   }
+
+ }
+ root.add_child("messages", systems_node);
+ std::stringstream stats_str;
+ boost::property_tree::write_json(stats_str, root);
+ //std::cout << stats_str;
+ send_stat(stats_str.str());
+ }
 
 
     stat_socket::stat_socket() : m_open(false),m_done(false) {
@@ -27,6 +53,154 @@
         m_client.set_close_handler(bind(&stat_socket::on_close,this,_1));
         m_client.set_fail_handler(bind(&stat_socket::on_fail,this,_1));
     }
+
+
+
+
+    void stat_socket::send_config(std::vector<Source *> sources, std::vector<System *> systems, Config config) {
+
+
+    boost::property_tree::ptree root;
+    boost::property_tree::ptree systems_node;
+    boost::property_tree::ptree sources_node;
+
+    for (std::vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+      Source *source = *it;
+      boost::property_tree::ptree source_node;
+
+      source_node.put("antenna", source->get_antenna());
+      source_node.put("qpsk", source->get_qpsk_mod());
+      source_node.put("silence_frames", source->get_silence_frames());
+      source_node.put("analog_levels", source->get_analog_levels());
+      source_node.put("digital_levels", source->get_digital_levels());
+      source_node.put("min_hz", source->get_min_hz());
+      source_node.put("max_hz", source->get_max_hz());
+      source_node.put("center", source->get_center());
+      source_node.put("rate", source->get_rate());
+      source_node.put("driver", source->get_driver());
+      source_node.put("device", source->get_device());
+      source_node.put("error", source->get_error());
+      source_node.put("mix_gain", source->get_mix_gain());
+      source_node.put("lna_gain", source->get_lna_gain());
+      source_node.put("bb_gain", source->get_bb_gain());
+      source_node.put("gain", source->get_gain());
+      source_node.put("if_gain", source->get_if_gain());
+      source_node.put("squelch_db", source->get_squelch_db());
+      source_node.put("antenna", source->get_antenna());
+      source_node.put("analog_recorders", source->analog_recorder_count());
+      source_node.put("digital_recorders", source->digital_recorder_count());
+      source_node.put("debug_recorders", source->debug_recorder_count());
+
+      sources_node.push_back(std::make_pair("", source_node));
+    }
+
+    for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
+      System *sys = (System *)*it;
+
+        boost::property_tree::ptree sys_node;
+        boost::property_tree::ptree channels_node;
+        sys_node.put("audioArchive", sys->get_audio_archive());
+        sys_node.put("systemType", sys->get_system_type());
+        sys_node.put("shortName", sys->get_short_name());
+        sys_node.put("sysNum", sys->get_sys_num());
+        sys_node.put("uploadScript", sys->get_upload_script());
+        sys_node.put("recordUnkown", sys->get_record_unknown());
+        sys_node.put("callLog", sys->get_call_log());
+        sys_node.put("talkgroupsFile", sys->get_talkgroups_file());
+        std::vector<double> channels;
+        if ((sys->get_system_type() == "conventional") || (sys->get_system_type() == "conventionalP25")) {
+          channels = sys->get_channels();
+        } else {
+          channels = sys->get_control_channels();
+        }
+
+          std::cout <<"starts: " << std::endl;
+          for (std::vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
+            double channel = *chan_it;
+            boost::property_tree::ptree channel_node;
+            std::cout <<"Hello: " << channel << std::endl;
+            channel_node.put("", channel);
+            // Add this node to the list.
+            channels_node.push_back(std::make_pair("", channel_node));
+          }
+          sys_node.add_child("channels", channels_node);
+
+        if (sys->system_type == "smartnet") {
+          sys_node.put("bandplan", sys->get_bandplan());
+          sys_node.put("bandfreq", sys->get_bandfreq());
+          sys_node.put("bandplan_base", sys->get_bandplan_base());
+          sys_node.put("bandplan_high", sys->get_bandplan_high());
+          sys_node.put("bandplan_spacing", sys->get_bandplan_spacing());
+          sys_node.put("bandplan_offset", sys->get_bandplan_offset());
+        }
+      systems_node.push_back(std::make_pair("", sys_node));
+    }
+    root.add_child("sources", sources_node);
+    root.add_child("systems", systems_node);
+    root.put("captureDir", config.capture_dir);
+    root.put("uploadServer", config.upload_server);
+    //root.put("defaultMode", default_mode);
+    root.put("callTimeout", config.call_timeout);
+    root.put("logFile", config.log_file);
+
+    std::stringstream stats_str;
+    boost::property_tree::write_json(stats_str, root);
+    //std::cout << stats_str;
+    send_stat(stats_str.str());
+    }
+
+
+    void stat_socket::send_status(std::vector<Call *> calls) {
+      boost::property_tree::ptree root;
+      boost::property_tree::ptree calls_node;
+      boost::property_tree::ptree sources_node;
+
+      for (std::vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
+        Call *call         = *it;
+        Recorder *recorder = call->get_recorder();
+
+        boost::property_tree::ptree call_node;
+        boost::property_tree::ptree freq_list_node;
+        call_node.put("freq", call->get_freq());
+        call_node.put("sysNum", call->get_sys_num());
+        call_node.put("shortName", call->get_short_name());
+        call_node.put("talkgroup", call->get_talkgroup());
+        call_node.put("elasped", call->elapsed());
+        call_node.put("length", call->get_current_length());
+        call_node.put("state", call->get_state());
+        call_node.put("phase2", call->get_phase2_tdma());
+        call_node.put("conventional", call->is_conventional());
+        call_node.put("encrypted", call->get_encrypted());
+        call_node.put("emergency", call->get_emergency());
+        call_node.put("startTime", call->get_start_time());
+
+        Call_Freq *freq_list = call->get_freq_list();
+        int freq_count = call->get_freq_count();
+        for (int i = 0; i < freq_count; i++) {
+          boost::property_tree::ptree freq_node;
+
+          freq_node.put("freq", freq_list[i].freq);
+          freq_node.put("time", freq_list[i].time);
+          freq_list_node.push_back(std::make_pair("", freq_node));
+        }
+        call_node.add_child("freqList", freq_list_node);
+
+
+        if (recorder) {
+          Source   *source   = recorder->get_source();
+          call_node.put("recNum", recorder->get_num());
+          call_node.put("srcNum", source->get_num());
+          call_node.put("recState", recorder->get_state());
+        }
+        calls_node.push_back(std::make_pair("", call_node));
+      }
+      root.add_child("systems", calls_node);
+      std::stringstream stats_str;
+      boost::property_tree::write_json(stats_str, root);
+      //std::cout << stats_str;
+      send_stat(stats_str.str());
+    }
+
 
     // This method will block until the connection is complete
     void stat_socket::open_stat(const std::string & uri) {
