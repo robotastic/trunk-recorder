@@ -242,8 +242,10 @@ void load_config(string config_file)
       config.capture_dir.erase(config.capture_dir.length() - 1);
     }
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config.upload_server = pt.get<std::string>("uploadServer", "encode-upload.sh");
+    config.upload_server = pt.get<std::string>("uploadServer", "");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
+    config.status_server = pt.get<std::string>("statusServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
     default_mode = pt.get<std::string>("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
@@ -522,7 +524,7 @@ void stop_inactive_recorders() {
         ++it;
       } // if rx is active
     }   // foreach loggers
-    if (ended_call) {
+    if (ended_call && (config.status_server != "")) {
       stats.send_status(calls);
     }
   }
@@ -675,9 +677,12 @@ void handle_call(TrunkMessage message, System *sys) {
      start_recorder(call, message, sys);
      calls.push_back(call);
   }
+
+  if (config.status_server != "") {
   if (call_retune || (!call_found)) {
     stats.send_status(calls);
   }
+}
 }
 
 void unit_check() {
@@ -803,7 +808,9 @@ void retune_system(System *system) {
 
 
 void check_message_count(float timeDiff) {
+  if (config.status_server != "") {
   stats.send_sys_rates(systems,timeDiff);
+}
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
@@ -852,7 +859,9 @@ void monitor_messages() {
       return;
     }
 
+    if (config.status_server != "") {
     stats.poll_one();
+  }
     // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
 
@@ -1074,11 +1083,14 @@ add_logs(
 
   std::string uri = "ws://localhost:3005";
 
-  stats.open_stat(uri);
+
+
 
   load_config(config_file);
+  if (config.status_server != "") {
+  stats.open_stat(config.status_server);
   stats.send_config(sources, systems, config);
-
+}
   if(config.log_file){
 	  logging::add_file_log(
 	  keywords::file_name = "logs/%m-%d-%Y_%H%M_%2N.log",
