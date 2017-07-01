@@ -44,7 +44,7 @@ void p25_frame_assembler_impl::p25p2_queue_msg(int duid)
 
   if (d_msg_queue->full_p()) return;
 
-  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, 2), duid, 0, 0);
+  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, 2), duid, d_sys_num, 0);
   d_msg_queue->insert_tail(msg);
 }
 
@@ -108,6 +108,7 @@ p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
   d_do_output(do_output),
   d_silence_frames(silence_frames),
   output_queue(),
+  d_sys_num(sys_num),
   p1fdma(sys_num, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
   d_do_audio_output(do_audio_output),
   d_do_phase2_tdma(do_phase2_tdma),

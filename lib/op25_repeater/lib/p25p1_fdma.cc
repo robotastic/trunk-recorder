@@ -495,11 +495,12 @@ void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
     }
     diff_usec += diff_sec * 1000000;
 
+/*
     if (diff_usec >= TIMEOUT_THRESHOLD) {
       gettimeofday(&last_qtime, 0);
       gr::message::sptr msg = gr::message::make(-1, 0, 0);
       d_msg_queue->insert_tail(msg);
-    }
+    */
   }
 }
 

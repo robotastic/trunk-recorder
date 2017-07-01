@@ -42,7 +42,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   float offset               = chan_freq - center_freq;
 
   const double pi = boost::math::constants::pi<double>();
-  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_num;
+  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysNum: " << sys_num;
 
   BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
 

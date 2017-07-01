@@ -49,12 +49,14 @@ private:
   bool d_do_phase2_tdma;
   p25p2_tdma p2tdma;
   bool d_do_msgq;
+
+  int                 d_sys_num;
   int d_silence_frames;
   int silence_frame_count;
   long total_produced;
   gr::msg_queue::sptr d_msg_queue;
   int d_input_rate;
-  
+
   pmt::pmt_t d_tag_key;
   pmt::pmt_t d_tag_src;
 
