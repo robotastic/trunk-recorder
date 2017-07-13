@@ -184,8 +184,8 @@ smartnet_decode::work (int noutput_items,
 
 	uint64_t size = noutput_items - 84;
 
-
-	if(size <= 0) {
+	//if(size <= 0) {
+	if(size < 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
 		//consume_each(0);
 		return 0; //better luck next time
@@ -246,5 +246,5 @@ smartnet_decode::work (int noutput_items,
 	//return noutput_items;
 
 	//BOOST_LOG_TRIVIAL(info) << "Consumed: " << preamble_tags.back().offset - abs_sample_cnt + 84;
-	return noutput_items;//preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
+	return preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
 }
