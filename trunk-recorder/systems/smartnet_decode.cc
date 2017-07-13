@@ -64,7 +64,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_num)
 	             gr::io_signature::make (0,0,0))
 {
 	//set_relative_rate((double)(76.0/84.0));
-	set_output_multiple(388); //used to be 76  //504  //460
+	set_output_multiple(504); //388); //used to be 76  //504  //460
 	d_queue = queue;
 	this->sys_num = sys_num;
 	//set_output_multiple(168); //used to be 76
@@ -246,5 +246,5 @@ smartnet_decode::work (int noutput_items,
 	//return noutput_items;
 
 	//BOOST_LOG_TRIVIAL(info) << "Consumed: " << preamble_tags.back().offset - abs_sample_cnt + 84;
-	return preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
+	return noutput_items;//preamble_tags.back().offset - abs_sample_cnt + 84;//noutput_items;
 }
