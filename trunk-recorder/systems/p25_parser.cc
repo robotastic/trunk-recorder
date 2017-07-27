@@ -416,12 +416,18 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
       }
       unsigned long f1        = bitset_shift_mask(tsbk, 16, 0xffffffff);
       int slots_per_carrier[] = { 1, 1, 1, 2, 4, 2 };
+      bool chan_tdma;
+      if (slots_per_carrier[channel_type] > 1) {
+        chan_tdma = true;
+      } else {
+        chan_tdma = false;
+      }
       Channel temp_chan       = {
         iden,                            // id;
         toff * spac * 125,               // offset;
         spac * 125,                      // step;
         f1 * 5,                          // frequency;
-        true,
+        chan_tdma,
         slots_per_carrier[channel_type], // tdma;
         6.25
       };
