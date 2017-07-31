@@ -182,7 +182,7 @@ smartnet_decode::work (int noutput_items,
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
 
 
-	uint64_t size = noutput_items - 84;
+	int size = noutput_items - 84;
 
 	//if(size <= 0) {
 	if(size < 0) {

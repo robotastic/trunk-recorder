@@ -39,7 +39,24 @@ System::System(int sys_num) {
   talkgroups = new Talkgroups();
 }
 
+void System::set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac){
+  if(sys_id && wacn && nac) {
+    this->sys_id = sys_id;
+    this->wacn = wacn;
+    this->nac = nac;
+    BOOST_LOG_TRIVIAL(info) << "Setting XOR Mask: System ID " << std::dec << sys_id << " WACN: " << wacn << " NAC: " << nac <<  std::dec;
+    if(sys_id && wacn && nac) {
+      lfsr = new p25p2_lfsr(nac, sys_id, wacn);
+      xor_mask =  lfsr->getXorChars(xor_mask_len);
+      /*
+      BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
+      for (unsigned i=0; i<xor_mask_len; i++) {
+        std::cout << (short)xor_mask[i] << ", ";
+      }*/
+    }
+  }
 
+}
 void System::update_status(TrunkMessage message) {
  if(!sys_id || !wacn || !nac) {
    sys_id = message.sys_id;

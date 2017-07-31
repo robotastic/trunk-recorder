@@ -73,6 +73,7 @@ public:
         unsigned long get_sys_id();
         unsigned long get_wacn();
         unsigned long get_nac();
+        void set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac);
         const char * get_xor_mask();
         void update_status(TrunkMessage message);
         int get_sys_num();

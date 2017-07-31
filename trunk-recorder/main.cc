@@ -153,7 +153,9 @@ void load_config(string config_file)
       // each system should have a unique index value;
       System *system = new System(sys_count++);
       std::stringstream default_script;
-
+      unsigned long sys_id;
+      unsigned long wacn;
+      unsigned long nac;
       default_script << "sys_" << sys_count;
 
       system->set_system_type(node.second.get<std::string>("type"));
@@ -207,8 +209,11 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       system->set_record_unknown(node.second.get<bool>("recordUnknown",true));
       BOOST_LOG_TRIVIAL(info) << "Record Unkown Talkgroups: " << system->get_record_unknown();
-      systems.push_back(system);
 
+      sys_id = node.second.get<unsigned long>("sysId", 0);
+      nac = node.second.get<unsigned long>("nac", 0);
+      wacn = node.second.get<unsigned long>("wacn", 0);
+      system->set_xor_mask(sys_id, nac, wacn);
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
       system->set_bandfreq(800); // Default to 800
 
@@ -231,6 +236,7 @@ void load_config(string config_file)
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
         }
       }
+      systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);
     }
 
