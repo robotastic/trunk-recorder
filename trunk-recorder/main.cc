@@ -213,7 +213,7 @@ void load_config(string config_file)
       sys_id = node.second.get<unsigned long>("sysId", 0);
       nac = node.second.get<unsigned long>("nac", 0);
       wacn = node.second.get<unsigned long>("wacn", 0);
-      system->set_xor_mask(sys_id, nac, wacn);
+      system->set_xor_mask(sys_id, wacn, nac);
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
       system->set_bandfreq(800); // Default to 800
 
