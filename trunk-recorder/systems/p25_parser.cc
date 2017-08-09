@@ -78,7 +78,7 @@ unsigned long P25Parser::bitset_shift_mask(boost::dynamic_bitset<>& tsbk, int sh
 }
 
 
-std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost::dynamic_bitset<>& header, boost::dynamic_bitset<>& mbt_data, unsigned long nac, int sys_num) {
+std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost::dynamic_bitset<>& header, boost::dynamic_bitset<>& mbt_data, unsigned long link_id,  unsigned long nac, int sys_num) {
   std::vector<TrunkMessage> messages;
   TrunkMessage message;
   std::ostringstream os;
@@ -114,6 +114,7 @@ std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost
           message.message_type = GRANT;
           message.freq         = f1;
           message.talkgroup    = ga;
+          message.source = link_id;
 
           if (get_tdma_slot(ch1) >= 0) {
             message.phase2_tdma = true;
@@ -812,7 +813,7 @@ std::vector<TrunkMessage>P25Parser::parse_message(gr::message::sptr msg) {
     boost::dynamic_bitset<> mbt_data((s2.length() + 2) * 8);
 
     for (unsigned int i = 0; i < s2.length(); ++i) {
-      unsigned char c = (unsigned char)s1[i];
+      unsigned char c = (unsigned char)s2[i];
       mbt_data <<= 8;
 
       for (int j = 0; j < 8; j++) {
@@ -828,11 +829,11 @@ std::vector<TrunkMessage>P25Parser::parse_message(gr::message::sptr msg) {
     unsigned long opcode = bitset_shift_mask(header, 16, 0x3f);
     //unsigned long opcode = (header >> 16) & 0x3f;
 
-    unsigned long sa = bitset_shift_mask(header, 32, 0xffffff);
+    unsigned long link_id = bitset_shift_mask(header, 32, 0xffffff);
 
-    BOOST_LOG_TRIVIAL(trace) << "MBT Data type " << type << " len " << s1.length() << "/" << s2.length() << " opcode " << opcode << " Source Address " << sa;
+    BOOST_LOG_TRIVIAL(trace) << "MBT Data type " << type << " len " << s1.length() << "/" << s2.length() << " opcode " << opcode << " Source Address " << link_id;
 
-    return decode_mbt_data(opcode, header, mbt_data, nac, sys_num);
+    return decode_mbt_data(opcode, header, mbt_data, link_id, nac, sys_num);
     // self.trunked_systems[nac].decode_mbt_data(opcode, header << 16, mbt_data
     // << 32)
   }
