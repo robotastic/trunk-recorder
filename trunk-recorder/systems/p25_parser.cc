@@ -77,6 +77,119 @@ unsigned long P25Parser::bitset_shift_mask(boost::dynamic_bitset<>& tsbk, int sh
   return result;
 }
 
+
+std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost::dynamic_bitset<>& header, boost::dynamic_bitset<>& mbt_data, unsigned long nac, int sys_num) {
+  std::vector<TrunkMessage> messages;
+  TrunkMessage message;
+  std::ostringstream os;
+
+
+  message.message_type = UNKNOWN;
+  message.source       = 0;
+  message.wacn         =0;
+  message.nac = nac;
+  message.sys_id = 0;
+  message.sys_num = sys_num;
+  message.talkgroup = 0;
+  message.emergency = false;
+  message.phase2_tdma = false;
+  message.tdma_slot = 0;
+  message.freq = 0;
+
+
+      BOOST_LOG_TRIVIAL(trace) <<  "decode_mbt_data: " <<  opcode;
+      if (opcode == 0x0) {  // grp voice channel grant
+
+          //ch1  = (mbt_data >> 64) & 0xffff
+          //ch2  = (mbt_data >> 48) & 0xffff
+          //ga   = (mbt_data >> 32) & 0xffff
+          unsigned long ch1 = bitset_shift_mask(mbt_data, 64, 0xffff);
+          unsigned long ch2 = bitset_shift_mask(mbt_data, 48, 0xffff);
+          unsigned long ga = bitset_shift_mask(mbt_data, 32, 0xffff);
+
+          //f = self.channel_id_to_frequency(ch1)
+          unsigned long f1 = channel_id_to_frequency(ch1);
+          //self.update_voice_frequency(f, tgid=ga, tdma_slot=self.get_tdma_slot(ch1))
+
+          message.message_type = GRANT;
+          message.freq         = f1;
+          message.talkgroup    = ga;
+
+          if (get_tdma_slot(ch1) >= 0) {
+            message.phase2_tdma = true;
+            message.tdma_slot = get_tdma_slot(ch1);
+          } else {
+            message.phase2_tdma = false;
+            message.tdma_slot = 0;
+          }
+
+          BOOST_LOG_TRIVIAL(trace) << "MBT00\tChan Grant\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch1) << "\tBandwidth: " << get_bandwidth(ch1);
+
+      } else if (opcode == 0x3c) {  // adjacent status
+        /*  syid = (header >> 48) & 0xfff
+          rfid = (header >> 24) & 0xff
+          stid = (header >> 16) & 0xff
+          ch1  = (mbt_data >> 80) & 0xffff
+          ch2  = (mbt_data >> 64) & 0xffff
+          f1 = self.channel_id_to_frequency(ch1)
+          f2 = self.channel_id_to_frequency(ch2)
+          if f1 and f2:
+              self.adjacent[f1] = 'rfid: %d stid:%d uplink:%f' % (rfid, stid, f2 / 1000000.0)*/
+          //BOOST_LOG_TRIVIAL(trace) << "mbt3c adjacent sys %x rfid %x stid %x ch1 %x ch2 %x f1 %s f2 %s" %(syid, rfid, stid, ch1, ch2, self.channel_id_to_string(ch1), self.channel_id_to_string(ch2))
+      } else if (opcode == 0x3b) {   // network status
+        /*  syid = (header >> 48) & 0xfff
+          wacn = (mbt_data >> 76) & 0xfffff
+          ch1  = (mbt_data >> 56) & 0xffff
+          ch2  = (mbt_data >> 40) & 0xffff
+          f1 = self.channel_id_to_frequency(ch1)
+          f2 = self.channel_id_to_frequency(ch2)
+          if f1 and f2:
+              self.ns_syid = syid
+              self.ns_wacn = wacn
+              self.ns_chan = f1
+          BOOST_LOG_TRIVIAL(trace) << "mbt3b net stat sys %x wacn %x ch1 %s ch2 %s" %(syid, wacn, self.channel_id_to_string(ch1), self.channel_id_to_string(ch2))
+          */unsigned long wacn = bitset_shift_mask(mbt_data, 76, 0xfffff);
+          unsigned long syid = bitset_shift_mask(header, 48, 0xfff);
+          unsigned long ch1  = bitset_shift_mask(mbt_data, 56, 0xffff);
+          unsigned long ch2  = bitset_shift_mask(mbt_data, 40, 0xffff);
+          unsigned long f1   = channel_id_to_frequency(ch1);
+          unsigned long f2   = channel_id_to_frequency(ch1);
+
+          if (f1 && f2) {
+            message.message_type = STATUS;
+            message.wacn         = wacn;
+            message.sys_id    = syid;
+            message.freq         = f1;
+          }
+          BOOST_LOG_TRIVIAL(trace) << "tsbk3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") ";
+
+
+      } else if (opcode == 0x3a) {  // rfss status
+          /*syid = (header >> 48) & 0xfff
+          rfid = (mbt_data >> 88) & 0xff
+          stid = (mbt_data >> 80) & 0xff
+          ch1  = (mbt_data >> 64) & 0xffff
+          ch2  = (mbt_data >> 48) & 0xffff
+          f1 = self.channel_id_to_frequency(ch1)
+          f2 = self.channel_id_to_frequency(ch2)*/
+
+          unsigned long syid = bitset_shift_mask(header, 48, 0xfff);
+          unsigned long rfid = bitset_shift_mask(mbt_data, 88, 0xff);
+          unsigned long stid = bitset_shift_mask(mbt_data, 80, 0xff);
+          unsigned long ch1 = bitset_shift_mask(mbt_data, 64, 0xffff);
+          unsigned long ch2 = bitset_shift_mask(mbt_data, 48, 0xffff);
+          message.message_type = SYSID;
+          message.sys_id        = syid;
+          os << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) <<  ")" << std::endl;
+          message.meta = os.str();
+          BOOST_LOG_TRIVIAL(trace) << os;
+
+      } else {
+         BOOST_LOG_TRIVIAL(trace) << "mbt other: " << opcode;
+      }
+      return messages;
+}
+
 std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, unsigned long nac, int sys_num) {
   // self.stats['tsbks'] += 1
   long updated = 0;
@@ -593,6 +706,8 @@ void printbincharpad(char c)
   // std::cout << " | ";
 }
 
+
+
 std::vector<TrunkMessage>P25Parser::parse_message(gr::message::sptr msg) {
   std::vector<TrunkMessage> messages;
 
@@ -676,22 +791,48 @@ std::vector<TrunkMessage>P25Parser::parse_message(gr::message::sptr msg) {
   } else if (type == 12) { // # trunk: MBT
     std::string s1 = s.substr(0, 10);
     std::string s2 = s.substr(10);
-    long header    = 0;
-    long mbt_data  = 0;
 
-    for (unsigned int i = 0; i < s1.length(); ++i)
-    {
-      header = (header << 8) + (int)s1[i];
+    boost::dynamic_bitset<> header((s1.length() + 2) * 8);
+
+    for (unsigned int i = 0; i < s1.length(); ++i) {
+      unsigned char c = (unsigned char)s1[i];
+      header <<= 8;
+
+      for (int j = 0; j < 8; j++) {
+        if (c & 0x1) {
+          header[j] = 1;
+        } else {
+          header[j] = 0;
+        }
+        c >>= 1;
+      }
     }
+    //header <<= 16;              // for missing crc
 
-    for (unsigned int i = 0; i < s2.length(); ++i)
-    {
-      mbt_data = (mbt_data << 8) + (int)s2[i];
+    boost::dynamic_bitset<> mbt_data((s2.length() + 2) * 8);
+
+    for (unsigned int i = 0; i < s2.length(); ++i) {
+      unsigned char c = (unsigned char)s1[i];
+      mbt_data <<= 8;
+
+      for (int j = 0; j < 8; j++) {
+        if (c & 0x1) {
+          mbt_data[j] = 1;
+        } else {
+          mbt_data[j] = 0;
+        }
+        c >>= 1;
+      }
     }
-    long opcode = (header >> 16) & 0x3f;
+    //header <<= 16;              // for missing crc
+    unsigned long opcode = bitset_shift_mask(header, 16, 0x3f);
+    //unsigned long opcode = (header >> 16) & 0x3f;
 
-    BOOST_LOG_TRIVIAL(trace) << "type " << type << " len " << s1.length() << "/" << s2.length() << " opcode " << opcode << "[" << header << "/" << mbt_data << "]";
+    unsigned long sa = bitset_shift_mask(header, 32, 0xffffff);
 
+    BOOST_LOG_TRIVIAL(trace) << "MBT Data type " << type << " len " << s1.length() << "/" << s2.length() << " opcode " << opcode << " Source Address " << sa;
+
+    return decode_mbt_data(opcode, header, mbt_data, nac, sys_num);
     // self.trunked_systems[nac].decode_mbt_data(opcode, header << 16, mbt_data
     // << 32)
   }

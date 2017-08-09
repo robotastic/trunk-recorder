@@ -28,6 +28,7 @@ public:
 								P25Parser();
 								long get_tdma_slot(int chan_id);
 								double get_bandwidth(int chan_id);
+								std::vector<TrunkMessage> decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<>& header, boost::dynamic_bitset<>& mbt_data, unsigned long nac, int sys_num); 
 								std::vector<TrunkMessage> decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac, int sys_num);
 								unsigned long bitset_shift_mask(boost::dynamic_bitset<> &tsbk, int shift, unsigned long long mask);
 								std::string  channel_id_to_string(int chan_id);
