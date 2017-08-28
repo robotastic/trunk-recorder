@@ -25,10 +25,11 @@ class stat_socket {
   void on_close(websocketpp::connection_hdl);
   void on_open(websocketpp::connection_hdl);
   void open_stat(const std::string & uri);
-    void send_status(std::vector<Call *> calls);
-    void send_config(std::vector<Source *> sources, std::vector<System *> systems, Config config);
- void send_sys_rates(std::vector<System *> systems, float timeDiff);
- 
+  bool is_open();
+  void send_status(std::vector<Call *> calls);
+  void send_config(std::vector<Source *> sources, std::vector<System *> systems, Config config);
+  void send_sys_rates(std::vector<System *> systems, float timeDiff);
+
 private:
     client m_client;
     websocketpp::connection_hdl m_hdl;

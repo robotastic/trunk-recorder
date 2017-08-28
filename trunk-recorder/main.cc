@@ -93,9 +93,9 @@ P25Parser *p25_parser;
 
 Config config;
 stat_socket stats;
-
 string default_mode;
 
+bool config_sent;
 
 void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
@@ -818,6 +818,10 @@ void retune_system(System *system) {
 
 void check_message_count(float timeDiff) {
   if (config.status_server != "") {
+    if (!config_sent && stats.is_open()) {
+      stats.send_config(sources, systems, config);
+      config_sent = true;
+    }
   stats.send_sys_rates(systems,timeDiff);
 }
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
@@ -1085,6 +1089,8 @@ add_logs(
 
 
   tb              = gr::make_top_block("Trunking");
+  tb->start();
+  tb->lock();
   msg_queue       = gr::msg_queue::make(100);
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
   p25_parser      = new P25Parser();
@@ -1096,9 +1102,9 @@ add_logs(
 
 
   load_config(config_file);
+
   if (config.status_server != "") {
   stats.open_stat(config.status_server);
-  stats.send_config(sources, systems, config);
 }
   if(config.log_file){
 	  logging::add_file_log(
@@ -1112,8 +1118,8 @@ add_logs(
 
   if (monitor_system()) {
 
+    tb->unlock();
 
-    tb->start();
 
     monitor_messages();
 
