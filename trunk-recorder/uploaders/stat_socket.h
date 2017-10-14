@@ -16,8 +16,8 @@
 #include <retry_client_endpoint.hpp>
 
 
-
-typedef websocketpp::retry_client_endpoint<websocketpp::retry_config<websocketpp::config::asio_client>> client;
+typedef websocketpp::client<websocketpp::config::asio_client> client;
+//typedef websocketpp::retry_client_endpoint<websocketpp::retry_config<websocketpp::config::asio_client>> client;
 typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
 
 class stat_socket {
