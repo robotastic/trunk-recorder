@@ -2,7 +2,7 @@
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 
-static int rec_counter=0;
+
 
 p25_recorder_sptr make_p25_recorder(Source *src)
 {

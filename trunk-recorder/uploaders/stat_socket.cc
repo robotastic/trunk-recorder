@@ -6,7 +6,7 @@
  * programs where a client connects and pushes data for logging, stress/load
  * testing, etc.
  */
-void stat_socket::send_sys_rates(std::vector<System *>systems, float timeDiff) {
+void stat_socket::send_sys_rates(std::vector<System *>systems, float timeDiff, Config config) {
   boost::property_tree::ptree root;
   boost::property_tree::ptree systems_node;
 
@@ -31,6 +31,8 @@ void stat_socket::send_sys_rates(std::vector<System *>systems, float timeDiff) {
     }
   }
   root.put("type", "rate");
+  root.put("instanceId",      config.instance_id);
+  root.put("instanceKey",     config.instance_key);
   root.add_child("rates", systems_node);
   std::stringstream stats_str;
   boost::property_tree::write_json(stats_str, root);
@@ -65,7 +67,7 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
   for (std::vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     Source *source = *it;
     boost::property_tree::ptree source_node;
-
+    source_node.put("source_num",           source->get_num());
     source_node.put("antenna",           source->get_antenna());
     source_node.put("qpsk",              source->get_qpsk_mod());
     source_node.put("silence_frames",    source->get_silence_frames());
@@ -144,6 +146,9 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
   // root.put("defaultMode", default_mode);
   root.put("callTimeout",  config.call_timeout);
   root.put("logFile",      config.log_file);
+  root.put("instanceId",      config.instance_id);
+  root.put("instanceKey",      config.instance_key);
+  root.put("logFile",      config.log_file);
   root.put("type",         "config");
   std::stringstream stats_str;
   boost::property_tree::write_json(stats_str, root);
@@ -152,7 +157,7 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
   send_stat(stats_str.str());
 }
 
-void stat_socket::send_status(std::vector<Call *>calls) {
+void stat_socket::send_status(std::vector<Call *>calls, Config config) {
   boost::property_tree::ptree root;
   boost::property_tree::ptree calls_node;
   boost::property_tree::ptree sources_node;
@@ -175,7 +180,11 @@ void stat_socket::send_status(std::vector<Call *>calls) {
     call_node.put("encrypted",    call->get_encrypted());
     call_node.put("emergency",    call->get_emergency());
     call_node.put("startTime",    call->get_start_time());
-
+    if (call->get_state() == recording) {
+      call_node.put("recNum", call->get_recorder()->get_num());
+      call_node.put("srcNum", call->get_recorder()->get_source()->get_num());
+      call_node.put("analog", call->get_recorder()->is_analog());
+    }
     Call_Freq *freq_list = call->get_freq_list();
     int freq_count       = call->get_freq_count();
 
@@ -197,8 +206,10 @@ void stat_socket::send_status(std::vector<Call *>calls) {
     }
     calls_node.push_back(std::make_pair("", call_node));
   }
-  root.add_child("systems", calls_node);
+  root.add_child("calls", calls_node);
   root.put("type", "status");
+  root.put("instanceId",      config.instance_id);
+  root.put("instanceKey",      config.instance_key);
   std::stringstream stats_str;
   boost::property_tree::write_json(stats_str, root);
 

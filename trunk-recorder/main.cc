@@ -78,6 +78,7 @@ namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
 namespace src     = boost::log::sources;
 namespace sinks   = boost::log::sinks;
+int Recorder::rec_counter = 0;
 
 std::vector<Source *> sources;
 std::vector<System *> systems;
@@ -147,6 +148,8 @@ void load_config(string config_file)
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
+
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n" << sys_count;
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))
     {
@@ -157,6 +160,10 @@ void load_config(string config_file)
       unsigned long wacn;
       unsigned long nac;
       default_script << "sys_" << sys_count;
+
+      BOOST_LOG_TRIVIAL(info) << "\n\nSystem Number: " << sys_count << "\n-------------------------------------\n" << sys_count;
+      system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
+      BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
 
       system->set_system_type(node.second.get<std::string>("type"));
       BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
@@ -192,9 +199,6 @@ void load_config(string config_file)
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
         exit(1);
       }
-      BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSystem Number: " << sys_count;
-      system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
-      BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
 
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
@@ -240,24 +244,7 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info);
     }
 
-    config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
-    size_t pos = config.capture_dir.find_last_of("/");
-
-    if (pos == config.capture_dir.length() - 1)
-    {
-      config.capture_dir.erase(config.capture_dir.length() - 1);
-    }
-    BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config.upload_server = pt.get<std::string>("uploadServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
-    config.status_server = pt.get<std::string>("statusServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
-    default_mode = pt.get<std::string>("defaultMode", "digital");
-    BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
-    config.call_timeout = pt.get<int>("callTimeout", 3);
-    BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
-    config.log_file = pt.get<bool>("logFile", false);
-    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nSOURCES\n-------------------------------------\n";
 
 
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
@@ -291,6 +278,7 @@ void load_config(string config_file)
 
       std::string device = node.second.get<std::string>("device", "");
 
+      BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver",  "");
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
       BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate", 0);
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
@@ -305,7 +293,7 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver",  "");
+
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
@@ -367,7 +355,34 @@ void load_config(string config_file)
       source->create_analog_recorders(tb, analog_recorders);
       source->create_debug_recorders(tb, debug_recorders);
       sources.push_back(source);
+      BOOST_LOG_TRIVIAL(info) <<  "\n-------------------------------------\n\n";
+
     }
+
+    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
+
+    config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
+    size_t pos = config.capture_dir.find_last_of("/");
+
+    if (pos == config.capture_dir.length() - 1)
+    {
+      config.capture_dir.erase(config.capture_dir.length() - 1);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
+    config.upload_server = pt.get<std::string>("uploadServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
+    config.status_server = pt.get<std::string>("statusServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
+    config.instance_key = pt.get<std::string>("instanceKey", "");
+    BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
+    config.instance_id = pt.get<std::string>("instanceId", "");
+    BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
+    default_mode = pt.get<std::string>("defaultMode", "digital");
+    BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
+    config.call_timeout = pt.get<int>("callTimeout", 3);
+    BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
+    config.log_file = pt.get<bool>("logFile", false);
+    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
   }
   catch (std::exception const& e)
   {
@@ -531,7 +546,7 @@ void stop_inactive_recorders() {
       } // if rx is active
     }   // foreach loggers
     if (ended_call && (config.status_server != "")) {
-      stats.send_status(calls);
+      stats.send_status(calls, config);
     }
   }
 
@@ -686,7 +701,7 @@ void handle_call(TrunkMessage message, System *sys) {
 
   if (config.status_server != "") {
   if (call_retune || (!call_found)) {
-    stats.send_status(calls);
+    stats.send_status(calls, config);
   }
 }
 }
@@ -822,7 +837,7 @@ void check_message_count(float timeDiff) {
       stats.send_config(sources, systems, config);
       config_sent = true;
     }
-  stats.send_sys_rates(systems,timeDiff);
+  stats.send_sys_rates(systems,timeDiff, config);
 }
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;

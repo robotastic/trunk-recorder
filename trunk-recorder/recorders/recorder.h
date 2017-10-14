@@ -61,17 +61,18 @@ public:
 	virtual double get_freq() {return 0;};
   virtual Source *get_source() {return NULL;};
 	virtual Call_Source *get_source_list() {return NULL;};
-	virtual int get_num() {return 0;};
+	virtual int get_num() {return -1;};
 	virtual long get_source_count() {return 0;};
 	virtual long get_talkgroup() {return 0;};
 	virtual State get_state() {return inactive;};
 	virtual Rx_Status get_rx_status() {Rx_Status rx_status={0,0,0}; return rx_status; }
 	virtual bool is_active() {return false;};
+	virtual bool is_analog() {return false;};
 	virtual bool is_idle() {return true;};
 	virtual double get_current_length(){return 0;};
 	virtual void clear(){};
 	int rec_num;
-
+	static int rec_counter;
 
 };
 
