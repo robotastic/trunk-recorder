@@ -3,6 +3,7 @@
 
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
+#include <time.h>
 
 #include "../source.h"
 #include "../config.h"
@@ -36,9 +37,14 @@ class stat_socket {
   void send_sys_rates(std::vector<System *>systems, float timeDiff, Config config) ;
 
 private:
+    void reopen_stat();
     client m_client;
     websocketpp::connection_hdl m_hdl;
     websocketpp::lib::mutex m_lock;
+    std::string remote_uri;
+    int retry_attempt;
+    time_t reconnect_time;
+    bool m_reconnect;
     bool m_open;
     bool m_done;
 };
