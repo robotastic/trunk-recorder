@@ -213,6 +213,10 @@ void analog_recorder::stop() {
   }
 }
 
+bool analog_recorder::is_analog() {
+  return true;
+}
+
 bool analog_recorder::is_active() {
   if (state == active) {
     return true;

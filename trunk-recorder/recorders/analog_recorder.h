@@ -71,7 +71,7 @@ public:
   char  * get_filename();
   double  get_current_length();
   bool    is_active();
-
+  bool    is_analog();
   bool    is_idle();
   State   get_state();
   int     get_num();

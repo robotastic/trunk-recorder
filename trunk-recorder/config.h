@@ -16,6 +16,8 @@ struct Config {
         std::string upload_script;
         std::string upload_server;
         std::string status_server;
+        std::string instance_key;
+        std::string instance_id;
         std::string capture_dir;
         int call_timeout;
         bool log_file;
