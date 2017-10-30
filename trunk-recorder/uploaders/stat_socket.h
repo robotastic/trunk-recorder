@@ -14,7 +14,6 @@
 // select between boost::thread and std::thread based on how the build system
 // is configured.
 #include <websocketpp/common/thread.hpp>
-#include <retry_client_endpoint.hpp>
 
 
 typedef websocketpp::client<websocketpp::config::asio_client> client;

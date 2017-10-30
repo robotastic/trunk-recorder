@@ -115,12 +115,12 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
       channels = sys->get_control_channels();
     }
 
-    std::cout << "starts: " << std::endl;
+    //std::cout << "starts: " << std::endl;
 
     for (std::vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
       double channel = *chan_it;
       boost::property_tree::ptree channel_node;
-      std::cout << "Hello: " << channel << std::endl;
+      //std::cout << "Hello: " << channel << std::endl;
       channel_node.put("", channel);
 
       // Add this node to the list.
@@ -164,47 +164,49 @@ void stat_socket::send_status(std::vector<Call *>calls, Config config) {
 
   for (std::vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call         = *it;
-    Recorder *recorder = call->get_recorder();
-
-    boost::property_tree::ptree call_node;
-    boost::property_tree::ptree freq_list_node;
-    call_node.put("freq",         call->get_freq());
-    call_node.put("sysNum",       call->get_sys_num());
-    call_node.put("shortName",    call->get_short_name());
-    call_node.put("talkgroup",    call->get_talkgroup());
-    call_node.put("elasped",      call->elapsed());
-    call_node.put("length",       call->get_current_length());
-    call_node.put("state",        call->get_state());
-    call_node.put("phase2",       call->get_phase2_tdma());
-    call_node.put("conventional", call->is_conventional());
-    call_node.put("encrypted",    call->get_encrypted());
-    call_node.put("emergency",    call->get_emergency());
-    call_node.put("startTime",    call->get_start_time());
     if (call->get_state() == recording) {
-      call_node.put("recNum", call->get_recorder()->get_num());
-      call_node.put("srcNum", call->get_recorder()->get_source()->get_num());
-      call_node.put("analog", call->get_recorder()->is_analog());
+      Recorder *recorder = call->get_recorder();
+
+      boost::property_tree::ptree call_node;
+      boost::property_tree::ptree freq_list_node;
+      call_node.put("freq",         call->get_freq());
+      call_node.put("sysNum",       call->get_sys_num());
+      call_node.put("shortName",    call->get_short_name());
+      call_node.put("talkgroup",    call->get_talkgroup());
+      call_node.put("elasped",      call->elapsed());
+      call_node.put("length",       call->get_current_length());
+      call_node.put("state",        call->get_state());
+      call_node.put("phase2",       call->get_phase2_tdma());
+      call_node.put("conventional", call->is_conventional());
+      call_node.put("encrypted",    call->get_encrypted());
+      call_node.put("emergency",    call->get_emergency());
+      call_node.put("startTime",    call->get_start_time());
+      if (call->get_state() == recording) {
+        call_node.put("recNum", call->get_recorder()->get_num());
+        call_node.put("srcNum", call->get_recorder()->get_source()->get_num());
+        call_node.put("analog", call->get_recorder()->is_analog());
+      }
+      Call_Freq *freq_list = call->get_freq_list();
+      int freq_count       = call->get_freq_count();
+
+      for (int i = 0; i < freq_count; i++) {
+        boost::property_tree::ptree freq_node;
+
+        freq_node.put("freq", freq_list[i].freq);
+        freq_node.put("time", freq_list[i].time);
+        freq_list_node.push_back(std::make_pair("", freq_node));
+      }
+      call_node.add_child("freqList", freq_list_node);
+
+
+      if (recorder) {
+        Source *source = recorder->get_source();
+        call_node.put("recNum",   recorder->get_num());
+        call_node.put("srcNum",   source->get_num());
+        call_node.put("recState", recorder->get_state());
+      }
+      calls_node.push_back(std::make_pair("", call_node));
     }
-    Call_Freq *freq_list = call->get_freq_list();
-    int freq_count       = call->get_freq_count();
-
-    for (int i = 0; i < freq_count; i++) {
-      boost::property_tree::ptree freq_node;
-
-      freq_node.put("freq", freq_list[i].freq);
-      freq_node.put("time", freq_list[i].time);
-      freq_list_node.push_back(std::make_pair("", freq_node));
-    }
-    call_node.add_child("freqList", freq_list_node);
-
-
-    if (recorder) {
-      Source *source = recorder->get_source();
-      call_node.put("recNum",   recorder->get_num());
-      call_node.put("srcNum",   source->get_num());
-      call_node.put("recState", recorder->get_state());
-    }
-    calls_node.push_back(std::make_pair("", call_node));
   }
   root.add_child("calls", calls_node);
   root.put("type", "status");
@@ -220,8 +222,6 @@ void stat_socket::send_status(std::vector<Call *>calls, Config config) {
 void stat_socket::reopen_stat() {
   m_client.reset();
   m_reconnect = false;
-  m_client.get_alog().write(websocketpp::log::alevel::app,
-                            "reopen_stat: " + remote_uri);
   open_stat(remote_uri);
 }
 // This method will block until the connection is complete
@@ -232,8 +232,7 @@ void stat_socket::open_stat(const std::string& uri) {
   client::connection_ptr con = m_client.get_connection(uri, ec);
 
   if (ec) {
-    m_client.get_alog().write(websocketpp::log::alevel::app,
-                              "open_stat: Get Connection Error: " + ec.message());
+    m_client.get_alog().write(websocketpp::log::alevel::app,  "open_stat: Get WebSocket Connection Error: " + ec.message());
     return;
   }
 
@@ -271,7 +270,7 @@ bool stat_socket::is_open() {
 // The open handler will signal that we are ready to start sending telemetry
 void stat_socket::on_open(websocketpp::connection_hdl) {
   m_client.get_alog().write(websocketpp::log::alevel::app,
-                            "on_open: Connection opened, starting telemetry!");
+                            "on_open: WebSocket Connection opened, starting telemetry!");
 
   scoped_lock guard(m_lock);
   m_open = true;
@@ -280,8 +279,10 @@ void stat_socket::on_open(websocketpp::connection_hdl) {
 
 // The close handler will signal that we should stop sending telemetry
 void stat_socket::on_close(websocketpp::connection_hdl) {
+  std::stringstream stream_num;
+  std::string str_num;
   m_client.get_alog().write(websocketpp::log::alevel::app,
-                            "on_close: Connection closed, stopping telemetry!");
+                            "on_close: WebSocket Connection closed, stopping telemetry!");
 
   scoped_lock guard(m_lock);
   m_open = false;
@@ -289,13 +290,17 @@ void stat_socket::on_close(websocketpp::connection_hdl) {
   m_reconnect = true;
   retry_attempt++;
   long reconnect_delay = (6 * retry_attempt + (rand() % 30));
+  stream_num << reconnect_delay;
+  stream_num >> str_num;
   reconnect_time = time( NULL) + reconnect_delay;
-  m_client.get_alog().write(websocketpp::log::alevel::app,  "on_close: Will try to reconnect in:  ");
+  m_client.get_alog().write(websocketpp::log::alevel::app,  "on_close: Will try to reconnect in:  " + str_num);
 }
 
 // The fail handler will signal that we should stop sending telemetry
 void stat_socket::on_fail(websocketpp::connection_hdl) {
-  m_client.get_alog().write(websocketpp::log::alevel::app,  "on_fail: Connection failed, stopping telemetry!");
+  std::stringstream stream_num;
+  std::string str_num;
+  m_client.get_alog().write(websocketpp::log::alevel::app,  "on_fail: WebSocket Connection failed, stopping telemetry!");
 
   scoped_lock guard(m_lock);
   m_open = false;
@@ -304,58 +309,17 @@ void stat_socket::on_fail(websocketpp::connection_hdl) {
     m_reconnect = true;
     retry_attempt++;
     long reconnect_delay = (6 * retry_attempt + (rand() % 30));
+    stream_num << reconnect_delay;
+    stream_num >> str_num;
     reconnect_time = time( NULL) + reconnect_delay;
-    m_client.get_alog().write(websocketpp::log::alevel::app,  "on_fail: Will try to reconnect in:  ");
+    m_client.get_alog().write(websocketpp::log::alevel::app,  "on_fail: Will try to reconnect in:  " + str_num);
   }
 }
 
 void stat_socket::send_stat(std::string val) {
   websocketpp::lib::error_code ec;
-  m_client.get_alog().write(websocketpp::log::alevel::app, val);
-  m_client.send(m_hdl, val, websocketpp::frame::opcode::text, ec);
-
-  // The most likely error that we will get is that the connection is
-  // not in the right state. Usually this means we tried to send a
-  // message to a connection that was closed or in the process of
-  // closing. While many errors here can be easily recovered from,
-  // in this simple example, we'll stop the telemetry loop.
-  if (ec) {
-    m_client.get_alog().write(websocketpp::log::alevel::app,
-                              "Send Error: " + ec.message());
-  }
-}
-
-void stat_socket::telemetry_loop() {
-  uint64_t count = 0;
-
-  std::stringstream val;
-  websocketpp::lib::error_code ec;
-
-  while (1) {
-    bool wait = false;
-
-    {
-      scoped_lock guard(m_lock);
-
-      // If the connection has been closed, stop generating telemetry
-      if (m_done) break;
-
-      // If the connection hasn't been opened yet wait a bit and retry
-      if (!m_open) {
-        wait = true;
-      }
-    }
-
-    if (wait) {
-      sleep(1);
-      continue;
-    }
-
-    val.str("");
-    val << "count is " << count++;
-
-    m_client.get_alog().write(websocketpp::log::alevel::app, val.str());
-    m_client.send(m_hdl, val.str(), websocketpp::frame::opcode::text, ec);
+  if (m_open) {
+    m_client.send(m_hdl, val, websocketpp::frame::opcode::text, ec);
 
     // The most likely error that we will get is that the connection is
     // not in the right state. Usually this means we tried to send a
@@ -364,10 +328,7 @@ void stat_socket::telemetry_loop() {
     // in this simple example, we'll stop the telemetry loop.
     if (ec) {
       m_client.get_alog().write(websocketpp::log::alevel::app,
-                                "Send Error: " + ec.message());
-      break;
+                                "Error Sending : " + ec.message());
     }
-
-    sleep(1);
   }
 }
