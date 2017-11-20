@@ -833,7 +833,7 @@ void retune_system(System *system) {
 
 void check_message_count(float timeDiff) {
   if (config.status_server != "") {
-    if (stats.config_sent() && stats.is_open()) {
+    if (!stats.config_sent() && stats.is_open()) {
       stats.send_config(sources, systems, config);
     }
     stats.send_sys_rates(systems, timeDiff, config);
