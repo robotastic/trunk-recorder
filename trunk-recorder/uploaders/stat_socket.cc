@@ -269,7 +269,7 @@ bool stat_socket::is_open() {
 }
 
 bool stat_socket::config_sent() {
-  scoped_lock guard(m_config_sent);
+  scoped_lock guard(m_lock);
 
   return m_config_sent;
 }
