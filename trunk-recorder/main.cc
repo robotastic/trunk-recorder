@@ -96,7 +96,6 @@ Config config;
 stat_socket stats;
 string default_mode;
 
-bool config_sent;
 
 void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
@@ -834,9 +833,8 @@ void retune_system(System *system) {
 
 void check_message_count(float timeDiff) {
   if (config.status_server != "") {
-    if (!config_sent && stats.is_open()) {
+    if (stats.config_sent() && stats.is_open()) {
       stats.send_config(sources, systems, config);
-      config_sent = true;
     }
     stats.send_sys_rates(systems, timeDiff, config);
   }

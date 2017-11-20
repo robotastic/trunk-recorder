@@ -31,6 +31,7 @@ class stat_socket {
   void on_open(websocketpp::connection_hdl);
   void open_stat(const std::string & uri);
   bool is_open();
+  bool config_sent();
   void send_status(std::vector<Call *>calls, Config config);
   void send_config(std::vector<Source *> sources, std::vector<System *> systems, Config config);
   void send_sys_rates(std::vector<System *>systems, float timeDiff, Config config) ;
@@ -46,6 +47,7 @@ private:
     bool m_reconnect;
     bool m_open;
     bool m_done;
+    bool m_config_sent;
 };
 
 #endif

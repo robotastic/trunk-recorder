@@ -41,7 +41,7 @@ void stat_socket::send_sys_rates(std::vector<System *>systems, float timeDiff, C
   send_stat(stats_str.str());
 }
 
-stat_socket::stat_socket() : m_open(false), m_done(false) {
+stat_socket::stat_socket() : m_open(false), m_done(false), m_config_sent(false) {
   // set up access channels to only log interesting things
   m_client.clear_access_channels(websocketpp::log::alevel::all);
   m_client.set_access_channels(websocketpp::log::alevel::connect);
@@ -155,6 +155,7 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
 
   // std::cout << stats_str;
   send_stat(stats_str.str());
+  m_config_sent = true;
 }
 
 void stat_socket::send_status(std::vector<Call *>calls, Config config) {
@@ -267,6 +268,11 @@ bool stat_socket::is_open() {
   return m_open;
 }
 
+bool stat_socket::config_sent() {
+  scoped_lock guard(m_config_sent);
+
+  return m_config_sent;
+}
 // The open handler will signal that we are ready to start sending telemetry
 void stat_socket::on_open(websocketpp::connection_hdl) {
   m_client.get_alog().write(websocketpp::log::alevel::app,
@@ -287,6 +293,7 @@ void stat_socket::on_close(websocketpp::connection_hdl) {
   scoped_lock guard(m_lock);
   m_open = false;
   m_done = true;
+  m_config_sent = false;
   m_reconnect = true;
   retry_attempt++;
   long reconnect_delay = (6 * retry_attempt + (rand() % 30));
@@ -305,6 +312,7 @@ void stat_socket::on_fail(websocketpp::connection_hdl) {
   scoped_lock guard(m_lock);
   m_open = false;
   m_done = true;
+  m_config_sent = false;
   if (!m_reconnect) {
     m_reconnect = true;
     retry_attempt++;
