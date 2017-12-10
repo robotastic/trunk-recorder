@@ -21,6 +21,7 @@ struct Config {
         std::string capture_dir;
         int call_timeout;
         bool log_file;
+        int control_message_warn_rate;
 };
 
 //Config load_config(std::string config_file, std::vector<Source *> &sources, std::vector<System *> &systems);

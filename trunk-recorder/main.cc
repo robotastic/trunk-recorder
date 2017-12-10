@@ -379,6 +379,8 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
     config.log_file = pt.get<bool>("logFile", false);
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
+    BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
   }
   catch (std::exception const& e)
   {
@@ -858,7 +860,7 @@ void check_message_count(float timeDiff) {
         }
       }
 
-      if (msgs_decoded_per_second < 10) {
+      if (msgs_decoded_per_second < config.control_message_warn_rate || config.control_message_warn_rate == -1) {
         BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
       sys->message_count = 0;
