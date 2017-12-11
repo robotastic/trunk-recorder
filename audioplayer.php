@@ -71,8 +71,8 @@ $talkgroups = array('ALL'=>"ALL", 1767=>"Example1", 1777=>"Example2")
 	window.onload=init;
 </script><style>span {padding-right: 10px; display: table-cell; max-width: 550px;}</style>
 <body style="font-family: Arial;" ><div style="position:fixed; background: white; top: 0; width: 100%;">
-<h1><?php if (isset($talkgroups[$tgs])) echo $talkgroups[$tgs]; 
-	else echo "Radio calls" ?>Calls on <?php echo substr($m,5)."/".$d."/".substr($m,0,4); ?></h1>
+<h1><?php if (isset($talkgroups[$tgs]) && ($tgs != "ALL)) echo $talkgroups[$tgs]; 
+	else echo "Radio calls" ?> on <?php echo substr($m,5)."/".$d."/".substr($m,0,4); ?></h1>
 <form>Change: Month: <select name="m">
 <?php foreach (glob("2*/*", GLOB_ONLYDIR) as $mon) {
 	echo '<option value="'.str_replace("/","-",$mon).'"';
