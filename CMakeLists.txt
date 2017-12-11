@@ -124,6 +124,7 @@ SET(BOOST_REQUIRED_COMPONENTS
     system
     program_options
     filesystem
+    log_setup
     log
     regex
 )
