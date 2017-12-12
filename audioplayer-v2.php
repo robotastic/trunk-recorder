@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
 <?php
+
 date_default_timezone_set('America/Los_Angeles');
 $systemname = "SET THIS";
+$chanlist = "/path/to/trunk-recorder/ChanList.csv";
+$talkgroups = array('ALL'=>"ALL", 100=>"Example1", 200=>"Example2", 'Group1'=>"Group 1");
+$Group1 = array(100,200); //optional groups of talkgroups
+//may be better to fill $talkgroups instead of $chanlist so ChanList.csv
+//doesn't have to be read and parsed every time the Web page is loaded
+//if using ChanList.csv, make sure it is readable by e.g. apache
+$desc=4; //set to 3 to display Alpha Tags instead of Descriptions
+
 parse_str(str_replace("&amp;","&",$_SERVER['QUERY_STRING']), $pagequery);
 if (isset($pagequery['m']))
 	$m = $pagequery['m'];
@@ -22,7 +31,15 @@ $dir = str_replace("-","/",$m)."/".$d."/";
 
 echo "<base id=\"myBase\" href=\"".$dir."\">";
 
-$talkgroups = array('ALL'=>"ALL", 100=>"Example1", 200=>"Example2", 1777=>"Bus Dispatch")
+
+if (isset($chanlist) && file_exists($chanlist)) {
+	$talkgroups = array('ALL'=>"ALL");
+	$filedata = file($chanlist,FILE_IGNORE_NEW_LINES);
+	foreach ($filedata as $wholeline) {
+		$allparts = explode(",", $wholeline);
+		$talkgroups[$allparts[0]] = $allparts[$desc];
+	}
+}
 ?>
 <meta charset="UTF-8">
 <title><?php echo $systemname." ";
@@ -105,17 +122,25 @@ unset($thistg); ?>
 	<div id="theplaylist" style="display: table;">
 <?php
 if (file_exists($dir)) {
-chdir($dir);
-foreach (glob("*.wav") as $file) {
-  if (filesize($file) > 10240) {
-  $exploded = explode("-",str_replace("_","-",substr($file,0,-4)));
-  if (($exploded[0] == $tgs) || ($tgs == "ALL")) {
-    echo "<div style=\"display: table-row;\"><span>";
-    echo date("H:i:s",$exploded[1])."</span><span>";
-    if (isset($talkgroups[$exploded[0]])) echo $talkgroups[$exploded[0]]; else echo $exploded[0];
-    echo "</span><span>";
-    echo sprintf($exploded[2]/1000000)." MHz</span><span><a href=\"" . $file . "\">".round(filesize($file) / 1024)."k</a></span></div>
-"; } } } }
+	chdir($dir);
+	if (isset($$tgs) && is_array($$tgs))
+		$tgs = $$tgs;
+	else $tgs = explode(",",$tgs);
+	foreach (glob("*.wav") as $file) {
+		if (filesize($file) > 10240) {
+			$exploded = explode("-",str_replace("_","-",substr($file,0,-4)));
+			if (in_array($exploded[0], $tgs) || ($tgs[0] == "ALL")) {
+				echo "<div style=\"display: table-row;\"><span>";
+				echo date("H:i:s",$exploded[1])."</span><span>";
+				if (isset($talkgroups[$exploded[0]]))
+					echo $talkgroups[$exploded[0]]; 
+				else	echo $exploded[0];
+				echo "</span><span>".sprintf($exploded[2]/1000000)." MHz</span><span><a href=\"" . $file . "\">".round(filesize($file) / 1024)."k</a></span></div>
+"; 
+			}
+		} 
+	}
+}
 else echo "Pick a different date or channel";
 ?>
 </div></body></html>
