@@ -50,37 +50,39 @@ else echo "radio calls" ?> on <?php echo substr($m,5)."/".$d."/".substr($m,0,4);
 	var playlist;
 	var currentcall;
 	function init() {
+	playlist = document.getElementById('theplaylist');
+	if (playlist.getElementsByTagName('div')[0]) {
 		player = document.getElementById('audioplayer');
-		playlist = document.getElementById('theplaylist');
 		currentcall = playlist.getElementsByTagName('div')[0];
 		currentcall.style.fontWeight = "bold";
-		if (currentcall.getElementsByTagName('a')[0])
-			player.setAttribute('src',currentcall.getElementsByTagName('a')[0]);
-                //document.getElementById("myBase").href = "<?php echo $dir; ?>";
+		player.setAttribute('src',currentcall.getElementsByTagName('a')[0]);
 		player.volume = 0.2;
 
 		playlist.addEventListener('click',function (e) {
 			//e.preventDefault();
-		if (e.target.parentElement.getElementsByTagName('a')[0]) {
-			currentcall.style.fontWeight = "normal";
-			currentcall = e.target.parentElement;
-			currentcall.style.fontWeight = "bold";
-			player.setAttribute('src',currentcall.getElementsByTagName('a')[0]);
-			player.load();
-			player.play();
-		} }, false);
-
-		player.addEventListener('ended',function () { 
-		if (currentcall.nextSibling && (document.getElementById('continuous').checked == true)) {
-			currentcall.style.fontWeight = "normal";
-			currentcall = currentcall.nextSibling;
-			currentcall.style.fontWeight = "bold";
-			player.setAttribute('src',currentcall.getElementsByTagName('a')[0]);
-			player.load();
-			player.play();
-		}
+			if ((e.target.parentElement.nodeName == "DIV") && (e.target.parentElement != playlist) && e.target.parentElement.getElementsByTagName('a')[0]) {
+				playnext(e.target.parentElement);
+			}
+			else if ((e.target.parentElement == playlist) && e.target.getElementsByTagName('a')[0]) {
+				playnext(e.target);
+			}
 		}, false);
 
+		player.addEventListener('ended',function () {
+			if (currentcall.nextSibling && (document.getElementById('continuous').checked == true)) {
+				playnext(currentcall.nextSibling);
+			}
+		}, false);
+
+	} }
+
+	function playnext(nextcall) {
+		currentcall.style.fontWeight = "normal";
+		currentcall = nextcall;
+		currentcall.style.fontWeight = "bold";
+		player.setAttribute('src',currentcall.getElementsByTagName('a')[0]);
+		player.load();
+		player.play();
 	}
 	window.onload=init;
 </script>
@@ -120,8 +122,7 @@ unset($thistg); ?>
 
         <p style="font-weight: bold; margin-top: 150px;">Click on a row to begin sequential playback, click file size to download</p>
 
-	<div id="theplaylist" style="display: table;">
-<?php
+	<div id="theplaylist" style="display: table;"><?php
 if (file_exists($dir)) {
 	chdir($dir);
 	if (isset($$tgs) && is_array($$tgs))
@@ -142,6 +143,6 @@ style=\"display: table-row;\"><span>";
 		} 
 	}
 }
-else echo "Pick a different date or channel";
+else echo "Pick a different date";
 ?>
 </div></body></html>
