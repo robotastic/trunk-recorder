@@ -53,6 +53,7 @@ else echo "radio calls" ?> on <?php echo substr($m,5)."/".$d."/".substr($m,0,4);
 		player = document.getElementById('audioplayer');
 		playlist = document.getElementById('theplaylist');
 		currentcall = playlist.getElementsByTagName('div')[0];
+		currentcall.style.fontWeight = "bold";
 		if (currentcall.getElementsByTagName('a')[0])
 			player.setAttribute('src',currentcall.getElementsByTagName('a')[0]);
                 //document.getElementById("myBase").href = "<?php echo $dir; ?>";
@@ -70,7 +71,7 @@ else echo "radio calls" ?> on <?php echo substr($m,5)."/".$d."/".substr($m,0,4);
 		} }, false);
 
 		player.addEventListener('ended',function () { 
-		if (currentcall.nextSibling) {
+		if (currentcall.nextSibling && (document.getElementById('continuous').checked == true)) {
 			currentcall.style.fontWeight = "normal";
 			currentcall = currentcall.nextSibling;
 			currentcall.style.fontWeight = "bold";
@@ -115,7 +116,7 @@ unset($thistg); ?>
 
 	<audio id="audioplayer" src="http://www.lalarm.com/en/images/silence.wav" preload="none" tabindex="0" controls>
 		Sorry, your browser does not support HTML5 audio.
-	</audio></div>
+	</audio><label><input id="continuous" type="checkbox" checked="checked" />Play continuously</label></div>
 
         <p style="font-weight: bold; margin-top: 150px;">Click on a row to begin sequential playback, click file size to download</p>
 
@@ -130,13 +131,13 @@ if (file_exists($dir)) {
 		if (filesize($file) > 10240) {
 			$exploded = explode("-",str_replace("_","-",substr($file,0,-4)));
 			if (in_array($exploded[0], $tgs) || ($tgs[0] == "ALL")) {
-				echo "<div style=\"display: table-row;\"><span>";
+				echo "<div 
+style=\"display: table-row;\"><span>";
 				echo date("H:i:s",$exploded[1])."</span><span>";
 				if (isset($talkgroups[$exploded[0]]))
 					echo $talkgroups[$exploded[0]]; 
 				else	echo $exploded[0];
-				echo "</span><span>".sprintf($exploded[2]/1000000)." MHz</span><span><a href=\"" . $file . "\">".round(filesize($file) / 1024)."k</a></span></div>
-"; 
+				echo "</span><span>".sprintf($exploded[2]/1000000)." MHz</span><span><a href=\"" . $file . "\">".round(filesize($file) / 1024)."k</a></span></div>"; 
 			}
 		} 
 	}
