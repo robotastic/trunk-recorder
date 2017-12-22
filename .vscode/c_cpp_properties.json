@@ -1,0 +1,42 @@
+{
+    "configurations": [
+        {
+            "name": "null",
+            "includePath": [
+                "/usr/include/c++/7",
+                "/usr/include/x86_64-linux-gnu/c++/7",
+                "/usr/include/c++/7/backward",
+                "/usr/lib/gcc/x86_64-linux-gnu/7/include",
+                "/usr/local/include",
+                "/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed",
+                "/usr/include/x86_64-linux-gnu",
+                "/usr/include",
+                "/usr/local",
+                "${workspaceRoot}",
+                "${workspaceRoot}/op25_repeater",
+                "${workspaceRoot}/op25_repeater/include"
+            ],
+            "defines": [],
+            "browse": {
+                "path": [
+                    "/usr/include/c++/7",
+                    "/usr/include/x86_64-linux-gnu/c++/7",
+                    "/usr/include/c++/7/backward",
+                    "/usr/lib/gcc/x86_64-linux-gnu/7/include",
+                    "/usr/local/include",
+                    "/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed",
+                    "/usr/include/x86_64-linux-gnu",
+                    "/usr/include",
+                    "/usr/local",
+                    "${workspaceRoot}",
+                    "${workspaceRoot}/op25_repeater",
+                    "${workspaceRoot}/op25_repeater/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 3
+}

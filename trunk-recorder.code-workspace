@@ -1,0 +1,66 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"*.csv": true,
+			"debug.grc":true,
+			".gitignore":true,
+			"*.php":true,
+			"Dockerfile":true,
+			"logs/":true,
+			"examples/":true,
+			"cmake/":true,
+			"build/":true,
+			"CMakeCache.txt":true,
+			"trunk-recorder/config.cc":true,
+			"trunk-recorder/config.h":true,
+			"**/*.cmake":true
+		},
+		"files.associations": {
+			"cctype": "cpp",
+			"clocale": "cpp",
+			"cmath": "cpp",
+			"csignal": "cpp",
+			"cstdarg": "cpp",
+			"cstddef": "cpp",
+			"cstdio": "cpp",
+			"cstdlib": "cpp",
+			"cstring": "cpp",
+			"ctime": "cpp",
+			"cwchar": "cpp",
+			"cwctype": "cpp",
+			"array": "cpp",
+			"atomic": "cpp",
+			"*.tcc": "cpp",
+			"chrono": "cpp",
+			"codecvt": "cpp",
+			"condition_variable": "cpp",
+			"cstdint": "cpp",
+			"exception": "cpp",
+			"future": "cpp",
+			"initializer_list": "cpp",
+			"iosfwd": "cpp",
+			"limits": "cpp",
+			"memory": "cpp",
+			"mutex": "cpp",
+			"ratio": "cpp",
+			"stdexcept": "cpp",
+			"string_view": "cpp",
+			"system_error": "cpp",
+			"thread": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"typeinfo": "cpp",
+			"utility": "cpp"
+		}
+	}
+}
