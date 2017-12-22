@@ -1,4 +1,6 @@
 #include "p25_parser.h"
+#include "../formatter.h"
+
 P25Parser::P25Parser() {}
 
 void P25Parser::add_channel(int chan_id, Channel temp_chan) {
@@ -139,7 +141,7 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
         message.phase2_tdma = false;
         message.tdma_slot = 0;
       }
-      os << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) <<
+      os << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f1)<< "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) <<
       "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch);
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(trace) << os;
@@ -170,7 +172,7 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
         message.tdma_slot = 0;
       }
 
-      os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tsg " << std::setw(7) << sg  << "\tTDMA " << get_tdma_slot(ch) <<
+      os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tsg " << std::setw(7) << sg  << "\tTDMA " << get_tdma_slot(ch) <<
       "\tsa " << sa;
       message.meta = os.str();
     }
@@ -216,11 +218,11 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
           message.phase2_tdma = false;
           message.tdma_slot = 0;
         }
-        os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2);
+        os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << FormatFreq(f2) << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2);
         message.meta = os.str();
         BOOST_LOG_TRIVIAL(trace) << os;
       }
-      os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1);
+      os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1);
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(trace) << os;
     }
@@ -265,12 +267,12 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
           message.phase2_tdma = false;
           message.tdma_slot = 0;
         }
-        os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << f2 / 1000000.0 << "\tsg " << std::setw(7) << sg2 << "\tTDMA " << get_tdma_slot(
+        os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << FormatFreq(f2) << "\tsg " << std::setw(7) << sg2 << "\tTDMA " << get_tdma_slot(
           ch2);
         message.meta = os.str();
         BOOST_LOG_TRIVIAL(trace) << os;
       }
-      os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tsg " << std::setw(7) << sg1 << "\tTDMA " <<
+      os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tsg " << std::setw(7) << sg1 << "\tTDMA " <<
       get_tdma_slot(ch1);
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(trace) << os;
@@ -294,7 +296,7 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
         message.tdma_slot = 0;
       }
 
-      os << "tsbk02\tExplicit Grant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " <<
+      os << "tsbk02\tExplicit Grant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tga " << std::setw(7) << ga1 << "\tTDMA " <<
       get_tdma_slot(ch1);
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(trace) << os;
@@ -365,7 +367,7 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
             message.tdma_slot = 0;
           }
 
-          BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
+          BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
           "\tSource ID: " << sa;
 
   } else if (opcode == 0x06) {
@@ -397,7 +399,7 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
           }
           message.emergency    = emergency;
           message.encrypted    = encrypted;
-          BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Update\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
+          BOOST_LOG_TRIVIAL(info) << "tsbk04\tUnit to Unit Chan Update\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tTarget ID: " << std::setw(7) << ta  << "\tTDMA " << get_tdma_slot(ch) <<
           "\tSource ID: " << sa;
 
   } else if (opcode == 0x33) { // iden_up_tdma
@@ -426,7 +428,7 @@ std::vector<TrunkMessage>P25Parser::decode_tsbk(boost::dynamic_bitset<>& tsbk, u
         6.25
       };
       add_channel(iden, temp_chan);
-      BOOST_LOG_TRIVIAL(trace) << "tsbk33 iden up tdma id " << std::dec << iden << " f " <<  temp_chan.frequency << " offset " << temp_chan.offset << " spacing " <<
+      BOOST_LOG_TRIVIAL(trace) << "tsbk33 iden up tdma id " << std::dec << iden << " f " <<  FormatFreq(temp_chan.frequency) << " offset " << temp_chan.offset << " spacing " <<
       temp_chan.step << " slots/carrier " << temp_chan.slots_per_carrier;
     }
   } else if (opcode == 0x3d)  { // iden_up

@@ -199,6 +199,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
 add_subdirectory(op25_repeater)
 list(APPEND trunk_recorder_sources
   trunk-recorder/main.cc
+  trunk-recorder/formatter.cc
   trunk-recorder/source.cc
   trunk-recorder/uploaders/uploader.cc
   trunk-recorder/uploaders/call_uploader.cc

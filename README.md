@@ -113,6 +113,7 @@ Here are the different arguments:
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
+ - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
 
 **talkgroupsFile**
 

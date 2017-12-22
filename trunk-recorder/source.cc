@@ -1,4 +1,5 @@
 #include "source.h"
+#include "formatter.h"
 
 int Source::rec_num = 0;
 
@@ -383,11 +384,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
       osmo_src = osmosdr::source::make(msg.str());
     }
     BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
-    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
+    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
     osmo_src->set_sample_rate(rate);
     actual_rate = osmo_src->get_sample_rate();
-    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
-    BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
+    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
+    BOOST_LOG_TRIVIAL(info) << "Tunning to " <<  FormatFreq(center + error);
     osmo_src->set_center_freq(center + error, 0);
     gain_names = osmo_src->get_gain_names();
     std::string gain_list;
@@ -420,11 +421,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
     BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE USRP (UHD)";
 
-    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
+    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
     usrp_src->set_samp_rate(rate);
     actual_rate = usrp_src->get_samp_rate();
-    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
-    BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
+    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
+    BOOST_LOG_TRIVIAL(info) << "Tunning to " << FormatFreq(center + error);
     usrp_src->set_center_freq(center + error, 0);
 
 

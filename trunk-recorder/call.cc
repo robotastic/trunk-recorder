@@ -1,4 +1,5 @@
 #include "call.h"
+#include "formatter.h"
 
 void Call::create_filename() {
   tm *ltm = localtime(&start_time);
@@ -117,7 +118,7 @@ void Call::end_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << get_talkgroup() << "\tFreq: " << get_freq() << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << get_talkgroup() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
 
 
 
