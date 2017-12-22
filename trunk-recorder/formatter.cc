@@ -14,6 +14,6 @@ boost::format FormatFreq(float f)
 
 boost::format FormatSamplingRate(float f)
 {	
-	return boost::format("%f")  % f;
+	return boost::format("%.0f")  % f;
 }
 
