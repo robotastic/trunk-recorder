@@ -44,6 +44,7 @@
 
 #include "recorders/recorder.h"
 #include "recorders/p25_recorder.h"
+#include "recorders/p25conventional_recorder.h"
 #include "recorders/analog_recorder.h"
 
 #include "systems/system.h"
@@ -952,7 +953,7 @@ bool monitor_system() {
               system->add_conventional_recorder(rec);
               calls.push_back(call);
             } else { // has to be "conventionalP25"
-              p25_recorder_sptr rec;
+              p25conventional_recorder_sptr rec;
               rec = source->create_conventionalP25_recorder(tb);
               rec->start(call, talkgroup + 100);
               call->set_recorder((Recorder *)rec.get());

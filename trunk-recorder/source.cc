@@ -1,8 +1,8 @@
 #include "source.h"
 #include "formatter.h"
+#include "recorders/p25conventional_recorder.h"
 
 int Source::rec_num = 0;
-
 
 void Source::set_antenna(std::string ant)
 {
@@ -193,9 +193,9 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb)
     return log;
 }
 
-p25_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb) {
+p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb) {
 
-    p25_recorder_sptr log = make_p25_recorder(this);
+    p25conventional_recorder_sptr log = make_p25conventional_recorder(this);
 
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);

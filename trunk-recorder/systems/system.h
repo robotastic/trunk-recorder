@@ -14,6 +14,8 @@ class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+class p25conventional_recorder;
+typedef boost::shared_ptr<p25conventional_recorder> p25conventional_recorder_sptr;
 
 
 
@@ -51,7 +53,7 @@ public:
         int current_control_channel;
         std::vector<double> channels;
         std::vector<analog_recorder_sptr> conventional_recorders;
-        std::vector<p25_recorder_sptr> conventionalP25_recorders;
+        std::vector<p25conventional_recorder_sptr> conventionalP25_recorders;
 
         bool qpsk_mod;
         bool audio_archive;
@@ -96,8 +98,8 @@ public:
         void add_channel(double channel);
         void add_conventional_recorder(analog_recorder_sptr rec);
         std::vector<analog_recorder_sptr> get_conventional_recorders();
-        void add_conventionalP25_recorder(p25_recorder_sptr rec);
-        std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
+        void add_conventionalP25_recorder(p25conventional_recorder_sptr rec);
+        std::vector<p25conventional_recorder_sptr> get_conventionalP25_recorders();
         std::vector<double> get_channels();
         System(int sys_id );
         void set_bandplan(std::string);
