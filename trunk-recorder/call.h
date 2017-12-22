@@ -34,6 +34,7 @@ class Recorder;
 #include "recorders/recorder.h"
 #include "systems/system.h"
 #include "systems/parser.h"
+#include <string>
 
 
 class System;
@@ -92,6 +93,9 @@ public:
 								bool get_encrypted();
 								void set_emergency(bool m);
 								bool get_emergency();
+								std::string get_talkgroup_display();
+								void set_talkgroup_display_format(std::string format);
+								void set_talkgroup_tag(std::string tag);
 private:
 								State state;
 								long talkgroup;
@@ -123,6 +127,9 @@ private:
 								Recorder *recorder;
 								Recorder *debug_recorder;
 								bool add_source(long src);
+								std::string talkgroup_display;
+								std::string talkgroup_tag;
+								void update_talkgroup_display();
 
 };
 

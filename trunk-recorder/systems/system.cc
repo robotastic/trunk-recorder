@@ -258,3 +258,11 @@ void System::set_bandplan_offset(int offset) {
 int System::get_bandplan_offset() {
   return this->bandplan_offset;
 }
+
+void System::set_talkgroup_display_format(TalkgroupDisplayFormat format){
+  talkgroup_display_format = format;
+}
+
+System::TalkgroupDisplayFormat System::get_talkgroup_display_format(){
+  return talkgroup_display_format;
+}

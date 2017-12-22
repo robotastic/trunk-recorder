@@ -195,6 +195,15 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       system->set_record_unknown(node.second.get<bool>("recordUnknown",true));
       BOOST_LOG_TRIVIAL(info) << "Record Unkown Talkgroups: " << system->get_record_unknown();
+      std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
+      if (boost::iequals(talkgroup_display_format_string, "id_tag")){
+        system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
+      } else if (boost::iequals(talkgroup_display_format_string, "tag_id")){
+        system->set_talkgroup_display_format(System::talkGroupDisplayFormat_tag_id);
+      } else{
+        system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id);
+      }
+      BOOST_LOG_TRIVIAL(info) << "Talkgroup Display Format: " << talkgroup_display_format_string;
       systems.push_back(system);
 
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
@@ -239,7 +248,7 @@ void load_config(string config_file)
     config.log_file = pt.get<bool>("logFile", false);
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
 
-    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat");
+    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
 
     if (boost::iequals(frequencyFormatString, "mhz")){
       frequencyFormat = 1;
@@ -415,6 +424,13 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
     return;
   }
 
+if (talkgroup) {
+  call->set_talkgroup_tag(talkgroup->alpha_tag);
+} else {
+  call->set_talkgroup_tag("-");
+}
+
+
     for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
       Source *source = *it;
 
@@ -446,7 +462,8 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
           if (message.meta.length()) {
             BOOST_LOG_TRIVIAL(trace) << message.meta;
           }
-          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " <<  FormatFreq(call->get_freq()) << "\tStarting Recorder on Src: " << source->get_device();
+
+          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(call->get_freq()) << "\tStarting Recorder on Src: " << source->get_device();
 
           recorder->start(call, total_recorders);
           call->set_recorder(recorder);
@@ -477,7 +494,7 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
     }
 
     if (!source_found) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tNot Recording: no source covering Freq";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tNot Recording: no source covering Freq";
 
       return;
     }

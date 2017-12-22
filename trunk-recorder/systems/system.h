@@ -15,13 +15,17 @@ typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 
+
+
 class System
-{
+{                
         int sys_num;
         unsigned long sys_id;
         unsigned long wacn;
         unsigned long nac;
 public:
+        enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id=0, talkGroupDisplayFormat_id_tag=1, talkGroupDisplayFormat_tag_id=2};
+
         Talkgroups *talkgroups;
         p25p2_lfsr *lfsr;
         Source *source;
@@ -39,8 +43,7 @@ public:
         double bandplan_base;
         double bandplan_high;
         double bandplan_spacing;
-        int bandplan_offset;
-
+        int bandplan_offset;        
 
         unsigned xor_mask_len;
         const char *xor_mask;
@@ -109,5 +112,9 @@ public:
         double get_bandplan_spacing();
         void set_bandplan_offset(int);
         int get_bandplan_offset();
+        void set_talkgroup_display_format(TalkgroupDisplayFormat format);
+        TalkgroupDisplayFormat get_talkgroup_display_format();
+private:
+        TalkgroupDisplayFormat talkgroup_display_format;
 };
 #endif
