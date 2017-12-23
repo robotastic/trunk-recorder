@@ -25,13 +25,7 @@ void System::set_upload_script(std::string script) {
   this->upload_script = script;
 }
 
-std::string System::get_default_mode() {
-  return this->default_mode;
-}
 
-void System::set_default_mode(std::string def_mode) {
-  this->default_mode = def_mode;
-}
 
 System::System(int sys_num) {
   this->sys_num = sys_num;
@@ -45,7 +39,24 @@ System::System(int sys_num) {
   talkgroups = new Talkgroups();
 }
 
+void System::set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac){
+  if(sys_id && wacn && nac) {
+    this->sys_id = sys_id;
+    this->wacn = wacn;
+    this->nac = nac;
+    BOOST_LOG_TRIVIAL(info) << "Setting XOR Mask: System ID " << std::dec << sys_id << " WACN: " << wacn << " NAC: " << nac <<  std::dec;
+    if(sys_id && wacn && nac) {
+      lfsr = new p25p2_lfsr(nac, sys_id, wacn);
+      xor_mask =  lfsr->getXorChars(xor_mask_len);
+      /*
+      BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
+      for (unsigned i=0; i<xor_mask_len; i++) {
+        std::cout << (short)xor_mask[i] << ", ";
+      }*/
+    }
+  }
 
+}
 void System::update_status(TrunkMessage message) {
  if(!sys_id || !wacn || !nac) {
    sys_id = message.sys_id;
@@ -103,13 +114,6 @@ void System::set_audio_archive(bool audio_archive) {
   this->audio_archive = audio_archive;
 }
 
-bool System::get_qpsk_mod() {
-  return this->qpsk_mod;
-}
-
-void System::set_qpsk_mod(bool qpsk_mod) {
-  this->qpsk_mod = qpsk_mod;
-}
 
 bool System::get_record_unknown() {
   return this->record_unknown;
@@ -186,6 +190,10 @@ void System::add_channel(double channel) {
 
 int System::control_channel_count() {
   return control_channels.size();
+}
+
+std::vector<double> System::get_control_channels() {
+  return control_channels;
 }
 
 void System::add_control_channel(double control_channel) {

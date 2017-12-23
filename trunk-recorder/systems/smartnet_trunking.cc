@@ -42,11 +42,11 @@ smartnet_trunking::smartnet_trunking(float               f,
   float offset               = chan_freq - center_freq;
 
   const double pi = boost::math::constants::pi<double>();
-  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysId: " << sys_num;
+  BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysNum: " << sys_num;
 
   BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
 
-  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 2000, 100, gr::filter::firdes::WIN_HANN);
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 

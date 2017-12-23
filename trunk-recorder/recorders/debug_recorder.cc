@@ -2,7 +2,8 @@
 #include "debug_recorder.h"
 #include <boost/log/trivial.hpp>
 
-
+	static int rec_counter=0;
+  
 debug_recorder_sptr make_debug_recorder(Source *src)
 {
   return gnuradio::get_initial_sptr(new debug_recorder(src));
@@ -23,7 +24,8 @@ debug_recorder::debug_recorder(Source *src)
   talkgroup = 0;
   long capture_rate = samp_rate;
 
-  num = 0;
+
+  rec_num = rec_counter++;
 
   state = inactive;
 
@@ -165,7 +167,7 @@ Source * debug_recorder::get_source() {
 }
 
 int debug_recorder::get_num() {
-  return num;
+  return rec_num;
 }
 
 bool debug_recorder::is_active() {
@@ -206,7 +208,7 @@ State debug_recorder::get_state() {
 
 void debug_recorder::stop() {
   if (state == active) {
-    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = inactive;
     valve->set_enabled(false);
     raw_sink->close();
@@ -215,7 +217,7 @@ void debug_recorder::stop() {
   }
 }
 
-void debug_recorder::start(Call *call, int n) {
+void debug_recorder::start(Call *call) {
   if (state == inactive) {
     timestamp = time(NULL);
     starttime = time(NULL);
@@ -223,9 +225,8 @@ void debug_recorder::start(Call *call, int n) {
     talkgroup = call->get_talkgroup();
     freq      = call->get_freq();
 
-    // num = n;
 
-    BOOST_LOG_TRIVIAL(info) << "debug_recorder.cc: Starting Logger   \t[ " << num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "debug_recorder.cc: Starting Logger   \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
     int offset_amount = (freq - center);
     prefilter->set_center_freq(offset_amount);

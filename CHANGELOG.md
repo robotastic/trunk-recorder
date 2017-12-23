@@ -1,6 +1,14 @@
 Trunk Recorder ChangeLog
 ========================
 
+### Version 3.0
+** I really have to do a better job of tracking changes... I think I got most items.**
+* Bug fixes on Phase 2 decoding, catching some additional messages.
+* Sending status over a WebSocket
+
+### Version 2.2.1
+* Just capturing random bug fixes
+
 ### Version 2.2
 Lot's of fun things added!
 * P25 Phase 2 support was added. It should just work and the P25 recorder should automatically switch between Phase 1 and Phase 2 depending on what it sees on the trunking channel.
