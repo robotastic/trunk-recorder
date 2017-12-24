@@ -286,9 +286,8 @@ if (opcode == 0x00) { // group voice chan grant
       message.tdma_slot = 0;
     }
 
-     os << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f1)<< "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) <<
-      "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch);
-    message.meta = os.str();
+    os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " <<  FormatFreq(f) << "\tsg " << std::setw(7) << sg  << "\tTDMA " << get_tdma_slot(ch) <<  "\tsa " << sa;
+   message.meta = os.str();
   }
   else {
     unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
