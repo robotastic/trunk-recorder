@@ -1,5 +1,5 @@
 #include "config.h"
-
+#include "formatter.h"
 /**
  * Method name: load_config()
  * Description: <#description#>
@@ -197,8 +197,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       }
 
       Source *source = new Source(center, rate, error, driver, device, &config);
-      BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
-      BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
+      BOOST_LOG_TRIVIAL(info) << "Max HZ: " << FormatFreqHz(source->get_max_hz());
+      BOOST_LOG_TRIVIAL(info) << "Min HZ: " << FormatFreqHz(source->get_min_hz());
 
       if (if_gain != 0) {
         source->set_if_gain(if_gain);

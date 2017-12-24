@@ -1,5 +1,6 @@
 
 #include "analog_recorder.h"
+#include "../formatter.h"
 using namespace std;
 
 bool analog_recorder::logging = false;
@@ -209,7 +210,8 @@ void analog_recorder::stop() {
     valve->set_enabled(false);
     wav_sink->close();
   } else {
-    BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an inactive Logger \t[ " << rec_num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
+
+    BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an inactive Logger \t[ " << rec_num << " ] - freq[ " << FormatFreq(chan_freq) << "] \t talkgroup[ " << talkgroup << " ]";
   }
 }
 

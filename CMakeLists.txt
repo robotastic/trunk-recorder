@@ -201,11 +201,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
 add_subdirectory(lib/op25_repeater)
 list(APPEND trunk_recorder_sources
   trunk-recorder/main.cc
+  trunk-recorder/formatter.cc
   trunk-recorder/source.cc
   trunk-recorder/uploaders/uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
   trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call.cc
+  trunk-recorder/call_conventional.cc
   trunk-recorder/systems/smartnet_trunking.cc
   trunk-recorder/systems/p25_trunking.cc
   trunk-recorder/systems/smartnet_parser.cc
@@ -214,7 +216,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/systems/system.cc
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
-  trunk-recorder/recorders/p25_recorder.cc
+  trunk-recorder/recorders/p25conventional_recorder.cc
+  trunk-recorder/recorders/p25_recorder.cc  
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
   lib/gr_blocks/nonstop_wavfile_sink_impl.cc

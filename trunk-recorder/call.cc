@@ -1,5 +1,9 @@
 #include "call.h"
+#include "formatter.h"
+#include <boost/algorithm/string.hpp>
+
 static int rec_counter=0;
+
 
 void Call::create_filename() {
   tm *ltm = localtime(&start_time);
@@ -56,6 +60,7 @@ Call::Call(long t, double f, System *s, Config c) {
   conventional    = false;
   set_freq(f);
   this->create_filename();
+  this->update_talkgroup_display();
 }
 
 Call::Call(TrunkMessage message, System *s, Config c) {
@@ -82,6 +87,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   set_freq(message.freq);
   add_source(message.source);
   this->create_filename();
+  this->update_talkgroup_display();
 }
 
 Call::~Call() {
@@ -106,6 +112,7 @@ void Call::restart_call() {
     emergency        = false;
 
     this->create_filename();
+    this->update_talkgroup_display();
     recorder->start(this);
   }
 }
@@ -118,7 +125,7 @@ void Call::end_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << get_talkgroup() << "\tFreq: " << get_freq() << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
 
 
 
@@ -417,4 +424,28 @@ char * Call::get_converted_filename() {
 
 char * Call::get_filename() {
   return filename;
+}
+
+void Call::set_talkgroup_tag(std::string tag){
+  talkgroup_tag = tag;
+  update_talkgroup_display();
+}
+
+std::string Call::get_talkgroup_display() {
+  return talkgroup_display;
+}
+
+void Call::update_talkgroup_display(){
+  boost::trim(talkgroup_tag);
+  if (talkgroup_tag.empty()) {
+    talkgroup_tag = "-";
+  }
+
+  if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_id_tag) {
+    talkgroup_display = boost::lexical_cast<std::string>(talkgroup).append(" (").append(talkgroup_tag).append(")"); 
+  } else if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_tag_id) {
+    talkgroup_display = talkgroup_tag.append(" (").append(boost::lexical_cast<std::string>(talkgroup)).append(")"); 
+  } else{
+    talkgroup_display = boost::lexical_cast<std::string>(talkgroup);
+  }
 }

@@ -169,11 +169,11 @@ std::vector<analog_recorder_sptr> System::get_conventional_recorders() {
   return conventional_recorders;
 }
 
-void System::add_conventionalP25_recorder(p25_recorder_sptr rec) {
+void System::add_conventionalP25_recorder(p25conventional_recorder_sptr rec) {
 	conventionalP25_recorders.push_back(rec);
 }
 
-std::vector<p25_recorder_sptr> System::get_conventionalP25_recorders() {
+std::vector<p25conventional_recorder_sptr> System::get_conventionalP25_recorders() {
   return conventionalP25_recorders;
 }
 
@@ -265,4 +265,12 @@ void System::set_bandplan_offset(int offset) {
 
 int System::get_bandplan_offset() {
   return this->bandplan_offset;
+}
+
+void System::set_talkgroup_display_format(TalkgroupDisplayFormat format){
+  talkgroup_display_format = format;
+}
+
+System::TalkgroupDisplayFormat System::get_talkgroup_display_format(){
+  return talkgroup_display_format;
 }

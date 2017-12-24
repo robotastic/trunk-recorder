@@ -1,6 +1,7 @@
 
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
+#include "../formatter.h"
 
 
 
@@ -288,7 +289,7 @@ void p25_recorder::autotune() {
     msg = tune_queue->delete_head_nowait();
 
     if (msg != 0) {
-      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << chan_freq << "\t Tune: " << msg->arg1();
+      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << FormatFreq(chan_freq) << "\t Tune: " << msg->arg1();
 
       // tune_offset(freq + (msg->arg1()*100));
       tune_queue->flush();
@@ -361,7 +362,8 @@ void p25_recorder::stop() {
   if (state == active) {
 
     clear();
-    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
@@ -398,6 +400,7 @@ void p25_recorder::start(Call *call) {
     talkgroup = call->get_talkgroup();
     short_name = call->get_short_name();
     chan_freq      = call->get_freq();
+    this->call = call;
 
     set_tdma(call->get_phase2_tdma());
 
@@ -421,7 +424,8 @@ void p25_recorder::start(Call *call) {
     if (!qpsk_mod) {
       reset();
     }
-    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+
 
     int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);

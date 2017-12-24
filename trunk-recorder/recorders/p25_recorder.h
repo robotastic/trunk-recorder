@@ -115,7 +115,7 @@ private:
   std::string short_name;
   time_t timestamp;
   time_t starttime;
-
+  Call *call;
   Config *config;
   Source *source;
   char    filename[160];
