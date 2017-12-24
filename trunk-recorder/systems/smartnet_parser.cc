@@ -78,6 +78,7 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s, System *sy
   std::vector<TrunkMessage> messages;
   TrunkMessage message;
 
+
   char tempArea[512];
   unsigned short blockNum;
   char banktype;
@@ -96,6 +97,11 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s, System *sy
 
   std::vector<std::string> x;
   boost::split(x, s, boost::is_any_of(","), boost::token_compress_on);
+
+if (x.size()<3) {
+  BOOST_LOG_TRIVIAL(error) << "SmartNet Parser recieved invalid message." << x.size();
+    return messages;
+}
 
   int  full_address = atoi(x[0].c_str());
   int  status       = full_address & 0x000F;

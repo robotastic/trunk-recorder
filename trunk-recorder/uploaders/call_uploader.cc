@@ -147,8 +147,8 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
     if (!error) {
       BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tHTTPS Upload Success - file size: " << req_size;
       if (!call_info->audio_archive) {
-        std::remove(call_info->filename);
-        std::remove(call_info->converted);
+        unlink(call_info->filename);
+        unlink(call_info->converted);
       }
     } else {
       BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tHTTPS Upload Error - file size: " << req_size;

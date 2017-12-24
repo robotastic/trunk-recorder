@@ -2,6 +2,9 @@
 #include "formatter.h"
 #include <boost/algorithm/string.hpp>
 
+static int rec_counter=0;
+
+
 void Call::create_filename() {
   tm *ltm = localtime(&start_time);
 
@@ -109,8 +112,8 @@ void Call::restart_call() {
     emergency        = false;
 
     this->create_filename();
-    recorder->start(this, talkgroup + 100);
     this->update_talkgroup_display();
+    recorder->start(this);
   }
 }
 
@@ -372,7 +375,11 @@ bool Call::add_source(long src) {
 
 void Call::update(TrunkMessage message) {
   last_update = time(NULL);
-  add_source(message.source);
+  if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, messge mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+  } else {
+    add_source(message.source);
+  }
 }
 
 int Call::since_last_update() {

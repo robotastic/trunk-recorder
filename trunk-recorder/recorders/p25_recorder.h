@@ -34,12 +34,13 @@
 #include <gnuradio/blocks/copy.h>
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/multiply_const_ff.h>
+#include <gnuradio/blocks/multiply_const_ss.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 
-#include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
+#include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
-#include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
-#include "../../op25_repeater/include/op25_repeater/rx_status.h"
+#include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
+#include <op25_repeater/include/op25_repeater/rx_status.h>
 #include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/vocoder.h>
 
@@ -50,8 +51,8 @@
 
 #include "recorder.h"
 #include "../config.h"
-#include "../../gr_blocks/nonstop_wavfile_sink.h"
-#include "../../gr_blocks/freq_xlating_fft_filter.h"
+#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/freq_xlating_fft_filter.h>
 
 
 class Source;
@@ -72,12 +73,15 @@ public:
   ~p25_recorder();
 
   void    tune_offset(double f);
-  void    start(Call *call, int   n);
+  void    start(Call *call);
   void    stop();
   void    clear();
   double  get_freq();
   int     get_num();
-  void    set_tdma_slot(int slot); 
+  void    set_tdma(bool phase2);
+  void    switch_tdma(bool phase2);
+  void    set_tdma_slot(int slot);
+  void    generate_arb_taps();
   double  get_current_length();
   bool    is_active();
   bool    is_idle();
@@ -96,12 +100,18 @@ private:
 
   double center_freq, chan_freq;
   double system_channel_rate;
+  double arb_rate;
+  double samples_per_symbol;
+  double symbol_rate;
+  double initial_rate;
+  int decim;
+  double resampled_rate;
   bool   qpsk_mod;
   double squelch_db;
   int    silence_frames;
   int    tdma_slot;
   long   talkgroup;
-  bool phase2_tdma;
+  bool   d_phase2_tdma;
   std::string short_name;
   time_t timestamp;
   time_t starttime;
@@ -134,13 +144,11 @@ private:
   gr::analog::feedforward_agc_cc::sptr   agc;
   gr::analog::pll_freqdet_cf::sptr       pll_freq_lock;
   gr::analog::pwr_squelch_cc::sptr       squelch;
-  gr::analog::pwr_squelch_ff::sptr       squelch_two;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
 
-  gr::blocks::short_to_float::sptr converter;
   gr::blocks::copy::sptr valve;
 
-  gr::blocks::multiply_const_ff::sptr levels;
+  gr::blocks::multiply_const_ss::sptr levels;
   gr::blocks::multiply_const_ff::sptr rescale;
   gr::blocks::multiply_const_ff::sptr baseband_amp;
   gr::blocks::multiply_const_ff::sptr pll_amp;

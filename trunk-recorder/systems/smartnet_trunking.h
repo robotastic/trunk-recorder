@@ -20,7 +20,7 @@
 
 #include <gnuradio/analog/pll_freqdet_cf.h>
 
-#include "../../gr_blocks/freq_xlating_fft_filter.h"
+#include <gr_blocks/freq_xlating_fft_filter.h>
 
 #include "smartnet_decode.h"
 

@@ -27,7 +27,7 @@ struct Call_Error {
 };
 
 class Recorder;
-#include "../op25_repeater/include/op25_repeater/rx_status.h"
+#include <op25_repeater/include/op25_repeater/rx_status.h>
 #include "uploaders/call_uploader.h"
 #include "config.h"
 #include "state.h"
