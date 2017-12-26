@@ -229,6 +229,16 @@ list(APPEND trunk_recorder_sources
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
+target_compile_options(
+    imbe_vocoder PRIVATE 
+    "-w"
+)
+
+target_compile_options(
+    gnuradio-op25_repeater PRIVATE 
+    "-w"
+)
+
 add_executable(recorder ${trunk_recorder_sources})
 
 target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)
