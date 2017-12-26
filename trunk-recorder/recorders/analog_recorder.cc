@@ -4,7 +4,7 @@
 using namespace std;
 
 bool analog_recorder::logging = false;
-static int rec_counter=0;
+//static int rec_counter=0;
 
 analog_recorder_sptr make_analog_recorder(Source *src)
 {
@@ -42,7 +42,7 @@ analog_recorder::analog_recorder(Source *src)
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
-  int nchars;
+  //int nchars;
 
   source      = src;
   chan_freq   = source->get_center();
@@ -59,7 +59,7 @@ analog_recorder::analog_recorder(Source *src)
 
   float offset = 0;
 
-  int samp_per_sym        = 10;
+  //int samp_per_sym        = 10;
   system_channel_rate     = 96000;//4800 * samp_per_sym;
 /*  int decim               = floor(samp_rate / 384000);
 
@@ -158,7 +158,7 @@ analog_recorder::analog_recorder(Source *src)
   // downsample from 48k to 8k
   decim_audio = gr::filter::fir_filter_fff::make(12, audio_resampler_taps);
 
-  tm *ltm = localtime(&starttime);
+  //tm *ltm = localtime(&starttime);
 
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(1, 8000, 16, true);
 

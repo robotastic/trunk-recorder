@@ -2,7 +2,7 @@
 #include "debug_recorder.h"
 #include <boost/log/trivial.hpp>
 
-	static int rec_counter=0;
+//static int rec_counter=0;
   
 debug_recorder_sptr make_debug_recorder(Source *src)
 {
@@ -32,7 +32,7 @@ debug_recorder::debug_recorder(Source *src)
   double offset = freq - center;
 
 
-  double symbol_rate         = 4800;
+  //double symbol_rate         = 4800;
 
 
   timestamp = time(NULL);
@@ -126,7 +126,7 @@ debug_recorder::debug_recorder(Source *src)
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
 
-  tm *ltm = localtime(&starttime);
+  //tm *ltm = localtime(&starttime);
 
   std::stringstream path_stream;
 	//path_stream << boost::filesystem::current_path().string() <<  "/debug";

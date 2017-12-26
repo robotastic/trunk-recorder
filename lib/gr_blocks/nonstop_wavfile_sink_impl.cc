@@ -76,7 +76,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
                io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
   d_sample_rate(sample_rate), d_nchans(n_channels),
-  d_fp(0), d_use_float(use_float)
+  d_use_float(use_float), d_fp(0)
 {
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
@@ -233,12 +233,12 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
   pmt::pmt_t this_key(pmt::intern("src_id"));
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
-  for (int i = 0; i < tags.size(); i++) {
-    if (pmt::eq(this_key, tags[i].key)) {
-      long src_id  = pmt::to_long(tags[i].value);
-      unsigned pos = d_sample_count + (tags[i].offset - nitems_read(0));
-      double   sec = (double)pos  / (double)d_sample_rate;
+  for (unsigned int i = 0; i < tags.size(); i++) {
+    if (pmt::eq(this_key, tags[i].key)) {      
       /*
+      long src_id  = pmt::to_long(tags[i].value);      
+      unsigned pos = d_sample_count + (tags[i].offset - nitems_read(0));      
+      double   sec = (double)pos  / (double)d_sample_rate;
       if (curr_src_id != src_id) {
         add_source(src_id, sec);
         BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;

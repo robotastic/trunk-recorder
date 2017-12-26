@@ -487,7 +487,7 @@ if (talkgroup) {
             recorder = source->get_digital_recorder(2);
           }
       }
-      int total_recorders = get_total_recorders();
+      //int total_recorders = get_total_recorders();
 
       if (recorder) {
         if (message.meta.length()) {
@@ -773,7 +773,8 @@ void unit_check() {
     }
     myfile << "\n}\n}\n";
     sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-    int rc = system(shell_command);
+    system(shell_command);
+    //int rc = system(shell_command);
     myfile.close();
   }
 }
@@ -835,7 +836,7 @@ System* find_system(int sys_num) {
 }
 
 void retune_system(System *system) {
-  bool source_found            = false;
+  //bool source_found            = false;
   Source *source               = system->get_source();
   double  control_channel_freq = system->get_next_control_channel();
 
@@ -982,7 +983,7 @@ bool monitor_system() {
 
   for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
     System *system       = *sys_it;
-    bool    source_found = false;
+    //bool    source_found = false;
 
 
     if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25")) {
