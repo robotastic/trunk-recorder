@@ -220,8 +220,6 @@ void load_config(string config_file)
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id);
       }
       BOOST_LOG_TRIVIAL(info) << "Talkgroup Display Format: " << talkgroup_display_format_string;
-      systems.push_back(system);
-
 
       sys_id = node.second.get<unsigned long>("sysId", 0);
       nac    = node.second.get<unsigned long>("nac", 0);
