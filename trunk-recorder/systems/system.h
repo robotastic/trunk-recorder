@@ -7,7 +7,11 @@
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
 #include "parser.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <lfsr/lfsr.h>
+#pragma GCC diagnostic pop
 
 class Source;
 class analog_recorder;
