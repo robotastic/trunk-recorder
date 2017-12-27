@@ -8,10 +8,10 @@
 #include "p25_trunking.h"
 #include "parser.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <lfsr/lfsr.h>
-#pragma GCC diagnostic pop
+//#pragma GCC diagnostic pop
 
 class Source;
 class analog_recorder;
@@ -24,7 +24,7 @@ typedef boost::shared_ptr<p25conventional_recorder> p25conventional_recorder_spt
 
 
 class System
-{                
+{
         int sys_num;
         unsigned long sys_id;
         unsigned long wacn;
@@ -49,7 +49,7 @@ public:
         double bandplan_base;
         double bandplan_high;
         double bandplan_spacing;
-        int bandplan_offset;        
+        int bandplan_offset;
 
         unsigned xor_mask_len;
         const char *xor_mask;
