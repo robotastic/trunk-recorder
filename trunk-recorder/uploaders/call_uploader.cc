@@ -125,7 +125,8 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
   // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
   // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
-  int rc = system(shell_command);
+  system(shell_command);
+  //int rc = system(shell_command);
 
   // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
 
@@ -219,7 +220,7 @@ void send_call(Call *call, System *sys, Config config) {
   // std::cout << "Setting up thread\n";
   Call_Source *source_list = call->get_source_list();
   Call_Freq   *freq_list   = call->get_freq_list();
-  Call_Error  *error_list  = call->get_error_list();
+  //Call_Error  *error_list  = call->get_error_list();
   call_info->talkgroup        = call->get_talkgroup();
   call_info->freq             = call->get_freq();
   call_info->encrypted        = call->get_encrypted();

@@ -55,13 +55,13 @@ double SmartnetParser::getfreq(int cmd, System *sys) {
             freq = 867.4250 + (0.025 * ((double) (cmd-0x3C1)));
         }
     } else if (sys->get_bandfreq() == 400) {
-      double test_freq;
+          /*double test_freq;
           //Step * (channel - low) + Base
           if ((cmd >= 0x17c) && (cmd < 0x2b0)) {
             test_freq = ((cmd - 380) * 25000)  + 489087500;
           } else {
             test_freq = 0;
-          }
+          }*/
 
         double high_cmd = sys->get_bandplan_offset() + (sys->get_bandplan_high() - sys->get_bandplan_base()) / sys->get_bandplan_spacing();
 
@@ -79,11 +79,11 @@ std::vector<TrunkMessage>SmartnetParser::parse_message(std::string s, System *sy
   TrunkMessage message;
 
 
-  char tempArea[512];
-  unsigned short blockNum;
-  char banktype;
-  unsigned short tt1, tt2;
-  static unsigned int ott1, ott2;
+  //char tempArea[512];
+  //unsigned short blockNum;
+  //char banktype;
+  //unsigned short tt1, tt2;
+  //static unsigned int ott1, ott2;
 
   // print_osw(s);
   message.message_type = UNKNOWN;

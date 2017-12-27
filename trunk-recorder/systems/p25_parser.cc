@@ -51,7 +51,7 @@ std::string P25Parser::channel_id_to_string(int chan_id) {
 }
 
 double P25Parser::channel_id_to_frequency(int chan_id) {
-  long id      = (chan_id >> 12) & 0xf;
+  //long id      = (chan_id >> 12) & 0xf;
   long channel = chan_id & 0xfff;
 
   it = channels.find((chan_id >> 12) & 0xf);
@@ -101,12 +101,12 @@ std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost
 
       BOOST_LOG_TRIVIAL(trace) <<  "decode_mbt_data: $" <<  opcode;
       if (opcode == 0x0) {  // grp voice channel grant
-        unsigned long mfrid = bitset_shift_mask(header, 72, 0xff);
+        //unsigned long mfrid = bitset_shift_mask(header, 72, 0xff);
         unsigned long sa = bitset_shift_mask(header, 48, 0xffffff);
         bool emergency = (bool)bitset_shift_mask(header, 24, 0x80);
         bool encrypted = (bool)bitset_shift_mask(header, 24, 0x40);
         unsigned long ch1 = bitset_shift_mask(mbt_data, 64, 0xffff);
-        unsigned long ch2 = bitset_shift_mask(mbt_data, 48, 0xffff);
+        //unsigned long ch2 = bitset_shift_mask(mbt_data, 48, 0xffff);
         unsigned long ga = bitset_shift_mask(mbt_data, 32, 0xffff);
         unsigned long f1 = channel_id_to_frequency(ch1);
 
@@ -133,9 +133,9 @@ std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost
           unsigned long rfid = bitset_shift_mask(mbt_data, 88, 0xff);
           unsigned long stid = bitset_shift_mask(mbt_data, 80, 0xff);
           unsigned long ch1 = bitset_shift_mask(mbt_data, 64, 0xffff);
-          unsigned long ch2 = bitset_shift_mask(mbt_data, 48, 0xffff);
-          unsigned long f1   = channel_id_to_frequency(ch1);
-          unsigned long f2   = channel_id_to_frequency(ch2);
+          //unsigned long ch2 = bitset_shift_mask(mbt_data, 48, 0xffff);
+          //unsigned long f1   = channel_id_to_frequency(ch1);
+          //unsigned long f2   = channel_id_to_frequency(ch2);
           message.message_type = SYSID;
           message.sys_id        = syid;
           os << "mbt3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) <<  ")" << std::endl;
@@ -164,7 +164,7 @@ std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost
         unsigned long ch2  = bitset_shift_mask(mbt_data, 64, 0xffff);
         BOOST_LOG_TRIVIAL(trace) << "mbt3c adjacent status " << "syid " <<syid<<" rfid "<<rfid<<" stid "<<stid<<" ch1 "<<ch1<<" ch2 "<<ch2;
       } else if (opcode == 0x04) { //  Unit to Unit Voice Service Channel Grant -Extended (UU_V_CH_GRANT)
-          unsigned long mfrid = bitset_shift_mask(header, 80, 0xff);
+          //unsigned long mfrid = bitset_shift_mask(header, 80, 0xff);
           bool emergency = (bool)bitset_shift_mask(header, 24, 0x80);
           bool encrypted = (bool)bitset_shift_mask(header, 24, 0x40);
           unsigned long ch = bitset_shift_mask(header, 16, 0xffff); /// ????
@@ -417,7 +417,7 @@ if (opcode == 0x00) { // group voice chan grant
     BOOST_LOG_TRIVIAL(trace) << os;
   }
 } else if (opcode == 0x04) {  //  Unit to Unit Voice Service Channel Grant (UU_V_CH_GRANT)
-    unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+    //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
       // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
       bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
       bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
@@ -449,7 +449,7 @@ if (opcode == 0x00) { // group voice chan grant
     } else if (opcode == 0x05) { // Unit To Unit Answer Request
       BOOST_LOG_TRIVIAL(trace) << "tsbk05";
     } else if (opcode == 0x06) { //  Unit to Unit Voice Channel Grant Update (UU_V_CH_GRANT_UPDT)
-      unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+      //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
       // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
 
       bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);

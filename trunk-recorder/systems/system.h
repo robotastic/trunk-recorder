@@ -7,7 +7,11 @@
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
 #include "parser.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <lfsr/lfsr.h>
+#pragma GCC diagnostic pop
 
 class Source;
 class analog_recorder;
@@ -50,7 +54,7 @@ public:
         unsigned xor_mask_len;
         const char *xor_mask;
         std::vector<double> control_channels;
-        int current_control_channel;
+        unsigned int current_control_channel;
         std::vector<double> channels;
         std::vector<analog_recorder_sptr> conventional_recorders;
         std::vector<p25conventional_recorder_sptr> conventionalP25_recorders;

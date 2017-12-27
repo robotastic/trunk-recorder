@@ -60,7 +60,7 @@ p25_recorder::p25_recorder(Source *src)
 
   double offset = chan_freq - center_freq;
 
-  double symbol_deviation    = 600.0; // was 600.0
+  //double symbol_deviation    = 600.0; // was 600.0
   int initial_decim      = floor(samp_rate / 480000);
   initial_rate = double(samp_rate) / double(initial_decim);
   samples_per_symbol  = 10;    // was 10
@@ -69,9 +69,9 @@ p25_recorder::p25_recorder(Source *src)
   system_channel_rate = symbol_rate * samples_per_symbol;
 
   double phase1_symbol_rate = 4800;
-  double phase2_symbol_rate = 6000;
+  //double phase2_symbol_rate = 6000;
   double phase1_channel_rate = phase1_symbol_rate * samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * samples_per_symbol;
+  //double phase2_channel_rate = phase2_symbol_rate * samples_per_symbol;
 
   decim = floor(initial_rate / system_channel_rate);
   resampled_rate = double(initial_rate) / double(decim);
@@ -197,7 +197,7 @@ p25_recorder::p25_recorder(Source *src)
 
   levels = gr::blocks::multiply_const_ss::make(source->get_digital_levels());
 
-  tm *ltm = localtime(&starttime);
+  //tm *ltm = localtime(&starttime);
 
   wav_sink = gr::blocks::nonstop_wavfile_sink::make(1, 8000, 16, false);
 
@@ -367,7 +367,7 @@ void p25_recorder::stop() {
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
-    Rx_Status rx_status = op25_frame_assembler->get_rx_status();
+    //Rx_Status rx_status = op25_frame_assembler->get_rx_status();
     op25_frame_assembler->reset_rx_status();
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";

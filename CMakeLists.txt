@@ -199,6 +199,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
 
 
 add_subdirectory(lib/op25_repeater)
+
+
 list(APPEND trunk_recorder_sources
   trunk-recorder/main.cc
   trunk-recorder/formatter.cc
@@ -206,8 +208,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/uploaders/uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
   trunk-recorder/uploaders/stat_socket.cc
-  trunk-recorder/call.cc
   trunk-recorder/call_conventional.cc
+  trunk-recorder/call.cc  
   trunk-recorder/systems/smartnet_trunking.cc
   trunk-recorder/systems/p25_trunking.cc
   trunk-recorder/systems/smartnet_parser.cc
@@ -222,8 +224,20 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroups.cc
   lib/gr_blocks/nonstop_wavfile_sink_impl.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
-  lib/lfsr/lfsr.cxx)
+  lib/lfsr/lfsr.cxx
+  )
 
+set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
+
+target_compile_options(
+    imbe_vocoder PRIVATE 
+    "-w"
+)
+
+target_compile_options(
+    gnuradio-op25_repeater PRIVATE 
+    "-w"
+)
 
 add_executable(recorder ${trunk_recorder_sources})
 
