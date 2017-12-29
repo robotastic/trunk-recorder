@@ -31,7 +31,6 @@ class Recorder;
 #include "uploaders/call_uploader.h"
 #include "config.h"
 #include "state.h"
-#include "recorders/recorder.h"
 #include "systems/system.h"
 #include "systems/parser.h"
 #include <string>
@@ -45,12 +44,12 @@ public:
 
 								Call( long t, double f, System *s, Config c);
 								Call( TrunkMessage message, System *s, Config c);
-								~Call();
-								void restart_call();
+								virtual ~Call();
+								virtual void restart_call();
 								void end_call();
 								void set_debug_recorder(Recorder *r);
 								Recorder * get_debug_recorder();
-								void set_recorder(Recorder *r);
+								virtual void set_recorder(Recorder *r, std::string device);
 								Recorder * get_recorder();
 								double get_freq();
 
@@ -87,8 +86,8 @@ public:
 								void set_tdma_slot(int s);
 								int get_tdma_slot();
 								const char * get_xor_mask();
-								bool is_conventional();
-								void set_conventional(bool conv);
+								//virtual bool is_conventional() { return true;}
+								virtual bool is_conventional() { return false;}
 								void set_encrypted(bool m);
 								bool get_encrypted();
 								void set_emergency(bool m);
@@ -96,7 +95,7 @@ public:
 								std::string get_talkgroup_display();
 								void set_talkgroup_display_format(std::string format);
 								void set_talkgroup_tag(std::string tag);
-private:
+protected:
 								State state;
 								long talkgroup;
 								double curr_freq;
@@ -116,7 +115,6 @@ private:
 								bool debug_recording;
 								bool encrypted;
 								bool emergency;
-								bool conventional;
 								char filename[255];
 								char converted_filename[255];
 								char status_filename[255];

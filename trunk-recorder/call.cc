@@ -1,6 +1,7 @@
 #include "call.h"
 #include "formatter.h"
 #include <boost/algorithm/string.hpp>
+#include "recorders/recorder.h"
 
 //static int rec_counter=0;
 
@@ -57,7 +58,6 @@ Call::Call(long t, double f, System *s, Config c) {
   tdma_slot       = 0;
   encrypted       = false;
   emergency       = false;
-  conventional    = false;
   set_freq(f);
   this->create_filename();
   this->update_talkgroup_display();
@@ -83,7 +83,6 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   tdma_slot       = message.tdma_slot;
   encrypted       = message.encrypted;
   emergency       = message.emergency;
-  conventional    = false;
   set_freq(message.freq);
   add_source(message.source);
   this->create_filename();
@@ -95,26 +94,6 @@ Call::~Call() {
 }
 
 void Call::restart_call() {
-  if (conventional) {
-    idle_count       = 0;
-    freq_count       = 0;
-    src_count        = 0;
-    error_list_count = 0;
-    curr_src_id      = 0;
-    start_time       = time(NULL);
-    stop_time        = time(NULL);
-    last_update      = time(NULL);
-    state            = recording;
-    debug_recording  = false;
-    phase2_tdma      = false;
-    tdma_slot        = 0;
-    encrypted        = false;
-    emergency        = false;
-
-    this->create_filename();
-    this->update_talkgroup_display();
-    recorder->start(this);
-  }
 }
 
 void Call::end_call() {
@@ -202,8 +181,9 @@ Recorder * Call::get_debug_recorder() {
   return debug_recorder;
 }
 
-void Call::set_recorder(Recorder *r) {
+void Call::set_recorder(Recorder *r, std::string device) {
   recorder = r;
+  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\tStarting Recorder on Src: " << device;
 }
 
 Recorder * Call::get_recorder() {
@@ -389,14 +369,6 @@ int Call::since_last_update() {
 
 long Call::elapsed() {
   return time(NULL) - start_time;
-}
-
-bool Call::is_conventional() {
-  return conventional;
-}
-
-void Call::set_conventional(bool conv) {
-  conventional = conv;
 }
 
 int Call::get_idle_count() {

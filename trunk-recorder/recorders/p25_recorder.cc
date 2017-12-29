@@ -2,12 +2,14 @@
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 #include "../formatter.h"
+#include "../gr_blocks/nonstop_wavfile_delayopen_sink_impl.h"
 
 
-
-p25_recorder_sptr make_p25_recorder(Source *src)
+p25_recorder_sptr make_p25_recorder(Source * src)
 {
-  return gnuradio::get_initial_sptr(new p25_recorder(src));
+  p25_recorder * recorder = new p25_recorder();
+  recorder->initialize(src, gr::blocks::nonstop_wavfile_delayopen_sink_impl::make(1, 8000, 16, false));
+  return gnuradio::get_initial_sptr(recorder);
 }
 
 void p25_recorder::generate_arb_taps() {
@@ -40,10 +42,16 @@ if (arb_rate <= 1) {
 }
 }
 
-p25_recorder::p25_recorder(Source *src)
+p25_recorder::p25_recorder()
   : gr::hier_block2("p25_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float)))
+{
+}
+
+
+
+void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink)
 {
   source      = src;
   chan_freq   = source->get_center();
@@ -197,9 +205,7 @@ p25_recorder::p25_recorder(Source *src)
 
   levels = gr::blocks::multiply_const_ss::make(source->get_digital_levels());
 
-  //tm *ltm = localtime(&starttime);
-
-  wav_sink = gr::blocks::nonstop_wavfile_sink::make(1, 8000, 16, false);
+  this->wav_sink = wav_sink;
 
   connect(self(),      0, valve,         0);
   connect(valve,       0, prefilter,     0);
@@ -237,10 +243,7 @@ p25_recorder::p25_recorder(Source *src)
         }
     connect(slicer,               0, op25_frame_assembler, 0);
     connect(op25_frame_assembler, 0, levels,               0);
-      connect(levels, 0, wav_sink, 0);
-
-
-
+    connect(levels, 0, wav_sink, 0);
 }
 
 void p25_recorder::switch_tdma(bool phase2) {

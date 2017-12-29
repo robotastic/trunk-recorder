@@ -1,6 +1,7 @@
 
 #include "analog_recorder.h"
 #include "../formatter.h"
+#include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
 using namespace std;
 
 bool analog_recorder::logging = false;
@@ -160,7 +161,7 @@ analog_recorder::analog_recorder(Source *src)
 
   //tm *ltm = localtime(&starttime);
 
-  wav_sink = gr::blocks::nonstop_wavfile_sink::make(1, 8000, 16, true);
+  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
   // Try and get rid of the FSK wobble
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);

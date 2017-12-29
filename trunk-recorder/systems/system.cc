@@ -37,6 +37,7 @@ System::System(int sys_num) {
   xor_mask = NULL;
   // Setup the talkgroups from the CSV file
   talkgroups = new Talkgroups();
+  d_delaycreateoutput = false;
 }
 
 void System::set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac){
@@ -273,4 +274,12 @@ void System::set_talkgroup_display_format(TalkgroupDisplayFormat format){
 
 System::TalkgroupDisplayFormat System::get_talkgroup_display_format(){
   return talkgroup_display_format;
+}
+
+bool System::get_delaycreateoutput(){
+  return d_delaycreateoutput;
+}
+
+void System::set_delaycreateoutput(bool delaycreateoutput){
+  d_delaycreateoutput = delaycreateoutput;
 }

@@ -58,23 +58,22 @@
 class Source;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder>p25_recorder_sptr;
-p25_recorder_sptr make_p25_recorder(Source *src);
+p25_recorder_sptr make_p25_recorder(Source * src);
 #include "../source.h"
 
 class p25_recorder : public gr::hier_block2, public Recorder {
-  friend p25_recorder_sptr make_p25_recorder(Source *src);
+  friend p25_recorder_sptr make_p25_recorder(Source * src);
 
 protected:
+  p25_recorder();
+  virtual void initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink);
 
-  p25_recorder(Source *src);
-
-public:
-
-  ~p25_recorder();
+public:  
+  virtual ~p25_recorder();
 
   void    tune_offset(double f);
-  void    start(Call *call);
-  void    stop();
+  virtual void    start(Call *call);
+  virtual void    stop();
   void    clear();
   double  get_freq();
   int     get_num();
@@ -96,9 +95,29 @@ public:
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
 
+protected:
+
+  State state;
+  time_t timestamp;
+  time_t starttime;
+  long   talkgroup;
+  std::string short_name;
+  Call *call;
+  Config *config;
+  Source *source;
+  double chan_freq;
+  double center_freq;
+  bool   qpsk_mod;
+
+  gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+  freq_xlating_fft_filter_sptr prefilter;
+  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  gr::blocks::copy::sptr valve;
+  gr::blocks::multiply_const_ss::sptr levels;
+
 private:
 
-  double center_freq, chan_freq;
+  
   double system_channel_rate;
   double arb_rate;
   double samples_per_symbol;
@@ -106,22 +125,17 @@ private:
   double initial_rate;
   int decim;
   double resampled_rate;
-  bool   qpsk_mod;
+  
   double squelch_db;
   int    silence_frames;
   int    tdma_slot;
-  long   talkgroup;
+  
   bool   d_phase2_tdma;
-  std::string short_name;
-  time_t timestamp;
-  time_t starttime;
-  Call *call;
-  Config *config;
-  Source *source;
+  
+  
+  
   char    filename[160];
   char    raw_filename[160];
-
-  State state;
 
   std::vector<float> inital_lpf_taps;
   std::vector<float> channel_lpf_taps;
@@ -129,7 +143,7 @@ private:
   std::vector<float> sym_taps;
   std::vector<float> baseband_noise_filter_taps;
 
-  freq_xlating_fft_filter_sptr prefilter;
+  
 
   /* GR blocks */
   gr::filter::fft_filter_ccf::sptr channel_lpf;
@@ -144,18 +158,18 @@ private:
   gr::analog::feedforward_agc_cc::sptr   agc;
   gr::analog::pll_freqdet_cf::sptr       pll_freq_lock;
   gr::analog::pwr_squelch_cc::sptr       squelch;
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  
 
-  gr::blocks::copy::sptr valve;
+  
 
-  gr::blocks::multiply_const_ss::sptr levels;
+  
   gr::blocks::multiply_const_ff::sptr rescale;
   gr::blocks::multiply_const_ff::sptr baseband_amp;
   gr::blocks::multiply_const_ff::sptr pll_amp;
   gr::blocks::complex_to_arg::sptr    to_float;
 
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
-  gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+  
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
   gr::op25_repeater::vocoder::sptr op25_vocoder;
   gr::op25_repeater::gardner_costas_cc::sptr costas_clock;

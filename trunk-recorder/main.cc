@@ -74,7 +74,6 @@
 #include <gnuradio/top_block.h>
 #include "formatter.h"
 
-
 using namespace std;
 namespace logging  = boost::log;
 namespace keywords = boost::log::keywords;
@@ -184,6 +183,9 @@ void load_config(string config_file)
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_channel(channel);
         }
+        system->set_delaycreateoutput(node.second.get<bool>("delayCreateOutput", false));
+        BOOST_LOG_TRIVIAL(info) << "delayCreateOutput: " << system->get_delaycreateoutput();
+
       } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
         BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
@@ -493,11 +495,9 @@ if (talkgroup) {
         if (message.meta.length()) {
           BOOST_LOG_TRIVIAL(trace) << message.meta;
         }
-         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(call->get_freq()) << "\tStarting Recorder on Src: " << source->get_device();
-
-    
+             
         recorder->start(call);
-        call->set_recorder(recorder);
+        call->set_recorder(recorder, source->get_device());
         call->set_state(recording);
         recorder_found = true;
       } else {
@@ -1010,23 +1010,23 @@ bool monitor_system() {
             }
 
             BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " <<  FormatFreq(channel) << " Talkgroup: " << talkgroup;
-            Call *call = new Call(talkgroup, channel, system, config);
+            Call_conventional *call = new Call_conventional(talkgroup, channel, system, config);
+            //Call *call = new Call(talkgroup, channel, system, config);
             talkgroup++;
-            call->set_conventional(true);
 
             if (system->get_system_type() == "conventional") {
               analog_recorder_sptr rec;
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
-              call->set_recorder((Recorder *)rec.get());
+              call->set_recorder((Recorder *)rec.get(), source->get_device());
               call->set_state(recording);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
             } else { // has to be "conventionalP25"
               p25conventional_recorder_sptr rec;
-              rec = source->create_conventionalP25_recorder(tb);
+              rec = source->create_conventionalP25_recorder(tb, system->get_delaycreateoutput());
               rec->start(call);
-              call->set_recorder((Recorder *)rec.get());
+              call->set_recorder((Recorder *)rec.get(), source->get_device());
               call->set_state(recording);
               system->add_conventionalP25_recorder(rec);
               calls.push_back(call);

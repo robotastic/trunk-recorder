@@ -195,9 +195,9 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb)
     return log;
 }
 
-p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb) {
+p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen) {
 
-    p25conventional_recorder_sptr log = make_p25conventional_recorder(this);
+    p25conventional_recorder_sptr log = make_p25conventional_recorder(this, delayopen);
 
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);

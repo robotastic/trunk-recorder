@@ -8,10 +8,16 @@
 #include "p25_trunking.h"
 #include "parser.h"
 
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#endif
+
 #include <lfsr/lfsr.h>
-//#pragma GCC diagnostic pop
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 class Source;
 class analog_recorder;
@@ -119,7 +125,12 @@ public:
         int get_bandplan_offset();
         void set_talkgroup_display_format(TalkgroupDisplayFormat format);
         TalkgroupDisplayFormat get_talkgroup_display_format();
+
+        bool get_delaycreateoutput();
+        void set_delaycreateoutput(bool delaycreateoutput);
+
 private:
         TalkgroupDisplayFormat talkgroup_display_format;
+        bool d_delaycreateoutput;
 };
 #endif
