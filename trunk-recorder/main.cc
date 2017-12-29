@@ -273,6 +273,9 @@ void load_config(string config_file)
 
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << frequencyFormat;
 
+    statusAsString = pt.get<bool>("statusAsString", statusAsString);
+    BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
+
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("sources"))
     {
@@ -604,10 +607,10 @@ void print_status() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call         = *it;
     Recorder *recorder = call->get_recorder();
-    BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " Freq: " << FormatFreq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << call->get_state();
+    BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " Freq: " << FormatFreq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << FormatState(call->get_state());
 
     if (recorder) {
-      BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << recorder->get_state();
+      BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << FormatState(recorder->get_state());
     }
   }
 
@@ -980,7 +983,7 @@ void monitor_messages() {
 
     float statusTimeDiff = currentTime - lastStatusTime;
 
-    if (statusTimeDiff > 300) {
+    if (statusTimeDiff > 20) {
       lastStatusTime = currentTime;
       print_status();
     }

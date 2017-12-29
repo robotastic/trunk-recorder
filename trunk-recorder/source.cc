@@ -280,7 +280,7 @@ void Source::print_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state());
   }
 }
 
@@ -355,7 +355,7 @@ Recorder * Source::get_digital_recorder(int priority)
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Freq: " << rx->get_freq();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state()) << " Freq: " << rx->get_freq();
   }
   return NULL;
 }
