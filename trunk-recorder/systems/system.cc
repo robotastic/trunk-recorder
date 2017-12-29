@@ -38,6 +38,8 @@ System::System(int sys_num) {
   // Setup the talkgroups from the CSV file
   talkgroups = new Talkgroups();
   d_delaycreateoutput = false;
+  d_hideEncrypted = false;
+  d_hideUnknown = false;
 }
 
 void System::set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac){
@@ -282,4 +284,19 @@ bool System::get_delaycreateoutput(){
 
 void System::set_delaycreateoutput(bool delaycreateoutput){
   d_delaycreateoutput = delaycreateoutput;
+}
+
+bool System::get_hideEncrypted(){
+  return d_hideEncrypted;
+}
+void System::set_hideEncrypted(bool hideEncrypted){
+  d_hideEncrypted = hideEncrypted;
+}
+
+bool System::get_hideUnknown(){
+  return d_hideUnknown;
+}
+
+void System::set_hideUnknown(bool hideUnknown){
+  d_hideUnknown = hideUnknown;
 }

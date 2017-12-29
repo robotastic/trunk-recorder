@@ -129,8 +129,16 @@ public:
         bool get_delaycreateoutput();
         void set_delaycreateoutput(bool delaycreateoutput);
 
+        bool get_hideEncrypted();
+        void set_hideEncrypted(bool hideEncrypted);
+
+        bool get_hideUnknown();
+        void set_hideUnknown(bool hideUnknown);
+
 private:
         TalkgroupDisplayFormat talkgroup_display_format;
         bool d_delaycreateoutput;
+        bool d_hideEncrypted;
+        bool d_hideUnknown;
 };
 #endif

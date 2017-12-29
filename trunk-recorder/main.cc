@@ -249,6 +249,12 @@ void load_config(string config_file)
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan offset: " << system->get_bandplan_offset();
         }
       }
+
+      system->set_hideEncrypted(node.second.get<bool>("hideEncrypted", system->get_hideEncrypted()));
+      BOOST_LOG_TRIVIAL(info) << "Hide Encrypted Talkgroups: " << system->get_hideEncrypted();
+      system->set_hideUnknown(node.second.get<bool>("hideUnknownTalkgroups", system->get_hideUnknown()));
+      BOOST_LOG_TRIVIAL(info) << "Hide Unkown Talkgroups: " << system->get_hideUnknown();
+
       systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);
     }
@@ -450,20 +456,24 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   // call->get_encrypted() << "\tFreq: " << call->get_freq();
 
   if (call->get_encrypted() == true) {
+    if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " <<  FormatFreq(call->get_freq()) << "\tNot Recording: ENCRYPTED ";
-      return false;
     }
-
-  if (!talkgroup && (sys->get_record_unknown() == false)) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tNot Recording: TG not in Talkgroup File ";
     return false;
   }
 
-if (talkgroup) {
-  call->set_talkgroup_tag(talkgroup->alpha_tag);
-} else {
-  call->set_talkgroup_tag("-");
-}
+  if (!talkgroup && (sys->get_record_unknown() == false)) {
+    if (sys->get_hideUnknown() == false) {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tNot Recording: TG not in Talkgroup File ";
+    }
+    return false;
+  }
+
+  if (talkgroup) {
+    call->set_talkgroup_tag(talkgroup->alpha_tag);
+  } else {
+    call->set_talkgroup_tag("-");
+  }
 
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     Source *source = *it;
