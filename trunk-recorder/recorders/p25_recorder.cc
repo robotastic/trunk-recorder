@@ -8,7 +8,7 @@
 p25_recorder_sptr make_p25_recorder(Source * src)
 {
   p25_recorder * recorder = new p25_recorder();
-  recorder->initialize(src, gr::blocks::nonstop_wavfile_delayopen_sink_impl::make(1, 8000, 16, false));
+  recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, false));
   return gnuradio::get_initial_sptr(recorder);
 }
 
