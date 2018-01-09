@@ -240,6 +240,22 @@ int Source::get_gain() {
   return gain;
 }
 
+void Source::set_gain_mode(bool m) {
+  if (driver == "osmosdr") {
+    gain_mode = m;
+    cast_to_osmo_sptr(source_block)->set_gain_mode(gain_mode);
+    if (cast_to_osmo_sptr(source_block)->get_gain_mode()) {
+      BOOST_LOG_TRIVIAL(info) << "Auto gain control is ON";
+    } else {
+      BOOST_LOG_TRIVIAL(info) << "Auto gain control is OFF";
+    }
+  }
+}
+
+bool Source::get_gain_mode() {
+  return gain_mode;
+}
+
 void Source::set_if_gain(int i)
 {
   if (driver == "osmosdr") {
@@ -255,6 +271,7 @@ void Source::set_freq_corr(double p)
 
   if (driver == "osmosdr") {
     cast_to_osmo_sptr(source_block)->set_freq_corr(ppm);
+    BOOST_LOG_TRIVIAL(info) << "PPM set to: " << cast_to_osmo_sptr(source_block)->get_freq_corr();
   }
 }
 

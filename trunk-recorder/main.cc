@@ -363,6 +363,7 @@ void load_config(string config_file)
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
       double ppm            = node.second.get<double>("ppm", 0);
+      bool   agc            = node.second.get<bool>("agc", false);
       int    gain           = node.second.get<double>("gain", 0);
       int    if_gain        = node.second.get<double>("ifGain", 0);
       int    bb_gain        = node.second.get<double>("bbGain", 0);
@@ -393,6 +394,7 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(node.second.get<double>("rate", 0));
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
       BOOST_LOG_TRIVIAL(info) << "PPM Error: " <<  node.second.get<double>("ppm", 0);
+      BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << node.second.get<bool>("agc", false);
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
@@ -487,6 +489,7 @@ void load_config(string config_file)
         BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
       }
 
+      source->set_gain_mode(agc);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
       source->set_analog_levels(analog_levels);
