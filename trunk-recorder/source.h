@@ -26,6 +26,7 @@ class Source
 								double fsk_gain;
 								double analog_levels;
 								double digital_levels;
+								bool gain_mode;
 								int gain;
 								int bb_gain;
 								int if_gain;
@@ -65,6 +66,8 @@ public:
 								int get_if_gain();
 								void set_squelch_db(double s);
 								double get_squelch_db();
+								void set_gain_mode(bool m);
+								bool get_gain_mode();
 								void set_gain(int r);
 								int get_gain();
 								void set_fsk_gain(double r);

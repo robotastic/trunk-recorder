@@ -133,6 +133,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
       double ppm            = node.second.get<double>("ppm", 0);
+      bool   agc            = node.second.get<bool>("agc", false);
       int    gain           = node.second.get<double>("gain", 0);
       int    if_gain        = node.second.get<double>("ifGain", 0);
       int    bb_gain        = node.second.get<double>("bbGain", 0);
@@ -159,6 +160,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate", 0);
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
       BOOST_LOG_TRIVIAL(info) << "PPM Error: " <<  node.second.get<double>("ppm", 0);
+      BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << node.second.get<bool>("agc", false);
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
@@ -215,6 +217,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       if (lna_gain != 0) {
         source->set_lna_gain(lna_gain);
       }
+      source->set_gain_mode(agc);
       source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
