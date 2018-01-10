@@ -29,25 +29,34 @@ class stat_socket {
   void on_fail(websocketpp::connection_hdl);
   void on_close(websocketpp::connection_hdl);
   void on_open(websocketpp::connection_hdl);
-  void open_stat(const std::string & uri);
+  void open_stat();
   bool is_open();
   bool config_sent();
-  void send_status(std::vector<Call *>calls, Config config);
-  void send_config(std::vector<Source *> sources, std::vector<System *> systems, Config config);
-  void send_sys_rates(std::vector<System *>systems, float timeDiff, Config config) ;
+  void send_calls_active(std::vector<Call *>calls);
+  void send_config(std::vector<Source *> sources, std::vector<System *> systems);
+  void send_sys_rates(std::vector<System *>systems, float timeDiff);
+  void send_call_start(Call * call);
+  void send_call_end(Call * call);
+  void send_recorder(Recorder * recorder);
+  void initialize(Config * config, void (*callback)(void));
+  void send_recorders(std::vector<Recorder *>recorders);
+  void send_systems(std::vector<System *> systems);
+  void send_system(System * systems);
 
 private:
     void reopen_stat();
     client m_client;
     websocketpp::connection_hdl m_hdl;
     websocketpp::lib::mutex m_lock;
-    std::string remote_uri;
     int retry_attempt;
     time_t reconnect_time;
     bool m_reconnect;
     bool m_open;
     bool m_done;
     bool m_config_sent;
+    Config * m_config;
+    void (*m_callback)(void);
+    void send_object(boost::property_tree::ptree data, std::string name, std::string type);
 };
 
 #endif

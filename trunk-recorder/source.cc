@@ -453,3 +453,25 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     source_block = usrp_src;
   }
 }
+
+std::vector<Recorder *> Source::get_recorders()
+{
+
+  std::vector<Recorder *> recorders;
+
+   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
+      p25_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+
+    for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
+      analog_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+
+    for (std::vector<debug_recorder_sptr>::iterator it = debug_recorders.begin(); it != debug_recorders.end(); it++) {
+      debug_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+  return recorders;
+}

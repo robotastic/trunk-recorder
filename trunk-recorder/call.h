@@ -95,6 +95,10 @@ public:
 								std::string get_talkgroup_display();
 								void set_talkgroup_display_format(std::string format);
 								void set_talkgroup_tag(std::string tag);
+								boost::property_tree::ptree get_stats();
+								char * get_status_filename();
+								std::string get_talkgroup_tag();
+								double get_final_length();								
 protected:
 								State state;
 								long talkgroup;
@@ -120,6 +124,7 @@ protected:
 								char status_filename[255];
 								bool phase2_tdma;
 								int tdma_slot;
+								double _final_length;
 
 								Config config;
 								Recorder *recorder;

@@ -45,10 +45,16 @@ if (arb_rate <= 1) {
 p25_recorder::p25_recorder()
   : gr::hier_block2("p25_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                    gr::io_signature::make(0, 0, sizeof(float)))
+                    gr::io_signature::make(0, 0, sizeof(float))), Recorder("P25")
 {
 }
 
+p25_recorder::p25_recorder(std::string type)
+  : gr::hier_block2("p25_recorder",
+                    gr::io_signature::make(1, 1, sizeof(gr_complex)),
+                    gr::io_signature::make(0, 0, sizeof(float))), Recorder(type)
+{
+}
 
 
 void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink)
@@ -363,7 +369,7 @@ Rx_Status p25_recorder::get_rx_status() {
 }
 void p25_recorder::stop() {
   if (state == active) {
-
+    recording_duration += wav_sink->length_in_seconds();
     clear();
     BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
@@ -436,6 +442,7 @@ void p25_recorder::start(Call *call) {
     wav_sink->open(call->get_filename());
     state = active;
     valve->set_enabled(true);
+    recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";
   }

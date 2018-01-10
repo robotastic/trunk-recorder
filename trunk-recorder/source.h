@@ -107,5 +107,7 @@ public:
 								{
 																return boost::dynamic_pointer_cast<gr::uhd::usrp_source, gr::basic_block>(p);
 								}
+
+								std::vector<Recorder *> get_recorders();
 };
 #endif

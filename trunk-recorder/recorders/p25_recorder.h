@@ -66,6 +66,7 @@ class p25_recorder : public gr::hier_block2, public Recorder {
 
 protected:
   p25_recorder();
+  p25_recorder(std::string type);
   virtual void initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink);
 
 public:  

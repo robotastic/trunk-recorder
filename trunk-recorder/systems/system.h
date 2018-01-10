@@ -19,6 +19,8 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include <boost/property_tree/ptree.hpp>
+
 class Source;
 class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
@@ -90,7 +92,7 @@ public:
         unsigned long get_nac();
         void set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac);
         const char * get_xor_mask();
-        void update_status(TrunkMessage message);
+        bool update_status(TrunkMessage message);
         int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();
@@ -134,6 +136,9 @@ public:
 
         bool get_hideUnknown();
         void set_hideUnknown(bool hideUnknown);
+
+        boost::property_tree::ptree get_stats();
+        boost::property_tree::ptree get_stats_current(float timeDiff);
 
 private:
         TalkgroupDisplayFormat talkgroup_display_format;

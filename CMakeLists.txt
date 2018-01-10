@@ -216,6 +216,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/systems/p25_parser.cc
   trunk-recorder/systems/smartnet_decode.cc
   trunk-recorder/systems/system.cc
+  trunk-recorder/recorders/recorder.cc  
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
   lib/gr_blocks/nonstop_wavfile_sink_impl.cc  

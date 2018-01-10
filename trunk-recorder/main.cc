@@ -187,7 +187,7 @@ void load_config(string config_file)
             alphaIndex++;
           }
         }        
-        
+
       }  else if (system->get_system_type() == "conventionalP25") {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
         BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("channels"))
@@ -540,6 +540,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         recorder->start(call);
         call->set_recorder(recorder, source->get_device());
         call->set_state(recording);
+        stats.send_recorder(recorder);
         recorder_found = true;
       } else {
         // not recording call either because the priority was too low or no
@@ -555,13 +556,15 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         debug_recorder->start(call);
         call->set_debug_recorder(debug_recorder);
         call->set_debug_recording(true);
-        recorder_found = true;
+        stats.send_recorder(debug_recorder);
+        recorder_found = true;        
       } else {
         // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
       }
 
-      if (recorder_found) {
+      if (recorder_found) {        
         // recording successfully started.
+        stats.send_call_start(call);
         return true;
       }
     }
@@ -597,8 +600,12 @@ void stop_inactive_recorders() {
 
         // if no additional recording has happened in the past X periods, stop and open new file
         if (call->get_idle_count() > 5) {
+          Recorder * recorder = call->get_recorder();
           call->end_call();
+          stats.send_call_end(call);
           call->restart_call();
+          if (recorder != NULL)
+            stats.send_recorder(recorder);
         }
       }
       ++it;
@@ -607,7 +614,11 @@ void stop_inactive_recorders() {
         if (call->get_state() == recording) {
           ended_recording = true;
         }
+        Recorder * recorder = call->get_recorder();
         call->end_call();
+        stats.send_call_end(call);
+        if (recorder != NULL)
+          stats.send_recorder(recorder);
         it = calls.erase(it);
         delete call;
       } else {
@@ -618,8 +629,8 @@ void stop_inactive_recorders() {
 
   }
 
-  if (ended_recording && (config.status_server != "")) {
-    stats.send_status(calls, config);
+  if (ended_recording) {
+    stats.send_calls_active(calls);
   }
   /*     for (vector<Source *>::iterator it = sources.begin(); it !=
      sources.end();
@@ -693,7 +704,9 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 }
 
 void current_system_status(TrunkMessage message, System *sys) {
-  sys->update_status(message);
+  if (sys->update_status(message)){
+    stats.send_system(sys);
+  }
 }
 
 void unit_registration(long unit) {}
@@ -736,11 +749,13 @@ void handle_call(TrunkMessage message, System *sys) {
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
+            Recorder * recorder = call->get_recorder();
             call->end_call();
-
+            stats.send_call_end(call);
             it = calls.erase(it);
             delete call;
             call_found = false;
+            stats.send_recorder(recorder);
           } else {
             call->update(message);
             call_retune = true;
@@ -771,10 +786,8 @@ void handle_call(TrunkMessage message, System *sys) {
     calls.push_back(call);
   }
 
-  if (config.status_server != "") {
-    if (call_retune || recording_started) {
-      stats.send_status(calls, config);
-    }
+  if (call_retune || recording_started) {
+    stats.send_calls_active(calls);
   }
 }
 
@@ -906,13 +919,9 @@ void retune_system(System *system) {
 }
 
 void check_message_count(float timeDiff) {
-  if (config.status_server != "") {
-    if (!stats.config_sent() && stats.is_open()) {
-      stats.send_config(sources, systems, config);
-    }
-    stats.send_sys_rates(systems, timeDiff, config);
-  }
-
+  stats.send_config(sources, systems);
+  stats.send_sys_rates(systems, timeDiff);
+  
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
@@ -935,8 +944,8 @@ void check_message_count(float timeDiff) {
       if (msgs_decoded_per_second < config.control_message_warn_rate || config.control_message_warn_rate == -1) {
         BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
-      sys->message_count = 0;
     }
+    sys->message_count = 0;    
   }
 }
 
@@ -1051,7 +1060,7 @@ bool monitor_system() {
             }
 
             BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " <<  FormatFreq(channel) << " Talkgroup: " << talkgroup;
-            Call_conventional *call = new Call_conventional(talkgroup, channel, system, config);
+            Call_conventional *call = new Call_conventional(talkgroup, channel, system, config, &stats);
             talkgroup++;
             Talkgroup *talkgroup = system->find_talkgroup(call->get_talkgroup());
 
@@ -1067,6 +1076,7 @@ bool monitor_system() {
               call->set_state(recording);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
+              stats.send_recorder((Recorder *)rec.get());
             } else { // has to be "conventionalP25"
               p25conventional_recorder_sptr rec;
               rec = source->create_conventionalP25_recorder(tb, system->get_delaycreateoutput());
@@ -1075,6 +1085,7 @@ bool monitor_system() {
               call->set_state(recording);
               system->add_conventionalP25_recorder(rec);
               calls.push_back(call);
+              stats.send_recorder((Recorder *)rec.get());
             }
 
             // break out of the for loop
@@ -1137,6 +1148,26 @@ void add_logs(const F& fmt)
 		
   sink->imbue(loc);
 }
+
+void socket_connected()
+{
+  stats.send_config(sources, systems);
+  stats.send_systems(systems);
+  stats.send_calls_active(calls);
+
+  std::vector<Recorder *> recorders;
+
+  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+    Source *source = *it;
+
+    std::vector<Recorder *> sourceRecorders = source->get_recorders();
+
+    recorders.insert(recorders.end(), sourceRecorders.begin(), sourceRecorders.end());
+  }
+
+  stats.send_recorders(recorders);
+}
+
 
 
 int main(int argc, char **argv)
@@ -1201,10 +1232,8 @@ int main(int argc, char **argv)
 
 
   load_config(config_file);
-
-  if (config.status_server != "") {
-    stats.open_stat(config.status_server);
-  }
+  stats.initialize(&config, &socket_connected);
+  stats.open_stat();
 
   if (config.log_file) {
     logging::add_file_log(

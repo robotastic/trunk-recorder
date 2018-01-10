@@ -41,7 +41,7 @@ void analog_recorder::calculate_iir_taps(double tau)
 analog_recorder::analog_recorder(Source *src)
   : gr::hier_block2("analog_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                    gr::io_signature::make(0, 0, sizeof(float)))
+                    gr::io_signature::make(0, 0, sizeof(float))), Recorder("A")
 {
   //int nchars;
 
@@ -207,6 +207,7 @@ int analog_recorder::get_num() {
 
 void analog_recorder::stop() {
   if (state == active) {
+    recording_duration += wav_sink->length_in_seconds();
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();

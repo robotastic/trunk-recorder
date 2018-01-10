@@ -40,6 +40,8 @@ System::System(int sys_num) {
   d_delaycreateoutput = false;
   d_hideEncrypted = false;
   d_hideUnknown = false;
+
+  message_count = 0;
 }
 
 void System::set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac){
@@ -60,7 +62,7 @@ void System::set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned l
   }
 
 }
-void System::update_status(TrunkMessage message) {
+bool System::update_status(TrunkMessage message) {
  if(!sys_id || !wacn || !nac) {
    sys_id = message.sys_id;
    wacn = message.wacn;
@@ -77,7 +79,9 @@ void System::update_status(TrunkMessage message) {
        std::cout << (short)xor_mask[i] << ", ";
      }*/
    }
+  return true;
  }
+ return false;
 }
 
 const char * System::get_xor_mask(){
@@ -299,4 +303,26 @@ bool System::get_hideUnknown(){
 
 void System::set_hideUnknown(bool hideUnknown){
   d_hideUnknown = hideUnknown;
+}
+
+boost::property_tree::ptree System::get_stats()
+{
+  boost::property_tree::ptree system_node;
+  system_node.put("id",           this->get_sys_num());
+  system_node.put("name",         this->get_short_name());
+  system_node.put("type",         this->get_system_type());
+  system_node.put("sysid",        this->get_sys_id());
+  system_node.put("wacn",         this->get_wacn());
+  system_node.put("nac",          this->get_nac());
+
+  return system_node;
+}
+
+boost::property_tree::ptree System::get_stats_current(float timeDiff)
+{
+  boost::property_tree::ptree system_node;
+  system_node.put("id",           this->get_sys_num());
+  system_node.put("decoderate",   this->message_count / timeDiff);
+
+  return system_node;
 }

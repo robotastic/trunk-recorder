@@ -2,6 +2,7 @@
 #include "formatter.h"
 #include <boost/algorithm/string.hpp>
 #include "recorders/recorder.h"
+#include "source.h"
 
 //static int rec_counter=0;
 
@@ -106,7 +107,7 @@ void Call::end_call() {
     }
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
 
-
+    _final_length = recorder->get_current_length();
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
@@ -171,6 +172,7 @@ void Call::end_call() {
   if (this->get_debug_recording() == true) {
     this->get_debug_recorder()->stop();
   }
+  this->set_state(inactive);
 }
 
 void Call::set_debug_recorder(Recorder *r) {
@@ -192,6 +194,10 @@ Recorder * Call::get_recorder() {
 
 double Call::get_freq() {
   return curr_freq;
+}
+
+double Call::get_final_length() {
+  return _final_length;
 }
 
 double Call::get_current_length() {
@@ -399,6 +405,10 @@ char * Call::get_filename() {
   return filename;
 }
 
+char * Call::get_status_filename() {
+  return status_filename;
+}
+
 void Call::set_talkgroup_tag(std::string tag){
   talkgroup_tag = tag;
   update_talkgroup_display();
@@ -406,6 +416,10 @@ void Call::set_talkgroup_tag(std::string tag){
 
 std::string Call::get_talkgroup_display() {
   return talkgroup_display;
+}
+
+std::string Call::get_talkgroup_tag() {
+  return talkgroup_tag;
 }
 
 void Call::update_talkgroup_display(){
@@ -421,4 +435,54 @@ void Call::update_talkgroup_display(){
   } else{
     talkgroup_display = boost::lexical_cast<std::string>(talkgroup);
   }
+}
+
+boost::property_tree::ptree Call::get_stats()
+{
+  boost::property_tree::ptree call_node;
+  boost::property_tree::ptree freq_list_node;
+  call_node.put("id",           boost::lexical_cast<std::string>(this->get_sys_num()) + "_" + boost::lexical_cast<std::string>(this->get_talkgroup()) + "_" + boost::lexical_cast<std::string>(this->get_start_time()));
+  call_node.put("freq",         this->get_freq());
+  call_node.put("sysNum",       this->get_sys_num());
+  call_node.put("shortName",    this->get_short_name());
+  call_node.put("talkgroup",    this->get_talkgroup());
+  call_node.put("talkgrouptag", this->get_talkgroup_tag());
+  call_node.put("elasped",      this->elapsed());
+  if (get_state() == recording)  
+    call_node.put("length",     this->get_current_length());    
+  else
+    call_node.put("length",     this->get_final_length());
+  call_node.put("state",        this->get_state());
+  call_node.put("phase2",       this->get_phase2_tdma());
+  call_node.put("conventional", this->is_conventional());
+  call_node.put("encrypted",    this->get_encrypted());
+  call_node.put("emergency",    this->get_emergency());
+  call_node.put("startTime",    this->get_start_time());
+  call_node.put("stopTime",     this->get_stop_time());
+
+  Call_Freq *freq_list = this->get_freq_list();
+  int freq_count       = this->get_freq_count();
+
+  for (int i = 0; i < freq_count; i++) {
+    boost::property_tree::ptree freq_node;
+
+    freq_node.put("freq", freq_list[i].freq);
+    freq_node.put("time", freq_list[i].time);
+    freq_list_node.push_back(std::make_pair("", freq_node));
+  }
+  call_node.add_child("freqList", freq_list_node);
+
+  Recorder *recorder = this->get_recorder();
+
+  if (recorder) {
+    call_node.put("recNum",   recorder->get_num());
+    call_node.put("srcNum",   recorder->get_source()->get_num());
+    call_node.put("recState", recorder->get_state());
+    call_node.put("analog",   recorder->is_analog());
+  }
+
+  call_node.put("filename",   this->get_filename());
+  call_node.put("statusfilename",   this->get_status_filename());
+
+  return call_node;
 }

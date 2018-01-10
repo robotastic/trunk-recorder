@@ -20,7 +20,7 @@ p25conventional_recorder_sptr make_p25conventional_recorder(Source * src, bool d
   return gnuradio::get_initial_sptr<p25conventional_recorder>(recorder);
 }
 
-p25conventional_recorder::p25conventional_recorder(bool delayopen) : p25_recorder() 
+p25conventional_recorder::p25conventional_recorder(bool delayopen) : p25_recorder("P25C") 
 {
   d_delayopen = delayopen;
 }
