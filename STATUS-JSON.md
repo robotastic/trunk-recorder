@@ -6,17 +6,11 @@ The json message are sent over a websocket to the server specified by **statusSe
 
 The following message types are sent 
 * config
-
-...Contains the config information
-
-...Sent when the socket is first connected
-
-
+  -Contains the config information
+  -Sent when the socket is first connected
 * rates
-
-...Contains message decode rates for all systems, non trucked systems will have a zero value
-
-...Sent every 3 seconds
+  -Contains message decode rates for all systems, non trucked systems will have a zero value
+  .Sent every 3 seconds
 
 * systems
 ...Contains a array of systems 
@@ -41,12 +35,14 @@ The following message types are sent
 ...Sent when a record has changed
 
 
- * ###config
- ... *not documented yet*
+ * **config**
+ ```
+ *not documented yet*
+ ```
 
 
 
-* rates
+* **rates**
 ```json
 {
     "rates": [
