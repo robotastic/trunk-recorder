@@ -431,7 +431,7 @@ void Call::update_talkgroup_display(){
   if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_id_tag) {
     talkgroup_display = boost::lexical_cast<std::string>(talkgroup).append(" (").append(talkgroup_tag).append(")"); 
   } else if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_tag_id) {
-    talkgroup_display = talkgroup_tag.append(" (").append(boost::lexical_cast<std::string>(talkgroup)).append(")"); 
+    talkgroup_display = std::string("").append(talkgroup_tag).append(" (").append(boost::lexical_cast<std::string>(talkgroup)).append(")"); 
   } else{
     talkgroup_display = boost::lexical_cast<std::string>(talkgroup);
   }
