@@ -85,7 +85,7 @@ The following message types are sent
 }
 ```
 
-* system
+## system
 ```json
 {
     "system": {
@@ -103,7 +103,7 @@ The following message types are sent
 
 ```
 
-* calls_active
+## calls_active
 ```json
 {
     "calls": [
@@ -167,7 +167,7 @@ The following message types are sent
 }
 ```
 
-* call_start
+## call_start
 ```json
 {
     "call": {
@@ -205,7 +205,7 @@ The following message types are sent
 }
 ```
 
-* call_end
+## call_end
 ```json
 {
     "call": {
@@ -244,7 +244,7 @@ The following message types are sent
 ```
 
 
-* recorders
+## recorders
 ```json
 {
     "recorders": [
@@ -363,7 +363,7 @@ The following message types are sent
 }
 ```
 
-* recorder
+## recorder
 ```json
 {
     "recorder": {
