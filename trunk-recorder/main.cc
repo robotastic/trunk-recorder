@@ -555,7 +555,7 @@ void stop_inactive_recorders() {
 
     if (call->is_conventional() && call->get_recorder()) {
       // if any recording has happened
-      if (call->get_current_length() > 1.0) {
+      if (call->get_current_length() > 0) {
         BOOST_LOG_TRIVIAL(trace) << "Recorder: " <<  call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();
 
         // means that the squelch is on and it has stopped recording
