@@ -174,6 +174,20 @@ void load_config(string config_file)
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_channel(channel);
         }
+
+        BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
+        if (node.second.count("alphatags") != 0)
+        {
+          int alphaIndex = 1;
+          BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("alphatags"))
+          {
+            std::string alphaTag = sub_node.second.get<std::string>("", "");
+            BOOST_LOG_TRIVIAL(info) << alphaTag << " ";
+            system->talkgroups->add(alphaIndex, alphaTag);
+            alphaIndex++;
+          }
+        }        
+        
       }  else if (system->get_system_type() == "conventionalP25") {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
         BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("channels"))
@@ -183,6 +197,20 @@ void load_config(string config_file)
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_channel(channel);
         }
+
+        BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
+        if (node.second.count("alphatags") != 0)
+        {
+          int alphaIndex = 1;
+          BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("alphatags"))
+          {
+            std::string alphaTag = sub_node.second.get<std::string>("", "");
+            BOOST_LOG_TRIVIAL(info) << alphaTag << " ";
+            system->talkgroups->add(alphaIndex, alphaTag);
+            alphaIndex++;
+          }
+        }
+
         system->set_delaycreateoutput(node.second.get<bool>("delayCreateOutput", false));
         BOOST_LOG_TRIVIAL(info) << "delayCreateOutput: " << system->get_delaycreateoutput();
 
@@ -1024,8 +1052,12 @@ bool monitor_system() {
 
             BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " <<  FormatFreq(channel) << " Talkgroup: " << talkgroup;
             Call_conventional *call = new Call_conventional(talkgroup, channel, system, config);
-            //Call *call = new Call(talkgroup, channel, system, config);
             talkgroup++;
+            Talkgroup *talkgroup = system->find_talkgroup(call->get_talkgroup());
+
+            if (talkgroup) {
+              call->set_talkgroup_tag(talkgroup->alpha_tag);
+            }
 
             if (system->get_system_type() == "conventional") {
               analog_recorder_sptr rec;
