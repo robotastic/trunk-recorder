@@ -5,12 +5,19 @@ Status json messages
 The json message are sent over a websocket to the server specified by **statusServer**.
 
 The following message types are sent 
-* config 
+* config
+
 ...Contains the config information
+
 ...Sent when the socket is first connected
+
+
 * rates
+
 ...Contains message decode rates for all systems, non trucked systems will have a zero value
+
 ...Sent every 3 seconds
+
 * systems
 ...Contains a array of systems 
 ...Sent when he socket is first connected
@@ -34,7 +41,7 @@ The following message types are sent
 ...Sent when a record has changed
 
 
- * config
+ * ###config
  ... *not documented yet*
 
 
