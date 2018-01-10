@@ -2,47 +2,44 @@ Status json messages
 =======================
 
 
-The json message are sent over a websocket to the server specified by **statusServer**.
+The json message are sent over a websocket to the server specified by **statusServer** config entry.
 
 The following message types are sent 
-* config
+* **config**
   * Contains the config information
-  . Sent when the socket is first connected
-* rates
-  - Contains message decode rates for all systems, non trucked systems will have a zero value
+  * Sent when the socket is first connected
+* **rates**
+  * Contains message decode rates for all systems, non trucked systems will have a zero value
   * Sent every 3 seconds
+* **systems**
+  * Contains a array of systems 
+  * Sent when the socket is first connected
+* **system**
+  * Contains a single system
+  * Sent when a system changes, this happens when the sysid, wacn, or nac is first known
+* **calls_active**
+  * Contains an array of all calls that are currently active
+  * Sent when the socket is first connected, a call is started, or call is completed
+* **call_start**
+  * Contains a single call
+  * Sent when a call is started
+* **call_end**
+  * Contains a single call
+  * Sent when a call is completed
+* **recorders**
+  * Contains an array of all recorders
+  * Sent when he socket is first connected
+* **recorder**
+  * Contains a single recorder
+  * Sent when a record has changed
 
-* systems
-...Contains a array of systems 
-...Sent when he socket is first connected
-* system
-...Contains a single system
-...Sent when a system changes, this happens when the sysid, wacn, or nac is first known
-* calls_active
-...Contains an array of all calls that are currently active
-...Sent when a call is started ot completed
-* call_start
-...Contains a single call
-...Sent when a call is started
-* call_end
-...Contains a single call
-...Sent when a call is completed
-* recorders
-...Contains an array of all recorders
-...Sent when he socket is first connected
-* recorder
-...Contains a single recorder
-...Sent when a record has changed
 
-
- * **config**
+## config
  ```
  *not documented yet*
  ```
 
-
-
-* **rates**
+## rates
 ```json
 {
     "rates": [
@@ -61,7 +58,7 @@ The following message types are sent
 }
 ```
 
-* systems
+## systems
 ```json
 {
     "systems": [
