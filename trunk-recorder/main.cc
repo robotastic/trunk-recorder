@@ -1020,7 +1020,7 @@ void monitor_messages() {
 
     float statusTimeDiff = currentTime - lastStatusTime;
 
-    if (statusTimeDiff > 20) {
+    if (statusTimeDiff > 200) {
       lastStatusTime = currentTime;
       print_status();
     }
