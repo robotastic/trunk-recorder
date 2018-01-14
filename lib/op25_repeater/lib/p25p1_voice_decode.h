@@ -22,7 +22,6 @@
 #define INCLUDED_OP25_REPEATER_P25P1_VOICE_DECODE_H
 
 #include <sys/time.h>
-#include <netinet/in.h>
 #include <stdint.h>
 #include <vector>
 #include <deque>
@@ -52,8 +51,6 @@ namespace gr {
 	static const int RXBUF_MAX = 80;
 
 	/* data items */
-	int write_sock;
-	struct sockaddr_in write_sock_addr;
 	int write_bufp;
 	char write_buf[512];
 	char rxbuf[RXBUF_MAX];
@@ -65,9 +62,7 @@ namespace gr {
 	std::deque<int16_t> &output_queue;
 
 	bool opt_verbose;
-	int opt_udp_port;
 	/* local methods */
-	void init_sock(const char* udp_host, int udp_port);
     };
 
   } // namespace op25_repeater

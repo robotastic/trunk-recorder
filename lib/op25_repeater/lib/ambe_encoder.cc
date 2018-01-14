@@ -27,7 +27,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <math.h>
+#include <cmath>
 
 #include "imbe_vocoder/imbe_vocoder.h"
 #include "ambe3600x2250_const.h"
@@ -247,7 +247,11 @@ static void encode_ambe(const IMBE_PARAM *imbe_param, int b[], mbe_parms*cur_mp,
 		lsa_sum += lsa[i1];
 	}
 	float gain = lsa_sum / num_harms_f;
-	float diff_gain = gain - 0.5 * prev_mp->gamma;
+	float diff_gain;
+	if (dstar)
+		diff_gain = gain;
+	else
+		diff_gain = gain - 0.5 * prev_mp->gamma;
 
 	diff_gain -= gain_adjust;
 
@@ -541,20 +545,12 @@ static void encode_49bit(uint8_t outp[49], const int b[9]) {
 ambe_encoder::ambe_encoder(void)
 	: d_49bit_mode(false),
 	d_dstar_mode(false),
+	d_alt_dstar_interleave(false),
 	d_gain_adjust(0)
 {
 	mbe_parms enh_mp;
 	mbe_initMbeParms (&cur_mp, &prev_mp, &enh_mp);
-	// this is a hack to cut down on overloading
-	// value is in log2
-	char *gfp = getenv("GAIN_ADJUST");
-	if (gfp) {
-		float gain_adj = 0.0;
-		sscanf(gfp, "%f", &gain_adj);
-		if (!isnan(gain_adj))
-			d_gain_adjust = gain_adj;
 	}
-}
 
 void ambe_encoder::set_dstar_mode(void)
 {
@@ -584,7 +580,7 @@ void ambe_encoder::encode(int16_t samples[], uint8_t codeword[])
 	encode_ambe(vocoder.param(), b, &cur_mp, &prev_mp, d_dstar_mode, d_gain_adjust);
 
 	if (d_dstar_mode) {
-		interleaver.encode_dstar(codeword, b);
+		interleaver.encode_dstar(codeword, b, d_alt_dstar_interleave);
 	} else if (d_49bit_mode) {
 		encode_49bit(codeword, b);
 	} else {

@@ -39,7 +39,7 @@
 //		Pointer to bits allocation array 
 //
 //-----------------------------------------------------------------------------
-const Word16 *get_bit_allocation_arr(Word16 num_harms)
+const UWord16 *get_bit_allocation_arr(Word16 num_harms)
 {
 	Word16 offset_in_word, index;
 
@@ -70,7 +70,7 @@ const Word16 *get_bit_allocation_arr(Word16 num_harms)
 //-----------------------------------------------------------------------------
 void get_bit_allocation(Word16 num_harms, Word16 *ptr)
 {
-	const Word16 *bat_ptr;
+	const UWord16 *bat_ptr;
 	Word16 i, tmp;
 
 	bat_ptr = get_bit_allocation_arr(num_harms);

@@ -33,9 +33,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #include "imbe_vocoder/imbe_vocoder.h"
 #include "p25_frame.h"
@@ -153,9 +150,9 @@ static void clear_bits(bit_vector& v) {
 	}
 }
 
-p25p1_voice_encode::p25p1_voice_encode(bool verbose_flag, int stretch_amt, char* udp_host, int udp_port, bool raw_vectors_flag, std::deque<uint8_t> &_output_queue) :
+p25p1_voice_encode::p25p1_voice_encode(bool verbose_flag, int stretch_amt, const op25_audio& udp, bool raw_vectors_flag, std::deque<uint8_t> &_output_queue) :
+        op25audio(udp),
 	frame_cnt(0),
-	write_sock(0),
 	write_bufp(0),
 	peak_amplitude(0),
 	peak(0),
@@ -166,8 +163,7 @@ p25p1_voice_encode::p25p1_voice_encode(bool verbose_flag, int stretch_amt, char*
 	output_queue(_output_queue),
 	f_body(P25_VOICE_FRAME_SIZE),
 	opt_dump_raw_vectors(raw_vectors_flag),
-	opt_verbose(verbose_flag),
-	opt_udp_port(udp_port)
+	opt_verbose(verbose_flag)
     {
 	opt_stretch_amt = 0;
 	if (stretch_amt < 0) {
@@ -177,10 +173,6 @@ p25p1_voice_encode::p25p1_voice_encode(bool verbose_flag, int stretch_amt, char*
 		opt_stretch_sign = 1;
 		opt_stretch_amt = stretch_amt;
 	}
-
-	if (opt_udp_port != 0)
-		// remote UDP output
-		init_sock(udp_host, opt_udp_port);
 
 	clear_bits(f_body);
     }
@@ -324,24 +316,10 @@ void p25p1_voice_encode::compress_samp(const int16_t * samp, int len)
 	}
 }
 
-void p25p1_voice_encode::init_sock(char* udp_host, int udp_port)
-{
-        memset (&write_sock_addr, 0, sizeof(write_sock_addr));
-        write_sock = socket(PF_INET, SOCK_DGRAM, 17);   // UDP socket
-        if (write_sock < 0) {
-                fprintf(stderr, "vocoder: socket: %d\n", errno);
-                write_sock = 0;
-		return;
+void
+p25p1_voice_encode::set_gain_adjust(float gain_adjust) {
+	vocoder.set_gain_adjust(gain_adjust);
         }
-        if (!inet_aton(udp_host, &write_sock_addr.sin_addr)) {
-                fprintf(stderr, "vocoder: bad IP address\n");
-		close(write_sock);
-		write_sock = 0;
-		return;
-	}
-        write_sock_addr.sin_family = AF_INET;
-        write_sock_addr.sin_port = htons(udp_port);
-}
 
   } /* namespace op25_repeater */
 } /* namespace gr */

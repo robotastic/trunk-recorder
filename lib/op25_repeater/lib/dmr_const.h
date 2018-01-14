@@ -26,6 +26,17 @@ static const int hamming_7_4[] = {
 	69, 78, 83, 88, 98, 105, 116, 127, 
 };
 	
+static const int hamming_7_4_decode[] = {
+	  0,  0,  0,  1,  0,  8,  2,  4,  0,  1,  1,  1,  5,  3,  9,  1,
+	  0,  6,  2, 10,  2,  3,  2,  2, 11,  3,  7,  1,  3,  3,  2,  3,
+	  0,  6, 12,  4,  5,  4,  4,  4,  5, 13,  7,  1,  5,  5,  5,  4,
+	  6,  6,  7,  6, 14,  6,  2,  4,  7,  6,  7,  7,  5,  3,  7, 15,
+	  0,  8, 12, 10,  8,  8,  9,  8, 11, 13,  9,  1,  9,  8,  9,  9,
+	 11, 10, 10, 10, 14,  8,  2, 10, 11, 11, 11, 10, 11,  3,  9, 15,
+	 12, 13, 12, 12, 14,  8, 12,  4, 13, 13, 12, 13,  5, 13,  9, 15,
+	 14,  6, 12, 10, 14, 14, 14, 15, 11, 13,  7, 15, 14, 15, 15, 15
+};
+
 static const int hamming_17_12[] = {
 	0, 37, 74, 111, 148, 177, 222, 251, 
 	269, 296, 327, 354, 409, 444, 467, 502, 
@@ -822,9 +833,14 @@ static const int hamming_16_11[] = {
 static const uint8_t dmr_bs_voice_sync[24] = {
 	1,3,1,1,1,1,3,3,3,1,1,3,3,1,3,3,1,3,1,1,3,3,1,3
 };
+static const uint64_t DMR_VOICE_SYNC_MAGIC = 0x755fd7df75f7LL;
+static const uint64_t DMR_IDLE_SYNC_MAGIC  = 0xdff57d75df5dLL;
 
 static const uint8_t dmr_bs_idle_sync[24] = {
 	3,1,3,3,3,3,1,1,1,3,3,1,1,3,1,1,3,1,3,3,1,1,3,1
 };
+
+static const uint8_t cach_tact_bits[] = {0, 4, 8, 12, 14, 18, 22};
+static const uint8_t cach_payload_bits[] = {1,2,3,5,6,7,9,10,11,13,15,16,17,19,20,21,23};
 
 #endif /* INCLUDED_OP25_REPEATER_DMR_CONST_H */

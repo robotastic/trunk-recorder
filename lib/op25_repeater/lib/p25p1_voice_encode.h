@@ -22,7 +22,6 @@
 #define INCLUDED_OP25_REPEATER_P25P1_VOICE_ENCODE_H
 
 #include <sys/time.h>
-#include <netinet/in.h>
 #include <stdint.h>
 #include <vector>
 #include <deque>
@@ -42,17 +41,15 @@ namespace gr {
       // Nothing to declare in this block.
 
      public:
-      p25p1_voice_encode(bool verbose_flag, int stretch_amt, char* udp_host, int udp_port, bool raw_vectors_flag, std::deque<uint8_t> &_output_queue);
+      p25p1_voice_encode(bool verbose_flag, int stretch_amt, const op25_audio& udp, bool raw_vectors_flag, std::deque<uint8_t> &_output_queue);
       ~p25p1_voice_encode();
 	void compress_samp(const int16_t * samp, int len);
-
+      void set_gain_adjust(float gain_adjust);
   private:
 	static const int RXBUF_MAX = 80;
 
 	/* data items */
 	int frame_cnt ;
-	int write_sock;
-	struct sockaddr_in write_sock_addr;
 	int write_bufp;
 	char write_buf[512];
 	struct timeval tv;
@@ -75,12 +72,10 @@ namespace gr {
 	bool opt_verbose;
 	int opt_stretch_amt;
 	int opt_stretch_sign;
-	int opt_udp_port;
 	/* local methods */
 	void append_imbe_codeword(bit_vector& frame_body, int16_t frame_vector[], unsigned int& codeword_ct);
 	void compress_frame(int16_t snd[]);
 	void add_sample(int16_t samp);
-	void init_sock(char* udp_host, int udp_port);
     };
 
   } // namespace op25_repeater

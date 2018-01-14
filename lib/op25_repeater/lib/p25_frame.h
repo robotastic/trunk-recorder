@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_OP25_P25_FRAME_H
-#define INCLUDED_OP25_P25_FRAME_H 1
+#ifndef INCLUDED_P25_FRAME_H
+#define INCLUDED_P25_FRAME_H 1
 
 #include <vector>
 typedef std::vector<bool> bit_vector;
@@ -62,4 +62,4 @@ p25_setup_frame_header(bit_vector& frame_body, uint64_t hw) {
   } // namespace op25_repeater
 }  // namespace gr
 
-#endif   /* INCLUDED_OP25_P25_FRAME_H */
+#endif   /* INCLUDED_P25_FRAME_H */

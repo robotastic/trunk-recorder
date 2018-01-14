@@ -1,5 +1,6 @@
 //
 // YSF Encoder (C) Copyright 2017 Max H. Parke KA1RBI
+// thx gr-ysf fr_vch_decoder_bb_impl.cc * Copyright 2015 Mathias Weyland *
 // 
 // This file is part of OP25
 // 
@@ -20,6 +21,62 @@
 
 #ifndef INCLUDED_YSF_CONST_H
 #define INCLUDED_YSF_CONST_H
+
+#include <stdint.h>
+
+static void decode_49bit(int b[9], const uint8_t src[49]) {
+	for (int i=0; i<9; i++)
+		b[i] = 0;
+	b[0] |= src[0] << 6;
+	b[0] |= src[1] << 5;
+	b[0] |= src[2] << 4;
+	b[0] |= src[3] << 3;
+	b[1] |= src[4] << 4;
+	b[1] |= src[5] << 3;
+	b[1] |= src[6] << 2;
+	b[1] |= src[7] << 1;
+	b[2] |= src[8] << 4;
+	b[2] |= src[9] << 3;
+	b[2] |= src[10] << 2;
+	b[2] |= src[11] << 1;
+	b[3] |= src[12] << 8;
+	b[3] |= src[13] << 7;
+	b[3] |= src[14] << 6;
+	b[3] |= src[15] << 5;
+	b[3] |= src[16] << 4;
+	b[3] |= src[17] << 3;
+	b[3] |= src[18] << 2;
+	b[3] |= src[19] << 1;
+	b[4] |= src[20] << 6;
+	b[4] |= src[21] << 5;
+	b[4] |= src[22] << 4;
+	b[4] |= src[23] << 3;
+	b[5] |= src[24] << 4;
+	b[5] |= src[25] << 3;
+	b[5] |= src[26] << 2;
+	b[5] |= src[27] << 1;
+	b[6] |= src[28] << 3;
+	b[6] |= src[29] << 2;
+	b[6] |= src[30] << 1;
+	b[7] |= src[31] << 3;
+	b[7] |= src[32] << 2;
+	b[7] |= src[33] << 1;
+	b[8] |= src[34] << 2;
+	b[1] |= src[35];
+	b[2] |= src[36];
+	b[0] |= src[37] << 2;
+	b[0] |= src[38] << 1;
+	b[0] |= src[39];
+	b[3] |= src[40];
+	b[4] |= src[41] << 2;
+	b[4] |= src[42] << 1;
+	b[4] |= src[43];
+	b[5] |= src[44];
+	b[6] |= src[45];
+	b[7] |= src[46];
+	b[8] |= src[47] << 1;
+	b[8] |= src[48];
+}
 
 static const int gly_24_12[] = {
 	0, 6379, 10558, 12757, 19095, 21116, 25513, 31554, 36294, 38189, 42232, 48147, 51025, 57274, 61039, 63108, 
@@ -279,6 +336,8 @@ static const int gly_24_12[] = {
 	16648732, 16650999, 16655138, 16661449, 16662667, 16668768, 16673205, 16675166, 16680922, 16686897, 16690916, 16692751, 16698701, 16700838, 16704627, 16710808, 
 	16714107, 16716176, 16719941, 16726190, 16729068, 16734983, 16739026, 16740921, 16745661, 16751702, 16756099, 16758120, 16764458, 16766657, 16770836, 16777215 };
 
+static inline void ysf_scramble(uint8_t buf[], const int len)
+{	// buffer is (de)scrambled in place
 static const uint8_t scramble_code[180] = {
 	1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 
 	0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 
@@ -294,8 +353,16 @@ static const uint8_t scramble_code[180] = {
 	0, 0, 0, 0
 };
 
+	assert(len <= (int)sizeof(scramble_code));
+	for (int i=0; i<len; i++) {
+		buf[i] = buf[i] ^ scramble_code[i];
+	}
+}
+
 // frame sync dibits
 static const uint8_t ysf_fs[20] = { 3, 1, 1, 0, 1, 3, 0, 1, 3, 0, 2, 1, 1, 2, 0, 3, 1, 0, 3, 1 };
+
+static const uint64_t YSF_FRAME_SYNC_MAGIC = 0xd471c9634dLL;
 
 /* thx gr-ysf fr_vch_decoder_bb_impl.cc * Copyright 2015 Mathias Weyland */
 // I hold Sylvain Munaut in high esteem for figuring this out.

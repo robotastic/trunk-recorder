@@ -23,10 +23,7 @@
 #define INCLUDED_OP25_REPEATER_P25P1_FDMA_H
 
 #include <gnuradio/msg_queue.h>
-#include <sys/socket.h>
 #include <sys/time.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <deque>
 #include <math.h>
 #include "../include/op25_repeater/rx_status.h"

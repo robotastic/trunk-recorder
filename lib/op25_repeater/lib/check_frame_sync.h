@@ -6,7 +6,7 @@
 
 static inline bool check_frame_sync(uint64_t x, int err_threshold, int len) {
         int errs=0;
-	static const uint64_t mask = (1LL<<len)-1;
+	const uint64_t mask = (1LL<<len)-1LL;
 	x = x & mask;
 	// source: https://en.wikipedia.org/wiki/Hamming_weight
 	static const uint64_t m1  = 0x5555555555555555; //binary: 0101...

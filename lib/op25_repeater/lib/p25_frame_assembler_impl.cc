@@ -36,6 +36,7 @@
 
 namespace gr {
 namespace op25_repeater {
+
 void p25_frame_assembler_impl::p25p2_queue_msg(int duid)
 {
   static const char wbuf[2] = { 0xff, 0xff }; // dummy NAC
@@ -183,15 +184,13 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
   const uint8_t *in = (const uint8_t *)input_items[0];
 
   p1fdma.rx_sym(in, ninput_items[0]);
-
   if (d_do_phase2_tdma) {
     for (int i = 0; i < ninput_items[0]; i++) {
       if (p2tdma.rx_sym(in[i])) {
         int rc = p2tdma.handle_frame();
-
-        if (rc > -1) {
-          p1fdma.reset_timer();
+			if (rc > -1)
           p25p2_queue_msg(rc);
+				p1fdma.reset_timer(); // prevent P1 timeouts due to long TDMA transmissions
         }
       }
     }
