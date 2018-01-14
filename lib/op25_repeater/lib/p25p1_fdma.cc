@@ -318,7 +318,6 @@ p25p1_fdma::process_LLDU(const bit_vector& A, std::vector<uint8_t>& HB)
 	}
 }
 
-
 void
 p25p1_fdma::process_LDU1(const bit_vector& A)
 {

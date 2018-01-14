@@ -27,6 +27,7 @@
 #include "aux_sub.h"
 #include <iostream>
 
+
 void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 {
 	Word16 bit_stream[BIT_STREAM_LEN];
