@@ -140,7 +140,7 @@ std::vector<TrunkMessage>P25Parser::decode_mbt_data( unsigned long opcode, boost
           message.sys_id        = syid;
           os << "mbt3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) <<  ")" << std::endl;
           message.meta = os.str();
-          BOOST_LOG_TRIVIAL(trace) << os;
+          //BOOST_LOG_TRIVIAL(trace) << os;
       } else if (opcode == 0x3b) {   // network status
           unsigned long wacn = bitset_shift_mask(mbt_data, 76, 0xfffff);
           unsigned long syid = bitset_shift_mask(header, 48, 0xfff);
@@ -258,7 +258,7 @@ if (opcode == 0x00) { // group voice chan grant
     os << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga  << "\tTDMA " << get_tdma_slot(ch) <<
     "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch);
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(trace) << os;
+    //BOOST_LOG_TRIVIAL(trace) << os;
   }
 } else if (opcode == 0x02) { // group voice chan grant update
   unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
@@ -336,11 +336,11 @@ if (opcode == 0x00) { // group voice chan grant
       os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << FormatFreq(f2) << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2);
 
       message.meta = os.str();
-      BOOST_LOG_TRIVIAL(trace) << os;
+      //BOOST_LOG_TRIVIAL(trace) << os;
     }
     os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1);
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(trace) << os;
+    //BOOST_LOG_TRIVIAL(trace) << os;
   }
 } else if (opcode == 0x03) { //  Group Voice Channel Update-Explicit (GRP_V_CH_GRANT_UPDT_EXP)
   unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
@@ -385,12 +385,12 @@ if (opcode == 0x00) { // group voice chan grant
       os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << FormatFreq(f2) << "\tsg " << std::setw(7) << sg2 << "\tTDMA " << get_tdma_slot(
         ch2);
       message.meta = os.str();
-      BOOST_LOG_TRIVIAL(trace) << os;
+      //BOOST_LOG_TRIVIAL(trace) << os;
     }
     os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tsg " << std::setw(7) << sg1 << "\tTDMA " <<
     get_tdma_slot(ch1);
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(trace) << os;
+    //BOOST_LOG_TRIVIAL(trace) << os;
   } else {
     bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
     bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
@@ -414,7 +414,7 @@ if (opcode == 0x00) { // group voice chan grant
       os << "tsbk03\tExplicit Grant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " <<
     get_tdma_slot(ch1);
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(trace) << os;
+    //BOOST_LOG_TRIVIAL(trace) << os;
   }
 } else if (opcode == 0x04) {  //  Unit to Unit Voice Service Channel Grant (UU_V_CH_GRANT)
     //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
@@ -549,7 +549,7 @@ if (opcode == 0x00) { // group voice chan grant
       os << "tsbk29 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2) << ") ";
 
       message.meta = os.str();
-      BOOST_LOG_TRIVIAL(trace) << os;
+      //BOOST_LOG_TRIVIAL(trace) << os;
 
 
      BOOST_LOG_TRIVIAL(trace) << "tsbk29 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2) << ") ";
@@ -686,7 +686,7 @@ if (opcode == 0x00) { // group voice chan grant
       os << "tsbk39 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1) << ") ch2 " << ch2 << "(" <<
       channel_id_to_string(ch2) << ") ";
       message.meta = os.str();
-      BOOST_LOG_TRIVIAL(trace) << os;
+      //BOOST_LOG_TRIVIAL(trace) << os;
     } else if (opcode == 0x3a)  { // rfss status
       unsigned long syid = bitset_shift_mask(tsbk, 56, 0xfff);
       unsigned long rfid = bitset_shift_mask(tsbk, 48, 0xff);
@@ -696,7 +696,7 @@ if (opcode == 0x00) { // group voice chan grant
       message.sys_id        = syid;
       os << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan) <<  ")" << std::endl;
       message.meta = os.str();
-      BOOST_LOG_TRIVIAL(trace) << os;
+      //BOOST_LOG_TRIVIAL(trace) << os;
     } else if (opcode == 0x3b) { // network status
       unsigned long wacn = bitset_shift_mask(tsbk, 52, 0xfffff);
       unsigned long syid = bitset_shift_mask(tsbk, 40, 0xfff);

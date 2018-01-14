@@ -73,7 +73,7 @@ bool p25_framer::nid_codeword(uint64_t acc) {
 	}
 
 	// do bch decode
-	int rc = bchDec(cw);
+	int ec = bchDec(cw);
 
 	// load corrected bch bits into acc (msb first)
 	acc = 0;

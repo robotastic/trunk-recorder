@@ -10,7 +10,8 @@
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+//#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+//#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif
 
 #include <lfsr/lfsr.h>

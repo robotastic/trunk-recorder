@@ -189,7 +189,8 @@ block_deinterleave(bit_vector& bv, unsigned int start, uint8_t *buf)
 	return 0;
 }
 
-p25p1_fdma::p25p1_fdma(int sys_num,int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, bool do_nocrypt) :
+p25p1_fdma::p25p1_fdma(int sys_num, const op25_audio& udp, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, bool do_nocrypt) :
+   op25audio(udp),
   d_sys_num(sys_num),
   write_bufp(0),
   d_debug(debug),
@@ -214,29 +215,6 @@ p25p1_fdma::p25p1_fdma(int sys_num,int debug, bool do_imbe, bool do_output, bool
     error_history[i] = -1;
 }
 
-void
-p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, uint8_t const buf[], int const len)
-{
-  char wbuf[256];
-  int  p = 0;
-	if (!d_do_msgq)
-		return;
-	if (d_msg_queue->full_p())
-		return;
-	assert (len+2 <= sizeof(wbuf));
-  wbuf[p++] = (nac >> 8) & 0xff;
-  wbuf[p++] = nac & 0xff;
-  if (buf) {
-    memcpy(&wbuf[p], buf, len); // copy data
-    p += len;
-  }
-  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, d_sys_num, 0);
-  d_msg_queue->insert_tail(msg);
-  gettimeofday(&last_qtime, 0);
-
-  //	msg.reset();
-}
-
 void p25p1_fdma::reset_rx_status() {
   rx_status.error_count = 0;
   rx_status.total_len = 0;
@@ -256,213 +234,6 @@ long p25p1_fdma::get_curr_src_id() {
 void p25p1_fdma::clear() {
   p1voice_decode.clear();
 }
-
-void
-p25p1_fdma::reset_timer()
-{
-  // update last_qtime with current time
-  gettimeofday(&last_qtime, 0);
-}
-
-
-
-void p25p1_fdma::rx_sym(const uint8_t *syms, int nsyms)
-{
-  struct timeval currtime;
-
-  curr_src_id = 0;
-
-  for (int i1 = 0; i1 < nsyms; i1++) {
-    if (framer->rx_sym(syms[i1])) { // complete frame was detected
-      if (d_debug >= 10) {
-        fprintf(stderr, "%d: NAC 0x%X DUID 0x%X len %u errs %u \n ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
-        //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u ", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors);
-
-      }
-
-      rx_status.error_count += framer->bch_errors;
-      rx_status.total_len += 64;// += framer->frame_size;
-      //printf( "%d: NAC 0x%X DUID 0x%X len %u errs %u avg %f\n", i1, framer->nac, framer->duid, framer->frame_size >> 1, framer->bch_errors, avg );
-
-      if ((framer->duid == 0x03) ||
-          (framer->duid == 0x05) ||
-          (framer->duid == 0x0A) ||
-          (framer->duid == 0x0F)) {
-        process_duid(framer->duid, framer->nac, NULL, 0);
-      }
-
-      if (((framer->duid == 0x07) || (framer->duid == 0x0c))) {
-        unsigned int d, b;
-        int rc[3];
-        bit_vector bv1(720);
-        int sizes[3] = { 360, 576, 720 };
-        uint8_t deinterleave_buf[3][12];
-
-        if (framer->frame_size > 720) {
-          fprintf(stderr, "warning trunk frame size %u exceeds maximum\n", framer->frame_size);
-          framer->frame_size = 720;
-        }
-			for (d=0, b=0; d < framer->frame_size >> 1; d++) {
-				if ((d+1) % 36 == 0)
-					continue;	// skip SS
-          bv1[b++] = framer->frame_body[d * 2];
-          bv1[b++] = framer->frame_body[d * 2 + 1];
-        }
-
-        int errors = 0;
-        for (int sz = 0; sz < 3; sz++) {
-          if (framer->frame_size >= sizes[sz]) {
-            rc[sz] = block_deinterleave(bv1, 48 + 64 + sz * 196, deinterleave_buf[sz]);
-            if (rc[sz] < 0) {
-              errors++;
-            }
-            if ((framer->duid == 0x07) && (rc[sz] == 0)) process_duid(framer->duid, framer->nac, deinterleave_buf[sz], 10);
-          }
-        }
-
-        // two-block mbt is the only format currently supported
-        if ((framer->duid == 0x0c)
-            && (framer->frame_size == 576)
-            && (rc[0] == 0)
-            && (rc[1] == 0)) {
-          // we copy first 10 bytes from first and
-          // first 8 from second (removes CRC's)
-          uint8_t mbt_block[18];
-          memcpy(mbt_block,      deinterleave_buf[0], 10);
-          memcpy(&mbt_block[10], deinterleave_buf[1], 8);
-          process_duid(framer->duid, framer->nac, mbt_block, sizeof(mbt_block));
-        }
-      }
-
-      if ((d_debug >= 10) && (framer->duid == 0x00)) {
-        ProcHDU(framer->frame_body);
-      } else if (d_debug > 10 && framer->duid == 0x05) {
-        curr_src_id = 5;
-        ProcLDU1(framer->frame_body);
-      } else if ((d_debug >= 10) && (framer->duid == 0x0a)) {
-        ProcLDU2(framer->frame_body);
-      } else if ((d_debug > 10) && (framer->duid == 0x0f)) {
-        ProcTDU(framer->frame_body);
-      }
-
-      if (d_debug >= 10) fprintf(stderr, "\n");
-
-// if voice - ldu1 (0x05) extract the Source ID
-      if (framer->duid == 0x05) {
-       uint32_t src_id = LDU1_to_Src(framer->frame_body);
-       if (src_id){
-         curr_src_id = src_id;
-       }
-     }
-
-      // if voice - ldu1 (0x05) or ldu2 (0xa)
-      if ((d_do_imbe || d_do_audio_output) && ((framer->duid == 0x5) || (framer->duid == 0xa))) {
-
-        for (size_t i = 0; i < nof_voice_codewords; ++i) {
-          voice_codeword cw(voice_codeword_sz);
-          uint32_t E0, ET;
-          uint32_t u[8];
-          char     s[128];
-          imbe_deinterleave(framer->frame_body, cw, i);
-
-          // recover 88-bit IMBE voice code word
-
-          uint16_t imbe_error = imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
-          for (int j=19; j>0; j--) {
-            error_history[j] = error_history[j-1];
-          }
-          error_history[0] = imbe_error;
-          double error_history_total=0;
-          double error_history_len=0;
-          for (int j=0; j<20; j++) {
-            if (error_history[j]>=0) {
-              error_history_len++;
-              error_history_total += error_history[j];
-            }
-          }
-          double error_history_avg = error_history_total / error_history_len;
-
-          double error_history_sqrt;
-          for (int j=0; j<error_history_len; j++){
-            error_history_sqrt += pow((error_history[j] - error_history_avg), 2);
-          }
-          float std_dev = sqrt(error_history_sqrt/error_history_len);
-
-          if (imbe_error >  std_dev) {
-            rx_status.spike_count++;
-            if (d_debug >= 10) {
-              fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", imbe_error, std_dev, error_history_avg, std_dev + error_history_avg );
-            }
-          }
-          rx_status.error_count += imbe_error;
-          rx_status.total_len += 144;
-          // output one 32-byte msg per 0.020 sec.
-          // also, 32*9 = 288 byte pkts (for use via UDP)
-          sprintf(s, "%03x %03x %03x %03x %03x %03x %03x %03x\n", u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
-
-          if (d_do_output) {
-            if (d_do_audio_output) {
-              p1voice_decode.rxframe(u);
-            } else {
-              for (size_t j = 0; j < strlen(s); j++) {
-                output_queue.push_back(s[j]);
-              }
-            }
-          }
-
-        }
-      } // end of imbe/voice
-
-      if (!d_do_imbe) {
-        // pack the bits into bytes, MSB first
-        size_t  obuf_ct = 0;
-        uint8_t obuf[P25_VOICE_FRAME_SIZE / 2];
-
-        for (uint32_t i = 0; i < framer->frame_size; i += 8) {
-          uint8_t b =
-            (framer->frame_body[i + 0] << 7) +
-            (framer->frame_body[i + 1] << 6) +
-            (framer->frame_body[i + 2] << 5) +
-            (framer->frame_body[i + 3] << 4) +
-            (framer->frame_body[i + 4] << 3) +
-            (framer->frame_body[i + 5] << 2) +
-            (framer->frame_body[i + 6] << 1) +
-            (framer->frame_body[i + 7]);
-          obuf[obuf_ct++] = b;
-        }
-
-
-
-        if (d_do_output) {
-          for (size_t j = 0; j < obuf_ct; j++) {
-            output_queue.push_back(obuf[j]);
-          }
-        }
-      }
-    } // end of complete frame
-  }
-
-  if (d_do_msgq && !d_msg_queue->full_p()) {
-    // check for timeout
-    gettimeofday(&currtime, 0);
-    int64_t diff_usec = currtime.tv_usec - last_qtime.tv_usec;
-    int64_t diff_sec  = currtime.tv_sec  - last_qtime.tv_sec;
-
-    if (diff_usec < 0) {
-      diff_usec += 1000000;
-      diff_sec  -= 1;
-    }
-    diff_usec += diff_sec * 1000000;
-
-/*
-    if (diff_usec >= TIMEOUT_THRESHOLD) {
-      gettimeofday(&last_qtime, 0);
-      gr::message::sptr msg = gr::message::make(-1, 0, 0);
-      d_msg_queue->insert_tail(msg);
-    }*/
-  }
-}
-
 
 void
 p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, const uint8_t* buf, const int len)
@@ -547,17 +318,13 @@ p25p1_fdma::process_LLDU(const bit_vector& A, std::vector<uint8_t>& HB)
 	}
 }
 
+
 void
 p25p1_fdma::process_LDU1(const bit_vector& A)
 {
 	if (d_debug >= 10) {
 		fprintf (stderr, "%s NAC 0x%03x LDU1: ", logts.get(), framer->nac);
 	}
-
-  uint32_t src_id = LDU1_to_Src(framer->frame_body);
-  if (src_id){
-    curr_src_id = src_id;
-  }
 
 	std::vector<uint8_t> HB(63,0); // hexbit vector
 	process_LLDU(A, HB);
@@ -692,6 +459,8 @@ p25p1_fdma::process_LCW(std::vector<uint8_t>& HB)
 				case 0x00: { // Group Voice Channel User
 					uint16_t grpaddr = (lcw[4] << 8) + lcw[5];
 					uint32_t srcaddr = (lcw[6] << 16) + (lcw[7] << 8) + lcw[8];
+
+          curr_src_id = srcaddr;
 					s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
 					send_msg(s, -3);
 					if (d_debug >= 10)
@@ -966,7 +735,22 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 				break;
 		}
 
-
+		if (!d_do_imbe) { // send raw frame to wireshark
+			// pack the bits into bytes, MSB first
+			size_t obuf_ct = 0;
+			uint8_t obuf[P25_VOICE_FRAME_SIZE/2];
+			for (uint32_t i = 0; i < framer->frame_size; i += 8) {
+				uint8_t b = 
+					(framer->frame_body[i+0] << 7) +
+					(framer->frame_body[i+1] << 6) +
+					(framer->frame_body[i+2] << 5) +
+					(framer->frame_body[i+3] << 4) +
+					(framer->frame_body[i+4] << 3) +
+					(framer->frame_body[i+5] << 2) +
+					(framer->frame_body[i+6] << 1) +
+					(framer->frame_body[i+7]     );
+				obuf[obuf_ct++] = b;
+			}
 			op25audio.send_to(obuf, obuf_ct);
 
 			if (d_do_output) {
@@ -1001,8 +785,6 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
     }
   }
 }
-
-
 
 } // namespace
 } // namespace

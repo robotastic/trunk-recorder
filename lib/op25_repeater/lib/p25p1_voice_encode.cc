@@ -1,20 +1,20 @@
 /* -*- c++ -*- */
-/* 
+/*
  * GNU Radio interface for Pavel Yazev's Project 25 IMBE Encoder/Decoder
- * 
+ *
  * Copyright 2009 Pavel Yazev E-mail: pyazev@gmail.com
  * Copyright 2009, 2010, 2011, 2012, 2013, 2014 KA1RBI
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -202,17 +202,17 @@ void p25p1_voice_encode::append_imbe_codeword(bit_vector& frame_body, int16_t fr
 		static const uint64_t hws[2] = { 0x293555ef2c653437LL, 0x293aba93bec26a2bLL };
                 int ldu_type = frame_cnt & 1;	// set ldu_type = 0(LDU1) or 1(LDU2)
 		const bool* ldu_preset = (ldu_type == 0) ? ldu1_preset : ldu2_preset;
-		
+
 		p25_setup_frame_header(frame_body, hws[ldu_type]);
 		for (size_t i = 0; i < frame_body.size(); i++) {
 			frame_body[i] = frame_body[i] | ldu_preset[i];
 		}
 		// finally, output the frame
-		if (opt_udp_port > 0) {
+		if (op25audio.enabled()) {
 			// pack the bits into bytes, MSB first
 			size_t obuf_ct = 0;
 			for (uint32_t i = 0; i < P25_VOICE_FRAME_SIZE; i += 8) {
-				uint8_t b = 
+				uint8_t b =
 					(frame_body[i+0] << 7) +
 					(frame_body[i+1] << 6) +
 					(frame_body[i+2] << 5) +
@@ -223,10 +223,10 @@ void p25p1_voice_encode::append_imbe_codeword(bit_vector& frame_body, int16_t fr
 					(frame_body[i+7]     );
 				obuf[obuf_ct++] = b;
 			}
-			sendto(write_sock, obuf, obuf_ct, 0, (struct sockaddr*)&write_sock_addr, sizeof(write_sock_addr));
+			op25audio.send_to(obuf, obuf_ct);
 		} else {
 			for (uint32_t i = 0; i < P25_VOICE_FRAME_SIZE; i += 2) {
-				uint8_t dibit = 
+				uint8_t dibit =
 					(frame_body[i+0] << 1) +
 					(frame_body[i+1]     );
 				output_queue.push_back(dibit);
@@ -254,7 +254,7 @@ void p25p1_voice_encode::append_imbe_codeword(bit_vector& frame_body, int16_t fr
 
 void p25p1_voice_encode::compress_frame(int16_t snd[])
 {
-	int16_t frame_vector[8];	
+	int16_t frame_vector[8];
 
 	// encode 160 audio samples into 88 bits (u0-u7)
 	vocoder.imbe_encode(frame_vector, snd);
@@ -266,7 +266,7 @@ void p25p1_voice_encode::compress_frame(int16_t snd[])
 		memcpy(&write_buf[write_bufp], s, strlen(s));
 		write_bufp += strlen(s);
 		if (write_bufp >= 288) {
-			sendto(write_sock, write_buf, 288, 0, (struct sockaddr*)&write_sock_addr, sizeof(write_sock_addr));
+			op25audio.send_to(write_buf, 288);
 			write_bufp = 0;
 		}
 		return;

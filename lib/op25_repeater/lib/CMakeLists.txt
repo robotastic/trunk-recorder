@@ -53,21 +53,18 @@ list(APPEND op25_repeater_sources
     ambe.c
     mbelib.c
     ambe_encoder.cc
+    rx_sync.cc
+    op25_audio.cc
+    CCITTChecksumReverse.cpp
 )
 
-
 add_library(gnuradio-op25_repeater SHARED ${op25_repeater_sources})
-
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.dylib )
-    set(GR_FILTER_LIBRARIES ${GR_FILTER_LIBRARY})
-endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+else(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.so )
-endif(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-
+endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+set(GR_FILTER_LIBRARIES ${GR_FILTER_LIBRARY})
 target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_FILTER_LIBRARIES} imbe_vocoder)
 set_target_properties(gnuradio-op25_repeater PROPERTIES DEFINE_SYMBOL "gnuradio_op25_repeater_EXPORTS")
 

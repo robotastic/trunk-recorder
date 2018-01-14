@@ -39,13 +39,12 @@ namespace op25_repeater {
 
 void p25_frame_assembler_impl::p25p2_queue_msg(int duid)
 {
-  static const char wbuf[2] = { 0xff, 0xff }; // dummy NAC
-
-  if (!d_do_msgq) return;
-
-  if (d_msg_queue->full_p()) return;
-
-  gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, 2), duid, d_sys_num, 0);
+	static const char wbuf[2] = {(char)0xff, (char)0xff}; // dummy NAC
+	if (!d_do_msgq)
+		return;
+	if (d_msg_queue->full_p())
+		return;
+	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, 2), duid, 0, 0);
   d_msg_queue->insert_tail(msg);
 }
 
@@ -58,20 +57,9 @@ void p25_frame_assembler_impl::set_slotid(int slotid) {
 }
 
 p25_frame_assembler::sptr
-p25_frame_assembler::make(int                 sys_num,
-                          const char         *udp_host,
-                          int                 port,
-                          int                 debug,
-                          bool                do_imbe,
-                          bool                do_output,
-                          int                 silence_frames,
-                          bool                do_msgq,
-                          gr::msg_queue::sptr queue,
-                          bool                do_audio_output,
-                          bool                do_phase2_tdma)
+    p25_frame_assembler::make(int sys_num, int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt)
 {
-  return gnuradio::get_initial_sptr
-           (new p25_frame_assembler_impl(sys_num, udp_host, port, debug, do_imbe, do_output, silence_frames, do_msgq, queue, do_audio_output, do_phase2_tdma));
+  return gnuradio::get_initial_sptr(new p25_frame_assembler_impl(sys_num, silence_frames, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma, do_nocrypt));
 }
 
 /*
@@ -82,7 +70,8 @@ p25_frame_assembler::make(int                 sys_num,
  * Our virtual destructor.
  */
 p25_frame_assembler_impl::~p25_frame_assembler_impl()
-{}
+    {
+    }
 
 static const int MIN_IN = 1; // mininum number of input streams
 static const int MAX_IN = 1; // maximum number of input streams
@@ -90,30 +79,20 @@ static const int MAX_IN = 1; // maximum number of input streams
 /*
  * The private constructor
  */
-p25_frame_assembler_impl::p25_frame_assembler_impl(int                 sys_num,
-                                                   const char         *udp_host,
-                                                   int                 port,
-                                                   int                 debug,
-                                                   bool                do_imbe,
-                                                   bool                do_output,
-                                                   int                 silence_frames,
-                                                   bool                do_msgq,
-                                                   gr::msg_queue::sptr queue,
-                                                   bool                do_audio_output,
-                                                   bool                do_phase2_tdma)
+    p25_frame_assembler_impl::p25_frame_assembler_impl(int sys_num, int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt)
   : gr::block("p25_frame_assembler",
               gr::io_signature::make(MIN_IN, MAX_IN, sizeof(char)),
-              gr::io_signature::make((do_output || do_audio_output) ? 1 : 0, (do_output || do_audio_output) ? 1 : 0,
-                                     (do_audio_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0))),
+		   gr::io_signature::make ((do_output) ? 1 : 0, (do_output) ? 1 : 0, (do_audio_output && do_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0 ))),
   d_do_imbe(do_imbe),
   d_do_output(do_output),
   d_silence_frames(silence_frames),
   output_queue(),
-  d_sys_num(sys_num),
-  p1fdma(sys_num, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
+        op25audio(udp_host, port, debug),
+	p1fdma(sys_num, op25audio, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output, do_nocrypt),
   d_do_audio_output(do_audio_output),
   d_do_phase2_tdma(do_phase2_tdma),
-  p2tdma(0, debug, output_queue),
+	d_do_nocrypt(do_nocrypt),
+	p2tdma(op25audio, 0, debug, do_msgq, queue, output_queue, do_audio_output, do_nocrypt),
   d_do_msgq(do_msgq),
   d_msg_queue(queue),
   d_input_rate(4800),
@@ -181,6 +160,7 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
                                        gr_vector_const_void_star& input_items,
                                        gr_vector_void_star      & output_items)
 {
+
   const uint8_t *in = (const uint8_t *)input_items[0];
 
   p1fdma.rx_sym(in, ninput_items[0]);
@@ -194,7 +174,6 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
         }
       }
     }
-  }
   int amt_produce = 0;
 
   if (d_do_audio_output) {

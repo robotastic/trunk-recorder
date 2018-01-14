@@ -134,7 +134,13 @@ uint8_t gardner_costas_cc_impl::slicer(float sym) {
   delete [] d_dl;
   delete d_interp;
     }
-
+    
+    void gardner_costas_cc_impl::reset()
+    {
+        d_phase = 0;
+        d_freq = 0;
+        d_last_sample = 0;
+    }
 void gardner_costas_cc_impl::update_fmax (float max_freq) {
   d_max_freq = max_freq;
   d_freq = 0;

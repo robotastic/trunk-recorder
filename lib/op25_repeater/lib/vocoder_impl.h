@@ -29,6 +29,7 @@
 #include <vector>
 #include <deque>
 
+#include "op25_audio.h"
 #include "p25p1_voice_encode.h"
 #include "p25p1_voice_decode.h"
 
@@ -67,6 +68,7 @@ namespace gr {
 	std::deque<int16_t> output_queue_decode;
 	int opt_udp_port;
 	bool opt_encode_flag;
+        op25_audio op25audio;
         p25p1_voice_encode p1voice_encode;
         p25p1_voice_decode p1voice_decode;
 

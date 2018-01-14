@@ -1,5 +1,4 @@
 /* -*- c++ -*- */
-
 /*
  * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI
  *
@@ -34,23 +33,25 @@
 
 #include "p25p1_fdma.h"
 #include "p25p2_tdma.h"
+#include "op25_audio.h"
 
 typedef std::deque<uint8_t>dibit_queue;
 
 namespace gr {
 namespace op25_repeater {
-class p25_frame_assembler_impl : public p25_frame_assembler {
-private:
 
+    class p25_frame_assembler_impl : public p25_frame_assembler
+    {
+     private:
   bool d_do_imbe;
   bool d_do_output;
   p25p1_fdma p1fdma;
   bool d_do_audio_output;
   bool d_do_phase2_tdma;
+	bool d_do_nocrypt;
   p25p2_tdma p2tdma;
   bool d_do_msgq;
-
-  int                 d_sys_num;
+  int d_sys_num;
   int d_silence_frames;
   int silence_frame_count;
   long total_produced;
@@ -72,28 +73,16 @@ private:
   std::deque<int16_t> output_queue;
 
 public:
-
-  virtual void forecast(int            nof_output_items,
-                        gr_vector_int& nof_input_items_reqd);
-
+   virtual void forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd);
   // Nothing to declare in this block.
 
 public:
-
-  p25_frame_assembler_impl(int                 sys_num,
-                           const char         *udp_host,
-                           int                 port,
-                           int                 debug,
-                           bool                do_imbe,
-                           bool                do_output,
-                           int                silence_frames,
-                           bool                do_msgq,
-                           gr::msg_queue::sptr queue,
-                           bool                do_audio_output,
-                           bool                do_phase2_tdma);
+      p25_frame_assembler_impl(int sys_num, int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt);
   ~p25_frame_assembler_impl();
   void clear_silence_frame_count();
   void clear();
+
+      op25_audio op25audio;
 
   // Where all the action really happens
 
@@ -102,6 +91,7 @@ public:
                    gr_vector_const_void_star& input_items,
                    gr_vector_void_star      & output_items);
 };
+
 } // namespace op25_repeater
 } // namespace gr
 

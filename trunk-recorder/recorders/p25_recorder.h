@@ -69,7 +69,7 @@ protected:
   p25_recorder(std::string type);
   virtual void initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink);
 
-public:  
+public:
   virtual ~p25_recorder();
 
   void    tune_offset(double f);
@@ -118,7 +118,7 @@ protected:
 
 private:
 
-  
+
   double system_channel_rate;
   double arb_rate;
   double samples_per_symbol;
@@ -126,26 +126,17 @@ private:
   double initial_rate;
   int decim;
   double resampled_rate;
-  
   double squelch_db;
   int    silence_frames;
   int    tdma_slot;
-  
   bool   d_phase2_tdma;
-  
-  
-  
-  char    filename[160];
-  char    raw_filename[160];
 
   std::vector<float> inital_lpf_taps;
   std::vector<float> channel_lpf_taps;
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;
   std::vector<float> baseband_noise_filter_taps;
-
   
-
   /* GR blocks */
   gr::filter::fft_filter_ccf::sptr channel_lpf;
   gr::filter::fir_filter_fff::sptr sym_filter;
@@ -159,18 +150,18 @@ private:
   gr::analog::feedforward_agc_cc::sptr   agc;
   gr::analog::pll_freqdet_cf::sptr       pll_freq_lock;
   gr::analog::pwr_squelch_cc::sptr       squelch;
-  
 
-  
 
-  
+
+
+
   gr::blocks::multiply_const_ff::sptr rescale;
   gr::blocks::multiply_const_ff::sptr baseband_amp;
   gr::blocks::multiply_const_ff::sptr pll_amp;
   gr::blocks::complex_to_arg::sptr    to_float;
 
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
-  
+
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
   gr::op25_repeater::vocoder::sptr op25_vocoder;
   gr::op25_repeater::gardner_costas_cc::sptr costas_clock;

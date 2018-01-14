@@ -1,6 +1,6 @@
 #ifndef CALL_CONVENTIONAL_H
 #define CALL_CONVENTIONAL_H
-class Config;
+#include "config.h"
 class System;
 class Recorder;
 class stat_socket;

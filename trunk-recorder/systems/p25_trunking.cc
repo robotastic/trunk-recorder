@@ -134,7 +134,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   bool do_msgq               = 1;
   bool do_audio_output       = 0;
   bool do_tdma               = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
+  bool do_crypt              = 0;
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, idle_silence, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
 
   if (!qpsk_mod) {
     connect(self(),        0, prefilter,            0);

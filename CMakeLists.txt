@@ -178,7 +178,7 @@ link_directories(
 )
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall -Wno-error=deprecated-declarations -g")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g")
 
 
 
@@ -193,9 +193,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wall -Wno-error=deprecated-declarations -g"
 #        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 #endif()
 
-SET(CMAKE_CXX_STANDARD 98)
+#SET(CMAKE_CXX_STANDARD 98)
+SET(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")
 
 
 add_subdirectory(lib/op25_repeater)
@@ -209,35 +210,35 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/uploaders/call_uploader.cc
   trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call_conventional.cc
-  trunk-recorder/call.cc  
+  trunk-recorder/call.cc
   trunk-recorder/systems/smartnet_trunking.cc
   trunk-recorder/systems/p25_trunking.cc
   trunk-recorder/systems/smartnet_parser.cc
   trunk-recorder/systems/p25_parser.cc
   trunk-recorder/systems/smartnet_decode.cc
   trunk-recorder/systems/system.cc
-  trunk-recorder/recorders/recorder.cc  
+  trunk-recorder/recorders/recorder.cc
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
-  lib/gr_blocks/nonstop_wavfile_sink_impl.cc  
+  lib/gr_blocks/nonstop_wavfile_sink_impl.cc
   trunk-recorder/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
   trunk-recorder/recorders/p25conventional_recorder.cc
-  trunk-recorder/recorders/p25_recorder.cc  
+  trunk-recorder/recorders/p25_recorder.cc
   trunk-recorder/talkgroup.cc
-  trunk-recorder/talkgroups.cc  
+  trunk-recorder/talkgroups.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
-  lib/lfsr/lfsr.cxx  
+  lib/lfsr/lfsr.cxx
   )
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
 target_compile_options(
-    imbe_vocoder PRIVATE 
+    imbe_vocoder PRIVATE
     "-w"
 )
 
 target_compile_options(
-    gnuradio-op25_repeater PRIVATE 
+    gnuradio-op25_repeater PRIVATE
     "-w"
 )
 
