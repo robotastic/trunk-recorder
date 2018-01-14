@@ -24,7 +24,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(Trunk-Recorder CXX C)
 
-#set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Debug)
 
 #select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
@@ -216,15 +216,17 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/systems/p25_parser.cc
   trunk-recorder/systems/smartnet_decode.cc
   trunk-recorder/systems/system.cc
+  trunk-recorder/recorders/recorder.cc  
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
+  lib/gr_blocks/nonstop_wavfile_sink_impl.cc  
+  trunk-recorder/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
   trunk-recorder/recorders/p25conventional_recorder.cc
   trunk-recorder/recorders/p25_recorder.cc  
   trunk-recorder/talkgroup.cc
-  trunk-recorder/talkgroups.cc
-  lib/gr_blocks/nonstop_wavfile_sink_impl.cc
+  trunk-recorder/talkgroups.cc  
   lib/gr_blocks/freq_xlating_fft_filter.cc
-  lib/lfsr/lfsr.cxx
+  lib/lfsr/lfsr.cxx  
   )
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")

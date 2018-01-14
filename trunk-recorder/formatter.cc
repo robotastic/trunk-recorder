@@ -1,6 +1,8 @@
 #include "formatter.h"
+#include <boost/lexical_cast.hpp>
 
 int frequencyFormat = 0;
+bool statusAsString = false;
 
 boost::format FormatFreq(float f)
 {
@@ -17,3 +19,19 @@ boost::format FormatSamplingRate(float f)
 	return boost::format("%.0f")  % f;
 }
 
+std::string FormatState(State state)
+{
+	if (statusAsString)
+	{
+		if (state == monitoring)
+			return "monitoring";
+		else if (state == recording)
+			return "recording";
+		else if (state == inactive)
+			return "inactive";
+		else if (state == active)
+			return "active";
+		return "Unknown";
+	}
+	return boost::lexical_cast<std::string>(state);
+}

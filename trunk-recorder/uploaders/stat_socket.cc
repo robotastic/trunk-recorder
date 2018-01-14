@@ -6,39 +6,17 @@
  * programs where a client connects and pushes data for logging, stress/load
  * testing, etc.
  */
-void stat_socket::send_sys_rates(std::vector<System *>systems, float timeDiff, Config config) {
-  boost::property_tree::ptree root;
-  boost::property_tree::ptree systems_node;
+void stat_socket::send_sys_rates(std::vector<System *>systems, float timeDiff) {
 
-  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System *sys = (System *)*it;
+  if (m_open == false)
+    return;
+  boost::property_tree::ptree nodes;
 
-    if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
-      float msgs_decoded_per_second = sys->message_count / timeDiff;
-
-      // Create a node
-      boost::property_tree::ptree sys_node;
-
-      // Add animals as childs
-      systems_node.put<double>(sys->short_name, (float)msgs_decoded_per_second);
-
-      // sys_node.add_child("shortName", sys->short_name);
-      // sys_node.add_child("messages", msgs_decoded_per_second);
-      // Add the new node to the root
-
-      //systems_node.add_child()(sys->short_name, (float)msgs_decoded_per_second));
-      //systems_node.push_back(std::make_pair("", sys_node));
-    }
+  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
+    System *system         = *it;
+    nodes.push_back(std::make_pair("", system->get_stats_current(timeDiff)));
   }
-  root.put("type", "rate");
-  root.put("instanceId",      config.instance_id);
-  root.put("instanceKey",     config.instance_key);
-  root.add_child("rates", systems_node);
-  std::stringstream stats_str;
-  boost::property_tree::write_json(stats_str, root);
-
-  // std::cout << stats_str;
-  send_stat(stats_str.str());
+  send_object(nodes, "rates", "rates");
 }
 
 stat_socket::stat_socket() : m_open(false), m_done(false), m_config_sent(false) {
@@ -59,7 +37,14 @@ stat_socket::stat_socket() : m_open(false), m_done(false), m_config_sent(false) 
   m_client.set_fail_handler(bind(&stat_socket::on_fail, this, _1));
 }
 
-void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *>systems, Config config) {
+void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *>systems) {
+
+  if (m_open == false)
+    return;
+
+  if (config_sent())
+    return;
+
   boost::property_tree::ptree root;
   boost::property_tree::ptree systems_node;
   boost::property_tree::ptree sources_node;
@@ -140,15 +125,15 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
   }
   root.add_child("sources", sources_node);
   root.add_child("systems", systems_node);
-  root.put("captureDir",   config.capture_dir);
-  root.put("uploadServer", config.upload_server);
+  root.put("captureDir",    m_config->capture_dir);
+  root.put("uploadServer",  m_config->upload_server);
 
   // root.put("defaultMode", default_mode);
-  root.put("callTimeout",  config.call_timeout);
-  root.put("logFile",      config.log_file);
-  root.put("instanceId",      config.instance_id);
-  root.put("instanceKey",      config.instance_key);
-  root.put("logFile",      config.log_file);
+  root.put("callTimeout",   m_config->call_timeout);
+  root.put("logFile",       m_config->log_file);
+  root.put("instanceId",    m_config->instance_id);
+  root.put("instanceKey",   m_config->instance_key);
+  root.put("logFile",       m_config->log_file);
   root.put("type",         "config");
   std::stringstream stats_str;
   boost::property_tree::write_json(stats_str, root);
@@ -158,61 +143,91 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
   m_config_sent = true;
 }
 
-void stat_socket::send_status(std::vector<Call *>calls, Config config) {
-  boost::property_tree::ptree root;
-  boost::property_tree::ptree calls_node;
-  boost::property_tree::ptree sources_node;
+
+void stat_socket::send_systems(std::vector<System *> systems) {
+  if (m_open == false)
+    return;
+  boost::property_tree::ptree node;
+
+  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
+    System *system         = *it;
+    node.push_back(std::make_pair("", system->get_stats()));
+  }
+  send_object(node, "systems", "systems");
+}
+
+void stat_socket::send_system(System * system) {
+  if (m_open == false)
+    return;
+
+  send_object(system->get_stats(), "system", "system");
+}
+
+
+void stat_socket::send_calls_active(std::vector<Call *>calls) {
+  if (m_open == false)
+    return;
+  boost::property_tree::ptree node;
 
   for (std::vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call         = *it;
     if (call->get_state() == recording) {
-      Recorder *recorder = call->get_recorder();
-
-      boost::property_tree::ptree call_node;
-      boost::property_tree::ptree freq_list_node;
-      call_node.put("freq",         call->get_freq());
-      call_node.put("sysNum",       call->get_sys_num());
-      call_node.put("shortName",    call->get_short_name());
-      call_node.put("talkgroup",    call->get_talkgroup());
-      call_node.put("elasped",      call->elapsed());
-      call_node.put("length",       call->get_current_length());
-      call_node.put("state",        call->get_state());
-      call_node.put("phase2",       call->get_phase2_tdma());
-      call_node.put("conventional", call->is_conventional());
-      call_node.put("encrypted",    call->get_encrypted());
-      call_node.put("emergency",    call->get_emergency());
-      call_node.put("startTime",    call->get_start_time());
-      if (call->get_state() == recording) {
-        call_node.put("recNum", call->get_recorder()->get_num());
-        call_node.put("srcNum", call->get_recorder()->get_source()->get_num());
-        call_node.put("analog", call->get_recorder()->is_analog());
-      }
-      Call_Freq *freq_list = call->get_freq_list();
-      int freq_count       = call->get_freq_count();
-
-      for (int i = 0; i < freq_count; i++) {
-        boost::property_tree::ptree freq_node;
-
-        freq_node.put("freq", freq_list[i].freq);
-        freq_node.put("time", freq_list[i].time);
-        freq_list_node.push_back(std::make_pair("", freq_node));
-      }
-      call_node.add_child("freqList", freq_list_node);
-
-
-      if (recorder) {
-        Source *source = recorder->get_source();
-        call_node.put("recNum",   recorder->get_num());
-        call_node.put("srcNum",   source->get_num());
-        call_node.put("recState", recorder->get_state());
-      }
-      calls_node.push_back(std::make_pair("", call_node));
+      node.push_back(std::make_pair("", call->get_stats()));
     }
   }
-  root.add_child("calls", calls_node);
-  root.put("type", "status");
-  root.put("instanceId",      config.instance_id);
-  root.put("instanceKey",      config.instance_key);
+
+  send_object(node, "calls", "calls_active");
+}
+
+void stat_socket::send_recorders(std::vector<Recorder *>recorders) {
+
+  if (m_open == false)
+    return;
+  boost::property_tree::ptree node;
+
+  for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
+    Recorder *recorder         = *it;
+    node.push_back(std::make_pair("", recorder->get_stats()));
+  }
+
+  send_object(node, "recorders", "recorders");
+}
+
+void stat_socket::send_call_start(Call * call)
+{
+    if (m_open == false)
+      return;
+
+  send_object(call->get_stats(), "call", "call_start");
+}
+
+void stat_socket::send_call_end(Call * call)
+{
+    if (m_open == false)
+      return;
+
+  send_object(call->get_stats(), "call", "call_end");
+}
+
+void stat_socket::send_recorder(Recorder * recorder)
+{
+    if (m_open == false)
+      return;
+
+  send_object(recorder->get_stats(), "recorder", "recorder");
+}
+
+
+void stat_socket::send_object(boost::property_tree::ptree data, std::string name, std::string type)
+{
+  if (m_open == false)
+    return;
+  boost::property_tree::ptree root;
+
+  root.add_child(name, data);
+  root.put("type", type);
+  root.put("instanceId",      m_config->instance_id);
+  root.put("instanceKey",     m_config->instance_key);
   std::stringstream stats_str;
   boost::property_tree::write_json(stats_str, root);
 
@@ -220,17 +235,27 @@ void stat_socket::send_status(std::vector<Call *>calls, Config config) {
   send_stat(stats_str.str());
 }
 
+void stat_socket::initialize(Config * config, void (*callback)(void))
+{
+  m_config = config;
+  m_callback = callback;
+}
+
 void stat_socket::reopen_stat() {
   m_client.reset();
   m_reconnect = false;
-  open_stat(remote_uri);
+  open_stat();
 }
 // This method will block until the connection is complete
-void stat_socket::open_stat(const std::string& uri) {
+void stat_socket::open_stat() {
   // Create a new connection to the given URI
-  remote_uri = uri;
+
+  if (this->m_config->status_server == "") {
+    return;
+  }
+
   websocketpp::lib::error_code ec;
-  client::connection_ptr con = m_client.get_connection(uri, ec);
+  client::connection_ptr con = m_client.get_connection(this->m_config->status_server, ec);
 
   if (ec) {
     m_client.get_alog().write(websocketpp::log::alevel::app,  "open_stat: Get WebSocket Connection Error: " + ec.message());
@@ -278,9 +303,13 @@ void stat_socket::on_open(websocketpp::connection_hdl) {
   m_client.get_alog().write(websocketpp::log::alevel::app,
                             "on_open: WebSocket Connection opened, starting telemetry!");
 
-  scoped_lock guard(m_lock);
-  m_open = true;
-  retry_attempt = 0;
+  {
+    // de scope the lock before calling the callback
+    scoped_lock guard(m_lock);
+    m_open = true;
+    retry_attempt = 0;
+  }
+  m_callback();
 }
 
 // The close handler will signal that we should stop sending telemetry

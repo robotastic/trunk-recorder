@@ -35,21 +35,23 @@ class nonstop_wavfile_sink_impl : public nonstop_wavfile_sink
 {
 private:
 	unsigned d_sample_rate;
-	int d_nchans;
-	unsigned d_sample_count;
-	int d_bytes_per_sample;
+	int d_nchans;	
+	
 	int d_max_sample_val;
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
 	bool d_use_float;
 
-  char current_filename[255];
+  	char current_filename[255];
 
+protected:
+	
+	unsigned d_sample_count;
+	int d_bytes_per_sample;
 	FILE *d_fp;
 	boost::mutex d_mutex;
-
-
+	virtual int dowork(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items);
 	/*!
 	 * \brief Convert a sample value within [-1;+1] to a corresponding
 	 *  short integer value
@@ -73,16 +75,30 @@ private:
 
 protected:
 	bool stop();
-
+	bool open_internal(const char *filename);
 public:
+
+	typedef boost::shared_ptr<nonstop_wavfile_sink_impl> sptr;
+
+	/*
+	 * \param filename The .wav file to be opened
+	 * \param n_channels Number of channels (2 = stereo or I/Q output)
+	 * \param sample_rate Sample rate [S/s]
+	 * \param bits_per_sample 16 or 8 bit, default is 16
+	 */
+	static sptr make(int n_channels,
+	                 unsigned int sample_rate,
+	                 int bits_per_sample = 16,
+								 		bool use_float=true);
+
 	nonstop_wavfile_sink_impl(int n_channels,
 	                          unsigned int sample_rate,
 	                          int bits_per_sample,
 													bool use_float);
-	~nonstop_wavfile_sink_impl();
-char *get_filename();
-	bool open(const char* filename);
-	void close();
+	virtual ~nonstop_wavfile_sink_impl();
+	char *get_filename();
+	virtual bool open(const char* filename);
+	virtual void close();
 
 	void set_sample_rate(unsigned int sample_rate);
 	void set_bits_per_sample(int bits_per_sample);
@@ -93,9 +109,10 @@ char *get_filename();
 	double length_in_seconds();
 	Call_Source * get_source_list();
 	int get_source_count();
-	int work(int noutput_items,
+	virtual int work(int noutput_items,
 	         gr_vector_const_void_star &input_items,
 	         gr_vector_void_star &output_items);
+
 };
 
 } /* namespace blocks */
