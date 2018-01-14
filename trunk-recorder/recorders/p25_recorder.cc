@@ -77,7 +77,7 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   //double symbol_deviation    = 600.0; // was 600.0
   int initial_decim      = floor(samp_rate / 480000);
   initial_rate = double(samp_rate) / double(initial_decim);
-  samples_per_symbol  = 10;    // was 10
+  samples_per_symbol  = 5;    // was 10
 
   symbol_rate         = 6000;
   system_channel_rate = symbol_rate * samples_per_symbol;
