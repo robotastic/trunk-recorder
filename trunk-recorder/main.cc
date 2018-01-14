@@ -186,7 +186,7 @@ void load_config(string config_file)
             system->talkgroups->add(alphaIndex, alphaTag);
             alphaIndex++;
           }
-        }        
+        }
 
       }  else if (system->get_system_type() == "conventionalP25") {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
@@ -536,9 +536,9 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         if (message.meta.length()) {
           BOOST_LOG_TRIVIAL(trace) << message.meta;
         }
-             
+
         recorder->start(call);
-        call->set_recorder(recorder, source->get_device());
+        call->set_recorder(recorder);
         call->set_state(recording);
         stats.send_recorder(recorder);
         recorder_found = true;
@@ -557,12 +557,12 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         call->set_debug_recorder(debug_recorder);
         call->set_debug_recording(true);
         stats.send_recorder(debug_recorder);
-        recorder_found = true;        
+        recorder_found = true;
       } else {
         // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
       }
 
-      if (recorder_found) {        
+      if (recorder_found) {
         // recording successfully started.
         stats.send_call_start(call);
         return true;
@@ -572,7 +572,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (!source_found) {
          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tNot Recording: no source covering Freq";
-    
+
     return false;
   }
   return false;
@@ -921,7 +921,7 @@ void retune_system(System *system) {
 void check_message_count(float timeDiff) {
   stats.send_config(sources, systems);
   stats.send_sys_rates(systems, timeDiff);
-  
+
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
@@ -945,7 +945,7 @@ void check_message_count(float timeDiff) {
         BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
     }
-    sys->message_count = 0;    
+    sys->message_count = 0;
   }
 }
 
@@ -1072,7 +1072,7 @@ bool monitor_system() {
               analog_recorder_sptr rec;
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
-              call->set_recorder((Recorder *)rec.get(), source->get_device());
+              call->set_recorder((Recorder *)rec.get());
               call->set_state(recording);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
@@ -1081,7 +1081,7 @@ bool monitor_system() {
               p25conventional_recorder_sptr rec;
               rec = source->create_conventionalP25_recorder(tb, system->get_delaycreateoutput());
               rec->start(call);
-              call->set_recorder((Recorder *)rec.get(), source->get_device());
+              call->set_recorder((Recorder *)rec.get());
               call->set_state(recording);
               system->add_conventionalP25_recorder(rec);
               calls.push_back(call);
@@ -1141,11 +1141,11 @@ bool monitor_system() {
 template<class F>
 void add_logs(const F& fmt)
 {
-  boost::shared_ptr< sinks::synchronous_sink< sinks::basic_text_ostream_backend<char > > > sink = 
+  boost::shared_ptr< sinks::synchronous_sink< sinks::basic_text_ostream_backend<char > > > sink =
 		boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
-		
+
 		std::locale loc = std::locale("en_US.UTF-8");
-		
+
   sink->imbue(loc);
 }
 

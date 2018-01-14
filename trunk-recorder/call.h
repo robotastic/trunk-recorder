@@ -49,7 +49,7 @@ public:
 								void end_call();
 								void set_debug_recorder(Recorder *r);
 								Recorder * get_debug_recorder();
-								virtual void set_recorder(Recorder *r, std::string device);
+								virtual void set_recorder(Recorder *r);
 								Recorder * get_recorder();
 								double get_freq();
 
@@ -98,7 +98,7 @@ public:
 								boost::property_tree::ptree get_stats();
 								char * get_status_filename();
 								std::string get_talkgroup_tag();
-								double get_final_length();								
+								double get_final_length();
 protected:
 								State state;
 								long talkgroup;

@@ -17,11 +17,11 @@ public:
 
 								virtual bool is_conventional() { return true;}
 								void restart_call();
-								void set_recorder(Recorder *r, std::string device);
+								void set_recorder(Recorder *r);
 								char * get_filename();
 								void recording_started();
-private:								
-								stat_socket * d_stat_socket;								
+private:
+								stat_socket * d_stat_socket;
 };
 
 #endif

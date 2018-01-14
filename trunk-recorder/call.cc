@@ -183,9 +183,9 @@ Recorder * Call::get_debug_recorder() {
   return debug_recorder;
 }
 
-void Call::set_recorder(Recorder *r, std::string device) {
+void Call::set_recorder(Recorder *r) {
   recorder = r;
-  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\tStarting Recorder on Src: " << device;
+  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\tStarting Recorder on Src: " << recorder->get_source()->get_device();
 }
 
 Recorder * Call::get_recorder() {
@@ -429,9 +429,9 @@ void Call::update_talkgroup_display(){
   }
 
   if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_id_tag) {
-    talkgroup_display = boost::lexical_cast<std::string>(talkgroup).append(" (").append(talkgroup_tag).append(")"); 
+    talkgroup_display = boost::lexical_cast<std::string>(talkgroup).append(" (").append(talkgroup_tag).append(")");
   } else if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_tag_id) {
-    talkgroup_display = std::string("").append(talkgroup_tag).append(" (").append(boost::lexical_cast<std::string>(talkgroup)).append(")"); 
+    talkgroup_display = std::string("").append(talkgroup_tag).append(" (").append(boost::lexical_cast<std::string>(talkgroup)).append(")");
   } else{
     talkgroup_display = boost::lexical_cast<std::string>(talkgroup);
   }
@@ -448,8 +448,8 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("talkgroup",    this->get_talkgroup());
   call_node.put("talkgrouptag", this->get_talkgroup_tag());
   call_node.put("elasped",      this->elapsed());
-  if (get_state() == recording)  
-    call_node.put("length",     this->get_current_length());    
+  if (get_state() == recording)
+    call_node.put("length",     this->get_current_length());
   else
     call_node.put("length",     this->get_final_length());
   call_node.put("state",        this->get_state());
