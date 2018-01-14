@@ -554,6 +554,11 @@ p25p1_fdma::process_LDU1(const bit_vector& A)
 		fprintf (stderr, "%s NAC 0x%03x LDU1: ", logts.get(), framer->nac);
 	}
 
+  uint32_t src_id = LDU1_to_Src(framer->frame_body);
+  if (src_id){
+    curr_src_id = src_id;
+  }
+
 	std::vector<uint8_t> HB(63,0); // hexbit vector
 	process_LLDU(A, HB);
 	process_LCW(HB);
@@ -853,18 +858,46 @@ p25p1_fdma::process_voice(const bit_vector& A)
 			char s[128];
 			imbe_deinterleave(A, cw, i);
 			// recover 88-bit IMBE voice code word
-			imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+      uint16_t imbe_error = imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+      for (int j=19; j>0; j--) {
+        error_history[j] = error_history[j-1];
+      }
+      error_history[0] = imbe_error;
+      double error_history_total=0;
+      double error_history_len=0;
+      for (int j=0; j<20; j++) {
+        if (error_history[j]>=0) {
+          error_history_len++;
+          error_history_total += error_history[j];
+        }
+      }
+      double error_history_avg = error_history_total / error_history_len;
+
+      double error_history_sqrt;
+      for (int j=0; j<error_history_len; j++){
+        error_history_sqrt += pow((error_history[j] - error_history_avg), 2);
+      }
+      float std_dev = sqrt(error_history_sqrt/error_history_len);
+
+      if (imbe_error >  std_dev) {
+        rx_status.spike_count++;
+        if (d_debug >= 10) {
+          fprintf(stderr, "SPIKE! Errors: %d \tStd Dev: %f \tAvg: %f \tLimit: %f\n", imbe_error, std_dev, error_history_avg, std_dev + error_history_avg );
+        }
+      }
+      rx_status.error_count += imbe_error;
+      rx_status.total_len += 144;
 			// output one 32-byte msg per 0.020 sec.
 			// also, 32*9 = 288 byte pkts (for use via UDP)
 			sprintf(s, "%03x %03x %03x %03x %03x %03x %03x %03x\n", u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
 			if (d_do_audio_output) {
 				if (!d_do_nocrypt || !encrypted()) {
 					std::string s = "{\"encrypted\" : " + std::to_string(0) + "}";
-					send_msg(s, -3);
+					//send_msg(s, -3);
 					p1voice_decode.rxframe(u);
 				} else {
 					std::string s = "{\"encrypted\" : " + std::to_string(1) + "}";
-					send_msg(s, -3);
+					//send_msg(s, -3);
 				}
 			}
 
@@ -897,9 +930,13 @@ void
 p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 {
   struct timeval currtime;
+  curr_src_id = 0;
+
   for (int i1 = 0; i1 < nsyms; i1++){
   	if(framer->rx_sym(syms[i1])) {   // complete frame was detected
 
+    rx_status.error_count += framer->bch_errors;
+    rx_status.total_len += 64;
 		if (framer->nac == 0) {  // discard frame if NAC is invalid
 			return;
 		}
@@ -929,22 +966,7 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 				break;
 		}
 
-		if (!d_do_imbe) { // send raw frame to wireshark
-			// pack the bits into bytes, MSB first
-			size_t obuf_ct = 0;
-			uint8_t obuf[P25_VOICE_FRAME_SIZE/2];
-			for (uint32_t i = 0; i < framer->frame_size; i += 8) {
-				uint8_t b =
-					(framer->frame_body[i+0] << 7) +
-					(framer->frame_body[i+1] << 6) +
-					(framer->frame_body[i+2] << 5) +
-					(framer->frame_body[i+3] << 4) +
-					(framer->frame_body[i+4] << 3) +
-					(framer->frame_body[i+5] << 2) +
-					(framer->frame_body[i+6] << 1) +
-					(framer->frame_body[i+7]     );
-				obuf[obuf_ct++] = b;
-			}
+
 			op25audio.send_to(obuf, obuf_ct);
 
 			if (d_do_output) {
