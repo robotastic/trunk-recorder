@@ -22,11 +22,11 @@
 #define INCLUDED_OP25_REPEATER_P25P1_VOICE_DECODE_H
 
 #include <sys/time.h>
-#include <netinet/in.h>
 #include <stdint.h>
 #include <vector>
 #include <deque>
 
+#include "op25_audio.h"
 #include "imbe_vocoder/imbe_vocoder.h"
 
 #include "imbe_decoder.h"
@@ -42,7 +42,7 @@ namespace gr {
       // Nothing to declare in this block.
 
      public:
-      p25p1_voice_decode(bool verbose_flag, const char* udp_host, int udp_port, std::deque<int16_t> &_output_queue);
+      p25p1_voice_decode(bool verbose_flag, const op25_audio& udp, std::deque<int16_t> &_output_queue);
       ~p25p1_voice_decode();
 	void rxframe(const uint32_t u[]);
 	void rxchar(const char* c, int len);
@@ -52,8 +52,6 @@ namespace gr {
 	static const int RXBUF_MAX = 80;
 
 	/* data items */
-	int write_sock;
-	struct sockaddr_in write_sock_addr;
 	int write_bufp;
 	char write_buf[512];
 	char rxbuf[RXBUF_MAX];
@@ -61,13 +59,12 @@ namespace gr {
 	imbe_vocoder vocoder;
 	software_imbe_decoder software_decoder;
 	bool d_software_imbe_decoder;
+        const op25_audio& op25audio;
 
 	std::deque<int16_t> &output_queue;
 
 	bool opt_verbose;
-	int opt_udp_port;
 	/* local methods */
-	void init_sock(const char* udp_host, int udp_port);
     };
 
   } // namespace op25_repeater

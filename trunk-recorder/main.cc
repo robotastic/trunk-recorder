@@ -1172,7 +1172,7 @@ void socket_connected()
 
 int main(int argc, char **argv)
 {
-  BOOST_STATIC_ASSERT(true) __attribute__((unused));
+  //BOOST_STATIC_ASSERT(true) __attribute__((unused));
   signal(SIGINT, exit_interupt);
   logging::core::get()->set_filter
   (

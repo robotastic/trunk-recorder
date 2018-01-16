@@ -27,7 +27,7 @@
 // Bit allocation and ancillary tables
 //
 //-----------------------------------------------------------------------------
-const Word16 bit_allocation_tbl[] = 
+const UWord16 bit_allocation_tbl[] = 
 {
 	0xA999, 0x9987, 
 	0x9988, 0x8976, 0x5000,
@@ -89,7 +89,7 @@ const Word16 bit_allocation_offset_tbl[] =
 // Log Magnitude Prediction Residual Block Length
 //
 //-----------------------------------------------------------------------------
-const Word32 lmprbl_tbl[] = 
+const UWord32 lmprbl_tbl[] = 
 {
 	0x11122200,
 	0x11222200,

@@ -205,9 +205,10 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   bool do_msgq               = 0;
   bool do_audio_output       = 1;
   bool do_tdma               = 1;
+  bool do_crypt              = 0;
 
 
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, wireshark_host, udp_port, verbosity, do_imbe, do_output, silence_frames, do_msgq, rx_queue, do_audio_output, do_tdma);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
 
   levels = gr::blocks::multiply_const_ss::make(source->get_digital_levels());
 

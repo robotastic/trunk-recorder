@@ -28,7 +28,7 @@
 // Bit allocation and ancillary tables
 //
 //-----------------------------------------------------------------------------
-extern const Word16 bit_allocation_tbl[]; 
+extern const UWord16 bit_allocation_tbl[]; 
 extern const Word16 bit_allocation_offset_tbl[]; 
 
 //-----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ extern const Word16 bit_allocation_offset_tbl[];
 // Log Magnitude Prediction Residual Block Length
 //
 //-----------------------------------------------------------------------------
-extern const Word32 lmprbl_tbl[];
+extern const UWord32 lmprbl_tbl[];
 
 //-----------------------------------------------------------------------------
 //
