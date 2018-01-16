@@ -1,4 +1,4 @@
-Trunk Recorder - v3.0.0
+Trunk Recorder - v3.0.1
 =======================
 
 Need help? Got something working? Share it!
