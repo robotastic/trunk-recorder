@@ -288,22 +288,6 @@ void load_config(string config_file)
     }
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nSOURCES\n-------------------------------------\n";
-
-    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
-
-    if (boost::iequals(frequencyFormatString, "mhz")){
-      frequencyFormat = 1;
-    } else if (boost::iequals(frequencyFormatString, "hz")){
-      frequencyFormat = 2;
-    } else {
-      frequencyFormat = 0;
-    }
-
-    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << frequencyFormat;
-
-    statusAsString = pt.get<bool>("statusAsString", statusAsString);
-    BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
-
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("sources"))
     {
@@ -441,6 +425,23 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
+    config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
+    BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+
+    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
+
+    if (boost::iequals(frequencyFormatString, "mhz")){
+      frequencyFormat = 1;
+    } else if (boost::iequals(frequencyFormatString, "hz")){
+      frequencyFormat = 2;
+    } else {
+      frequencyFormat = 0;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << frequencyFormat;
+
+    statusAsString = pt.get<bool>("statusAsString", statusAsString);
+    BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
   }
   catch (std::exception const& e)
   {
@@ -939,6 +940,16 @@ void check_message_count(float timeDiff) {
         } else {
           BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tThere is only one control channel defined";
         }
+
+        // if it loses track of the control channel, quit after a while
+        if (config.control_retune_limit > 0) {
+          sys->retune_attempts++;
+          if (sys->retune_attempts > config.control_retune_limit) {
+            exit_flag=1;
+          }
+        }
+      } else {
+        sys->retune_attempts = 0;
       }
 
       if (msgs_decoded_per_second < config.control_message_warn_rate || config.control_message_warn_rate == -1) {
