@@ -26,9 +26,10 @@ private:
 	uint64_t nid_accum;
 
 	uint32_t frame_size_limit;
+	int d_debug;
 
 public:
-	p25_framer();  	// constructor
+	p25_framer(int debug = 0);
 	~p25_framer ();	// destructor
 	bool rx_sym(uint8_t dibit) ;
 
@@ -38,6 +39,7 @@ public:
 	uint64_t nid_word;	// received NID word
 	uint32_t nac;		// extracted NAC
 	uint32_t duid;		// extracted DUID
+	uint8_t  parity;	// extracted DUID parity
 	bit_vector frame_body;	// all bits in frame
 	uint32_t frame_size;		// number of bits in frame_body
 	uint32_t bch_fails;

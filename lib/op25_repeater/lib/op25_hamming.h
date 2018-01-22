@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <stdint.h>
+#include <assert.h>
 
 /*
  * APCO Hamming(15,11,3) ecoder.
@@ -181,6 +182,20 @@ hamming_15_decode(uint16_t& cw)
       ++errs;
    }
    return errs;
+}
+
+static const uint32_t hmg1063EncTbl[64] = {
+     0, 12, 3, 15, 7, 11, 4, 8, 11, 7, 8, 4, 12, 0, 15, 3, 
+     13, 1, 14, 2, 10, 6, 9, 5, 6, 10, 5, 9, 1, 13, 2, 14, 
+     14, 2, 13, 1, 9, 5, 10, 6, 5, 9, 6, 10, 2, 14, 1, 13, 
+     3, 15, 0, 12, 4, 8, 7, 11, 8, 4, 11, 7, 15, 3, 12, 0 };
+
+static const uint32_t hmg1063DecTbl[16] = {
+     0, 0, 0, 2, 0, 0, 0, 4, 0, 0, 0, 8, 1, 16, 32, 0 };
+
+static inline int hmg1063Dec (uint32_t Dat, uint32_t Par) {
+     assert ((Dat < 64) && (Par < 16));
+     return Dat ^ hmg1063DecTbl[hmg1063EncTbl[Dat] ^ Par];
 }
 
 #endif /* INCLUDED_OP25_HAMMING_H */

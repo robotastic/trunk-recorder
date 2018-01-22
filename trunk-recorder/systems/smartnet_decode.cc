@@ -52,8 +52,6 @@ smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_num
  */
 static const int MIN_IN = 1;    // mininum number of input streams
 static const int MAX_IN = 1;    // maximum number of input streams
-static const int MIN_OUT = 1;   // minimum number of output streams
-static const int MAX_OUT = 1;   // maximum number of output streams
 
 /*
  * The private constructor

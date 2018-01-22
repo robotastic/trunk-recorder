@@ -94,7 +94,7 @@ public:
 								int analog_recorder_count();
 								Config * get_config();
 								analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
-								p25conventional_recorder_sptr create_conventionalP25_recorder(gr::top_block_sptr tb);
+								p25conventional_recorder_sptr create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen);
 								void create_analog_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_analog_recorder(int priority);
 								void create_digital_recorders(gr::top_block_sptr tb, int r);
@@ -110,5 +110,7 @@ public:
 								{
 																return boost::dynamic_pointer_cast<gr::uhd::usrp_source, gr::basic_block>(p);
 								}
+
+								std::vector<Recorder *> get_recorders();
 };
 #endif

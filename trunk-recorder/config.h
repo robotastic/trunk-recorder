@@ -22,6 +22,7 @@ struct Config {
         int call_timeout;
         bool log_file;
         int control_message_warn_rate;
+        int control_retune_limit;
 };
 
 //Config load_config(std::string config_file, std::vector<Source *> &sources, std::vector<System *> &systems);

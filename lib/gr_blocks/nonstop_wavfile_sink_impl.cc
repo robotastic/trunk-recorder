@@ -56,8 +56,8 @@
 
 namespace gr {
 namespace blocks {
-nonstop_wavfile_sink::sptr
-nonstop_wavfile_sink::make(int          n_channels,
+nonstop_wavfile_sink_impl::sptr
+nonstop_wavfile_sink_impl::make(int          n_channels,
                            unsigned int sample_rate,
                            int          bits_per_sample,
                            bool         use_float)
@@ -89,10 +89,13 @@ char * nonstop_wavfile_sink_impl::get_filename() {
 }
 
 bool nonstop_wavfile_sink_impl::open(const char *filename) {
+  gr::thread::scoped_lock guard(d_mutex);
+  return open_internal(filename);
+}
+
+bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
   int d_first_sample_pos;
   unsigned d_samples_per_chan;
-  gr::thread::scoped_lock guard(d_mutex);
-
 
   // we use the open system call to get access to the O_LARGEFILE flag.
   //  O_APPEND|
@@ -211,18 +214,20 @@ bool nonstop_wavfile_sink_impl::stop()
 }
 
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
+  
+  gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
 
+  return dowork(noutput_items, input_items, output_items);
+}
 
-  int     n_in_chans = input_items.size();
+int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
+  // block
 
+  int n_in_chans = input_items.size();
 
   short int sample_buf_s;
 
   int nwritten;
-
-  gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
-
-  // block
 
   if (!d_fp) // drop output on the floor
   {
@@ -246,7 +251,6 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
       }*/
     }
   }
-
 
   // std::cout << std::endl;
 
@@ -297,11 +301,6 @@ short int nonstop_wavfile_sink_impl::convert_to_short(float sample)
 
   return (short int)boost::math::iround(sample);
 }
-
-
-
-
-
 
 void
 nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample)

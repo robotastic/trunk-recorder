@@ -1,6 +1,7 @@
 
 #include "analog_recorder.h"
 #include "../formatter.h"
+#include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
 using namespace std;
 
 bool analog_recorder::logging = false;
@@ -40,7 +41,7 @@ void analog_recorder::calculate_iir_taps(double tau)
 analog_recorder::analog_recorder(Source *src)
   : gr::hier_block2("analog_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                    gr::io_signature::make(0, 0, sizeof(float)))
+                    gr::io_signature::make(0, 0, sizeof(float))), Recorder("A")
 {
   //int nchars;
 
@@ -160,7 +161,7 @@ analog_recorder::analog_recorder(Source *src)
 
   //tm *ltm = localtime(&starttime);
 
-  wav_sink = gr::blocks::nonstop_wavfile_sink::make(1, 8000, 16, true);
+  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
   // Try and get rid of the FSK wobble
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
@@ -206,6 +207,7 @@ int analog_recorder::get_num() {
 
 void analog_recorder::stop() {
   if (state == active) {
+    recording_duration += wav_sink->length_in_seconds();
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();

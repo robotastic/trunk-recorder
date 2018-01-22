@@ -186,8 +186,6 @@ static void generate_cach(uint8_t at, uint8_t tc, uint8_t lcss, const uint8_t ca
 	int tact = hamming_7_4[ (at << 3) | (tc << 2) | lcss ];
 	//printf ("tact %d %x\n", tact, tact);
 	//print_result("cach_payload_bits", cach_bits, 17);
-	static const uint8_t cach_tact_bits[] = {0, 4, 8, 12, 14, 18, 22};
-	static const uint8_t cach_payload_bits[] = {1,2,3,5,6,7,9,10,11,13,15,16,17,19,20,21,23};
 	for (int i=0; i<7; i++) {
 		result[cach_tact_bits[i]] = (tact >> (6-i)) & 1;
 	}

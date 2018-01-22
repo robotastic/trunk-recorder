@@ -12,7 +12,7 @@ debug_recorder_sptr make_debug_recorder(Source *src)
 debug_recorder::debug_recorder(Source *src)
   : gr::hier_block2("debug_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                    gr::io_signature::make(0, 0, sizeof(float)))
+                    gr::io_signature::make(0, 0, sizeof(float))), Recorder("D")
 {
   source = src;
   freq   = source->get_center();
@@ -208,6 +208,7 @@ State debug_recorder::get_state() {
 
 void debug_recorder::stop() {
   if (state == active) {
+    recording_duration += wav_sink->length_in_seconds();
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = inactive;
     valve->set_enabled(false);

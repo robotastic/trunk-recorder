@@ -138,9 +138,13 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
 #ifdef AMBE_DEBUG
   printf ("\nb0:%i w0:%f L:%i b1:%i\n", b0, cur_mp->w0, L, b1);
 #endif
-
+  if (dstar) {
+    deltaGamma = AmbePlusDg[b2];
+    cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
+  } else {
   deltaGamma = AmbeDg[b2];
   cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
+  }
 #ifdef AMBE_DEBUG
   printf ("b2: %i, deltaGamma: %f gamma: %f gamma-1: %f\n", b2, deltaGamma, cur_mp->gamma, prev_mp->gamma);
 #endif

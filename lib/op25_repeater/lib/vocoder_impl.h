@@ -29,6 +29,7 @@
 #include <vector>
 #include <deque>
 
+#include "op25_audio.h"
 #include "p25p1_voice_encode.h"
 #include "p25p1_voice_decode.h"
 
@@ -45,6 +46,7 @@ namespace gr {
       ~vocoder_impl();
 
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);
+      void set_gain_adjust(float gain_adjust);
 
       int general_work(int noutput_items,
 		       gr_vector_int &ninput_items,
@@ -66,6 +68,7 @@ namespace gr {
 	std::deque<int16_t> output_queue_decode;
 	int opt_udp_port;
 	bool opt_encode_flag;
+        op25_audio op25audio;
         p25p1_voice_encode p1voice_encode;
         p25p1_voice_decode p1voice_decode;
 

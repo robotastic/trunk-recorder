@@ -8,10 +8,19 @@
 #include "p25_trunking.h"
 #include "parser.h"
 
-//#pragma GCC diagnostic push
+#ifdef __GNUC__
+#pragma GCC diagnostic push
 //#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+//#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#endif
+
 #include <lfsr/lfsr.h>
-//#pragma GCC diagnostic pop
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
+#include <boost/property_tree/ptree.hpp>
 
 class Source;
 class analog_recorder;
@@ -84,7 +93,7 @@ public:
         unsigned long get_nac();
         void set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac);
         const char * get_xor_mask();
-        void update_status(TrunkMessage message);
+        bool update_status(TrunkMessage message);
         int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();
@@ -119,7 +128,23 @@ public:
         int get_bandplan_offset();
         void set_talkgroup_display_format(TalkgroupDisplayFormat format);
         TalkgroupDisplayFormat get_talkgroup_display_format();
+
+        bool get_delaycreateoutput();
+        void set_delaycreateoutput(bool delaycreateoutput);
+
+        bool get_hideEncrypted();
+        void set_hideEncrypted(bool hideEncrypted);
+
+        bool get_hideUnknown();
+        void set_hideUnknown(bool hideUnknown);
+
+        boost::property_tree::ptree get_stats();
+        boost::property_tree::ptree get_stats_current(float timeDiff);
+
 private:
         TalkgroupDisplayFormat talkgroup_display_format;
+        bool d_delaycreateoutput;
+        bool d_hideEncrypted;
+        bool d_hideUnknown;
 };
 #endif
