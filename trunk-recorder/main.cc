@@ -303,7 +303,7 @@ void load_config(string config_file)
       int    mix_gain       = node.second.get<double>("mixGain", 0);
       int    lna_gain       = node.second.get<double>("lnaGain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
-      double digital_levels = node.second.get<double>("digitalLevels", 2.0);
+      double digital_levels = node.second.get<double>("digitalLevels", 1.0);
       double analog_levels  = node.second.get<double>("analogLevels", 8.0);
       double squelch_db     = node.second.get<double>("squelch", 0);
 
