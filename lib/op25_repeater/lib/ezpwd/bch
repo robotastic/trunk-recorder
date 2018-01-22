@@ -1,0 +1,485 @@
+/*
+ * Ezpwd Reed-Solomon -- Reed-Solomon encoder / decoder library
+ * 
+ * Copyright (c) 2017, Hard Consulting Corporation.
+ *
+ * Ezpwd Reed-Solomon is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.  See the LICENSE file at the top of the
+ * source tree.  Ezpwd Reed-Solomon is also available under Commercial license.  The Djelic BCH code
+ * under djelic/ and the c++/ezpwd/bch_base wrapper is redistributed under the terms of the GPLv2+,
+ * regardless of the overall licensing terms.
+ * 
+ * Ezpwd Reed-Solomon is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License for more details.
+ */
+#ifndef _EZPWD_BCH
+#define _EZPWD_BCH
+
+#include <sstream>
+#include "rs_base" 	// Basic DEBUG, EZPWD_... preprocessor stuff, ezpwd::log_, etc.
+#include "bch_base"
+
+namespace ezpwd {
+    // 
+    // ezpwd::bch_base -- Interface to underlying Djelic Linux Kernel API
+    // ezpwd::bch<SYMBOLS, CORRECTION> -- General BCH codec types; min. CORRECTION capacity, undefined PAYLOAD
+    //
+    //    These implementations retain the original Djelic Linux Kernel API; specifically, they find
+    // a BCH codec of the given Galois order M (ie. has codewords of size 2**M-1), and at least the
+    // target bit-error correction capacity T.  They may correct more than T errors, and the number
+    // of parity ECC bits will be selected by the algorithm.  You need to compute the maximum
+    // non-parity payload by computing _bch->n - _bch->ecc_bits.
+    // 
+    //     The data and parity bits must always be on separate blocks of int8_t/uint8_t-sized data
+    // in the container.  This is required because the underlying API must break the data and parity
+    // out as separate arrays for processing.  So, if the computed ecc_bits is not evenly divisible
+    // by 8, some care must be taken to ensure that it is packed into exactly ecc_bytes of data at
+    // the end of the supplied container.  Alternatively, it can be kept in a separate container.
+    // This is probably safest, as the bch_base/bch/BCH classes will never attempt to resize the
+    // data/parity containers when supplied separately.
+    // 
+    //     Like the Reed-Solomon APIs, the bch_base/bch/BCH APIs will alter the size of a variable
+    // container in encode(...), to add the BCH ECC "parity" data (eg. std::vector, std::string).
+    // Fixed containers (eg. std::array) are never resized, and it is assumed that ecc_bytes of
+    // parity data exist at the end of the container.
+    // 
+    class bch_base {
+    public:
+	ezpwd::bch_control     *_bch;
+
+				bch_base( const bch_base & ) = delete; // no copy-constructor
+
+				bch_base(
+				    size_t	m,
+				    size_t	t,
+				    unsigned int prim_poly = 0 )
+				    : _bch( ezpwd::init_bch( int( m ), int( t ), prim_poly ))
+	{
+	    ;
+	}
+
+	virtual		       ~bch_base()
+	{
+	    ezpwd::free_bch( this->_bch );
+	}
+
+	size_t			ecc_bytes()
+	    const
+	{
+	    return _bch->ecc_bytes;
+	}
+	size_t			ecc_bits()
+	    const
+	{
+	    return _bch->ecc_bits;
+	}
+
+	size_t			t()
+	    const
+	{
+	    return _bch->t;
+	}
+
+	//
+	// <ostream> << bch_base -- output codec in standard BCH( N, N-ECC, T ) form
+	//
+	virtual std::ostream   &output(
+					std::ostream       &lhs )
+	    const
+	{
+	    return lhs << *this->_bch;
+	}
+
+	// 
+	// encode -- container interfaces
+	// 
+	//     Returns number of ECC *bits* initialized (to be consistent w/ decode, which returns
+	// number of bit errors corrected).
+	// 
+	int			encode(
+				    std::string	       &data )
+	    const
+	{
+	    typedef uint8_t	uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    data.resize( data.size() + ecc_bytes() );
+	    return encode( uTpair( (uT *)&data.front(), (uT *)&data.front() + data.size() ));
+	}
+
+	int			encode(
+				    const std::string  &data,
+				    std::string	       &parity )
+	    const
+	{
+	    typedef uint8_t	uT;
+	    typedef std::pair<const uT *, const uT *>
+				cuTpair;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    parity.resize( ecc_bytes() );
+	    return encode( cuTpair( (const uT *)&data.front(), (const uT *)&data.front() + data.size() ),
+			   uTpair( (uT *)&parity.front(), (uT *)&parity.front() + parity.size() ));
+	}
+	
+	template < typename T >
+	int			encode(
+				    std::vector<T>     &data )
+	    const
+	{
+	    typedef typename std::make_unsigned<T>::type
+				uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    data.resize( data.size() + ecc_bytes() );
+	    return encode( uTpair( (uT *)&data.front(), (uT *)&data.front() + data.size() ));
+	}
+
+	template < typename T >
+	int			encode(
+				    const std::vector<T>&data,
+				    std::vector<T>     &parity )
+	    const
+	{
+	    typedef typename std::make_unsigned<T>::type
+				uT;
+	    typedef std::pair<const uT *, const uT *>
+				cuTpair;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    parity.resize( ecc_bytes() );
+	    return encode( cuTpair( (uT *)&data.front(), (uT *)&data.front() + data.size() ),
+			   uTpair( (uT *)&parity.front(), (uT *)&parity.front() + parity.size() ));
+	}
+
+	template < typename T, size_t N >
+	int			encode(
+				    std::array<T,N>    &data,
+				    int			pad	= 0 ) // ignore 'pad' symbols at start of array
+	    const
+	{
+	    typedef typename std::make_unsigned<T>::type
+				uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    return encode( uTpair( (uT *)&data.front() + pad, (uT *)&data.front() + data.size() ));
+	}
+
+	
+	// 
+	// encode -- denote data+parity or data, parity using pairs of uint8_t iterators
+	// encode -- base implementation, in terms of uint8_t pointers
+	// 
+	virtual int		encode(
+				    const std::pair<uint8_t *, uint8_t *>
+						       &data )
+	    const
+	{
+	    return encode( data.first, data.second - data.first - ecc_bytes(), data.second - ecc_bytes() );
+	}
+
+	virtual int		encode(
+				    const std::pair<const uint8_t *, const uint8_t *>
+						       &data,
+				    const std::pair<uint8_t *, uint8_t *>
+						       &parity )
+	    const
+	{
+	    if ( size_t( parity.second - parity.first ) != ecc_bytes() ) {
+	        EZPWD_RAISE_OR_RETURN( std::runtime_error, "BCH: parity length incompatible with number of ECC bytes", -1 );
+	    }
+	    return encode( data.first, data.second - data.first, parity.first );
+	}
+
+	virtual int		encode(
+				    const uint8_t      *data,
+				    size_t		len,
+				    uint8_t            *parity )
+	    const
+	{
+	    memset( parity, 0, ecc_bytes() ); // Djelic encode_bch requires ECC to be initialized to 0
+	    ezpwd::encode_bch( this->_bch, data, len, parity );
+	    return int( ecc_bits() );
+	}
+
+	//
+	// decode -- container interface, w/ optional corrected bit-error positions reported
+	// 
+	//     Does not correct errors in parity!
+	// 
+	int			decode(
+				    std::string	       &data,
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    typedef uint8_t	uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    return decode( uTpair( (uT *)&data.front(), (uT *)&data.front() + data.size() ),
+			   position );
+	}
+
+	int			decode(
+				    std::string	       &data,
+				    std::string	       &parity,
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    typedef uint8_t	uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    return decode( uTpair( (uT *)&data.front(), (uT *)&data.front() + data.size() ),
+			   uTpair( (uT *)&parity.front(), (uT *)&parity.front() + parity.size() ),
+			   position );
+	}
+
+	template < typename T >
+	int			decode(
+				    std::vector<T>     &data,
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    typedef typename std::make_unsigned<T>::type
+				uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    return decode( uTpair( (uT *)&data.front(), (uT *)&data.front() + data.size() ),
+			   position );
+	}
+
+	template < typename T >
+	int			decode(
+				    std::vector<T>     &data,
+				    std::vector<T>     &parity,
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    typedef typename std::make_unsigned<T>::type
+				uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    return decode( uTpair( (uT *)&data.front(), (uT *)&data.front() + data.size() ),
+			   uTpair( (uT *)&parity.front(), (uT *)&parity.front() + parity.size() ),
+			   position );
+	}
+
+	template < typename T, size_t N >
+	int			decode(
+				    std::array<T,N>    &data,
+				    int			pad	= 0, // ignore 'pad' symbols at start of array
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    typedef typename std::make_unsigned<T>::type
+				uT;
+	    typedef std::pair<uT *, uT *>
+				uTpair;
+	    return decode( uTpair( (uT *)&data.front() + pad, (uT *)&data.front() + data.size() ),
+			   position );
+	}
+
+	// 
+	// decode -- denote data+parity or data, parity using pairs of uint8_t iterators
+	// decode -- decode and correct BCH codeword, returning number of corrections, or -1 if failed
+	// 
+	//    Corrects data in-place (unlike the basic Djelic Linux Kernel API, which only returns
+	// error positions.  For consistency with ezpwd::rs..., we report all error positions as
+	// std::vector<int>, even though the underlying Djelic API reports them as arrays of
+	// unsigned int.
+	// 
+	virtual int		decode(
+				    const std::pair<uint8_t *, uint8_t *>
+						       &data,
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    return decode( data.first, data.second - data.first - ecc_bytes(), data.second - ecc_bytes(),
+			   position );
+	}
+
+	virtual int		decode(
+				    const std::pair<uint8_t *, uint8_t *>
+						       &data,
+				    const std::pair<uint8_t *, uint8_t *>
+						       &parity,
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    if ( size_t( parity.second - parity.first ) != ecc_bytes() ) {
+		EZPWD_RAISE_OR_RETURN( std::runtime_error, "BCH: parity length incompatible with number ECC bytes", -1 );
+	    }
+	    return decode( data.first, data.second - data.first, parity.first,
+			   position );
+	}
+	virtual int		decode(
+				    uint8_t	       *data,
+				    size_t		len,
+				    uint8_t            *parity,
+				    std::vector<int>   *position= 0 )
+	    const
+	{
+	    if ( position )
+		position->resize( t() * 2 ); // may be able to correct beyond stated capacity!
+	    int			corrects	= ezpwd::correct_bch(
+						      this->_bch, data, len, parity, 0, 0,
+						      position ? (unsigned int *)&(*position)[0] : 0 );
+	    if ( position && corrects >= 0 )
+		position->resize( corrects );
+	    return corrects;
+	}
+	
+	//
+	// {en,de}coded -- returns an encoded/corrected copy of the provided container
+	//
+	// NOTE:
+	// 
+	//     Must return exceptions on failure; If exceptions inhibited, returns a
+	// default-constructed instance of the supplied data container.  This may be sufficient to
+	// reliably deduce failure; if not, this interface should not be used.
+	// 
+	//     Overloads decoded to also allow recovery of corrected error positions and count.
+	// 
+	template <typename C>
+	C			encoded(
+				    C			data )
+	    const
+	{
+	    if ( encode( data ) < 0 )
+		EZPWD_RAISE_OR_RETURN( std::runtime_error, "BCH: Could not encode data", C() );
+	    return data;
+	}
+
+	template <typename C>
+	C			decoded(
+				    C			data )
+	    const
+	{
+	    if ( decode( data ) < 0 )
+		EZPWD_RAISE_OR_RETURN( std::runtime_error, "BCH: Could not decode data", C() );
+	    return data;
+	}
+
+	template <typename C>
+	C			decoded(
+				    C			data,
+				    std::vector<int>   &position )
+	    const
+	{
+	    if ( decode( data, &position ) < 0 )
+		EZPWD_RAISE_OR_RETURN( std::runtime_error, "BCH: Could not decode data", C() );
+	    return data;
+	}
+
+    }; // class bch_base
+
+    template < size_t SYMBOLS, size_t CORRECTION >
+    class bch
+	: public bch_base
+    {
+    public:
+				bch()
+				    : bch_base( ezpwd::log_<SYMBOLS + 1>::value, CORRECTION )
+	{
+	    ;
+	}
+
+	virtual		       ~bch()
+	{
+	    ;
+	}
+    }; // class bch
+
+    // 
+    // std::ostream << ezpwd::bch_base
+    // 
+    //     Output a BCH codec description in standard form eg. BCH( 255, 239,   2 )
+    // 
+    inline
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const ezpwd::bch_base
+						       &rhs )
+    {
+	return rhs.output( lhs );
+    }
+
+    // 
+    // ezpwd::BCH<SYMBOLS, PAYLOAD, CAPACITY> -- Standard BCH codec types
+    // 
+    //     Specify and create a standard BCH codec with exactly the specified capacities.  We create
+    // the undering BCH codec using SYMBOLS and CORRECTION capacity; the actual correction capacity
+    // T, the number of PARITY bits and hence PAYLOAD (CAPACITY - PARITY) is selected automatically
+    // by the underlying Djelic Linux Kernel BCH codec API.  For this interface, we demand that the
+    // caller *knows* all of these values at compile time, however, mostly for future optimization
+    // purposes.  We validate them, and fail the constructor if they don't match.  See bch_test for
+    // an enumeration of all possible BCH codecs.
+    // 
+    //     In the future, this API may be re-implemented to not use the generic BCH API, but a more
+    // optimized locally-defined implementation that leverages the fixed SYMBOLS, PAYLOAD and
+    // CORRECTION capacities to produce more optimal code.
+    // 
+    template < size_t SYMBOLS, size_t PAYLOAD, size_t CORRECTION >
+    class BCH
+	: public bch<SYMBOLS, CORRECTION>
+    {
+    public:
+	static const size_t	M	= ezpwd::log_<SYMBOLS + 1>::value; // Galois field order; eg. 255 --> 8
+	static const size_t	N	= SYMBOLS;
+	static const size_t	T	= CORRECTION;
+	static const size_t	LOAD	= PAYLOAD;
+
+				BCH()
+				    : bch<SYMBOLS, CORRECTION>()
+	{
+	    if ( this->_bch->t != T || this->_bch->n != N
+		 || this->_bch->n - this->_bch->ecc_bits != LOAD ) {
+		std::ostringstream err;
+		this->output( err )
+		    << " specified doesn't match underlying " << *this->_bch << " produced.";
+		EZPWD_RAISE_OR_ABORT( std::runtime_error, err.str().c_str() );
+	    }
+	}
+
+	virtual		       ~BCH()
+	{
+	    ;
+	}
+
+	//
+	// <ostream> << BCH<...> -- output codec in standard BCH( N, N-ECC, T ) form
+	//
+	virtual std::ostream   &output(
+					std::ostream       &lhs )
+	    const
+	{
+	    return lhs
+		<< "BCH( "	<< std::setw( 3 ) << N
+		<< ", "		<< std::setw( 3 ) << LOAD
+		<< ", "		<< std::setw( 3 ) << T
+		<< " )";
+	}
+    }; // class BCH
+
+
+    // 
+    // std::ostream << ezpwd::BCH<...>
+    // 
+    //     Output a BCH codec description in standard form eg. BCH( 255, 239,   2 )
+    // 
+    // NOTE: clang/gcc disagree on the scoping of operator<< template/non-template functions...
+    // 
+    template <size_t SYMBOLS, size_t PAYLOAD, size_t CORRECTION>
+    inline
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const ezpwd::BCH<SYMBOLS, PAYLOAD, CORRECTION>
+				    		       &rhs )
+    {
+	return rhs.output( lhs );
+    }
+
+} // namespace ezpwd
+
+#endif // _EZPWD_BCH

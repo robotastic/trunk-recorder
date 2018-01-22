@@ -165,14 +165,6 @@ static inline void generate_fich(uint8_t result[100], int fi, int cs, int cm, in
 	trellis_interleave(result, pre_trellis, 20, 5);
 }
 
-static inline void scramble(uint8_t buf[], int len)
-{
-	assert(len <= sizeof(scramble_code));
-	for (int i=0; i<len; i++) {
-		buf[i] = buf[i] ^ scramble_code[i];
-	}
-}
-
 // encode DCH - input is bits, result is dibits
 static inline void generate_dch(uint8_t result[180], const uint8_t input[160])
 {
@@ -180,7 +172,7 @@ static inline void generate_dch(uint8_t result[180], const uint8_t input[160])
 	memset(pre_trellis, 0, sizeof(pre_trellis));
 
 	memcpy(pre_trellis, input, 160);
-	scramble(pre_trellis, 160);
+	ysf_scramble(pre_trellis, 160);
 
 	uint16_t crc = crc16(pre_trellis, 176);
 	store_i(crc, pre_trellis+160, 16);
@@ -199,7 +191,7 @@ static inline void generate_dch_vd2(uint8_t result[100], const uint8_t input[80]
 	memset(pre_trellis, 0, sizeof(pre_trellis));
 
 	memcpy(pre_trellis, input, 80);
-	scramble(pre_trellis, 80);
+	ysf_scramble(pre_trellis, 80);
 
 	uint16_t crc = crc16(pre_trellis, 96);
 	store_i(crc, pre_trellis+80, 16);
@@ -223,7 +215,7 @@ static inline void generate_vch_vd2(uint8_t result[52], const uint8_t input[49])
 	}
 	memcpy(buf+81, input+27, 22);
 	buf[103] = 0;
-	scramble(buf, 104);
+	ysf_scramble(buf, 104);
 
 	uint8_t bit_result[104];
 	int x=4;
@@ -450,6 +442,14 @@ ysf_tx_sb_impl::general_work (int noutput_items,
 
   // Tell runtime system how many output items we produced.
   return (nframes * 480);
+}
+
+void
+ysf_tx_sb_impl::set_gain_adjust(float gain_adjust) {
+	if (d_fullrate_mode)
+		d_fullrate_encoder.set_gain_adjust(gain_adjust);
+	else
+		d_halfrate_encoder.set_gain_adjust(gain_adjust);
 }
 
   } /* namespace op25_repeater */

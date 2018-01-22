@@ -1,0 +1,344 @@
+#ifndef _EZPWD_OUTPUT
+#define _EZPWD_OUTPUT
+
+#include <cstdio>
+#include <streambuf>
+#include <iostream>
+#include <cctype>
+#include <iomanip>
+#include <sstream>
+#include <set>
+#include <map>
+#include <vector>
+
+// 
+// ezpwd::hexchr	-- escape/hexify char c, output using func/meth f, in width w >= 2
+// ezpwd::hexify	-- hexify something that can be converted to an unsigned char
+// ezpwd::hexout	-- hexify each element in the range (beg,end], limited by stream's width
+// 
+// std::ostream << ezpwd::hexify( c )		// output any char escaped/hex
+// std::ostream << ezpwd::hexout( beg, end )	// output any char iterator to ostream
+// std::ostream << std::vector<unsigend char>
+// std::ostream << std::array<unsigend char, N>
+// ezpwd::hexchr( c, [](unsigned char c){...;} )// output escaped/hex char via functor
+// ezpwd::hexout( beg, end, FILE* )		// output any char iterator to FILE*
+// 
+//     Output unprintable unsigned char data in hex, escape printable/whitespace data.
+//
+namespace ezpwd {
+
+    struct hexify {
+	unsigned char		c;
+	std::streamsize		w;
+	explicit		hexify(
+				    unsigned char	_c,
+				    std::streamsize	_w	= 2 )
+				    : c( _c )
+				    , w( _w )
+	{ ; }
+	explicit		hexify(
+				    char		_c,
+				    std::streamsize	_w	= 2 )
+				    : c( (unsigned char)_c )
+				    , w( _w )
+	{ ; }
+    };
+    struct hexstr {
+	const std::string      &s;
+	explicit		hexstr(
+				    const std::string  &_s )
+				    : s( _s )
+	{ ; }
+    };
+
+    template <typename F> // a functor taking a char
+    void
+    hexchr( unsigned char c, F f = []( unsigned char c ) { std::cout.put( c );}, size_t w = 2 )
+    {
+	for ( ; w > 2; --w )
+	    f( ' ' );
+	if ( std::isprint( c ) || std::isspace( c )
+	    || c == '\0' || c == '\a' || c == '\b' || c == 0x1B ) { // '\e' is not standard
+	    switch ( c ) {
+	    case 0x00: f( '\\' ); f( '0' ); break;  // NUL
+	    case 0x07: f( '\\' ); f( 'a' ); break;  // BEL
+	    case 0x08: f( '\\' ); f( 'b' ); break;  // BS
+	    case 0x09: f( '\\' ); f( 't' ); break;  // HT
+	    case 0x0A: f( '\\' ); f( 'n' ); break;  // LF
+	    case 0x0B: f( '\\' ); f( 'v' ); break;  // VT
+	    case 0x0C: f( '\\' ); f( 'f' ); break;  // FF
+	    case 0x0D: f( '\\' ); f( 'r' ); break;  // CR
+	    case 0x1B: f( '\\' ); f( 'e' ); break;  // ESC
+	    case '\"': f( '\\' ); f( '"' ); break;  // "
+	    case '\'': f( '\\' ); f( '\''); break;  // '
+	    case '\\': f( '\\' ); f( '\\'); break;  // '\'
+	    default:   f( ' '  ); f( c );	    // space, any other printable character
+	  }
+	} else {
+	    f( "0123456789ABCDEF"[( c >> 4 ) & 0x0f ] );
+	    f( "0123456789ABCDEF"[( c >> 0 ) & 0x0f ] );
+	}
+    }
+
+
+    inline
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const ezpwd::hexify&rhs )
+    {
+      ezpwd::hexchr( rhs.c, [ &lhs ]( unsigned char c ) { lhs.put( c ); }, rhs.w );
+      return lhs;
+    }
+
+    template < typename iter_t >
+    inline
+    std::ostream	       &hexout(
+				    std::ostream       &lhs,
+				    const iter_t       &beg,
+				    const iter_t       &end )
+    {
+	std::streamsize		wid	= lhs.width( 0 );
+	int			col	= 0;
+	for ( auto i = beg; i != end; ++i ) {
+	    if ( wid && col == wid ) {
+		lhs << std::endl;
+		col			= 0;
+	    }
+	    lhs << hexify( *i );
+	    ++col;
+	}
+	return lhs;
+    }
+
+    template < typename iter_t >
+    inline
+    std::FILE		       *hexout(
+				    const iter_t       &beg,
+				    const iter_t       &end,
+				    std::FILE          *lhs )
+    {
+	for ( auto i = beg; i != end; ++i ) {
+	    ezpwd::hexchr( *i, [ lhs ]( unsigned char c ) { std::fputc( c, lhs ); } );
+	}
+	return lhs;
+    }
+
+    inline
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const ezpwd::hexstr&rhs )
+    {
+      return ezpwd::hexout( lhs, rhs.s.begin(), rhs.s.end() );
+    }
+} // namespace ezpwd
+
+namespace std {
+    template < size_t S >
+    inline
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const std::array<unsigned char,S>
+						       &rhs )
+    {
+        return ezpwd::hexout( lhs, rhs.begin(), rhs.end() );
+    }
+
+    inline
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const std::vector<unsigned char>
+						       &rhs )
+    {
+        return ezpwd::hexout( lhs, rhs.begin(), rhs.end() );
+    }
+
+    // 
+    //    <ostream&> << pair<T,U>
+    //    <ostream&> << set<T>		-- sorted by T
+    //    <ostream&> << map<T,U>		-- sorted by T (key)
+    //    <ostream&> << vector<T>
+    // 
+    //     Handle output of various container types.
+    // 
+    //     Output pairs and sets of pairs, respecting specified widths (as appropriate).  For example
+    // a set of pairs of integeters 's', if output as "... << std::setw( 13 ) << s;", would yield:
+    // 
+    //	   (	1,    2) (    3,   4) ...
+    // 
+
+    template <class T, class U>
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const std::pair<T,U> &rhs )
+    {
+        std::streamsize		w	= std::max( std::streamsize( 0 ),
+						    std::streamsize( lhs.width() - 3 ));
+	lhs << std::setw( 0 )
+	    << '('	<< std::setw(	  w / 2 ) << rhs.first 
+	    << ','	<< std::setw( w - w / 2 ) << rhs.second 
+	    << ')';
+	return lhs;
+    }
+
+    template <class T>
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const std::set<T>  &rhs )
+    {
+        std::streamsize		w	= lhs.width();		// If width is set, use if for each item
+	for ( typename std::set<T>::const_iterator
+				si	= rhs.begin()
+		; si		       != rhs.end()
+		; ++si ) {
+	    if ( si != rhs.begin()) 
+	        lhs << ' ';
+	    lhs << std::setw( w ) << *si;
+	}
+	lhs << std::setw( 0 );					// If container empty, must clear
+	return lhs;
+    }
+
+template <class T, class U>
+std::ostream		       &operator<<(
+				    std::ostream       &lhs,
+				    const std::map<T,U>&rhs )
+{
+    std::streamsize		w	= lhs.width();		// If width is set, use if for each item
+    std::vector<T>		key;
+    for ( typename std::map<T,U>::const_iterator
+				mi	= rhs.begin()
+	      ; mi		       != rhs.end()
+	      ; ++mi )
+	key.push_back( mi->first );
+    std::sort( key.begin(), key.end() );
+    for ( typename std::vector<T>::const_iterator
+				ki	= key.begin()
+	      ; ki		       != key.end()
+	      ; ++ki ) {
+	if ( ki != key.begin()) 
+	    lhs << ' ';
+	lhs << std::setw( w ) << *rhs.find( *ki );
+    }
+    lhs << std::setw( 0 );					// If container empty, must clear
+    return lhs;
+}
+
+template <class T>
+std::ostream		       &operator<<(
+				    std::ostream	   &lhs, 
+				    const std::vector<T>   &rhs )
+{
+    for( size_t i = 0; i < rhs.size(); ++i ) {
+	if ( i )
+	    lhs << ", ";
+	lhs << rhs[i];
+    }
+
+    return lhs;
+}
+} // namespace std
+
+// 
+// ezpwd::buf_t		-- describe a C string buffer, to allow C++ output operations
+// ezpwd::streambuf_to_buf_t -- output charcters, always NUL terminated
+// 
+// <buf_t> << ... -- Copy the <string> into the C <char*,size_t> buffer, always NUL terminating
+// 
+//     Copies <string> contents into buffer, and always NUL-terminates.  Returns advanced buf_t (NOT
+// including the terminating NUL, suitable for repeating ... << <string> operations.
+// 
+// std::ostream( &<streambuf_to_buf_t> ) << ...
+// 
+//     Use standard ostream operations to send output to a C buffer, always NUL
+// terminating, and never exceeding capacity.
+// 
+namespace ezpwd {
+
+    typedef std::pair<char *,size_t>
+				buf_t;
+
+    class streambuf_to_buffer
+	: public std::streambuf {
+    private:
+	char	       	       *_buf;
+	size_t			_siz;
+    public:
+	//
+	//  streambuf_to_buf_t -- remember buf_t details
+	// ~streambuf_to_buf_t -- no virtual destructor required; nothing to clean up
+	// 
+    			streambuf_to_buffer(
+			    char	       *buf,
+			    size_t		siz )
+			    : _buf( buf )
+			    , _siz( siz )
+	{
+	    if ( _siz > 0 )
+		*_buf		= 0;
+	}
+    	explicit	streambuf_to_buffer(
+			    const buf_t	       &buf )
+			    : streambuf_to_buffer( buf.first, buf.second )
+	{
+	    ;
+	}
+			      
+	// 
+	// overflow -- Append c, always NUL terminating
+	// 
+	virtual int	overflow(
+			    int			c )
+	{
+	    if ( _siz <= 1 )
+		return EOF; 			// No room for c and NUL; EOF
+	    if ( EOF == c )
+		return 0;			// EOF provided; do nothing
+	    --_siz;
+	    *_buf++		= char( c );
+	    *_buf		= 0;
+	    return c;
+	}
+    }; // class streambuf_to_buffer
+
+} // namespace ezpwd
+
+namespace std {
+
+    inline
+    ezpwd::buf_t	operator<<(
+			    const ezpwd::buf_t &buf,
+			    const std::string  &str )
+    {
+	if ( buf.first && str.size() + 1 <= buf.second ) {
+	    std::copy( str.begin(), str.end(), buf.first );
+	    buf.first[str.size()]	= 0;
+	    return ezpwd::buf_t( buf.first + str.size(), buf.second - str.size() );
+	} else if ( buf.first && buf.second ) {
+	    std::copy( str.begin(), str.begin() + buf.second - 1, buf.first );
+	    buf.first[buf.second-1]	= 0;
+	    return ezpwd::buf_t( buf.first + buf.second - 1, 1 );
+	}
+	return buf; // NULL pointer or 0 size.
+    }
+
+
+    // 
+    // <std::string> << ...
+    // 
+    //     Useful (but inefficient) standard output formatting directly to a std::string.  Use only for
+    // testing code, for efficiency reasons...
+    // 
+    template < typename T >
+    inline
+    std::string		operator<<(
+			    const std::string  &lhs,
+			    const T 	       &rhs )
+    {
+	std::ostringstream oss;
+	oss << rhs;
+	return std::string( lhs ).append( oss.str() );
+    }
+
+} // namespace std
+
+#endif // _EZPWD_OUTPUT

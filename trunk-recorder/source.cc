@@ -212,9 +212,9 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb)
     return log;
 }
 
-p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb) {
+p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen) {
 
-    p25conventional_recorder_sptr log = make_p25conventional_recorder(this);
+    p25conventional_recorder_sptr log = make_p25conventional_recorder(this, delayopen);
 
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
@@ -297,7 +297,7 @@ void Source::print_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state());
   }
 }
 
@@ -372,7 +372,7 @@ Recorder * Source::get_digital_recorder(int priority)
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Freq: " << rx->get_freq();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state()) << " Freq: " << rx->get_freq();
   }
   return NULL;
 }
@@ -469,4 +469,26 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
     source_block = usrp_src;
   }
+}
+
+std::vector<Recorder *> Source::get_recorders()
+{
+
+  std::vector<Recorder *> recorders;
+
+   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
+      p25_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+
+    for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
+      analog_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+
+    for (std::vector<debug_recorder_sptr>::iterator it = debug_recorders.begin(); it != debug_recorders.end(); it++) {
+      debug_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+  return recorders;
 }

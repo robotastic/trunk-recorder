@@ -30,6 +30,7 @@
 #include "dstar_tx_sb_impl.h"
 // #include "dstar_const.h"
 #include <op25_imbe_frame.h>
+#include "dstar_header.h"
 
 #include <vector>
 #include <stdint.h>
@@ -51,6 +52,15 @@ static inline void print_result(char title[], const uint8_t r[], int len) {
 	printf("%s: %s\n", title, buf);
 }
 #endif
+
+static inline void sstring(const char s[], char dest[8]) {
+	memset(dest, ' ', 8);
+	memcpy(dest, s, std::min(strlen(s), (size_t)8));
+        for (int i=0; i<8; i++) {
+		if (dest[i] < ' ')
+			dest [i] = ' ';
+	}
+}
 
 static const uint8_t FS[24] = { 1,0,1,0,1,0,1,0,1,0,1,1,0,1,0,0,0,1,1,0,1,0,0,0 };
 static const uint8_t FS_DUMMY[24] = { 0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1 };
@@ -102,8 +112,13 @@ dstar_tx_sb_impl::config()
 	FILE * fp1 = fopen(d_config_file, "r");
 	char line[256];
 	char * cp;
-	// TODO: add code to generate slow speed datastream
-	return;
+	int flag1, flag2, flag3;
+	char rptcall1[8];
+	char rptcall2[8];
+	char urcall[8];
+	char mycall1[8];
+	char mycall2[8];
+
 	if (!fp1) {
 		fprintf(stderr, "dstar_tx_sb_impl:config: failed to open %s\n", d_config_file);
 		return;
@@ -112,12 +127,25 @@ dstar_tx_sb_impl::config()
 		cp = fgets(line, sizeof(line) - 2, fp1);
 		if (!cp) break;
 		if (line[0] == '#') continue;
-#if 0
-		if (memcmp(line, "ft=", 3) == 0)
-			sscanf(&line[3], "%d", &d_ft);
-#endif
+		if (memcmp(line, "flag1=", 6) == 0)
+			sscanf(&line[6], "%x", &flag1);
+		else if (memcmp(line, "flag2=", 6) == 0)
+			sscanf(&line[6], "%x", &flag2);
+		else if (memcmp(line, "flag3=", 6) == 0)
+			sscanf(&line[6], "%x", &flag3);
+		else if (memcmp(line, "rptcall2=", 9) == 0)
+			sstring(&line[9], rptcall2);
+		else if (memcmp(line, "rptcall1=", 9) == 0)
+			sstring(&line[9], rptcall1);
+		else if (memcmp(line, "urcall=", 7) == 0)
+			sstring(&line[7], urcall);
+		else if (memcmp(line, "mycall1=", 8) == 0)
+			sstring(&line[8], mycall1);
+		else if (memcmp(line, "mycall2=", 8) == 0)
+			sstring(&line[8], mycall2);
 	}
 	fclose(fp1);
+	make_dstar_header(d_dstar_header_data, flag1 & 0xff, flag2 & 0xff, flag3 & 0xff, rptcall2, rptcall1, urcall, mycall1, mycall2);
 }
 
 void
@@ -151,8 +179,7 @@ dstar_tx_sb_impl::general_work (int noutput_items,
     if (d_frame_counter == 0)
         memcpy(out+72, FS, 24);
     else
-        memcpy(out+72, FS_DUMMY, 24);
-    d_frame_counter += 1;
+        memcpy(out+72, d_dstar_header_data+((d_frame_counter-1) * 24), 24);
     d_frame_counter = (d_frame_counter + 1) % 21;
     in += 160;
     nconsumed += 160;
@@ -170,5 +197,9 @@ dstar_tx_sb_impl::general_work (int noutput_items,
   return (nframes * 96);
 }
 
+void
+dstar_tx_sb_impl::set_gain_adjust(float gain_adjust) {
+	d_encoder.set_gain_adjust(gain_adjust);
+}
   } /* namespace op25_repeater */
 } /* namespace gr */

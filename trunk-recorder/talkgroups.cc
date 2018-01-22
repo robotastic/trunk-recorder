@@ -141,3 +141,9 @@ Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
   }
   return tg_match;
 }
+
+void Talkgroups::add(long num, std::string alphaTag)
+{
+    Talkgroup *tg = new Talkgroup(num, 'X', alphaTag, "", "", "", 0);
+    talkgroups.push_back(tg);
+}

@@ -24,6 +24,7 @@
 #define INCLUDED_GR_NONSTOP_WAVFILE_SINK_H
 
 #include "../trunk-recorder/call.h"
+#include "../trunk-recorder/call_conventional.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
@@ -44,17 +45,6 @@ class BLOCKS_API nonstop_wavfile_sink : virtual public sync_block
 public:
 	// gr::blocks::wavfile_sink::sptr
 	typedef boost::shared_ptr<nonstop_wavfile_sink> sptr;
-
-	/*
-	 * \param filename The .wav file to be opened
-	 * \param n_channels Number of channels (2 = stereo or I/Q output)
-	 * \param sample_rate Sample rate [S/s]
-	 * \param bits_per_sample 16 or 8 bit, default is 16
-	 */
-	static sptr make(int n_channels,
-	                 unsigned int sample_rate,
-	                 int bits_per_sample = 16,
-								 		bool use_float=true);
 
 	/*!
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.

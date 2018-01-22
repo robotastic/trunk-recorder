@@ -105,7 +105,6 @@ public:
 
 private:
 								double center, freq;
-								bool muted;
 								bool qpsk_mod;
 								int silence_frames;
 								long talkgroup;

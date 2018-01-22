@@ -39,7 +39,7 @@
 //		Pointer to bits allocation array 
 //
 //-----------------------------------------------------------------------------
-const Word16 *get_bit_allocation_arr(Word16 num_harms);
+const UWord16 *get_bit_allocation_arr(Word16 num_harms);
 
 //-----------------------------------------------------------------------------
 //	PURPOSE:

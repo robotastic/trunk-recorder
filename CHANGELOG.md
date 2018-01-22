@@ -1,8 +1,11 @@
 Trunk Recorder ChangeLog
 ========================
 
+### Version 3.0.1
+* Updated to the latest version of OP25. Supposed performance improvements.
+
 ### Version 3.0
-** I really have to do a better job of tracking changes... I think I got most items.**
+*I really have to do a better job of tracking changes... I think I got most items.*
 * Bug fixes on Phase 2 decoding, catching some additional messages.
 * Sending status over a WebSocket
 

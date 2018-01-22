@@ -50,18 +50,13 @@ static void clear_bits(bit_vector& v) {
 	}
 }
 
-p25p1_voice_decode::p25p1_voice_decode(bool verbose_flag, const char* udp_host, int udp_port, std::deque<int16_t> &_output_queue) :
-	write_sock(0),
+p25p1_voice_decode::p25p1_voice_decode(bool verbose_flag, const op25_audio& udp, std::deque<int16_t> &_output_queue) :
+        op25audio(udp),
 	write_bufp(0),
 	rxbufp(0),
 	output_queue(_output_queue),
-	opt_verbose(verbose_flag),
-	opt_udp_port(udp_port)
+	opt_verbose(verbose_flag)
     {
-	if (opt_udp_port != 0)
-		// remote UDP output
-		init_sock(udp_host, opt_udp_port);
-
 	const char *p = getenv("IMBE");
 	if (p && strcasecmp(p, "soft") == 0)
 		d_software_imbe_decoder = true;
@@ -104,8 +99,8 @@ void p25p1_voice_decode::rxframe(const uint32_t u[])
 /* TEST*/	frame_vector[7] >>= 1;
 		vocoder.imbe_decode(frame_vector, snd);
 	}
-	if (opt_udp_port > 0) {
-		sendto(write_sock, snd, FRAME * sizeof(int16_t), 0, (struct sockaddr*)&write_sock_addr, sizeof(write_sock_addr));
+	if (op25audio.enabled()) {
+		op25audio.send_audio(snd, FRAME * sizeof(int16_t));
 	} else {
 		// add generated samples to output queue
 		for (int i = 0; i < FRAME; i++) {
@@ -133,25 +128,6 @@ void p25p1_voice_decode::rxchar(const char* c, int len)
 			rxbufp = RXBUF_MAX - 1;
 		}
 	} /* end of for() */
-}
-
-void p25p1_voice_decode::init_sock(const char* udp_host, int udp_port)
-{
-        memset (&write_sock_addr, 0, sizeof(write_sock_addr));
-        write_sock = socket(PF_INET, SOCK_DGRAM, 17);   // UDP socket
-        if (write_sock < 0) {
-                fprintf(stderr, "vocoder: socket: %d\n", errno);
-                write_sock = 0;
-		return;
-        }
-        if (!inet_aton(udp_host, &write_sock_addr.sin_addr)) {
-                fprintf(stderr, "vocoder: bad IP address\n");
-		close(write_sock);
-		write_sock = 0;
-		return;
-	}
-        write_sock_addr.sin_family = AF_INET;
-        write_sock_addr.sin_port = htons(udp_port);
 }
 
   } /* namespace op25_repeater */

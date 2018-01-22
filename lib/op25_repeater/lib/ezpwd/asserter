@@ -1,0 +1,128 @@
+#ifndef _EZPWD_ASSERTER
+#define _EZPWD_ASSERTER
+
+#include <algorithm>
+#include <cstring>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
+namespace ezpwd {
+
+#define ISEQUAL( ... )	isequal(__FILE__, __LINE__, __VA_ARGS__ )
+#define ISTRUE( ... )	istrue(	__FILE__, __LINE__, __VA_ARGS__ )
+#define ISFALSE( ... )	isfalse(__FILE__, __LINE__, __VA_ARGS__ )
+#define ISNEAR( ... )	isnear(	__FILE__, __LINE__, __VA_ARGS__ )
+#define FAILURE( ... )	failure(__FILE__, __LINE__, __VA_ARGS__ )
+
+    struct asserter {
+	bool			failed;		// The last test failed
+	int			failures;	// Total number of failures
+	std::string		out;		// Last failure
+
+				asserter()
+				    : failed( false )
+				    , failures( 0 )
+				    , out()
+	{
+	    ;
+	}
+
+	// 
+	// output( <std::ostream> )		-- Output description of last failed test (or nothing if successful)
+	// <std::ostream> << <asserter>
+	// 
+	std::ostream  	       &output(
+				    std::ostream       &lhs )
+	    const
+	{
+	    return lhs << out;
+	}
+
+	// 
+	// (bool) <asserter> -- Return status of last test
+	//
+    				operator bool()
+	{
+	    return failed;
+	}
+	
+	template < typename T >
+	asserter	       &istrue(  const char *file, int line, const T &a, const std::string &comment = std::string() )
+	{
+	    return isequal( file, line, !!a, true, comment );
+	}
+
+	template < typename T >
+	asserter	       &isfalse(  const char *file, int line, const T &a, const std::string &comment = std::string() )
+	{
+	    return isequal( file, line, !!a, false, comment );
+	}
+
+	template < typename T >
+	asserter	       &isequal( const char *file, int line, const T &a, const T &b, const std::string &comment = std::string() )
+	{
+	    if ( ! ( a == b )) {
+		std::ostringstream oss;
+		oss << a << " != " << b;
+		return failure( file, line, oss.str(), comment );
+	    }
+	    return success();
+	}
+
+	template < typename T >
+	asserter	       &isnear( const char *file, int line, const T &a, const T &b, const T &delta, const std::string &comment = std::string() )
+	{
+	    T			difference;
+	    difference			= ( a < b
+					    ? T( b - a )
+					    : T( a - b ));
+	    if ( ! ( difference < ( delta < T( 0 ) ? T( -delta ) : T( delta )))) {
+		std::ostringstream oss;
+		oss << std::setprecision( 13 ) << a << " != " << b << " +/- " << delta;
+		return failure( file, line, oss.str(), comment );
+	    }
+	    return success();
+	}
+	
+	asserter	       &failure( const char *file, int line, const std::string &comparison,
+					 const std::string &comment = std::string() )
+	{
+	    ++failures;
+	    const char	       *needle	= "/";
+	    const char	       *slash	= std::find_end( file, file + strlen( file ),
+							 needle, needle + strlen( needle ));
+	    if ( slash == file + strlen( file ))
+		slash		= file;
+	    else
+		slash	       += 1;
+
+	    std::ostringstream oss;
+	    oss
+		<< std::setw( 24 ) << slash << ", "
+		<< std::setw( -5 ) << line
+		<< "; FAILURE: " << comparison
+		<< ( comment.size() ? ": " : "" ) << comment
+		<< std::endl;
+	    out			= oss.str();
+	    failed			= true;
+	    return *this;
+	}
+
+	asserter	       &success()
+	{
+	    out.clear();
+	    failed			= false;
+	    return *this;
+	}
+    }; // class asserter
+} // namespace ezpwd
+
+std::ostream	       	       &operator<<(
+				    std::ostream       &lhs,
+				    ezpwd::asserter    &rhs )
+{
+    return rhs.output( lhs );
+}
+
+#endif // _EZPWD_ARRAY

@@ -1,0 +1,1188 @@
+/*
+ * Ezpwd Reed-Solomon -- Reed-Solomon encoder / decoder library
+ * 
+ * Copyright (c) 2014, Hard Consulting Corporation.
+ *
+ * Ezpwd Reed-Solomon is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.  See the LICENSE file at the top of the
+ * source tree.  Ezpwd Reed-Solomon is also available under Commercial license.  c++/ezpwd/rs_base
+ * is redistributed under the terms of the LGPL, regardless of the overall licensing terms.
+ * 
+ * Ezpwd Reed-Solomon is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License for more details.
+ */
+#ifndef _EZPWD_SERIALIZE
+#define _EZPWD_SERIALIZE
+
+#include <iterator>
+#include <array>
+
+#include "output"
+
+// 
+// EZPWD (no padding) and RFC4648 (enforce padding) base-N codecs
+// 
+// scatter	-- 8-bit binary data into 5-bit (base32) and 6-bit (base64) chunks (optionally w/pad)
+// gather	-- collect up 5/6-bit binary data back into 8-bit characters (optionally w/pad)
+// ..._standard	-- enforce RFC4648-standard padding
+// 
+//     Scatters or gathers 8-bit binary character data to 5/6-bit symbols, suitable for base32/64
+// encoding.
+// 
+// encode	-- convert binary data to ASCII base32/64, in-place
+// decode	-- convert ASCII base32/64 to binary data, in-place
+// ..._standard	-- enforce RFC4648-standard padding
+// 
+//     Transforms iterable containers of char between ASCII symbols and binary data, always in-place.
+// The decode may alter the size of the result (by ignoring whitespace).
+// 
+//     In general the ezpwd::base32/64 en/decoders are designed to produce easily human-usable
+// encodings, and can ignore common whitespace characters and '-' to allow human-readable
+// formatting.  The RFC4648 Standard base 32/64 and Crockford base32 encodings are also supported.
+// 
+//     Adding new symbol encodings (and even new bases, up to base-128) is trivial.
+// 
+namespace ezpwd {
+
+    namespace serialize {
+
+	enum chr_t {
+	    pd		= -1,	// padding
+	    nv		= -2,	// invalid
+	    ws		= -3,	// whitespace
+	};
+
+	enum ws_use_t {
+	    ws_invalid	= 0,	// Whitespace is invalid
+	    ws_ignored	= 1,	// Whitespace ignored (the default)
+	};
+
+	enum pd_use_t {
+	    pd_invalid	= 0,	// Padding is not expected (invalid)
+	    pd_ignored	= 1,	// Padding is ignored, and automatically supplied if required (the default)
+	    pd_enforce	= 2,	// Padding is expected and enforced
+	};
+
+	// 
+	// serialize::tables -- base class for TABLES in all base<N,TABLES>
+	// 
+	//     Every serialize::table<BASE> specialization must have an encoder table of size BASE,
+	// and a decoder table of size 127.
+	// 
+
+	// 
+	// hex<16/32>		-- RFC4648 4-bit (standard 16 symbol) and 5-bit (32 symbol)
+	// standard<16/32/64>	-- RFC4648 standard tables
+	// standard_url<64>	-- RFC4648 standard tables (base-64 URL-safe)
+	// ezpwd<16/32/64>	-- EZPWD tables
+	// crockford<32> 	-- Crockford (base32 only)
+	// 
+	//     These types are passed as the TABLE template parameter to base<32/64,TABLE> class
+	// template instantiations.  They must specify an encoder table of size BASE, and a decoder
+	// table of size 127.
+	//
+	template < size_t N > struct hex { };
+	template < size_t N > struct uuencode { };
+	template < size_t N > struct standard { };
+	template < size_t N > struct standard_url { };
+	template < size_t N > struct ezpwd { };
+	template < size_t N > struct crockford { };
+
+	// 
+	// base<16> tables	-- basic hexadecimal supported (hex, standard, ezpwd identical)
+	// 
+	template <> struct		hex<16> {
+	    static const constexpr std::array<char,16>
+				encoder { {
+	        '0', '1', '2', '3', '4', '5', '6', '7',
+	        '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+	    } };
+	    static const constexpr std::array<char,127>
+				decoder { {
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+	        ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //  !"#$%&`()*+,-./
+	        0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  nv, nv, nv, nv, nv, nv, // 0123456789:;<=>?  '=' is pad
+	        nv, 10, 11, 12, 13, 14, 15, nv, nv, nv, nv, nv, nv, nv, nv, nv, // @ABCDEFGHIJKLMNO
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, // PQRSTUVWXYZ[\]^_
+	        nv, 10, 11, 12, 13, 14, 15, nv, nv, nv, nv, nv, nv, nv, nv, nv, // `abcdefghijklmno
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv,     // pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::hex<16>
+
+	template <> struct		standard<16> {
+	    static const constexpr std::array<char,16>
+				encoder = hex<16>::encoder;
+	    static const constexpr std::array<char,127>
+				decoder = hex<16>::decoder;
+	};
+
+	template <> struct		ezpwd<16> {
+	    static const constexpr std::array<char,16>
+				encoder = hex<16>::encoder;
+	    static const constexpr std::array<char,127>
+				decoder = hex<16>::decoder;
+	};
+
+	// 
+	// base<32> tables	-- ezpwd, and RFC4648 hex32, crockford and standard
+	// 
+	template <> struct		hex<32> {
+	    static const constexpr std::array<char,32>
+				encoder { {
+	        '0', '1', '2', '3', '4', '5', '6', '7',
+	        '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+		'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+		'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+	    } };
+	    static const constexpr std::array<char,127>
+				decoder { {
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+	        ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //  !"#$%&`()*+,-./
+	        0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  nv, nv, nv, nv, nv, nv, // 0123456789:;<=>?  '=' is pad
+	        nv, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, // @ABCDEFGHIJKLMNO
+	        25, 26, 27, 28, 29, 30, 31, nv, nv, nv, nv, nv, nv, nv, nv, nv, // PQRSTUVWXYZ[\]^_
+	        nv, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, // `abcdefghijklmno
+	        25, 26, 27, 28, 29, 30, 31, nv, nv, nv, nv, nv, nv, nv, nv,     // pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::hex<32>
+
+	template <> struct	standard<32> { 	// RFC4648 Standard
+	    static const constexpr std::array<char,32>
+				encoder { {
+	        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+	        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+	        'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+	        'Y', 'Z', '2', '3', '4', '5', '6', '7', 
+	    } };
+	    static const constexpr std::array<char,127>
+				decoder { {
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+	        nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+	        ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //  !"#$%&`()*+,-./
+	        nv, nv, 26, 27, 28, 29, 30, 31, nv, nv, nv, nv, nv, pd, nv, nv, // 0123456789:;<=>?
+	        nv,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, // @ABCDEFGHIJKLMNO  '=' is pad
+	        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, nv, nv, nv, nv, nv, // PQRSTUVWXYZ[\]^_
+	        nv,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, // `abcdefghijklmno
+	        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, nv, nv, nv, nv,     // pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::standard<32>
+
+	template <> struct	ezpwd<32> {
+	    static const constexpr std::array<char,32>
+				    encoder { {
+		'0', '1', '2', '3', '4', '5', '6', '7',
+		'8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+		'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P',
+		'Q', 'R', 'T', 'U', 'V', 'W', 'X', 'Y',
+	    } };
+	
+	    static const constexpr std::array<char,127>
+				    decoder { {
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+		ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, nv, nv, //  !"#$%&`()*+,-./  '-' is whitespace
+		 0,  1,	 2,  3,	 4,  5,	 6,  7,	 8,  9, nv, nv, nv, pd, nv, nv, // 0123456789:;<=>?  '=' is pad
+		nv, 10, 11, 12, 13, 14, 15, 16, 17,  1, 18, 19, 20, 21, 22,  0, // @ABCDEFGHIJKLMNO
+		23, 24, 25,  5, 26, 27, 28, 29, 30, 31,	 2, nv, nv, nv, nv, nv, // PQRSTUVWXYZ[\]^_
+		nv, 10, 11, 12, 13, 14, 15, 16, 17,  1, 18, 19, 20, 21, 22,  0, // `abcdefghijklmno
+		23, 24, 25,  5, 26, 27, 28, 29, 30, 31,	 2, nv, nv, nv, nv,	// pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::ezpwd<32>
+	
+	template <> struct	crockford<32> {
+	    static const constexpr std::array<char,32>
+				    encoder { {
+		'0', '1', '2', '3', '4', '5', '6', '7',
+		'8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+		'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q',
+		'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z',
+	    } };
+	
+	    static const constexpr std::array<char,127>
+				    decoder { {
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+		ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, nv, nv, //  !"#$%&`()*+,-./  '-' is whitespace
+		 0,  1,	 2,  3,	 4,  5,	 6,  7,	 8,  9, nv, nv, nv, pd, nv, nv, // 0123456789:;<=>?  '=' is pad
+		nv, 10, 11, 12, 13, 14, 15, 16, 17,  1, 18, 19,	 1, 20, 21,  0, // @ABCDEFGHIJKLMNO
+		22, 23, 24, 25, 26, nv, 27, 28, 29, 30, 31, nv, nv, nv, nv, nv, // PQRSTUVWXYZ[\]^_
+		nv, 10, 11, 12, 13, 14, 15, 16, 17,  1, 18, 19,	 1, 20, 21,  0, // `abcdefghijklmno
+		22, 23, 24, 25, 26, nv, 27, 28, 29, 30, 31, nv, nv, nv, nv,	// pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::crockford<32>
+
+	// 
+	// base<64> tables
+	// 
+	template <> struct	uuencode<64> {
+	    static const constexpr std::array<char,64>
+				encoder { {
+		' ', '!', '"', '#', '$', '%', '&','\'',
+		'(', ')', '*', '+', ',', '-', '.', '/',
+		'0', '1', '2', '3', '4', '5', '6', '7',
+		'8', '9', ':', ';', '<', '=', '>', '?',
+		'@', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
+		'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+		'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+		'X', 'Y', 'Z', '[','\\', ']', '^', '_',
+	    } };
+	    static const constexpr std::array<char,127>
+	    			decoder { {
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+		 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, //  !"#$%&`()*+,-./
+		16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, // 0123456789:;<=>?  '=' is pad
+		32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, // @ABCDEFGHIJKLMNO
+		48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, // PQRSTUVWXYZ[\]^_
+		nv, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, // `abcdefghijklmno
+		48, 49, 50, 51, 52, 53, 54, 55, 56, 57, nv, nv, nv, nv, nv,     // pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::standard<64>
+
+	template <> struct	standard<64> {
+	    static const constexpr std::array<char,64>	// RFC4648 Standard
+				encoder { {
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+		'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+		'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+		'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+		'w', 'x', 'y', 'z', '0', '1', '2', '3',
+		'4', '5', '6', '7', '8', '9', '+', '/',
+	    } };
+	    static const constexpr std::array<char,127>
+	    			decoder { {
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+		ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, 62, nv, nv, nv, 63, //  !"#$%&`()*+,-./
+		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, nv, nv, nv, pd, nv, nv, // 0123456789:;<=>?  '=' is pad
+		nv,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, // @ABCDEFGHIJKLMNO
+		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, nv, nv, nv, nv, nv, // PQRSTUVWXYZ[\]^_
+		nv, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, // `abcdefghijklmno
+		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, nv, nv, nv, nv,     // pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::standard<64>
+
+	template <> struct	standard_url<64> {
+	    static const constexpr std::array<char,64>
+	    			encoder { {
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+		'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+		'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+		'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+		'w', 'x', 'y', 'z', '0', '1', '2', '3',
+		'4', '5', '6', '7', '8', '9', '-', '_', 
+	    } };
+	    static const constexpr std::array<char,127>
+				decoder { {
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+		ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, 62, nv, nv, //  !"#$%&`()*+,-./
+		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, nv, nv, nv, pd, nv, nv, // 0123456789:;<=>?  '=' is pad
+		nv,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, // @ABCDEFGHIJKLMNO
+		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, nv, nv, nv, nv, 63, // PQRSTUVWXYZ[\]^_
+		nv, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, // `abcdefghijklmno
+		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, nv, nv, nv, nv,     // pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::standar_url<64>
+
+	template <> struct	ezpwd<64> {
+	    static const constexpr std::array<char,64>	// '+' and '.' are URL safe, and we treat '-' as whitespace
+				encoder { {
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+		'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+		'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+		'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+		'w', 'x', 'y', 'z', '0', '1', '2', '3',
+		'4', '5', '6', '7', '8', '9', '+', '.', 
+	    } };
+	    static const constexpr std::array<char,127>
+				decoder { {
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, ws, ws, ws, ws, ws, nv, nv, // 9-13: <TAB>,<NL>,<VT>,<FF>,<CR>
+		nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, //
+		ws, nv, nv, nv, nv, nv, nv, nv, nv, nv, nv, 62, nv, ws, 63, nv, //  !"#$%&`()*+,-./  '-' is whitespace
+		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, nv, nv, nv, pd, nv, nv, // 0123456789:;<=>?  '=' is pad
+		nv,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, // @ABCDEFGHIJKLMNO
+		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, nv, nv, nv, nv, 63, // PQRSTUVWXYZ[\]^_
+		nv, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, // `abcdefghijklmno
+		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, nv, nv, nv, nv,     // pqrstuvwxyz{|}~
+	    } };
+	}; // struct serialize::ezpwd<64>
+
+	// 
+	// base_generic<N, TABLES> -- generic base-N conversion using TABLES<N>.  Doesn't have scatter/gather.
+	// 
+	//     Every base-N converter requires a TABLE class of matching N, and can encode/decode.
+	// in-place using the table::encoder/decoder arrays.  Only specific values of N have class
+	// template specialization which includes scatter/gather methods -- the generic base-N
+	// template does not..
+	// 
+	template < size_t N, typename TABLES = ezpwd< N >>
+	class base_generic
+	    : public TABLES {
+	public:
+	    static
+	    std::ostream       &output(
+				    std::ostream       &lhs )
+	    {
+		lhs << "base<" << N;
+#if defined( DEBUG ) && DEBUG >= 3
+		lhs << "," << TABLES::encoder;
+#endif
+		lhs << ">";
+		return lhs;
+	    }
+
+	    // 
+	    // base<N>::encode(<string>)	-- encode the supplied sequence of data in the domain (0,N] to base-N
+	    // base<N>::encode(<iter>,<iter>)	-- encode the supplied std::string of (0,N] symbols in-place to base-N
+	    // 
+	    //     Items from iterator must be convertible to a table index (ie. not -'ve, and within
+	    // the table size N).  If the table contains 'ws' entries, they may optionally be ignored.
+	    // If the input symbol indexes outside the provided encoder table (or an 'nv' entry), then an
+	    // exception will be thrown.
+	    // 
+	    //     If a non-zero 'pad' character is supplied, then the -1 (pd) character value will be
+	    // allowed (normally occurring only at the end of the input range), and a 'pad' will be
+	    // emitted for each one.
+	    // 
+	    template < typename I >
+	    static
+	    I			encode(
+				    I			begin,
+				    I			end,
+				    char		pad	= '=' ) // '=' for standards-compliance
+	    {
+		for ( I i = begin; i != end; ++i ) {
+		    if ( *i >= 0 and size_t( *i ) < TABLES::encoder.size() )
+			*i		= TABLES::encoder[*i];
+		    else if ( pd == *i and pad )
+			*i		= pad;
+		    else
+			throw std::runtime_error(
+			    std::string( "ezpwd::serialize::encode: invalid base-" ) << N
+			    << " binary symbol presented: " << *i );
+		}
+		return end;
+	    }
+
+	    static
+	    std::string	       &encode(
+				    std::string	       &symbols,
+				    char		pad	= '=' ) // '=' for standards-compliance
+	    {
+		encode( symbols.begin(), symbols.end(), pad );
+		return symbols;
+	    }
+
+	    // 
+	    // base<N>::decode(<iter>,<iter>)	-- decode base-N symbols in-place, collapsing spaces.
+	    // base<N>::decode(<string>)	-- decode base-N symbols in supplied std::string, collapsing spaces, in-place.
+	    // 
+	    //     Items from iterator must be convertible to a table index (ie. not -'ve, and within
+	    // the table size, which is always 127).  
+	    // 
+	    //   ws_ignored -- skip whitepace/- symbols (the default)
+	    //   ws_invalid -- consider whitespace/- symbols as invalid symbols
+	    // 
+	    //   pd_invalid -- consider padding symbols as invalid
+	    //   pd_ignored -- skip padding symbols
+	    //   pd_enforce -- leave any padding symbols in place (the default)
+	    // 
+	    //     If erasure vector supplied, marks invalid symbols as erasures; otherwise, throws
+	    // exception.  Ignores whitespace.  Will return an iterator to just after the last output
+	    // symbol used in the provided range (eg. to shorten the container, if desired), leaving any
+	    // remaining symbols unchanged.  The <string> version returns the same string reference
+	    // passed in (shortened, if spaces/padding ignored).
+	    // 
+	    //     If an invalid vector is supplied, we'll also return the offending input symbol(s); if
+	    // an exception is raised (no erasure vector supplied), only one symbol will be in invalid.
+	    // 
+	    // NOTE: will quite likely return an iterator before the supplied 'end', indicating that the
+	    // output has been truncated (shortened), due to collapsing spaces!
+	    // 
+	    template < typename I >
+	    static
+	    I			decode(
+				    I			begin,
+				    I			end,
+				    std::vector<int>   *erasure,		// Deem invalid symbols as erasures
+				    std::vector<char>  *invalid	= 0,		//   and return the symbols
+				    ws_use_t		ws_use	= ws_ignored,  	// skip any whitespace
+				    pd_use_t		pd_use	= pd_invalid )	// no padding expected; invalid
+	    {
+		if ( erasure )
+		    erasure->clear();
+		if ( invalid )
+		    invalid->clear();
+		I		i, o;
+		for ( i = o = begin; i != end; ++i ) {
+		    size_t	ti( *i );
+		    char	c	= ti < TABLES::decoder.size() ? TABLES::decoder[ti] : char( nv );
+		    if ( ws == c )
+			switch ( ws_use ) {
+			case ws_invalid:
+			    c		= nv;
+			    break;
+			case ws_ignored: default:
+			    continue;
+			}
+		    if ( pd == c )
+			switch ( pd_use ) {
+			case pd_invalid:
+			    c		= nv;
+			    break;
+			case pd_enforce:
+			    break;
+			case pd_ignored: default:
+			    continue;
+			}
+		    if ( nv == c ) {
+			// Invalid symbol; optionally remember them.  Mark as erasure?  Or throw.
+			if ( invalid )
+			    invalid->push_back( *i );
+			if ( erasure ) {
+			    erasure->push_back( o - begin );	// index of offending symbol in output
+			    c		= 0;			//   will be output w/ 0 value
+			} else {
+			    throw std::runtime_error(
+			        std::string( "ezpwd::serialize::decode: invalid base-" ) << N
+				<< " ASCII symbol presented: " << int( *i ) << " '" << *i << "'" );
+			}
+		    }
+		    *o++		= c;
+		}
+		return o;
+	    }
+
+	    template < typename I >
+	    static
+	    I			decode(
+				    I			begin,
+				    I			end,
+				    ws_use_t		ws_use	= ws_ignored,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		return decode( begin, end, 0, 0, ws_use, pd_use );
+	    }
+
+	    template < typename I >
+	    static
+	    I			decode_standard(
+				    I			begin,
+				    I			end )
+	    {
+		return decode( begin, end, 0, 0, ws_ignored, pd_enforce ); // RFC4648 padding
+	    }
+
+	    static
+	    std::string	       &decode(
+				    std::string	       &symbols,
+				    std::vector<int>   *erasure = 0,
+				    std::vector<char>  *invalid	= 0,
+				    ws_use_t		ws_use	= ws_ignored,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		auto		last	= decode( symbols.begin(), symbols.end(), erasure, invalid,
+						  ws_use, pd_use );
+		if ( last != symbols.end() )
+		    symbols.resize( last - symbols.begin() ); // eliminated some whitespace
+		return symbols;
+	    }
+	    static
+	    std::string	       &decode_standard(
+				    std::string	       &symbols,
+				    std::vector<int>   *erasure = 0,
+				    std::vector<char>  *invalid	= 0 )
+	    {
+		return decode( symbols, erasure, invalid, ws_ignored, pd_enforce ); // RFC4648 padding
+	    }
+
+	    //
+	    // gather_next -- return next symbol to gather into 8-bit output
+	    // 
+	    //     Fails if padding mixed in with data, or a data symbol exceeds encoding bit depth
+	    // (eg. 5 bits for base-32).
+	    // 
+	    //     If auto-padding, allow the caller to differentiate
+	    // 
+	    template < typename I >
+	    static
+	    int			gather_next( I &beg, I end, pd_use_t pd_use, int previous )
+	    {
+		if ( beg == end ) {
+		    if ( pd_enforce == pd_use )
+			throw std::logic_error( std::string( "base-" ) << N << " gather error; insufficient data");
+		    // automatically pad; return nv on underflow while un-emitted data remains, finally pd
+		    return previous >= 0 ? nv : pd;
+		}
+		int		c	= *beg++;
+		if ( previous < 0 and c >= 0 )
+		    throw std::logic_error(
+		        std::string( "base-" ) << N << " gather error; data following padding" );
+		if ( c >= char( N ) or c < pd )
+		    throw std::logic_error(
+		        std::string( "base-" ) << N << " gather error; symbol value " << int( c ) << " beyond capacity" );
+		return c;
+	    }
+	}; // class serialize::base_generic
+    } // namespace serialize
+
+    template < size_t N, typename TABLES >
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const ezpwd::serialize::base_generic<N,TABLES>
+						       &rhs )
+    {
+	return rhs.output( lhs );
+    }
+
+    namespace serialize {
+	// 
+	// ezpwd::serialize::base<N> -- Arbitrary bases (other than those with specializations below)
+	// 
+	//    Can en/decode, but no scatter/gather implementation, nor encode_size.
+	// 
+	template < size_t N, typename TABLES >
+	class base
+	    : public base_generic< N, TABLES > {
+	public:
+	    using base_generic< N, TABLES >::encode;
+	    using base_generic< N, TABLES >::decode;
+	};
+
+
+	// 
+	// ezpwd::serialize::base<16> -- transform individual characters between 4-bit binary and a base-16
+	// 
+	template < typename TABLES >
+	class base< 16, TABLES >
+	    : public base_generic< 16, TABLES > {
+	public:
+	    using base_generic< 16, TABLES >::encode;
+	    using base_generic< 16, TABLES >::decode;
+	    using base_generic< 16, TABLES >::gather_next;
+
+	    static constexpr size_t encode_size(
+				    size_t		len,
+				    pd_use_t	     /* pd_use */ = pd_invalid )
+	    {
+		return len * 2; // encoding base-16 always exactly doubles size
+	    }
+
+	    // 
+	    // base<16>::scatter -- distribute a range of input bytes to an output iterator in 4-bit chunks
+	    // 
+	    //     The same implementation is used for both random-access iterators, and for all
+	    // other forward iterators.
+	    // 
+	    template < typename I, typename O, typename iterator_tag >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t,			// ignored; never needs to pad
+				    iterator_tag )		// ignored
+	    {
+		while ( beg != end ) {
+		    int 	c0 	= *beg++;
+		    *out++ 		= char((c0 & 0xff) >> 4);
+		    *out++		= char((c0 & 0x0f));
+		}
+		return out;
+	    }
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		return scatter( beg, end, out, pd_use, typename std::iterator_traits<I>::iterator_category() );
+	    }
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter_standard(
+				    I			beg,
+				    I			end,
+				    O 			out )
+	    {
+		return scatter( beg, end, out, pd_enforce, typename std::iterator_traits<I>::iterator_category() );
+	    }
+
+	    // 
+	    // base<16>::gather -- collect 4-bit chunks into 8-bit characters
+	    // 
+	    //     If underflow occurs (not enough data collected to output complete last char), then an
+	    // exception will be raised.  However, if 'pad' is set, then output will automatically be
+	    // padded, flushing out any un-emitted data remaining in previous 4-bit base-16 symbol.
+	    // 
+	    //     For correct base-16 data produced by 'scatter', this will allow 'gather' to always
+	    // produce the identical output as was originally provided to 'scatter'.  However, if simply
+	    // truncated base-16 input is provided (eg. only 1 symbols of an 2-symbol 8-bit
+	    // base-16 group), then the final 8-bit symbol from the original data will be missing.
+	    // 
+	    template < typename I, typename O >
+	    static
+	    O			gather(
+				    I			beg,
+				    I			end,
+				    O			out,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		while ( beg != end ) {
+		    int		c0	= gather_next( beg, end, pd_use, 0 );
+		    int		c1	= gather_next( beg, end, pd_use, c0 );
+		    if ( c0 >= 0 and c1 >= 0 )
+			*out++		= ( ((c0 < 0 ? 0 : c0 ) << 4)
+					   | (c1 < 0 ? 0 : c1 ));
+		}
+		return out;
+	    }
+	    template < typename I, typename O >
+	    static
+	    O			gather_standard(
+				    I			beg,
+				    I			end,
+				    O			out )
+	    {
+		return gather( beg, end, out, pd_enforce );
+	    }
+	}; // ezpwd::base<16>
+
+	// 
+	// ezpwd::serialize::base16...
+	// 
+	//     Shortcut typedefs for the available base16 codec.
+	// 
+	typedef base< 16, hex< 16 >>
+				base16;
+	typedef base< 16, hex< 16 >>
+				base16_standard;
+
+
+	// 
+	// ezpwd::serialize::base<32> -- transform individual characters between 5-bit binary and a base-32
+	// 
+	//     The char values [0,32) are mapped by base<32>::encode onto something like
+	// 
+	//         0123456789ABCDEFGHJKLMNPQRTUVWXY 	TABLES=ezpwd<32> (default)
+	//         0123456789ABCDEFGHJKMNPQRSTVWXYZ 	TABLES=crockford<32>
+	//         ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 	TABLES=standard<32>
+	// 
+	// and base<32>::decode performs the inverse.  In addition to folding lower-case to
+	// upper-case, the following mappings occur in the ezpwd<32>::decoder table:
+	// 
+	//    O -> 0
+	//    Z -> 2
+	//    S -> 5
+	//    I -> 1
+	// 
+	//    B -> 8 could not be included due to the limited size of the capitalized alpha-numeric
+	// symbol pool, unfortunately, but the other substitutions were prioritized as they are
+	// more likely to occur in standard printed text.
+	// 
+	//    Any characters encountered outside [0,32) by encode and outside the above set by
+	// decode raise an exception, unless an erasure vector is provided, in which case we supply
+	// a 0 value and store the index of the invalid symbol in the vector.
+	//
+	template < typename TABLES >
+	class base< 32, TABLES >
+	    : public base_generic< 32, TABLES > {
+	public:
+	    using base_generic< 32, TABLES >::encode;
+	    using base_generic< 32, TABLES >::decode;
+	    using base_generic< 32, TABLES >::gather_next;
+
+	    static constexpr size_t encode_size(
+				    size_t		len,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		return ( pd_enforce == pd_use
+			 ? ( len + 4 ) / 5 * 8
+			 : ( len * 8 + 4 ) / 5 );
+	    }
+
+	    // 
+	    // base<32>::scatter -- distribute a range of input bytes to an output iterator in 5-bit chunks
+	    // 
+	    //     Separate implementation are provided for random-access iterators (with fewer
+	    // comparisons necessary) and for all other forward iterators.
+	    // 
+	    template < typename I, typename O, typename iterator_tag >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t		pd_use,
+				    iterator_tag )
+	    {
+		while ( beg != end ) {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 3);
+
+		    if ( beg == end ) {
+			*out++		= char((c0 & 0x07) << 2);
+			if ( pd_enforce == pd_use ) {
+			    *out++	= EOF;
+			    *out++	= EOF;
+			    *out++	= EOF;
+			    *out++	= EOF;
+			    *out++	= EOF;
+			    *out++	= EOF;
+			}
+			return out;
+		    }
+
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x07) << 2 | (c1 & 0xff) >> 6);
+		    *out++		= char((c1 & 0x3f) >> 1);
+
+		    if ( beg == end ) {
+			*out++		= char((c1 & 0x01) << 4);
+			if ( pd_enforce == pd_use ) {
+			    *out++	= EOF;
+			    *out++	= EOF;
+			    *out++	= EOF;
+			    *out++	= EOF;
+			}
+			return out;
+		    }
+
+		    int		c2	= *beg++;
+		    *out++		= char((c1 & 0x01) << 4 | (c2 & 0xff) >> 4);
+
+		    if ( beg == end ) {
+			*out++		= char((c2 & 0x0f) << 1);
+			if ( pd_enforce == pd_use ) {
+			    *out++	= EOF;
+			    *out++	= EOF;
+			    *out++	= EOF;
+			}
+			return out;
+		    }
+
+		    int		c3	= *beg++;
+		    *out++		= char((c2 & 0x0f) << 1 | (c3 & 0xff) >> 7);
+		    *out++		= char((c3 & 0x7f) >> 2);
+
+		    if ( beg == end ) {
+			*out++		= char((c3 & 0x03) << 3);
+			if ( pd_enforce == pd_use ) {
+			    *out++	= EOF;
+			}
+			return out;
+		    }
+
+		    int		 c4	= *beg++;
+		    *out++		= char((c3 & 0x03) << 3 | (c4 & 0xff) >> 5);
+		    *out++		= char((c4 & 0x1f));
+		}
+
+		return out;
+	    }
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t		pd_use,
+				    std::random_access_iterator_tag )
+	    {
+		while ( end - beg >= 5 ) {
+		    int 	c0 	= *beg++;
+		    *out++ 		= char((c0 & 0xff) >> 3);
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x07) << 2 | (c1 & 0xff) >> 6);
+		    *out++		= char((c1 & 0x3f) >> 1);
+		    int		c2	= *beg++;
+		    *out++		= char((c1 & 0x01) << 4 | (c2 & 0xff) >> 4);
+		    int		c3	= *beg++;
+		    *out++		= char((c2 & 0x0f) << 1 | (c3 & 0xff) >> 7);
+		    *out++		= char((c3 & 0x7f) >> 2);
+		    int		c4	= *beg++;
+		    *out++		= char((c3 & 0x03) << 3 | (c4 & 0xff) >> 5);
+		    *out++		= char((c4 & 0x1f));
+		}
+
+		switch ( end - beg ) {
+		case 4: {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 3);
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x07) << 2 | (c1 & 0xff) >> 6);
+		    *out++		= char((c1 & 0x3f) >> 1);
+		    int		c2	= *beg++;
+		    *out++		= char((c1 & 0x01) << 4 | (c2 & 0xff) >> 4);
+		    int		c3	= *beg++;
+		    *out++		= char((c2 & 0x0f) << 1 | (c3 & 0xff) >> 7);
+		    *out++		= char((c3 & 0x7f) >> 2);
+		    *out++		= char((c3 & 0x03) << 3);
+		    if ( pd_enforce == pd_use ) {
+			*out++		= EOF;
+		    }
+		    return out;
+		}
+		case 3: {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 3);
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x07) << 2 | (c1 & 0xff) >> 6);
+		    *out++		= char((c1 & 0x3f) >> 1);
+		    int		c2	= *beg++;
+		    *out++		= char((c1 & 0x01) << 4 | (c2 & 0xff) >> 4);
+		    *out++		= char((c2 & 0x0f) << 1);
+		    if ( pd_enforce == pd_use ) {
+			*out++		= EOF;
+			*out++		= EOF;
+			*out++		= EOF;
+		    }
+		    return out;
+		}
+		case 2: {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 3);
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x07) << 2 | (c1 & 0xff) >> 6);
+		    *out++		= char((c1 & 0x3f) >> 1);
+		    *out++		= char((c1 & 0x01) << 4);
+		    if ( pd_enforce == pd_use ) {
+			*out++		= EOF;
+			*out++		= EOF;
+			*out++		= EOF;
+			*out++		= EOF;
+		    }
+		    return out;
+		}
+		case 1: {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 3);
+		    *out++		= char((c0 & 0x07) << 2);
+		    if ( pd_enforce == pd_use ) {
+			*out++		= EOF;
+			*out++		= EOF;
+			*out++		= EOF;
+			*out++		= EOF;
+			*out++		= EOF;
+			*out++		= EOF;
+		    }
+		    return out;
+		}
+		default:
+		return out;
+		}
+	    }
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		return scatter( beg, end, out, pd_use, typename std::iterator_traits<I>::iterator_category() );
+	    }
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter_standard(
+				    I			beg,
+				    I			end,
+				    O 			out )
+	    {
+		return scatter( beg, end, out, pd_enforce, typename std::iterator_traits<I>::iterator_category() );
+	    }
+
+	    // 
+	    // base<32>::gather -- collect 5-bit chunks into 8-bit characters
+	    // 
+	    //     If underflow occurs (not enough data collected to output complete last char), then an
+	    // exception will be raised.  However, if 'pad' is set, then output will automatically be
+	    // padded, discarding any un-emitted data remaining in previous 5-bit base-32 symbols.
+	    // 
+	    //     For correct base-32 data produced by 'scatter', this will allow 'gather' to always
+	    // produce the identical output as was originally provided to 'scatter'.  However, if simply
+	    // truncated base-32 input is provided (eg. only 1, 3 or 5 symbols of an 8-symbol 40-bit
+	    // base-32 group), then the final 8-bit symbol from the original data will be missing.
+	    // 
+	    template < typename I, typename O >
+	    static
+	    O			gather(
+				    I			beg,
+				    I			end,
+				    O			out,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		while ( beg != end ) {
+		    int		c0	= gather_next( beg, end, pd_use, 0 );
+		    int		c1	= gather_next( beg, end, pd_use, c0 );
+		    if ( c0 >= 0 and c1 >= 0 )
+			*out++		= ( ((c0 < 0 ? 0 : c0 ) << 3)
+					   | (c1 < 0 ? 0 : c1 ) >> 2 );
+		    int		c2	= gather_next( beg, end, pd_use, c1 );
+		    int		c3 	= gather_next( beg, end, pd_use, c2 );
+		    if ( c1 >= 0 and c2 >= 0 and c3 >= 0 )
+			*out++ 		= ( ((c1 < 0 ? 0 : c1) & 0x03) << 6 
+					   | (c2 < 0 ? 0 : c2) << 1
+					   | (c3 < 0 ? 0 : c3) >> 4 );
+		    int		c4	= gather_next( beg, end, pd_use, c3 );
+		    if ( c3 >= 0 and c4 >= 0 )
+			*out++		= ( ((c3 < 0 ? 0 : c3) & 0x0f) << 4
+					   | (c4 < 0 ? 0 : c4) >> 1 );
+		    int		c5	= gather_next( beg, end, pd_use, c4 );
+		    int		c6	= gather_next( beg, end, pd_use, c5 );
+		    if ( c4 >=0 and c5 >= 0 and c6 >= 0 )
+			*out++		= ( ((c4 < 0 ? 0 : c4) & 0x01) << 7 
+					   | (c5 < 0 ? 0 : c5) << 2
+					   | (c6 < 0 ? 0 : c6) >> 3 );
+		    int		c7	= gather_next( beg, end, pd_use, c6 );
+		    if ( c6 >= 0 and c7 >= 0 )
+			*out++		= ( ((c6 < 0 ? 0 : c6 ) & 0x07) << 5 
+					   | (c7 < 0 ? 0 : c7 ));
+		}
+		return out;
+	    }
+	    template < typename I, typename O >
+	    static
+	    O			gather_standard(
+				    I			beg,
+				    I			end,
+				    O			out )
+	    {
+		return gather( beg, end, out, pd_enforce );
+	    }
+	}; // ezpwd::base<32>
+
+	// 
+	// ezpwd::serialize::base32...
+	// 
+	//     Shortcut typedefs for the available base32 codecs.
+	// 
+	typedef base< 32, ezpwd< 32 >>
+	    			base32;
+	typedef base< 32, hex< 32 >>
+	    			base32_hex;
+	typedef base< 32, serialize::standard< 32 >>
+				base32_standard;
+	typedef base< 32, crockford< 32 >>
+	    			base32_crockford;
+
+
+	// 
+	// ezpwd::serialize::base<64> -- transform individual characters between 6-bit binary and base-64
+	// 
+	//     The char values [0,64) are mapped by base64::encode onto either the
+	// standard or ezpwd (url-safe) tables:
+	// 
+	//         ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ -- RFC4648 standard
+	//         ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_ -- RFC4648 standard_url
+	//         ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+. -- ezpwd
+	// 
+	// and base<64>::decode performs the inverse (handles both standard and url-safe encodings).
+	// 
+	//    Any characters encountered outside [0,64) by encode and outside the above set
+	// by decode raise an exception.
+	// 
+	template < typename TABLES >
+	class base< 64, TABLES >
+	    : public base_generic< 64, TABLES > {
+	public:
+	    using base_generic< 64, TABLES >::encode;
+	    using base_generic< 64, TABLES >::decode;
+	    using base_generic< 64, TABLES >::gather_next;
+
+	    static constexpr size_t encode_size(
+				    size_t		len,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		return ( pd_enforce == pd_use
+			 ? ( len + 2 ) / 3 * 4
+			 : ( len * 4 + 2 ) / 3 );
+	    }
+
+	    // 
+	    // base<64>::scatter -- distribute a range of input bytes to an output iterator in 6-bit chunks
+	    // 
+	    template < typename I, typename O, typename iterator_tag >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t		pd_use,
+				    iterator_tag )
+	    {
+		while ( beg != end ) {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 2);
+
+		    if ( beg == end ) {
+			*out++		= char((c0 & 0x03) << 4);
+			if ( pd_enforce == pd_use ) {
+			    *out++	= EOF;
+			    *out++	= EOF;
+			}
+			return out;
+		    }
+
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x03) << 4 | (c1 & 0xff) >> 4);
+
+		    if ( beg == end ) {
+			*out++		= char((c1 & 0x0f) << 2);
+			if ( pd_enforce == pd_use ) {
+			    *out++	= EOF;
+			}
+			return out;
+		    }
+
+		    int		c2	= *beg++;
+		    *out++		= char((c1 & 0x0f) << 2 | (c2 & 0xff) >> 6);
+		    *out++		= char((c2 & 0x3f));
+		}
+
+		return out;
+	    }
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t		pd_use,
+				    std::random_access_iterator_tag )
+	    {
+		while ( end - beg >= 3 ) {
+		    int 	c0 	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 2);
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x03) << 4 | (c1 & 0xff) >> 4);
+		    int		c2	= *beg++;
+		    *out++		= char((c1 & 0x0f) << 2 | (c2 & 0xff) >> 6);
+		    *out++		= char((c2 & 0x3f));
+		}
+
+		switch ( end - beg ) {
+		case 2: {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 2);
+		    int		c1	= *beg++;
+		    *out++		= char((c0 & 0x03) << 4 | (c1 & 0xff) >> 4);
+		    *out++		= char((c1 & 0x0f) << 2);
+		    if ( pd_enforce == pd_use ) {
+			*out++		= EOF;
+		    }
+		    return out;
+		}
+		case 1: {
+		    int		c0	= *beg++;
+		    *out++		= char((c0 & 0xff) >> 2);
+		    *out++		= char((c0 & 0x03) << 4);
+		    if ( pd_enforce == pd_use ) {
+			*out++		= EOF;
+			*out++		= EOF;
+		    }
+		    return out;
+		}
+		default:
+		    return out;
+		}
+	    }
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter(
+				    I			beg,
+				    I			end,
+				    O 			out,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		return scatter( beg, end, out, pd_use, typename std::iterator_traits<I>::iterator_category() );
+	    }
+
+
+	    template < typename I, typename O >
+	    static
+	    O			scatter_standard(
+				    I			beg,
+				    I			end,
+				    O 			out )
+	    {
+		return scatter( beg, end, out, pd_enforce, typename std::iterator_traits<I>::iterator_category() );
+	    }
+
+	    // 
+	    // base<64>::gather -- collect 6-bit chunks into 8-bit characters
+	    // 
+	    template < typename I, typename O >
+	    static
+	    O			gather(
+				    I			beg,
+				    I			end,
+				    O			out,
+				    pd_use_t		pd_use	= pd_invalid )
+	    {
+		while ( beg != end ) {
+		    int		c0	= gather_next( beg, end, pd_use, 0 );
+		    int		c1	= gather_next( beg, end, pd_use, c0 );
+		    if ( c0 >= 0 and c1 >= 0 )
+			*out++		= ( ((c0 < 0 ? 0 : c0 ) << 2 )
+					   | (c1 < 0 ? 0 : c1 ) >> 4 );
+		    int		c2	= gather_next( beg, end, pd_use, c1 );
+		    if ( c1 >= 0 and c2 >= 0 )
+			*out++ 		= ( ((c1 < 0 ? 0 : c1) & 0x0f) << 4 
+				           | (c2 < 0 ? 0 : c2) >> 2 );
+		    int		c3	= gather_next( beg, end, pd_use, c2 );
+		    if ( c2 >= 0 and c3 >= 0 )
+			*out++		= ( ((c2 < 0 ? 0 : c2) & 0x03) << 6
+				           | (c3 < 0 ? 0 : c3));
+		}
+		return out;
+	    }
+	    template < typename I, typename O >
+	    static
+	    O			gather_standard(
+				    I			beg,
+				    I			end,
+				    O			out )
+	    {
+		return gather( beg, end, out, pd_enforce );
+	    }
+	}; // ezpwd::serialize::base<64>
+
+	// 
+	// ezpwd::serialize::base64...
+	// 
+	//     Shortcut typedefs for the standard base-64 codecs.
+	// 
+	typedef base< 64, ezpwd< 64 >>
+	    			base64;
+	typedef base< 64, standard< 64 >>
+				base64_standard;
+	typedef base< 64, standard_url< 64 >>
+				base64_standard_url;
+	typedef base< 64, uuencode< 64 >>
+	    			base64_uuencode;
+    } // namespace ezpwd::serialize
+
+} // namespace ezpwd
+
+#endif // _EZPWD_SERIALIZE

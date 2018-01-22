@@ -1,5 +1,4 @@
 /* -*- c++ -*- */
-
 /*
  * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Max H. Parke KA1RBI
  *
@@ -23,12 +22,13 @@
 #define INCLUDED_OP25_REPEATER_P25P1_FDMA_H
 
 #include <gnuradio/msg_queue.h>
-#include <sys/socket.h>
 #include <sys/time.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <deque>
 #include <math.h>
+#include "ezpwd/rs"
+
+#include "log_ts.h"
+#include "op25_audio.h"
 #include "../include/op25_repeater/rx_status.h"
 #include "p25_framer.h"
 #include "p25p1_voice_encode.h"
@@ -36,27 +36,33 @@
 
 namespace gr {
 namespace op25_repeater {
-class p25p1_fdma {
+    class p25p1_fdma
+    {
 private:
-
-  void init_sock(const char *udp_host,
-                 int         udp_port);
+	typedef std::vector<bool> bit_vector;
+	typedef std::array<uint8_t, 12> block_array;
+	typedef std::vector<block_array> block_vector;
 
   // internal functions
-  typedef std::vector<bool>bit_vector;
-  bool header_codeword(uint64_t  acc,
-                       uint32_t& nac,
-                       uint32_t& duid);
-  void proc_voice_unit(bit_vector& frame_body);
-  void process_duid(uint32_t const duid,
-                    uint32_t const nac,
-                    uint8_t const  buf[],
-                    int const      len);
+	bool header_codeword(uint64_t acc, uint32_t& nac, uint32_t& duid);
+	void process_duid(uint32_t const duid, uint32_t const nac, const uint8_t* buf, const int len);
+        void process_HDU(const bit_vector& A);
+        void process_LCW(std::vector<uint8_t>& HB);
+        void process_LLDU(const bit_vector& A, std::vector<uint8_t>& HB);
+        void process_LDU1(const bit_vector& A);
+        void process_LDU2(const bit_vector& A);
+        void process_TTDU();
+        void process_TDU15(const bit_vector& A);
+        void process_TDU3();
+	void process_TSBK(const bit_vector& fr, uint32_t fr_len);
+	void process_PDU(const bit_vector& fr, uint32_t fr_len);
+	void process_voice(const bit_vector& A);
+	int  process_blocks(const bit_vector& fr, uint32_t& fr_len, block_vector& dbuf);
+        inline bool encrypted() { return (ess_algid != 0x80); }
+	void send_msg(const std::string msg_str, long msg_type);
 
   // internal instance variables and state
   int write_bufp;
-  int write_sock;
-  struct sockaddr_in write_sock_addr;
   char write_buf[512];
   const char *d_udp_host;
   int  d_sys_num;
@@ -65,6 +71,8 @@ private:
   bool d_do_imbe;
   bool d_do_output;
   bool d_do_msgq;
+	bool d_do_audio_output;
+  bool d_do_nocrypt;
   Rx_Status rx_status;
   double error_history[20];
   gr::msg_queue::sptr  d_msg_queue;
@@ -72,31 +80,30 @@ private:
   p25_framer *framer;
   long curr_src_id;
   struct timeval last_qtime;
-  bool d_do_audio_output;
   p25p1_voice_decode p1voice_decode;
+        const op25_audio& op25audio;
+	log_ts logts;
 
-public:
+        ezpwd::RS<63,55> rs8;  // Reed-Solomon decoders for 8, 12 and 16 bit parity
+        ezpwd::RS<63,51> rs12;
+        ezpwd::RS<63,47> rs16;
 
-  long get_curr_src_id();
-  void rx_sym(const uint8_t *syms,
-              int            nsyms);
-  p25p1_fdma(int                  sys_num,
-             const char          *udp_host,
-             int                  port,
-             int                  debug,
-             bool                 do_imbe,
-             bool                 do_output,
-             bool                 do_msgq,
-             gr::msg_queue::sptr  queue,
-             std::deque<int16_t>& output_queue,
-             bool                 do_audio_output);
-  ~p25p1_fdma();
-  void clear();
-  void reset_rx_status();
+        uint8_t  ess_keyid;
+        uint16_t ess_algid;
+	uint8_t  ess_mi[9] = {0};
+	uint16_t vf_tgid;
+
+     public:
   void reset_timer();
-  Rx_Status get_rx_status();
-  // Where all the action really happens
+	void rx_sym (const uint8_t *syms, int nsyms);
+        p25p1_fdma(int sys_num, const op25_audio& udp, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, bool do_nocrypt);
+       ~p25p1_fdma();
 
+  // Where all the action really happens
+  long get_curr_src_id();
+  void reset_rx_status();
+  Rx_Status get_rx_status();
+  void clear();
   int general_work(int                        noutput_items,
                    gr_vector_int            & ninput_items,
                    gr_vector_const_void_star& input_items,

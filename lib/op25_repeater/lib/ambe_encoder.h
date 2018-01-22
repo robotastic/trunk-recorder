@@ -28,6 +28,8 @@ public:
 	ambe_encoder(void);
 	void set_49bit_mode(void);
 	void set_dstar_mode(void);
+	void set_gain_adjust(const float gain_adjust) {d_gain_adjust = gain_adjust;}
+	void set_alt_dstar_interleave(const bool v) { d_alt_dstar_interleave = v; }
 private:
 	imbe_vocoder vocoder;
 	p25p2_vf interleaver;
@@ -36,6 +38,7 @@ private:
 	bool d_49bit_mode;
 	bool d_dstar_mode;
 	float d_gain_adjust;
+	bool d_alt_dstar_interleave;
 };
 
 #endif /* INCLUDED_AMBE_ENCODER_H */
