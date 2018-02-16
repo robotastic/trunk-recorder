@@ -251,7 +251,7 @@ p25p1_fdma::process_duid(uint32_t const duid, uint32_t const nac, const uint8_t*
 		memcpy(&wbuf[p], buf, len);	// copy data
 		p += len;
 	}
-	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, 0, 0);
+	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, p), duid, d_sys_num, 0);
 	d_msg_queue->insert_tail(msg);
 	gettimeofday(&last_qtime, 0);
 }
@@ -690,7 +690,7 @@ void p25p1_fdma::send_msg(const std::string msg_str, long msg_type)
 	if (!d_do_msgq || d_msg_queue->full_p())
 		return;
 
-	gr::message::sptr msg = gr::message::make_from_string(msg_str, msg_type, 0, 0);
+	gr::message::sptr msg = gr::message::make_from_string(msg_str, msg_type, d_sys_num, 0);
 	d_msg_queue->insert_tail(msg);
 }
 
@@ -739,7 +739,7 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 			size_t obuf_ct = 0;
 			uint8_t obuf[P25_VOICE_FRAME_SIZE/2];
 			for (uint32_t i = 0; i < framer->frame_size; i += 8) {
-				uint8_t b = 
+				uint8_t b =
 					(framer->frame_body[i+0] << 7) +
 					(framer->frame_body[i+1] << 6) +
 					(framer->frame_body[i+2] << 5) +
