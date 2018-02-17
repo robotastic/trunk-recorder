@@ -333,7 +333,14 @@ void Source::print_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "[ D" << rx->get_num() << " ] State: " << FormatState(rx->get_state());
+  }
+
+  for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin();
+       it != analog_recorders.end(); it++) {
+    analog_recorder_sptr rx = *it;
+
+    BOOST_LOG_TRIVIAL(info) << "[ A" << rx->get_num() << " ] State: " << FormatState(rx->get_state());
   }
 }
 
