@@ -710,26 +710,64 @@ void current_system_status(TrunkMessage message, System *sys) {
   }
 }
 
-void unit_registration(long unit) {}
+void unit_registration(long unit) {
+  unit_affiliations[unit] = 0;
+
+  /* char   shell_command[200];
+  sprintf(shell_command, "radiochange.sh %li on &", unit);
+  system(shell_command);
+  int rc = system(shell_command); */
+
+}
 
 void unit_deregistration(long unit) {
-  std::map<long, long>::iterator it;
+  /* std::map<long, long>::iterator it;
 
   it = unit_affiliations.find(unit);
 
   if (it != unit_affiliations.end()) {
-    unit_affiliations.erase(it);
+    unit_affiliations.erase(it); */
+
+  unit_affiliations[unit] = -1;
+
+  /* char   shell_command[200];
+  sprintf(shell_command, "radiochange.sh %li off &", unit);
+  system(shell_command);
+  int rc = system(shell_command); */
+  }
+
+  }
+}
+
+void unit_ack(long unit) {
+  /* char   shell_command[200];
+    sprintf(shell_command, "radiochange.sh %li ackresp &", unit);
+    system(shell_command);
+    int rc = system(shell_command); */
   }
 }
 
 void group_affiliation(long unit, long talkgroup) {
   unit_affiliations[unit] = talkgroup;
+
+  /* char   shell_command[200];
+  sprintf(shell_command, "radiochange.sh %li %li &", unit, talkgroup);
+  system(shell_command);
+  int rc = system(shell_command); */
+
 }
 
 void handle_call(TrunkMessage message, System *sys) {
   bool call_found        = false;
   bool call_retune       = false;
   bool recording_started = false;
+
+  unit_affiliations[message.source] = message.talkgroup;
+
+  /* char   shell_command[200];
+  sprintf(shell_command, "radiochange.sh %li %li &", unit, talkgroup);
+  system(shell_command);
+  int rc = system(shell_command); */
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
@@ -802,7 +840,7 @@ void unit_check() {
 
   std::stringstream path_stream;
 
-  path_stream << boost::filesystem::current_path().string() <<  "/" << 1900 +  ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  path_stream << config.capture_dir; //<< boost::filesystem::current_path().string() <<  "/" << 1900 +  ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
 
   boost::filesystem::create_directories(path_stream.str());
 
@@ -811,25 +849,22 @@ void unit_check() {
     talkgroup_totals[it->second]++;
   }
 
-  sprintf(unit_filename, "%s/%ld-unit_check.json", path_stream.str().c_str(), starttime);
+  sprintf(unit_filename, "%s/radiolist.json", path_stream.str().c_str());
 
   ofstream myfile(unit_filename);
 
-  if (myfile.is_open())
-  {
-    myfile << "{\n";
-    myfile << "\"talkgroups\": {\n";
-
-    for (it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
-      if (it != talkgroup_totals.begin()) {
+  if (myfile.is_open()) {
+    myfile << "{";
+    for (it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
+      if (it != unit_affiliations.begin()) {
         myfile << ",\n";
       }
-      myfile << "\"" << it->first << "\": " << it->second;
+      myfile << "\"" << it->first << "\":" << it->second;
     }
-    myfile << "\n}\n}\n";
-    sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-    system(shell_command);
+    //sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
+    //system(shell_command);
     //int rc = system(shell_command);
+    myfile << "}";
     myfile.close();
   }
 }
@@ -864,6 +899,10 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
 
     case STATUS:
       current_system_status(message, sys);
+      break;
+
+    case ACKRESP:
+      unit_ack(message.source);
       break;
 
     case UNKNOWN:
@@ -1034,6 +1073,7 @@ void monitor_messages() {
     if (statusTimeDiff > 200) {
       lastStatusTime = currentTime;
       print_status();
+      unit_check();
     }
   }
 }
@@ -1187,7 +1227,7 @@ int main(int argc, char **argv)
   signal(SIGINT, exit_interupt);
   logging::core::get()->set_filter
   (
-    logging::trivial::severity >= logging::trivial::info
+    logging::trivial::severity >= logging::trivial::debug //should be a config option
 
   );
 
