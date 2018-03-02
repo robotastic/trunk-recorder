@@ -31,6 +31,7 @@
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/pwr_squelch_ff.h>
 
+#include <gnuradio/blocks/float_to_short.h>
 
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 
@@ -40,8 +41,8 @@ class analog_recorder;
 
 #include "recorder.h"
 #include "../config.h"
-#include "../../gr_blocks/nonstop_wavfile_sink.h"
-#include "../../gr_blocks/freq_xlating_fft_filter.h"
+#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/freq_xlating_fft_filter.h>
 
 
 typedef boost::shared_ptr<analog_recorder>analog_recorder_sptr;
@@ -61,8 +62,7 @@ public:
 
   ~analog_recorder();
   void    tune_offset(double f);
-  void    start(Call *call,
-                int   n);
+  void    start(Call *call);
   void    stop();
   double  get_freq();
   Source* get_source();
@@ -71,9 +71,10 @@ public:
   char  * get_filename();
   double  get_current_length();
   bool    is_active();
-
+  bool    is_analog();
   bool    is_idle();
   State   get_state();
+  int     get_num();
   int     lastupdate();
   long    elapsed();
   static bool logging;
@@ -123,6 +124,8 @@ void calculate_iir_taps(double tau);
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::analog::pwr_squelch_ff::sptr squelch_two;
   gr::analog::quadrature_demod_cf::sptr demod;
+  gr::blocks::float_to_short::sptr converter;
+
 
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;

@@ -41,7 +41,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
@@ -54,7 +54,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double arb_rate  = (double(system_channel_rate) / resampled_rate);
   double arb_size  = 32;
   double arb_atten = 100;
-
+  BOOST_LOG_TRIVIAL(info) <<  "\t P25 Trunking - SysNum: " << sys_num;
   BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
   // Create a filter that covers the full bandwidth of the output signal
@@ -134,7 +134,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   bool do_msgq               = 1;
   bool do_audio_output       = 0;
   bool do_tdma               = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, wireshark_host, udp_port, verbosity, do_imbe, do_output, idle_silence, do_msgq, rx_queue, do_audio_output, do_tdma);
+  bool do_crypt              = 0;
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, idle_silence, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
 
   if (!qpsk_mod) {
     connect(self(),        0, prefilter,            0);

@@ -1,5 +1,5 @@
 #include "config.h"
-
+#include "formatter.h"
 /**
  * Method name: load_config()
  * Description: <#description#>
@@ -120,6 +120,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
     config.log_file = pt.get<bool>("logFile", false);
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
+    BOOST_LOG_TRIVIAL(info) << "Control channel rate warning: " << config.control_message_warn_rate;
 
 
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
@@ -195,8 +197,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       }
 
       Source *source = new Source(center, rate, error, driver, device, &config);
-      BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
-      BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
+      BOOST_LOG_TRIVIAL(info) << "Max HZ: " << FormatFreqHz(source->get_max_hz());
+      BOOST_LOG_TRIVIAL(info) << "Min HZ: " << FormatFreqHz(source->get_min_hz());
 
       if (if_gain != 0) {
         source->set_if_gain(if_gain);

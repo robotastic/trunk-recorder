@@ -1,7 +1,10 @@
 #include "source.h"
+#include "formatter.h"
+#include "recorders/p25conventional_recorder.h"
 
-int Source::rec_num = 0;
 
+
+static int src_counter=0;
 
 void Source::set_antenna(std::string ant)
 {
@@ -100,7 +103,11 @@ void Source::set_mix_gain(int b)
 
 int Source::get_mix_gain() {
   if (driver == "osmosdr") {
-    mix_gain = cast_to_osmo_sptr(source_block)->get_gain("MIX", 0);
+    try {
+      mix_gain = cast_to_osmo_sptr(source_block)->get_gain("MIX", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "MIX Gain unsupported or other error: " << e.what();
+    }
   }
   return mix_gain;
 }
@@ -116,7 +123,11 @@ void Source::set_lna_gain(int b)
 
 int Source::get_lna_gain() {
   if (driver == "osmosdr") {
-    lna_gain = cast_to_osmo_sptr(source_block)->get_gain("LNA", 0);
+    try {
+      lna_gain = cast_to_osmo_sptr(source_block)->get_gain("LNA", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "LNA Gain unsupported or other error: " << e.what();
+    }
   }
   return lna_gain;
 }
@@ -192,9 +203,9 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb)
     return log;
 }
 
-p25_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb) {
+p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen) {
 
-    p25_recorder_sptr log = make_p25_recorder(this);
+    p25conventional_recorder_sptr log = make_p25conventional_recorder(this, delayopen);
 
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
@@ -238,7 +249,6 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
   for (int i = 0; i < max_digital_recorders; i++) {
     p25_recorder_sptr log = make_p25_recorder(this);
-    log->num = rec_num++;
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
   }
@@ -278,7 +288,7 @@ void Source::print_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state());
   }
 }
 
@@ -292,6 +302,21 @@ void Source::tune_digital_recorders() {
     }
   }
 }
+
+int Source::digital_recorder_count() {
+  return digital_recorders.size();
+}
+
+int Source::analog_recorder_count() {
+  return analog_recorders.size();
+}
+
+int Source::debug_recorder_count() {
+  return debug_recorders.size();
+}
+int Source::get_num() {
+  return src_num;
+};
 
 int Source::get_num_available_recorders() {
   int num_available_recorders = 0;
@@ -338,7 +363,7 @@ Recorder * Source::get_digital_recorder(int priority)
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << rx->get_state() << " Freq: " << rx->get_freq();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state()) << " Freq: " << rx->get_freq();
   }
   return NULL;
 }
@@ -361,6 +386,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   driver = drv;
   device = dev;
   config = cfg;
+  gain = 0;
+  lna_gain = 0;
+  mix_gain = 0;
+  if_gain = 0;
+  src_num = src_counter++;
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;
@@ -383,11 +413,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
       osmo_src = osmosdr::source::make(msg.str());
     }
     BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
-    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
+    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
     osmo_src->set_sample_rate(rate);
     actual_rate = osmo_src->get_sample_rate();
-    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
-    BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
+    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
+    BOOST_LOG_TRIVIAL(info) << "Tunning to " <<  FormatFreq(center + error);
     osmo_src->set_center_freq(center + error, 0);
     gain_names = osmo_src->get_gain_names();
     std::string gain_list;
@@ -420,14 +450,36 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
     BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE USRP (UHD)";
 
-    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << rate;
+    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
     usrp_src->set_samp_rate(rate);
     actual_rate = usrp_src->get_samp_rate();
-    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
-    BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
+    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
+    BOOST_LOG_TRIVIAL(info) << "Tunning to " << FormatFreq(center + error);
     usrp_src->set_center_freq(center + error, 0);
 
 
     source_block = usrp_src;
   }
+}
+
+std::vector<Recorder *> Source::get_recorders()
+{
+
+  std::vector<Recorder *> recorders;
+
+   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
+      p25_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+
+    for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
+      analog_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+
+    for (std::vector<debug_recorder_sptr>::iterator it = debug_recorders.begin(); it != debug_recorders.end(); it++) {
+      debug_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+  return recorders;
 }
