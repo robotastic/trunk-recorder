@@ -217,8 +217,16 @@ if (x.size()<3) {
 
 
   if (is_chan(stack[0].cmd, system) && stack[0].grp && getfreq(stack[0].cmd, system)) {
-    message.talkgroup = stack[0].full_address;
+    message.talkgroup = stack[0].address;
     message.freq      = getfreq(stack[0].cmd, system);
+
+    if ((stack[0].status == 2) || (stack[0].status == 4) || (stack[0].status == 5)) {
+      message.emergency = true;
+    } else if (stack[0].status == 3) {
+      // Patched call
+    } else if (stack[0].status >= 8) { // Ignore DES Encryption
+      message.encrypted = true;
+    }
 
     if ((stack[1].cmd == 0x308) || (stack[1].cmd == 0x321)) {
       //cout << "NEW GRANT!! CMD1: " << fixed << hex << stack[1].cmd << " 0add: " << dec <<  stack[0].address << " 0full_add: " << stack[0].full_address  << " 1add: " << stack[1].address << " 1full_add: " << stack[1].full_address  << endl;
