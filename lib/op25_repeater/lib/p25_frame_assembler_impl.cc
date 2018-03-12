@@ -44,7 +44,7 @@ void p25_frame_assembler_impl::p25p2_queue_msg(int duid)
 		return;
 	if (d_msg_queue->full_p())
 		return;
-	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, 2), duid, 0, 0);
+	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, 2), duid, d_sys_num, 0);
   d_msg_queue->insert_tail(msg);
 }
 

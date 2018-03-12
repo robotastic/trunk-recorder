@@ -103,7 +103,11 @@ void Source::set_mix_gain(int b)
 
 int Source::get_mix_gain() {
   if (driver == "osmosdr") {
-    mix_gain = cast_to_osmo_sptr(source_block)->get_gain("MIX", 0);
+    try {
+      mix_gain = cast_to_osmo_sptr(source_block)->get_gain("MIX", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "MIX Gain unsupported or other error: " << e.what();
+    }
   }
   return mix_gain;
 }
@@ -119,7 +123,11 @@ void Source::set_lna_gain(int b)
 
 int Source::get_lna_gain() {
   if (driver == "osmosdr") {
-    lna_gain = cast_to_osmo_sptr(source_block)->get_gain("LNA", 0);
+    try {
+      lna_gain = cast_to_osmo_sptr(source_block)->get_gain("LNA", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "LNA Gain unsupported or other error: " << e.what();
+    }
   }
   return lna_gain;
 }
