@@ -84,7 +84,9 @@ Here are the different arguments:
    - **ifGain** - [hackrf only] sets the if gain.
    - **bbGain** - [hackrf only] sets the bb gain.
    - **mixGain** - [AirSpy only] sets the mix gain.
-   - **lnaGain** - [AirSpy only] sets the lna gain.
+   - **lnaGain** - [AirSpy/bladeRF only] sets the lna gain.
+   - **vga1Gain** - [bladeRF only] sets the vga1 gain.
+   - **vga2Gain** - [bladeRF only] sets the vga2 gain.
    - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
    - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 8.
