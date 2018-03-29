@@ -26,7 +26,7 @@ Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04), Arch Linu
 * [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
 * [Arch Linux](https://github.com/robotastic/trunk-recorder/wiki/Arch-Linux)
 * [macOS](https://github.com/robotastic/trunk-recorder/wiki/macOS)
-* [Raspberry Pi - Jessie](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Jessie-Install)
+* [Raspberry Pi Stretch Install](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Stretch-Install)
 
 ### Building
 * [Building Trunk Recorder](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder)
