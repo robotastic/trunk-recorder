@@ -973,7 +973,6 @@ void monitor_messages() {
 
 
   while (1) {
-    currentTime = time(NULL);
 
     if (exit_flag) { // my action when signal set it 1
       printf("\n Signal caught!\n");
@@ -986,13 +985,6 @@ void monitor_messages() {
 
     // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
-
-
-    if ((currentTime - lastTalkgroupPurge) >= 1.0)
-    {
-      stop_inactive_recorders();
-      lastTalkgroupPurge = currentTime;
-    }
 
     if (msg != 0) {
       sys_num = msg->arg1();
@@ -1020,8 +1012,20 @@ void monitor_messages() {
 
       msg.reset();
     } else {
+      currentTime = time(NULL);
+
+      if ((currentTime - lastTalkgroupPurge) >= 1.0)
+      {
+        stop_inactive_recorders();
+        lastTalkgroupPurge = currentTime;
+      }
+
       usleep(1000 * 10);
     }
+
+
+    currentTime = time(NULL);
+
     float timeDiff = currentTime - lastMsgCountTime;
 
     if (timeDiff >= 3.0) {
