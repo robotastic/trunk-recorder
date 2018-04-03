@@ -132,6 +132,46 @@ int Source::get_lna_gain() {
   return lna_gain;
 }
 
+void Source::set_vga1_gain(int b)
+{
+  if (driver == "osmosdr") {
+    vga1_gain = b;
+    cast_to_osmo_sptr(source_block)->set_gain(vga1_gain, "VGA1", 0);
+    BOOST_LOG_TRIVIAL(info) << "VGA1 Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("VGA1");
+  }
+}
+
+int Source::get_vga1_gain() {
+  if (driver == "osmosdr") {
+    try {
+      vga1_gain = cast_to_osmo_sptr(source_block)->get_gain("VGA1", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "VGA1 Gain unsupported or other error: " << e.what();
+    }
+  }
+  return vga1_gain;
+}
+
+void Source::set_vga2_gain(int b)
+{
+  if (driver == "osmosdr") {
+    vga2_gain = b;
+    cast_to_osmo_sptr(source_block)->set_gain(vga2_gain, "VGA2", 0);
+    BOOST_LOG_TRIVIAL(info) << "VGA2 Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("VGA2");
+  }
+}
+
+int Source::get_vga2_gain() {
+  if (driver == "osmosdr") {
+    try {
+      vga2_gain = cast_to_osmo_sptr(source_block)->get_gain("VGA2", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "VGA2 Gain unsupported or other error: " << e.what();
+    }
+  }
+  return vga2_gain;
+}
+
 void Source::set_bb_gain(int b)
 {
   if (driver == "osmosdr") {
