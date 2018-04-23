@@ -67,6 +67,8 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
     source_node.put("error",             source->get_error());
     source_node.put("mix_gain",          source->get_mix_gain());
     source_node.put("lna_gain",          source->get_lna_gain());
+    source_node.put("vga1_gain",         source->get_vga1_gain());
+    source_node.put("vga2_gain",         source->get_vga2_gain());
     source_node.put("bb_gain",           source->get_bb_gain());
     source_node.put("gain",              source->get_gain());
     source_node.put("if_gain",           source->get_if_gain());

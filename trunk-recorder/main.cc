@@ -303,6 +303,8 @@ void load_config(string config_file)
       int    bb_gain        = node.second.get<double>("bbGain", 0);
       int    mix_gain       = node.second.get<double>("mixGain", 0);
       int    lna_gain       = node.second.get<double>("lnaGain", 0);
+      int    vga1_gain      = node.second.get<double>("vga1Gain", 0);
+      int    vga2_gain      = node.second.get<double>("vga2Gain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 1.0);
       double analog_levels  = node.second.get<double>("analogLevels", 8.0);
@@ -331,6 +333,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
       BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<double>("lnaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
+      BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
@@ -382,6 +386,15 @@ void load_config(string config_file)
       if (lna_gain != 0) {
         source->set_lna_gain(lna_gain);
       }
+
+      if (vga1_gain != 0) {
+        source->set_vga1_gain(vga1_gain);
+      }
+
+      if (vga2_gain != 0) {
+        source->set_vga2_gain(vga2_gain);
+      }
+
       source->set_gain_mode(agc);
       source->set_gain(gain);
       source->set_antenna(antenna);
@@ -976,7 +989,6 @@ void monitor_messages() {
 
 
   while (1) {
-    currentTime = time(NULL);
 
     if (exit_flag) { // my action when signal set it 1
       printf("\n Signal caught!\n");
@@ -989,13 +1001,6 @@ void monitor_messages() {
 
     // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
-
-
-    if ((currentTime - lastTalkgroupPurge) >= 1.0)
-    {
-      stop_inactive_recorders();
-      lastTalkgroupPurge = currentTime;
-    }
 
     if (msg != 0) {
       sys_num = msg->arg1();
@@ -1023,8 +1028,20 @@ void monitor_messages() {
 
       msg.reset();
     } else {
+      currentTime = time(NULL);
+
+      if ((currentTime - lastTalkgroupPurge) >= 1.0)
+      {
+        stop_inactive_recorders();
+        lastTalkgroupPurge = currentTime;
+      }
+
       usleep(1000 * 10);
     }
+
+
+    currentTime = time(NULL);
+
     float timeDiff = currentTime - lastMsgCountTime;
 
     if (timeDiff >= 3.0) {

@@ -32,6 +32,8 @@ class Source
 								int if_gain;
 								int lna_gain;
 								int mix_gain;
+								int vga1_gain;
+								int vga2_gain;
 								int max_digital_recorders;
 								int max_debug_recorders;
 								int max_analog_recorders;
@@ -86,6 +88,10 @@ public:
 								int get_mix_gain();
 								void set_lna_gain(int b);
 								int get_lna_gain();
+								void set_vga1_gain(int b);
+								int get_vga1_gain();
+								void set_vga2_gain(int b);
+								int get_vga2_gain();
 								void set_freq_corr(double p);
 								void print_recorders();
 								void tune_digital_recorders();
