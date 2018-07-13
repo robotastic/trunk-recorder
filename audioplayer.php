@@ -1,125 +1,170 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
 <?php 
-date_default_timezone_set('America/Los_Angeles');
-$m=date('Y')."-".date('n'); $d=date('j'); $tgs="ALL";
-parse_str(str_replace("&amp;","&",$_SERVER['QUERY_STRING']), $pagequery);
-if (isset($pagequery['m']))
-        $m = $pagequery['m'];
-else
-        $m=date('Y')."-".date('n');
-if (isset($pagequery['d']))
-        $d = $pagequery['d'];
-else
-        $d=date('j');
-if (isset($pagequery['tgs']))
-        $tgs = $pagequery['tgs'];
-else
-        $tgs="ALL";
+$TGS = [
+    1767 => 'Example1',
+    1777 => 'Example2'
+];
 
-$dir = str_replace("-","/",$m)."/".$d."/";
+$MHz = function (float $MHz): string {
+    switch (TRUE)
+    {
+        case $MHz >= 136 AND $MHz <= 174:
+            return 'bg-primary';
+        case $MHz >= 380 AND $MHz <= 520:
+            return 'bg-danger';
+        case $MHz >= 764 AND $MHz <= 870:
+            return 'bg-warning';
+        case $MHz >= 896 AND $MHz <= 901:
+        case $MHz >= 935 AND $MHz <= 940:
+            return 'bg-success';
+        default:
+            return 'null';
+    }
+};
 
-echo "<base id=\"myBase\" href=\"".$dir."\">";
+$files     = [];
+$date      = (isset($_GET['date'])) ? new DateTimeImmutable($_GET['date']) : new DateTimeImmutable();
+$TG        = (empty($_GET['TG'])) ? NULL : $_GET['TG'];
 
-$talkgroups = array('ALL'=>"ALL", 1767=>"Example1", 1777=>"Example2")
-?>
-<meta charset="UTF-8">
-<title>Trunk Recorder audio player</title>
-<script>
-	var audio;
-	var playlist;
-	var debug;
-	var playlist_index;
-	function init() { 
-		playlist_index = 0;
-		audio = document.getElementById('audio');
-		playlist = document.getElementById('playlist');
-		debug = document.getElementById('debug');
-                //document.getElementById("myBase").href = "<?php echo $dir; ?>";
-		audio.volume = 0.2;
+try  {
+    $path = new DirectoryIterator('./audio/' . $date->format('Y/n/j') . '/');
 
-		playlist.addEventListener('click',function (e) {
-			//e.preventDefault();
-			var mp3File = e.target.parentElement.getElementsByTagName('a')[0];
-			for (var i=0; i<playlist.getElementsByTagName("a").length; i++) {
-			if (playlist.getElementsByTagName("a")[i] == mp3File) {
-				playlist.getElementsByTagName("div")[playlist_index].style.fontWeight = "normal";
-				playlist_index = i; playlist.getElementsByTagName("div")[i].style.fontWeight = "bold";
-				var sources = document.getElementsByTagName('source');
-				sources[0].setAttribute('src',mp3File);
-				audio.load();
-				audio.play();
-			} }
-		}, false);
+    if (!$path->isDir())
+        throw new Exception('No directory found for that date.');
 
-		audio.addEventListener('ended',function () { 
-		if(playlist_index != (playlist.getElementsByTagName('div').length - 1)){
-			playlist.getElementsByTagName("div")[playlist_index].style.fontWeight = "normal";
-			playlist_index++;
-			var mp3link = playlist.getElementsByTagName('div')[playlist_index];
-			var mp3File = mp3link.getElementsByTagName('a')[0];
-			var sources = document.getElementsByTagName('source');
-			sources[0].setAttribute('src',mp3File);
-			playlist.getElementsByTagName("div")[playlist_index].style.fontWeight = "bold";
-			audio.load();
-			audio.play();
-		}
-		}, false);
-	
-	}
-	window.onload=init;
-</script><style>span {padding-right: 10px; display: table-cell; max-width: 550px;}</style>
-<body style="font-family: Arial;" ><div style="position:fixed; background: white; top: 0; width: 100%;">
-<h1><?php if (isset($talkgroups[$tgs]) && ($tgs != "ALL)) echo $talkgroups[$tgs]; 
-	else echo "Radio calls" ?> on <?php echo substr($m,5)."/".$d."/".substr($m,0,4); ?></h1>
-<form>Change: Month: <select name="m">
-<?php foreach (glob("2*/*", GLOB_ONLYDIR) as $mon) {
-	echo '<option value="'.str_replace("/","-",$mon).'"';
-	if ($mon == str_replace("-","/",$m)) echo ' selected="selected"';
-	echo '>'.$mon.'</option>
-'; }
-unset ($mon);
-echo '</select> Day: <select name="d">';
-for ($x = 1; $x <= 31; $x++) {
-	echo '<option value="'.$x.'"';
-	if ($x == $d) echo ' selected="selected"';
-	echo '>'.$x.'</option>
-'; }
-unset($x);
-echo '</select> Channel(s): <select name="tgs">';
+    foreach ($path as $file)
+    {
+        $EXT = '.' . $file->getExtension();
+        if ($EXT != '.m4a')
+            continue;
 
-foreach ($talkgroups as $thistg => $thisvalue) {
-	echo '<option value="'.$thistg.'"';
-	if ($tgs == $thistg) echo ' selected="selected"';
-	echo '>'.$thisvalue.'</option>
-';
+        $Basename = $file->getBasename($EXT);
+        # Probably a Me Bug ...
+        if (strlen($Basename) < 20)
+            continue;
+
+        [$TGID, $TIME, $FREQ] = preg_split('/[-_]/', $Basename);
+        substr($FREQ, 0, -4);
+        if ($TGID != $TG AND $TG !== NULL)
+            continue;
+
+        $files[$file->getMTime()] = [$file->getFilename(), $file->getSize(), $TGID, $TIME, $FREQ];
+    }
+
+    ksort($files);
+
+} catch (Exception $e) {
+    $error = $e->getMessage();
 }
-unset($thistg); ?>
-</select> <input type="submit" value="Go"></form>
 
-	<audio id="audio" preload="none" tabindex="0" controls>
-		<source type="audio/wav" src="http://www.lalarm.com/en/images/silence.wav" />
-		Sorry, your browser does not support HTML5 audio.
-	</audio></div>
 
-        <p style="font-weight: bold; margin-top: 150px;">Click on a row to begin sequential playback, click file size to download</p>
-
-	<div id="playlist" style="display: table;">
-<?php
-if (file_exists($dir)) {
-chdir($dir);
-foreach (glob("*.wav") as $file) {
-  $exploded = explode("-",str_replace("_","-",substr($file,0,-4)));
-  if (($exploded[0] == $tgs) || ($tgs == "ALL")) {
-    echo "<div style=\"display: table-row;\"><span>";
-    echo date("H:i:s",$exploded[1])."</span><span>";
-    if (isset($talkgroups[$exploded[0]])) echo $talkgroups[$exploded[0]]; else echo $exploded[0];
-    echo "</span><span>";
-    echo sprintf($exploded[2]/1000000)."</span><span><a href=\"" . $file . "\">".round(filesize($file) / 1024)."k</a></span></div>
-"; } } }
-else echo "Pick a different date";
 ?>
-	</div>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Trunk Player</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <script>
+                window.onload = function () { 
+                    var index = 0,
+                      sources = document.getElementsByTagName('source')[0],
+                        audio = document.getElementsByTagName('audio')[0],
+                         list = document.getElementsByTagName('tbody')[0];
 
-</body></html>
+                    list.addEventListener('click', function (e) {
+                        var mp3File = e.target.parentElement.getElementsByTagName('a')[0];
+                        for (var item = 0; item < list.getElementsByTagName("a").length; item++) {
+                            if (list.getElementsByTagName("a")[item] == mp3File) {
+                                list.getElementsByTagName("tr")[index].classList.toggle("text-attention");
+                                index = item;   // Update the index to the item we clicked on.
+                                list.getElementsByTagName("tr")[index].classList.toggle("text-attention");
+                                sources.setAttribute('src', mp3File);
+                                audio.load();
+                                audio.play();
+                            }
+                        }
+                    }, false);
+
+                    audio.addEventListener('ended',function () {
+                        if (index == (list.getElementsByTagName('tr').length - 1))
+                            return;
+
+                        list.getElementsByTagName("tr")[index].classList.toggle("text-attention");
+                        index++;
+                        var mp3File = list.getElementsByTagName('tr')[index].getElementsByTagName('a')[0];
+                        sources.setAttribute('src', mp3File);
+                        list.getElementsByTagName("tr")[index].classList.toggle("text-attention");
+                        audio.load();
+                        audio.play();
+                    }, false);
+                }
+            </script>
+            <style>
+                #interface {
+                    width: 100%;
+                }
+            </style>
+            <div id="interface">
+                <h1><?=(isset($TGS[$TG]) AND ($TG !== NULL)) ? $TGS[$TG] : "All Calls"?> on <?=$date->format('Y-m-d')?></h1>
+                <form method="get">
+                    <div class="row">
+                        <div class="form-group col-lg-4">
+                            <label class="form-control-label" for="date">Date</label>
+                            <input class="form-control" id="date" name="date" type="date" value="<?=$date->format('Y-m-d')?>" />
+                        </div>
+                        <div class="form-group col-lg-4">
+                            <label class="form-control-label" for="TG">Talk Group</label>
+                            <select class="form-control" id="TG" name="TG">
+                                <option value="">All Calls</option>
+<?php       foreach ($TGS as $TGID => $TGName): ?>
+                                <option value="<?=$TGID?>"<?=($TG == $TGID) ? ' selected="selected"' : ''?>><?=$TGName?></option>
+<?php       endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group col-lg-4">
+                            <label class="form-control-label">Controls</label>
+                            <button class="btn btn-success btn-block" type="submit">View</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="row">
+                    <div class="form-group col-lg-12">
+                        <audio preload="none" tabindex="0" controls>
+                            <source type="audio/wav" src="http://www.lalarm.com/en/images/silence.wav" />
+                            Sorry, your browser does not support HTML5 audio.
+                        </audio>
+                    </div>
+                    <div class="form-group col-lg-12">Click on a row to begin sequential playback, click file size to download</div>
+                </div>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td>Time</td>
+                        <td>Talk Group</td>
+                        <td>MHz</td>
+                        <td>Size</td>
+                    </tr>
+                </thead>
+                <tbody>
+<?php   if (isset($error)): ?>
+                    <tr>
+                        <th colspan="4"><?=$error?></th>
+                    </tr>
+<?php   endif;  ?>
+<?php   foreach ($files as $FileTime => [$FileName, $FileSize, $TGID, $TIME, $FREQ]):   ?>
+                    <tr>
+                        <td><?=date("H:i:s", $FileTime)?></td>
+                        <td><?=($TGS[$TGID]) ?? $TGID?></td>
+                        <td class="<?=$MHz($FREQ / 1000000)?>"><?=sprintf("%3.6f", (float) $FREQ / 1000000)?></td>
+                        <td><a href="//mimocad.io/radio/audio/<?=$date->format('Y/n/j') . '/' . $FileName?>"><?=round($FileSize / 1024)?>k</a></td>
+                    </tr>
+<?php   endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
