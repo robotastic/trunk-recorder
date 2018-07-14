@@ -34,7 +34,7 @@ try  {
     foreach ($path as $file)
     {
         $EXT = '.' . $file->getExtension();
-        if ($EXT != '.m4a')
+        if (in_array($EXT, ['.m4a', '.wav']))
             continue;
 
         $Basename = $file->getBasename($EXT);
@@ -160,7 +160,7 @@ try  {
                         <td><?=date("H:i:s", $FileTime)?></td>
                         <td><?=($TGS[$TGID]) ?? $TGID?></td>
                         <td class="<?=$MHz($FREQ / 1000000)?>"><?=sprintf("%3.6f", (float) $FREQ / 1000000)?></td>
-                        <td><a href="//mimocad.io/radio/audio/<?=$date->format('Y/n/j') . '/' . $FileName?>"><?=round($FileSize / 1024)?>k</a></td>
+                        <td><a href="audio/<?=$date->format('Y/n/j') . '/' . $FileName?>"><?=round($FileSize / 1024)?>k</a></td>
                     </tr>
 <?php   endforeach; ?>
                 </tbody>
