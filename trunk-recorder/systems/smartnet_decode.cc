@@ -52,8 +52,6 @@ smartnet_decode_sptr smartnet_make_decode(gr::msg_queue::sptr queue, int sys_num
  */
 static const int MIN_IN = 1;    // mininum number of input streams
 static const int MAX_IN = 1;    // maximum number of input streams
-static const int MIN_OUT = 1;   // minimum number of output streams
-static const int MAX_OUT = 1;   // maximum number of output streams
 
 /*
  * The private constructor
@@ -64,7 +62,7 @@ smartnet_decode::smartnet_decode (gr::msg_queue::sptr queue, int sys_num)
 	             gr::io_signature::make (0,0,0))
 {
 	//set_relative_rate((double)(76.0/84.0));
-	set_output_multiple(388); //used to be 76  //504  //460
+	set_output_multiple(504); //388); //used to be 76  //504  //460
 	d_queue = queue;
 	this->sys_num = sys_num;
 	//set_output_multiple(168); //used to be 76
@@ -182,10 +180,10 @@ smartnet_decode::work (int noutput_items,
 	//TODO this needs to be able to handle shorter frames while keeping state in order to end gracefully
 
 
-	uint64_t size = noutput_items - 84;
+	int size = noutput_items - 84;
 
-
-	if(size <= 0) {
+	//if(size <= 0) {
+	if(size < 0) {
 		if(VERBOSE) BOOST_LOG_TRIVIAL(info) << "decode fail noutput: " << noutput_items << " size: " << size;
 		//consume_each(0);
 		return 0; //better luck next time

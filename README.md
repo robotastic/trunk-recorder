@@ -1,4 +1,4 @@
-Trunk Recorder - v2.2.0
+Trunk Recorder - v3.0.1
 =======================
 
 Need help? Got something working? Share it!
@@ -11,11 +11,11 @@ Trunk Recorder is able to record the calls on trunked and conventional radio sys
 Trunk Recorder currently supports the following:
  - Trunked P25 & SmartNet Systems
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
- - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
+ - SDRs that use the OsmoSDR source (HackRF, RTL - TV Dongles, BladeRF, and more)
  - Ettus USRPs
  - P25 Phase 1, **P25 Phase 2** & Analog voice channels
 
-Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04), Arch Linux (2017.03.01), and macOS (10.10, 10.11, 10.12). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
+Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10 & 18.04), Arch Linux (2017.03.01), Debian 9.x and macOS (10.10, 10.11, 10.12, 10.13, 10.14). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
 
 # Wiki Pages
 
@@ -26,7 +26,7 @@ Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04), Arch Linu
 * [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
 * [Arch Linux](https://github.com/robotastic/trunk-recorder/wiki/Arch-Linux)
 * [macOS](https://github.com/robotastic/trunk-recorder/wiki/macOS)
-* [Raspberry Pi - Jessie](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Jessie-Install)
+* [Raspberry Pi Stretch Install](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Stretch-Install) (Also works for the ASUS Tinker Board [S])
 
 ### Building
 * [Building Trunk Recorder](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder)
@@ -84,7 +84,9 @@ Here are the different arguments:
    - **ifGain** - [hackrf only] sets the if gain.
    - **bbGain** - [hackrf only] sets the bb gain.
    - **mixGain** - [AirSpy only] sets the mix gain.
-   - **lnaGain** - [AirSpy only] sets the lna gain.
+   - **lnaGain** - [AirSpy/bladeRF only] sets the lna gain.
+   - **vga1Gain** - [bladeRF only] sets the vga1 gain.
+   - **vga2Gain** - [bladeRF only] sets the vga2 gain.
    - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
    - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 8.
@@ -97,6 +99,7 @@ Here are the different arguments:
  - **systems** - An array of JSON objects that define the trunking systems that will be recorded. The following options are used to configure each System.
    - **control_channels** - *(For trunked systems)* an array of the control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel.
    - **channels** - *(For conventional systems)* an array of the channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used.
+   - **alphatags** - *(Optional, For conventional systems)* an array of the alpha tags, these will be outputed to the logfiles *talkgroupDisplayFormat* is set to include tags. Alpha tags will be applied to the *channels* in the order the values appear in the array. 
    - **type** - the type of trunking system. The options are *smartnet*, *p25*,  *conventional* & *conventionalP25*.
    - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable.
    - **recordUnknown** - record talkgroups if they are not listed in the Talkgroups File. The options are *true* and *false* (without quotes). The default is *true*.
@@ -109,10 +112,18 @@ Here are the different arguments:
    - **bandplanHigh** - [SmartNet, 400_custom only] this is the highest channel in the system, specified in Hz.
    - **bandplanSpacing** - [SmartNet, 400_custom only] this is the channel spacing, specified in Hz. Typically this is *25000*.
    - **bandplanOffset** - [SmartNet, 400_custom only] this is the offset used to calculate frequencies.
+   - **talkgroupDisplayFormat** - the display format for talkgroups in the console and log file. the options are *id*, *id_tag*, *tag_id*. The default is *id*. [*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified]
+   - **delayCreateOutput** - [conventionalP25 only] this will delay the creation of the output file until there is activity, The options are *true* or *false*, without quotes. The default is *false*. 
+   - **hideEncrypted** - hide encrypted talkgroups log entries, The options are *true* or *false*, without quotes. The default is *false*. 
+   - **hideUnknownTalkgroups** - hide unknown talkgroups from log, The options are *true* or *false*, without quotes. The default is *false*. 
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** the options are *digital* or *analog*.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
+ - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
+ - **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md)
+ - **controlWarnRate** - Log the control channel decode rate when it falls bellow this threshold. The default is *10*. The value of *-1* will always log the decode rate.
+ - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *false*.
 
 **talkgroupsFile**
 

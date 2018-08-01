@@ -27,13 +27,13 @@ struct Call_Error {
 };
 
 class Recorder;
-#include "../op25_repeater/include/op25_repeater/rx_status.h"
+#include <op25_repeater/include/op25_repeater/rx_status.h>
 #include "uploaders/call_uploader.h"
 #include "config.h"
 #include "state.h"
-#include "recorders/recorder.h"
 #include "systems/system.h"
 #include "systems/parser.h"
+#include <string>
 
 
 class System;
@@ -44,12 +44,12 @@ public:
 
 								Call( long t, double f, System *s, Config c);
 								Call( TrunkMessage message, System *s, Config c);
-								~Call();
-								void restart_call();
+								virtual ~Call();
+								virtual void restart_call();
 								void end_call();
 								void set_debug_recorder(Recorder *r);
 								Recorder * get_debug_recorder();
-								void set_recorder(Recorder *r);
+								virtual void set_recorder(Recorder *r);
 								Recorder * get_recorder();
 								double get_freq();
 
@@ -86,13 +86,20 @@ public:
 								void set_tdma_slot(int s);
 								int get_tdma_slot();
 								const char * get_xor_mask();
-								bool is_conventional();
-								void set_conventional(bool conv);
+								//virtual bool is_conventional() { return true;}
+								virtual bool is_conventional() { return false;}
 								void set_encrypted(bool m);
 								bool get_encrypted();
 								void set_emergency(bool m);
 								bool get_emergency();
-private:
+								std::string get_talkgroup_display();
+								void set_talkgroup_display_format(std::string format);
+								void set_talkgroup_tag(std::string tag);
+								boost::property_tree::ptree get_stats();
+								char * get_status_filename();
+								std::string get_talkgroup_tag();
+								double get_final_length();
+protected:
 								State state;
 								long talkgroup;
 								double curr_freq;
@@ -112,17 +119,20 @@ private:
 								bool debug_recording;
 								bool encrypted;
 								bool emergency;
-								bool conventional;
 								char filename[255];
 								char converted_filename[255];
 								char status_filename[255];
 								bool phase2_tdma;
 								int tdma_slot;
+								double _final_length;
 
 								Config config;
 								Recorder *recorder;
 								Recorder *debug_recorder;
 								bool add_source(long src);
+								std::string talkgroup_display;
+								std::string talkgroup_tag;
+								void update_talkgroup_display();
 
 };
 

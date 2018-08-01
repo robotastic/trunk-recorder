@@ -203,7 +203,7 @@ int https_upload(struct server_data_t *server_info, boost::asio::streambuf& requ
     }
 
      //std::cout << "Request: " << "\n";
-    const char *req_header = boost::asio::buffer_cast<const char *>(request_.data());
+    //const char *req_header = boost::asio::buffer_cast<const char *>(request_.data());
 
      //std::cout << req_header << "\n";
 

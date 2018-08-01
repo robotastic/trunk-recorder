@@ -65,8 +65,8 @@
 
 #include "recorder.h"
 #include "../config.h"
-#include "../../gr_blocks/nonstop_wavfile_sink.h"
-#include "../../gr_blocks/freq_xlating_fft_filter.h"
+#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/freq_xlating_fft_filter.h>
 
 
 class Source;
@@ -85,7 +85,7 @@ public:
 								~debug_recorder();
 
 								void tune_offset(double f);
-								void start( Call *call, int n);
+								void start( Call *call);
 								void stop();
 								double get_freq();
 								int get_num();
@@ -105,7 +105,6 @@ public:
 
 private:
 								double center, freq;
-								bool muted;
 								bool qpsk_mod;
 								int silence_frames;
 								long talkgroup;

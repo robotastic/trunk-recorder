@@ -1,5 +1,5 @@
 #include "config.h"
-
+#include "formatter.h"
 /**
  * Method name: load_config()
  * Description: <#description#>
@@ -120,6 +120,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
     config.log_file = pt.get<bool>("logFile", false);
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
+    BOOST_LOG_TRIVIAL(info) << "Control channel rate warning: " << config.control_message_warn_rate;
 
 
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
@@ -136,6 +138,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       int    bb_gain        = node.second.get<double>("bbGain", 0);
       int    mix_gain       = node.second.get<double>("mixGain", 0);
       int    lna_gain       = node.second.get<double>("lnaGain", 0);
+      int    vga1_gain      = node.second.get<double>("vga1Gain", 0);
+      int    vga2_gain      = node.second.get<double>("vga2Gain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
       double analog_levels  = node.second.get<double>("analogLevels", 8.0);
@@ -162,6 +166,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
       BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<double>("lnaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
+      BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
@@ -195,8 +201,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       }
 
       Source *source = new Source(center, rate, error, driver, device, &config);
-      BOOST_LOG_TRIVIAL(info) << "Max HZ: " << source->get_max_hz();
-      BOOST_LOG_TRIVIAL(info) << "Min HZ: " << source->get_min_hz();
+      BOOST_LOG_TRIVIAL(info) << "Max HZ: " << FormatFreqHz(source->get_max_hz());
+      BOOST_LOG_TRIVIAL(info) << "Min HZ: " << FormatFreqHz(source->get_min_hz());
 
       if (if_gain != 0) {
         source->set_if_gain(if_gain);
@@ -213,6 +219,15 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       if (lna_gain != 0) {
         source->set_lna_gain(lna_gain);
       }
+
+      if (vga1_gain != 0) {
+        source->set_vga1_gain(vga1_gain);
+      }
+
+      if (vga2_gain != 0) {
+        source->set_vga2_gain(vga2_gain);
+      }
+
       source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);

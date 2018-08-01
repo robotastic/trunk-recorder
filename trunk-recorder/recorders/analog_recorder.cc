@@ -1,8 +1,11 @@
 
 #include "analog_recorder.h"
+#include "../formatter.h"
+#include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
 using namespace std;
 
 bool analog_recorder::logging = false;
+//static int rec_counter=0;
 
 analog_recorder_sptr make_analog_recorder(Source *src)
 {
@@ -38,9 +41,9 @@ void analog_recorder::calculate_iir_taps(double tau)
 analog_recorder::analog_recorder(Source *src)
   : gr::hier_block2("analog_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                    gr::io_signature::make(0, 0, sizeof(float)))
+                    gr::io_signature::make(0, 0, sizeof(float))), Recorder("A")
 {
-  int nchars;
+  //int nchars;
 
   source      = src;
   chan_freq   = source->get_center();
@@ -48,7 +51,8 @@ analog_recorder::analog_recorder(Source *src)
   config      = source->get_config();
   samp_rate   = source->get_rate();
   talkgroup   = 0;
-  num         = 0;
+
+  rec_num = rec_counter++;
   state       = inactive;
 
   timestamp = time(NULL);
@@ -56,7 +60,7 @@ analog_recorder::analog_recorder(Source *src)
 
   float offset = 0;
 
-  int samp_per_sym        = 10;
+  //int samp_per_sym        = 10;
   system_channel_rate     = 96000;//4800 * samp_per_sym;
 /*  int decim               = floor(samp_rate / 384000);
 
@@ -67,7 +71,7 @@ analog_recorder::analog_recorder(Source *src)
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
 
-  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
 //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
   channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, initial_rate, 4000, 1000, 100);
 
@@ -142,7 +146,6 @@ analog_recorder::analog_recorder(Source *src)
   valve    = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-
   /* de-emphasis */
     d_tau  = 0.000075; // 75us
   d_fftaps.resize(2);
@@ -156,19 +159,9 @@ analog_recorder::analog_recorder(Source *src)
   // downsample from 48k to 8k
   decim_audio = gr::filter::fir_filter_fff::make(12, audio_resampler_taps);
 
-  tm *ltm = localtime(&starttime);
+  //tm *ltm = localtime(&starttime);
 
-  std::stringstream path_stream;
-
-  path_stream << this->config->capture_dir << "/junk";
-
-  boost::filesystem::create_directories(path_stream.str());
-  nchars = snprintf(filename,   160,     "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, timestamp, chan_freq);
-
-  if (nchars >= 160) {
-    BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";
-  }
-  wav_sink = gr::blocks::nonstop_wavfile_sink::make(filename, 1, 8000, 16);
+  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
   // Try and get rid of the FSK wobble
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
@@ -208,15 +201,24 @@ analog_recorder::~analog_recorder() {}
 State analog_recorder::get_state() {
   return state;
 }
+int analog_recorder::get_num() {
+  return rec_num;
+}
 
 void analog_recorder::stop() {
   if (state == active) {
+    recording_duration += wav_sink->length_in_seconds();
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
   } else {
-    BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an inactive Logger \t[ " << num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
+
+    BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an inactive Logger \t[ " << rec_num << " ] - freq[ " << FormatFreq(chan_freq) << "] \t talkgroup[ " << talkgroup << " ]";
   }
+}
+
+bool analog_recorder::is_analog() {
+  return true;
 }
 
 bool analog_recorder::is_active() {
@@ -272,12 +274,11 @@ void analog_recorder::tune_offset(double f) {
   prefilter->set_center_freq(offset_amount);
 }
 
-void analog_recorder::start(Call *call, int n) {
+void analog_recorder::start(Call *call) {
   starttime = time(NULL);
 
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
-  num       = n;
 
   prefilter->set_center_freq(chan_freq - center_freq);
 

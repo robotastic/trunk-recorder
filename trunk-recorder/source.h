@@ -10,11 +10,11 @@
 //#include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
-#include "recorders/p25_recorder.h"
 
 class Source
 {
-								static int rec_num;
+								
+								int src_num;
 								double min_hz;
 								double max_hz;
 								double center;
@@ -31,6 +31,8 @@ class Source
 								int if_gain;
 								int lna_gain;
 								int mix_gain;
+								int vga1_gain;
+								int vga2_gain;
 								int max_digital_recorders;
 								int max_debug_recorders;
 								int max_analog_recorders;
@@ -48,6 +50,7 @@ class Source
 
 public:
 								int get_num_available_recorders();
+								int get_num();
 								Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
 								gr::basic_block_sptr get_src_block();
 								double get_min_hz();
@@ -82,12 +85,19 @@ public:
 								int get_mix_gain();
 								void set_lna_gain(int b);
 								int get_lna_gain();
+								void set_vga1_gain(int b);
+								int get_vga1_gain();
+								void set_vga2_gain(int b);
+								int get_vga2_gain();
 								void set_freq_corr(double p);
 								void print_recorders();
 								void tune_digital_recorders();
+								int debug_recorder_count();
+								int digital_recorder_count();
+								int analog_recorder_count();
 								Config * get_config();
 								analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
-								p25_recorder_sptr create_conventionalP25_recorder(gr::top_block_sptr tb);
+								p25conventional_recorder_sptr create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen);
 								void create_analog_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_analog_recorder(int priority);
 								void create_digital_recorders(gr::top_block_sptr tb, int r);
@@ -103,5 +113,7 @@ public:
 								{
 																return boost::dynamic_pointer_cast<gr::uhd::usrp_source, gr::basic_block>(p);
 								}
+
+								std::vector<Recorder *> get_recorders();
 };
 #endif

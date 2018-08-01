@@ -1,0 +1,9 @@
+// 
+// C++ Definitions -- include once in a single C++ compilation unit
+// 
+#ifndef _EZPWD_DEFINITIONS
+#define _EZPWD_DEFINITIONS
+
+#include "serialize_definitions"
+
+#endif // _EZPWD_DEFINITIONS

@@ -1,0 +1,219 @@
+/*
+ * Ezpwd Reed-Solomon -- Reed-Solomon encoder / decoder library
+ * 
+ * Copyright (c) 2017, Hard Consulting Corporation.
+ *
+ * Ezpwd Reed-Solomon is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.  See the LICENSE file at the top of the
+ * source tree.  Ezpwd Reed-Solomon is also available under Commercial license.  The Djelic BCH code
+ * under djelic/ and the c++/ezpwd/bch_base wrapper is redistributed under the terms of the GPLv2+,
+ * regardless of the overall licensing terms.
+ * 
+ * Ezpwd Reed-Solomon is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License for more details.
+ */
+#ifndef _EZPWD_BCH_BASE
+#define _EZPWD_BCH_BASE
+
+#include <iostream>
+#include <iomanip>
+#include <vector>
+
+// 
+// Presently, we simply import the Linux Kernel's "C" BCH API directly into the ezpwd:: namespace In
+// order to compile, you must (at least) run "make djelic" in the base directory of the
+// https://github.com/pjkundert/bch.git repo.
+// 
+namespace ezpwd {
+    /**
+     * struct bch_control - BCH control structure
+     * @m:          Galois field order
+     * @n:          maximum codeword size in bits (= 2^m-1)
+     * @t:          error correction capability in bits
+     * @ecc_bits:   ecc exact size in bits, i.e. generator polynomial degree (<=m*t)
+     * @ecc_bytes:  ecc max size (m*t bits) in bytes
+     * @a_pow_tab:  Galois field GF(2^m) exponentiation lookup table
+     * @a_log_tab:  Galois field GF(2^m) log lookup table
+     * @mod8_tab:   remainder generator polynomial lookup tables
+     * @ecc_buf:    ecc parity words buffer
+     * @ecc_buf2:   ecc parity words buffer
+     * @xi_tab:     GF(2^m) base for solving degree 2 polynomial roots
+     * @syn:        syndrome buffer
+     * @cache:      log-based polynomial representation buffer
+     * @elp:        error locator polynomial
+     * @poly_2t:    temporary polynomials of degree 2t
+     */
+
+    /**
+     * init_bch - initialize a BCH encoder/decoder
+     * @m:          Galois field order, should be in the range 5-15
+     * @t:          maximum error correction capability, in bits
+     * @prim_poly:  user-provided primitive polynomial (or 0 to use default)
+     *
+     * Returns:
+     *  a newly allocated BCH control structure if successful, NULL otherwise
+     *
+     * This initialization can take some time, as lookup tables are built for fast
+     * encoding/decoding; make sure not to call this function from a time critical
+     * path. Usually, init_bch() should be called on module/driver init and
+     * free_bch() should be called to release memory on exit.
+     *
+     * You may provide your own primitive polynomial of degree @m in argument
+     * @prim_poly, or let init_bch() use its default polynomial.
+     *
+     * Once init_bch() has successfully returned a pointer to a newly allocated
+     * BCH control structure, ecc length in bytes is given by member @ecc_bytes of
+     * the structure.
+     */
+
+    /**
+     * encode_bch - calculate BCH ecc parity of data
+     * @bch:   BCH control structure
+     * @data:  data to encode
+     * @len:   data length in bytes
+     * @ecc:   ecc parity data, must be initialized by caller
+     *
+     * The @ecc parity array is used both as input and output parameter, in order to
+     * allow incremental computations. It should be of the size indicated by member
+     * @ecc_bytes of @bch, and should be initialized to 0 before the first call.
+     *
+     * The exact number of computed ecc parity bits is given by member @ecc_bits of
+     * @bch; it may be less than m*t for large values of t.
+     */
+
+    /**
+     * decode_bch - decode received codeword and find bit error locations
+     * @bch:      BCH control structure
+     * @data:     received data, ignored if @calc_ecc is provided
+     * @len:      data length in bytes, must always be provided
+     * @recv_ecc: received ecc, if NULL then assume it was XORed in @calc_ecc
+     * @calc_ecc: calculated ecc, if NULL then calc_ecc is computed from @data
+     * @syn:      hw computed syndrome data (if NULL, syndrome is calculated)
+     * @errloc:   output array of error locations
+     *
+     * Returns:
+     *  The number of errors found, or -EBADMSG if decoding failed, or -EINVAL if
+     *  invalid parameters were provided
+     *
+     * Depending on the available hw BCH support and the need to compute @calc_ecc
+     * separately (using encode_bch()), this function should be called with one of
+     * the following parameter configurations -
+     *
+     * by providing @data and @recv_ecc only:
+     *   decode_bch(@bch, @data, @len, @recv_ecc, NULL, NULL, @errloc)
+     *
+     * by providing @recv_ecc and @calc_ecc:
+     *   decode_bch(@bch, NULL, @len, @recv_ecc, @calc_ecc, NULL, @errloc)
+     *
+     * by providing ecc = recv_ecc XOR calc_ecc:
+     *   decode_bch(@bch, NULL, @len, NULL, ecc, NULL, @errloc)
+     *
+     * by providing syndrome results @syn:
+     *   decode_bch(@bch, NULL, @len, NULL, NULL, @syn, @errloc)
+     *
+     * Once decode_bch() has successfully returned with a positive value, error
+     * locations returned in array @errloc should be interpreted as follows -
+     *
+     * if (errloc[n] >= 8*len), then n-th error is located in ecc (no need for
+     * data correction)
+     *
+     * if (errloc[n] < 8*len), then n-th error is located in data and can be
+     * corrected with statement data[errloc[n]/8] ^= 1 << (errloc[n] % 8);
+     *
+     * Note that this function does not perform any data correction by itself, it
+     * merely indicates error locations.
+     */
+
+    /**
+     * init_bch - initialize a BCH encoder/decoder
+     * @m:          Galois field order, should be in the range 5-15
+     * @t:          maximum error correction capability, in bits
+     * @prim_poly:  user-provided primitive polynomial (or 0 to use default)
+     *
+     * Returns:
+     *  a newly allocated BCH control structure if successful, NULL otherwise
+     *
+     * This initialization can take some time, as lookup tables are built for fast
+     * encoding/decoding; make sure not to call this function from a time critical
+     * path. Usually, init_bch() should be called on module/driver init and
+     * free_bch() should be called to release memory on exit.
+     *
+     * You may provide your own primitive polynomial of degree @m in argument
+     * @prim_poly, or let init_bch() use its default polynomial.
+     *
+     * Once init_bch() has successfully returned a pointer to a newly allocated
+     * BCH control structure, ecc length in bytes is given by member @ecc_bytes of
+     * the structure.
+     */
+
+    extern "C" {
+	#include "../../djelic_bch.h"
+    }
+
+    // 
+    // correct_bch -- corrects data (but not parity!), as suggested by decode_bch, above
+    // 
+    //     A convenience interface that defaults all of the not strictly required parameters, and
+    // automatically corrects bit-errors in data *and* the supplied parity.  Does not attempt to
+    // correct bit errors found in the parity data.  If not supplied, 'errloc' is allocated
+    // internally; otherwise, it is assumed to be of at least size bch->t (the minimum error
+    // correction capacity of the BCH codec).
+    // 
+    //     However, beware -- at larger values of T, the actual correction capacity of the BCH codec
+    // could be greater than the requested T.  Therefore, it is recommended that you always supply a
+    // larger than required errloc array; recommend T*2?
+    // 
+    inline
+    int				correct_bch( 
+				    struct bch_control *bch,
+				    uint8_t            *data,
+				    unsigned int	len,
+				    uint8_t	       *recv_ecc,
+				    const uint8_t      *calc_ecc= 0,
+				    const unsigned int *syn	= 0,
+				    unsigned int       *errloc	= 0 ) // must be sized at least bch->t; often, greater!
+    {
+	unsigned int		_errloc[511]; // much larger than the correction capacity of largest supported BCH codec
+	if ( ! errloc )
+	    errloc			= _errloc;
+	int			err	= decode_bch( bch, data, len, recv_ecc, calc_ecc, syn, errloc );
+	if ( err > 0 ) {
+	    // A +'ve number of bit-error correction locations were found
+	    for ( int n = 0; n < err; ++n ) {
+		/**
+		 * if (errloc[n] < 8*len), then n-th error is located in data and can be corrected
+		 * with statement data[errloc[n]/8] ^= 1 << (errloc[n] % 8).  If in the parity, it
+		 * is assumed to be located at the end of the data, so offset by 'len' bytes.
+		 */
+		if ( errloc[n] < 8*len ) {
+		    data[errloc[n] / 8]	^= 1 << ( errloc[n] % 8 );
+		} else if ( recv_ecc && errloc[n] < 8 * len + 8 * bch->ecc_bytes ) {
+		    recv_ecc[errloc[n] / 8 - len]
+					^= 1 << ( errloc[n] % 8 );
+		}
+	    }
+	}
+	return err;
+    }
+
+    // 
+    // <ostream> << <ezpwd::bch_control> -- output codec in standard BCH( N, N-ECC, T ) form
+    // 
+    inline
+    std::ostream	       &operator<<(
+				    std::ostream       &lhs,
+				    const ezpwd::bch_control
+				    		       &bch )
+    {
+	return lhs
+	    << "BCH( "	<< std::setw( 3 ) << bch.n
+	    << ", "		<< std::setw( 3 ) << bch.n - bch.ecc_bits
+	    << ", "		<< std::setw( 3 ) << bch.t
+	    << " )";
+    }
+
+} // namespace ezpwd
+
+#endif // _EZPWD_BCH_BASE
