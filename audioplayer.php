@@ -34,14 +34,14 @@ foreach ($CONFIG->systems as $system) {
 $MHz = function (float $MHz): string {
     switch (TRUE) {
         case $MHz >= 136 AND $MHz <= 174:
-            return 'bg-primary'; # VHF
+            return 'text-primary'; # VHF
         case $MHz >= 380 AND $MHz <= 520:
-            return 'bg-danger';  # UHF
+            return 'text-danger';  # UHF
         case $MHz >= 764 AND $MHz <= 870:
-            return 'bg-warning'; # 700
+            return 'text-warning'; # 700
         case $MHz >= 896 AND $MHz <= 901:
         case $MHz >= 935 AND $MHz <= 940:
-            return 'bg-success'; # 800
+            return 'text-success'; # 800
         default:
             return 'null';
     }
@@ -49,33 +49,24 @@ $MHz = function (float $MHz): string {
 
 $files = [];
 try  {
-    $path = new DirectoryIterator("{$CONFIG->captureDir}/{$date->format('Y/n/j')}/");
-
-    if (!$path->isDir()) {
-        throw new Exception('No directory found for that date.');
-    }
-
-    foreach ($path as $file) {
+    foreach (new DirectoryIterator("{$CONFIG->captureDir}/{$date->format('Y/n/j')}/") as $file) {
         $EXT = '.' . $file->getExtension();
         if ($EXT != $FileType)
             continue;
 
         $Basename = $file->getBasename($EXT);
-        # Probably a Me Bug ...
-        if (strlen($Basename) < 20)
-            continue;
-
         [$TGID, $TIME, $FREQ] = preg_split('/[-_]/', $Basename);
         if ($TGID != $tg AND $tg !== NULL)
             continue;
 
+        if ($file->getSize() < 1024)
+            continue;   # Filtered because they will produce an error when attempting playback.
+
         $files[$file->getMTime()] = [$Basename, round($file->getSize() / 1024), $TGID, $TIME, $FREQ / 1000000];
     }
-
     ksort($files);
-
-} catch (Exception $e) {
-    $error = $e->getMessage();
+} catch (UnexpectedValueException $e) {
+    $error = 'No directory found for that date.';
 }
 
 $path = substr(realpath($CONFIG->captureDir), strlen($_SERVER['DOCUMENT_ROOT']));
@@ -85,6 +76,7 @@ $path = substr(realpath($CONFIG->captureDir), strlen($_SERVER['DOCUMENT_ROOT']))
 <html>
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
         <title>Trunk Player</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
     </head>
@@ -140,7 +132,7 @@ $path = substr(realpath($CONFIG->captureDir), strlen($_SERVER['DOCUMENT_ROOT']))
                     <tr>
                         <td><?=date("H:i:s", $FileTime)?></td>
                         <td><?=($TGS[$TGID]) ?? $TGID?></td>
-                        <td class="<?=$MHz($FREQ)?>"><?=sprintf("%3.6f", $FREQ)?></td>
+                        <td class="<?=$MHz($FREQ)?>"><?=sprintf("%3.4f", $FREQ)?></td>
                         <td><a href="<?="{$path}/{$date->format('Y/n/j')}/{$FileName}{$FileType}"?>"><?=$FileSize?>k</a></td>
                     </tr>
 <?php   endforeach; ?>
