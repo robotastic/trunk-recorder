@@ -11,11 +11,11 @@ Trunk Recorder is able to record the calls on trunked and conventional radio sys
 Trunk Recorder currently supports the following:
  - Trunked P25 & SmartNet Systems
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
- - SDRs that use the OsmoSDR source ( HackRF, RTL - TV Dongles, BladeRF, and more)
+ - SDRs that use the OsmoSDR source (HackRF, RTL - TV Dongles, BladeRF, and more)
  - Ettus USRPs
  - P25 Phase 1, **P25 Phase 2** & Analog voice channels
 
-Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04), Arch Linux (2017.03.01), and macOS (10.10, 10.11, 10.12). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
+Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10 & 18.04), Arch Linux (2017.03.01), Debian 9.x and macOS (10.10, 10.11, 10.12, 10.13, 10.14). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
 
 # Wiki Pages
 
@@ -26,7 +26,7 @@ Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04), Arch Linu
 * [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
 * [Arch Linux](https://github.com/robotastic/trunk-recorder/wiki/Arch-Linux)
 * [macOS](https://github.com/robotastic/trunk-recorder/wiki/macOS)
-* [Raspberry Pi Stretch Install](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Stretch-Install)
+* [Raspberry Pi Stretch Install](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Stretch-Install) (Also works for the ASUS Tinker Board [S])
 
 ### Building
 * [Building Trunk Recorder](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder)

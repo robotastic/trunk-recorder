@@ -441,6 +441,7 @@ boost::property_tree::ptree Call::get_stats()
 {
   boost::property_tree::ptree call_node;
   boost::property_tree::ptree freq_list_node;
+  boost::property_tree::ptree source_list_node;
   call_node.put("id",           boost::lexical_cast<std::string>(this->get_sys_num()) + "_" + boost::lexical_cast<std::string>(this->get_talkgroup()) + "_" + boost::lexical_cast<std::string>(this->get_start_time()));
   call_node.put("freq",         this->get_freq());
   call_node.put("sysNum",       this->get_sys_num());
@@ -460,6 +461,18 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("startTime",    this->get_start_time());
   call_node.put("stopTime",     this->get_stop_time());
 
+  Call_Source *source_list = this->get_source_list();
+  int source_count         = this->get_source_count();
+  for (int i = 0; i < source_count; i++) {
+    boost::property_tree::ptree source_node;
+
+    source_node.put("source", source_list[i].source);
+    source_node.put("position", source_list[i].position);
+    source_node.put("time", source_list[i].time);
+    source_list_node.push_back(std::make_pair("", source_node));
+  }
+  call_node.add_child("sourceList", source_list_node);
+
   Call_Freq *freq_list = this->get_freq_list();
   int freq_count       = this->get_freq_count();
 
@@ -468,6 +481,10 @@ boost::property_tree::ptree Call::get_stats()
 
     freq_node.put("freq", freq_list[i].freq);
     freq_node.put("time", freq_list[i].time);
+    freq_node.put("spikes", freq_list[i].spike_count);
+    freq_node.put("errors", freq_list[i].error_count);
+    freq_node.put("position", freq_list[i].position);
+    freq_node.put("length", freq_list[i].total_len);
     freq_list_node.push_back(std::make_pair("", freq_node));
   }
   call_node.add_child("freqList", freq_list_node);

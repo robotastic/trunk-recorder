@@ -10,6 +10,11 @@ void Source::set_antenna(std::string ant)
 {
   antenna = ant;
 
+  if (driver == "osmosdr") {
+    cast_to_osmo_sptr(source_block)->set_antenna(antenna, 0);
+    BOOST_LOG_TRIVIAL(info) << "Setting antenna to [" << cast_to_osmo_sptr(source_block)->get_antenna() << "]";
+  }
+
   if (driver == "usrp") {
     BOOST_LOG_TRIVIAL(info) << "Setting antenna to [" << antenna << "]";
     cast_to_usrp_sptr(source_block)->set_antenna(antenna, 0);
