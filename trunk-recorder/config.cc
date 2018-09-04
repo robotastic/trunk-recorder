@@ -69,6 +69,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
 
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
+      system->set_tracking_script(node.second.get<std::string>("trackingScript", ""));
+      BOOST_LOG_TRIVIAL(info) << "Tracking Script: " << config.tracking_script;
       system->set_call_log(node.second.get<bool>("callLog", true));
       BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
       system->set_audio_archive(node.second.get<bool>("audioArchive", true));

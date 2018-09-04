@@ -25,6 +25,14 @@ void System::set_upload_script(std::string script) {
   this->upload_script = script;
 }
 
+std::string System::get_tracking_script() {
+         return this->tracking_script;
+}
+
+void System::set_tracking_script(std::string script) {
+         this->tracking_script = script;
+}
+
 std::string System::get_default_mode() {
   return this->default_mode;
 }
