@@ -453,7 +453,7 @@ p25p1_fdma::process_LCW(std::vector<uint8_t>& HB)
 		fprintf(stderr, "LCW: ec=%d, pb=%d, sf=%d, lco=%d", ec, pb, sf, lco);
 
 	if (pb == 0) { // only decode if unencrypted
-		if ((sf == 0) && ((lcw[1] == 0x00) || (lcw[1] == 0x01))) {	// sf=0, explicit MFID in standard format
+		if ((sf == 0) && ((lcw[1] == 0x00) || (lcw[1] == 0x01) || (lcw[1] == 0x90))) {	// sf=0, explicit MFID in standard or Motorola format
 			switch (lco) {
 				case 0x00: { // Group Voice Channel User
 					uint16_t grpaddr = (lcw[4] << 8) + lcw[5];

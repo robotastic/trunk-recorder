@@ -8,7 +8,8 @@
 p25_recorder_sptr make_p25_recorder(Source * src)
 {
   p25_recorder * recorder = new p25_recorder();
-  recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, false));
+  //recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, false));
+  recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true));
   return gnuradio::get_initial_sptr(recorder);
 }
 
@@ -209,8 +210,8 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
 
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
-
-  levels = gr::blocks::multiply_const_ss::make(source->get_digital_levels());
+  converter = gr::blocks::short_to_float::make(1, 32768.0);
+  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
 
   this->wav_sink = wav_sink;
 
@@ -249,7 +250,8 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
     connect(rescale,              0, slicer,               0);
         }
     connect(slicer,               0, op25_frame_assembler, 0);
-    connect(op25_frame_assembler, 0, levels,               0);
+    connect(op25_frame_assembler, 0, converter,            0);
+    connect(converter,            0, levels,               0);
     connect(levels, 0, wav_sink, 0);
 }
 
