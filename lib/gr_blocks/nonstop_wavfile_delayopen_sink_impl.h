@@ -1,8 +1,8 @@
 #ifndef INCLUDED_NONSTOP_WAVFILE_DELAYOPEN_SINK_IMPL_H
 #define INCLUDED_NONSTOP_WAVFILE_DELAYOPEN_SINK_IMPL_H
 
-#include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
-#include "../../lib/gr_blocks/nonstop_wavfile_sink.h"
+#include "./nonstop_wavfile_sink_impl.h"
+#include "./nonstop_wavfile_sink.h"
 
 class p25conventional_recorder;
 

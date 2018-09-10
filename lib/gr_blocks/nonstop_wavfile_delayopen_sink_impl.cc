@@ -8,11 +8,11 @@
 #include <gnuradio/io_signature.h>
 
 #include "nonstop_wavfile_delayopen_sink_impl.h"
-#include "../recorders/p25conventional_recorder.h"
+#include "../trunk-recorder/recorders/p25conventional_recorder.h"
 
-namespace gr 
+namespace gr
 {
-namespace blocks 
+namespace blocks
 {
 nonstop_wavfile_delayopen_sink_impl::sptr
 nonstop_wavfile_delayopen_sink_impl::make(int          n_channels,
@@ -61,7 +61,7 @@ int nonstop_wavfile_delayopen_sink_impl::work(int noutput_items,  gr_vector_cons
     if (was_first_work) {
       char * filename = recorder->get_filename();
 	    if (!open_internal(filename)) {
-          throw std::runtime_error("can't open file");    
+          throw std::runtime_error("can't open file");
 		  }
     }
 	}
@@ -77,7 +77,7 @@ int nonstop_wavfile_delayopen_sink_impl::work(int noutput_items,  gr_vector_cons
 	  if ((clock()- d_last_packet_clock) > 400)
 	  {
 		  int pad_ms = clock()- d_last_packet_clock;
-			
+
 	  }
   }*/
 

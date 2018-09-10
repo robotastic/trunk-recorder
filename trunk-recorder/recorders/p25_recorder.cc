@@ -2,7 +2,7 @@
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 #include "../formatter.h"
-#include "../gr_blocks/nonstop_wavfile_delayopen_sink_impl.h"
+#include "../../lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.h"
 
 
 p25_recorder_sptr make_p25_recorder(Source * src)
