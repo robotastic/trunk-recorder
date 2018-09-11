@@ -114,7 +114,8 @@ protected:
   freq_xlating_fft_filter_sptr prefilter;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
-  gr::blocks::multiply_const_ss::sptr levels;
+  //gr::blocks::multiply_const_ss::sptr levels;
+  gr::blocks::multiply_const_ff::sptr levels;
 
 private:
 
@@ -136,7 +137,7 @@ private:
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;
   std::vector<float> baseband_noise_filter_taps;
-  
+
   /* GR blocks */
   gr::filter::fft_filter_ccf::sptr channel_lpf;
   gr::filter::fir_filter_fff::sptr sym_filter;
@@ -146,7 +147,7 @@ private:
 
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-
+  gr::blocks::short_to_float::sptr converter;
   gr::analog::feedforward_agc_cc::sptr   agc;
   gr::analog::pll_freqdet_cf::sptr       pll_freq_lock;
   gr::analog::pwr_squelch_cc::sptr       squelch;
