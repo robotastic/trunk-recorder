@@ -1292,5 +1292,5 @@ int main(int argc, char **argv)
     BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." <<  std::endl;
   }
 
-  return 0;
+  return 1;
 }

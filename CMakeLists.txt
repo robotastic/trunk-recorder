@@ -221,7 +221,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
   lib/gr_blocks/nonstop_wavfile_sink_impl.cc
-  trunk-recorder/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
+  lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
   trunk-recorder/recorders/p25conventional_recorder.cc
   trunk-recorder/recorders/p25_recorder.cc
   trunk-recorder/talkgroup.cc
