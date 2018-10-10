@@ -37,6 +37,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <cmath>
 
 
 #include "source.h"
@@ -297,6 +298,8 @@ void load_config(string config_file)
       double rate           = node.second.get<double>("rate", 0);
       double error          = node.second.get<double>("error", 0);
       double ppm            = node.second.get<double>("ppm", 0);
+      double ppm_adjust_interval = node.second.get<double>("ppm_adjust_interval", 0);
+      double ppm_max_adjust = node.second.get<double>("ppm_max_adjust", 20);
       int    gain           = node.second.get<double>("gain", 0);
       int    if_gain        = node.second.get<double>("ifGain", 0);
       int    bb_gain        = node.second.get<double>("bbGain", 0);
@@ -326,6 +329,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(node.second.get<double>("rate", 0));
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
       BOOST_LOG_TRIVIAL(info) << "PPM Error: " <<  node.second.get<double>("ppm", 0);
+      BOOST_LOG_TRIVIAL(info) << "PPM Adjust Interval: " <<  node.second.get<double>("ppm_adjust_interval", 0);
+      BOOST_LOG_TRIVIAL(info) << "PPM Max Adjust: " <<  node.second.get<double>("ppm_max_adjust", 20);
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
@@ -401,9 +406,13 @@ void load_config(string config_file)
       source->set_digital_levels(digital_levels);
       source->set_qpsk_mod(qpsk_mod);
       source->set_silence_frames(silence_frames);
+	  source->set_ppm_adjust_interval(ppm_adjust_interval);
 
       if (ppm != 0) {
         source->set_freq_corr(ppm);
+      }
+	  if (ppm_max_adjust != 0) {
+        source->set_ppm_max_adjust(ppm_max_adjust);
       }
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
@@ -908,8 +917,8 @@ void retune_system(System *system) {
   Source *source               = system->get_source();
   double  control_channel_freq = system->get_next_control_channel();
 
-    BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << FormatFreq(control_channel_freq);
-    BOOST_LOG_TRIVIAL(info) << "\t - System Source - Min Freq: " << FormatFreq(source->get_min_hz()) << " Max Freq: " << FormatFreq(source->get_max_hz());
+  BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << FormatFreq(control_channel_freq);
+  BOOST_LOG_TRIVIAL(info) << "\t - System Source - Min Freq: " << FormatFreq(source->get_min_hz()) << " Max Freq: " << FormatFreq(source->get_max_hz());
 
 
   if ((source->get_min_hz() <= control_channel_freq) &&
@@ -925,7 +934,7 @@ void retune_system(System *system) {
       // the one with the right frequencies
       system->p25_trunking->tune_offset(control_channel_freq);
     } else {
-      BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
+      BOOST_LOG_TRIVIAL(error) << "\t - Unknown system type for Retune";
     }
   } else {
     BOOST_LOG_TRIVIAL(error) << "\t - Unable to retune System control channel, freq not covered by the Source used for the inital control channel freq.";
@@ -941,18 +950,56 @@ void check_message_count(float timeDiff) {
 
     if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
-
-
-      if (msgs_decoded_per_second < 2) {
+	  
+	  if (msgs_decoded_per_second < config.control_message_warn_rate || config.control_message_warn_rate == -1) {
+        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
+      }
+	  
+	  Source *source = sys->get_source();
+	  
+      if (msgs_decoded_per_second < config.control_message_warn_rate || (config.control_message_warn_rate == -1 && msgs_decoded_per_second < 10)) {
         if (sys->system_type == "smartnet") {
           sys->smartnet_trunking->reset();
         }
-
-        if (sys->control_channel_count() > 1) {
-          retune_system(sys);
-        } else {
-          BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tThere is only one control channel defined";
-        }
+		
+		bool change_control = false;
+		if (source->get_ppm_adjust_interval() != 0) {
+			// if the settings allow for ppm adjustments, try adjusting it
+			double current_diff = source->get_freq_corr() - source->get_initial_freq_corr();
+			double new_diff;
+			double new_ppm;
+			if(current_diff == 0) {
+				new_diff = source->get_ppm_adjust_interval();
+			} else if(current_diff < 0) {
+			  new_diff = current_diff * -1 + source->get_ppm_adjust_interval();
+			} else {
+			  new_diff = current_diff * -1;
+			}
+			if(!isnan(source->get_ppm_max_adjust()) && new_diff > source->get_ppm_max_adjust()) {
+				// if there is a limit on how far we're allowed to adjust the PPM, and we've reached it,
+				// reset the PPM to default and try changing control channels
+				BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "] Max PPM adjust reached, resetting";
+				source->set_freq_corr(source->get_initial_freq_corr());
+				change_control = true;
+			} else {
+				// haven't reached PPM adjustment limit yet, so try adjusting it to the new value
+				new_ppm = source->get_initial_freq_corr() + new_diff;
+				source->set_freq_corr(new_ppm);
+				BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "] Adjusting ppm to: " << new_ppm;
+			}
+		} else {
+			// settings don't allow for PPM adjustment, so immediately try a new control channel
+			change_control = true;
+		}
+		if(change_control) {
+			// there is a reason to try changing the control channel
+			if (sys->control_channel_count() > 1) {
+			  // if there is actually multiple control channels, try changing
+			  retune_system(sys);
+			} else {
+			  BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tThere is only one control channel defined";
+			}
+		}
 
         // if it loses track of the control channel, quit after a while
         if (config.control_retune_limit > 0) {
@@ -963,10 +1010,8 @@ void check_message_count(float timeDiff) {
         }
       } else {
         sys->retune_attempts = 0;
-      }
-
-      if (msgs_decoded_per_second < config.control_message_warn_rate || config.control_message_warn_rate == -1) {
-        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " <<  msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
+		// set the initial frequency correction to the current one, so if it loses the signal it starts re-tuning from the current value
+		source->set_initial_freq_corr(source->get_freq_corr());
       }
     }
     sys->message_count = 0;
