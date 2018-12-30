@@ -123,6 +123,8 @@ void Call::end_call() {
       if (myfile.is_open())
       {
         myfile << "{\n";
+        myfile << "\"nac\": \"" << std::hex << std::uppercase << this->sys->get_nac() << "\",\n";
+        myfile << std::dec << std::nouppercase;
         myfile << "\"freq\": " << this->curr_freq << ",\n";
         myfile << "\"start_time\": " << this->start_time << ",\n";
         myfile << "\"stop_time\": " << this->stop_time << ",\n";
