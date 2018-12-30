@@ -155,7 +155,7 @@ void Call::end_call() {
     }
 
     if (sys->get_upload_script().length() != 0) {
-      shell_command << sys->get_upload_script() << " " << this->get_filename() << " &";
+      shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
     }
     this->get_recorder()->stop();
 
