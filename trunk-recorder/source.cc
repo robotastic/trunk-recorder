@@ -9,6 +9,8 @@ static int src_counter=0;
 void Source::set_antenna(std::string ant)
 {
   antenna = ant;
+  initial_ppm = std::numeric_limits<double>::quiet_NaN();
+  ppm_max_adjust = std::numeric_limits<double>::quiet_NaN();
 
   if (driver == "osmosdr") {
     cast_to_osmo_sptr(source_block)->set_antenna(antenna, 0);
@@ -236,11 +238,46 @@ void Source::set_if_gain(int i)
 void Source::set_freq_corr(double p)
 {
   ppm = p;
+  
+  if(std::isnan(initial_ppm)) {
+    set_initial_freq_corr(p);
+  }
 
   if (driver == "osmosdr") {
     cast_to_osmo_sptr(source_block)->set_freq_corr(ppm);
     BOOST_LOG_TRIVIAL(info) << "PPM set to: " << cast_to_osmo_sptr(source_block)->get_freq_corr();
   }
+}
+
+double Source::get_freq_corr()
+{
+  return ppm;
+}
+
+void Source::set_ppm_adjust_interval(double i) {
+  ppm_adjust_interval = i;
+}
+
+double Source::get_ppm_adjust_interval()
+{
+  return ppm_adjust_interval;
+}
+
+void Source::set_initial_freq_corr(double p) {
+  initial_ppm = p;
+}
+
+double Source::get_initial_freq_corr()
+{
+  return initial_ppm;
+}
+
+void Source::set_ppm_max_adjust(double m){
+  ppm_max_adjust = m;
+}
+double Source::get_ppm_max_adjust()
+{
+  return ppm_max_adjust;
 }
 
 int Source::get_if_gain() {

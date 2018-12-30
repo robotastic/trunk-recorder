@@ -6,6 +6,7 @@
 #include <gnuradio/top_block.h>
 #include <osmosdr/source.h>
 #include <gnuradio/uhd/usrp_source.h>
+#include <cmath>
 #include "config.h"
 //#include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
@@ -22,6 +23,9 @@ class Source
 								double actual_rate;
 								double error;
 								double ppm;
+								double initial_ppm;
+								double ppm_adjust_interval;
+								double ppm_max_adjust;
 								double squelch_db;
 								double fsk_gain;
 								double analog_levels;
@@ -93,6 +97,13 @@ public:
 								void set_vga2_gain(int b);
 								int get_vga2_gain();
 								void set_freq_corr(double p);
+								double get_freq_corr();
+								void set_ppm_adjust_interval(double i);
+								double get_ppm_adjust_interval();
+								void set_ppm_max_adjust(double i);
+								double get_ppm_max_adjust();
+								double get_initial_freq_corr();
+								void set_initial_freq_corr(double p);
 								void print_recorders();
 								void tune_digital_recorders();
 								int debug_recorder_count();
