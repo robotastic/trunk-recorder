@@ -1,0 +1,19 @@
+[Unit]
+Description=Trunk Recorder Script
+
+[Service]
+User=luke
+Group=luke
+Environment="PATH=/home/luke/bin/:/usr/local/bin:/usr/bin"
+WorkingDirectory=/home/luke/trunk-recorder-build
+ExecStart=/home/luke/trunk-recorder-build/auto-restart.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+# Make sure the Path in the Environment line points to your FFMPEG bin
+# copy to /etc/systemd/system
+# systemctl daemon-reload
+# systemctl enable trunk-recorder.service
+# systemctl start trunk-recorder.service

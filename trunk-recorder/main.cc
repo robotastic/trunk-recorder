@@ -1032,8 +1032,8 @@ void monitor_messages() {
         stop_inactive_recorders();
         lastTalkgroupPurge = currentTime;
       }
-
-      usleep(1000 * 10);
+      boost::this_thread::sleep( boost::posix_time::milliseconds(10) );
+      //usleep(1000 * 10);
     }
 
 
