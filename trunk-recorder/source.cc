@@ -137,6 +137,46 @@ int Source::get_lna_gain() {
   return lna_gain;
 }
 
+void Source::set_tia_gain(int b)
+{
+  if (driver == "osmosdr") {
+    tia_gain = b;
+    cast_to_osmo_sptr(source_block)->set_gain(tia_gain, "TIA", 0);
+    BOOST_LOG_TRIVIAL(info) << "TIA Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("TIA");
+  }
+}
+
+int Source::get_tia_gain() {
+  if (driver == "osmosdr") {
+    try {
+      tia_gain = cast_to_osmo_sptr(source_block)->get_gain("TIA", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "TIA Gain unsupported or other error: " << e.what();
+    }
+  }
+  return tia_gain;
+}
+
+void Source::set_pga_gain(int b)
+{
+  if (driver == "osmosdr") {
+    pga_gain = b;
+    cast_to_osmo_sptr(source_block)->set_gain(pga_gain, "PGA", 0);
+    BOOST_LOG_TRIVIAL(info) << "PGA Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("PGA");
+  }
+}
+
+int Source::get_pga_gain() {
+  if (driver == "osmosdr") {
+    try {
+      pga_gain = cast_to_osmo_sptr(source_block)->get_gain("PGA", 0);
+    } catch(std::exception& e) {
+      BOOST_LOG_TRIVIAL(error) << "PGA Gain unsupported or other error: " << e.what();
+    }
+  }
+  return pga_gain;
+}
+
 void Source::set_vga1_gain(int b)
 {
   if (driver == "osmosdr") {
@@ -433,6 +473,8 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   config = cfg;
   gain = 0;
   lna_gain = 0;
+  tia_gain = 0;
+  pga_gain = 0;
   mix_gain = 0;
   if_gain = 0;
   src_num = src_counter++;
