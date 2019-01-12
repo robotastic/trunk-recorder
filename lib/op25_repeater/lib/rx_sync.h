@@ -110,6 +110,7 @@ private:
 	mbe_parms cur_mp[2];
 	mbe_parms prev_mp[2];
 	mbe_parms enh_mp[2];
+	mbe_tone tone_mp[2];
 	software_imbe_decoder d_software_decoder[2];
 	std::deque<int16_t> d_output_queue[2];
 	bool d_stereo;

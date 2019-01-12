@@ -104,10 +104,13 @@ p25p2_tdma::p25p2_tdma(const op25_audio& udp, int slotid, int debug, bool do_msg
         ESS_B(16,0),
         ess_algid(0x80),
         ess_keyid(0),
+        mbe_err_cnt(0),
+        tone_frame(false),
 	p2framer()
 {
 	assert (slotid == 0 || slotid == 1);
 	mbe_initMbeParms (&cur_mp, &prev_mp, &enh_mp);
+	mbe_initToneParms (&tone_mp);
 }
 
 bool p25p2_tdma::rx_sym(uint8_t sym)
@@ -176,7 +179,7 @@ void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len
         if (d_debug >= 10) {
                 fprintf(stderr, "%s MAC_PTT: srcaddr=%u, grpaddr=%u", logts.get(), srcaddr, grpaddr);
         }
-        if (d_do_nocrypt) {
+
                 for (int i = 0; i < 9; i++) {
                         ess_mi[i] = byte_buf[i+1];
                 }
@@ -187,9 +190,6 @@ void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len
                         for (int i = 0; i < 9; i++) {
                                 fprintf(stderr,"%02x ", ess_mi[i]);
                         }
-                }
-        }
-        if (d_debug >= 10) {
                 fprintf(stderr, "\n");
         }
 
@@ -205,8 +205,8 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
         if (d_debug >= 10)
                 fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u\n", logts.get(), colorcd, srcaddr, grpaddr);
 
-        std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
-        send_msg(s, -3);
+        //std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
+        //send_msg(s, -3);	// can cause data display issues if this message is processed after the DUID15
         op25audio.send_audio_flag(op25_audio::DRAIN);
 }
 
@@ -541,31 +541,70 @@ int p25p2_tdma::handle_acch_frame(const uint8_t dibits[], bool fast)
 void p25p2_tdma::handle_voice_frame(const uint8_t dibits[]) 
 {
 	static const int NSAMP_OUTPUT=160;
+	audio_samples *samples = NULL;
+	int u[4];
 	int b[9];
 	int16_t snd;
 	int K;
 	int rc = -1;
 
-	vf.process_vcw(dibits, b);
-	if (b[0] < 120) // anything above 120 is an erasure or special frame
+	// Deinterleave and figure out frame type:
+	vf.process_vcw(dibits, b, u);
+	rc = mbe_dequantizeAmbeTone(&tone_mp, u);
+	if (rc == 0) {					// Tone Frame
+		tone_frame = true;
+		mbe_err_cnt = 0;
+	} else {
 		rc = mbe_dequantizeAmbe2250Parms (&cur_mp, &prev_mp, b);
-	/* FIXME: check RC */
+		if (rc == 0) {				// Voice Frame
+			tone_frame = false;
+			mbe_err_cnt = 0;
+		} else if (++mbe_err_cnt < 4) {		// Erasure with Frame Repeat per TIA-102.BABA.5.6
+        		if (!tone_frame) 
+				mbe_useLastMbeParms(&cur_mp, &prev_mp);
+			rc = 0;
+		} else {
+			tone_frame = false;		// Mute audio output after 3 successive Frame Repeats
+		}
+	}
+
+	// Synthesize tones or speech
+	if (rc == 0) {
+		if (tone_frame) {
+			software_decoder.decode_tone(tone_mp.ID, tone_mp.AD, &tone_mp.n);
+			samples = software_decoder.audio();
+		} else {
 	K = 12;
 	if (cur_mp.L <= 36)
 		K = int(float(cur_mp.L + 2.0) / 3.0);
-	if (rc == 0)
 		software_decoder.decode_tap(cur_mp.L, K, cur_mp.w0, &cur_mp.Vl[1], &cur_mp.Ml[1]);
-	audio_samples *samples = software_decoder.audio();
+			samples = software_decoder.audio();
+		}
+	}
+
+	// Populate output buffer with either audio samples or silence
 	write_bufp = 0;
 	for (int i=0; i < NSAMP_OUTPUT; i++) {
-		if (samples->size() > 0) {
+		if (samples && (samples->size() > 0)) {
 			snd = (int16_t)(samples->front());
 			samples->pop_front();
 		} else {
 			snd = 0;
 		}
-		output_queue_decode.push_back(snd);
+		write_buf[write_bufp++] = snd & 0xFF ;
+		write_buf[write_bufp++] = snd >> 8;
 	}
+	if (d_do_audio_output && (write_bufp >= 0)) { 
+		op25audio.send_audio(write_buf, write_bufp);
+		write_bufp = 0;
+	}
+
+	// This should never happen; audio samples should never be left in buffer
+	if (software_decoder.audio()->size() != 0) {
+		fprintf(stderr, "%s p25p2_tdma::handle_voice_frame(): residual audio sample buffer non-zero (len=%lu)\n", logts.get(), software_decoder.audio()->size());
+		software_decoder.audio()->clear();
+	}
+
 	mbe_moveMbeParms (&cur_mp, &prev_mp);
 	mbe_moveMbeParms (&cur_mp, &enh_mp);
 }
@@ -634,13 +673,6 @@ void p25p2_tdma::handle_4V2V_ess(const uint8_t dibits[])
         if (d_debug >= 10) {
 		fprintf(stderr, "%s %s_BURST ", logts.get(), (burst_id < 4) ? "4V" : "2V");
 	}
-
-        if ( !d_do_nocrypt ) {
-                if (d_debug >= 10) {
-	                fprintf(stderr, "\n");
-                }
-                return;
-        }
 
         if (burst_id < 4) {
                 for (int i=0; i < 12; i += 3) { // ESS-B is 4 hexbits / 12 dibits

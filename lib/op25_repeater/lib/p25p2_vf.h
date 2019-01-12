@@ -24,7 +24,7 @@
 
 class p25p2_vf {
 public:
-	void process_vcw(const uint8_t vf[], int* b);
+	void process_vcw(const uint8_t vf[], int* b, int* u = NULL);
 	void encode_vcw(uint8_t vf[], const int* b);
 	void encode_dstar(uint8_t result[72], const int b[9], bool alt_dstar_interleave);
 	void decode_dstar(const uint8_t codeword[72], int b[9], bool alt_dstar_interleave);

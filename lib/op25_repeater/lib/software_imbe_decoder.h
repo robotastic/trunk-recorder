@@ -52,6 +52,7 @@ public:
 	virtual void decode(const voice_codeword& cw);
 
 	void decode_tap(int _L, int _K, float _w0, const int * _v, const float * _mu);
+	void decode_tone(int _ID, int _AD, int * _n);
 private:
 
 	//NOTE: Single-letter variable names are upper case only; Lower

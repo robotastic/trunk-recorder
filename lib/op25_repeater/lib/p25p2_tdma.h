@@ -60,6 +60,9 @@ private:
 	mbe_parms cur_mp;
 	mbe_parms prev_mp;
 	mbe_parms enh_mp;
+	mbe_tone tone_mp;
+	int mbe_err_cnt;
+	bool tone_frame;
 	software_imbe_decoder software_decoder;
 	gr::msg_queue::sptr d_msg_queue;
 	std::deque<int16_t> &output_queue_decode;
@@ -80,8 +83,8 @@ private:
         std::vector<uint8_t> ESS_A; // ESS_A and ESS_B are hexbits vectors
         std::vector<uint8_t> ESS_B;
 
-        uint8_t ess_keyid;
-        uint16_t ess_algid;
+        uint16_t ess_keyid;
+        uint8_t ess_algid;
 	uint8_t ess_mi[9] = {0};
 
 	p25p2_framer p2framer;

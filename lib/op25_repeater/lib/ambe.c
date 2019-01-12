@@ -48,7 +48,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   silence = 0;
 
 #ifdef AMBE_DEBUG
-  printf ("\n");
+  fprintf (stderr, "\n");
 #endif
 
   // copy repeat from prev_mp
@@ -57,14 +57,14 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   if ((b0 >= 120) && (b0 <= 123))
     {
 #ifdef AMBE_DEBUG
-      printf ("Erasure Frame\n");
+      fprintf (stderr, "AMBE Erasure Frame\n");
 #endif
       return (2);
     }
   else if ((b0 == 124) || (b0 == 125))
     {
 #ifdef AMBE_DEBUG
-      printf ("Silence Frame\n");
+      fprintf (stderr, "AMBE Silence Frame\n");
 #endif
       silence = 1;
       cur_mp->w0 = ((float) 2 * M_PI) / (float) 32;
@@ -79,7 +79,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   else if ((b0 == 126) || (b0 == 127))
     {
 #ifdef AMBE_DEBUG
-      printf ("Tone Frame\n");
+      fprintf (stderr, "AMBE Tone Frame\n");
 #endif
       return (3);
     }
@@ -132,11 +132,11 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           cur_mp->Vl[l] = AmbeVuv[b1][jl];
         }
 #ifdef AMBE_DEBUG
-      printf ("jl[%i]:%i Vl[%i]:%i\n", l, jl, l, cur_mp->Vl[l]);
+      fprintf (stderr, "jl[%i]:%i Vl[%i]:%i\n", l, jl, l, cur_mp->Vl[l]);
 #endif
     }
 #ifdef AMBE_DEBUG
-  printf ("\nb0:%i w0:%f L:%i b1:%i\n", b0, cur_mp->w0, L, b1);
+  fprintf (atderr, "\nb0:%i w0:%f L:%i b1:%i\n", b0, cur_mp->w0, L, b1);
 #endif
   if (dstar) {
     deltaGamma = AmbePlusDg[b2];
@@ -146,7 +146,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
   }
 #ifdef AMBE_DEBUG
-  printf ("b2: %i, deltaGamma: %f gamma: %f gamma-1: %f\n", b2, deltaGamma, cur_mp->gamma, prev_mp->gamma);
+  fprintf (stderr, "b2: %i, deltaGamma: %f gamma: %f gamma-1: %f\n", b2, deltaGamma, cur_mp->gamma, prev_mp->gamma);
 #endif
 
 
@@ -174,7 +174,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   }
 
 #ifdef AMBE_DEBUG
-  printf ("b3: %i Gm[2]: %f Gm[3]: %f Gm[4]: %f b4: %i Gm[5]: %f Gm[6]: %f Gm[7]: %f Gm[8]: %f\n", b3, Gm[2], Gm[3], Gm[4], b4, Gm[5], Gm[6], Gm[7], Gm[8]);
+  fprintf (stderr, "b3: %i Gm[2]: %f Gm[3]: %f Gm[4]: %f b4: %i Gm[5]: %f Gm[6]: %f Gm[7]: %f Gm[8]: %f\n", b3, Gm[2], Gm[3], Gm[4], b4, Gm[5], Gm[6], Gm[7], Gm[8]);
 #endif
 
   // compute Ri
@@ -195,11 +195,11 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
         }
       Ri[i] = sum;
 #ifdef AMBE_DEBUG
-      printf ("R%i: %f ", i, Ri[i]);
+      fprintf (stderr, "R%i: %f ", i, Ri[i]);
 #endif
     }
 #ifdef AMBE_DEBUG
-  printf ("\n");
+  fprintf (stderr, "\n");
 #endif
 
   // generate first to elements of each Ci,k block from PRBA vector
@@ -228,8 +228,8 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   Ji[4] = AmbeLmprbl[L][3];
   }
 #ifdef AMBE_DEBUG
-  printf ("Ji[1]: %i Ji[2]: %i Ji[3]: %i Ji[4]: %i\n", Ji[1], Ji[2], Ji[3], Ji[4]);
-  printf ("b5: %i b6: %i b7: %i b8: %i\n", b5, b6, b7, b8);
+  fprintf (stderr, "Ji[1]: %i Ji[2]: %i Ji[3]: %i Ji[4]: %i\n", Ji[1], Ji[2], Ji[3], Ji[4]);
+  fprintf (stderr, "b5: %i b6: %i b7: %i b8: %i\n", b5, b6, b7, b8);
 #endif
 
   // Load Ci,k with the values from the HOC tables
@@ -248,7 +248,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           else
           Cik[1][k] = AmbeHOCb5[b5][k - 3];
 #ifdef AMBE_DEBUG
-          printf ("C1,%i: %f ", k, Cik[1][k]);
+          fprintf (stderr, "C1,%i: %f ", k, Cik[1][k]);
 #endif
         }
     }
@@ -265,7 +265,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           else
           Cik[2][k] = AmbeHOCb6[b6][k - 3];
 #ifdef AMBE_DEBUG
-          printf ("C2,%i: %f ", k, Cik[2][k]);
+          fprintf (stderr, "C2,%i: %f ", k, Cik[2][k]);
 #endif
         }
     }
@@ -282,7 +282,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           else
           Cik[3][k] = AmbeHOCb7[b7][k - 3];
 #ifdef AMBE_DEBUG
-          printf ("C3,%i: %f ", k, Cik[3][k]);
+          fprintf (stderr, "C3,%i: %f ", k, Cik[3][k]);
 #endif
         }
     }
@@ -299,12 +299,12 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           else
           Cik[4][k] = AmbeHOCb8[b8][k - 3];
 #ifdef AMBE_DEBUG
-          printf ("C4,%i: %f ", k, Cik[4][k]);
+          fprintf (stderr, "C4,%i: %f ", k, Cik[4][k]);
 #endif
         }
     }
 #ifdef AMBE_DEBUG
-  printf ("\n");
+  fprintf (stderr, "\n");
 #endif
 
   // inverse DCT each Ci,k to give ci,j (Tl)
@@ -326,13 +326,13 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
                   ak = 2;
                 }
 #ifdef AMBE_DEBUG
-              printf ("j: %i Cik[%i][%i]: %f ", j, i, k, Cik[i][k]);
+              fprintf (stderr, "j: %i Cik[%i][%i]: %f ", j, i, k, Cik[i][k]);
 #endif
               sum = sum + ((float) ak * Cik[i][k] * cosf ((M_PI * (float) (k - 1) * ((float) j - (float) 0.5)) / (float) ji));
             }
           Tl[l] = sum;
 #ifdef AMBE_DEBUG
-          printf ("Tl[%i]: %f\n", l, Tl[l]);
+          fprintf (stderr, "Tl[%i]: %f\n", l, Tl[l]);
 #endif
           l++;
         }
@@ -361,20 +361,20 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
       flokl[l] = ((float) prev_mp->L / (float) cur_mp->L) * (float) l;
       intkl[l] = (int) (flokl[l]);
 #ifdef AMBE_DEBUG
-      printf ("flok%i: %f, intk%i: %i ", l, flokl[l], l, intkl[l]);
+      fprintf (stderr, "flok%i: %f, intk%i: %i ", l, flokl[l], l, intkl[l]);
 #endif
       // eq. 41
       deltal[l] = flokl[l] - (float) intkl[l];
 #ifdef AMBE_DEBUG
-      printf ("delta%i: %f ", l, deltal[l]);
+      fprintf (stderr, "delta%i: %f ", l, deltal[l]);
 #endif
       // eq 43
       Sum43 = Sum43 + ((((float) 1 - deltal[l]) * prev_mp->log2Ml[intkl[l]]) + (deltal[l] * prev_mp->log2Ml[intkl[l] + 1]));
     }
   Sum43 = (((float) 0.65 / (float) cur_mp->L) * Sum43);
 #ifdef AMBE_DEBUG
-  printf ("\n");
-  printf ("Sum43: %f\n", Sum43);
+  fprintf (stderr, "\n");
+  fprintf (stderr, "Sum43: %f\n", Sum43);
 #endif
 
   // Part 2
@@ -403,14 +403,46 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           cur_mp->Ml[l] = unvc * exp ((float) 0.693 * cur_mp->log2Ml[l]);
         }
 #ifdef AMBE_DEBUG
-      printf ("flokl[%i]: %f, intkl[%i]: %i ", l, flokl[l], l, intkl[l]);
-      printf ("deltal[%i]: %f ", l, deltal[l]);
-      printf ("prev_mp->log2Ml[%i]: %f\n", l, prev_mp->log2Ml[intkl[l]]);
-      printf ("BigGamma: %f c1: %f c2: %f Sum43: %f Tl[%i]: %f log2Ml[%i]: %f Ml[%i]: %f\n", BigGamma, c1, c2, Sum43, l, Tl[l], l, cur_mp->log2Ml[l], l, cur_mp->Ml[l]);
+      fprintf (stderr, "flokl[%i]: %f, intkl[%i]: %i ", l, flokl[l], l, intkl[l]);
+      fprintf (stderr, "deltal[%i]: %f ", l, deltal[l]);
+      fprintf (stderr, "prev_mp->log2Ml[%i]: %f\n", l, prev_mp->log2Ml[intkl[l]]);
+      fprintf (stderr, "BigGamma: %f c1: %f c2: %f Sum43: %f Tl[%i]: %f log2Ml[%i]: %f Ml[%i]: %f\n", BigGamma, c1, c2, Sum43, l, Tl[l], l, cur_mp->log2Ml[l], l, cur_mp->Ml[l]);
 #endif
     }
 
   return (0);
+}
+
+int
+mbe_dequantizeAmbeTone(mbe_tone * tone, const int *u)
+{
+	int bitchk1, bitchk2;
+	int AD, ID1, ID2, ID3, ID4;
+	bitchk1 = (u[0] >> 6) & 0x3f;
+	bitchk2 = (u[3] & 0xf);
+
+	if ((bitchk1 != 63) || (bitchk2 != 0))
+		return -1; // Not a valid tone frame
+
+	AD = ((u[0] & 0x3f) << 1) + ((u[3] >> 4) & 0x1);
+	ID1 = ((u[1] & 0xfff) >> 4);
+	ID2 = ((u[1] & 0xf) << 4) + ((u[2] >> 7) & 0xf);
+	ID3 = ((u[2] & 0x7f) << 1) + ((u[3] >> 13) & 0x1);
+	ID4 = ((u[3] & 0x1fe0) >> 5);
+
+	if ((ID1 == ID2) && (ID1 == ID3) && (ID1 == ID4) &&
+	    (((ID1 >= 5) && (ID1 <= 122)) || ((ID1 >= 128) && (ID1 <= 163)) || (ID1 == 255))) {
+		if (tone->ID == ID1) {
+			tone->AD = AD;
+		} else {
+			tone->n = 0;
+			tone->ID = ID1;
+			tone->AD = AD;
+		}
+		return 0; // valid in-range tone frequency 
+	}
+
+	return -1;
 }
 
 int

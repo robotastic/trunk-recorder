@@ -93,6 +93,14 @@ mbe_initMbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_e
 }
 
 void
+mbe_initToneParms (mbe_tone * tone_mp)
+{
+  tone_mp->ID = 0;
+  tone_mp->AD = 0;
+  tone_mp->n = 0;
+}
+
+void
 mbe_spectralAmpEnhance (mbe_parms * cur_mp)
 {
 
