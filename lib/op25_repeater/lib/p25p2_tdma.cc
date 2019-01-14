@@ -591,6 +591,7 @@ void p25p2_tdma::handle_voice_frame(const uint8_t dibits[])
 		} else {
 			snd = 0;
 		}
+		output_queue_decode.push_back(snd);
 		write_buf[write_bufp++] = snd & 0xFF ;
 		write_buf[write_bufp++] = snd >> 8;
 	}
