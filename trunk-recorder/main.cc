@@ -308,6 +308,8 @@ void load_config(string config_file)
       int    bb_gain        = node.second.get<double>("bbGain", 0);
       int    mix_gain       = node.second.get<double>("mixGain", 0);
       int    lna_gain       = node.second.get<double>("lnaGain", 0);
+      int    pga_gain       = node.second.get<double>("pgaGain", 0);
+      int    tia_gain       = node.second.get<double>("tiaGain", 0);
       int    vga1_gain      = node.second.get<double>("vga1Gain", 0);
       int    vga2_gain      = node.second.get<double>("vga2Gain", 0);
       double fsk_gain       = node.second.get<double>("fskGain", 1.0);
@@ -339,6 +341,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
       BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<double>("lnaGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << node.second.get<double>("pgaGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << node.second.get<double>("tiaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
@@ -390,9 +394,12 @@ void load_config(string config_file)
         source->set_mix_gain(mix_gain);
       }
 
-      if (lna_gain != 0) {
-        source->set_lna_gain(lna_gain);
-      }
+      source->set_lna_gain(lna_gain);
+    
+      source->set_tia_gain(tia_gain);
+    
+      source->set_pga_gain(pga_gain);
+      
 
       if (vga1_gain != 0) {
         source->set_vga1_gain(vga1_gain);
@@ -1116,8 +1123,8 @@ void monitor_messages() {
         stop_inactive_recorders();
         lastTalkgroupPurge = currentTime;
       }
-
-      usleep(1000 * 10);
+      boost::this_thread::sleep( boost::posix_time::milliseconds(10) );
+      //usleep(1000 * 10);
     }
 
 

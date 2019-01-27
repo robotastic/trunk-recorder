@@ -565,7 +565,7 @@ static const uint32_t pr_n[4096] = {	\
 	11353390, 16168627, 16360768, 2121433, 6508214, 5936487, 1156824, 737033
 };
 
-	void p25p2_vf::process_vcw(const uint8_t vf[], int* b) {
+	void p25p2_vf::process_vcw(const uint8_t vf[], int* b, int* u) {
 		int c0,c1,c2,c3;
 		int u0,u1,u2,u3;
 		extract_vcw(vf, c0, c1, c2, c3 );
@@ -597,6 +597,13 @@ static const uint32_t pr_n[4096] = {	\
 		b[6] = ((u2 >> 3) & 0x0e) + ((u3 >> 3) & 0x1);
 		b[7] = ( u2       & 0x0e) + ((u3 >> 2) & 0x1);
 		b[8] = ((u2 << 2) & 0x04) + ( u3       & 0x3);
+
+		if (u != NULL) {
+			u[0] = u0;
+			u[1] = u1;
+			u[2] = u2;
+			u[3] = u3;
+		}
 	}
 
 	void p25p2_vf::encode_vcw(uint8_t vf[], const int* b) {

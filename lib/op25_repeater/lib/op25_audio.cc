@@ -111,16 +111,21 @@ op25_audio::op25_audio(const char* destination, int debug) :
     int port = DEFAULT_UDP_PORT;
 
     if (memcmp(destination, P_UDP, strlen(P_UDP)) == 0) {
+        char ip[20];
+        char host[64];
         const char * p1 = destination+strlen(P_UDP);
-        strncpy(d_udp_host, p1, sizeof(d_udp_host));
-        d_udp_host[sizeof(d_udp_host)-1] = 0;
-        char * pc = index(d_udp_host, ':');
+        strncpy(host, p1, sizeof(host));
+        char * pc = index(host, ':');
         if (pc) {
             sscanf(pc+1, "%d", &port);
             *pc = 0;
         }
+        if (hostname_to_ip(host, ip) == 0) {
+            strncpy(d_udp_host, ip, sizeof(d_udp_host));
+            d_udp_host[sizeof(d_udp_host)-1] = 0;
         d_write_port = d_audio_port = port;
         open_socket();
+        }
     } else if (memcmp(destination, P_FILE, strlen(P_FILE)) == 0) {
         const char * filename = destination+strlen(P_FILE);
         size_t l = strlen(filename);

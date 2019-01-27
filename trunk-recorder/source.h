@@ -35,6 +35,8 @@ class Source
 								int bb_gain;
 								int if_gain;
 								int lna_gain;
+								int tia_gain;
+								int pga_gain;
 								int mix_gain;
 								int vga1_gain;
 								int vga2_gain;
@@ -92,6 +94,10 @@ public:
 								int get_mix_gain();
 								void set_lna_gain(int b);
 								int get_lna_gain();
+								void set_tia_gain(int b);
+								int get_tia_gain();
+								void set_pga_gain(int b);
+								int get_pga_gain();
 								void set_vga1_gain(int b);
 								int get_vga1_gain();
 								void set_vga2_gain(int b);

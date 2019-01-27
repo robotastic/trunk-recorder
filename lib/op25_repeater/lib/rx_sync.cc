@@ -183,6 +183,8 @@ rx_sync::rx_sync(const char * options, int debug) :	// constructor
 {
 	mbe_initMbeParms (&cur_mp[0], &prev_mp[0], &enh_mp[0]);
 	mbe_initMbeParms (&cur_mp[1], &prev_mp[1], &enh_mp[1]);
+	mbe_initToneParms (&tone_mp[0]);
+	mbe_initToneParms (&tone_mp[1]);
 	sync_reset();
 }
 
@@ -197,19 +199,24 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 	static const uint8_t majority[8] = {0,0,0,1,0,1,1,1};
 
 	int b[9];
+	int U[4];
 	uint8_t buf[4*26];
 	uint8_t tmp_codeword [144];
 	uint32_t E0, ET;
 	uint32_t u[8];
 	bool do_fullrate = false;
 	bool do_silence = false;
+	bool do_tone = false;
 	voice_codeword fullrate_cw(voice_codeword_sz);
 
 	switch(codeword_type) {
 	case CODEWORD_DMR:
-		interleaver.process_vcw(cw, b);
-		if (b[0] < 120)
+		interleaver.process_vcw(cw, b, U);
+		if (mbe_dequantizeAmbeTone(&tone_mp[slot_id], U) == 0) {
+			do_tone = true;
+		} else if (b[0] < 120) { // TODO: handle Erasures/Frame Repeat
 			mbe_dequantizeAmbe2250Parms(&cur_mp[slot_id], &prev_mp[slot_id], b);
+		}
 		break;
 	case CODEWORD_DSTAR:
 		interleaver.decode_dstar(cw, b, false);
@@ -245,6 +252,9 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 		do_fullrate = true;
 		break;
 	}
+	if (do_tone) {
+		d_software_decoder[slot_id].decode_tone(tone_mp[slot_id].ID, tone_mp[slot_id].AD, &tone_mp[slot_id].n);
+	} else {
 	mbe_moveMbeParms (&cur_mp[slot_id], &prev_mp[slot_id]);
 	if (do_fullrate) {
 		d_software_decoder[slot_id].decode(fullrate_cw);
@@ -254,6 +264,7 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 		} else {
 			d_software_decoder[slot_id].decode_tap(cur_mp[slot_id].L, 0, cur_mp[slot_id].w0, &cur_mp[slot_id].Vl[1], &cur_mp[slot_id].Ml[1]);
 		}
+	}
 	}
 	audio_samples *samples = d_software_decoder[slot_id].audio();
 	float snd;
