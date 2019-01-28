@@ -26,11 +26,19 @@ void System::set_upload_script(std::string script) {
 }
 
 std::string System::get_tracking_script() {
-         return this->tracking_script;
+  return this->tracking_script;
 }
 
 void System::set_tracking_script(std::string script) {
-         this->tracking_script = script;
+  this->tracking_script = script;
+}
+
+double System::get_min_duration() {
+  return this->min_call_duration;
+}
+
+void System::set_min_duration(double duration) {
+  this->min_call_duration = duration;
 }
 
 

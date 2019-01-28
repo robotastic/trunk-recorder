@@ -60,6 +60,7 @@ public:
         double bandplan_high;
         double bandplan_spacing;
         int bandplan_offset;
+        double min_call_duration;
 
         unsigned xor_mask_len;
         const char *xor_mask;
@@ -84,6 +85,8 @@ public:
         void set_tracking_script(std::string script);
         std::string get_api_key();
         void set_api_key(std::string api_key);
+        double get_min_duration();
+        void set_min_duration(double duration);
         bool get_audio_archive();
         void set_audio_archive(bool);
         bool get_record_unknown();
