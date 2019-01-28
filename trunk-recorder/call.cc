@@ -1,6 +1,7 @@
 #include "call.h"
 #include "formatter.h"
 #include <boost/algorithm/string.hpp>
+#include <stdio.h>
 #include "recorders/recorder.h"
 #include "source.h"
 
@@ -105,7 +106,7 @@ void Call::end_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
     _final_length = recorder->get_current_length();
 
@@ -157,15 +158,27 @@ void Call::end_call() {
     }
     this->get_recorder()->stop();
 
-    if (this->config.upload_server != "") {
-      send_call(this, sys, config);
-    } else {}
+    if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
+      if (this->config.upload_server != "") {
+        send_call(this, sys, config);
+      } else {}
 
-    if (sys->get_upload_script().length() != 0) {
-      BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
-      signal(SIGCHLD, SIG_IGN);
-      //int rc = system(shell_command.str().c_str());
-      system(shell_command.str().c_str());
+      if (sys->get_upload_script().length() != 0) {
+        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
+        signal(SIGCHLD, SIG_IGN);
+        //int rc = system(shell_command.str().c_str());
+        system(shell_command.str().c_str());
+      }
+    } else {
+      // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
+
+      if (remove(filename) != 0) {
+        BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
+      }
+      if (remove(status_filename) != 0) {
+        BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
+      }
     }
   }
 

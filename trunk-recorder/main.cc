@@ -240,7 +240,7 @@ void load_config(string config_file)
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       system->set_record_unknown(node.second.get<bool>("recordUnknown", true));
-      BOOST_LOG_TRIVIAL(info) << "Record Unkown Talkgroups: " << system->get_record_unknown();
+      BOOST_LOG_TRIVIAL(info) << "Record Unknown Talkgroups: " << system->get_record_unknown();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")){
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
@@ -281,7 +281,9 @@ void load_config(string config_file)
       system->set_hideEncrypted(node.second.get<bool>("hideEncrypted", system->get_hideEncrypted()));
       BOOST_LOG_TRIVIAL(info) << "Hide Encrypted Talkgroups: " << system->get_hideEncrypted();
       system->set_hideUnknown(node.second.get<bool>("hideUnknownTalkgroups", system->get_hideUnknown()));
-      BOOST_LOG_TRIVIAL(info) << "Hide Unkown Talkgroups: " << system->get_hideUnknown();
+      BOOST_LOG_TRIVIAL(info) << "Hide Unknown Talkgroups: " << system->get_hideUnknown();
+      system->set_min_duration(node.second.get<double>("minDuration", 0));
+      BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
 
       systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);
@@ -386,11 +388,11 @@ void load_config(string config_file)
       }
 
       source->set_lna_gain(lna_gain);
-    
+
       source->set_tia_gain(tia_gain);
-    
+
       source->set_pga_gain(pga_gain);
-      
+
 
       if (vga1_gain != 0) {
         source->set_vga1_gain(vga1_gain);
@@ -948,7 +950,6 @@ void check_message_count(float timeDiff) {
 
     if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
-
 
       if (msgs_decoded_per_second < 2) {
         if (sys->system_type == "smartnet") {

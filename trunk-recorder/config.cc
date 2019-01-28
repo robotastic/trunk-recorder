@@ -75,8 +75,10 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
-      system->set_record_unknown(node.second.get<bool>("recordUnknown",true));
-      BOOST_LOG_TRIVIAL(info) << "Record Unkown Talkgroups: " << system->get_record_unknown();
+      system->set_record_unknown(node.second.get<bool>("recordUnknown", true));
+      BOOST_LOG_TRIVIAL(info) << "Record Unknown Talkgroups: " << system->get_record_unknown();
+      system->set_min_duration(node.second.get<double>("minDuration", 0));
+      BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
       systems.push_back(system);
 
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
@@ -219,7 +221,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       if (mix_gain != 0) {
         source->set_mix_gain(mix_gain);
       }
-      
+
       source->set_lna_gain(lna_gain);
 
       source->set_tia_gain(tia_gain);
