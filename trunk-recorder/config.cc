@@ -149,6 +149,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       std::string antenna   = node.second.get<std::string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
       int debug_recorders   = node.second.get<int>("debugRecorders", 0);
+      int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
 
       std::string driver = node.second.get<std::string>("driver", "");
@@ -176,6 +177,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
+      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver",  "");
 
@@ -249,6 +251,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_debug_recorders(tb, debug_recorders);
+      source->create_sigmf_recorders(tb, sigmf_recorders);
       sources.push_back(source);
     }
   }
