@@ -88,8 +88,8 @@ private:
         ezpwd::RS<63,51> rs12;
         ezpwd::RS<63,47> rs16;
 
-        uint8_t  ess_keyid;
-        uint16_t ess_algid;
+        uint16_t  ess_keyid;
+        uint8_t ess_algid;
 	uint8_t  ess_mi[9] = {0};
 	uint16_t vf_tgid;
 

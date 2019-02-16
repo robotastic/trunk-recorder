@@ -48,6 +48,8 @@ namespace gr {
        */
       static sptr make(float samples_per_symbol, float gain_mu, float gain_omega, float alpha, float beta, float max_freq, float min_freq);
       virtual void set_omega(float omega) {}
+      virtual float get_freq_error(void) {}
+      virtual void reset() {}
       virtual void update_omega (float samples_per_symbol)  {}
       virtual void update_fmax (float max_freq) {}
     };
@@ -56,3 +58,4 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_OP25_REPEATER_GARDNER_COSTAS_CC_H */
+

@@ -146,21 +146,25 @@ void rx_sync::dmr_sync(const uint8_t bitbuf[], int& current_slot, bool& unmute) 
 	d_shift_reg = (d_shift_reg << 1) + chan;
 	current_slot = slot_ids[d_shift_reg & 7];
 
+	if ((d_debug >= 10) && (chan != current_slot)) {
+		fprintf(stderr, "DMR cach chan=%d does not match current_slot=%d\n", chan, current_slot);
+	}
+
 	uint64_t sync = load_reg64(bitbuf + (MODE_DATA[RX_TYPE_DMR].sync_offset << 1), MODE_DATA[RX_TYPE_DMR].sync_len);
 	if (check_frame_sync(DMR_VOICE_SYNC_MAGIC ^ sync, d_threshold, MODE_DATA[RX_TYPE_DMR].sync_len))
 		fstype = 1;
-	else if (check_frame_sync(DMR_IDLE_SYNC_MAGIC ^ sync, d_threshold, MODE_DATA[RX_TYPE_DMR].sync_len))
+	else if (check_frame_sync(DMR_DATA_SYNC_MAGIC ^ sync, d_threshold, MODE_DATA[RX_TYPE_DMR].sync_len))
 		fstype = 2;
 	else
 		fstype = 0;
 	if (fstype > 0)
 		d_expires = d_symbol_count + MODE_DATA[d_current_type].expiration;
 	if (fstype == 1) {
-		if (!d_unmute_until[current_slot] && d_debug > 5)
+		if (!d_unmute_until[current_slot] && d_debug >= 5)
 			fprintf(stderr, "unmute slot %d\n", current_slot);
 		d_unmute_until[current_slot] = d_symbol_count + MODE_DATA[d_current_type].expiration;
 	} else if (fstype == 2) {
-		if (d_unmute_until[current_slot] && d_debug > 5)
+		if (d_unmute_until[current_slot] && d_debug >= 5)
 			fprintf(stderr, "mute slot %d\n", current_slot);
 		d_unmute_until[current_slot] = 0;
 	}
@@ -179,7 +183,8 @@ rx_sync::rx_sync(const char * options, int debug) :	// constructor
 	d_expires(0),
 	d_stereo(false),
 	d_debug(debug),
-	d_audio(options, debug)
+	d_audio(options, debug),
+	dmr(debug)
 {
 	mbe_initMbeParms (&cur_mp[0], &prev_mp[0], &enh_mp[0]);
 	mbe_initMbeParms (&cur_mp[1], &prev_mp[1], &enh_mp[1]);
@@ -204,6 +209,7 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 	uint8_t tmp_codeword [144];
 	uint32_t E0, ET;
 	uint32_t u[8];
+	size_t errs = 0;
 	bool do_fullrate = false;
 	bool do_silence = false;
 	bool do_tone = false;
@@ -211,7 +217,13 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 
 	switch(codeword_type) {
 	case CODEWORD_DMR:
-		interleaver.process_vcw(cw, b, U);
+		errs = interleaver.process_vcw(cw, b, U);
+		if (d_debug >= 10) {
+			packed_codeword p_cw;
+			interleaver.pack_cw(p_cw, U);
+			fprintf(stderr, "%s AMBE %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(),
+			       	p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5], p_cw[6], errs);
+		}
 		if (mbe_dequantizeAmbeTone(&tone_mp[slot_id], U) == 0) {
 			do_tone = true;
 		} else if (b[0] < 120) { // TODO: handle Erasures/Frame Repeat
@@ -242,8 +254,17 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 	case CODEWORD_P25P1:	// 144 bits
 		for (int i=0; i<144; i++)
 			fullrate_cw[i] = cw[i];
-		imbe_header_decode(fullrate_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+		errs = imbe_header_decode(fullrate_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
 		do_fullrate = true;
+		if (d_debug >= 10) {
+			packed_codeword p_cw;
+			imbe_pack(p_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
+			fprintf(stderr, "%s IMBE %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x errs %lu\n",
+					logts.get(),
+					p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5],
+				       	p_cw[6], p_cw[7], p_cw[8], p_cw[9], p_cw[10], errs);
+		}
+
 		break;
 	case CODEWORD_YSF_FULLRATE:	// 144 bits
 		for (int i=0; i<144; i++)
@@ -301,9 +322,9 @@ void rx_sync::rx_sym(const uint8_t sym)
 
 	d_symbol_count ++;
 	d_sync_reg = (d_sync_reg << 2) | (sym & 3);
-	for (int i = 1; i < RX_N_TYPES; i++) {
-		if (check_frame_sync(MODE_DATA[i].sync ^ d_sync_reg, (i == d_current_type) ? d_threshold : 0, MODE_DATA[i].sync_len)) {
-			sync_detected = (enum rx_types) i;
+	for (int i = 0; i < KNOWN_MAGICS; i++) {
+		if (check_frame_sync(SYNC_MAGIC[i].magic ^ d_sync_reg, (SYNC_MAGIC[i].type == d_current_type) ? d_threshold : 0, MODE_DATA[SYNC_MAGIC[i].type].sync_len)) {
+			sync_detected = (enum rx_types) SYNC_MAGIC[i].type;
 			break;
 		}
 	}
@@ -318,7 +339,7 @@ void rx_sync::rx_sym(const uint8_t sym)
 			d_rx_count = 0;
 		}
 		if (d_rx_count != MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1)) {
-			if (d_debug)
+			if (d_debug >= 10)
 				fprintf(stderr, "resync at count %d for protocol %s\n", d_rx_count, MODE_DATA[d_current_type].type);
 			sync_reset();
 			d_rx_count = MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1);
@@ -328,7 +349,7 @@ void rx_sync::rx_sym(const uint8_t sym)
 		d_expires = d_symbol_count + MODE_DATA[d_current_type].expiration;
 	}
 	if (d_symbol_count >= d_expires) {
-		if (d_debug)
+		if (d_debug >= 10)
 			fprintf(stderr, "%s: timeout, symbol %d\n", MODE_DATA[d_current_type].type, d_symbol_count);
 		d_current_type = RX_TYPE_NONE;
 		return;
@@ -356,6 +377,7 @@ void rx_sync::rx_sym(const uint8_t sym)
 		break;
 	case RX_TYPE_DMR:
 		dmr_sync(bit_ptr, current_slot, unmute);
+		dmr.load_frame(symbol_ptr);
 		if (!unmute)
 			break;
 		codeword(symbol_ptr+12, CODEWORD_DMR, current_slot);

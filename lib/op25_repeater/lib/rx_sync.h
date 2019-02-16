@@ -38,10 +38,12 @@
 
 #include "ysf_const.h"
 #include "dmr_const.h"
+#include "dmr_cai.h"
 #include "p25_frame.h"
 #include "op25_imbe_frame.h"
 #include "software_imbe_decoder.h"
 #include "op25_audio.h"
+#include "log_ts.h"
 
 namespace gr{
     namespace op25_repeater{
@@ -65,12 +67,24 @@ static const struct _mode_data {
 	int expiration;
 	uint64_t sync;
 } MODE_DATA[RX_N_TYPES] = {
-	{"NONE",   0,0,0,0,0},
-	{"P25",    48,0,864,1728,   P25_FRAME_SYNC_MAGIC},
-	{"DMR",    48,66,144,1728,  DMR_VOICE_SYNC_MAGIC},
-	{"DSTAR",  48,72,96,2016*2, DSTAR_FRAME_SYNC_MAGIC},
-	{"YSF",    40,0,480,480*2,  YSF_FRAME_SYNC_MAGIC}
+	{"NONE",   0,0,0,0},
+	{"P25",    48,0,864,1728},
+	{"DMR",    48,66,144,1728},
+	{"DSTAR",  48,72,96,2016*2},
+	{"YSF",    40,0,480,480*2}
 };   // index order must match rx_types enum
+
+static const int KNOWN_MAGICS = 5;
+static const struct _sync_magic {
+	int type;
+	uint64_t magic;
+} SYNC_MAGIC[KNOWN_MAGICS] = {
+	{RX_TYPE_P25, P25_FRAME_SYNC_MAGIC},
+	{RX_TYPE_DMR, DMR_VOICE_SYNC_MAGIC},
+	{RX_TYPE_DMR, DMR_DATA_SYNC_MAGIC},
+	{RX_TYPE_DSTAR, DSTAR_FRAME_SYNC_MAGIC},
+	{RX_TYPE_YSF, YSF_FRAME_SYNC_MAGIC}
+}; // maps sync patterns to protocols
 
 enum codeword_types {
 	CODEWORD_P25P1,
@@ -113,9 +127,11 @@ private:
 	mbe_tone tone_mp[2];
 	software_imbe_decoder d_software_decoder[2];
 	std::deque<int16_t> d_output_queue[2];
+	dmr_cai dmr;
 	bool d_stereo;
 	int d_debug;
 	op25_audio d_audio;
+	log_ts logts;
 };
 
     } // end namespace op25_repeater
