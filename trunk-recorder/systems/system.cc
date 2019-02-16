@@ -25,6 +25,13 @@ void System::set_upload_script(std::string script) {
   this->upload_script = script;
 }
 
+double System::get_min_duration() {
+  return this->min_call_duration;
+}
+
+void System::set_min_duration(double duration) {
+  this->min_call_duration = duration;
+}
 
 
 System::System(int sys_num) {
