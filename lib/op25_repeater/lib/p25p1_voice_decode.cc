@@ -74,6 +74,44 @@ p25p1_voice_decode::p25p1_voice_decode(bool verbose_flag, const op25_audio& udp,
 void p25p1_voice_decode::clear() {
   vocoder.clear();
 }
+// more-optimized version of rxframe() used by p25p1_fdma
+void p25p1_voice_decode::rxframe(const voice_codeword& cw)
+{
+	int16_t snd[FRAME];
+	if (d_software_imbe_decoder) {
+		software_decoder.decode(cw);
+		audio_samples *samples = software_decoder.audio();
+		for (int i=0; i < FRAME; i++) {
+			if (samples->size() > 0) {
+				snd[i] = (int16_t)(samples->front() * 32768.0);
+				samples->pop_front();
+			} else {
+				snd[i] = 0;
+			}
+		}
+	} else { // non-default decoder, do we still need to support it?
+		uint32_t u[8], E0, ET;
+		int16_t frame_vector[8];
+		imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+
+		for (int i=0; i < 8; i++) { // Ugh. For compatibility convert imbe params from uint32_t to int16_t
+			frame_vector[i] = u[i];
+		}
+		frame_vector[7] >>= 1;
+		vocoder.imbe_decode(frame_vector, snd);
+	}
+
+	if (op25audio.enabled()) {
+		op25audio.send_audio(snd, FRAME * sizeof(int16_t));
+	} else {
+		// add generated samples to output queue
+		for (int i = 0; i < FRAME; i++) {
+			output_queue.push_back(snd[i]);
+		}
+	}
+}
+
+// this version of rxframe() not normally used except by rxchar()
 void p25p1_voice_decode::rxframe(const uint32_t u[])
 {
 	int16_t snd[FRAME];
@@ -97,7 +135,7 @@ void p25p1_voice_decode::rxframe(const uint32_t u[])
 			frame_vector[i] = u[i];
 		}
 /* TEST*/	frame_vector[7] >>= 1;
-		vocoder.imbe_decode(frame_vector, snd);
+		vocoder.imbe_decode(frame_vector, snd);					// Does anyone still use this version of the codec?
 	}
 	if (op25audio.enabled()) {
 		op25audio.send_audio(snd, FRAME * sizeof(int16_t));

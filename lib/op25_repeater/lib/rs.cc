@@ -169,16 +169,23 @@ while(pattern & 0xFFFFF800) {
 return pattern;
 }
 
-uint32_t gly24128Dec (uint32_t n) { //based on gly23127Dec
+uint32_t gly24128Dec (uint32_t n, size_t* errs) { //based on gly23127Dec
 uint32_t CW = n >> 1 ; //toss the parity bit
 uint32_t correction = gly23127DecTbl[gly23127GetSyn(CW)];
 CW = (CW ^ correction) >> 11;
 
+	if (errs != NULL)
+		*errs = __builtin_popcount(correction);
+
 return CW;
 }
-uint32_t gly23127Dec (uint32_t CW) {
+uint32_t gly23127Dec (uint32_t CW, size_t* errs) {
 	uint32_t correction = gly23127DecTbl[gly23127GetSyn(CW)];
 	CW = (CW ^ correction) >> 11;
+
+	if (errs != NULL)
+		*errs = __builtin_popcount(correction);
+
 	return CW;
 }
 

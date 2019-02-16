@@ -366,6 +366,34 @@ Recorder * Source::get_debug_recorder()
   return NULL;
 }
 
+void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
+  max_sigmf_recorders = r;
+
+  for (int i = 0; i < max_sigmf_recorders; i++) {
+    sigmf_recorder_sptr log = make_sigmf_recorder(this);
+
+    sigmf_recorders.push_back(log);
+    tb->connect(source_block, 0, log, 0);
+  }
+}
+
+Recorder * Source::get_sigmf_recorder()
+{
+  for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin();
+       it != sigmf_recorders.end(); it++) {
+    sigmf_recorder_sptr rx = *it;
+
+    if (rx->get_state() == inactive)
+    {
+      return (Recorder *)rx.get();
+
+      break;
+    }
+  }
+  return NULL;
+}
+
+
 void Source::print_recorders() {
   BOOST_LOG_TRIVIAL(info) << "[ " << device <<  " ]  ";
 
@@ -399,6 +427,11 @@ int Source::analog_recorder_count() {
 int Source::debug_recorder_count() {
   return debug_recorders.size();
 }
+
+int Source::sigmf_recorder_count() {
+  return sigmf_recorders.size();
+}
+
 int Source::get_num() {
   return src_num;
 };
@@ -566,6 +599,11 @@ std::vector<Recorder *> Source::get_recorders()
 
     for (std::vector<debug_recorder_sptr>::iterator it = debug_recorders.begin(); it != debug_recorders.end(); it++) {
       debug_recorder_sptr rx = *it;
+      recorders.push_back((Recorder *)rx.get());
+    }
+
+    for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin(); it != sigmf_recorders.end(); it++) {
+      sigmf_recorder_sptr rx = *it;
       recorders.push_back((Recorder *)rx.get());
     }
   return recorders;

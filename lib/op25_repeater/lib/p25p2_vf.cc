@@ -565,12 +565,14 @@ static const uint32_t pr_n[4096] = {	\
 	11353390, 16168627, 16360768, 2121433, 6508214, 5936487, 1156824, 737033
 };
 
-	void p25p2_vf::process_vcw(const uint8_t vf[], int* b, int* u) {
+	size_t p25p2_vf::process_vcw(const uint8_t vf[], int* b, int* u) {
+		size_t errs, err_cnt = 0;
 		int c0,c1,c2,c3;
 		int u0,u1,u2,u3;
 		extract_vcw(vf, c0, c1, c2, c3 );
 
-		u0 = gly24128Dec(c0);
+		u0 = gly24128Dec(c0, &errs);
+		err_cnt += errs;
 		// TODO: use pr_n[] to lookup m1
 		int pr[24];
 		int _m1[24];
@@ -584,7 +586,8 @@ static const uint32_t pr_n[4096] = {	\
 		for (int i=0; i<23; i++)
 			m1 = (m1 << 1) + _m1[i];
 	
-		u1 = gly23127Dec(c1 ^ m1);
+		u1 = gly23127Dec(c1 ^ m1, &errs);
+		err_cnt += errs;
 		u2 = c2;
 		u3 = c3;
 		// int b[9];
@@ -604,6 +607,8 @@ static const uint32_t pr_n[4096] = {	\
 			u[2] = u2;
 			u[3] = u3;
 		}
+
+		return err_cnt;
 	}
 
 	void p25p2_vf::encode_vcw(uint8_t vf[], const int* b) {
@@ -857,7 +862,8 @@ void p25p2_vf::encode_dstar(uint8_t result[72], const int b[9], bool alt_dstar_i
 			result[d_list[i]] = pre_buf[i];
 }
 
-void p25p2_vf::decode_dstar(const uint8_t codeword[72], int b[9], bool alt_dstar_interleave) {
+size_t p25p2_vf::decode_dstar(const uint8_t codeword[72], int b[9], bool alt_dstar_interleave) {
+	size_t errs, err_cnt = 0;
 	uint8_t pre_buf[72];
 	uint8_t post_buf[48];
 	uint8_t tbuf[48];
@@ -869,9 +875,11 @@ void p25p2_vf::decode_dstar(const uint8_t codeword[72], int b[9], bool alt_dstar
 
 	uint32_t c0 = load_reg(pre_buf, 24);
 	uint32_t c1 = load_reg(pre_buf+24, 24);
-	uint32_t u0 = gly24128Dec(c0);
+	uint32_t u0 = gly24128Dec(c0, &errs);
+	err_cnt += errs;
 	uint32_t m1 = pr_n[u0];
-	uint32_t u1 = gly24128Dec(c1 ^ m1);
+	uint32_t u1 = gly24128Dec(c1 ^ m1, &errs);
+	err_cnt += errs;
 
 	store_reg(u0, post_buf, 12);
 	store_reg(u1, post_buf+12, 12);
@@ -884,4 +892,6 @@ void p25p2_vf::decode_dstar(const uint8_t codeword[72], int b[9], bool alt_dstar
 		b[i] = load_reg(&tbuf[tbufp], b_lengths[i]);
 		tbufp += b_lengths[i];
 }
+
+	return err_cnt;
 }

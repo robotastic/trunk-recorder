@@ -25,6 +25,7 @@
 #endif
 
 #include <gnuradio/io_signature.h>
+#include "crc16.h"
 #include "dmr_bs_tx_bb_impl.h"
 #include "dmr_const.h"
 
@@ -48,37 +49,6 @@ static void print_result(char title[], const uint8_t r[], int len) {
 	printf("%s: %s\n", title, buf);
 }
 #endif
-
-static uint8_t crc8(const uint8_t bits[], unsigned int len) {
-	uint8_t crc=0;
-	static const unsigned int K = 8;
-	static const uint8_t poly[K+1] = {1,0,0,0,0,0,1,1,1}; // crc8 poly
-	uint8_t buf[256];
-	if (len+K > sizeof(buf)) {
-		fprintf (stderr, "crc8: buffer length %u exceeds maximum %lu\n", len+K, sizeof(buf));
-		return 0;
-	}
-	memset (buf, 0, sizeof(buf));
-	for (int i=0; i<len; i++){
-		buf[i] = bits[i];
-	}
-	for (int i=0; i<len; i++)
-		if (buf[i])
-			for (int j=0; j<K+1; j++)
-				buf[i+j] ^= poly[j];
-	for (int i=0; i<K; i++){
-		crc = (crc << 1) + buf[len + i];
-	}
-	return crc;
-}
-
-static bool crc8_ok(const uint8_t bits[], unsigned int len) {
-	uint16_t crc = 0;
-	for (int i=0; i < 8; i++) {
-		crc = (crc << 1) + bits[len+i];
-	}
-	return (crc == crc8(bits,len));
-}
 
 static inline int store_i(int reg, uint8_t val[], int len) {
 	for (int i=0; i<len; i++){

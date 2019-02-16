@@ -39,12 +39,12 @@ namespace op25_repeater {
 
 void p25_frame_assembler_impl::p25p2_queue_msg(int duid)
 {
-	static const char wbuf[2] = {(char)0xff, (char)0xff}; // dummy NAC
+	static const unsigned char wbuf[2] = {0xff, 0xff}; // dummy NAC
 	if (!d_do_msgq)
 		return;
 	if (d_msg_queue->full_p())
 		return;
-	gr::message::sptr msg = gr::message::make_from_string(std::string(wbuf, 2), duid, d_sys_num, 0);
+	gr::message::sptr msg = gr::message::make_from_string(std::string((const char *)wbuf, 2), duid, d_sys_num, 0);
   d_msg_queue->insert_tail(msg);
 }
 
@@ -168,12 +168,13 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
     for (int i = 0; i < ninput_items[0]; i++) {
       if (p2tdma.rx_sym(in[i])) {
         int rc = p2tdma.handle_frame();
-			if (rc > -1)
+			if (rc > -1) {
           p25p2_queue_msg(rc);
 				p1fdma.reset_timer(); // prevent P1 timeouts due to long TDMA transmissions
         }
       }
     }
+  }
   int amt_produce = 0;
 
   if (d_do_audio_output) {

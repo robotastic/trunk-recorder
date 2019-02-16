@@ -128,12 +128,8 @@ debug_recorder::debug_recorder(Source *src)
 
   //tm *ltm = localtime(&starttime);
 
-  std::stringstream path_stream;
-	//path_stream << boost::filesystem::current_path().string() <<  "/debug";
-  path_stream << this->config->capture_dir << "/debug";
 
-  boost::filesystem::create_directories(path_stream.str());
-  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
+  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.raw",talkgroup,starttime,freq);
 
   if (nchars >= 160) {
     BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";
@@ -232,14 +228,7 @@ void debug_recorder::start(Call *call) {
     int offset_amount = (freq - center);
     prefilter->set_center_freq(offset_amount);
 
-  	std::stringstream path_stream;
-
-      //path_stream << boost::filesystem::current_path().string() <<  "/debug";
-      path_stream << this->config->capture_dir << "/debug";
-
-    boost::filesystem::create_directories(path_stream.str());
-    sprintf(filename, "%s/%ld-%ld_%g.raw", path_stream.str().c_str(),talkgroup,starttime,freq);
-	raw_sink->open(filename);
+	raw_sink->open(call->get_debug_filename());
     state = active;
     valve->set_enabled(true);
   } else {

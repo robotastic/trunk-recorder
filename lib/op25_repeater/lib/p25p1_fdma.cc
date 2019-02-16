@@ -265,6 +265,7 @@ p25p1_fdma::process_HDU(const bit_vector& A)
 
         uint32_t MFID;
 	int i, j, k, ec;
+	size_t errs = 0, gly_errs = 0;
 	std::vector<uint8_t> HB(63,0); // hexbit vector
 	k = 0;
 	for (i = 0; i < 36; i ++) {
@@ -272,7 +273,8 @@ p25p1_fdma::process_HDU(const bit_vector& A)
 		for (j = 0; j < 18; j++) {  // 18 bits / cw
 			CW = (CW << 1) + A [ hdu_codeword_bits[k++] ];
  		}
-		HB[27 + i] = gly24128Dec(CW) & 63;
+		HB[27 + i] = gly24128Dec(CW, &errs) & 63;
+		gly_errs += errs;
 	}
 	ec = rs16.decode(HB); // Reed Solomon (36,20,17) error correction
 
@@ -290,15 +292,14 @@ p25p1_fdma::process_HDU(const bit_vector& A)
 		vf_tgid   = ((HB[j+5] & 0x0f) << 12) + (HB[j+6] << 6) +  HB[j+7];				// 16 bit TGID
 
 		if (d_debug >= 10) {
-			fprintf (stderr, "ESS: tgid=%d, mfid=%x, algid=%x, keyid=%x, mi=", vf_tgid, MFID, ess_algid, ess_keyid);
-			for (i = 0; i < 9; i++) {
-				fprintf(stderr, "%02x ", ess_mi[i]);
-			}
+			fprintf (stderr, "ESS: tgid=%d, mfid=%x, algid=%x, keyid=%x, mi=%02x %02x %02x %02x %02x %02x %02x %02x %02x",
+				 vf_tgid, MFID, ess_algid, ess_keyid,
+				 ess_mi[0], ess_mi[1], ess_mi[2], ess_mi[3], ess_mi[4], ess_mi[5],ess_mi[6], ess_mi[7], ess_mi[8]);
 		}
 	}
 
 	if (d_debug >= 10) {
-		fprintf (stderr, "\n");
+		fprintf (stderr, ", gly_errs=%lu, rs_errs=%d\n", gly_errs, ec);
 	}
 }
 
@@ -360,15 +361,14 @@ p25p1_fdma::process_LDU2(const bit_vector& A)
 		ess_keyid = ((HB[j+1] & 0x0f) << 12) + (HB[j+2] << 6) + HB[j+3];			// 16 bit KeyId
 
 		if (d_debug >= 10) {
-			fprintf(stderr, "ESS: algid=%x, keyid=%x, mi=", ess_algid, ess_keyid);
-			for (int i = 0; i < 9; i++) {
-				fprintf(stderr, "%02x ", ess_mi[i]);
-			}
+			fprintf (stderr, "ESS: algid=%x, keyid=%x, mi=%02x %02x %02x %02x %02x %02x %02x %02x %02x",
+				 ess_algid, ess_keyid,
+				 ess_mi[0], ess_mi[1], ess_mi[2], ess_mi[3], ess_mi[4], ess_mi[5],ess_mi[6], ess_mi[7], ess_mi[8]);
 		}
 	}
 
 	if (d_debug >= 10) {
-		fprintf (stderr, "\n");
+		fprintf (stderr, "rs_errs=%d\n", ec);
 	}
 
 	process_voice(A);
@@ -408,6 +408,7 @@ p25p1_fdma::process_TDU15(const bit_vector& A)
 	process_TTDU();
 
 	int i, j, k;
+	size_t gly_errs = 0, errs = 0;
 	std::vector<uint8_t> HB(63,0); // hexbit vector
 	k = 0;
 	for (i = 0; i <= 22; i += 2) {
@@ -416,14 +417,14 @@ p25p1_fdma::process_TDU15(const bit_vector& A)
 			CW = (CW << 1) + A [ hdu_codeword_bits[k++] ];
 			CW = (CW << 1) + A [ hdu_codeword_bits[k++] ];
 		}
-		uint32_t D = gly24128Dec(CW);
+		uint32_t D = gly24128Dec(CW, &errs);
 		HB[39 + i] = D >> 6;
 		HB[40 + i] = D & 63;
 	}
 	process_LCW(HB);
 
 	if (d_debug >= 10) {
-		fprintf (stderr, "\n");
+		fprintf (stderr, ", gly_errs=%lu\n", gly_errs);
 	}
 }
 
@@ -511,9 +512,8 @@ p25p1_fdma::process_LCW(std::vector<uint8_t>& HB)
 		}
 	}
 	if (d_debug >= 10) {
-		fprintf(stderr, " : ");
-		for (i = 0; i < 9; i++)
-			fprintf(stderr, " %02x", lcw[i]);
+		fprintf(stderr, " : %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+			lcw[0], lcw[1], lcw[2], lcw[3], lcw[4], lcw[5], lcw[6], lcw[7], lcw[8]);
 	}
 }
 
@@ -532,11 +532,11 @@ p25p1_fdma::process_TSBK(const bit_vector& fr, uint32_t fr_len)
 			process_duid(framer->duid, framer->nac, deinterleave_buf[j].data(), 10);
 
 			if (d_debug >= 10) {
-				fprintf (stderr, "%s NAC 0x%03x TSBK: op=%02x : ", logts.get(), framer->nac, op);
-				for (int i = 0; i < 12; i++) {
-					fprintf(stderr, "%02x ", deinterleave_buf[j][i]);
-				}
-				fprintf(stderr, "\n");
+				fprintf (stderr, "%s NAC 0x%03x TSBK: op=%02x : %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+					 logts.get(), framer->nac, op,
+					 deinterleave_buf[j][0], deinterleave_buf[j][1], deinterleave_buf[j][2], deinterleave_buf[j][3],
+					 deinterleave_buf[j][4], deinterleave_buf[j][5], deinterleave_buf[j][6], deinterleave_buf[j][7],
+					 deinterleave_buf[j][8], deinterleave_buf[j][9], deinterleave_buf[j][10], deinterleave_buf[j][11]);
 			}
 		}
 	}
@@ -576,16 +576,28 @@ p25p1_fdma::process_PDU(const bit_vector& fr, uint32_t fr_len)
 					op =   deinterleave_buf[0][7] & 0x3f; // Alternate MBT format
 				}
 
-				fprintf (stderr, "%s NAC 0x%03x PDU:  fmt=%02x, op=0x%02x : ", logts.get(), framer->nac, fmt, op);
-				for (int j = 0; (j < blks+1) && (j < 3); j++) {
-					for (int i = 0; i < 12; i++) {
-						fprintf(stderr, "%02x ", deinterleave_buf[j][i]);
-					}
-				}
-				fprintf(stderr, "\n");
+				char s0[40], s1[40], s2[40], s3[40];
+				sprintf(s0, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+					    deinterleave_buf[0][0], deinterleave_buf[0][1], deinterleave_buf[0][2], deinterleave_buf[0][3],
+					    deinterleave_buf[0][4], deinterleave_buf[0][5], deinterleave_buf[0][6], deinterleave_buf[0][7],
+					    deinterleave_buf[0][8], deinterleave_buf[0][9], deinterleave_buf[0][10], deinterleave_buf[0][11]);
+				sprintf(s1, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+					    deinterleave_buf[1][0], deinterleave_buf[1][1], deinterleave_buf[1][2], deinterleave_buf[1][3],
+					    deinterleave_buf[1][4], deinterleave_buf[1][5], deinterleave_buf[1][6], deinterleave_buf[1][7],
+					    deinterleave_buf[1][8], deinterleave_buf[1][9], deinterleave_buf[1][10], deinterleave_buf[1][11]);
+				sprintf(s2, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+					    deinterleave_buf[2][0], deinterleave_buf[2][1], deinterleave_buf[2][2], deinterleave_buf[2][3],
+					    deinterleave_buf[2][4], deinterleave_buf[2][5], deinterleave_buf[2][6], deinterleave_buf[2][7],
+					    deinterleave_buf[2][8], deinterleave_buf[2][9], deinterleave_buf[2][10], deinterleave_buf[2][11]);
+				sprintf(s3, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+					    deinterleave_buf[3][0], deinterleave_buf[3][1], deinterleave_buf[3][2], deinterleave_buf[3][3],
+					    deinterleave_buf[3][4], deinterleave_buf[3][5], deinterleave_buf[3][6], deinterleave_buf[3][7],
+					    deinterleave_buf[3][8], deinterleave_buf[3][9], deinterleave_buf[3][10], deinterleave_buf[3][11]);
+				fprintf (stderr, "%s NAC 0x%03x PDU:  fmt=%02x, op=0x%02x : %s %s %s %s\n",
+					 logts.get(), framer->nac, fmt, op, s0, s1, s2, s3);
 			}
 		} else if (d_debug >= 10) {
-			fprintf(stderr, "%s NAC 0x%03x PDU:  non-MBT message ignored", logts.get(), framer->nac);
+			fprintf(stderr, "%s NAC 0x%03x PDU:  non-MBT message ignored\n", logts.get(), framer->nac);
 		}
 
 	}
@@ -624,10 +636,27 @@ p25p1_fdma::process_voice(const bit_vector& A)
 			uint32_t E0, ET;
 			uint32_t u[8];
 			char s[128];
+			size_t errs = 0;
+			uint16_t imbe_error = 0;
 			imbe_deinterleave(A, cw, i);
+
 			// recover 88-bit IMBE voice code word
-      uint16_t imbe_error = imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
-      for (int j=19; j>0; j--) {
+			errs = imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+			imbe_error = (uint16_t) errs;
+
+
+			if (d_debug >= 10) {
+				packed_codeword p_cw;
+				imbe_pack(p_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
+				sprintf(s,"%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+						p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5],
+					       	p_cw[6], p_cw[7], p_cw[8], p_cw[9], p_cw[10]);
+				fprintf(stderr, "%s IMBE %s errs %lu\n", logts.get(), s, errs); // print to log in one operation
+			}
+		 
+		 	// this section calculates if the IMBE Error is greater than std deviation. If so it adds to spike count
+			// this is probably not neccesary.
+		  for (int j=19; j>0; j--) {
         error_history[j] = error_history[j-1];
       }
       error_history[0] = imbe_error;
@@ -660,16 +689,17 @@ p25p1_fdma::process_voice(const bit_vector& A)
 			sprintf(s, "%03x %03x %03x %03x %03x %03x %03x %03x\n", u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
 			if (d_do_audio_output) {
 				if (!d_do_nocrypt || !encrypted()) {
-					std::string s = "{\"encrypted\" : " + std::to_string(0) + "}";
-					//send_msg(s, -3);
-					p1voice_decode.rxframe(u);
+					std::string encr = "{\"encrypted\" : " + std::to_string(0) + "}";
+					send_msg(encr, -3);
+					p1voice_decode.rxframe(cw);
 				} else {
-					std::string s = "{\"encrypted\" : " + std::to_string(1) + "}";
-					//send_msg(s, -3);
+					std::string encr = "{\"encrypted\" : " + std::to_string(1) + "}";
+					send_msg(encr, -3);
 				}
 			}
 
 			if (d_do_output && !d_do_audio_output) {
+				sprintf(s, "%03x %03x %03x %03x %03x %03x %03x %03x\n", u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
 				for (size_t j=0; j < strlen(s); j++) {
 					output_queue.push_back(s[j]);
 				}
@@ -771,7 +801,7 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
     }
     diff_usec += diff_sec * 1000000;
     if (diff_usec >= TIMEOUT_THRESHOLD) {
-      if (d_debug >= 10)
+      if (d_debug > 10)
         fprintf(stderr, "%010lu.%06lu p25p1_fdma::rx_sym() timeout\n", currtime.tv_sec, currtime.tv_usec);
 
       if (d_do_audio_output) {
