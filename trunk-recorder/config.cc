@@ -224,11 +224,17 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
         source->set_mix_gain(mix_gain);
       }
 
-      source->set_lna_gain(lna_gain);
+      if (lna_gain != 0) {
+        source->set_lna_gain(lna_gain);
+      }
 
-      source->set_tia_gain(tia_gain);
+      if (tia_gain != 0) {
+        source->set_tia_gain(tia_gain);
+      }
 
-      source->set_pga_gain(pga_gain);
+      if (ppa_gain != 0) {
+        source->set_pga_gain(pga_gain);
+      }
 
       if (vga1_gain != 0) {
         source->set_vga1_gain(vga1_gain);
