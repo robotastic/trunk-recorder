@@ -649,7 +649,7 @@ void stop_inactive_recorders() {
       }
       ++it;
     } else {
-      if (call->since_last_update() > config.call_timeout) {
+      if (call->since_last_update() > config.call_timeout || ( call->get_current_length() > config.max_duration && config.max_duration > 0 )) {
         if (call->get_state() == recording) {
           ended_recording = true;
         }
