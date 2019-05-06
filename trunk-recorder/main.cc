@@ -322,6 +322,7 @@ void load_config(string config_file)
       std::string antenna   = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
       int debug_recorders   = node.second.get<int>("debugRecorders", 0);
+      int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
 
       std::string driver = node.second.get<std::string>("driver", "");
@@ -352,6 +353,7 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
+      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0); 
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
 
 
@@ -430,6 +432,7 @@ void load_config(string config_file)
       }
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
+      source->create_sigmf_recorders(tb, sigmf_recorders);
       source->create_debug_recorders(tb, debug_recorders);
       sources.push_back(source);
       BOOST_LOG_TRIVIAL(info) <<  "\n-------------------------------------\n\n";
@@ -518,6 +521,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   bool recorder_found  = false;
   Recorder *recorder;
   Recorder *debug_recorder;
+  Recorder *sigmf_recorder;
   std::stringstream shell_command;
 
   // BOOST_LOG_TRIVIAL(info) << "\tCall created for: " << call->get_talkgroup()
@@ -594,15 +598,25 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         return false;
       }
 
-
       debug_recorder = source->get_debug_recorder();
-
 
       if (debug_recorder) {
         debug_recorder->start(call);
         call->set_debug_recorder(debug_recorder);
         call->set_debug_recording(true);
         stats.send_recorder(debug_recorder);
+        recorder_found = true;
+      } else {
+        // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
+      }
+
+      sigmf_recorder = source->get_sigmf_recorder();
+
+      if (sigmf_recorder) {
+        sigmf_recorder->start(call);
+        call->set_sigmf_recorder(sigmf_recorder);
+        call->set_sigmf_recording(true);
+        stats.send_recorder(sigmf_recorder);
         recorder_found = true;
       } else {
         // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";

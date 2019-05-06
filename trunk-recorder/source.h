@@ -11,6 +11,8 @@
 //#include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
+#include "recorders/sigmf_recorder.h"
+
 
 class Source
 {
@@ -42,6 +44,7 @@ class Source
 								int vga2_gain;
 								int max_digital_recorders;
 								int max_debug_recorders;
+								int max_sigmf_recorders;
 								int max_analog_recorders;
 								bool qpsk_mod;
 								int silence_frames;
@@ -49,6 +52,7 @@ class Source
 
 								std::vector<p25_recorder_sptr> digital_recorders;
 								std::vector<debug_recorder_sptr> debug_recorders;
+								std::vector<sigmf_recorder_sptr> sigmf_recorders;
 								std::vector<analog_recorder_sptr> analog_recorders;
 								std::string driver;
 								std::string device;
@@ -113,6 +117,7 @@ public:
 								void print_recorders();
 								void tune_digital_recorders();
 								int debug_recorder_count();
+								int sigmf_recorder_count();
 								int digital_recorder_count();
 								int analog_recorder_count();
 								Config * get_config();
@@ -124,6 +129,8 @@ public:
 								Recorder * get_digital_recorder(int priority);
 								void create_debug_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_debug_recorder();
+								void create_sigmf_recorders(gr::top_block_sptr tb, int r);
+								Recorder * get_sigmf_recorder();
 								inline osmosdr::source::sptr cast_to_osmo_sptr(gr::basic_block_sptr p)
 								{
 																return boost::dynamic_pointer_cast<osmosdr::source, gr::basic_block>(p);

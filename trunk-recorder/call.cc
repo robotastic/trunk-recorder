@@ -16,21 +16,31 @@ void Call::create_filename() {
   std::stringstream path_stream;
 
   path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
-
   boost::filesystem::create_directories(path_stream.str());
+
   int nchars;
   nchars = snprintf(filename,   255,        "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 160 charecters";
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
   nchars = snprintf(status_filename,  255,  "%s/%ld-%ld_%g.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 160 charecters";
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
-  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
 
+  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+  }
+
+  nchars = snprintf(debug_filename,   255,        "%s/%ld-%ld_%g.debug",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+  }
+
+  nchars = snprintf(sigmf_filename,   255,        "%s/%ld-%ld_%g.raw",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
@@ -56,6 +66,7 @@ Call::Call(long t, double f, System *s, Config c) {
   last_update     = time(NULL);
   state           = monitoring;
   debug_recording = false;
+  sigmf_recording = false;
   recorder        = NULL;
   phase2_tdma     = false;
   tdma_slot       = 0;
@@ -81,6 +92,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   last_update     = time(NULL);
   state           = monitoring;
   debug_recording = false;
+  sigmf_recording = false;
   recorder        = NULL;
   phase2_tdma     = message.phase2_tdma;
   tdma_slot       = message.tdma_slot;
@@ -185,11 +197,24 @@ void Call::end_call() {
     }
   }
 
+  if (this->get_sigmf_recording() == true) {
+    this->get_sigmf_recorder()->stop();
+  }
+
   if (this->get_debug_recording() == true) {
     this->get_debug_recorder()->stop();
   }
   this->set_state(inactive);
 }
+
+void Call::set_sigmf_recorder(Recorder *r) {
+  sigmf_recorder = r;
+}
+
+Recorder * Call::get_sigmf_recorder() {
+  return sigmf_recorder;
+}
+
 
 void Call::set_debug_recorder(Recorder *r) {
   debug_recorder = r;
@@ -309,6 +334,16 @@ bool Call::get_debug_recording() {
   return debug_recording;
 }
 
+void Call::set_sigmf_recording(bool m) {
+  sigmf_recording = m;
+}
+
+bool Call::get_sigmf_recording() {
+  return sigmf_recording;
+}
+
+
+
 void Call::set_state(State s) {
   state = s;
 }
@@ -425,6 +460,14 @@ char * Call::get_status_filename() {
   return status_filename;
 }
 
+char * Call::get_sigmf_filename() {
+  return sigmf_filename;
+}
+
+char * Call::get_debug_filename() {
+  return debug_filename;
+}
+
 void Call::set_talkgroup_tag(std::string tag){
   talkgroup_tag = tag;
   update_talkgroup_display();
@@ -513,7 +556,8 @@ boost::property_tree::ptree Call::get_stats()
     call_node.put("recState", recorder->get_state());
     call_node.put("analog",   recorder->is_analog());
   }
-
+  call_node.put("sigmffilename",   this->get_sigmf_filename());
+  call_node.put("debugfilename",   this->get_debug_filename());
   call_node.put("filename",   this->get_filename());
   call_node.put("statusfilename",   this->get_status_filename());
 

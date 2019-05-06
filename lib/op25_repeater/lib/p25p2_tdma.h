@@ -91,12 +91,12 @@ private:
 
 	int handle_acch_frame(const uint8_t dibits[], bool fast) ;
 	void handle_voice_frame(const uint8_t dibits[]) ;
-	int process_mac_pdu(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_idle(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_active(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_hangtime(const uint8_t byte_buf[], const unsigned int len) ;
+	int process_mac_pdu(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_idle(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_active(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_hangtime(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
         void decode_mac_msg(const uint8_t byte_buf[], const unsigned int len) ;
         void handle_4V2V_ess(const uint8_t dibits[]);
         inline bool encrypted() { return (ess_algid != 0x80); }

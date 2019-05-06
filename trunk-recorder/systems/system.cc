@@ -42,7 +42,6 @@ void System::set_min_duration(double duration) {
 }
 
 
-
 System::System(int sys_num) {
   this->sys_num = sys_num;
   sys_id = 0;

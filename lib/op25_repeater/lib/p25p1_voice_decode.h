@@ -44,6 +44,7 @@ namespace gr {
      public:
       p25p1_voice_decode(bool verbose_flag, const op25_audio& udp, std::deque<int16_t> &_output_queue);
       ~p25p1_voice_decode();
+	void rxframe(const voice_codeword& cw);
 	void rxframe(const uint32_t u[]);
 	void rxchar(const char* c, int len);
   void clear();

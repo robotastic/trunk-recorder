@@ -77,7 +77,7 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
     source_node.put("analog_recorders",  source->analog_recorder_count());
     source_node.put("digital_recorders", source->digital_recorder_count());
     source_node.put("debug_recorders",   source->debug_recorder_count());
-
+    source_node.put("sigmf_recorders",   source->sigmf_recorder_count());
     sources_node.push_back(std::make_pair("", source_node));
   }
 

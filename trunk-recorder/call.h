@@ -47,14 +47,19 @@ public:
 								virtual ~Call();
 								virtual void restart_call();
 								void end_call();
+
+								void set_sigmf_recorder(Recorder *r);
+								Recorder * get_sigmf_recorder();
 								void set_debug_recorder(Recorder *r);
 								Recorder * get_debug_recorder();
 								virtual void set_recorder(Recorder *r);
 								Recorder * get_recorder();
 								double get_freq();
-
+								char * get_status_filename();
 								char *get_converted_filename();
 								char *get_filename();
+								char * get_debug_filename();
+								char * get_sigmf_filename();
 								int get_sys_num();
 								std::string get_short_name();
 								void create_filename();
@@ -79,6 +84,8 @@ public:
 								long get_stop_time();
 								void set_debug_recording(bool m);
 								bool get_debug_recording();
+								void set_sigmf_recording(bool m);
+								bool get_sigmf_recording();
 								void set_state(State s);
 								State get_state();
 								void set_phase2_tdma(bool m);
@@ -96,7 +103,7 @@ public:
 								void set_talkgroup_display_format(std::string format);
 								void set_talkgroup_tag(std::string tag);
 								boost::property_tree::ptree get_stats();
-								char * get_status_filename();
+								
 								std::string get_talkgroup_tag();
 								double get_final_length();
 protected:
@@ -117,11 +124,14 @@ protected:
 								time_t stop_time;
 								time_t start_time;
 								bool debug_recording;
+								bool sigmf_recording;
 								bool encrypted;
 								bool emergency;
 								char filename[255];
 								char converted_filename[255];
 								char status_filename[255];
+								char debug_filename[255];
+								char sigmf_filename[255];
 								bool phase2_tdma;
 								int tdma_slot;
 								double _final_length;
@@ -129,6 +139,7 @@ protected:
 								Config config;
 								Recorder *recorder;
 								Recorder *debug_recorder;
+								Recorder *sigmf_recorder;
 								bool add_source(long src);
 								std::string talkgroup_display;
 								std::string talkgroup_tag;

@@ -10,6 +10,7 @@
 #include <vector>
 
 typedef std::vector<bool> voice_codeword;
+typedef std::vector<uint8_t> packed_codeword;
 typedef const std::vector<bool> const_bit_vector;
 typedef std::vector<bool> bit_vector;
 
@@ -295,12 +296,12 @@ pngen23(uint32_t& Pr)
  * \param u0-u7 Result output vectors
  */
 
-static inline uint16_t
+static inline size_t
 imbe_header_decode(const voice_codeword& cw, uint32_t& u0, uint32_t& u1, uint32_t& u2, uint32_t& u3, uint32_t& u4, uint32_t& u5, uint32_t& u6, uint32_t& u7, uint32_t& E0, uint32_t& ET)
 {
    ET = 0;
 
-   uint16_t errs = 0;
+   size_t errs = 0;
    uint32_t v0 = extract(cw, 0, 23);
    errs = golay_23_decode(v0);
    u0 = v0;
@@ -340,6 +341,26 @@ imbe_header_decode(const voice_codeword& cw, uint32_t& u0, uint32_t& u1, uint32_
    u7 = extract(cw, 137, 144);
    u7 <<= 1; /* so that bit0 is free (see note about BOT bit */
    return errs;
+}
+
+/*
+ * Pack 88 bit IMBE parameters into uint8_t vector
+ */
+static inline void
+imbe_pack(packed_codeword& cw, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3, uint32_t u4, uint32_t u5, uint32_t u6, uint32_t u7)
+{
+	cw.empty();
+	cw.push_back(u0 >> 4);
+	cw.push_back(((u0 & 0xf) << 4) + (u1 >> 8));
+	cw.push_back(u1 & 0xff);
+	cw.push_back(u2 >> 4);
+	cw.push_back(((u2 & 0xf) << 4) + (u3 >> 8));
+	cw.push_back(u3 & 0xff);
+	cw.push_back(u4 >> 3);
+	cw.push_back(((u4 & 0x7) << 5) + (u5 >> 6));
+	cw.push_back(((u5 & 0x3f) << 2) + (u6 >> 9));
+	cw.push_back(u6 >> 1);
+	cw.push_back(((u6 & 0x1) << 7) + (u7 >> 1));
 }
 
 /* APCO IMBE header encoder.
