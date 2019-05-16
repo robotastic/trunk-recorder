@@ -45,7 +45,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   const double pi = boost::math::constants::pi<double>();
   BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysNum: " << sys_num;
 
-  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
+  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << FormatFreq(chan_freq);
 
   inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 2000, 100, gr::filter::firdes::WIN_HANN);
