@@ -124,6 +124,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
     BOOST_LOG_TRIVIAL(info) << "Control channel rate warning: " << config.control_message_warn_rate;
+    config.max_duration = pt.get<int>("maxDuration", 0);
+    BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (seconds): " << config.max_duration;
 
 
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
