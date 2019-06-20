@@ -61,7 +61,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_control_channel(control_channel);
         }
-        system->set_trunked_system_id(node.second.get<std::string>("trId", ""))
+        system->set_trunked_system_id(node.second.get<std::string>("trsId", ""))
       }
       else
       {

@@ -40,9 +40,9 @@ void System::set_min_duration(double duration)
   this->min_call_duration = duration;
 }
 
-void System::set_trunked_site_id(std::string trid)
+void System::set_trunked_site_id(std::string trsid)
 {
-  this->trunked_system_id = trid;
+  this->trunked_system_id = trsid;
 }
 
 std::string get_trunked_site_id()
