@@ -9,7 +9,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
 {
   std::string system_modulation;
   Config config;
-  int    sys_count = 0;
+  int sys_count = 0;
 
   try
   {
@@ -17,8 +17,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
-    BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
-                  pt.get_child("systems"))
+    BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
+                   pt.get_child("systems"))
     {
       // each system should have a unique index value;
       System *system = new System(sys_count++);
@@ -29,34 +29,42 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       system->set_system_type(node.second.get<std::string>("type"));
       BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
-      if (system->get_system_type() == "conventional") {
+      if (system->get_system_type() == "conventional")
+      {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
-        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("channels"))
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels"))
         {
           double channel = sub_node.second.get<double>("", 0);
 
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_channel(channel);
         }
-      }  else if (system->get_system_type() == "conventionalP25") {
+      }
+      else if (system->get_system_type() == "conventionalP25")
+      {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
-        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("channels"))
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels"))
         {
           double channel = sub_node.second.get<double>("", 0);
 
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_channel(channel);
         }
-      } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
+      }
+      else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25"))
+      {
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels"))
         {
           double control_channel = sub_node.second.get<double>("", 0);
 
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_control_channel(control_channel);
         }
-      } else {
+        system->set_trunked_system_id(node.second.get<std::string>("trId", ""))
+      }
+      else
+      {
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
         exit(1);
       }
@@ -84,7 +92,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
       system->set_bandfreq(800); // Default to 800
 
-      if (boost::starts_with(system->get_bandplan(), "400")) {
+      if (boost::starts_with(system->get_bandplan(), "400"))
+      {
         system->set_bandfreq(400);
       }
       system->set_bandplan_base(node.second.get<double>("bandplanBase", 0.0));
@@ -92,11 +101,13 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       system->set_bandplan_spacing(node.second.get<double>("bandplanSpacing", 0.0));
       system->set_bandplan_offset(node.second.get<int>("bandplanOffset", 0));
 
-      if (system->get_system_type() == "smartnet") {
+      if (system->get_system_type() == "smartnet")
+      {
         BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
         BOOST_LOG_TRIVIAL(info) << "Smartnet band: " << system->get_bandfreq();
 
-        if (system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset()) {
+        if (system->get_bandplan_base() || system->get_bandplan_spacing() || system->get_bandplan_offset())
+        {
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan base freq: " << system->get_bandplan_base();
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan high freq: " << system->get_bandplan_high();
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan spacing: " << system->get_bandplan_spacing();
@@ -127,38 +138,38 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     config.max_duration = pt.get<int>("maxDuration", 0);
     BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (seconds): " << config.max_duration;
 
-
-    BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
-                  pt.get_child("sources"))
+    BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
+                   pt.get_child("sources"))
     {
-      bool   qpsk_mod       = true;
-      int    silence_frames = node.second.get<int>("silenceFrames", 0);
-      double center         = node.second.get<double>("center", 0);
-      double rate           = node.second.get<double>("rate", 0);
-      double error          = node.second.get<double>("error", 0);
-      double ppm            = node.second.get<double>("ppm", 0);
-      int    gain           = node.second.get<double>("gain", 0);
-      int    if_gain        = node.second.get<double>("ifGain", 0);
-      int    bb_gain        = node.second.get<double>("bbGain", 0);
-      int    mix_gain       = node.second.get<double>("mixGain", 0);
-      int    lna_gain       = node.second.get<double>("lnaGain", 0);
-      int    pga_gain       = node.second.get<double>("pgaGain", 0);
-      int    tia_gain       = node.second.get<double>("tiaGain", 0);
-      int    vga1_gain      = node.second.get<double>("vga1Gain", 0);
-      int    vga2_gain      = node.second.get<double>("vga2Gain", 0);
-      double fsk_gain       = node.second.get<double>("fskGain", 1.0);
+      bool qpsk_mod = true;
+      int silence_frames = node.second.get<int>("silenceFrames", 0);
+      double center = node.second.get<double>("center", 0);
+      double rate = node.second.get<double>("rate", 0);
+      double error = node.second.get<double>("error", 0);
+      double ppm = node.second.get<double>("ppm", 0);
+      int gain = node.second.get<double>("gain", 0);
+      int if_gain = node.second.get<double>("ifGain", 0);
+      int bb_gain = node.second.get<double>("bbGain", 0);
+      int mix_gain = node.second.get<double>("mixGain", 0);
+      int lna_gain = node.second.get<double>("lnaGain", 0);
+      int pga_gain = node.second.get<double>("pgaGain", 0);
+      int tia_gain = node.second.get<double>("tiaGain", 0);
+      int vga1_gain = node.second.get<double>("vga1Gain", 0);
+      int vga2_gain = node.second.get<double>("vga2Gain", 0);
+      double fsk_gain = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
-      double analog_levels  = node.second.get<double>("analogLevels", 8.0);
-      double squelch_db     = node.second.get<double>("squelch", 0);
-      std::string antenna   = node.second.get<std::string>("antenna", "");
+      double analog_levels = node.second.get<double>("analogLevels", 8.0);
+      double squelch_db = node.second.get<double>("squelch", 0);
+      std::string antenna = node.second.get<std::string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
-      int debug_recorders   = node.second.get<int>("debugRecorders", 0);
-      int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
-      int analog_recorders  = node.second.get<int>("analogRecorders", 0);
+      int debug_recorders = node.second.get<int>("debugRecorders", 0);
+      int sigmf_recorders = node.second.get<int>("sigmfRecorders", 0);
+      int analog_recorders = node.second.get<int>("analogRecorders", 0);
 
       std::string driver = node.second.get<std::string>("driver", "");
 
-      if ((driver != "osmosdr") && (driver != "usrp")) {
+      if ((driver != "osmosdr") && (driver != "usrp"))
+      {
         BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
       }
 
@@ -167,7 +178,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
       BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate", 0);
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
-      BOOST_LOG_TRIVIAL(info) << "PPM Error: " <<  node.second.get<double>("ppm", 0);
+      BOOST_LOG_TRIVIAL(info) << "PPM Error: " << node.second.get<double>("ppm", 0);
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
@@ -180,33 +191,41 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
-      BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver",  "");
+      BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders", 0);
+      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
+      BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
+      BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver", "");
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
-      if (mod_exists) {
+      if (mod_exists)
+      {
         system_modulation = node.second.get<std::string>("modulation");
 
         if (boost::iequals(system_modulation, "qpsk"))
         {
           qpsk_mod = true;
           BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
-        } else if (boost::iequals(system_modulation, "fsk4")) {
+        }
+        else if (boost::iequals(system_modulation, "fsk4"))
+        {
           qpsk_mod = false;
           BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";
-        } else {
+        }
+        else
+        {
           qpsk_mod = true;
           BOOST_LOG_TRIVIAL(error) << "! System Modulation Not Specified, could be fsk4 or qpsk, assuming qpsk";
         }
-      } else {
+      }
+      else
+      {
         qpsk_mod = true;
       }
 
-      if ((ppm != 0) && (error != 0)) {
-        BOOST_LOG_TRIVIAL(info) <<  "Both PPM and Error should not be set at the same time. Setting Error to 0.";
+      if ((ppm != 0) && (error != 0))
+      {
+        BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
         error = 0;
       }
 
@@ -214,35 +233,43 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Max HZ: " << FormatFreqHz(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min HZ: " << FormatFreqHz(source->get_min_hz());
 
-      if (if_gain != 0) {
+      if (if_gain != 0)
+      {
         source->set_if_gain(if_gain);
       }
 
-      if (bb_gain != 0) {
+      if (bb_gain != 0)
+      {
         source->set_bb_gain(bb_gain);
       }
 
-      if (mix_gain != 0) {
+      if (mix_gain != 0)
+      {
         source->set_mix_gain(mix_gain);
       }
 
-      if (lna_gain != 0) {
+      if (lna_gain != 0)
+      {
         source->set_lna_gain(lna_gain);
       }
 
-      if (tia_gain != 0) {
+      if (tia_gain != 0)
+      {
         source->set_tia_gain(tia_gain);
       }
 
-      if (ppa_gain != 0) {
+      if (ppa_gain != 0)
+      {
         source->set_pga_gain(pga_gain);
       }
 
-      if (vga1_gain != 0) {
+      if (vga1_gain != 0)
+      {
         source->set_vga1_gain(vga1_gain);
       }
 
-      if (vga2_gain != 0) {
+      if (vga2_gain != 0)
+      {
         source->set_vga2_gain(vga2_gain);
       }
 
@@ -255,7 +282,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       source->set_qpsk_mod(qpsk_mod);
       source->set_silence_frames(silence_frames);
 
-      if (ppm != 0) {
+      if (ppm != 0)
+      {
         source->set_freq_corr(ppm);
       }
       source->create_digital_recorders(tb, digital_recorders);
@@ -265,7 +293,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       sources.push_back(source);
     }
   }
-  catch (std::exception const& e)
+  catch (std::exception const &e)
   {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
   }
