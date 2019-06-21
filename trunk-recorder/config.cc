@@ -56,6 +56,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_control_channel(control_channel);
         }
+		 system->set_trunked_system_id(node.second.get<std::string>("trsId", ""));
       } else {
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
         exit(1);
@@ -63,7 +64,6 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSystem Number: " << sys_count;
       system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
-
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
 

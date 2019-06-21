@@ -103,7 +103,7 @@ public:
 								void set_talkgroup_display_format(std::string format);
 								void set_talkgroup_tag(std::string tag);
 								boost::property_tree::ptree get_stats();
-								
+
 								std::string get_talkgroup_tag();
 								double get_final_length();
 protected:
@@ -135,7 +135,7 @@ protected:
 								bool phase2_tdma;
 								int tdma_slot;
 								double _final_length;
-
+								std::string trs_id;
 								Config config;
 								Recorder *recorder;
 								Recorder *debug_recorder;

@@ -33,6 +33,14 @@ void System::set_min_duration(double duration) {
   this->min_call_duration = duration;
 }
 
+void System:set_trunked_system_id(string trsId) {
+  this->trunked_system_id = trsId;
+}
+
+std::string System::get_trunked_system_id() {
+  return this->trunked_system_id;
+}
+
 
 System::System(int sys_num) {
   this->sys_num = sys_num;
