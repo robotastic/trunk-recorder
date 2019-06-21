@@ -33,7 +33,7 @@ void System::set_min_duration(double duration) {
   this->min_call_duration = duration;
 }
 
-void System:set_trunked_system_id(string trsId) {
+void System::set_trunked_system_id(string trsId) {
   this->trunked_system_id = trsId;
 }
 
