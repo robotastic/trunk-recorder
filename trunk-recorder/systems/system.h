@@ -134,7 +134,8 @@ public:
 
         bool get_delaycreateoutput();
         void set_delaycreateoutput(bool delaycreateoutput);
-
+		std::string get_trunked_system_id();
+		void set_trunked_system_id(std::string trsId);
         bool get_hideEncrypted();
         void set_hideEncrypted(bool hideEncrypted);
 
@@ -149,5 +150,6 @@ private:
         bool d_delaycreateoutput;
         bool d_hideEncrypted;
         bool d_hideUnknown;
+		std::string trunked_system_id;
 };
 #endif
