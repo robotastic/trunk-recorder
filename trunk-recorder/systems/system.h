@@ -30,20 +30,16 @@ typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 class p25conventional_recorder;
 typedef boost::shared_ptr<p25conventional_recorder> p25conventional_recorder_sptr;
 
+
+
 class System
 {
         int sys_num;
         unsigned long sys_id;
         unsigned long wacn;
         unsigned long nac;
-
 public:
-        enum TalkgroupDisplayFormat
-        {
-                talkGroupDisplayFormat_id = 0,
-                talkGroupDisplayFormat_id_tag = 1,
-                talkGroupDisplayFormat_tag_id = 2
-        };
+        enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id=0, talkGroupDisplayFormat_id_tag=1, talkGroupDisplayFormat_tag_id=2};
 
         Talkgroups *talkgroups;
         p25p2_lfsr *lfsr;
@@ -64,7 +60,7 @@ public:
         double bandplan_spacing;
         int bandplan_offset;
         double min_call_duration;
-        std::string trunked_system_id;
+
         unsigned xor_mask_len;
         const char *xor_mask;
         std::vector<double> control_channels;
@@ -98,8 +94,8 @@ public:
         unsigned long get_sys_id();
         unsigned long get_wacn();
         unsigned long get_nac();
-        void set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac);
-        const char *get_xor_mask();
+        void set_xor_mask(unsigned long sys_id,  unsigned long wacn,  unsigned long nac);
+        const char * get_xor_mask();
         bool update_status(TrunkMessage message);
         int get_sys_num();
         void set_system_type(std::string);
@@ -120,7 +116,7 @@ public:
         std::vector<p25conventional_recorder_sptr> get_conventionalP25_recorders();
         std::vector<double> get_channels();
         std::vector<double> get_control_channels();
-        System(int sys_id);
+        System(int sys_id );
         void set_bandplan(std::string);
         std::string get_bandplan();
         void set_bandfreq(int);
@@ -133,8 +129,6 @@ public:
         double get_bandplan_spacing();
         void set_bandplan_offset(int);
         int get_bandplan_offset();
-        void set_talkgroup_display_format(TalkgroupDisplayFormat format);
-        void set_trunked_site_id(std::string);
         void set_talkgroup_display_format(TalkgroupDisplayFormat format);
         TalkgroupDisplayFormat get_talkgroup_display_format();
 
