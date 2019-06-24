@@ -19,12 +19,12 @@ void Call::create_filename() {
   boost::filesystem::create_directories(path_stream.str());
 
   int nchars;
-  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%g.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%f.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
-  nchars = snprintf(status_filename,  255,  "%s/%ld-%ld_%g.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(status_filename,  255,  "%s/%ld-%ld_%f.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
@@ -35,12 +35,12 @@ void Call::create_filename() {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(debug_filename,   255,        "%s/%ld-%ld_%g.debug",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(debug_filename,   255,        "%s/%ld-%ld_%f.debug",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(sigmf_filename,   255,        "%s/%ld-%ld_%g.raw",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(sigmf_filename,   255,        "%s/%ld-%ld_%f.raw",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
