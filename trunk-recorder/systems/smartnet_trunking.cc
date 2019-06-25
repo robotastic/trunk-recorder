@@ -45,7 +45,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   const double pi = boost::math::constants::pi<double>();
   BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysNum: " << sys_num;
 
-  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << chan_freq;
+  BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << FormatFreq(chan_freq);
 
   inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 7250, 2000, 100, gr::filter::firdes::WIN_HANN);
@@ -82,7 +82,7 @@ smartnet_trunking::smartnet_trunking(float               f,
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
     //double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
-    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
+    BOOST_LOG_TRIVIAL(info) << "\t SmartNet Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(0);

@@ -325,7 +325,7 @@ Recorder * Source::get_analog_recorder(int priority)
       break;
     }
   }
-  BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Analog Recorders Available";
+  BOOST_LOG_TRIVIAL(info) << "[ " << device << " ] No Analog Recorders Available";
   return NULL;
 }
 
@@ -401,7 +401,14 @@ void Source::print_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "[ D" << rx->get_num() << " ] State: " << FormatState(rx->get_state());
+  }
+
+  for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin();
+       it != analog_recorders.end(); it++) {
+    analog_recorder_sptr rx = *it;
+
+    BOOST_LOG_TRIVIAL(info) << "[ A" << rx->get_num() << " ] State: " << FormatState(rx->get_state());
   }
 }
 
@@ -460,7 +467,7 @@ Recorder * Source::get_digital_recorder(int priority)
   if (priority > 99) { // num_available_recorders) { // a low priority is bad.
                        // You need atleast the number of availalbe recorders to
                        // your priority
-    // BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
+    BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
     return NULL;
   }
 
