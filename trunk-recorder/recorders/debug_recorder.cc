@@ -129,7 +129,7 @@ debug_recorder::debug_recorder(Source *src)
   //tm *ltm = localtime(&starttime);
 
 
-  int nchars = snprintf(filename, 160, "%s/%ld-%ld_%g.raw",talkgroup,starttime,freq);
+  int nchars = snprintf(filename, 160, "%ld-%ld_%g.raw", talkgroup, starttime, freq);
 
   if (nchars >= 160) {
     BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";

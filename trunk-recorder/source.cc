@@ -379,7 +379,7 @@ Recorder * Source::get_analog_recorder(int priority)
       break;
     }
   }
-  BOOST_LOG_TRIVIAL(info) << "[ " << driver << " ] No Analog Recorders Available";
+  BOOST_LOG_TRIVIAL(info) << "[ " << device << " ] No Analog Recorders Available";
   return NULL;
 }
 
@@ -521,7 +521,7 @@ Recorder * Source::get_digital_recorder(int priority)
   if (priority > 99) { // num_available_recorders) { // a low priority is bad.
                        // You need atleast the number of availalbe recorders to
                        // your priority
-    // BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
+    BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
     return NULL;
   }
 

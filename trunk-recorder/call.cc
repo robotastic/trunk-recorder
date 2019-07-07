@@ -313,14 +313,14 @@ long Call::get_freq_count() {
 }
 
 Call_Source * Call::get_source_list() {
-  if (!recorder) {
+  if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is recording, but no recorder assigned!";
   }
   return src_list;
 }
 
 long Call::get_source_count() {
-  if (!recorder) {
+  if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
   }
   return src_count;

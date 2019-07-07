@@ -41,6 +41,7 @@ Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10 & 18
 By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.
 * [OpenMHz](https://github.com/robotastic/trunk-recorder/wiki/Uploading-to-OpenMHz) - This is my free hosted platform for sharing recordings
 * [Trunk Player](https://github.com/ScanOC/trunk-player) - A great Python based server, if you want to you want to run your own
+* [Rdio Scanner](https://github.com/chuot/rdio-scanner) - Provide a good looking, scanner style interface for listening to Trunk Recorder
 
 * [FAQ](https://github.com/robotastic/trunk-recorder/wiki/FAQ)
 
