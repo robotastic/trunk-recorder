@@ -2,7 +2,7 @@
 
 FROM robotastic/docker-gnuradio:latest
 
-
+RUN apt-get update && apt-get upgrade -y
 
 COPY . /src/trunk-recorder
 RUN cd /src/trunk-recorder && cmake . && make
