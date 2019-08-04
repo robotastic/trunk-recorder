@@ -732,7 +732,6 @@ void unit_deregistration(long unit) {
 
   /* char   shell_command[200];
   sprintf(shell_command, "radiochange.sh %li off &", unit);
-  system(shell_command);
   int rc = system(shell_command); */
   }
 
@@ -742,7 +741,6 @@ void unit_deregistration(long unit) {
 void unit_ack(long unit) {
   /* char   shell_command[200];
     sprintf(shell_command, "radiochange.sh %li ackresp &", unit);
-    system(shell_command);
     int rc = system(shell_command); */
   }
 }
@@ -752,7 +750,6 @@ void group_affiliation(long unit, long talkgroup) {
 
   /* char   shell_command[200];
   sprintf(shell_command, "radiochange.sh %li %li &", unit, talkgroup);
-  system(shell_command);
   int rc = system(shell_command); */
 
 }
@@ -766,7 +763,6 @@ void handle_call(TrunkMessage message, System *sys) {
 
   /* char   shell_command[200];
   sprintf(shell_command, "radiochange.sh %li %li &", unit, talkgroup);
-  system(shell_command);
   int rc = system(shell_command); */
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
@@ -862,7 +858,6 @@ void unit_check() {
       myfile << "\"" << it->first << "\":" << it->second;
     }
     //sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-    //system(shell_command);
     //int rc = system(shell_command);
     myfile << "}";
     myfile.close();
