@@ -23,7 +23,8 @@ debug_recorder::debug_recorder(Source *src)
   silence_frames = source->get_silence_frames();
   talkgroup = 0;
   long capture_rate = samp_rate;
-
+  recording_count = 0;
+  recording_duration = 0;
 
   rec_num = rec_counter++;
 

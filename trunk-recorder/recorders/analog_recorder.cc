@@ -5,7 +5,7 @@
 using namespace std;
 
 bool analog_recorder::logging = false;
-//static int rec_counter=0;
+//static int rec_counter = 0;
 
 analog_recorder_sptr make_analog_recorder(Source *src)
 {
@@ -51,7 +51,9 @@ analog_recorder::analog_recorder(Source *src)
   config      = source->get_config();
   samp_rate   = source->get_rate();
   talkgroup   = 0;
-
+  recording_count = 0;
+  recording_duration = 0;
+  
   rec_num = rec_counter++;
   state       = inactive;
 

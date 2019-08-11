@@ -21,7 +21,8 @@ sigmf_recorder::sigmf_recorder(Source *src)
   qpsk_mod  = source->get_qpsk_mod();
   silence_frames = source->get_silence_frames();
   talkgroup = 0;
-
+  recording_count = 0;
+  recording_duration = 0;
 
   rec_num = rec_counter++;
 
