@@ -125,8 +125,8 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
   // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
   // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
-  system(shell_command);
-  //int rc = system(shell_command);
+  // system(shell_command);
+  int rc = system(shell_command);
 
   // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
 
