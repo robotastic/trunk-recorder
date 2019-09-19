@@ -70,6 +70,8 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   talkgroup      = 0;
   d_phase2_tdma = true;
   rec_num = rec_counter++;
+  recording_count = 0;
+  recording_duration = 0;
 
   state = inactive;
 
