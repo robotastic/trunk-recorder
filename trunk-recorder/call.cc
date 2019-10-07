@@ -122,6 +122,8 @@ void Call::end_call() {
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
     _final_length = recorder->get_current_length();
+    // Fixes https://github.com/robotastic/trunk-recorder/issues/103#issuecomment-284825841
+    start_time = stop_time - _final_length;
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
