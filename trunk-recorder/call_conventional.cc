@@ -3,10 +3,9 @@
 #include <boost/algorithm/string.hpp>
 #include "recorders/recorder.h"
 #include "call_conventional.h"
-#include "./uploaders/stat_socket.h"
 
-Call_conventional::Call_conventional(long t, double f, System *s, Config c, stat_socket * stat_socket) : Call(t,f,s,c) {
-  d_stat_socket = stat_socket;
+Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Call(t,f,s,c) {
+  
 }
 
 Call_conventional::~Call_conventional() {
@@ -41,5 +40,4 @@ void Call_conventional::set_recorder(Recorder *r) {
 void Call_conventional::recording_started()
 {
   start_time = time(NULL);
-  d_stat_socket->send_call_start(this);
 }

@@ -3,7 +3,6 @@
 #include "config.h"
 class System;
 class Recorder;
-class stat_socket;
 
 #include <string>
 #include "call.h"
@@ -12,7 +11,7 @@ class stat_socket;
 class Call_conventional : public Call {
 public:
 
-								Call_conventional( long t, double f, System *s, Config c, stat_socket * stat_socket);
+								Call_conventional( long t, double f, System *s, Config c);
 								~Call_conventional();
 
 								virtual bool is_conventional() { return true;}
@@ -20,8 +19,6 @@ public:
 								void set_recorder(Recorder *r);
 								char * get_filename();
 								void recording_started();
-private:
-								stat_socket * d_stat_socket;
 };
 
 #endif
