@@ -56,13 +56,7 @@
 
 
 
-#include <websocketpp/config/asio_no_tls_client.hpp>
-#include <websocketpp/client.hpp>
 
-// This header pulls in the WebSocket++ abstracted thread support that will
-// select between boost::thread and std::thread based on how the build system
-// is configured.
-#include <websocketpp/common/thread.hpp>
 
 #include <osmosdr/source.h>
 
@@ -98,6 +92,13 @@ Config config;
 string default_mode;
 
 #ifdef WEBSOCKET_STATUS
+#include <websocketpp/config/asio_no_tls_client.hpp>
+#include <websocketpp/client.hpp>
+
+// This header pulls in the WebSocket++ abstracted thread support that will
+// select between boost::thread and std::thread based on how the build system
+// is configured.
+#include <websocketpp/common/thread.hpp>
 #include "uploaders/stat_socket.h"
 stat_socket stats;
 #endif

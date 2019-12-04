@@ -34,7 +34,7 @@ void Call_conventional::restart_call() {
 
 void Call_conventional::set_recorder(Recorder *r) {
   recorder = r;
-  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\tListening on Src: " << recorder->get_source()->get_device();
+  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq());
 }
 
 void Call_conventional::recording_started()
