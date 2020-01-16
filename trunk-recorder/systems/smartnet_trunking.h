@@ -11,19 +11,26 @@
 
 #include <gnuradio/filter/firdes.h>
 
+#if GNURADIO_VERSION < 0x030800
+#include <gnuradio/filter/fir_filter_fff.h>
+#include <gnuradio/analog/sig_source_c.h>
+#include <gnuradio/blocks/multiply_cc.h>
+#else
+#include <gnuradio/filter/fir_filter_blk.h>
+#include <gnuradio/analog/sig_source.h>
+#include <gnuradio/blocks/multiply.h>
+#endif
+
 #include <gnuradio/filter/fft_filter_ccc.h>
 #include <gnuradio/filter/fft_filter_ccf.h>
-#include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 #include <gnuradio/digital/fll_band_edge_cc.h>
 #include <gnuradio/digital/clock_recovery_mm_ff.h>
 #include <gnuradio/digital/binary_slicer_fb.h>
 #include <gnuradio/digital/correlate_access_code_tag_bb.h>
 
-#include <gnuradio/analog/sig_source_c.h>
-#include <gnuradio/analog/pll_freqdet_cf.h>
 
-#include <gnuradio/blocks/multiply_cc.h>
+#include <gnuradio/analog/pll_freqdet_cf.h>
 
 
 #include "smartnet_decode.h"

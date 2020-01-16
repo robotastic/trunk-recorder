@@ -20,11 +20,16 @@
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
-#include <gnuradio/blocks/multiply_const_ff.h>
+#if GNURADIO_VERSION < 0x030800
+#include <gnuradio/filter/fir_filter_fff.h>
 
+#include <gnuradio/blocks/multiply_const_ff.h>
+#else
+#include <gnuradio/filter/fir_filter_blk.h>
+#include <gnuradio/blocks/multiply_const.h>
+#endif
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/iir_filter_ffd.h>
-#include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/fft_filter_ccf.h>
 
 #include <gnuradio/analog/quadrature_demod_cf.h>
