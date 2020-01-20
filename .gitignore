@@ -1,6 +1,7 @@
 /*.json
 /*.csv
 sys_*/
+audio/
 junk/
 tester/
 fake/
