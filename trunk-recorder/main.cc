@@ -377,6 +377,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Max Freqency: " << FormatFreq(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min Freqency: " << FormatFreq(source->get_min_hz());
 
+      source->set_gain(gain);
+
       if (if_gain != 0) {
         source->set_if_gain(if_gain);
       }
@@ -404,7 +406,6 @@ void load_config(string config_file)
         source->set_vga2_gain(vga2_gain);
       }
 
-      source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
       source->set_fsk_gain(fsk_gain);
