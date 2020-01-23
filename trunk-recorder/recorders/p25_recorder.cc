@@ -78,10 +78,10 @@ DecimSettings p25_recorder::get_decim(long speed) {
             decim_settings.decim = q/2;
             decim_settings.decim2 = 2;
         }
-        cout << "Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2 <<endl;
+        std::cout << "Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2 << std::endl;
         return decim_settings;
     }
-    cout << "Nothing found" << endl;
+    std::cout << "Nothing found" << std::endl;
     return decim_settings;
 }
 void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink)
@@ -444,28 +444,28 @@ void p25_recorder::tune_offset(double f) {
         long freq = (f - center_freq);
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
-          BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit"
+          BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit";
         }
         if (double_decim) {
           bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1/2, -freq + if1/2, if1/2);
-          bandpass_filter.set_taps(bandpass_filter_coeffs);
-          float bfo = (decim * -freq) / input_rate;
-          BOOST_LOG_TRIVIAL(info) << "initial bfo: " << bfo;
-          bfo = bfo - static_cast<int>(bfo);
-          BOOST_LOG_TRIVIAL(info) << "Revised bfo: " << bfo;
-          if (bfo < -0.5) {
-            bfo = bfo + 1.0;
+          bandpass_filter->set_taps(bandpass_filter_coeffs);
+          float bfz = (decim * -freq) / input_rate;
+          BOOST_LOG_TRIVIAL(info) << "initial bfo: " << bfz;
+          bfz = bfz - static_cast<int>(bfz);
+          BOOST_LOG_TRIVIAL(info) << "Revised bfo: " << bfz;
+          if (bfz < -0.5) {
+            bfz = bfz + 1.0;
           }
-          if (bfo > 0.5) {
-            bfo = bfo - 1.0;
+          if (bfz > 0.5) {
+            bfz = bfz - 1.0;
           }
-          BOOST_LOG_TRIVIAL(info) << "Final bfo: " << bfo;
-          BOOST_LOG_TRIVIAL(info) << "Freq set to: " << -bfo * if1;
-          bfo.set_frequency(-bfo * if1);
+          BOOST_LOG_TRIVIAL(info) << "Final bfo: " << bfz;
+          BOOST_LOG_TRIVIAL(info) << "Freq set to: " << -bfz * if1;
+          bfo->set_frequency(-bfz * if1);
 
     
         } else {
-          lowpass_Filter.set_frequency(chan_freq);
+          lo->set_frequency(freq);
         }
 
   if (!qpsk_mod) {

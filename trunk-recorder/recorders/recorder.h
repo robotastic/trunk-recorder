@@ -52,7 +52,7 @@ struct DecimSettings
     {
 		long decim;
 		long decim2;
-	}
+	};
 class Recorder
 {
 
