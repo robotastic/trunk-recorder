@@ -441,7 +441,7 @@ long p25_recorder::elapsed() {
 
 void p25_recorder::tune_offset(double f) {
         chan_freq = f;
-        long freq = (f - center_freq);
+        long freq = f; //(f - center_freq);
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
           BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit";
@@ -551,7 +551,8 @@ void p25_recorder::start(Call *call) {
 
 
     int offset_amount = (chan_freq - center_freq);
-    prefilter->set_center_freq(offset_amount);
+    tune_offset(offset_amount);
+    //prefilter->set_center_freq(offset_amount);
 
     wav_sink->open(call->get_filename());
     state = active;
