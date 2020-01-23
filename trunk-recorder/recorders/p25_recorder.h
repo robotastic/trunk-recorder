@@ -19,11 +19,13 @@
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/blocks/multiply_const_ff.h>
 #include <gnuradio/filter/firdes.h>
+#include <gnuradio/filter/fir_filter_ccc.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 #include <gnuradio/filter/fft_filter_fff.h>
 
+#include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/pwr_squelch_ff.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
@@ -34,6 +36,7 @@
 #include <gnuradio/blocks/copy.h>
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/multiply_const_ff.h>
+#include <gnuradio/blocks/multiply_cc.h>
 #include <gnuradio/blocks/multiply_const_ss.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 
@@ -71,7 +74,7 @@ protected:
 
 public:
   virtual ~p25_recorder();
-
+  DecimSettings get_decim(long speed);
   void    tune_offset(double f);
   virtual void    start(Call *call);
   virtual void    stop();
@@ -125,22 +128,41 @@ private:
   double samples_per_symbol;
   double symbol_rate;
   double initial_rate;
-  int decim;
+  long decim;
   double resampled_rate;
   double squelch_db;
   int    silence_frames;
   int    tdma_slot;
   bool   d_phase2_tdma;
+  bool   double_decim;
+  long   if1;
+  long   if2;
+  long   input_rate;
 
   std::vector<float> inital_lpf_taps;
   std::vector<float> channel_lpf_taps;
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;
   std::vector<float> baseband_noise_filter_taps;
+  std::vector<gr_complex>	bandpass_filter_coeffs;
+  std::vector<float> lowpass_filter_coeffs;
+  std::vector<float> cutoff_filter_coeffs;
+
+
+  gr::analog::sig_source_c::sptr lo;
+  gr::analog::sig_source_c::sptr bfo;
+  gr::blocks::multiply_cc::sptr  mixer;
+
+
 
   /* GR blocks */
+  gr::filter::fft_filter_ccc::sptr bandpass_filter;
+  gr::filter::fft_filter_ccf::sptr lowpass_filter;
+  gr::filter::fft_filter_ccf::sptr cutoff_filter;
+
   gr::filter::fft_filter_ccf::sptr channel_lpf;
   gr::filter::fir_filter_fff::sptr sym_filter;
+  
   gr::filter::fft_filter_fff::sptr noise_filter;
 
   gr::digital::diff_phasor_cc::sptr diffdec;

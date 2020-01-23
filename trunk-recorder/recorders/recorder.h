@@ -48,8 +48,11 @@
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
-
-
+struct DecimSettings
+    {
+		long decim;
+		long decim2;
+	}
 class Recorder
 {
 
