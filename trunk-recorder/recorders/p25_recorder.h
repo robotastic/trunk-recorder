@@ -75,6 +75,10 @@ protected:
 public:
   virtual ~p25_recorder();
   DecimSettings get_decim(long speed);
+  void initialize_prefilter();
+  void initialize_qpsk();
+  void initialize_fsk4();
+  void initialize_p25();
   void    tune_offset(double f);
   void    tune_freq(double f);
   virtual void    start(Call *call);
@@ -139,7 +143,10 @@ private:
   long   if1;
   long   if2;
   long   input_rate;
-
+  const int phase1_samples_per_symbol = 5;
+  const int phase2_samples_per_symbol = 4;
+  const double phase1_symbol_rate = 4800;
+  const double phase2_symbol_rate = 6000;
   std::vector<float> inital_lpf_taps;
   std::vector<float> channel_lpf_taps;
   std::vector<float> arb_taps;

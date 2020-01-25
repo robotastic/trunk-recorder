@@ -84,29 +84,11 @@ DecimSettings p25_recorder::get_decim(long speed) {
     std::cout << "Nothing found" << std::endl;
     return decim_settings;
 }
-void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink)
-{
-  source      = src;
-  chan_freq   = source->get_center();
-  center_freq = source->get_center();
-  config      = source->get_config();
-  long samp_rate = source->get_rate();
-  qpsk_mod       = source->get_qpsk_mod();
-  silence_frames = source->get_silence_frames();
-  talkgroup      = 0;
-  d_phase2_tdma = true;
-  rec_num = rec_counter++;
-  recording_count = 0;
-  recording_duration = 0;
-  
-  state = inactive;
-  double offset = chan_freq - center_freq;
-
-/*-- new Stuff --*/
-  int phase1_samples_per_symbol = 5;
+void p25_recorder::initialize_prefilter() {
+ /* int phase1_samples_per_symbol = 5;
   int phase2_samples_per_symbol = 4;
   double phase1_symbol_rate = 4800;
-  double phase2_symbol_rate = 6000;
+  double phase2_symbol_rate = 6000;*/
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
@@ -114,45 +96,20 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   long fb = 0;
   if1 = 0;
   if2 = 0;
-  input_rate = samp_rate;
-
-  lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-  mixer = gr::blocks::multiply_cc::make(); 
-
-/*-- old Stuf --*/
-  //double symbol_deviation    = 600.0; // was 600.0
-  int initial_decim      = floor(samp_rate / 480000);
-  initial_rate = double(samp_rate) / double(initial_decim);
-  
   samples_per_symbol  = phase1_samples_per_symbol; 
   symbol_rate         = phase1_symbol_rate;
   system_channel_rate = symbol_rate * samples_per_symbol;
 
-
-
-  decim = floor(initial_rate / system_channel_rate);
-  resampled_rate = double(initial_rate) / double(decim);
-  arb_rate  = (double(system_channel_rate) / resampled_rate);
-
-  const double pi = M_PI; // boost::math::constants::pi<double>();
-
-  timestamp = time(NULL);
-  starttime = time(NULL);
-
-
-  double gain_mu      = 0.025;               // 0.025
-  double costas_alpha = 0.04;
-
-
   /* --- The section of code is used by all of the configurations --- */
-  double bb_gain      = src->get_fsk_gain(); // was 1.0
+  double bb_gain      = source->get_fsk_gain(); // was 1.0
   baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
+  lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
+  mixer = gr::blocks::multiply_cc::make(); 
 
-  /* --- New Stuff --- */
-  DecimSettings decim_settings = get_decim(samp_rate);
+  DecimSettings decim_settings = get_decim(input_rate);
   if (decim_settings.decim != -1) {
     double_decim = true;
     decim = decim_settings.decim;
@@ -169,47 +126,33 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   } else {
     double_decim = false;
-    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: "<< if1 << " Second decimated rate: " << if2  << " Initial Decimation: " << initial_decim << " System Rate: " << input_rate;
+    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: "<< if1 << " Second decimated rate: " << if2  << " Initial Decimation: " << decim << " System Rate: " << input_rate;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
-    long decimation = floor(input_rate / if_rate);
-    resampled_rate = input_rate / decimation;
+    decim = floor(input_rate / if_rate);
+    resampled_rate = input_rate / decim;
     
-    lowpass_filter = gr::filter::fft_filter_ccf::make(decimation, lowpass_filter_coeffs);
-    resampled_rate = input_rate / decimation;
+    lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
+    resampled_rate = input_rate / decim;
   }
+
+  // Cut-Off Filter
   fa = 6250;
   fb = fa + 625;
   cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb+fa)/2, fb-fa);
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
-
-  /* --- Old Stuff --- */
-  /*inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
-  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
-
-  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
-
-
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 6500, 1500, 100, gr::filter::firdes::WIN_HANN);
-  channel_lpf      =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
-
-
-  // Constructs the ARB resampler, which gets to the exact sample rate.*/
-  
+  // ARB Resampler
   arb_rate = if_rate / resampled_rate;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
-  //double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
-  //BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
-
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: "<< input_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
+ 
+  // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
   // power squelch works well. real FM receviers use a noise squelch, where
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
-
-  squelch_db = source->get_squelch_db();
 
   if (squelch_db != 0) {
     // Non-blocking as we are using squelch_two as a gate.
@@ -217,28 +160,27 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
 
   }
 
-
-  agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
-
-
-  // Gardner Costas Clock
-  double omega      = double(system_channel_rate) / symbol_rate; // set to 6000 for TDMA, should be symbol_rate
-  double gain_omega = 0.1  * gain_mu * gain_mu;
-  double alpha      = costas_alpha;
-  double beta       = 0.125 * alpha * alpha;
-  double fmax       = 3000; // Hz
-  fmax = 2 * pi * fmax / double(system_channel_rate);
-
-  costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
-
-  // QPSK: Perform Differential decoding on the constellation
-  diffdec = gr::digital::diff_phasor_cc::make();
-
-  // QPSK: take angle of the difference (in radians)
-  to_float = gr::blocks::complex_to_arg::make();
-
-  // QPSK: convert from radians such that signal is in -3/-1/+1/+3
-  rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
+  connect(self(),      0, valve,         0);
+  if (double_decim) {
+    connect(valve,  0,  bandpass_filter, 0);
+    connect(bandpass_filter, 0, mixer,   0);
+    connect(bfo,    0,  mixer,           1);
+  } else {
+    connect(valve,  0,  mixer,           0);
+    connect(lo,     0,  mixer,           1);
+  }
+  connect(mixer,    0,  lowpass_filter,   0);
+  connect(lowpass_filter, 0,  arb_resampler, 0);
+  connect(arb_resampler,  0,  cutoff_filter,  0);
+}
+void p25_recorder::initialize_fsk4() {
+ /* int phase1_samples_per_symbol = 5;
+  int phase2_samples_per_symbol = 4;
+  double phase1_symbol_rate = 4800;
+  double phase2_symbol_rate = 6000;*/
+  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  const double pi = M_PI;
 
   // FSK4: Phase Loop Lock - can only be Phase 1, so locking at that rate.
   double freq_to_norm_radians = pi / (phase1_channel_rate / 2.0);
@@ -246,7 +188,7 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   double fd                   = 600.0;
   double pll_demod_gain       = 1.0 / (fd * freq_to_norm_radians);
   pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
-  pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * bb_gain);
+  pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * source->get_fsk_gain());
 
   //FSK4: noise filter - can only be Phase 1, so locking at that rate.
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
@@ -265,6 +207,60 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   tune_queue    = gr::msg_queue::make(20);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
 
+  if (squelch_db != 0) {
+    connect(cutoff_filter, 0, squelch,       0);
+    connect(squelch,       0, pll_freq_lock, 0);
+  } else {
+    connect(cutoff_filter, 0, pll_freq_lock, 0);
+  }
+  connect(pll_freq_lock,        0, pll_amp,              0);
+  connect(pll_amp,              0, noise_filter,         0);
+  connect(noise_filter,         0, sym_filter,           0);
+  connect(sym_filter,           0, fsk4_demod,           0);
+  connect(fsk4_demod,           0, slicer,               0);
+}
+
+void p25_recorder::initialize_qpsk() {
+  const double pi = M_PI;
+
+  agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
+
+
+  // Gardner Costas Clock
+  double gain_mu      = 0.025;               // 0.025
+  double costas_alpha = 0.04;
+  double omega      = double(system_channel_rate) / symbol_rate; // set to 6000 for TDMA, should be symbol_rate
+  double gain_omega = 0.1  * gain_mu * gain_mu;
+  double alpha      = costas_alpha;
+  double beta       = 0.125 * alpha * alpha;
+  double fmax       = 3000; // Hz
+  fmax = 2 * pi * fmax / double(system_channel_rate);
+
+  costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha,  beta, fmax, -fmax);
+
+  // QPSK: Perform Differential decoding on the constellation
+  diffdec = gr::digital::diff_phasor_cc::make();
+
+  // QPSK: take angle of the difference (in radians)
+  to_float = gr::blocks::complex_to_arg::make();
+
+  // QPSK: convert from radians such that signal is in -3/-1/+1/+3
+  rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
+
+  if (squelch_db != 0) {
+    connect(cutoff_filter, 0, squelch, 0);
+    connect(squelch,       0, agc,     0);
+  } else {
+    connect(cutoff_filter, 0, agc, 0);
+  }
+  connect(agc,                  0, costas_clock,         0);
+  connect(costas_clock,         0, diffdec,              0);
+  connect(diffdec,              0, to_float,             0);
+  connect(to_float,             0, rescale,              0);
+  connect(rescale,              0, slicer,               0);
+}
+
+void p25_recorder::initialize_p25() {
   //OP25 Slicer
   const float l[] = { -2.0, 0.0, 2.0, 4.0 };
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
@@ -290,56 +286,41 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
-
+  connect(slicer,               0, op25_frame_assembler, 0);
+  connect(op25_frame_assembler, 0, converter,            0);
+  connect(converter,            0, levels,               0);
+  connect(levels, 0, wav_sink, 0);
+}
+void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink)
+{
+  source      = src;
+  chan_freq   = source->get_center();
+  center_freq = source->get_center();
+  config      = source->get_config();
+  input_rate = source->get_rate();
+  qpsk_mod       = source->get_qpsk_mod();
+  silence_frames = source->get_silence_frames();
+  squelch_db = source->get_squelch_db();
   this->wav_sink = wav_sink;
+  talkgroup      = 0;
+  d_phase2_tdma = false;
+  rec_num = rec_counter++;
+  recording_count = 0;
+  recording_duration = 0;
+  
+  state = inactive;
+  
+  timestamp = time(NULL);
+  starttime = time(NULL);
 
-  connect(self(),      0, valve,         0);
-
-  if (double_decim) {
-    connect(valve,  0,  bandpass_filter, 0);
-    connect(bandpass_filter, 0, mixer,   0);
-    connect(bfo,    0,  mixer,           1);
-  } else {
-    connect(valve,  0,  mixer,           0);
-    connect(lo,     0,  mixer,           1);
-  }
-  connect(mixer,    0,  lowpass_filter,   0);
-  connect(lowpass_filter, 0,  arb_resampler, 0);
-  connect(arb_resampler,  0,  cutoff_filter,  0);
+  initialize_prefilter();
+  initialize_p25();
 
   if (!qpsk_mod) {
-
-
-    if (squelch_db != 0) {
-      connect(cutoff_filter, 0, squelch,       0);
-      connect(squelch,       0, pll_freq_lock, 0);
-    } else {
-      connect(cutoff_filter, 0, pll_freq_lock, 0);
-    }
-    connect(pll_freq_lock,        0, pll_amp,              0);
-    connect(pll_amp,              0, noise_filter,         0);
-    connect(noise_filter,         0, sym_filter,           0);
-    connect(sym_filter,           0, fsk4_demod,           0);
-    connect(fsk4_demod,           0, slicer,               0);
-
+    initialize_fsk4();
   } else {
-
-    if (squelch_db != 0) {
-      connect(cutoff_filter, 0, squelch, 0);
-      connect(squelch,       0, agc,     0);
-    } else {
-      connect(cutoff_filter, 0, agc, 0);
-    }
-    connect(agc,                  0, costas_clock,         0);
-    connect(costas_clock,         0, diffdec,              0);
-    connect(diffdec,              0, to_float,             0);
-    connect(to_float,             0, rescale,              0);
-    connect(rescale,              0, slicer,               0);
-        }
-    connect(slicer,               0, op25_frame_assembler, 0);
-    connect(op25_frame_assembler, 0, converter,            0);
-    connect(converter,            0, levels,               0);
-    connect(levels, 0, wav_sink, 0);
+    initialize_qpsk();
+  }
 }
 
 void p25_recorder::switch_tdma(bool phase2) {
