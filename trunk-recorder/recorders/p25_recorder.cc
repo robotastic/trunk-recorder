@@ -444,7 +444,7 @@ void p25_recorder::tune_offset(double f) {
         long freq = f; //(f - center_freq);
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
-          BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit";
+          BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate/2) - (if1/2));
         }
         if (double_decim) {
           bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1/2, -freq + if1/2, if1/2);
