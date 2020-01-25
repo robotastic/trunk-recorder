@@ -444,7 +444,7 @@ void p25_recorder::tune_freq(double f) {
   BOOST_LOG_TRIVIAL(info) << "Tune tune_freq: " << chan_freq;
 }
 void p25_recorder::tune_offset(double f) {
-        chan_freq = f - center_freq;
+        //chan_freq = f - center_freq;
         float freq = static_cast<float> (f); //(f - center_freq);
         
         BOOST_LOG_TRIVIAL(info) << "Trying to tune: " << chan_freq << " Tune Offset: " << freq << " compared to: " << ((input_rate/2) - (if1/2));
@@ -556,7 +556,9 @@ void p25_recorder::start(Call *call) {
     BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
 
-    int offset_amount = (chan_freq - center_freq);
+    int offset_amount = (center_freq - chan_freq);
+  
+  //  int offset_amount = (chan_freq - center_freq);
     tune_offset(offset_amount);
     //prefilter->set_center_freq(offset_amount);
 
