@@ -441,7 +441,8 @@ long p25_recorder::elapsed() {
 
 void p25_recorder::tune_offset(double f) {
         chan_freq = f;
-        long freq = f; //(f - center_freq);
+        float freq = static_cast<float> f; //(f - center_freq);
+        BOOST_LOG_TRIVIAL(info) << "Tune Offset: " << freq << " compared to: " << ((input_rate/2) - (if1/2));
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
           BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate/2) - (if1/2));
@@ -449,7 +450,7 @@ void p25_recorder::tune_offset(double f) {
         if (double_decim) {
           bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1/2, -freq + if1/2, if1/2);
           bandpass_filter->set_taps(bandpass_filter_coeffs);
-          float bfz = (decim * -freq) / input_rate;
+          float bfz = (static_cast<float> decim * -freq) / (float) input_rate;
           BOOST_LOG_TRIVIAL(info) << "initial bfo: " << bfz;
           bfz = bfz - static_cast<int>(bfz);
           BOOST_LOG_TRIVIAL(info) << "Revised bfo: " << bfz;
