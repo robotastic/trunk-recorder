@@ -440,7 +440,7 @@ long p25_recorder::elapsed() {
 }
 
 void p25_recorder::tune_freq(double f) {
-  float freq = (f - center_freq);
+  float freq = (center_freq - f);
   BOOST_LOG_TRIVIAL(info) << "Tune tune_freq: " << chan_freq;
 }
 void p25_recorder::tune_offset(double f) {
@@ -476,6 +476,8 @@ void p25_recorder::tune_offset(double f) {
 
   if (!qpsk_mod) {
     reset();
+  } else {
+    costas_clock->reset();
   }
   op25_frame_assembler->reset_rx_status();
 }
