@@ -103,9 +103,13 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   double offset = chan_freq - center_freq;
 
 /*-- new Stuff --*/
-  long sps = 5; // should be 4 for Phase 2. It is equal to rate / 240000
-  long if_rate = sps * 4800;
-  long basic_rate = 24000;
+  int phase1_samples_per_symbol = 5;
+  int phase2_samples_per_symbol = 4;
+  double phase1_symbol_rate = 4800;
+  double phase2_symbol_rate = 6000;
+  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  long if_rate = phase1_channel_rate;
   long fa = 0;
   long fb = 0;
   if1 = 0;
@@ -119,15 +123,12 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   //double symbol_deviation    = 600.0; // was 600.0
   int initial_decim      = floor(samp_rate / 480000);
   initial_rate = double(samp_rate) / double(initial_decim);
-  samples_per_symbol  = 5;    // was 10
-
-  symbol_rate         = 6000;
+  
+  samples_per_symbol  = phase1_samples_per_symbol; 
+  symbol_rate         = phase1_symbol_rate;
   system_channel_rate = symbol_rate * samples_per_symbol;
 
-  double phase1_symbol_rate = 4800;
-  //double phase2_symbol_rate = 6000;
-  double phase1_channel_rate = phase1_symbol_rate * samples_per_symbol;
-  //double phase2_channel_rate = phase2_symbol_rate * samples_per_symbol;
+
 
   decim = floor(initial_rate / system_channel_rate);
   resampled_rate = double(initial_rate) / double(decim);
@@ -349,9 +350,11 @@ void p25_recorder::switch_tdma(bool phase2) {
   if (phase2) {
     d_phase2_tdma = true;
     symbol_rate = 6000;
+    samples_per_symbol = 4;
   } else {
     d_phase2_tdma = false;
     symbol_rate = 4800;
+    samples_per_symbol = 5;
   }
 
   system_channel_rate = symbol_rate * samples_per_symbol;
