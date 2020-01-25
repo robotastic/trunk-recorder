@@ -59,6 +59,7 @@ class Recorder
 public:
 	Recorder(std::string type);
 	virtual void tune_offset(double f) {};
+	virtual void tune_freq(double f) {};
 	virtual void start( Call *call) {};
 	virtual void stop() {};
   	virtual void set_tdma_slot(int slot) {};
