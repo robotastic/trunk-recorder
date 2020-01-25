@@ -439,6 +439,9 @@ long p25_recorder::elapsed() {
   return time(NULL) - starttime;
 }
 
+void p25_recorder::tune_freq(double f) {
+  float freq = (f - center_freq);
+}
 void p25_recorder::tune_offset(double f) {
         chan_freq = f;
         float freq = static_cast<float> (f); //(f - center_freq);

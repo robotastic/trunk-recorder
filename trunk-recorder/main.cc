@@ -410,7 +410,7 @@ void load_config(string config_file)
       if (vga2_gain != 0) {
         source->set_vga2_gain(vga2_gain);
       }
-      
+
       source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
@@ -740,7 +740,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
   if (message.freq != call->get_freq()) {
     if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
-      recorder->tune_offset(message.freq);
+      recorder->tune_freq(message.freq);
 
       // only set the call freq, if the recorder can be retuned.
       // set the call to the new Freq / TDMA slot

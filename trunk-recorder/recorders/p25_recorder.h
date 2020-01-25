@@ -76,6 +76,7 @@ public:
   virtual ~p25_recorder();
   DecimSettings get_decim(long speed);
   void    tune_offset(double f);
+  void    tune_freq(double f);
   virtual void    start(Call *call);
   virtual void    stop();
   void    clear();
