@@ -159,7 +159,7 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
     if2 = if1 / decim_settings.decim2;
     fa = 6250;
     fb = if2 / 2;
-    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: "<< if1 << " Second decimated rate: " << if2  << " Initial Decimation: " << initial_decim << " System Rate: " << input_rate;
+    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: "<< if1 << " Second decimated rate: " << if2  << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1/2, if1/2, if1/2);
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb+fa)/2, fb-fa);
     bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
@@ -199,7 +199,7 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   arb_rate = if_rate / resampled_rate;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
   //double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
   //BOOST_LOG_TRIVIAL(info) << "P25 Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
 
@@ -441,11 +441,13 @@ long p25_recorder::elapsed() {
 
 void p25_recorder::tune_freq(double f) {
   float freq = (f - center_freq);
+  BOOST_LOG_TRIVIAL(info) << "Tune tune_freq: " << chan_freq;
 }
 void p25_recorder::tune_offset(double f) {
-        chan_freq = f;
+        chan_freq = f - center_freq;
         float freq = static_cast<float> (f); //(f - center_freq);
-        BOOST_LOG_TRIVIAL(info) << "Tune Offset: " << freq << " compared to: " << ((input_rate/2) - (if1/2));
+        
+        BOOST_LOG_TRIVIAL(info) << "Trying to tune: " << chan_freq << " Tune Offset: " << freq << " compared to: " << ((input_rate/2) - (if1/2));
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
           BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate/2) - (if1/2));
