@@ -1109,9 +1109,10 @@ void monitor_messages() {
     if (msg != 0) {
       sys_num = msg->arg1();
       sys     = find_system(sys_num);
-      sys->message_count++;
 
       if (sys) {
+        sys->message_count++;
+        
         if (sys->get_system_type() == "smartnet") {
           trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys);
           handle_message(trunk_messages, sys);

@@ -1,5 +1,5 @@
 #include "call_uploader.h"
-
+#include "../formatter.h"
 
 void build_call_request(struct call_data_t *call, boost::asio::streambuf& request_) {
   // boost::asio::streambuf request_;
@@ -139,20 +139,20 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   size_t req_size = request_.size();
 
   if (call_info->scheme == "http") {
-    BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq  << "\tHTTP Upload result: " << http_upload(server_info, request_);
+    BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq)  << "\tHTTP Upload result: " << http_upload(server_info, request_);
   }
 
   if (call_info->scheme == "https") {
     int error = https_upload(server_info, request_);
 
     if (!error) {
-      BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tHTTPS Upload Success - file size: " << req_size;
+      BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTPS Upload Success - file size: " << req_size;
       if (!call_info->audio_archive) {
         unlink(call_info->filename);
         unlink(call_info->converted);
       }
     } else {
-      BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tHTTPS Upload Error - file size: " << req_size;
+      BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTPS Upload Error - file size: " << req_size;
 
     }
   }
