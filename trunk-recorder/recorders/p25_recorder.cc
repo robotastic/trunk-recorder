@@ -331,7 +331,7 @@ void p25_recorder::switch_tdma(bool phase2) {
   if (phase2) {
     d_phase2_tdma = true;
     symbol_rate = 6000;
-    samples_per_symbol = 4;
+    samples_per_symbol = 4; //5;//4;
   } else {
     d_phase2_tdma = false;
     symbol_rate = 4800;

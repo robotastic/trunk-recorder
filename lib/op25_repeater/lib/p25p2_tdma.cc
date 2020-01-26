@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <sys/time.h>
 
+#include "op25_msg_types.h"
 #include "p25p2_duid.h"
 #include "p25p2_sync.h"
 #include "p25p2_tdma.h"
@@ -552,7 +553,7 @@ void p25p2_tdma::handle_voice_frame(const uint8_t dibits[])
 
 	// Deinterleave and figure out frame type:
 	errs = vf.process_vcw(dibits, b, u);
-	if (d_debug >= 10) {
+	if (d_debug >= 9) {
 		packed_codeword p_cw;
 		vf.pack_cw(p_cw, u);
 		fprintf(stderr, "%s AMBE %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(),

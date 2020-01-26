@@ -28,14 +28,14 @@ public:
 	CBPTC19696();
 	~CBPTC19696();
 
-	void decode(const unsigned char* in, unsigned char* out);
+	bool decode(const unsigned char* in, unsigned char* out);
 
 private:
 	bool* m_rawData;
 	bool* m_deInterData;
 
 	void decodeExtractBinary(const unsigned char* in);
-	void decodeErrorCheck();
+	bool decodeErrorCheck();
 	void decodeDeInterleave();
 	void decodeExtractData(unsigned char* data) const;
 
