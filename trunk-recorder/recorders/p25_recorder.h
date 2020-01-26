@@ -17,7 +17,7 @@
 
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>
-#include <gnuradio/blocks/multiply_const_ff.h>
+
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_ccc.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
@@ -147,8 +147,7 @@ private:
   const int phase2_samples_per_symbol = 4;
   const double phase1_symbol_rate = 4800;
   const double phase2_symbol_rate = 6000;
-  std::vector<float> inital_lpf_taps;
-  std::vector<float> channel_lpf_taps;
+
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;
   std::vector<float> baseband_noise_filter_taps;
@@ -168,7 +167,7 @@ private:
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
-  gr::filter::fft_filter_ccf::sptr channel_lpf;
+
   gr::filter::fir_filter_fff::sptr sym_filter;
   
   gr::filter::fft_filter_fff::sptr noise_filter;
@@ -179,6 +178,7 @@ private:
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
   gr::blocks::short_to_float::sptr converter;
   gr::analog::feedforward_agc_cc::sptr   agc;
+  gr::blocks::multiply_const_ff::sptr    pll_amp;
   gr::analog::pll_freqdet_cf::sptr       pll_freq_lock;
   gr::analog::pwr_squelch_cc::sptr       squelch;
 
@@ -188,13 +188,12 @@ private:
 
   gr::blocks::multiply_const_ff::sptr rescale;
   gr::blocks::multiply_const_ff::sptr baseband_amp;
-  gr::blocks::multiply_const_ff::sptr pll_amp;
+
   gr::blocks::complex_to_arg::sptr    to_float;
 
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-  gr::op25_repeater::vocoder::sptr op25_vocoder;
   gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 
 };

@@ -976,7 +976,7 @@ void retune_system(System *system) {
     } else if (system->get_system_type() == "p25") {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
-      system->p25_trunking->tune_offset(control_channel_freq);
+      system->p25_trunking->tune_freq(control_channel_freq);
     } else {
       BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
     }

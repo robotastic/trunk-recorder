@@ -2,7 +2,7 @@
 #include <boost/lexical_cast.hpp>
 
 int frequencyFormat = 0;
-bool statusAsString = false;
+bool statusAsString = true;
 
 boost::format FormatFreq(float f)
 {

@@ -21,6 +21,7 @@
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/multiply_const_ff.h>
+#include <gnuradio/blocks/multiply_cc.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 #include <gnuradio/blocks/short_to_float.h>
 
@@ -29,9 +30,12 @@
 #include <gnuradio/filter/fft_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
+#include <gnuradio/filter/fft_filter_fff.h>
 
+#include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
+#include <gnuradio/analog/pll_freqdet_cf.h>
 
 #include <gnuradio/digital/diff_phasor_cc.h>
 
@@ -59,6 +63,11 @@ p25_trunking_sptr make_p25_trunking(double              f,
 
 
 class p25_trunking : public gr::hier_block2 {
+  struct DecimSettings
+    {
+		long decim;
+		long decim2;
+	};
   friend p25_trunking_sptr make_p25_trunking(double              f,
                                              double              c,
                                              long                s,
@@ -79,6 +88,7 @@ public:
   ~p25_trunking();
 
   void   tune_offset(double f);
+  void    tune_freq(double f);
   double get_freq();
   void   enable();
 
@@ -90,26 +100,58 @@ public:
 
 private:
 
+  p25_trunking::DecimSettings get_decim(long speed);
+  void    generate_arb_taps();
+  void initialize_prefilter();
+  void initialize_qpsk();
+  void initialize_fsk4();
+  void initialize_p25();
+
+  double system_channel_rate;
+  double arb_rate;
+  double samples_per_symbol;
+  double symbol_rate;
+  double resampled_rate;
   double center_freq, chan_freq;
+  long input_rate;
+  long decim;
+  bool   double_decim;
+  long   if1;
+  long   if2;
   bool   qpsk_mod;
   int    sys_num;
+  const int phase1_samples_per_symbol = 5;
+  const int phase2_samples_per_symbol = 4;
+  const double phase1_symbol_rate = 4800;
+  const double phase2_symbol_rate = 6000;
 
-  std::vector<float> inital_lpf_taps;
-  std::vector<float> channel_lpf_taps;
+
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;
+  std::vector<float> baseband_noise_filter_taps;
+  std::vector<gr_complex>	bandpass_filter_coeffs;
+  std::vector<float> lowpass_filter_coeffs;
+  std::vector<float> cutoff_filter_coeffs;
 
-  freq_xlating_fft_filter_sptr prefilter;
+  gr::analog::sig_source_c::sptr lo;
+  gr::analog::sig_source_c::sptr bfo;
+  gr::blocks::multiply_cc::sptr  mixer;
+
+  gr::filter::fft_filter_ccc::sptr bandpass_filter;
+  gr::filter::fft_filter_ccf::sptr lowpass_filter;
+  gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
   /* GR blocks */
-  gr::filter::fft_filter_ccf::sptr channel_lpf;
   gr::filter::fir_filter_fff::sptr sym_filter;
+   gr::filter::fft_filter_fff::sptr noise_filter;
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
   gr::digital::diff_phasor_cc::sptr diffdec;
 
   gr::analog::quadrature_demod_cf::sptr fm_demod;
   gr::analog::feedforward_agc_cc::sptr  agc;
+  gr::blocks::multiply_const_ff::sptr    pll_amp;
+  gr::analog::pll_freqdet_cf::sptr       pll_freq_lock;
 
   gr::blocks::short_to_float::sptr converter;
   gr::blocks::multiply_const_ff::sptr rescale;

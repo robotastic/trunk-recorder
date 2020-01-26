@@ -57,7 +57,7 @@ p25_recorder::p25_recorder(std::string type)
 {
 }
 
-DecimSettings p25_recorder::get_decim(long speed) {
+p25_recorder::DecimSettings p25_recorder::get_decim(long speed) {
     long s = speed;
     long if_freqs[] = {24000, 25000, 32000};
     DecimSettings decim_settings={-1,-1};
@@ -109,7 +109,7 @@ void p25_recorder::initialize_prefilter() {
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make(); 
 
-  DecimSettings decim_settings = get_decim(input_rate);
+  p25_recorder::DecimSettings decim_settings = get_decim(input_rate);
   if (decim_settings.decim != -1) {
     double_decim = true;
     decim = decim_settings.decim;
@@ -425,13 +425,11 @@ long p25_recorder::elapsed() {
 
 void p25_recorder::tune_freq(double f) {
   float freq = (center_freq - f);
-  BOOST_LOG_TRIVIAL(info) << "Tune tune_freq: " << chan_freq;
 }
 void p25_recorder::tune_offset(double f) {
         //chan_freq = f - center_freq;
         float freq = static_cast<float> (f); //(f - center_freq);
         
-        BOOST_LOG_TRIVIAL(info) << "Trying to tune: " << chan_freq << " Tune Offset: " << freq << " compared to: " << ((input_rate/2) - (if1/2));
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
           BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate/2) - (if1/2));
@@ -440,17 +438,13 @@ void p25_recorder::tune_offset(double f) {
           bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1/2, -freq + if1/2, if1/2);
           bandpass_filter->set_taps(bandpass_filter_coeffs);
           float bfz = (static_cast<float> (decim) * -freq) / (float) input_rate;
-          BOOST_LOG_TRIVIAL(info) << "initial bfo: " << bfz;
           bfz = bfz - static_cast<int>(bfz);
-          BOOST_LOG_TRIVIAL(info) << "Revised bfo: " << bfz;
           if (bfz < -0.5) {
             bfz = bfz + 1.0;
           }
           if (bfz > 0.5) {
             bfz = bfz - 1.0;
           }
-          BOOST_LOG_TRIVIAL(info) << "Final bfo: " << bfz;
-          BOOST_LOG_TRIVIAL(info) << "Freq set to: " << -bfz * if1;
           bfo->set_frequency(-bfz * if1);
 
     
