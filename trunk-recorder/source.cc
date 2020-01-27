@@ -41,13 +41,6 @@ int Source::get_silence_frames() {
   return silence_frames;
 }
 
-void Source::set_fsk_gain(double r) {
-  fsk_gain = r;
-}
-
-double Source::get_fsk_gain() {
-  return fsk_gain;
-}
 
 void Source::set_analog_levels(double r) {
   analog_levels = r;

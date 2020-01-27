@@ -81,9 +81,7 @@ void p25_trunking::initialize_prefilter() {
   symbol_rate         = phase1_symbol_rate;
   system_channel_rate = symbol_rate * samples_per_symbol;
 
-  /* --- The section of code is used by all of the configurations --- */
-  //double bb_gain      = source->get_fsk_gain(); // was 1.0
-  baseband_amp = gr::blocks::multiply_const_ff::make(1.0);
+
 
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make(); 
@@ -154,7 +152,7 @@ void p25_trunking::initialize_fsk4() {
   double fd                   = 600.0;
   double pll_demod_gain       = 1.0 / (fd * freq_to_norm_radians);
   pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
-  pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0); //source->get_fsk_gain());
+  pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0); //source->get_());
 
   //FSK4: noise filter - can only be Phase 1, so locking at that rate.
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);

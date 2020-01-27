@@ -101,8 +101,6 @@ void p25_recorder::initialize_prefilter() {
   system_channel_rate = symbol_rate * samples_per_symbol;
 
   /* --- The section of code is used by all of the configurations --- */
-  double bb_gain      = source->get_fsk_gain(); // was 1.0
-  baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
@@ -174,12 +172,7 @@ void p25_recorder::initialize_prefilter() {
   connect(arb_resampler,  0,  cutoff_filter,  0);
 }
 void p25_recorder::initialize_fsk4() {
- /* int phase1_samples_per_symbol = 5;
-  int phase2_samples_per_symbol = 4;
-  double phase1_symbol_rate = 4800;
-  double phase2_symbol_rate = 6000;*/
-  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  const double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   const double pi = M_PI;
 
   // FSK4: Phase Loop Lock - can only be Phase 1, so locking at that rate.
@@ -188,7 +181,7 @@ void p25_recorder::initialize_fsk4() {
   double fd                   = 600.0;
   double pll_demod_gain       = 1.0 / (fd * freq_to_norm_radians);
   pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
-  pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * source->get_fsk_gain());
+  pll_amp       = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0);
 
   //FSK4: noise filter - can only be Phase 1, so locking at that rate.
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
@@ -196,8 +189,7 @@ void p25_recorder::initialize_fsk4() {
 
   //FSK4: Symbol Taps
   double symbol_decim = 1;
-  valve = gr::blocks::copy::make(sizeof(gr_complex));
-  valve->set_enabled(false);
+
   for (int i = 0; i < samples_per_symbol; i++) {
     sym_taps.push_back(1.0 / samples_per_symbol);
   }
