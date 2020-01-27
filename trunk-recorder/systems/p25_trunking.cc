@@ -66,12 +66,7 @@ p25_trunking::DecimSettings p25_trunking::get_decim(long speed) {
     return decim_settings;
 }
 void p25_trunking::initialize_prefilter() {
- /* int phase1_samples_per_symbol = 5;
-  int phase2_samples_per_symbol = 4;
-  double phase1_symbol_rate = 4800;
-  double phase2_symbol_rate = 6000;*/
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
   long fa = 0;
   long fb = 0;
@@ -253,6 +248,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   long samp_rate = s;
   input_rate = s;
   rx_queue      = queue;
+  qpsk_mod = qpsk;
   
   initialize_prefilter();
   initialize_p25();
