@@ -43,6 +43,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   float offset               = chan_freq - center_freq;
 
   const double pi = boost::math::constants::pi<double>();
+  GR_LOG_SET_LEVEL(LOG, "WARN");
   BOOST_LOG_TRIVIAL(info) <<  "SmartNet Trunking - SysNum: " << sys_num;
 
   BOOST_LOG_TRIVIAL(info) <<  "Control channel: " << FormatFreq(chan_freq);
