@@ -1,9 +1,9 @@
-Trunk Recorder - v3.0.1
+Trunk Recorder - v3.1.0
 =======================
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful? Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation.**
-*Sponsors will be listed here*
+Thank you: Vabrio, Blantonl, Olesza and others!
 
 ## Overview
 Need help? Got something working? Share it!
