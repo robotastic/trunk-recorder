@@ -300,6 +300,6 @@ void p25_trunking::tune_offset(double f) {
           lo->set_frequency(freq);
         }
   if (qpsk_mod) {
-    costas_clock->reset();
+    //costas_clock->reset();
   }
 }
