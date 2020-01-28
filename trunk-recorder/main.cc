@@ -299,6 +299,7 @@ void load_config(string config_file)
                   pt.get_child("sources"))
     {
       bool   qpsk_mod       = true;
+      bool   gain_set       = false;
       int    silence_frames = node.second.get<int>("silenceFrames", 0);
       double center         = node.second.get<double>("center", 0);
       double rate           = node.second.get<double>("rate", 0);
@@ -384,33 +385,54 @@ void load_config(string config_file)
  
 
       if (if_gain != 0) {
+        gain_set = true;
         source->set_if_gain(if_gain);
       }
 
       if (bb_gain != 0) {
+        gain_set = true;
         source->set_bb_gain(bb_gain);
       }
 
       if (mix_gain != 0) {
+        gain_set = true;
         source->set_mix_gain(mix_gain);
       }
 
-      source->set_lna_gain(lna_gain);
+      if (lna_gain != 0) {
+        gain_set = true;
+        source->set_lna_gain(lna_gain);
+      }
 
-      source->set_tia_gain(tia_gain);
+      if (tia_gain != 0) {
+        gain_set = true;
+        source->set_tia_gain(tia_gain);
+      }
 
-      source->set_pga_gain(pga_gain);
-
+      if (pga_gain != 0) {
+        gain_set = true;
+        source->set_pga_gain(pga_gain);
+      }
 
       if (vga1_gain != 0) {
+        gain_set = true;
         source->set_vga1_gain(vga1_gain);
       }
 
       if (vga2_gain != 0) {
+        gain_set = true;
         source->set_vga2_gain(vga2_gain);
       }
 
-      source->set_gain(gain);
+      if (gain != 0) {
+        gain_set = true;
+        source->set_gain(gain);
+      }
+
+      if (!gain_set) {
+        BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
+      }
+
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
       source->set_analog_levels(analog_levels);
@@ -970,7 +992,7 @@ void retune_system(System *system) {
     if (system->get_system_type() == "smartnet") {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
-      system->smartnet_trunking->tune_offset(control_channel_freq);
+      system->smartnet_trunking->tune_freq(control_channel_freq);
     } else if (system->get_system_type() == "p25") {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
