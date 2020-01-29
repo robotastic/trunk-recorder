@@ -24,6 +24,11 @@
 cmake_minimum_required(VERSION 2.6)
 project(Trunk-Recorder CXX C)
 
+
+
+add_definitions(-DWEBSOCKET_STATUS=true)
+set(WEBSOCKET_STATUS    true)
+
 #select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
@@ -97,10 +102,6 @@ endif()
 ########################################################################
 # Find build dependencies
 ########################################################################
-#find_package(LibOsmoSDR)
-#find_package(LibRTLSDR)
-#find_package(LibMiriSDR)
-#find_package(LibbladeRF)
 find_package(GnuradioUHD)
 find_package(GrOsmoSDR)
 find_package(LibHackRF)
@@ -140,6 +141,7 @@ set(Boost_ADDITIONAL_VERSIONS
     "1.55.0" "1.55" "1.56.0" "1.56" "1.57.0" "1.57" "1.58.0" "1.58" "1.59.0" "1.59"
     "1.60.0" "1.60" "1.61.0" "1.61" "1.62.0" "1.62" "1.63.0" "1.63" "1.64.0" "1.64"
     "1.65.0" "1.65" "1.66.0" "1.66" "1.67.0" "1.67" "1.68.0" "1.68" "1.69.0" "1.69"
+    "1.70.0" "1.70" "1.71.0" "1.71" "1.72.0" "1.72" "1.73.0" "1.73" "1.74.0" "1.74"
 )
 
 find_package(Boost COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
@@ -206,7 +208,6 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/source.cc
   trunk-recorder/uploaders/uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
-  trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call_conventional.cc
   trunk-recorder/call.cc
   trunk-recorder/systems/smartnet_trunking.cc
@@ -228,6 +229,12 @@ list(APPEND trunk_recorder_sources
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
   )
+
+if(WEBSOCKET_STATUS)
+    list(APPEND trunk_recorder_sources
+        trunk-recorder/uploaders/stat_socket.cc
+    )
+endif()
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 

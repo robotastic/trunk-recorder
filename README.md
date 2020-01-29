@@ -1,9 +1,9 @@
-Trunk Recorder - v3.0.1
+Trunk Recorder - v3.1.0
 =======================
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful? Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation.**
-*Sponsors will be listed here*
+Thank you: Vabrio, Blantonl, Olesza and others!
 
 ## Overview
 Need help? Got something working? Share it!
@@ -127,9 +127,9 @@ Here are the different arguments:
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
  - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
- - **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md)
  - **controlWarnRate** - Log the control channel decode rate when it falls bellow this threshold. The default is *10*. The value of *-1* will always log the decode rate.
- - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *false*.
+ - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *true*.
+- **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md) 
 
 **talkgroupsFile**
 

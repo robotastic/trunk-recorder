@@ -144,7 +144,6 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       int    tia_gain       = node.second.get<double>("tiaGain", 0);
       int    vga1_gain      = node.second.get<double>("vga1Gain", 0);
       int    vga2_gain      = node.second.get<double>("vga2Gain", 0);
-      double fsk_gain       = node.second.get<double>("fskGain", 1.0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
       double analog_levels  = node.second.get<double>("analogLevels", 8.0);
       double squelch_db     = node.second.get<double>("squelch", 0);
@@ -247,7 +246,6 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       source->set_gain(gain);
       source->set_antenna(antenna);
       source->set_squelch_db(squelch_db);
-      source->set_fsk_gain(fsk_gain);
       source->set_analog_levels(analog_levels);
       source->set_digital_levels(digital_levels);
       source->set_qpsk_mod(qpsk_mod);
