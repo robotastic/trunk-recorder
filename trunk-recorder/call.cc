@@ -120,7 +120,7 @@ void Call::end_call() {
     }
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
-    _final_length = recorder->get_current_length();
+    final_length = recorder->get_current_length();
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
@@ -235,7 +235,7 @@ double Call::get_freq() {
 }
 
 double Call::get_final_length() {
-  return _final_length;
+  return final_length;
 }
 
 double Call::get_current_length() {

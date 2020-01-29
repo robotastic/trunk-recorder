@@ -81,7 +81,11 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
   conv.str("");
   add_post_field(oss, "start_time",    boost::lexical_cast<std::string>(call->start_time), boundary);
   add_post_field(oss, "stop_time",     boost::lexical_cast<std::string>(call->stop_time),  boundary);
-
+  conv << std::fixed << std::setprecision(0);
+  conv << call->length;
+  add_post_field(oss, "call_length",          conv.str(),       boundary);
+  conv.clear();
+  conv.str("");
   add_post_field(oss, "talkgroup_num", boost::lexical_cast<std::string>(call->talkgroup),  boundary);
   add_post_field(oss, "emergency",     boost::lexical_cast<std::string>(call->emergency),  boundary);
   add_post_field(oss, "api_key",       call->api_key,                                      boundary);
@@ -233,6 +237,7 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->freq_count       = call->get_freq_count();
   call_info->start_time       = call->get_start_time();
   call_info->stop_time        = call->get_stop_time();
+  call_info->length           = (int) call->get_final_length();
   call_info->api_key          = sys->get_api_key();
   call_info->short_name       = sys->get_short_name();
   call_info->audio_archive    = sys->get_audio_archive();

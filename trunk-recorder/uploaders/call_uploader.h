@@ -29,6 +29,7 @@ struct call_data_t {
         std::string api_key;
         std::string short_name;
         int tdma_slot;
+        int length;
         bool phase2_tdma;
         long source_count;
         Call_Source source_list[50];
