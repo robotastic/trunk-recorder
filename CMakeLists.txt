@@ -26,8 +26,8 @@ project(Trunk-Recorder CXX C)
 
 
 
-#add_definitions(-DWEBSOCKET_STATUS=true)
-#set(WEBSOCKET_STATUS    true)
+add_definitions(-DWEBSOCKET_STATUS=true)
+set(WEBSOCKET_STATUS    true)
 
 #select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)

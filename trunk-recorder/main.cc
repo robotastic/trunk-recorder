@@ -91,7 +91,6 @@ Config config;
 
 string default_mode;
 
-#ifdef WEBSOCKET_STATUS
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 
@@ -101,7 +100,7 @@ string default_mode;
 #include <websocketpp/common/thread.hpp>
 #include "uploaders/stat_socket.h"
 stat_socket stats;
-#endif
+
 
 void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
@@ -594,9 +593,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         recorder->start(call);
         call->set_recorder(recorder);
         call->set_state(recording);
-        #ifdef WEBSOCKET_STATUS
         stats.send_recorder(recorder);
-        #endif
         recorder_found = true;
       } else {
         // not recording call either because the priority was too low or no
@@ -610,9 +607,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         debug_recorder->start(call);
         call->set_debug_recorder(debug_recorder);
         call->set_debug_recording(true);
-        #ifdef WEBSOCKET_STATUS
         stats.send_recorder(debug_recorder);
-        #endif
         recorder_found = true;
       } else {
         // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
@@ -624,9 +619,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         sigmf_recorder->start(call);
         call->set_sigmf_recorder(sigmf_recorder);
         call->set_sigmf_recording(true);
-        #ifdef WEBSOCKET_STATUS
         stats.send_recorder(sigmf_recorder);
-        #endif
         recorder_found = true;
       } else {
         // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
@@ -634,9 +627,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
       if (recorder_found) {
         // recording successfully started.
-        #ifdef WEBSOCKET_STATUS
         stats.send_call_start(call);
-        #endif
         return true;
       }
     }
@@ -673,14 +664,11 @@ void stop_inactive_recorders() {
         if (call->get_idle_count() > 5) {
           Recorder * recorder = call->get_recorder();
           call->end_call();
-          #ifdef WEBSOCKET_STATUS
           stats.send_call_end(call);
-          #endif
           call->restart_call();
-          #ifdef WEBSOCKET_STATUS
-          if (recorder != NULL) 
+          if (recorder != NULL) {
             stats.send_recorder(recorder);
-          #endif
+          }
         }
       }
       ++it;
@@ -691,11 +679,10 @@ void stop_inactive_recorders() {
         }
         Recorder * recorder = call->get_recorder();
         call->end_call();
-        #ifdef WEBSOCKET_STATUS
         stats.send_call_end(call);
-        if (recorder != NULL)
+        if (recorder != NULL) {
           stats.send_recorder(recorder);
-        #endif
+        }
         it = calls.erase(it);
         delete call;
       } else {
@@ -706,11 +693,10 @@ void stop_inactive_recorders() {
 
   }
 
-  #ifdef WEBSOCKET_STATUS
+
   if (ended_recording) {
     stats.send_calls_active(calls);
   }
-  #endif
   /*     for (vector<Source *>::iterator it = sources.begin(); it !=
      sources.end();
            it++) {
@@ -784,9 +770,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
 void current_system_status(TrunkMessage message, System *sys) {
   if (sys->update_status(message)){
-    #ifdef WEBSOCKET_STATUS
     stats.send_system(sys);
-    #endif
   }
 }
 
@@ -832,15 +816,11 @@ void handle_call(TrunkMessage message, System *sys) {
           if (!retuned) {
             Recorder * recorder = call->get_recorder();
             call->end_call();
-            #ifdef WEBSOCKET_STATUS
             stats.send_call_end(call);
-            #endif
             it = calls.erase(it);
             delete call;
             call_found = false;
-            #ifdef WEBSOCKET_STATUS
             stats.send_recorder(recorder);
-            #endif
           } else {
             call->update(message);
             call_retune = true;
@@ -872,9 +852,7 @@ void handle_call(TrunkMessage message, System *sys) {
   }
 
   if (call_retune || recording_started) {
-    #ifdef WEBSOCKET_STATUS
     stats.send_calls_active(calls);
-    #endif
   }
 }
 
@@ -1006,10 +984,8 @@ void retune_system(System *system) {
 }
 
 void check_message_count(float timeDiff) {
-  #ifdef WEBSOCKET_STATUS
   stats.send_config(sources, systems);
   stats.send_sys_rates(systems, timeDiff);
-  #endif
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
@@ -1066,11 +1042,9 @@ void monitor_messages() {
       return;
     }
 
-    #ifdef WEBSOCKET_STATUS
     if (config.status_server != "") {
       stats.poll_one();
     }
-    #endif
 
     // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
@@ -1181,9 +1155,7 @@ bool monitor_system() {
               call->set_state(recording);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
-              #ifdef WEBSOCKET_STATUS
               stats.send_recorder((Recorder *)rec.get());
-              #endif
             } else { // has to be "conventionalP25"
               p25conventional_recorder_sptr rec;
               rec = source->create_conventionalP25_recorder(tb, system->get_delaycreateoutput());
@@ -1192,9 +1164,7 @@ bool monitor_system() {
               call->set_state(recording);
               system->add_conventionalP25_recorder(rec);
               calls.push_back(call);
-              #ifdef WEBSOCKET_STATUS
               stats.send_recorder((Recorder *)rec.get());
-              #endif
             }
 
             // break out of the for loop
@@ -1260,11 +1230,9 @@ void add_logs(const F& fmt)
 
 void socket_connected()
 {
-  #ifdef WEBSOCKET_STATUS
   stats.send_config(sources, systems);
   stats.send_systems(systems);
   stats.send_calls_active(calls);
-  #endif
   std::vector<Recorder *> recorders;
 
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
@@ -1275,9 +1243,7 @@ void socket_connected()
     recorders.insert(recorders.end(), sourceRecorders.begin(), sourceRecorders.end());
   }
 
-  #ifdef WEBSOCKET_STATUS
   stats.send_recorders(recorders);
-  #endif
 }
 
 
@@ -1344,10 +1310,8 @@ int main(int argc, char **argv)
 
 
   load_config(config_file);
-  #ifdef WEBSOCKET_STATUS
   stats.initialize(&config, &socket_connected);
   stats.open_stat();
-  #endif
 
   if (config.log_file) {
     logging::add_file_log(
