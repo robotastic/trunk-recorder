@@ -381,8 +381,6 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Max Freqency: " << FormatFreq(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min Freqency: " << FormatFreq(source->get_min_hz());
 
- 
-
       if (if_gain != 0) {
         gain_set = true;
         source->set_if_gain(if_gain);
