@@ -57,6 +57,7 @@ public:
 								double get_freq();
 								char * get_status_filename();
 								char *get_converted_filename();
+								char *get_path();
 								char *get_filename();
 								char * get_debug_filename();
 								char * get_sigmf_filename();
@@ -132,6 +133,7 @@ protected:
 								char status_filename[255];
 								char debug_filename[255];
 								char sigmf_filename[255];
+								char path[255];
 								bool phase2_tdma;
 								int tdma_slot;
 								double final_length;
