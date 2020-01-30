@@ -123,7 +123,7 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
   //int nchars = snprintf(shell_command, 400, "nice -n -10 ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
   //int nchars = snprintf(shell_command, 400, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm  -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
-  int nchars = snprintf(shell_command, 400, "cd %s && fdkaac -S -b16 --raw-channels 1 --raw-rate 8000 %s", call_info->path, call_info->filename);
+  int nchars = snprintf(shell_command, 400, "cd %s && fdkaac -S -b16 --raw-channels 1 --raw-rate 8000 %s", call_info->file_path, call_info->filename);
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call Uploader: Path longer than 400 charecters";
@@ -218,7 +218,7 @@ void send_call(Call *call, System *sys, Config config) {
     // call_info->path << "\n";
     strcpy(call_info->filename,  call->get_filename());
     strcpy(call_info->converted, call->get_converted_filename());
-    strcpy(call_info->path, call->get_path());
+    strcpy(call_info->file_path, call->get_path());
   } else {
     // std::cout << "Unable to parse Server URL\n";
     return;

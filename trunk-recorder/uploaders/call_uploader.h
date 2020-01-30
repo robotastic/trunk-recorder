@@ -20,7 +20,7 @@ struct call_data_t {
         bool audio_archive;
         char filename[255];
         char converted[255];
-        char path[255];
+        char file_path[255];
         std::string upload_server;
         std::string server;
         std::string scheme;
