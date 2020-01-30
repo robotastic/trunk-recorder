@@ -29,7 +29,7 @@ void Call::create_filename() {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
+  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
