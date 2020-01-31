@@ -839,7 +839,7 @@ void handle_call(TrunkMessage message, System *sys) {
 
       if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
           if (call->get_state() == recording) {
-      
+            ++it;
       } else {
           // the Call is not recording, update and continue
           call_found = true;
