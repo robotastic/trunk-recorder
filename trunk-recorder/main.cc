@@ -798,7 +798,7 @@ void handle_call(TrunkMessage message, System *sys) {
     if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
     }
-
+/*
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       call_found = true;
 
@@ -807,15 +807,15 @@ void handle_call(TrunkMessage message, System *sys) {
           // see if we can retune the recorder, sometimes you can't if there are
           // more than one
           BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tUpdate Retuning - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
-          int retuned = false; //retune_recorder(message, call);
+          int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-           /* Recorder * recorder = call->get_recorder();
+            Recorder * recorder = call->get_recorder();
             call->end_call();
             stats.send_call_end(call);
             it = calls.erase(it);
             delete call;
-            stats.send_recorder(recorder);*/
+            stats.send_recorder(recorder);
             call_found = false;
           } else {
             call->update(message);
@@ -833,7 +833,27 @@ void handle_call(TrunkMessage message, System *sys) {
       }
 
       // we found out call, exit the for loop
-      break;
+      break;*/
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
+      
+
+      if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
+          if (call->get_state() == recording) {
+      
+      } else {
+          // the Call is not recording, update and continue
+          call_found = true;
+          call->set_freq(message.freq);
+          call->set_phase2_tdma(message.phase2_tdma);
+          call->set_tdma_slot(message.tdma_slot);
+          call->update(message);
+        }
+      
+      } else {
+        call_found = true;
+        call->update(message);
+      } 
+
     } else {
       ++it;
 
