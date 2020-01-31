@@ -687,8 +687,6 @@ void stop_inactive_recorders() {
         ++it;
       } // if rx is active
     }   // foreach loggers
-
-
   }
 
 
@@ -809,7 +807,7 @@ void handle_call(TrunkMessage message, System *sys) {
           // see if we can retune the recorder, sometimes you can't if there are
           // more than one
           BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tUpdate Retuning - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
-          int retuned = retune_recorder(message, call);
+          int retuned = false; //retune_recorder(message, call);
 
           if (!retuned) {
             Recorder * recorder = call->get_recorder();
