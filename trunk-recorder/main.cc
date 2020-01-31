@@ -847,11 +847,13 @@ void handle_call(TrunkMessage message, System *sys) {
           call->set_phase2_tdma(message.phase2_tdma);
           call->set_tdma_slot(message.tdma_slot);
           call->update(message);
+           break;
         }
       
       } else {
         call_found = true;
         call->update(message);
+         break;
       } 
 
     } else {
