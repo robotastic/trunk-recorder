@@ -148,7 +148,7 @@ void load_config(string config_file)
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
-
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n" << sys_count;
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n" << sys_count;
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))

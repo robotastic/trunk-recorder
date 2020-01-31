@@ -122,6 +122,8 @@ void p25_recorder::initialize_prefilter() {
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
+    bandpass_filter->set_max_output_buffer(512);
+    bfo->set_max_output_buffer(512);
   } else {
     double_decim = false;
     BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: "<< if1 << " Second decimated rate: " << if2  << " Initial Decimation: " << decim << " System Rate: " << input_rate;
@@ -132,6 +134,7 @@ void p25_recorder::initialize_prefilter() {
     
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
     resampled_rate = input_rate / decim;
+    lo->set_max_output_buffer(512);
   }
 
   // Cut-Off Filter
@@ -155,8 +158,14 @@ void p25_recorder::initialize_prefilter() {
   if (squelch_db != 0) {
     // Non-blocking as we are using squelch_two as a gate.
     squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
-
+    squelch->set_max_output_buffer(512);
   }
+
+  valve->set_max_output_buffer(512);
+  mixer->set_max_output_buffer(512);
+  lowpass_filter->set_max_output_buffer(512);
+  arb_resampler->set_max_output_buffer(512);
+  cutoff_filter->set_max_output_buffer(512);
 
   connect(self(),      0, valve,         0);
   if (double_decim) {
@@ -199,6 +208,12 @@ void p25_recorder::initialize_fsk4() {
   tune_queue    = gr::msg_queue::make(20);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
 
+  pll_freq_lock->set_max_output_buffer(512);
+  pll_amp->set_max_output_buffer(512);
+  noise_filter->set_max_output_buffer(512);
+  sym_filter->set_max_output_buffer(512);
+  fsk4_demod->set_max_output_buffer(512);
+
   if (squelch_db != 0) {
     connect(cutoff_filter, 0, squelch,       0);
     connect(squelch,       0, pll_freq_lock, 0);
@@ -239,6 +254,12 @@ void p25_recorder::initialize_qpsk() {
   // QPSK: convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
+  agc->set_max_output_buffer(512);
+  costas_clock->set_max_output_buffer(512);
+  diffdec->set_max_output_buffer(512);
+  to_float->set_max_output_buffer(512);
+  rescale->set_max_output_buffer(512);
+
   if (squelch_db != 0) {
     connect(cutoff_filter, 0, squelch, 0);
     connect(squelch,       0, agc,     0);
@@ -278,6 +299,12 @@ void p25_recorder::initialize_p25() {
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+
+  slicer->set_max_output_buffer(512);
+  op25_frame_assembler->set_max_output_buffer(512);
+  converter->set_max_output_buffer(512);
+  levels->set_max_output_buffer(512);
+
   connect(slicer,               0, op25_frame_assembler, 0);
   connect(op25_frame_assembler, 0, converter,            0);
   connect(converter,            0, levels,               0);
@@ -530,9 +557,7 @@ void p25_recorder::start(Call *call) {
 
     int offset_amount = (center_freq - chan_freq);
   
-  //  int offset_amount = (chan_freq - center_freq);
     tune_offset(offset_amount);
-    //prefilter->set_center_freq(offset_amount);
 
     wav_sink->open(call->get_filename());
     state = active;
