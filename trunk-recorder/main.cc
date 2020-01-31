@@ -810,13 +810,13 @@ void handle_call(TrunkMessage message, System *sys) {
           int retuned = false; //retune_recorder(message, call);
 
           if (!retuned) {
-            Recorder * recorder = call->get_recorder();
+           /* Recorder * recorder = call->get_recorder();
             call->end_call();
             stats.send_call_end(call);
             it = calls.erase(it);
             delete call;
+            stats.send_recorder(recorder);*/
             call_found = false;
-            stats.send_recorder(recorder);
           } else {
             call->update(message);
             call_retune = true;
