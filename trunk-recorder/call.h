@@ -134,7 +134,7 @@ protected:
 								char sigmf_filename[255];
 								bool phase2_tdma;
 								int tdma_slot;
-								double _final_length;
+								double final_length;
 
 								Config config;
 								Recorder *recorder;

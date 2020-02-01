@@ -1,6 +1,11 @@
 Trunk Recorder ChangeLog
 ========================
 
+### Version 3.1.0
+* Updated to the latest version of OP25.
+* Updated P25 Recorder, P25 Trunking and SmartNet Trunking to use the double decimation technique from OP25. It should handle SDRs with a high sample rate better now.
+* Updated to the latest version of the websocketpp library.
+
 ### Version 3.0.1
 * Updated to the latest version of OP25. Supposed performance improvements.
 

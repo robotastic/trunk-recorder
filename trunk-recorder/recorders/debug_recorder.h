@@ -150,7 +150,6 @@ private:
 
 								gr::blocks::multiply_const_ff::sptr multiplier;
 								gr::blocks::multiply_const_ff::sptr rescale;
-								gr::blocks::multiply_const_ff::sptr baseband_amp;
 								gr::blocks::complex_to_arg::sptr to_float;
 								gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 								gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;

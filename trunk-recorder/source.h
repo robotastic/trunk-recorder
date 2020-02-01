@@ -25,7 +25,6 @@ class Source
 								double error;
 								double ppm;
 								double squelch_db;
-								double fsk_gain;
 								double analog_levels;
 								double digital_levels;
 								int gain;
@@ -75,8 +74,6 @@ public:
 								double get_squelch_db();
 								void set_gain(int r);
 								int get_gain();
-								void set_fsk_gain(double r);
-								double get_fsk_gain();
 								void set_qpsk_mod(bool m);
 								bool get_qpsk_mod();
 								void set_silence_frames(int m);

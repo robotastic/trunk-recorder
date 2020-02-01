@@ -1,5 +1,5 @@
 #include "call_uploader.h"
-
+#include "../formatter.h"
 
 void build_call_request(struct call_data_t *call, boost::asio::streambuf& request_) {
   // boost::asio::streambuf request_;
@@ -81,7 +81,11 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
   conv.str("");
   add_post_field(oss, "start_time",    boost::lexical_cast<std::string>(call->start_time), boundary);
   add_post_field(oss, "stop_time",     boost::lexical_cast<std::string>(call->stop_time),  boundary);
-
+  conv << std::fixed << std::setprecision(0);
+  conv << call->length;
+  add_post_field(oss, "call_length",          conv.str(),       boundary);
+  conv.clear();
+  conv.str("");
   add_post_field(oss, "talkgroup_num", boost::lexical_cast<std::string>(call->talkgroup),  boundary);
   add_post_field(oss, "emergency",     boost::lexical_cast<std::string>(call->emergency),  boundary);
   add_post_field(oss, "api_key",       call->api_key,                                      boundary);
@@ -118,7 +122,7 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
 
   //int nchars = snprintf(shell_command, 400, "nice -n -10 ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
-  int nchars = snprintf(shell_command, 400, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
+  int nchars = snprintf(shell_command, 400, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm  -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call Uploader: Path longer than 400 charecters";
@@ -126,7 +130,7 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
   // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
   // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
-  system(shell_command);
+  int forget = system(shell_command);
   //int rc = system(shell_command);
 
   // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
@@ -140,20 +144,20 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   size_t req_size = request_.size();
 
   if (call_info->scheme == "http") {
-    BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq  << "\tHTTP Upload result: " << http_upload(server_info, request_);
+    BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq)  << "\tHTTP Upload result: " << http_upload(server_info, request_);
   }
 
   if (call_info->scheme == "https") {
     int error = https_upload(server_info, request_);
 
     if (!error) {
-      BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tHTTPS Upload Success - file size: " << req_size;
+      BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTPS Upload Success - file size: " << req_size;
       if (!call_info->audio_archive) {
         unlink(call_info->filename);
         unlink(call_info->converted);
       }
     } else {
-      BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << call_info->freq << "\tHTTPS Upload Error - file size: " << req_size;
+      BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTPS Upload Error - file size: " << req_size;
 
     }
   }
@@ -233,6 +237,7 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->freq_count       = call->get_freq_count();
   call_info->start_time       = call->get_start_time();
   call_info->stop_time        = call->get_stop_time();
+  call_info->length           = (int) call->get_final_length();
   call_info->api_key          = sys->get_api_key();
   call_info->short_name       = sys->get_short_name();
   call_info->audio_archive    = sys->get_audio_archive();

@@ -66,6 +66,8 @@ namespace op25_repeater {
   void p25p2_queue_msg(int duid);
   void set_xormask(const char *p);
   void set_slotid(int slotid);
+  void set_slotkey(int key) ;
+  void reset_timer() ;
   void set_phase2_tdma(bool p);
   void reset_rx_status();
   Rx_Status get_rx_status();
