@@ -795,9 +795,9 @@ void handle_call(TrunkMessage message, System *sys) {
     Call *call = *it;
 
     // This should help detect 2 calls being listed for the same tg
-/*    if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
+   /* if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
-    }
+    }*/
 
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       call_found = true;
@@ -810,16 +810,19 @@ void handle_call(TrunkMessage message, System *sys) {
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-            Recorder * recorder = call->get_recorder();
+            /*Recorder * recorder = call->get_recorder();
             call->end_call();
             stats.send_call_end(call);
             it = calls.erase(it);
             delete call;
-            stats.send_recorder(recorder);
+            stats.send_recorder(recorder);*/
+            // we want to keep this call recordering, and now start a recording of the new call on another recorder
             call_found = false;
+            ++it;
           } else {
             call->update(message);
             call_retune = true;
+            break;
           }
         } else {
           // the Call is not recording, update and continue
@@ -827,14 +830,16 @@ void handle_call(TrunkMessage message, System *sys) {
           call->set_phase2_tdma(message.phase2_tdma);
           call->set_tdma_slot(message.tdma_slot);
           call->update(message);
+          break;
         }
       } else {
         call->update(message);
+        break;
       }
 
       // we found out call, exit the for loop
-      break;*/
-    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
+      //break;
+  /*  if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       
 
       if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
@@ -854,7 +859,7 @@ void handle_call(TrunkMessage message, System *sys) {
         call_found = true;
         call->update(message);
          break;
-      } 
+      } */
 
     } else {
       ++it;
