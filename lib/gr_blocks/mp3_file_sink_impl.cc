@@ -245,25 +245,26 @@ namespace gr {
                 BOOST_LOG_TRIVIAL(info) << "MP3 - Writing " << noutput_items << " bytes to " << current_filename << std::endl;
             }
 
-            if (n_in_chans == 1)
-            {
+            try {
+                const float* in = (const float*)input_items[0];
                 mp3_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], NULL, noutput_items, d_lamebuf, LAMEBUF_SIZE);
+
+                BOOST_LOG_TRIVIAL(info) << "MP3: " << noutput_items << "bytes PCM converted to " << mp3_bytes << "bytes MP3" << std::endl;
+
+                nwritten = fwrite(&d_lamebuf, 1, mp3_bytes, d_fp);
+
+                if (feof(d_fp) || ferror(d_fp) || nwritten != mp3_bytes) {
+                    fprintf(stderr, "[%s] file i/o error\n", __FILE__);
+                    close();
+                    return nwritten;
+                }
+                d_sample_count += noutput_items;
             }
-            else
+            catch (std::exception const& e)
             {
-                mp3_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], (const float*)&input_items[1], noutput_items, d_lamebuf, LAMEBUF_SIZE);
+                BOOST_LOG_TRIVIAL(error) << "MP3 ERROR: " << e.what() << std::endl;
+                nwritten = 0;
             }
-
-            BOOST_LOG_TRIVIAL(info) << "MP3: " << noutput_items << "bytes PCM converted to " << mp3_bytes << "bytes MP3" << std::endl;
-
-            nwritten = fwrite(&d_lamebuf, 1, mp3_bytes, d_fp);
-
-            if (feof(d_fp) || ferror(d_fp) || nwritten != mp3_bytes) {
-                fprintf(stderr, "[%s] file i/o error\n", __FILE__);
-                close();
-                return nwritten;
-            }
-            d_sample_count+= noutput_items;
 
             // fflush (d_fp);  // this is added so unbuffered content is written.
             tags.clear();
