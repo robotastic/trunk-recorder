@@ -41,10 +41,10 @@
 #include <gnuradio/blocks/file_sink.h>
 
 #include <op25_repeater/include/op25_repeater/rx_status.h>
-#include <gr_blocks/recording_file_sink.h>
+#include <gr_blocks/nonstop_wavfile_sink.h>
 
 #include "../state.h"
-#include "../source.h"
+
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
@@ -87,8 +87,6 @@ protected:
 	int 	recording_count;
 	double	recording_duration;
 	std::string type;
-
-	boost::shared_ptr<gr::blocks::recording_file_sink> make_audio_recorder(Source* src, bool delayopen);
 };
 
 

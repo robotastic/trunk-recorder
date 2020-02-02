@@ -8,9 +8,17 @@
 p25conventional_recorder_sptr make_p25conventional_recorder(Source * src, bool delayopen)
 {
   p25conventional_recorder * recorder = new p25conventional_recorder(delayopen);
-
-  recorder->initialize(src, recorder->make_audio_recorder(src, delayopen));
-
+  if (delayopen)
+  {
+    boost::shared_ptr<gr::blocks::nonstop_wavfile_delayopen_sink_impl> w = gr::blocks::nonstop_wavfile_delayopen_sink_impl::make(1, 8000, 16, true);
+    w->set_recorder(recorder);
+    recorder->initialize(src, w);
+  }
+  else
+  {
+    boost::shared_ptr<gr::blocks::nonstop_wavfile_sink_impl> w = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
+    recorder->initialize(src, w);
+  }
   return gnuradio::get_initial_sptr<p25conventional_recorder>(recorder);
 }
 
