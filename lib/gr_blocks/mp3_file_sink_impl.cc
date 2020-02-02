@@ -239,6 +239,9 @@ namespace gr {
             if (noutput_items <= 0) {
                 return noutput_items;
             }
+            else {
+                BOOST_LOG_TRIVIAL(info) << "MP3 - Writing " << noutput_items << " bytes to " << current_filename << std::endl;
+            }
 
             if (n_in_chans == 1)
             {
