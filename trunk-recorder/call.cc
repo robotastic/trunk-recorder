@@ -18,7 +18,7 @@ void Call::create_filename() {
   boost::filesystem::create_directories(path_stream.str());
 
   int nchars;
-  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%.0f.%s",  path_stream.str().c_str(), talkgroup, start_time, curr_freq, get_recording_format());
+  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%.0f.%s",  path_stream.str().c_str(), talkgroup, start_time, curr_freq, get_recording_format().c_str());
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
