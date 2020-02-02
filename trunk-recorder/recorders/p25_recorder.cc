@@ -3,13 +3,19 @@
 #include <boost/log/trivial.hpp>
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.h"
+#include "../../lib/gr_blocks/mp3_file_sink_impl.h"
 
 
 p25_recorder_sptr make_p25_recorder(Source * src)
 {
   p25_recorder * recorder = new p25_recorder();
-  //recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, false));
-  recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true));
+  
+  if (src->get_config()->recording_format == "mp3") {
+      recorder->initialize(src, gr::blocks::mp3_file_sink_impl::make(1, 8000, 16));
+  }
+  else {
+      recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true));
+  }
   return gnuradio::get_initial_sptr(recorder);
 }
 
@@ -283,7 +289,7 @@ void p25_recorder::initialize_p25() {
   connect(converter,            0, levels,               0);
   connect(levels, 0, wav_sink, 0);
 }
-void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink)
+void p25_recorder::initialize(Source *src, gr::blocks::recording_file_sink::sptr wav_sink)
 {
   source      = src;
   chan_freq   = source->get_center();
