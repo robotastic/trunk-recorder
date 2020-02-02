@@ -260,6 +260,10 @@ void Call::set_error(Rx_Status rx_status) {
   }
 }
 
+System* Call::get_system() {
+    return sys;
+}
+
 void Call::set_freq(double f) {
   if (f != curr_freq) {
     double position = get_current_length();
@@ -417,6 +421,11 @@ void Call::update(TrunkMessage message) {
   }
 }
 
+void Call::add_signal(std::string sig_msg)
+{
+    signals.push_back(sig_msg);
+}
+
 int Call::since_last_update() {
   return time(NULL) - last_update;
 }
@@ -500,6 +509,7 @@ boost::property_tree::ptree Call::get_stats()
   boost::property_tree::ptree call_node;
   boost::property_tree::ptree freq_list_node;
   boost::property_tree::ptree source_list_node;
+  boost::property_tree::ptree signal_list_node;
   call_node.put("id",           boost::lexical_cast<std::string>(this->get_sys_num()) + "_" + boost::lexical_cast<std::string>(this->get_talkgroup()) + "_" + boost::lexical_cast<std::string>(this->get_start_time()));
   call_node.put("freq",         this->get_freq());
   call_node.put("sysNum",       this->get_sys_num());
@@ -559,6 +569,15 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("debugfilename",   this->get_debug_filename());
   call_node.put("filename",   this->get_filename());
   call_node.put("statusfilename",   this->get_status_filename());
+
+  for (int i = 0; i < signals.size(); i++)
+  {
+      boost::property_tree::ptree sig_node;
+
+      sig_node.put("msg", signals[i]);
+      signal_list_node.push_back(std::make_pair("", sig_node));
+  }
+  call_node.add_child("signals", signal_list_node);
 
   return call_node;
 }

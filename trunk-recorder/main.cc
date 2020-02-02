@@ -245,6 +245,12 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       system->set_record_unknown(node.second.get<bool>("recordUnknown", true));
       BOOST_LOG_TRIVIAL(info) << "Record Unknown Talkgroups: " << system->get_record_unknown();
+      system->set_mdc_enabled(node.second.get<bool>("decodeMDC", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode MDC: " << system->get_mdc_enabled();
+      system->set_fsync_enabled(node.second.get<bool>("decodeFSync", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
+      system->set_star_enabled(node.second.get<bool>("decodeStar", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")){
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);

@@ -228,6 +228,10 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroups.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
+  lib/gr_blocks/fsync_decode.cc
+  lib/gr_blocks/mdc_decode.cc
+  lib/gr_blocks/star_decode.cc
+  lib/gr_blocks/signal_decoder_sink_impl.cc
   )
 
 if(WEBSOCKET_STATUS)

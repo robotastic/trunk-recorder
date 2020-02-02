@@ -34,7 +34,7 @@ class Recorder;
 #include "systems/system.h"
 #include "systems/parser.h"
 #include <string>
-
+#include <vector>
 
 class System;
 //enum  CallState { monitoring=0, recording=1, stopping=2};
@@ -73,6 +73,7 @@ public:
 								long get_error_list_count();
 								long get_freq_count();
 								void update(TrunkMessage message);
+								void add_signal(std::string sig_msg);
 								int get_idle_count();
 								void increase_idle_count();
 								void reset_idle_count();
@@ -106,6 +107,8 @@ public:
 								
 								std::string get_talkgroup_tag();
 								double get_final_length();
+
+								System* get_system();
 protected:
 								State state;
 								long talkgroup;
@@ -145,6 +148,7 @@ protected:
 								std::string talkgroup_tag;
 								void update_talkgroup_display();
 
+								std::vector<std::string> signals;
 };
 
 #endif

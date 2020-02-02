@@ -73,6 +73,7 @@ public:
         bool audio_archive;
         bool record_unknown;
         bool call_log;
+
         smartnet_trunking_sptr smartnet_trunking;
         p25_trunking_sptr p25_trunking;
 
@@ -90,6 +91,15 @@ public:
         void set_record_unknown(bool);
         bool get_call_log();
         void set_call_log(bool);
+
+        void set_mdc_enabled(bool b);
+        void set_fsync_enabled(bool b);
+        void set_star_enabled(bool b);
+
+        bool get_mdc_enabled();
+        bool get_fsync_enabled();
+        bool get_star_enabled();
+
         std::string get_system_type();
         unsigned long get_sys_id();
         unsigned long get_wacn();
@@ -149,5 +159,9 @@ private:
         bool d_delaycreateoutput;
         bool d_hideEncrypted;
         bool d_hideUnknown;
+
+        bool d_mdc_enabled;
+        bool d_fsync_enabled;
+        bool d_star_enabled;
 };
 #endif
