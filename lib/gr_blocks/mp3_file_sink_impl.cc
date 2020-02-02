@@ -236,10 +236,6 @@ namespace gr {
 
             // std::cout << std::endl;
 
-            if (noutput_items <= 0) {
-                return noutput_items;
-            }
-
             if (n_in_chans == 1)
             {
                 mp3_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], NULL, noutput_items, d_lamebuf, LAMEBUF_SIZE);
