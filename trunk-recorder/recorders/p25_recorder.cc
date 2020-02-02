@@ -9,7 +9,7 @@
 p25_recorder_sptr make_p25_recorder(Source * src)
 {
   p25_recorder * recorder = new p25_recorder();
-  recorder->initialize(src, recorder->make_audio_recorder(src, false));
+  recorder->initialize(src, recorder->make_audio_recorder(src->get_config()->recording_format, false));
 
   return gnuradio::get_initial_sptr(recorder);
 }

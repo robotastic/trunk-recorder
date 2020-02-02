@@ -91,9 +91,7 @@ namespace gr {
         }
 
         bool mp3_file_sink_impl::open_internal(const char* filename) {
-            int d_first_sample_pos;
-            unsigned d_samples_per_chan;
-
+            
             bool bExists = boost::filesystem::exists(filename);
 
             // we use the open system call to get access to the O_LARGEFILE flag.
@@ -223,9 +221,8 @@ namespace gr {
 
             int n_in_chans = input_items.size();
 
-            short int sample_buf_s;
-
             int nwritten;
+            int mp3_bytes;
 
             if (!d_fp) // drop output on the floor
             {
@@ -239,17 +236,17 @@ namespace gr {
 
             // std::cout << std::endl;
 
-            int out_bytes = 0;
-            if (d_nchans == 1)
+            if (n_in_chans == 1)
             {
-                out_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], NULL, noutput_items, d_lamebuf, LAMEBUF_SIZE);
+                mp3_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], NULL, noutput_items, d_lamebuf, LAMEBUF_SIZE);
             }
             else
             {
-                out_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], (const float*)&input_items[1], noutput_items, d_lamebuf, LAMEBUF_SIZE);
+                mp3_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], (const float*)&input_items[1], noutput_items, d_lamebuf, LAMEBUF_SIZE);
             }
+            nwritten = fwrite(d_lamebuf, sizeof(unsigned char), mp3_bytes, d_fp);
 
-            if (feof(d_fp) || ferror(d_fp)) {
+            if (feof(d_fp) || ferror(d_fp) || nwritten != mp3_bytes) {
                 fprintf(stderr, "[%s] file i/o error\n", __FILE__);
                 close();
                 return nwritten;
