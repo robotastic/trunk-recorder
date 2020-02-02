@@ -77,10 +77,7 @@ struct DecimSettings
 	virtual bool is_analog() {return false;};
 	virtual bool is_idle() {return true;};
 	virtual double get_current_length(){return 0;};
-	virtual void recording_started() {};
-	virtual void set_recorder(Recorder* recorder) {};
 	virtual void clear(){};
-	virtual char* get_filename() { return NULL; }
 	int rec_num;
 	static int rec_counter;
 	virtual boost::property_tree::ptree get_stats();

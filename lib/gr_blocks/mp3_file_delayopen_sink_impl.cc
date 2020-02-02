@@ -94,7 +94,7 @@ namespace gr
             return d_stop_time;
         }
 
-        void mp3_file_delayopen_sink_impl::set_recorder(Recorder* recorder)
+        void mp3_file_delayopen_sink_impl::set_recorder(p25conventional_recorder* recorder)
         {
             this->recorder = recorder;
         }

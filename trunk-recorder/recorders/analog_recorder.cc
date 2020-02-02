@@ -8,9 +8,9 @@ using namespace std;
 bool analog_recorder::logging = false;
 //static int rec_counter = 0;
 
-analog_recorder_sptr make_analog_recorder(Source *src, bool delayopen)
+analog_recorder_sptr make_analog_recorder(Source *src)
 {
-  return gnuradio::get_initial_sptr(new analog_recorder(src, delayopen));
+  return gnuradio::get_initial_sptr(new analog_recorder(src));
 }
 
 /*! \brief Calculate taps for FM de-emph IIR filter. */
@@ -39,7 +39,7 @@ void analog_recorder::calculate_iir_taps(double tau)
     d_fbtaps[1] = -p1;
 }
 
-analog_recorder::analog_recorder(Source *src, bool delayopen)
+analog_recorder::analog_recorder(Source *src)
   : gr::hier_block2("analog_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float))), Recorder("A")
@@ -54,7 +54,6 @@ analog_recorder::analog_recorder(Source *src, bool delayopen)
   talkgroup   = 0;
   recording_count = 0;
   recording_duration = 0;
-  d_delayopen = delayopen;
   
   rec_num = rec_counter++;
   state       = inactive;
@@ -165,7 +164,7 @@ analog_recorder::analog_recorder(Source *src, bool delayopen)
 
   //tm *ltm = localtime(&starttime);
 
-  wav_sink = make_audio_recorder(src->get_config()->recording_format, d_delayopen);
+  wav_sink = make_audio_recorder(src->get_config()->recording_format, false);
 
   // Try and get rid of the FSK wobble
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);

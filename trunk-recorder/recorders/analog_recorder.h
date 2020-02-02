@@ -50,14 +50,14 @@ typedef boost::shared_ptr<analog_recorder>analog_recorder_sptr;
 
 #include "../source.h"
 
-analog_recorder_sptr          make_analog_recorder(Source *src, bool delayopen);
+analog_recorder_sptr          make_analog_recorder(Source *src);
 
 class analog_recorder : public gr::hier_block2, public Recorder {
-  friend analog_recorder_sptr make_analog_recorder(Source *src, bool delayopen);
+  friend analog_recorder_sptr make_analog_recorder(Source *src);
 
 protected:
 
-  analog_recorder(Source *src, bool delayopen);
+  analog_recorder(Source *src);
 
 public:
 
@@ -91,7 +91,6 @@ private:
   time_t timestamp;
   time_t starttime;
   char   filename[160];
-  bool  d_delayopen;
 
 
   State state;

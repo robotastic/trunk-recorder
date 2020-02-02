@@ -119,7 +119,7 @@ Here are the different arguments:
    - **bandplanSpacing** - [SmartNet, 400_custom only] this is the channel spacing, specified in Hz. Typically this is *25000*.
    - **bandplanOffset** - [SmartNet, 400_custom only] this is the offset used to calculate frequencies.
    - **talkgroupDisplayFormat** - the display format for talkgroups in the console and log file. the options are *id*, *id_tag*, *tag_id*. The default is *id*. [*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified]
-   - **delayCreateOutput** - [conventional & conventionalP25 only] this will delay the creation of the output file until there is activity, The options are *true* or *false*, without quotes. The default is *false*. 
+   - **delayCreateOutput** - [conventionalP25 only] this will delay the creation of the output file until there is activity, The options are *true* or *false*, without quotes. The default is *false*. 
    - **hideEncrypted** - hide encrypted talkgroups log entries, The options are *true* or *false*, without quotes. The default is *false*. 
    - **hideUnknownTalkgroups** - hide unknown talkgroups from log, The options are *true* or *false*, without quotes. The default is *false*. 
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** the options are *digital* or *analog*.
