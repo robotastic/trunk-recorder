@@ -8,7 +8,7 @@
 #include <gnuradio/io_signature.h>
 
 #include "nonstop_wavfile_delayopen_sink_impl.h"
-#include "../trunk-recorder/recorders/p25conventional_recorder.h"
+#include "../trunk-recorder/recorders/recorder.h"
 
 namespace gr
 {
@@ -98,7 +98,7 @@ time_t nonstop_wavfile_delayopen_sink_impl::get_stop_time() {
 	return d_stop_time;
 }
 
-void nonstop_wavfile_delayopen_sink_impl::set_recorder(p25conventional_recorder * recorder)
+void nonstop_wavfile_delayopen_sink_impl::set_recorder(Recorder * recorder)
 {
   this->recorder = recorder;
 }

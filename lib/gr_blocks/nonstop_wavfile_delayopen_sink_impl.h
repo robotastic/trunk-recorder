@@ -4,7 +4,7 @@
 #include "./nonstop_wavfile_sink_impl.h"
 #include "./nonstop_wavfile_sink.h"
 
-class p25conventional_recorder;
+class Recorder;
 
 namespace gr {
 namespace blocks {
@@ -39,7 +39,7 @@ public:
 
 	time_t get_start_time();
 	time_t get_stop_time();
-	void set_recorder(p25conventional_recorder * recorder);
+	void set_recorder(Recorder * recorder);
 
 	void reset();
 
@@ -49,7 +49,7 @@ private:
 	time_t d_start_time;
 	clock_t d_last_packet_clock;
 	time_t d_stop_time;
-	p25conventional_recorder * recorder;
+	Recorder * recorder;
 
 };
 

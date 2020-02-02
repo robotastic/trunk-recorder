@@ -37,7 +37,7 @@ boost::shared_ptr<gr::blocks::recording_file_sink> Recorder::make_audio_recorder
         if (delayopen)
         {
             boost::shared_ptr<gr::blocks::mp3_file_delayopen_sink_impl> w = gr::blocks::mp3_file_delayopen_sink_impl::make(1, 8000, 16);
-            w->set_recorder((p25conventional_recorder*)this);
+            w->set_recorder(this);
 
             return w;
         }
@@ -51,7 +51,7 @@ boost::shared_ptr<gr::blocks::recording_file_sink> Recorder::make_audio_recorder
         if (delayopen)
         {
             boost::shared_ptr<gr::blocks::nonstop_wavfile_delayopen_sink_impl> w = gr::blocks::nonstop_wavfile_delayopen_sink_impl::make(1, 8000, 16, true);
-            w->set_recorder((p25conventional_recorder*)this);
+            w->set_recorder(this);
 
             return w;
         }
