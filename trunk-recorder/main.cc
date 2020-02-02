@@ -476,13 +476,6 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
-    config.recording_format = pt.get<std::string>("recordingFormat", "wav");
-    if ((config.recording_format != "wav") && (config.recording_format != "mp3")) {
-        BOOST_LOG_TRIVIAL(error) << "Recording format specified in config.json not recognized, needs to be wav or mp3";
-    }
-    else {
-        BOOST_LOG_TRIVIAL(info) << "Recording format: " << config.recording_format;
-    }
 
     std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
 
