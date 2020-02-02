@@ -189,8 +189,10 @@ namespace gr {
             mp3_file_sink_impl::close_mp3()
         {
 
+            BOOST_LOG_TRIVIAL(info) << "Flushing MP3 buffer to file." << std::endl;
             int outBytes = lame_encode_flush(d_lame, d_lamebuf, LAMEBUF_SIZE);
-            fwrite(d_lamebuf, sizeof(char), outBytes, d_fp);
+
+            fwrite(&d_lamebuf, 1, outBytes, d_fp);
 
             fclose(d_fp);
             d_fp = NULL;
@@ -251,7 +253,10 @@ namespace gr {
             {
                 mp3_bytes = lame_encode_buffer_ieee_float(d_lame, (const float*)&input_items[0], (const float*)&input_items[1], noutput_items, d_lamebuf, LAMEBUF_SIZE);
             }
-            nwritten = fwrite(d_lamebuf, sizeof(unsigned char), mp3_bytes, d_fp);
+
+            BOOST_LOG_TRIVIAL(info) << "MP3: " << noutput_items << "bytes PCM converted to " << mp3_bytes << "bytes MP3" << std::endl;
+
+            nwritten = fwrite(&d_lamebuf, 1, mp3_bytes, d_fp);
 
             if (feof(d_fp) || ferror(d_fp) || nwritten != mp3_bytes) {
                 fprintf(stderr, "[%s] file i/o error\n", __FILE__);
