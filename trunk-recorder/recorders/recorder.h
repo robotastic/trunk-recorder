@@ -9,7 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <fstream>
-#include <string>
+
 
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -44,6 +44,7 @@
 #include <gr_blocks/recording_file_sink.h>
 
 #include "../state.h"
+#include "../source.h"
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
@@ -81,12 +82,13 @@ struct DecimSettings
 	int rec_num;
 	static int rec_counter;
 	virtual boost::property_tree::ptree get_stats();
-	virtual boost::shared_ptr<gr::blocks::recording_file_sink> make_audio_recorder(std::string recording_format, bool delayopen);
 
 protected:
 	int 	recording_count;
 	double	recording_duration;
 	std::string type;
+
+	boost::shared_ptr<gr::blocks::recording_file_sink> make_audio_recorder(Source* src, bool delayopen);
 };
 
 

@@ -30,9 +30,9 @@ boost::property_tree::ptree Recorder::get_stats()
   	return node;
 }
 
-boost::shared_ptr<gr::blocks::recording_file_sink> Recorder::make_audio_recorder(std::string recording_format, bool delayopen)
+boost::shared_ptr<gr::blocks::recording_file_sink> Recorder::make_audio_recorder(Source* src, bool delayopen)
 {
-    if (recording_format == "mp3")
+    if (src->get_config()->recording_format == "mp3")
     {
         if (delayopen)
         {

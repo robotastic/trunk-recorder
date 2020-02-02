@@ -9,7 +9,7 @@ p25conventional_recorder_sptr make_p25conventional_recorder(Source * src, bool d
 {
   p25conventional_recorder * recorder = new p25conventional_recorder(delayopen);
 
-  recorder->initialize(src, recorder->make_audio_recorder(src->get_config()->recording_format, delayopen));
+  recorder->initialize(src, recorder->make_audio_recorder(src, delayopen));
 
   return gnuradio::get_initial_sptr<p25conventional_recorder>(recorder);
 }
