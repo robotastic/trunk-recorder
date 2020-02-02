@@ -124,7 +124,14 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
     BOOST_LOG_TRIVIAL(info) << "Control channel rate warning: " << config.control_message_warn_rate;
+    config.recording_format = pt.get<std::string>("recordingFormat", "wav");
 
+    if ((config.recording_format != "wav") && (config.recording_format != "mp3")) {
+        BOOST_LOG_TRIVIAL(error) << "Recording format specified in config.json not recognized, needs to be wav or mp3";
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << "Recording format: " << config.recording_format;
+    }
 
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("sources"))
@@ -152,13 +159,13 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       int debug_recorders   = node.second.get<int>("debugRecorders", 0);
       int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
-
+      
       std::string driver = node.second.get<std::string>("driver", "");
 
       if ((driver != "osmosdr") && (driver != "usrp")) {
         BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
       }
-
+      
       std::string device = node.second.get<std::string>("device", "");
 
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
@@ -254,6 +261,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       if (ppm != 0) {
         source->set_freq_corr(ppm);
       }
+
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_debug_recorders(tb, debug_recorders);

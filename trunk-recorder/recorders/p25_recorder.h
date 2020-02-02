@@ -55,6 +55,7 @@
 #include "recorder.h"
 #include "../config.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/recording_file_sink.h>
 #include <gr_blocks/freq_xlating_fft_filter.h>
 
 
@@ -70,7 +71,7 @@ class p25_recorder : public gr::hier_block2, public Recorder {
 protected:
   p25_recorder();
   p25_recorder(std::string type);
-  virtual void initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink);
+  virtual void initialize(Source *src, gr::blocks::recording_file_sink::sptr wav_sink);
 
 public:
   virtual ~p25_recorder();
@@ -120,7 +121,7 @@ protected:
 
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
   freq_xlating_fft_filter_sptr prefilter;
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  gr::blocks::recording_file_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
   gr::blocks::multiply_const_ff::sptr levels;

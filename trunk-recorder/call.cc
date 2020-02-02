@@ -18,7 +18,7 @@ void Call::create_filename() {
   boost::filesystem::create_directories(path_stream.str());
 
   int nchars;
-  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%.0f.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%.0f.%s",  path_stream.str().c_str(), talkgroup, start_time, curr_freq, get_recording_format());
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
@@ -476,6 +476,10 @@ std::string Call::get_talkgroup_display() {
 
 std::string Call::get_talkgroup_tag() {
   return talkgroup_tag;
+}
+
+std::string Call::get_recording_format() {
+    return config.recording_format;
 }
 
 void Call::update_talkgroup_display(){

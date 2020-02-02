@@ -2,6 +2,7 @@
 #include "analog_recorder.h"
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
+#include "../../lib/gr_blocks/mp3_file_sink_impl.h"
 using namespace std;
 
 bool analog_recorder::logging = false;

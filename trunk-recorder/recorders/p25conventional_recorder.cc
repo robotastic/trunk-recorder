@@ -1,6 +1,8 @@
 #include "p25_recorder.h"
 #include "p25conventional_recorder.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.h"
+#include "../../lib/gr_blocks/mp3_file_sink_impl.h"
+#include "../../lib/gr_blocks/mp3_file_delayopen_sink_impl.h"
 #include "../formatter.h"
 
 p25conventional_recorder_sptr make_p25conventional_recorder(Source * src, bool delayopen)
@@ -33,7 +35,7 @@ void p25conventional_recorder::start(Call *call) {
     this->call = call;
 
     if (d_delayopen) {
-      boost::static_pointer_cast<gr::blocks::nonstop_wavfile_delayopen_sink_impl>(this->wav_sink)->reset();
+      boost::dynamic_pointer_cast<gr::blocks::nonstop_wavfile_delayopen_sink_impl>(this->wav_sink)->reset();
     }
 
     //((gr::blocks::nonstop_wavfile_delayopen_sink_impl *)this->wav_sink)->reset();

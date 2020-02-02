@@ -42,6 +42,7 @@ class analog_recorder;
 #include "recorder.h"
 #include "../config.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/recording_file_sink.h>
 #include <gr_blocks/freq_xlating_fft_filter.h>
 
 
@@ -127,7 +128,7 @@ void calculate_iir_taps(double tau);
   gr::blocks::float_to_short::sptr converter;
 
 
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  gr::blocks::recording_file_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
 };
 
