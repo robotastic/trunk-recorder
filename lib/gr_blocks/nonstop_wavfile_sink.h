@@ -28,7 +28,6 @@
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
-#include "recording_file_sink.h"
 
 namespace gr {
 namespace blocks {
@@ -41,10 +40,12 @@ namespace blocks {
  * Values must be floats within [-1;1].
  * Check gr_make_wavfile_sink() for extra info.
  */
-class BLOCKS_API nonstop_wavfile_sink : virtual public recording_file_sink
+class BLOCKS_API nonstop_wavfile_sink : virtual public sync_block
 {
 public:
-	
+	// gr::blocks::wavfile_sink::sptr
+	typedef boost::shared_ptr<nonstop_wavfile_sink> sptr;
+
 	/*!
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.
 	 */

@@ -106,8 +106,6 @@ public:
 								
 								std::string get_talkgroup_tag();
 								double get_final_length();
-
-								std::string get_recording_format();
 protected:
 								State state;
 								long talkgroup;
