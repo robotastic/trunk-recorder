@@ -27,3 +27,5 @@ ChanList.csv
 cmake-build-debug/
 *.code-workspace
 /.vscode/
+/.vs/
+/out/
