@@ -159,7 +159,16 @@ void Call::end_call() {
           }
           myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
         }
-        myfile << " ]\n";
+        myfile << " ],\n";
+        myfile << "\"signals\":[";
+
+        for (int i = 0; i < signals.size(); i++) {
+            if (i != 0) {
+                myfile << ",\n";
+            }
+            myfile << signals[i];
+        }
+        myfile << "]\n";
         myfile << "}\n";
         myfile.close();
       }
