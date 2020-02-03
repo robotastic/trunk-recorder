@@ -168,9 +168,15 @@ namespace gr {
 
         void signal_decoder_sink_impl::log_decoder_msg(long unitId, const char* system_type, bool emergency)
         {
-            if (d_current_call == NULL) return;
-
-            d_current_call->add_signal_source(unitId, system_type, emergency);
+            if (d_current_call == NULL)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
+            }
+            else
+            {
+                BOOST_LOG_TRIVIAL(error) << "Logging " << system_type << " : " << unitId << " to current call.";
+                d_current_call->add_signal_source(unitId, system_type, emergency);
+            }
         }
 
         void signal_decoder_sink_impl::set_call(Call* call) {
