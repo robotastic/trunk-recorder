@@ -444,10 +444,11 @@ long p25_recorder::elapsed() {
 
 void p25_recorder::tune_freq(double f) {
   float freq = (center_freq - f);
+  tune_offset(freq);
 }
 void p25_recorder::tune_offset(double f) {
-        //chan_freq = f - center_freq;
-        float freq = static_cast<float> (f); //(f - center_freq);
+        
+        float freq = static_cast<float> (f); 
         
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
