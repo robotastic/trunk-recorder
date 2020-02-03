@@ -14,7 +14,6 @@ Call_conventional::~Call_conventional() {
 void Call_conventional::restart_call() {
     idle_count       = 0;
     freq_count       = 0;
-    src_count        = 0;
     error_list_count = 0;
     curr_src_id      = 0;
     start_time       = time(NULL);

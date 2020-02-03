@@ -69,7 +69,7 @@ public:
 								void set_freq(double f);
 								long get_talkgroup();
 								long get_source_count();
-								Call_Source *get_source_list();
+								std::vector<Call_Source> get_source_list();
 								Call_Freq *get_freq_list();
 								Call_Error *get_error_list();
 								long get_error_list_count();
@@ -118,10 +118,9 @@ protected:
 								double curr_freq;
 								System *sys;
 								std::string short_name;
-								int src_count;
 								long curr_src_id;
 								Call_Error error_list[50];
-								Call_Source src_list[50];
+								std::vector<Call_Source> src_list;
 								Call_Freq freq_list[50];
 								long error_list_count;
 								long freq_count;

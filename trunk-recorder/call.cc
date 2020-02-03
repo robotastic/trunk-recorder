@@ -56,7 +56,6 @@ Call::Call(long t, double f, System *s, Config c) {
   freq_count       = 0;
   error_list_count = 0;
   curr_freq        = 0;
-  src_count        = 0;
   curr_src_id      = 0;
   talkgroup       = t;
   sys             = s;
@@ -81,7 +80,6 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   idle_count       = 0;
   freq_count       = 0;
   error_list_count = 0;
-  src_count        = 0;
   curr_src_id      = 0;
   curr_freq        = 0;
   talkgroup  = message.talkgroup;
@@ -144,7 +142,7 @@ void Call::end_call() {
         myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
         myfile << "\"srcList\": [ ";
 
-        for (int i = 0; i < src_count; i++) {
+        for (int i = 0; i < src_list.size(); i++) {
           if (i != 0) {
             myfile << ", ";
           }
@@ -313,7 +311,7 @@ long Call::get_freq_count() {
   return freq_count;
 }
 
-Call_Source * Call::get_source_list() {
+std::vector<Call_Source> Call::get_source_list() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is recording, but no recorder assigned!";
   }
@@ -324,7 +322,7 @@ long Call::get_source_count() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
   }
-  return src_count;
+  return src_list.size();
 }
 
 void Call::set_debug_recording(bool m) {
@@ -410,17 +408,11 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
 
     Call_Source call_source = { src, time(NULL), position, signal_emergency, system, tag };
 
-    if (src_count < 1) {
-        src_list[src_count] = call_source;
-        src_count++;
-        return true;
-    }
-    else if ((src_count < 48) && (src_list[src_count - 1].source != src)) {
-        src_list[src_count] = call_source;
-        src_count++;
-        return true;
-    }
-    return false;
+    src_list.push_back(call_source);
+
+    BOOST_LOG_TRIVIAL(info) << "Added " << src << " to source list.";
+
+    return true;
 }
 
 bool Call::add_source(long src) {
@@ -538,9 +530,8 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("startTime",    this->get_start_time());
   call_node.put("stopTime",     this->get_stop_time());
 
-  Call_Source *source_list = this->get_source_list();
-  int source_count         = this->get_source_count();
-  for (int i = 0; i < source_count; i++) {
+  std::vector<Call_Source> source_list = this->get_source_list();
+  for (int i = 0; i < source_list.size(); i++) {
     boost::property_tree::ptree source_node;
 
     source_node.put("source", source_list[i].source);
