@@ -49,19 +49,16 @@ void UnitTags::load_unit_tags(std::string filename) {
         //
         // [0] - talkgroup number
         // [1] - tag
-        // [2] - description
 
         vec.assign(tok.begin(), tok.end());
 
-        if (vec.size() != 3) {
+        if (vec.size() < 2) {
             BOOST_LOG_TRIVIAL(error) << "Malformed talkgroup entry at line " << lines_read << ".";
             continue;
         }
         
-        UnitTag* tg =
-            new UnitTag(atoi(vec[0].c_str()), vec[1].c_str(), vec[2].c_str());
+        add(atoi(vec[0].c_str()), vec[1].c_str());
 
-        unit_tags.push_back(tg);
         lines_pushed++;
     }
 
@@ -97,6 +94,6 @@ UnitTag* UnitTags::find_unit_tag(long tg_number) {
 
 void UnitTags::add(long num, std::string tag)
 {
-    UnitTag* unit_tag = new UnitTag(num, tag, "");
+    UnitTag* unit_tag = new UnitTag(num, tag);
     unit_tags.push_back(unit_tag);
 }

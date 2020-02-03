@@ -10,9 +10,8 @@ class UnitTag {
 public:
 	long number;
 	std::string tag;
-	std::string description;
 	
-	UnitTag(long num, std::string t, std::string d);
+	UnitTag(long num, std::string t);
 
 };
 

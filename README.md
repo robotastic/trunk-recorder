@@ -75,7 +75,8 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
     "systems": [{
         "control_channels": [855462500],
         "type": "p25",
-        "talkgroupsFile": "ChanList.csv"
+        "talkgroupsFile": "ChanList.csv",
+        "unitTagsFile": "UnitTags.csv"
     }]
 }
 ```
@@ -107,6 +108,7 @@ Here are the different arguments:
    - **alphatags** - *(Optional, For conventional systems)* an array of the alpha tags, these will be outputed to the logfiles *talkgroupDisplayFormat* is set to include tags. Alpha tags will be applied to the *channels* in the order the values appear in the array. 
    - **type** - the type of trunking system. The options are *smartnet*, *p25*,  *conventional* & *conventionalP25*.
    - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable.
+   - **unitTagsFile** - this is a CSV files that provides information about the unit tags. It allows a Unit ID to be assigned a name. This file should be located in the same directory as the trunk-recorder executable. The format is 2 columns, the first being the decimal number of the Unit ID, the second is the Unit Name,
    - **recordUnknown** - record talkgroups if they are not listed in the Talkgroups File. The options are *true* and *false* (without quotes). The default is *true*.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
@@ -122,6 +124,9 @@ Here are the different arguments:
    - **delayCreateOutput** - [conventionalP25 only] this will delay the creation of the output file until there is activity, The options are *true* or *false*, without quotes. The default is *false*. 
    - **hideEncrypted** - hide encrypted talkgroups log entries, The options are *true* or *false*, without quotes. The default is *false*. 
    - **hideUnknownTalkgroups** - hide unknown talkgroups from log, The options are *true* or *false*, without quotes. The default is *false*. 
+   - **decodeMDC** - *(Optional, For conventional systems)* enable the MDC-1200 signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
+   - **decodeFSync** - *(Optional, For conventional systems)* enable the Fleet Sync signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
+   - **decodeStar** - *(Optional, For conventional systems)* enable the Star signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** the options are *digital* or *analog*.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
@@ -147,6 +152,7 @@ Here are the column headers and some sample data:
 |-----|-----|------|-----------|-------------|-----|-------|----------|
 |101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 |
 |2227 |	8b3	| D	| DC StcarYard	| Streetcar Yard |	Transportation |	Services | 3 |
+
 
 ### Multiple SDR
 Most trunk systems use a wide range of spectrum. Often a more powerful SDR is needed to have enough bandwidth to capture all of the potential channels that a system may broadcast on. However it is possible to use multiple SDRs working together to cover all of the channels. This means that you can use a bunch of cheap RTL-SDR to capture an entire system.
