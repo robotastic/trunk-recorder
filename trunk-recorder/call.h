@@ -2,12 +2,16 @@
 #define CALL_H
 #include <sys/time.h>
 #include <boost/log/trivial.hpp>
+#include <string>
+#include <vector>
 
 struct Call_Source {
-								long source;
-								long time;
-								double position;
-
+	long source;
+	long time;
+	double position;
+	bool emergency;
+	std::string signal_system;
+	std::string tag;
 };
 
 struct Call_Freq {
@@ -33,8 +37,6 @@ class Recorder;
 #include "state.h"
 #include "systems/system.h"
 #include "systems/parser.h"
-#include <string>
-
 
 class System;
 //enum  CallState { monitoring=0, recording=1, stopping=2};
@@ -103,9 +105,13 @@ public:
 								void set_talkgroup_display_format(std::string format);
 								void set_talkgroup_tag(std::string tag);
 								boost::property_tree::ptree get_stats();
+
+								bool add_signal_source(long src, const char* system_type, bool signal_emergency);
 								
 								std::string get_talkgroup_tag();
 								double get_final_length();
+
+								System* get_system();
 protected:
 								State state;
 								long talkgroup;
@@ -144,7 +150,6 @@ protected:
 								std::string talkgroup_display;
 								std::string talkgroup_tag;
 								void update_talkgroup_display();
-
 };
 
 #endif

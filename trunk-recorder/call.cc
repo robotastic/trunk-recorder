@@ -148,7 +148,7 @@ void Call::end_call() {
           if (i != 0) {
             myfile << ", ";
           }
-          myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << "}";
+          myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
         }
         myfile << " ],\n";
         myfile << "\"freqList\": [ ";
@@ -159,7 +159,7 @@ void Call::end_call() {
           }
           myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
         }
-        myfile << " ]\n";
+        myfile << "]\n";
         myfile << "}\n";
         myfile.close();
       }
@@ -258,6 +258,10 @@ void Call::set_error(Rx_Status rx_status) {
   } else {
     BOOST_LOG_TRIVIAL(error) << "Call: more than 50 Errors";
   }
+}
+
+System* Call::get_system() {
+    return sys;
 }
 
 void Call::set_freq(double f) {
@@ -388,24 +392,39 @@ const char * Call::get_xor_mask() {
   return sys->get_xor_mask();
 }
 
-bool Call::add_source(long src) {
-  if (src == 0) {
+bool Call::add_signal_source(long src, const char* system_type, bool signal_emergency)
+{
+    if (src == 0) {
+        return false;
+    }
+
+    double position = get_current_length();
+
+    if (signal_emergency) {
+        set_emergency(true);
+    }
+
+    std::string system((system_type == NULL) ? "" : strdup(system_type));
+    UnitTag* unit_tag = sys->find_unit_tag(src);
+    std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
+
+    Call_Source call_source = { src, time(NULL), position, signal_emergency, system, tag };
+
+    if (src_count < 1) {
+        src_list[src_count] = call_source;
+        src_count++;
+        return true;
+    }
+    else if ((src_count < 48) && (src_list[src_count - 1].source != src)) {
+        src_list[src_count] = call_source;
+        src_count++;
+        return true;
+    }
     return false;
-  }
+}
 
-  double position         = get_current_length();
-  Call_Source call_source = { src, time(NULL), position };
-
-  if (src_count < 1) {
-    src_list[src_count] = call_source;
-    src_count++;
-    return true;
-  } else if ((src_count < 48) && (src_list[src_count - 1].source != src)) {
-    src_list[src_count] = call_source;
-    src_count++;
-    return true;
-  }
-  return false;
+bool Call::add_source(long src) {
+    return add_signal_source(src, NULL, false);
 }
 
 void Call::update(TrunkMessage message) {
@@ -527,6 +546,9 @@ boost::property_tree::ptree Call::get_stats()
     source_node.put("source", source_list[i].source);
     source_node.put("position", source_list[i].position);
     source_node.put("time", source_list[i].time);
+    source_node.put("signal_system", source_list[i].signal_system);
+    source_node.put("emergency", source_list[i].emergency);
+    source_node.put("tag", source_list[i].tag);
     source_list_node.push_back(std::make_pair("", source_node));
   }
   call_node.add_child("sourceList", source_list_node);
