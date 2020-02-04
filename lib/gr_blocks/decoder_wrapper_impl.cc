@@ -59,11 +59,13 @@ namespace gr {
             d_tps_decoder_sink = gr::blocks::tps_decoder_sink_impl::make(sample_rate, src_num);
             
             connect(self(), 0, d_signal_decoder_sink, 0);
+            connect(self(), 0, d_tps_decoder_sink, 0);
         }
 
         decoder_wrapper_impl::~decoder_wrapper_impl()
         {
             disconnect(self(), 0, d_signal_decoder_sink, 0);
+            disconnect(self(), 0, d_tps_decoder_sink, 0);
         }
 
         void decoder_wrapper_impl::set_mdc_enabled(bool b) { d_signal_decoder_sink->set_mdc_enabled(b); };
