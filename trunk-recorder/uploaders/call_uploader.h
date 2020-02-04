@@ -2,6 +2,7 @@
 #define CALL_UPLOADER_H
 
 #include "uploader.h"
+#include <vector>
 
 class Call;
 
@@ -32,7 +33,7 @@ struct call_data_t {
         int length;
         bool phase2_tdma;
         long source_count;
-        Call_Source source_list[50];
+        std::vector<Call_Source> source_list;
         long freq_count;
         Call_Freq freq_list[50];
         long error_list_count;

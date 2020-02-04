@@ -56,7 +56,6 @@ Call::Call(long t, double f, System *s, Config c) {
   freq_count       = 0;
   error_list_count = 0;
   curr_freq        = 0;
-  src_count        = 0;
   curr_src_id      = 0;
   talkgroup       = t;
   sys             = s;
@@ -81,7 +80,6 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   idle_count       = 0;
   freq_count       = 0;
   error_list_count = 0;
-  src_count        = 0;
   curr_src_id      = 0;
   curr_freq        = 0;
   talkgroup  = message.talkgroup;
@@ -144,11 +142,11 @@ void Call::end_call() {
         myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
         myfile << "\"srcList\": [ ";
 
-        for (int i = 0; i < src_count; i++) {
+        for (int i = 0; i < src_list.size(); i++) {
           if (i != 0) {
             myfile << ", ";
           }
-          myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << "}";
+          myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
         }
         myfile << " ],\n";
         myfile << "\"freqList\": [ ";
@@ -159,7 +157,7 @@ void Call::end_call() {
           }
           myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
         }
-        myfile << " ]\n";
+        myfile << "]\n";
         myfile << "}\n";
         myfile.close();
       }
@@ -260,6 +258,10 @@ void Call::set_error(Rx_Status rx_status) {
   }
 }
 
+System* Call::get_system() {
+    return sys;
+}
+
 void Call::set_freq(double f) {
   if (f != curr_freq) {
     double position = get_current_length();
@@ -309,7 +311,7 @@ long Call::get_freq_count() {
   return freq_count;
 }
 
-Call_Source * Call::get_source_list() {
+std::vector<Call_Source> Call::get_source_list() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is recording, but no recorder assigned!";
   }
@@ -320,7 +322,7 @@ long Call::get_source_count() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
   }
-  return src_count;
+  return src_list.size();
 }
 
 void Call::set_debug_recording(bool m) {
@@ -388,24 +390,36 @@ const char * Call::get_xor_mask() {
   return sys->get_xor_mask();
 }
 
+bool Call::add_signal_source(long src, const char* system_type, bool signal_emergency)
+{
+    if (src == 0) {
+        return false;
+    }
+
+    double position = get_current_length();
+
+    if (signal_emergency) {
+        set_emergency(true);
+
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tEmergency flag set by " << src;
+    }
+
+    std::string system((system_type == NULL) ? "" : strdup(system_type));
+    UnitTag* unit_tag = sys->find_unit_tag(src);
+    std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
+
+    Call_Source call_source = { src, time(NULL), position, signal_emergency, system, tag };
+
+    src_list.push_back(call_source);
+    
+    if (tag != "") {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
+    }
+    return true;
+}
+
 bool Call::add_source(long src) {
-  if (src == 0) {
-    return false;
-  }
-
-  double position         = get_current_length();
-  Call_Source call_source = { src, time(NULL), position };
-
-  if (src_count < 1) {
-    src_list[src_count] = call_source;
-    src_count++;
-    return true;
-  } else if ((src_count < 48) && (src_list[src_count - 1].source != src)) {
-    src_list[src_count] = call_source;
-    src_count++;
-    return true;
-  }
-  return false;
+    return add_signal_source(src, NULL, false);
 }
 
 void Call::update(TrunkMessage message) {
@@ -519,14 +533,16 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("startTime",    this->get_start_time());
   call_node.put("stopTime",     this->get_stop_time());
 
-  Call_Source *source_list = this->get_source_list();
-  int source_count         = this->get_source_count();
-  for (int i = 0; i < source_count; i++) {
+  std::vector<Call_Source> source_list = this->get_source_list();
+  for (int i = 0; i < source_list.size(); i++) {
     boost::property_tree::ptree source_node;
 
     source_node.put("source", source_list[i].source);
     source_node.put("position", source_list[i].position);
     source_node.put("time", source_list[i].time);
+    source_node.put("signal_system", source_list[i].signal_system);
+    source_node.put("emergency", source_list[i].emergency);
+    source_node.put("tag", source_list[i].tag);
     source_list_node.push_back(std::make_pair("", source_node));
   }
   call_node.add_child("sourceList", source_list_node);

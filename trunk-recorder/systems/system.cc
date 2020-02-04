@@ -44,9 +44,14 @@ System::System(int sys_num) {
   xor_mask = NULL;
   // Setup the talkgroups from the CSV file
   talkgroups = new Talkgroups();
+  // Setup the unit tags from the CSV file
+  unit_tags = new UnitTags();
   d_delaycreateoutput = false;
   d_hideEncrypted = false;
   d_hideUnknown = false;
+  d_mdc_enabled = false;
+  d_fsync_enabled = false;
+  d_star_enabled = false;
   retune_attempts = 0;
   message_count = 0;
 }
@@ -120,6 +125,14 @@ void System::set_call_log(bool call_log) {
   this->call_log = call_log;
 }
 
+void System::set_mdc_enabled(bool b) { d_mdc_enabled = b; };
+void System::set_fsync_enabled(bool b) { d_fsync_enabled = b; };
+void System::set_star_enabled(bool b) { d_star_enabled = b; };
+
+bool System::get_mdc_enabled() { return d_mdc_enabled; };
+bool System::get_fsync_enabled() { return d_fsync_enabled; };
+bool System::get_star_enabled() { return d_star_enabled; };
+
 bool System::get_audio_archive() {
   return this->audio_archive;
 }
@@ -149,10 +162,20 @@ std::string System::get_talkgroups_file() {
   return this->talkgroups_file;
 }
 
+std::string System::get_unit_tags_file() {
+    return this->unit_tags_file;
+}
+
 void System::set_talkgroups_file(std::string talkgroups_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;
   this->talkgroups->load_talkgroups(talkgroups_file);
+}
+
+void System::set_unit_tags_file(std::string unit_tags_file) {
+    BOOST_LOG_TRIVIAL(info) << "Loading Unit Tags...";
+    this->unit_tags_file = unit_tags_file;
+    this->unit_tags->load_unit_tags(unit_tags_file);
 }
 
 Source *System::get_source(){
@@ -165,6 +188,10 @@ void System::set_source(Source *s) {
 
 Talkgroup * System::find_talkgroup(long tg_number) {
   return talkgroups->find_talkgroup(tg_number);
+}
+
+UnitTag * System::find_unit_tag(long unitID) {
+    return unit_tags->find_unit_tag(unitID);
 }
 
 std::vector<double> System::get_channels(){

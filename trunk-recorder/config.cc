@@ -75,8 +75,16 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
+      system->set_unit_tags_file(node.second.get<std::string>("unitTagsFile", ""));
+      BOOST_LOG_TRIVIAL(info) << "Unit Tags File: " << system->get_unit_tags_file();
       system->set_record_unknown(node.second.get<bool>("recordUnknown", true));
       BOOST_LOG_TRIVIAL(info) << "Record Unknown Talkgroups: " << system->get_record_unknown();
+      system->set_mdc_enabled(node.second.get<bool>("decodeMDC", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode MDC: " << system->get_mdc_enabled();
+      system->set_fsync_enabled(node.second.get<bool>("decodeFSync", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
+      system->set_star_enabled(node.second.get<bool>("decodeStar", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
       system->set_min_duration(node.second.get<double>("minDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
       systems.push_back(system);

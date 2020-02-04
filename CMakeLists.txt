@@ -224,10 +224,17 @@ list(APPEND trunk_recorder_sources
   lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
   trunk-recorder/recorders/p25conventional_recorder.cc
   trunk-recorder/recorders/p25_recorder.cc
+  trunk-recorder/csv_helper.cc
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
+  trunk-recorder/unit_tag.cc
+  trunk-recorder/unit_tags.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
+  lib/gr_blocks/fsync_decode.cc
+  lib/gr_blocks/mdc_decode.cc
+  lib/gr_blocks/star_decode.cc
+  lib/gr_blocks/signal_decoder_sink_impl.cc
   )
 
 if(WEBSOCKET_STATUS)

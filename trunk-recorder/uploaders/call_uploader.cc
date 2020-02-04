@@ -1,3 +1,4 @@
+#include <vector>
 #include "call_uploader.h"
 #include "../formatter.h"
 
@@ -223,7 +224,7 @@ void send_call(Call *call, System *sys, Config config) {
   }
 
   // std::cout << "Setting up thread\n";
-  Call_Source *source_list = call->get_source_list();
+  std::vector<Call_Source> source_list = call->get_source_list();
   Call_Freq   *freq_list   = call->get_freq_list();
   //Call_Error  *error_list  = call->get_error_list();
   call_info->talkgroup        = call->get_talkgroup();
@@ -250,7 +251,7 @@ void send_call(Call *call, System *sys, Config config) {
   // call_info->path << "\n";
 
   for (int i = 0; i < call_info->source_count; i++) {
-    call_info->source_list[i] = source_list[i];
+    call_info->source_list.push_back(source_list[i]);
   }
 
   for (int i = 0; i < call_info->freq_count; i++) {
