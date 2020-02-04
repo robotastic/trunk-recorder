@@ -85,10 +85,6 @@ p25_recorder::DecimSettings p25_recorder::get_decim(long speed) {
     return decim_settings;
 }
 void p25_recorder::initialize_prefilter() {
- /* int phase1_samples_per_symbol = 5;
-  int phase2_samples_per_symbol = 4;
-  double phase1_symbol_rate = 4800;
-  double phase2_symbol_rate = 6000;*/
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
@@ -99,8 +95,6 @@ void p25_recorder::initialize_prefilter() {
   samples_per_symbol  = phase1_samples_per_symbol; 
   symbol_rate         = phase1_symbol_rate;
   system_channel_rate = symbol_rate * samples_per_symbol;
-
-  /* --- The section of code is used by all of the configurations --- */
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
@@ -161,6 +155,7 @@ void p25_recorder::initialize_prefilter() {
     squelch->set_max_output_buffer(4096);
   }
 
+  
   valve->set_max_output_buffer(4096);
   mixer->set_max_output_buffer(4096);
   lowpass_filter->set_max_output_buffer(4096);
@@ -546,10 +541,6 @@ void p25_recorder::start(Call *call) {
     } else {
       set_tdma_slot(0);
     }
-
-
-
-
 
     if (!qpsk_mod) {
       reset();
