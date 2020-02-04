@@ -427,7 +427,7 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
 }
 
 bool Call::add_source(long src) {
-    return add_signal_source(src, NULL, false);
+    return add_signal_source(src, sys == NULL ? NULL : sys->get_system_type().c_str(), false);
 }
 
 void Call::update(TrunkMessage message) {
