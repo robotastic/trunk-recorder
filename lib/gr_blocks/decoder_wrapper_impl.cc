@@ -56,29 +56,29 @@ namespace gr {
                 io_signature::make(0, 0, 0))
         {
             d_signal_decoder_sink = gr::blocks::signal_decoder_sink_impl::make(sample_rate);
-            //d_tps_decoder_sink = gr::blocks::tps_decoder_sink_impl::make(sample_rate, src_num);
+            d_tps_decoder_sink = gr::blocks::tps_decoder_sink_impl::make(sample_rate, src_num);
             
             connect(self(), 0, d_signal_decoder_sink, 0);
-            //connect(self(), 0, d_tps_decoder_sink, 0);
+            connect(self(), 0, d_tps_decoder_sink, 0);
         }
 
         decoder_wrapper_impl::~decoder_wrapper_impl()
         {
             disconnect(self(), 0, d_signal_decoder_sink, 0);
-            //disconnect(self(), 0, d_tps_decoder_sink, 0);
+            disconnect(self(), 0, d_tps_decoder_sink, 0);
         }
 
         void decoder_wrapper_impl::set_mdc_enabled(bool b) { d_signal_decoder_sink->set_mdc_enabled(b); };
         void decoder_wrapper_impl::set_fsync_enabled(bool b) { d_signal_decoder_sink->set_fsync_enabled(b); };
         void decoder_wrapper_impl::set_star_enabled(bool b) { d_signal_decoder_sink->set_star_enabled(b); };
-        //void decoder_wrapper_impl::set_tps_enabled(bool b) { d_tps_decoder_sink->set_enabled(b); };
-        void decoder_wrapper_impl::set_tps_enabled(bool b) {  };
+        void decoder_wrapper_impl::set_tps_enabled(bool b) { d_tps_decoder_sink->set_enabled(b); };
+        //void decoder_wrapper_impl::set_tps_enabled(bool b) {  };
 
         bool decoder_wrapper_impl::get_mdc_enabled() { return d_signal_decoder_sink->get_mdc_enabled(); };
         bool decoder_wrapper_impl::get_fsync_enabled() { return d_signal_decoder_sink->get_fsync_enabled(); };
         bool decoder_wrapper_impl::get_star_enabled() { return d_signal_decoder_sink->get_star_enabled(); };
-        //bool decoder_wrapper_impl::get_tps_enabled() { return d_tps_decoder_sink->get_enabled(); };
-        bool decoder_wrapper_impl::get_tps_enabled() { return false; };
+        bool decoder_wrapper_impl::get_tps_enabled() { return d_tps_decoder_sink->get_enabled(); };
+        //bool decoder_wrapper_impl::get_tps_enabled() { return false; };
 
         void decoder_wrapper_impl::log_decoder_msg(long unitId, const char* system_type, bool emergency)
         {
@@ -95,13 +95,13 @@ namespace gr {
 
         void decoder_wrapper_impl::process_message_queues()
         {
-            //d_tps_decoder_sink->process_message_queues();
+            d_tps_decoder_sink->process_message_queues();
         }
 
         void decoder_wrapper_impl::set_call(Call* call) {
             d_current_call = call;
             d_signal_decoder_sink->set_call(call);
-            //d_tps_decoder_sink->set_call(call);
+            d_tps_decoder_sink->set_call(call);
         }
         void decoder_wrapper_impl::end_call() {
             set_call(NULL);

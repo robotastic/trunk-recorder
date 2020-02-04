@@ -56,12 +56,10 @@ namespace gr {
         {
             rx_queue = gr::msg_queue::make(100);
 
-            valve = gr::blocks::copy::make(sizeof(gr_complex));
+            valve = gr::blocks::copy::make(sizeof(float));
             valve->set_enabled(false);
 
             initialize_p25();
-
-            //need message handler for rx_queue
         }
 
         void tps_decoder_sink_impl::process_message(gr::message::sptr msg)
