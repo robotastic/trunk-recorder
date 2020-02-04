@@ -36,7 +36,7 @@ namespace gr {
 		{
 		private:
 			gr::blocks::signal_decoder_sink::sptr d_signal_decoder_sink;
-			gr::blocks::tps_decoder_sink::sptr d_tps_decoder_sink;
+			//gr::blocks::tps_decoder_sink::sptr d_tps_decoder_sink;
 			Call* d_current_call;
 
 		public:
