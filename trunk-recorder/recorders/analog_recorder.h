@@ -43,7 +43,7 @@ class analog_recorder;
 #include "../config.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
 #include <gr_blocks/freq_xlating_fft_filter.h>
-#include <gr_blocks/signal_decoder_sink.h>
+#include <gr_blocks/decoder_wrapper.h>
 
 typedef boost::shared_ptr<analog_recorder>analog_recorder_sptr;
 
@@ -78,6 +78,8 @@ public:
   int     lastupdate();
   long    elapsed();
   static bool logging;
+
+  void process_message_queues(void);
 
 private:
 
@@ -130,7 +132,7 @@ void calculate_iir_taps(double tau);
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
 
-  gr::blocks::signal_decoder_sink::sptr decoder_sink;
+  gr::blocks::decoder_wrapper::sptr decoder_sink;
 };
 
 #endif // ifndef ANALOG_RECORDER_H

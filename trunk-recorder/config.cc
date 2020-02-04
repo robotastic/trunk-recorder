@@ -85,6 +85,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
       system->set_star_enabled(node.second.get<bool>("decodeStar", false));
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
+      system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
       system->set_min_duration(node.second.get<double>("minDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
       systems.push_back(system);
