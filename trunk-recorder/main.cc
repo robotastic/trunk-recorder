@@ -132,6 +132,39 @@ std::vector<float>design_filter(double interpolation, double deci) {
   return result;
 }
 
+void set_logging_level(std::string log_level)
+{
+    boost::log::trivial::severity_level sev_level = boost::log::trivial::info;
+
+    if (log_level == "trace")
+        sev_level = boost::log::trivial::trace;
+    else if (log_level == "debug")
+        sev_level = boost::log::trivial::debug;
+    else if (log_level == "info")
+        sev_level = boost::log::trivial::info;
+    else if (log_level == "warning")
+        sev_level = boost::log::trivial::warning;
+    else if (log_level == "error")
+        sev_level = boost::log::trivial::error;
+    else if (log_level == "fatal")
+        sev_level = boost::log::trivial::fatal;
+    else
+    {
+        BOOST_LOG_TRIVIAL(error) << "set_logging_level: Unknown logging level: " << log_level;
+        return;
+    }
+
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= sev_level
+
+    );
+
+    boost::log::core::get()->set_filter(
+        boost::log::trivial::severity >= sev_level
+    );
+}
+
 /**
  * Method name: load_config()
  * Description: <#description#>
@@ -501,6 +534,10 @@ void load_config(string config_file)
 
     statusAsString = pt.get<bool>("statusAsString", statusAsString);
     BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
+
+    std::string log_level = pt.get<std::string>("logLevel", "info");
+    BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
+    set_logging_level(log_level);
   }
   catch (std::exception const& e)
   {
