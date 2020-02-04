@@ -412,7 +412,7 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
 
     src_list.push_back(call_source);
 
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
+    //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
 
     return true;
 }
