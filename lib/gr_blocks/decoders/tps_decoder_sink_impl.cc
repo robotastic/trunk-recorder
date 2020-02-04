@@ -134,10 +134,10 @@ namespace gr {
             d_current_call = call;
 
             if (d_current_call == NULL) {
-                //
+                set_enabled(false);
             }
             else {
-                //tps_decoder_sink_impl
+                set_enabled(d_current_call->get_system()->get_tps_enabled());
             }
         }
         void tps_decoder_sink_impl::end_call() {

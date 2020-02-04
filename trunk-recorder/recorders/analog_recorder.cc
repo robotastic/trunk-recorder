@@ -295,11 +295,7 @@ void analog_recorder::tune_offset(double f) {
 void analog_recorder::start(Call *call) {
   starttime = time(NULL);
 
-  decoder_sink->set_mdc_enabled(call->get_system()->get_mdc_enabled());
-  decoder_sink->set_fsync_enabled(call->get_system()->get_fsync_enabled());
-  decoder_sink->set_star_enabled(call->get_system()->get_star_enabled());
-  decoder_sink->set_tps_enabled(call->get_system()->get_tps_enabled());
-
+  decoder_sink->set_call(call);
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 

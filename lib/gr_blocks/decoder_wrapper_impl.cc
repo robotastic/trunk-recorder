@@ -97,13 +97,7 @@ namespace gr {
         void decoder_wrapper_impl::set_call(Call* call) {
             d_current_call = call;
             d_signal_decoder_sink->set_call(call);
-
-            if (d_current_call == NULL) {
-                //
-            }
-            else {
-                //
-            }
+            d_tps_decoder_sink->set_call(call);
         }
         void decoder_wrapper_impl::end_call() {
             set_call(NULL);
