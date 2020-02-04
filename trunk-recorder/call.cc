@@ -396,6 +396,14 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
         return false;
     }
 
+    // Check to see if the Src is the current source in the list, if so, just exit
+    if (!src_list.empty()){
+      Call_Source last_source = src_list.back();
+      if (last_source.source == src) {
+        return false;
+      }
+    }
+
     double position = get_current_length();
 
     if (signal_emergency) {
