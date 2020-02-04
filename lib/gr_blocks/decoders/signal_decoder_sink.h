@@ -33,12 +33,12 @@ namespace gr {
     namespace blocks {
 
         /*!
-         * \brief Write stream to a Microsoft PCM (.wav) file.
+         * \brief Connects a gnuradio audio block to non-gnuradio signal decoders.
          * \ingroup audio_blk
          *
          * \details
          * Values must be floats within [-1;1].
-         * Check gr_make_wavfile_sink() for extra info.
+         * Check gr_make_signal_decoder_sink() for extra info.
          */
         class BLOCKS_API signal_decoder_sink : virtual public sync_block
         {

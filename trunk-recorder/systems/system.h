@@ -98,10 +98,12 @@ public:
         void set_mdc_enabled(bool b);
         void set_fsync_enabled(bool b);
         void set_star_enabled(bool b);
+        void set_tps_enabled(bool b);
 
         bool get_mdc_enabled();
         bool get_fsync_enabled();
         bool get_star_enabled();
+        bool get_tps_enabled();
 
         std::string get_system_type();
         unsigned long get_sys_id();
@@ -169,5 +171,6 @@ private:
         bool d_mdc_enabled;
         bool d_fsync_enabled;
         bool d_star_enabled;
+        bool d_tps_enabled;
 };
 #endif

@@ -253,6 +253,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
       system->set_star_enabled(node.second.get<bool>("decodeStar", false));
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
+      system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")){
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
@@ -644,6 +646,22 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     return false;
   }
   return false;
+}
+
+void process_message_queues() {
+    for (std::vector<System*>::iterator it = systems.begin(); it != systems.end(); ++it) {
+        System* sys = (System*)*it;
+
+        for (std::vector<analog_recorder_sptr>::iterator arit = sys->conventional_recorders.begin(); arit != sys->conventional_recorders.end(); ++arit) {
+            analog_recorder_sptr ar = (analog_recorder_sptr)*arit;
+            ar->process_message_queues();
+        }
+
+        for (std::vector<p25conventional_recorder_sptr>::iterator pit = sys->conventionalP25_recorders.begin(); pit != sys->conventionalP25_recorders.end(); ++pit) {
+            p25conventional_recorder_sptr pr = (p25conventional_recorder_sptr)*pit;
+            pr->process_message_queues();
+        }
+    }
 }
 
 void stop_inactive_recorders() {
@@ -1047,6 +1065,8 @@ void monitor_messages() {
       printf("\n Signal caught!\n");
       return;
     }
+
+    process_message_queues();
 
     if (config.status_server != "") {
       stats.poll_one();
