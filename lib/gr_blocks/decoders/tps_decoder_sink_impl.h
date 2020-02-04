@@ -25,6 +25,7 @@
 
 #include "tps_decoder_sink.h"
 #include <boost/log/trivial.hpp>
+#include <boost/dynamic_bitset.hpp>
 
 #include <op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
@@ -55,6 +56,13 @@ namespace gr {
 
             void initialize_p25(void);
             void process_message(gr::message::sptr msg);
+            void parse_p25_json(int src_num, std::string json);
+            void decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<>& header, boost::dynamic_bitset<>& mbt_data, unsigned long link_id, unsigned long nac, int sys_num);
+            void decode_tsbk(boost::dynamic_bitset<>& tsbk, unsigned long nac, int sys_num);
+
+            unsigned long bitset_shift_mask(boost::dynamic_bitset<>& tsbk, int shift, unsigned long long mask);
+
+            std::string to_hex(const std::string& s, bool upper = false, bool spaced = true);
 		public:
 
 			typedef boost::shared_ptr <tps_decoder_sink_impl> sptr;

@@ -33,8 +33,13 @@
 #include <cstring>
 #include <cmath>
 #include <fcntl.h>
+#include <sstream>
+#include <iostream>
 #include <gnuradio/thread/thread.h>
 #include <boost/math/special_functions/round.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <stdio.h>
 #include <op25_repeater/lib/op25_msg_types.h>
 
@@ -62,6 +67,42 @@ namespace gr {
             initialize_p25();
         }
 
+        std::string tps_decoder_sink_impl::to_hex(const std::string& s, bool upper, bool spaced)
+        {
+            std::ostringstream result;
+
+            unsigned int c;
+            for (std::string::size_type i = 0; i < s.length(); i++)
+            {
+                if (spaced && i > 0)
+                    result << " ";
+
+                c = (unsigned int)(unsigned char)s[i];
+                result << std::hex << std::setfill('0') << std::setw(2) << (upper ? std::uppercase : std::nouppercase) << c;
+            }
+
+            return result.str();
+        }
+
+        void tps_decoder_sink_impl::parse_p25_json(int src_num, std::string json) {
+            try {
+                std::stringstream ss;
+                ss << json;
+                boost::property_tree::ptree pt;
+                boost::property_tree::read_json(ss, pt);
+
+                int srcaddr = atoi(pt.get<std::string>("srcaddr", "0").c_str());
+
+                if (srcaddr > 0) {
+                    log_decoder_msg(srcaddr, "TPS", false);
+                }
+            }
+            catch (std::exception const& e)
+            {
+                BOOST_LOG_TRIVIAL(error) << "[" << std::dec << src_num << "] TPS: ERROR PROCESSING JSON: " << e.what();
+            }
+        }
+
         void tps_decoder_sink_impl::process_message(gr::message::sptr msg)
         {
             if (msg == 0) return;
@@ -69,26 +110,12 @@ namespace gr {
             long type = msg->type();
             int src_num = msg->arg1();
             
-            switch (type)
-            {
-            case M_P25_TIMEOUT:
-            {
-                BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: P25 TIMEOUT: " << msg->to_string();
-                return;
-            }
-            case M_P25_UI_REQ:
-            {
-                BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: P25 UI_REQ: " << msg->to_string();
-                return;
-            }
-            case M_P25_JSON_DATA:
-            {
-                BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: P25 JSON_DATA: " << msg->to_string();
-                return;
-            }
-            }
+            BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS MESSAGE " << std::dec << type << ": " << to_hex(msg->to_string());
 
-            BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: UNKNOWN: " << std::dec << type << " : " << msg->to_string();
+            if (type == M_P25_JSON_DATA) {
+                parse_p25_json(src_num, msg->to_string());
+                return;
+            }
 
             if (type < 0) {    
                 return;
@@ -103,8 +130,76 @@ namespace gr {
             int shift = s0 << 8;
             long nac = shift + s1;
 
-            BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: dec: " << std::dec << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
-            BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: hex: " << std::hex << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
+            if (nac == 0xffff) {
+                //dummy message, ignore it...
+                return;
+            }
+
+            if (type == 7) { // # trunk: TSBK
+                boost::dynamic_bitset<> b((s.length() + 2) * 8);
+
+                for (unsigned int i = 0; i < s.length(); ++i) {
+                    unsigned char c = (unsigned char)s[i];
+                    b <<= 8;
+
+                    for (int j = 0; j < 8; j++) {
+                        if (c & 0x1) {
+                            b[j] = 1;
+                        }
+                        else {
+                            b[j] = 0;
+                        }
+                        c >>= 1;
+                    }
+                }
+                b <<= 16;              // for missing crc
+
+                decode_tsbk(b, nac, src_num);
+            }
+            else if (type == 12) { // # trunk: MBT
+                std::string s1 = s.substr(0, 10);
+                std::string s2 = s.substr(10);
+                boost::dynamic_bitset<> header((s1.length() + 2) * 8);
+
+                for (unsigned int i = 0; i < s1.length(); ++i) {
+                    unsigned char c = (unsigned char)s1[i];
+                    header <<= 8;
+
+                    for (int j = 0; j < 8; j++) {
+                        if (c & 0x1) {
+                            header[j] = 1;
+                        }
+                        else {
+                            header[j] = 0;
+                        }
+                        c >>= 1;
+                    }
+                }
+                header <<= 16; // for missing crc
+
+                boost::dynamic_bitset<> mbt_data((s2.length() + 4) * 8);
+                for (unsigned int i = 0; i < s2.length(); ++i) {
+                    unsigned char c = (unsigned char)s2[i];
+                    mbt_data <<= 8;
+
+                    for (int j = 0; j < 8; j++) {
+                        if (c & 0x1) {
+                            mbt_data[j] = 1;
+                        }
+                        else {
+                            mbt_data[j] = 0;
+                        }
+                        c >>= 1;
+                    }
+                }
+                mbt_data <<= 32;  // for missing crc
+                unsigned long opcode = bitset_shift_mask(header, 32, 0x3f);
+                unsigned long link_id = bitset_shift_mask(header, 48, 0xffffff);
+                decode_mbt_data(opcode, header, mbt_data, link_id, nac, src_num);
+            }
+            else {
+                //Not supported yet...
+            }
         }
         void tps_decoder_sink_impl::process_message_queues()
         {
@@ -164,6 +259,82 @@ namespace gr {
             connect(self(), 0, valve, 0);
             connect(valve, 0, slicer, 0);
             connect(slicer, 0, op25_frame_assembler, 0);
+        }
+
+        unsigned long tps_decoder_sink_impl::bitset_shift_mask(boost::dynamic_bitset<>& tsbk, int shift, unsigned long long mask) {
+            boost::dynamic_bitset<> bitmask(tsbk.size(), mask);
+            unsigned long result = ((tsbk >> shift)& bitmask).to_ulong();
+
+            // std::cout << "    " << std::dec<< shift << " " << tsbk.size() << " [ " <<
+            // mask << " ]  = " << result << " - " << ((tsbk >> shift) & bitmask) <<
+            // std::endl;
+            return result;
+        }
+
+        void tps_decoder_sink_impl::decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<>& header, boost::dynamic_bitset<>& mbt_data, unsigned long sa, unsigned long nac, int sys_num) {
+            long unit_id = 0;
+            bool emergency = false;
+
+            BOOST_LOG_TRIVIAL(trace) << "decode_mbt_data: $" << opcode;
+            if (opcode == 0x0) {  // grp voice channel grant
+              //unsigned long mfrid = bitset_shift_mask(header, 72, 0xff);
+                unit_id = bitset_shift_mask(header, 48, 0xffffff);
+                emergency = (bool)bitset_shift_mask(header, 24, 0x80);
+            }
+            else if (opcode == 0x04) { //  Unit to Unit Voice Service Channel Grant -Extended (UU_V_CH_GRANT)
+                emergency = (bool)bitset_shift_mask(header, 24, 0x80);
+                unit_id = bitset_shift_mask(header, 48, 0xffffff);
+            }
+
+            if (unit_id > 0 || emergency) {
+                log_decoder_msg(unit_id, "TPS", emergency);
+            }
+        }
+
+        void tps_decoder_sink_impl::decode_tsbk(boost::dynamic_bitset<>& tsbk, unsigned long nac, int sys_num) {
+            long unit_id = 0;
+            bool emergency = false;
+
+            unsigned long opcode = bitset_shift_mask(tsbk, 88, 0x3f); // x3f
+            
+            BOOST_LOG_TRIVIAL(trace) << "TSBK: opcode: $" << std::hex << opcode;
+            if (opcode == 0x00) { // group voice chan grant
+                emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+                unit_id = bitset_shift_mask(tsbk, 16, 0xffffff);
+            }
+            else if (opcode == 0x02) { // group voice chan grant update
+                unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+                emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+                
+                if (mfrid == 0x90) {
+                    unit_id = bitset_shift_mask(tsbk, 16, 0xffffff);
+                }
+            }
+            else if (opcode == 0x04) {  //  Unit to Unit Voice Service Channel Grant (UU_V_CH_GRANT)
+                emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+                unit_id = bitset_shift_mask(tsbk, 16, 0xffffff);
+            }
+            else if (opcode == 0x06) { //  Unit to Unit Voice Channel Grant Update (UU_V_CH_GRANT_UPDT)
+                emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+                unit_id = bitset_shift_mask(tsbk, 16, 0xffffff);
+            }
+            else if (opcode == 0x20) { // Acknowledge response
+                unit_id = bitset_shift_mask(tsbk, 16, 0xffffff);
+            }
+            else if (opcode == 0x28) { // Unit Group Affiliation Response
+                unit_id = bitset_shift_mask(tsbk, 16, 0xffffff);
+            }
+            else if (opcode == 0x2c) { // Unit Registration Response
+                //unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+                unit_id = bitset_shift_mask(tsbk, 40, 0xffffff);
+            }
+            else if (opcode == 0x2f) { // Unit DeRegistration Ack
+                unit_id = bitset_shift_mask(tsbk, 16, 0xffffff);
+            }
+            
+            if (unit_id > 0 || emergency) {
+                log_decoder_msg(unit_id, "TPS", emergency);
+            }
         }
     } /* namespace blocks */
 } /* namespace gr */
