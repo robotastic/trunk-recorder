@@ -86,6 +86,9 @@ namespace gr {
 
         void tps_decoder_sink_impl::parse_p25_json(int src_num, std::string json) {
             try {
+
+                if (json.empty() || json.length() < 3) return;
+
                 std::stringstream ss;
                 ss << json;
                 boost::property_tree::ptree pt;
