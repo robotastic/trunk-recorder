@@ -75,23 +75,24 @@ namespace gr {
             {
             case M_P25_TIMEOUT:
             {
-                BOOST_LOG_TRIVIAL(trace) << "TPS: P25 TIMEOUT: " << msg->to_string();
+                BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: P25 TIMEOUT: " << msg->to_string();
                 return;
             }
             case M_P25_UI_REQ:
             {
-                BOOST_LOG_TRIVIAL(trace) << "TPS: P25 UI_REQ: " << msg->to_string();
+                BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: P25 UI_REQ: " << msg->to_string();
                 return;
             }
             case M_P25_JSON_DATA:
             {
-                BOOST_LOG_TRIVIAL(trace) << "TPS: P25 JSON_DATA: " << msg->to_string();
+                BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: P25 JSON_DATA: " << msg->to_string();
                 return;
             }
             }
 
-            if (type < 0) {
-                BOOST_LOG_TRIVIAL(trace) << "TPS: UNKNOWN: " << std::dec << type << " : " << msg->to_string();
+            BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: UNKNOWN: " << std::dec << type << " : " << msg->to_string();
+
+            if (type < 0) {    
                 return;
             }
 
@@ -104,8 +105,8 @@ namespace gr {
             int shift = s0 << 8;
             long nac = shift + s1;
 
-            BOOST_LOG_TRIVIAL(trace) << "TPS: dec: " << std::dec << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
-            BOOST_LOG_TRIVIAL(trace) << "TPS: hex: " << std::hex << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
+            BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: dec: " << std::dec << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
+            BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS: hex: " << std::hex << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
         }
         void tps_decoder_sink_impl::process_message_queues()
         {
