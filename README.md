@@ -1,6 +1,6 @@
 Trunk Recorder - v3.1.1
 =======================
-*Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compress audio for OpenMHz. Both utilities can be easily installed using apt-get*
+*Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compressing audio for OpenMHz. Both utilities can be easily installed using apt-get*
 
 
 ## Sponsors
