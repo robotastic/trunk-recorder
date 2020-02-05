@@ -1,5 +1,7 @@
-Trunk Recorder - v3.1.0
+Trunk Recorder - v3.1.1
 =======================
+*Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compress audio for OpenMHz. Both utilities can be easily installed using apt-get*
+
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful? Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation.**

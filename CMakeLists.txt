@@ -25,10 +25,6 @@ cmake_minimum_required(VERSION 2.6)
 project(Trunk-Recorder CXX C)
 
 
-
-add_definitions(-DWEBSOCKET_STATUS=true)
-set(WEBSOCKET_STATUS    true)
-
 #select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
@@ -177,23 +173,9 @@ link_directories(
     ${OPENSSL_ROOT_DIR}/lib
 )
 
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g")
 
-
-
-#include(CheckCXXCompilerFlag)
-#CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-#CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-#if(COMPILER_SUPPORTS_CXX11)
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-#elseif(COMPILER_SUPPORTS_CXX0X)
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-#else()
-#        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-#endif()
-
-#SET(CMAKE_CXX_STANDARD 98)
 SET(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
@@ -208,6 +190,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/source.cc
   trunk-recorder/uploaders/uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
+  trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call_conventional.cc
   trunk-recorder/call.cc
   trunk-recorder/systems/smartnet_trunking.cc
@@ -237,12 +220,6 @@ list(APPEND trunk_recorder_sources
   lib/gr_blocks/signal_decoder_sink_impl.cc
   )
 
-if(WEBSOCKET_STATUS)
-    list(APPEND trunk_recorder_sources
-        trunk-recorder/uploaders/stat_socket.cc
-    )
-endif()
-
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
 target_compile_options(
@@ -257,4 +234,4 @@ target_compile_options(
 
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)
+target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES}  gnuradio-op25_repeater imbe_vocoder)

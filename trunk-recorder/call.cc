@@ -8,6 +8,7 @@
 //static int rec_counter=0;
 
 
+
 void Call::create_filename() {
   tm *ltm = localtime(&start_time);
 
@@ -15,6 +16,7 @@ void Call::create_filename() {
   std::stringstream path_stream;
 
   path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  strcpy(path, path_stream.str().c_str());
   boost::filesystem::create_directories(path_stream.str());
 
   int nchars;
@@ -29,7 +31,7 @@ void Call::create_filename() {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld.m4a",     path_stream.str().c_str(), talkgroup, start_time);
+  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
@@ -473,6 +475,10 @@ char * Call::get_converted_filename() {
 
 char * Call::get_filename() {
   return filename;
+}
+
+char * Call::get_path() {
+  return path;
 }
 
 char * Call::get_status_filename() {

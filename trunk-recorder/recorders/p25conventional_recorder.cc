@@ -71,8 +71,9 @@ void p25conventional_recorder::start(Call *call) {
     }
 
 
-    int offset_amount = (chan_freq - center_freq);
-    prefilter->set_center_freq(offset_amount);
+    int offset_amount = (center_freq - chan_freq);
+    tune_offset(offset_amount);
+    
     if (d_delayopen == false) {
       wav_sink->open(call->get_filename());
     }
