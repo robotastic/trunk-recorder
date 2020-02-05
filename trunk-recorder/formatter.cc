@@ -2,16 +2,16 @@
 #include <boost/lexical_cast.hpp>
 
 int frequencyFormat = 0;
-bool statusAsString = false;
+bool statusAsString = true;
 
 boost::format FormatFreq(float f)
 {
 	if (frequencyFormat == 1)
-		return boost::format("%3.6f")  % (f / 1000000);
+		return boost::format("%10.6f")	% (f / 1000000);
 	else if (frequencyFormat == 2)
-		return boost::format("%.0f") %f;
+		return boost::format("%.0f")	% f;
 	else
-		return boost::format("%e")  % f;
+		return boost::format("%e")		% f;
 }
 
 boost::format FormatSamplingRate(float f)

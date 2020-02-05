@@ -29,11 +29,19 @@ typedef std::vector<bool> bit_vector;
 class CGolay2087 {
 public:
 	static void encode(bit_vector& data);
-
 	static unsigned int decode(bit_vector& data);
 
 private:
 	static unsigned int getSyndrome1987(unsigned int pattern);
+};
+
+class CQR1676 {
+public:
+	static void encode(bit_vector& data);
+	static unsigned char decode(bit_vector& data);
+
+private:
+	static unsigned int getSyndrome1576(unsigned int pattern);
 };
 
 #endif

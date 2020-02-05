@@ -1,6 +1,17 @@
 Trunk Recorder ChangeLog
 ========================
 
+### Version 3.1.1
+* Switched to use `fdkaac` & `sox` instead of `ffmpeg` to compress audio files because it is a lot easier to install
+* changed to buffer sizes for blocks to a minimum to help prevent audio from getting left-over in a recorder
+* prevented a recording from moving from one source to another. This likely causes audio to get jammed in a recorders buffers because a recording is stopped and things don't have a chance to flush.
+* Pulled in a change request from Joe Gilkey that adds Unit Names and support for a number of analog data overlays.
+
+### Version 3.1.0
+* Updated to the latest version of OP25.
+* Updated P25 Recorder, P25 Trunking and SmartNet Trunking to use the double decimation technique from OP25. It should handle SDRs with a high sample rate better now.
+* Updated to the latest version of the websocketpp library.
+
 ### Version 3.0.1
 * Updated to the latest version of OP25. Supposed performance improvements.
 

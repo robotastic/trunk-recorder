@@ -24,6 +24,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(Trunk-Recorder CXX C)
 
+
 #select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
@@ -97,10 +98,6 @@ endif()
 ########################################################################
 # Find build dependencies
 ########################################################################
-#find_package(LibOsmoSDR)
-#find_package(LibRTLSDR)
-#find_package(LibMiriSDR)
-#find_package(LibbladeRF)
 find_package(GnuradioUHD)
 find_package(GrOsmoSDR)
 find_package(LibHackRF)
@@ -140,6 +137,7 @@ set(Boost_ADDITIONAL_VERSIONS
     "1.55.0" "1.55" "1.56.0" "1.56" "1.57.0" "1.57" "1.58.0" "1.58" "1.59.0" "1.59"
     "1.60.0" "1.60" "1.61.0" "1.61" "1.62.0" "1.62" "1.63.0" "1.63" "1.64.0" "1.64"
     "1.65.0" "1.65" "1.66.0" "1.66" "1.67.0" "1.67" "1.68.0" "1.68" "1.69.0" "1.69"
+    "1.70.0" "1.70" "1.71.0" "1.71" "1.72.0" "1.72" "1.73.0" "1.73" "1.74.0" "1.74"
 )
 
 find_package(Boost COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
@@ -175,23 +173,9 @@ link_directories(
     ${OPENSSL_ROOT_DIR}/lib
 )
 
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g")
 
-
-
-#include(CheckCXXCompilerFlag)
-#CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-#CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-#if(COMPILER_SUPPORTS_CXX11)
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-#elseif(COMPILER_SUPPORTS_CXX0X)
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-#else()
-#        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-#endif()
-
-#SET(CMAKE_CXX_STANDARD 98)
 SET(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
@@ -223,10 +207,17 @@ list(APPEND trunk_recorder_sources
   lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
   trunk-recorder/recorders/p25conventional_recorder.cc
   trunk-recorder/recorders/p25_recorder.cc
+  trunk-recorder/csv_helper.cc
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
+  trunk-recorder/unit_tag.cc
+  trunk-recorder/unit_tags.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
+  lib/gr_blocks/fsync_decode.cc
+  lib/gr_blocks/mdc_decode.cc
+  lib/gr_blocks/star_decode.cc
+  lib/gr_blocks/signal_decoder_sink_impl.cc
   )
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
@@ -243,4 +234,4 @@ target_compile_options(
 
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)
+target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES}  gnuradio-op25_repeater imbe_vocoder)

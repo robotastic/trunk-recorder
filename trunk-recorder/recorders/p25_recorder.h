@@ -17,13 +17,15 @@
 
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>
-#include <gnuradio/blocks/multiply_const_ff.h>
+
 #include <gnuradio/filter/firdes.h>
+#include <gnuradio/filter/fir_filter_ccc.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 #include <gnuradio/filter/fft_filter_fff.h>
 
+#include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/pwr_squelch_ff.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
@@ -34,6 +36,7 @@
 #include <gnuradio/blocks/copy.h>
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/multiply_const_ff.h>
+#include <gnuradio/blocks/multiply_cc.h>
 #include <gnuradio/blocks/multiply_const_ss.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 
@@ -52,7 +55,6 @@
 #include "recorder.h"
 #include "../config.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
-#include <gr_blocks/freq_xlating_fft_filter.h>
 
 
 class Source;
@@ -71,8 +73,13 @@ protected:
 
 public:
   virtual ~p25_recorder();
-
+  DecimSettings get_decim(long speed);
+  void initialize_prefilter();
+  void initialize_qpsk();
+  void initialize_fsk4();
+  void initialize_p25();
   void    tune_offset(double f);
+  void    tune_freq(double f);
   virtual void    start(Call *call);
   virtual void    stop();
   void    clear();
@@ -111,7 +118,6 @@ protected:
   bool   qpsk_mod;
 
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
-  freq_xlating_fft_filter_sptr prefilter;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
@@ -125,22 +131,43 @@ private:
   double samples_per_symbol;
   double symbol_rate;
   double initial_rate;
-  int decim;
+  long decim;
   double resampled_rate;
   double squelch_db;
   int    silence_frames;
   int    tdma_slot;
   bool   d_phase2_tdma;
+  bool   double_decim;
+  long   if1;
+  long   if2;
+  long   input_rate;
+  const int phase1_samples_per_symbol = 5;
+  const int phase2_samples_per_symbol = 4;
+  const double phase1_symbol_rate = 4800;
+  const double phase2_symbol_rate = 6000;
 
-  std::vector<float> inital_lpf_taps;
-  std::vector<float> channel_lpf_taps;
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;
   std::vector<float> baseband_noise_filter_taps;
+  std::vector<gr_complex>	bandpass_filter_coeffs;
+  std::vector<float> lowpass_filter_coeffs;
+  std::vector<float> cutoff_filter_coeffs;
+
+
+  gr::analog::sig_source_c::sptr lo;
+  gr::analog::sig_source_c::sptr bfo;
+  gr::blocks::multiply_cc::sptr  mixer;
+
+
 
   /* GR blocks */
-  gr::filter::fft_filter_ccf::sptr channel_lpf;
+  gr::filter::fft_filter_ccc::sptr bandpass_filter;
+  gr::filter::fft_filter_ccf::sptr lowpass_filter;
+  gr::filter::fft_filter_ccf::sptr cutoff_filter;
+
+
   gr::filter::fir_filter_fff::sptr sym_filter;
+  
   gr::filter::fft_filter_fff::sptr noise_filter;
 
   gr::digital::diff_phasor_cc::sptr diffdec;
@@ -149,6 +176,7 @@ private:
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
   gr::blocks::short_to_float::sptr converter;
   gr::analog::feedforward_agc_cc::sptr   agc;
+  gr::blocks::multiply_const_ff::sptr    pll_amp;
   gr::analog::pll_freqdet_cf::sptr       pll_freq_lock;
   gr::analog::pwr_squelch_cc::sptr       squelch;
 
@@ -157,14 +185,12 @@ private:
 
 
   gr::blocks::multiply_const_ff::sptr rescale;
-  gr::blocks::multiply_const_ff::sptr baseband_amp;
-  gr::blocks::multiply_const_ff::sptr pll_amp;
+
   gr::blocks::complex_to_arg::sptr    to_float;
 
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-  gr::op25_repeater::vocoder::sptr op25_vocoder;
   gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 
 };

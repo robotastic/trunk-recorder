@@ -1,6 +1,7 @@
 /*.json
 /*.csv
 sys_*/
+audio/
 junk/
 tester/
 fake/
@@ -26,3 +27,5 @@ ChanList.csv
 cmake-build-debug/
 *.code-workspace
 /.vscode/
+/.vs/
+/out/

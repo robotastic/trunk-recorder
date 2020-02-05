@@ -21,7 +21,7 @@
 #ifndef INCLUDED_OP25_REPEATER_FRAME_ASSEMBLER_IMPL_H
 #define INCLUDED_OP25_REPEATER_FRAME_ASSEMBLER_IMPL_H
 
-#include <op25_repeater/frame_assembler.h>
+#include "../include/op25_repeater/frame_assembler.h"
 
 #include <gnuradio/msg_queue.h>
 #include <sys/socket.h>
@@ -41,6 +41,7 @@ namespace gr {
     {
      private:
         int d_debug;
+	int d_msgq_id;
 	gr::msg_queue::sptr d_msg_queue;
         rx_sync d_sync;
 
@@ -49,11 +50,12 @@ namespace gr {
     void queue_msg(int duid);
     void set_xormask(const char*p) ;
     void set_slotid(int slotid) ;
+    void set_slotkey(int key) ;
 
  public:
 
      public:
-      frame_assembler_impl(const char* options, int debug, gr::msg_queue::sptr queue);
+      frame_assembler_impl(const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue);
       ~frame_assembler_impl();
 
       // Where all the action really happens
