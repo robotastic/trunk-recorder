@@ -108,6 +108,24 @@ if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to build " ${CMAKE_PROJECT_NAME})
 endif()
 
+## load in pkg-config support
+find_package(PkgConfig)
+## use pkg-config to get hints for 0mq locations
+pkg_check_modules(PC_ZeroMQ QUIET zmq)
+
+## use the hint from above to find where 'zmq.hpp' is located
+find_path(ZeroMQ_INCLUDE_DIR
+        NAMES zmq.hpp
+        PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
+        )
+
+## use the hint from about to find the location of libzmq
+find_library(ZeroMQ_LIBRARY
+        NAMES zmq
+        PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
+        )
+
+
 ########################################################################
 # Setup boost
 ########################################################################
@@ -161,6 +179,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/lib
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/include
     ${OPENSSL_INCLUDE_DIR}
+    ${ZeroMQ_INCLUDE_DIR}
     "lib"
 )
 
@@ -212,6 +231,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroups.cc
   trunk-recorder/unit_tag.cc
   trunk-recorder/unit_tags.cc
+  trunk-recorder/zmqbase/trunk_zmq_core.cc
+  trunk-recorder/zmqbase/trunk_zmq_worker.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/gr_blocks/iq_tcp_sink_impl.cc
   lib/lfsr/lfsr.cxx
@@ -237,4 +258,4 @@ target_compile_options(
 
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES}  gnuradio-op25_repeater imbe_vocoder)
+target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} ${ZeroMQ_LIBRARY}  gnuradio-op25_repeater imbe_vocoder)
