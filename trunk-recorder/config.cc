@@ -162,6 +162,9 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       int debug_recorders   = node.second.get<int>("debugRecorders", 0);
       int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
+      bool enable_iq_tcp = node.second.get<bool>("enableIQTCP", false);
+      std::string iq_tcp_host = node.second.get<std::string>("iqtcpHost", "127.0.0.1");
+      int iq_tcp_port = node.second.get<int>("iqtcpPort", 1234);
 
       std::string driver = node.second.get<std::string>("driver", "");
 
@@ -191,6 +194,9 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver",  "");
+      BOOST_LOG_TRIVIAL(info) << "Enable IQ TCP: " << node.second.get<bool>("enableIQTCP", false);
+      BOOST_LOG_TRIVIAL(info) << "IQ TCP Host: " << node.second.get<std::string>("iqtcpHost", "127.0.0.1");
+      BOOST_LOG_TRIVIAL(info) << "IQ TCP Port: " << node.second.get<int>("iqtcpPort", 1234);
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
@@ -217,7 +223,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
         error = 0;
       }
 
-      Source *source = new Source(center, rate, error, driver, device, &config);
+      Source *source = new Source(center, rate, error, driver, device, enable_iq_tcp, iq_tcp_host, iq_tcp_port, &config, tb);
       BOOST_LOG_TRIVIAL(info) << "Max HZ: " << FormatFreqHz(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min HZ: " << FormatFreqHz(source->get_min_hz());
 

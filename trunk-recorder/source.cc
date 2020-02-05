@@ -1,7 +1,7 @@
 #include "source.h"
 #include "formatter.h"
 #include "recorders/p25conventional_recorder.h"
-
+#include <gr_blocks/iq_tcp_sink_impl.h>
 
 
 static int src_counter=0;
@@ -494,7 +494,8 @@ Config  * Source::get_config() {
   return config;
 }
 
-Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg)
+Source::Source(double c, double r, double e, std::string drv, std::string dev, bool enable_iq_tcp, std::string iq_tcp_host, int iq_tcp_port, Config *cfg, gr::top_block_sptr tb)
+    : ISourceIntf()
 {
   rate   = r;
   center = c;
@@ -579,6 +580,17 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
 
     source_block = usrp_src;
+  }
+
+  if (enable_iq_tcp)
+  {
+      d_iq_tcp_sink = gr::blocks::iq_tcp_sink_impl::make(this, iq_tcp_host, iq_tcp_port);
+
+      tb->connect(source_block, 0, d_iq_tcp_sink, 0);
+  }
+  else
+  {
+      d_iq_tcp_sink = NULL;
   }
 }
 
