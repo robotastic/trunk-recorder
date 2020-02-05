@@ -181,7 +181,7 @@ void load_config(string config_file)
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
-
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n" << sys_count;
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n" << sys_count;
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))
@@ -750,8 +750,6 @@ void stop_inactive_recorders() {
         ++it;
       } // if rx is active
     }   // foreach loggers
-
-
   }
 
 
@@ -821,8 +819,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
       }
       return true;
     } else {
-      BOOST_LOG_TRIVIAL(info) << "\t - Retune failed, New Freq out of range for Source: " << source->get_device();
-      BOOST_LOG_TRIVIAL(info) << "\t - Starting a new recording using a new source";
+      //Couldn't find a source that covers it
       return false;
     }
   }
@@ -855,58 +852,64 @@ void handle_call(TrunkMessage message, System *sys) {
   bool call_found        = false;
   bool call_retune       = false;
   bool recording_started = false;
+  bool retune_failed     = false;
+
+
+/* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
+  that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new 
+  recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
+  of the original recorder gets flushed. */ 
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
-    // This should help detect 2 calls being listed for the same tg
-    if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
-      BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
-    }
-
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       call_found = true;
 
+      // Check to make sure the Freq and TDMA info match up with what is being currenty recorded
       if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
         if (call->get_state() == recording) {
-          // see if we can retune the recorder, sometimes you can't if there are
-          // more than one
-          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tUpdate Retuning - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
+          // see if we can retune the recorder, You may not be able to if the Freq is beyond what the current source can handle
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-            Recorder * recorder = call->get_recorder();
-            call->end_call();
-            stats.send_call_end(call);
-            it = calls.erase(it);
-            delete call;
+            // we want to keep this call recordering, and now start a recording of the new call on another recorder
             call_found = false;
-            stats.send_recorder(recorder);
+            retune_failed = true;
+            ++it; // go on to the next call, remember there maybe two calls
           } else {
+            // if you did retune, update the call info
+            BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tUpdate Retuning - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
             call->update(message);
             call_retune = true;
+            break;
           }
         } else {
-          // the Call is not recording, update and continue
+          // the Call is not being recorded, simply update and continue
           call->set_freq(message.freq);
           call->set_phase2_tdma(message.phase2_tdma);
           call->set_tdma_slot(message.tdma_slot);
           call->update(message);
+          break;
         }
       } else {
-        call->update(message);
-      }
 
-      // we found out call, exit the for loop
-      break;
+        // everything about the current recording matches, simply update the info
+        call->update(message);
+        break;
+      }
     } else {
       ++it;
-
-      // the talkgroups don't match
+      // the talkgroup for the call being looked at doesn't match, look at the next one.
     }
   }
 
+
+
   if (!call_found) {
+    if (retune_failed) {
+      BOOST_LOG_TRIVIAL(info) << "\t - Retune failed, starting a new recording using a new source";
+    }
     Call *call = new Call(message, sys, config);
     recording_started = start_recorder(call, message, sys);
     calls.push_back(call);

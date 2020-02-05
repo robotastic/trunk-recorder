@@ -19,8 +19,9 @@ struct call_data_t {
         bool encrypted;
         bool emergency;
         bool audio_archive;
-        char filename[160];
-        char converted[160];
+        char filename[255];
+        char converted[255];
+        char file_path[255];
         std::string upload_server;
         std::string server;
         std::string scheme;

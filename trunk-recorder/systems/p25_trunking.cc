@@ -96,6 +96,8 @@ void p25_trunking::initialize_prefilter() {
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
+    bandpass_filter->set_max_output_buffer(4096);
+    bfo->set_max_output_buffer(4096);
   } else {
     double_decim = false;
     BOOST_LOG_TRIVIAL(info) << "\t P25 Trunking single-stage decimator - Initial decimated rate: "<< if1 << " Second decimated rate: " << if2  << " Initial Decimation: " << decim << " System Rate: " << input_rate;
@@ -106,6 +108,7 @@ void p25_trunking::initialize_prefilter() {
     
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
     resampled_rate = input_rate / decim;
+    lo->set_max_output_buffer(4096);
   }
 
   // Cut-Off Filter
@@ -119,8 +122,11 @@ void p25_trunking::initialize_prefilter() {
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t P25 Trunking ARB - Initial Rate: "<< input_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
- 
 
+  mixer->set_max_output_buffer(4096);
+  lowpass_filter->set_max_output_buffer(4096);
+  arb_resampler->set_max_output_buffer(4096);
+  cutoff_filter->set_max_output_buffer(4096);
 
   if (double_decim) {
     connect(self(), 0, bandpass_filter, 0);
@@ -164,6 +170,11 @@ void p25_trunking::initialize_fsk4() {
   tune_queue    = gr::msg_queue::make(20);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
 
+  pll_freq_lock->set_max_output_buffer(4096);
+  pll_amp->set_max_output_buffer(4096);
+  noise_filter->set_max_output_buffer(4096);
+  sym_filter->set_max_output_buffer(4096);
+  fsk4_demod->set_max_output_buffer(4096);
 
   connect(cutoff_filter, 0, pll_freq_lock, 0);
   connect(pll_freq_lock,        0, pll_amp,              0);
@@ -201,6 +212,12 @@ void p25_trunking::initialize_qpsk() {
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
 
+  agc->set_max_output_buffer(4096);
+  costas_clock->set_max_output_buffer(4096);
+  diffdec->set_max_output_buffer(4096);
+  to_float->set_max_output_buffer(4096);
+  rescale->set_max_output_buffer(4096);
+
   connect(cutoff_filter, 0, agc, 0);
   connect(agc,                  0, costas_clock,         0);
   connect(costas_clock,         0, diffdec,              0);
@@ -232,6 +249,8 @@ void p25_trunking::initialize_p25() {
   bool do_tdma               = 0;
   bool do_crypt              = 0;
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, idle_silence, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
+
+  slicer->set_max_output_buffer(4096);
 
   connect(slicer,               0, op25_frame_assembler, 0);
 }
@@ -296,6 +315,6 @@ void p25_trunking::tune_offset(double f) {
           lo->set_frequency(freq);
         }
   if (qpsk_mod) {
-    //costas_clock->reset();
+    costas_clock->reset();
   }
 }
