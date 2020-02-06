@@ -2,6 +2,7 @@
 #define _TRUNK_ZMQ_WORKER_H_
 
 #include <zmq.hpp>
+#include <string>
 #include <boost/log/trivial.hpp>
 
 class trunk_zmq_worker
