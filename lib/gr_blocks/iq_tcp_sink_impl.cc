@@ -41,14 +41,25 @@ namespace gr {
 			if (!d_connected)
 				return noutput_items;
 
-			unsigned int noi = noutput_items * sizeof(gr_complex);
+
+			unsigned int noi = noutput_items * 2;
 			int bytesWritten;
 			int bytesRemaining = noi;
 
+			gr_complex* in = (gr_complex*)output_items[0];
+			unsigned char* out = (unsigned char*)malloc(noi);
+
+			for (int i = 0; i < noutput_items; i++)
+			{
+				out[(i * 2)] = (unsigned char)static_cast<int>((in->real() * 128.0f) + 127.4f);
+				out[(i * 2) + 1] = (unsigned char)static_cast<int>((in->imag() * 128.0f) + 127.4f);
+				in++;
+			}
+
 			ec.clear();
 
-			char* pBuff;
-			pBuff = (char*)input_items[0];
+			unsigned char* pBuff;
+			pBuff = (unsigned char*)out;
 
 			while ((bytesRemaining > 0) && (!ec)) {
 				bytesWritten = boost::asio::write(*tcpsocket, boost::asio::buffer((const void*)pBuff, bytesRemaining), ec);
@@ -63,6 +74,8 @@ namespace gr {
 					start_new_listener = true;
 				}
 			}
+
+			free(out);
 
 			processCommands();
 
