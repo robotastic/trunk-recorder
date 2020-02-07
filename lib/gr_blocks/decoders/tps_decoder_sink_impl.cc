@@ -223,10 +223,12 @@ namespace gr {
         {
             if (d_current_call == NULL)
             {
+                broadcast_decoder_msg("UNKNOWN", unitId, system_type, emergency, 7);
                 BOOST_LOG_TRIVIAL(error) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
             }
             else
             {
+                broadcast_decoder_msg(d_current_call->get_short_name(), unitId, system_type, emergency, 7);
                 BOOST_LOG_TRIVIAL(error) << "Logging " << system_type << " : " << unitId << " to current call.";
                 d_current_call->add_signal_source(unitId, system_type, emergency);
             }

@@ -52,6 +52,7 @@ namespace gr {
 			{
 				if (is_running()) return false;
 
+				BOOST_LOG_TRIVIAL(info) << "Starting ZMQ Core";
 				pthread_create(&d_background_thread, NULL, _do_background_thread, (void*)this);
 
 				return true;
@@ -60,6 +61,8 @@ namespace gr {
 			void trunk_zmq_core::stop()
 			{
 				if (!is_running()) return;
+
+				BOOST_LOG_TRIVIAL(info) << "Stopping ZMQ Core";
 
 				//need to stop d_background_thread
 				d_background_thread = 0;

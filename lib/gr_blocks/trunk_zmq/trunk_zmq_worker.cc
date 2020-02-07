@@ -33,6 +33,8 @@ namespace gr {
 				if (d_zmq_running) return true;
 
 				try {
+					BOOST_LOG_TRIVIAL(trace) << "ZMQ_WORKER: Connecting " << get_worker_type() << " to ZMQ Core";
+
 					// Worker socket, publishes to the trunk_zmq_core::d_workers
 					d_worker = new zmq::socket_t(context, ZMQ_PUB);
 					d_worker->bind(INPROC_WORKER_ADDR);
