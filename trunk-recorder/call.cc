@@ -118,7 +118,7 @@ void Call::end_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
     final_length = recorder->get_current_length();
 
@@ -183,7 +183,7 @@ void Call::end_call() {
       }
     } else {
       // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
 
       if (remove(filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
@@ -223,7 +223,7 @@ Recorder * Call::get_debug_recorder() {
 
 void Call::set_recorder(Recorder *r) {
   recorder = r;
-  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
+  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
 }
 
 Recorder * Call::get_recorder() {
@@ -411,7 +411,7 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
     if (signal_emergency) {
         set_emergency(true);
 
-        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tEmergency flag set by " << src;
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tEmergency flag set by " << src;
     }
 
     std::string system((system_type == NULL) ? "" : strdup(system_type));
@@ -423,7 +423,7 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
     src_list.push_back(call_source);
     
     if (tag != "") {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
     }
     return true;
 }
@@ -435,7 +435,7 @@ bool Call::add_source(long src) {
 void Call::update(TrunkMessage message) {
   last_update = time(NULL);
   if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
-    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, messge mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tCall Update, messge mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
   } else {
     add_source(message.source);
   }
