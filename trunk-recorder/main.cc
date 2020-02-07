@@ -1319,13 +1319,11 @@ void socket_connected()
 
 void setup_zmq()
 {
-    zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("127.0.0.1");
+    zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("tcp://127.0.0.1");
 }
 
 void start_zmq()
 {
-    zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("127.0.0.1");
-
     for (vector<Source*>::iterator it = sources.begin(); it != sources.end(); it++)
     {
         Source* source = *it;
