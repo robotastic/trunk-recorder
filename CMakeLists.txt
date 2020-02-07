@@ -213,7 +213,6 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/unit_tag.cc
   trunk-recorder/unit_tags.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
-  lib/gr_blocks/iq_tcp_sink_impl.cc
   lib/lfsr/lfsr.cxx
   lib/gr_blocks/decoders/fsync_decode.cc
   lib/gr_blocks/decoders/mdc_decode.cc
