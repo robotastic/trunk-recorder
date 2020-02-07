@@ -519,6 +519,8 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
+    config.max_idle = pt.get<int>("maxIdle", 5);
+    BOOST_LOG_TRIVIAL(info) << "Max Idle (seconds): " << config.max_idle;
     config.log_file = pt.get<bool>("logFile", false);
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
@@ -728,7 +730,7 @@ void stop_inactive_recorders() {
         }
 
         // if no additional recording has happened in the past X periods, stop and open new file
-        if (call->get_idle_count() > 5) {
+        if (call->get_idle_count() > config.max_idle) {
           Recorder * recorder = call->get_recorder();
           call->end_call();
           stats.send_call_end(call);

@@ -44,18 +44,18 @@
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
 #include "../state.h"
-#include <trunk_zmq/trunk_zmq_worker.h>
+#include <gr_blocks/trunk_zmq/trunk_zmq_worker.h>
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
 
-class Recorder:public trunk_zmq::trunk_zmq_worker
+class Recorder :public gr::blocks::trunk_zmq::trunk_zmq_worker
 {
 
 public:
 
-struct DecimSettings
-    {
+	struct DecimSettings
+	{
 		long decim;
 		long decim2;
 	};
@@ -63,22 +63,22 @@ struct DecimSettings
 	Recorder(std::string type);
 	virtual void tune_offset(double f) {};
 	virtual void tune_freq(double f) {};
-	virtual void start( Call *call) {};
+	virtual void start(Call* call) {};
 	virtual void stop() {};
-  	virtual void set_tdma_slot(int slot) {};
-	virtual double get_freq() {return 0;};
-  	virtual Source *get_source() {return NULL;};
-	virtual Call_Source *get_source_list() {return NULL;};
-	virtual int get_num() {return -1;};
-	virtual long get_source_count() {return 0;};
-	virtual long get_talkgroup() {return 0;};
-	virtual State get_state() {return inactive;};
-	virtual Rx_Status get_rx_status() {Rx_Status rx_status={0,0,0}; return rx_status; }
-	virtual bool is_active() {return false;};
-	virtual bool is_analog() {return false;};
-	virtual bool is_idle() {return true;};
-	virtual double get_current_length(){return 0;};
-	virtual void clear(){};
+	virtual void set_tdma_slot(int slot) {};
+	virtual double get_freq() { return 0; };
+	virtual Source* get_source() { return NULL; };
+	virtual Call_Source* get_source_list() { return NULL; };
+	virtual int get_num() { return -1; };
+	virtual long get_source_count() { return 0; };
+	virtual long get_talkgroup() { return 0; };
+	virtual State get_state() { return inactive; };
+	virtual Rx_Status get_rx_status() { Rx_Status rx_status = { 0,0,0 }; return rx_status; }
+	virtual bool is_active() { return false; };
+	virtual bool is_analog() { return false; };
+	virtual bool is_idle() { return true; };
+	virtual double get_current_length() { return 0; };
+	virtual void clear() {};
 	int rec_num;
 	static int rec_counter;
 	virtual boost::property_tree::ptree get_stats();

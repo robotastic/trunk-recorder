@@ -54,12 +54,15 @@ namespace gr {
         }
 
         tps_decoder_sink_impl::tps_decoder_sink_impl(unsigned int sample_rate, int src_num)
-            : hier_block2("tps_decoder_sink_impl",
+            : gr::hier_block2("tps_decoder_sink_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
-            trunk_zmq::trunk_zmq_worker("TPS_DECODER"),
-            d_src_num(src_num)
+            trunk_zmq::trunk_zmq_worker()
         {
+            set_worker_type("TPS DECODER");
+
+            d_src_num = src_num;
+
             rx_queue = gr::msg_queue::make(100);
 
             valve = gr::blocks::copy::make(sizeof(float));

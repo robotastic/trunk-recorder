@@ -51,11 +51,13 @@ namespace gr {
         }
 
         decoder_wrapper_impl::decoder_wrapper_impl(unsigned int sample_rate, int src_num)
-            : hier_block2("decoder_wrapper_impl",
+            : gr::hier_block2("decoder_wrapper_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
-            trunk_zmq::trunk_zmq_worker("decoder_wrapper")
+            trunk_zmq::trunk_zmq_worker()
         {
+            set_worker_type("decoder_wrapper");
+
             d_signal_decoder_sink = gr::blocks::signal_decoder_sink_impl::make(sample_rate);
             d_tps_decoder_sink = gr::blocks::tps_decoder_sink_impl::make(sample_rate, src_num);
             
@@ -71,6 +73,7 @@ namespace gr {
 
         void decoder_wrapper_impl::connect_child_workers(zmq::context_t& context)
         {
+            d_signal_decoder_sink->connect_worker(context);
             d_tps_decoder_sink->connect_worker(context);
         }
 

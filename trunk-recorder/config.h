@@ -20,6 +20,7 @@ struct Config {
         std::string instance_id;
         std::string capture_dir;
         int call_timeout;
+        int max_idle;
         bool log_file;
         int control_message_warn_rate;
         int control_retune_limit;

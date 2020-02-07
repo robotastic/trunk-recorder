@@ -231,8 +231,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroups.cc
   trunk-recorder/unit_tag.cc
   trunk-recorder/unit_tags.cc
-  lib/trunk_zmq/trunk_zmq_core.cc
-  lib/trunk_zmq/trunk_zmq_worker.cc
+  lib/gr_blocks/trunk_zmq/trunk_zmq_core.cc
+  lib/gr_blocks/trunk_zmq/trunk_zmq_worker.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/gr_blocks/iq_tcp_sink_impl.cc
   lib/lfsr/lfsr.cxx

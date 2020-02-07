@@ -28,6 +28,7 @@
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
+#include "../trunk_zmq/trunk_zmq_worker.h"
 
 namespace gr {
     namespace blocks {
@@ -40,7 +41,7 @@ namespace gr {
          * Values must be floats within [-1;1].
          * Check gr_make_signal_decoder_sink() for extra info.
          */
-        class BLOCKS_API signal_decoder_sink : virtual public sync_block
+        class BLOCKS_API signal_decoder_sink : virtual public sync_block, public virtual trunk_zmq::trunk_zmq_worker
         {
         public:
             // gr::blocks::wavfile_sink::sptr

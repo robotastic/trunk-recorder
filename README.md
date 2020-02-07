@@ -136,6 +136,7 @@ Here are the different arguments:
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** the options are *digital* or *analog*.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
+ - **maxIdle** - *(Optional, For conventional systems)* stops recording if there has been no audio, after this many seconds. The default is 5.
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
  - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
  - **controlWarnRate** - Log the control channel decode rate when it falls bellow this threshold. The default is *10*. The value of *-1* will always log the decode rate.
@@ -173,4 +174,4 @@ Here is a little background on trunking radio systems, for those not familiar. I
 
 In order to follow all of the transmissions, this system constantly listens to and decodes the control channel. When a channel is granted to a talkgroup, the system creates a monitoring process. This process will start to process and decode the part of the radio spectrum for that channel which the SDR is already pulling in.
 
-No message is transmitted on the control channel when a talkgroup’s conversation is over. So instead the monitoring process keeps track of transmissions and if there has been no activity for 5 seconds, it ends the recording.
+No message is transmitted on the control channel when a talkgroup’s conversation is over. So instead the monitoring process keeps track of transmissions and if there has been no activity for *maxIdle* seconds, it ends the recording.

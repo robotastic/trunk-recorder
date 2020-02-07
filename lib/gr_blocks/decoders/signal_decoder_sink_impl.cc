@@ -118,10 +118,13 @@ namespace gr {
             : sync_block("signal_decoder_sink_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
+            trunk_zmq::trunk_zmq_worker(),
             d_mdc_enabled(false),
             d_fsync_enabled(false),
             d_star_enabled(false)
         {
+            set_worker_type("SIGNAL DECODER");
+
             d_mdc_decoder = mdc_decoder_new(sample_rate);
             d_fsync_decoder = fsync_decoder_new(sample_rate);
             d_star_decoder = star_decoder_new(sample_rate);
@@ -174,7 +177,7 @@ namespace gr {
             }
             else
             {
-                BOOST_LOG_TRIVIAL(error) << "Logging " << system_type << " : " << unitId << " to current call.";
+                BOOST_LOG_TRIVIAL(info) << "Logging " << system_type << " : " << std::setfill('0') << std::setw(4) << std::right << std::hex << unitId << " to current call.";
                 d_current_call->add_signal_source(unitId, system_type, emergency);
             }
         }

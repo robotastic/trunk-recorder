@@ -130,6 +130,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
+    config.max_idle = pt.get<int>("maxIdle", 5);
+    BOOST_LOG_TRIVIAL(info) << "Max Idle (seconds): " << config.max_idle;
     config.log_file = pt.get<bool>("logFile", false);
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);

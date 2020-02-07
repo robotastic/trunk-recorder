@@ -35,13 +35,12 @@
 #include <gnuradio/message.h>
 #include <gnuradio/blocks/copy.h>
 
-#include "../../trunk_zmq/trunk_zmq_worker.h"
-#include <zmq.hpp>
+#include "../trunk_zmq/trunk_zmq_worker.h"
 
 namespace gr {
 	namespace blocks {
 
-		class tps_decoder_sink_impl : public tps_decoder_sink, public trunk_zmq::trunk_zmq_worker
+		class tps_decoder_sink_impl : public tps_decoder_sink
 		{
 		private:
             const int phase1_samples_per_symbol = 5;
@@ -67,9 +66,6 @@ namespace gr {
 
             std::string to_hex(const std::string& s, bool upper = false, bool spaced = true);
 
-        protected:
-            void connect_child_workers(zmq::context_t& context);
-
 		public:
 
 			typedef boost::shared_ptr <tps_decoder_sink_impl> sptr;
@@ -89,6 +85,9 @@ namespace gr {
 			void log_decoder_msg(long unitId, const char* system_type, bool emergency);
 
             void process_message_queues(void);
+
+        protected:
+            void connect_child_workers(zmq::context_t& context);
 		};
 
 	} /* namespace blocks */

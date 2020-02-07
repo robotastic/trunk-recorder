@@ -25,7 +25,7 @@
 
 #include "decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
-#include "../trunk_zmq/trunk_zmq_worker.h"
+#include "trunk_zmq/trunk_zmq_worker.h"
 
 #include "decoders/signal_decoder_sink.h"
 #include "decoders/tps_decoder_sink.h"
@@ -33,7 +33,7 @@
 namespace gr {
 	namespace blocks {
 
-		class decoder_wrapper_impl : public decoder_wrapper, public trunk_zmq::trunk_zmq_worker
+		class decoder_wrapper_impl : public decoder_wrapper
 		{
 		private:
 			gr::blocks::signal_decoder_sink::sptr d_signal_decoder_sink;
