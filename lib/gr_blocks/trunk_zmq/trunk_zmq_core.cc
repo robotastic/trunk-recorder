@@ -9,6 +9,8 @@ namespace gr {
 			trunk_zmq_core::trunk_zmq_core(const char* bind_addr)
 				: d_background_thread(0)
 			{
+				BOOST_LOG_TRIVIAL(info) << "Creating trunk_zmq_core: " << bind_addr;
+
 				d_context = zmq::context_t();
 
 				// Public connections

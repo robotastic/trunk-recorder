@@ -54,10 +54,6 @@
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
 
-
-
-
-
 #include <osmosdr/source.h>
 
 #include <gnuradio/uhd/usrp_source.h>
@@ -66,7 +62,11 @@
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/gr_complex.h>
 #include <gnuradio/top_block.h>
+
+#include <gr_blocks/trunk_zmq/trunk_zmq_core.h>
+
 #include "formatter.h"
+#include "zmq_common.h"
 
 using namespace std;
 namespace logging  = boost::log;
@@ -88,6 +88,7 @@ SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 
 Config config;
+gr::blocks::trunk_zmq::trunk_zmq_core* zmq_core;
 
 string default_mode;
 
@@ -366,10 +367,6 @@ void load_config(string config_file)
       int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
 
-      bool enable_iq_tcp    = node.second.get<bool>("enableIQTCP", false);
-      std::string iq_tcp_host = node.second.get<std::string>("iqtcpHost", "127.0.0.1");
-      int iq_tcp_port = node.second.get<int>("iqtcpPort", 1234);
-
       std::string driver = node.second.get<std::string>("driver", "");
 
       if ((driver != "osmosdr") && (driver != "usrp")) {
@@ -426,7 +423,7 @@ void load_config(string config_file)
         error = 0;
       }
 
-      Source *source = new Source(center, rate, error, driver, device, enable_iq_tcp, iq_tcp_host, iq_tcp_port, &config, tb);
+      Source *source = new Source(center, rate, error, driver, device, &config, tb);
       BOOST_LOG_TRIVIAL(info) << "Max Freqency: " << FormatFreq(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min Freqency: " << FormatFreq(source->get_min_hz());
 
@@ -1320,7 +1317,29 @@ void socket_connected()
   stats.send_recorders(recorders);
 }
 
+void setup_zmq()
+{
+    zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("127.0.0.1");
+}
 
+void start_zmq()
+{
+    zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("127.0.0.1");
+
+    for (vector<Source*>::iterator it = sources.begin(); it != sources.end(); it++)
+    {
+        Source* source = *it;
+
+        zmq_core->register_worker(source);
+    }
+
+    for (vector<System*>::iterator it = systems.begin(); it != systems.end(); it++)
+    {
+        System* system = *it;
+
+        zmq_core->register_worker(system);
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -1371,6 +1390,7 @@ int main(int argc, char **argv)
     BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
   }
 
+  setup_zmq();
 
   tb = gr::make_top_block("Trunking");
   tb->start();
@@ -1381,7 +1401,6 @@ int main(int argc, char **argv)
 
 
   std::string uri = "ws://localhost:3005";
-
 
   load_config(config_file);
   stats.initialize(&config, &socket_connected);
@@ -1396,6 +1415,7 @@ int main(int argc, char **argv)
       keywords::auto_flush = true);
   }
 
+  start_zmq();
 
   if (monitor_system()) {
     tb->unlock();

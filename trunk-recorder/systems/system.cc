@@ -33,8 +33,14 @@ void System::set_min_duration(double duration) {
   this->min_call_duration = duration;
 }
 
+void System::connect_child_workers(zmq::context_t& context)
+{
+    //
+}
 
-System::System(int sys_num) {
+System::System(int sys_num)
+    :gr::blocks::trunk_zmq::trunk_zmq_worker()
+{
   this->sys_num = sys_num;
   sys_id = 0;
   wacn = 0;
