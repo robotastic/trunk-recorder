@@ -284,7 +284,7 @@ double Source::get_squelch_db() {
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
 
 	analog_recorder_sptr log = make_analog_recorder(this);
-	log->connect_worker(zmq_core->get_context());
+	//log->connect_worker(zmq_core->get_context());
 
 	analog_recorders.push_back(log);
 	tb->connect(source_block, 0, log, 0);
@@ -294,7 +294,7 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb)
 p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen) {
 
 	p25conventional_recorder_sptr log = make_p25conventional_recorder(this, delayopen);
-	log->connect_worker(zmq_core->get_context());
+	//log->connect_worker(zmq_core->get_context());
 
 	digital_recorders.push_back(log);
 	tb->connect(source_block, 0, log, 0);
@@ -338,7 +338,7 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
 	for (int i = 0; i < max_digital_recorders; i++) {
 		p25_recorder_sptr log = make_p25_recorder(this);
-		log->connect_worker(zmq_core->get_context());
+		//log->connect_worker(zmq_core->get_context());
 		digital_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);
 	}
@@ -349,7 +349,7 @@ void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
 
 	for (int i = 0; i < max_debug_recorders; i++) {
 		debug_recorder_sptr log = make_debug_recorder(this);
-		log->connect_worker(zmq_core->get_context());
+		//log->connect_worker(zmq_core->get_context());
 
 		debug_recorders.push_back(log);
 		tb->connect(source_block, 0, log, 0);

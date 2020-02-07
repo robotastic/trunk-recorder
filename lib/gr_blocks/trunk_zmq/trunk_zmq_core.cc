@@ -16,7 +16,7 @@ namespace gr {
 				BOOST_LOG_TRIVIAL(info) << "ZMQ Context created, creating XPUB";
 
 				// Public connections
-				d_clients = new zmq::socket_t(d_context, ZMQ_XPUB);
+				d_clients = new zmq::socket_t(d_context, ZMQ_PUB);
 				d_clients->bind(bind_addr);
 
 				BOOST_LOG_TRIVIAL(info) << "ZMQ XPUB created, creating XSUB";

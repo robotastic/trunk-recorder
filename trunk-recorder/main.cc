@@ -1388,7 +1388,7 @@ int main(int argc, char **argv)
     BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
   }
 
-  setup_zmq();
+  //setup_zmq();
 
   tb = gr::make_top_block("Trunking");
   tb->start();
@@ -1413,7 +1413,7 @@ int main(int argc, char **argv)
       keywords::auto_flush = true);
   }
 
-  start_zmq();
+  //start_zmq();
 
   if (monitor_system()) {
     tb->unlock();
