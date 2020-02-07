@@ -44,12 +44,12 @@
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
 #include "../state.h"
-
+#include <trunk_zmq/trunk_zmq_worker.h>
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
 
-class Recorder
+class Recorder:public trunk_zmq::trunk_zmq_worker
 {
 
 public:
@@ -88,7 +88,6 @@ struct DecimSettings
 protected:
 	int 	recording_count;
 	double	recording_duration;
-	std::string type;
 };
 
 

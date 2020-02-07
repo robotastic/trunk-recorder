@@ -28,6 +28,7 @@
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/hier_block2.h>
+#include "../../trunk_zmq/trunk_zmq_worker.h"
 
 namespace gr {
     namespace blocks {
@@ -39,7 +40,7 @@ namespace gr {
          * \details
          * Values must be floats within [-1;1].
          */
-        class BLOCKS_API tps_decoder_sink : virtual public hier_block2
+        class BLOCKS_API tps_decoder_sink : virtual public hier_block2, virtual public trunk_zmq::trunk_zmq_worker
         {
         public:
             // gr::blocks::wavfile_sink::sptr
@@ -53,6 +54,7 @@ namespace gr {
             virtual void end_call() {};
 
             virtual void process_message_queues(void) {};
+
         };
 
     } /* namespace blocks */

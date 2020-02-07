@@ -35,10 +35,13 @@
 #include <gnuradio/message.h>
 #include <gnuradio/blocks/copy.h>
 
+#include "../../trunk_zmq/trunk_zmq_worker.h"
+#include <zmq.hpp>
+
 namespace gr {
 	namespace blocks {
 
-		class tps_decoder_sink_impl : public tps_decoder_sink
+		class tps_decoder_sink_impl : public tps_decoder_sink, public trunk_zmq::trunk_zmq_worker
 		{
 		private:
             const int phase1_samples_per_symbol = 5;
@@ -63,6 +66,10 @@ namespace gr {
             unsigned long bitset_shift_mask(boost::dynamic_bitset<>& tsbk, int shift, unsigned long long mask);
 
             std::string to_hex(const std::string& s, bool upper = false, bool spaced = true);
+
+        protected:
+            void connect_child_workers(zmq::context_t& context);
+
 		public:
 
 			typedef boost::shared_ptr <tps_decoder_sink_impl> sptr;
