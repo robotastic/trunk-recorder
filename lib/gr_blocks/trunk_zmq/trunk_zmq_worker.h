@@ -5,8 +5,7 @@
 #include <string>
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
-
-#define INPROC_ADDR "inproc://workers"
+#include "trunk_zmq_common.h"
 
 namespace gr {
 	namespace blocks {
@@ -27,6 +26,7 @@ namespace gr {
 
 			protected:
 				int broadcast_message(const char* msg);
+				int broadcast_decoder_msg(std::string system_name, long unitId, const char* system_type, bool emergency, int unit_id_hex_digits);
 
 				virtual void connect_child_workers(zmq::context_t& context);
 			};

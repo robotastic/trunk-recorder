@@ -27,6 +27,7 @@ namespace gr {
 				zmq::context_t d_context;
 				zmq::socket_t* d_clients;
 				zmq::socket_t* d_workers;
+				zmq::socket_t* d_worker_capture;
 				pthread_t d_background_thread;
 
 				static void* _do_background_thread(void* ctx);

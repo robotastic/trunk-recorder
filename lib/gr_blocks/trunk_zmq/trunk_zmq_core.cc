@@ -1,5 +1,6 @@
 #include "trunk_zmq_core.h"
 #include "trunk_zmq_worker.h"
+#include "trunk_zmq_common.h"
 
 namespace gr {
 	namespace blocks {
@@ -14,9 +15,13 @@ namespace gr {
 				d_clients = new zmq::socket_t(d_context, ZMQ_XPUB);
 				d_clients->bind(bind_addr);
 
-				// Internal connections
+				// Internal worker connections
 				d_workers = new zmq::socket_t(d_context, ZMQ_XSUB);
-				d_workers->bind(INPROC_ADDR);
+				d_workers->bind(INPROC_WORKER_ADDR);
+
+				// Internal worker capture connections
+				d_worker_capture = new zmq::socket_t(d_context, ZMQ_PUB);
+				d_worker_capture->bind(INPROC_WORKER_CAPTURE_ADDR);
 			}
 
 			trunk_zmq_core::~trunk_zmq_core()
@@ -40,7 +45,7 @@ namespace gr {
 
 			void trunk_zmq_core::do_background_thread()
 			{
-				zmq::proxy(static_cast<void*>(d_clients), static_cast<void*>(d_workers), nullptr);
+				zmq::proxy(static_cast<void*>(d_clients), static_cast<void*>(d_workers), static_cast<void*>(d_worker_capture));
 			}
 
 			bool trunk_zmq_core::start()

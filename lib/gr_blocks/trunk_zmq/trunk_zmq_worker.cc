@@ -1,3 +1,6 @@
+#include <string>
+#include <sstream>
+
 #include "trunk_zmq_worker.h"
 #include "zhelpers.h"
 
@@ -32,7 +35,7 @@ namespace gr {
 				try {
 					// Worker socket, publishes to the trunk_zmq_core::d_workers
 					d_worker = new zmq::socket_t(context, ZMQ_PUB);
-					d_worker->bind(INPROC_ADDR);
+					d_worker->bind(INPROC_WORKER_ADDR);
 
 					connect_child_workers(context);
 
@@ -50,9 +53,35 @@ namespace gr {
 
 			int trunk_zmq_worker::broadcast_message(const char* msg)
 			{
-				if (!d_zmq_running) return 0;
+				if (d_zmq_running)
+				{
+					BOOST_LOG_TRIVIAL(info) << "Broadcast: " << msg;
+					return s_send(d_worker, msg);
+				}
+				else
+				{
+					BOOST_LOG_TRIVIAL(warning) << "Unable to Broadcast: " << msg;
+					return 0;
+				}
+			}
 
-				return s_send(d_worker, msg);
+			int trunk_zmq_worker::broadcast_decoder_msg(std::string system_name, long unitId, const char* system_type, bool emergency, int unit_id_hex_digits)
+			{
+				std::stringstream ss;
+
+				ss << "SIGNAL|" << system_name << "|" << system_type << "|";
+
+				if (unit_id_hex_digits > 0)
+				{
+					ss << std::setfill('0') << std::setw(unit_id_hex_digits) << std::right << std::hex << unitId;
+				}
+				else
+				{
+					ss << unitId;
+				}
+				ss << "|EMER=" << (emergency ? "Y" : "N");
+
+				return broadcast_message(ss.str().c_str());
 			}
 		}
 	}
