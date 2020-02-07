@@ -13,17 +13,25 @@ namespace gr {
 
 				d_context = zmq::context_t();
 
+				BOOST_LOG_TRIVIAL(info) << "ZMQ Context created, creating XPUB";
+
 				// Public connections
 				d_clients = new zmq::socket_t(d_context, ZMQ_XPUB);
 				d_clients->bind(bind_addr);
+
+				BOOST_LOG_TRIVIAL(info) << "ZMQ XPUB created, creating XSUB";
 
 				// Internal worker connections
 				d_workers = new zmq::socket_t(d_context, ZMQ_XSUB);
 				d_workers->bind(INPROC_WORKER_ADDR);
 
+				BOOST_LOG_TRIVIAL(info) << "ZMQ XSUB created, creating PUB";
+
 				// Internal worker capture connections
 				d_worker_capture = new zmq::socket_t(d_context, ZMQ_PUB);
 				d_worker_capture->bind(INPROC_WORKER_CAPTURE_ADDR);
+
+				BOOST_LOG_TRIVIAL(info) << "ZMQ Core Setup!";
 			}
 
 			trunk_zmq_core::~trunk_zmq_core()

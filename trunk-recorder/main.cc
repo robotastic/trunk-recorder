@@ -1319,7 +1319,7 @@ void socket_connected()
 
 void setup_zmq()
 {
-    zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("tcp://127.0.0.1");
+    zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("tcp://*:5580");
 }
 
 void start_zmq()
