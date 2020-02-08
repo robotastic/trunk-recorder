@@ -332,15 +332,12 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   }
 }
 
-void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
-  max_debug_recorders = r;
-
-  for (int i = 0; i < max_debug_recorders; i++) {
-    debug_recorder_sptr log = make_debug_recorder(this);
-
+void Source::create_debug_recorder(gr::top_block_sptr tb, int source_num) {
+    max_debug_recorders = 1;
+    debug_recorder_port = config->debug_recorder_port + source_num;
+    debug_recorder_sptr log = make_debug_recorder(this, config->debug_recorder_address, debug_recorder_port);
     debug_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
-  }
 }
 
 Recorder * Source::get_debug_recorder()
@@ -358,7 +355,9 @@ Recorder * Source::get_debug_recorder()
   }
   return NULL;
 }
-
+int Source::get_debug_recorder_port() {
+  return debug_recorder_port;
+}
 void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
   max_sigmf_recorders = r;
 
@@ -511,6 +510,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   mix_gain = 0;
   if_gain = 0;
   src_num = src_counter++;
+  max_digital_recorders =0 ;
+  max_debug_recorders = 0;
+  max_sigmf_recorders = 0;
+  max_analog_recorders = 0;
+  debug_recorder_port = 0;
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;

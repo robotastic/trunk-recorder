@@ -4,9 +4,9 @@
 
 //static int rec_counter=0;
   
-debug_recorder_sptr make_debug_recorder(Source *src)
+debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port)
 {
-  return gnuradio::get_initial_sptr(new debug_recorder(src));
+  return gnuradio::get_initial_sptr(new debug_recorder(src, address, port));
 }
 void debug_recorder::generate_arb_taps() {
 
@@ -143,7 +143,7 @@ void debug_recorder::initialize_prefilter() {
 }
 
 
-debug_recorder::debug_recorder(Source *src)
+debug_recorder::debug_recorder(Source *src, std::string address, int port)
   : gr::hier_block2("debug_recorder",
                     gr::io_signature::make(1, 1, sizeof(gr_complex)),
                     gr::io_signature::make(0, 0, sizeof(float))), Recorder("D")
@@ -154,6 +154,7 @@ debug_recorder::debug_recorder(Source *src)
   config = source->get_config();
   input_rate = source->get_rate();
   talkgroup = 0;
+  port = port;
 
 
   state = inactive;
@@ -166,7 +167,7 @@ debug_recorder::debug_recorder(Source *src)
   starttime = time(NULL);
 
   initialize_prefilter();
-  udp_sink = gr::blocks::udp_sink::make(sizeof(gr_complex), "127.0.0.1", 1234);
+  udp_sink = gr::blocks::udp_sink::make(sizeof(gr_complex), address, port);
   connect(arb_resampler,  0,  udp_sink,  0);
 
 }

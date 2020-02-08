@@ -62,14 +62,14 @@
 class Source;
 class debug_recorder;
 typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
-debug_recorder_sptr make_debug_recorder(Source *src);
+debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port);
 #include "../source.h"
 
 class debug_recorder : public gr::hier_block2, public Recorder
 {
-								friend debug_recorder_sptr make_debug_recorder(Source *src);
+								friend debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port);
 protected:
-								debug_recorder(Source *src);
+								debug_recorder(Source *src, std::string address, int port);
 
 public:
 								~debug_recorder();
@@ -99,6 +99,7 @@ private:
 								bool qpsk_mod;
 								int silence_frames;
 								long talkgroup;
+								int port;
 								time_t timestamp;
 								time_t starttime;
 
