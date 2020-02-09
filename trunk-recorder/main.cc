@@ -519,11 +519,11 @@ void load_config(string config_file)
   }
   if (config.debug_recorder) {
       BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nDEBUG RECORDER\n-------------------------------------\n";
-       BOOST_LOG_TRIVIAL(info) << "  Address: " << config.debug_recorder_address << "\n";
+       BOOST_LOG_TRIVIAL(info) << "  Address: " << config.debug_recorder_address;
 
       for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
         Source *source = *it;
-        BOOST_LOG_TRIVIAL(info) << "  " << source->get_driver() << " - " << source->get_device() << " [ " << FormatFreq(source->get_center()) << " ]  Port: " << source->get_debug_recorder_port() << "\n";
+        BOOST_LOG_TRIVIAL(info) << "  " << source->get_driver() << " - " << source->get_device() << " [ " << FormatFreq(source->get_center()) << " ]  Port: " << source->get_debug_recorder_port();
       }
        BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
