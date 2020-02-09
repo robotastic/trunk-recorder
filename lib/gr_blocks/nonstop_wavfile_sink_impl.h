@@ -73,6 +73,8 @@ protected:
 	 */
 	void close_wav();
 
+	void broadcast_file_status(const char* status, const char* filename);
+
 protected:
 	bool stop();
 	bool open_internal(const char *filename);

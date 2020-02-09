@@ -75,6 +75,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   : sync_block("nonstop_wavfile_sink",
                io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
+    trunk_zmq::trunk_zmq_worker(),
   d_sample_rate(sample_rate), d_nchans(n_channels),
   d_use_float(use_float), d_fp(0)
 {
@@ -82,10 +83,19 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
   d_bytes_per_sample = bits_per_sample / 8;
+
+  set_worker_type("nonstop_wavefile_sink");
 }
 
 char * nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
+}
+
+void nonstop_wavfile_sink_impl::broadcast_file_status(const char* status, const char* filename)
+{
+    std::stringstream ss;
+    ss << "WAVFILE|" << status << "|" << filename;
+    broadcast_message(ss.str().c_str());
 }
 
 bool nonstop_wavfile_sink_impl::open(const char *filename) {
@@ -173,6 +183,8 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
     d_normalize_shift = 0;
   }
 
+  broadcast_file_status("OPEN", filename);
+
   return true;
 }
 
@@ -201,6 +213,8 @@ nonstop_wavfile_sink_impl::close_wav()
 
   // std::cout <<  "Closing wav File - byte count: " << byte_count << " samples:
   // " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
+
+  broadcast_file_status("CLOSE", get_filename());
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl()

@@ -62,7 +62,7 @@ namespace gr {
 				while (d_should_run) {
 					char* msg = s_recv(d_clients, ZMQ_NOBLOCK);
 					if (msg != nullptr) {
-						BOOST_LOG_TRIVIAL(info) << "MSG: " << msg;
+						BOOST_LOG_TRIVIAL(info) << "CORE MSG: " << msg;
 						s_send(d_pub_server, msg, ZMQ_NOBLOCK);
 						free(msg);
 					} else {
