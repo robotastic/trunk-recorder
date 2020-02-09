@@ -73,8 +73,8 @@ namespace gr {
 
         void decoder_wrapper_impl::connect_child_workers(zmq::context_t& context)
         {
-            //d_signal_decoder_sink->connect_worker(context);
-            //d_tps_decoder_sink->connect_worker(context);
+            d_signal_decoder_sink->connect_worker(context);
+            d_tps_decoder_sink->connect_worker(context);
         }
 
         void decoder_wrapper_impl::set_mdc_enabled(bool b) { d_signal_decoder_sink->set_mdc_enabled(b); };
