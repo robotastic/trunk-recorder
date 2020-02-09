@@ -2,7 +2,7 @@
 #include "analog_recorder.h"
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
-#include "../../lib/gr_blocks/signal_decoder_sink_impl.h"
+#include "../../lib/gr_blocks/decoder_wrapper_impl.h"
 
 using namespace std;
 
@@ -167,7 +167,9 @@ analog_recorder::analog_recorder(Source *src)
 
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
-  decoder_sink = gr::blocks::signal_decoder_sink_impl::make(8000);
+  BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
+  decoder_sink = gr::blocks::decoder_wrapper_impl::make(8000, src->get_num());
+  BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
 
   // Try and get rid of the FSK wobble
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
@@ -227,6 +229,12 @@ void analog_recorder::stop() {
   decoder_sink->set_mdc_enabled(false);
   decoder_sink->set_fsync_enabled(false);
   decoder_sink->set_star_enabled(false);
+  decoder_sink->set_tps_enabled(false);
+}
+
+void analog_recorder::process_message_queues()
+{
+    decoder_sink->process_message_queues();
 }
 
 bool analog_recorder::is_analog() {
@@ -289,10 +297,7 @@ void analog_recorder::tune_offset(double f) {
 void analog_recorder::start(Call *call) {
   starttime = time(NULL);
 
-  decoder_sink->set_mdc_enabled(call->get_system()->get_mdc_enabled());
-  decoder_sink->set_fsync_enabled(call->get_system()->get_fsync_enabled());
-  decoder_sink->set_star_enabled(call->get_system()->get_star_enabled());
-
+  decoder_sink->set_call(call);
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 

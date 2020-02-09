@@ -12,7 +12,6 @@
 #include "recorders/debug_recorder.h"
 #include "recorders/sigmf_recorder.h"
 
-
 class Source
 {
 								

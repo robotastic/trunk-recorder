@@ -52,6 +52,7 @@ System::System(int sys_num) {
   d_mdc_enabled = false;
   d_fsync_enabled = false;
   d_star_enabled = false;
+  d_tps_enabled = false;
   retune_attempts = 0;
   message_count = 0;
 }
@@ -128,10 +129,12 @@ void System::set_call_log(bool call_log) {
 void System::set_mdc_enabled(bool b) { d_mdc_enabled = b; };
 void System::set_fsync_enabled(bool b) { d_fsync_enabled = b; };
 void System::set_star_enabled(bool b) { d_star_enabled = b; };
+void System::set_tps_enabled(bool b) { d_tps_enabled = b; }
 
 bool System::get_mdc_enabled() { return d_mdc_enabled; };
 bool System::get_fsync_enabled() { return d_fsync_enabled; };
 bool System::get_star_enabled() { return d_star_enabled; };
+bool System::get_tps_enabled() { return d_tps_enabled; };
 
 bool System::get_audio_archive() {
   return this->audio_archive;

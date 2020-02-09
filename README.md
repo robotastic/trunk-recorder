@@ -129,6 +129,7 @@ Here are the different arguments:
    - **decodeMDC** - *(Optional, For conventional systems)* enable the MDC-1200 signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeFSync** - *(Optional, For conventional systems)* enable the Fleet Sync signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeStar** - *(Optional, For conventional systems)* enable the Star signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
+   - **decodeTPS** - *(Optional, For conventional systems)* enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile** the options are *digital* or *analog*.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
@@ -141,6 +142,7 @@ Here are the different arguments:
  - **debugRecorder** - Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion. The setting is either *true* or *false* and the default is *false*.
  - **debugRecorderPort** - The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. The default value is *1234*. 
  - **debugRecorderAddress** - The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder.
+
 
 **talkgroupsFile**
 

@@ -132,6 +132,39 @@ std::vector<float>design_filter(double interpolation, double deci) {
   return result;
 }
 
+void set_logging_level(std::string log_level)
+{
+    boost::log::trivial::severity_level sev_level = boost::log::trivial::info;
+
+    if (log_level == "trace")
+        sev_level = boost::log::trivial::trace;
+    else if (log_level == "debug")
+        sev_level = boost::log::trivial::debug;
+    else if (log_level == "info")
+        sev_level = boost::log::trivial::info;
+    else if (log_level == "warning")
+        sev_level = boost::log::trivial::warning;
+    else if (log_level == "error")
+        sev_level = boost::log::trivial::error;
+    else if (log_level == "fatal")
+        sev_level = boost::log::trivial::fatal;
+    else
+    {
+        BOOST_LOG_TRIVIAL(error) << "set_logging_level: Unknown logging level: " << log_level;
+        return;
+    }
+
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= sev_level
+
+    );
+
+    boost::log::core::get()->set_filter(
+        boost::log::trivial::severity >= sev_level
+    );
+}
+
 /**
  * Method name: load_config()
  * Description: <#description#>
@@ -259,6 +292,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
       system->set_star_enabled(node.second.get<bool>("decodeStar", false));
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
+      system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")){
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
@@ -365,7 +400,6 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder",  0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0); 
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
-
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
@@ -509,8 +543,9 @@ void load_config(string config_file)
 
     statusAsString = pt.get<bool>("statusAsString", statusAsString);
     BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
-    
-
+    std::string log_level = pt.get<std::string>("logLevel", "info");
+    BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
+    set_logging_level(log_level);
   }
   catch (std::exception const& e)
   {
@@ -667,6 +702,22 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     return false;
   }
   return false;
+}
+
+void process_message_queues() {
+    for (std::vector<System*>::iterator it = systems.begin(); it != systems.end(); ++it) {
+        System* sys = (System*)*it;
+
+        for (std::vector<analog_recorder_sptr>::iterator arit = sys->conventional_recorders.begin(); arit != sys->conventional_recorders.end(); ++arit) {
+            analog_recorder_sptr ar = (analog_recorder_sptr)*arit;
+            ar->process_message_queues();
+        }
+
+        for (std::vector<p25conventional_recorder_sptr>::iterator pit = sys->conventionalP25_recorders.begin(); pit != sys->conventionalP25_recorders.end(); ++pit) {
+            p25conventional_recorder_sptr pr = (p25conventional_recorder_sptr)*pit;
+            pr->process_message_queues();
+        }
+    }
 }
 
 void stop_inactive_recorders() {
@@ -1073,6 +1124,8 @@ void monitor_messages() {
       printf("\n Signal caught!\n");
       return;
     }
+
+    process_message_queues();
 
     if (config.status_server != "") {
       stats.poll_one();
