@@ -266,7 +266,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       }
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
-      source->create_debug_recorders(tb, debug_recorders);
+      source->create_debug_recorder(tb, debug_recorders);
       source->create_sigmf_recorders(tb, sigmf_recorders);
       sources.push_back(source);
     }

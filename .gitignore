@@ -29,3 +29,5 @@ cmake-build-debug/
 /.vscode/
 /.vs/
 /out/
+top_block.py
+debug_recorder.py

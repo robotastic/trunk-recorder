@@ -27,7 +27,6 @@
 
 #include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/pwr_squelch_cc.h>
-#include <gnuradio/analog/pwr_squelch_ff.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
 #include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/digital/diff_phasor_cc.h>
