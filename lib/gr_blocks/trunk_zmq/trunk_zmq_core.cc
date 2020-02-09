@@ -59,6 +59,7 @@ namespace gr {
 
 			void trunk_zmq_core::do_background_thread()
 			{
+				BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE Background thread started.";
 				while (d_should_run) {
 					char* msg = s_recv(d_clients, ZMQ_NOBLOCK);
 					if (msg != nullptr) {
@@ -69,6 +70,7 @@ namespace gr {
 						boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 					}
 				}
+				BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE Background thread stopped.";
 			}
 
 			bool trunk_zmq_core::start()

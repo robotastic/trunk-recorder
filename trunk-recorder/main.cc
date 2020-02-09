@@ -1362,6 +1362,9 @@ void setup_zmq()
 
 void start_zmq()
 {
+	BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE: Starting...";
+	zmq_core->start();
+
 	for (vector<Source*>::iterator it = sources.begin(); it != sources.end(); it++)
 	{
 		Source* source = *it;
@@ -1376,7 +1379,7 @@ void start_zmq()
 		zmq_core->register_worker(system);
 	}
 
-	zmq_core->start();
+	BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE: Started!";
 }
 
 int main(int argc, char** argv)
