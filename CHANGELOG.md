@@ -1,5 +1,8 @@
 Trunk Recorder ChangeLog
 ========================
+### Version 3.1.2
+* Added support for Motorola TPS Signaling
+* Made Debug Recorder work over a nextwork connection
 
 ### Version 3.1.1
 * Switched to use `fdkaac` & `sox` instead of `ffmpeg` to compress audio files because it is a lot easier to install
