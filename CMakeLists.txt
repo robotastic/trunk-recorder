@@ -214,10 +214,12 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/unit_tags.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
-  lib/gr_blocks/fsync_decode.cc
-  lib/gr_blocks/mdc_decode.cc
-  lib/gr_blocks/star_decode.cc
-  lib/gr_blocks/signal_decoder_sink_impl.cc
+  lib/gr_blocks/decoders/fsync_decode.cc
+  lib/gr_blocks/decoders/mdc_decode.cc
+  lib/gr_blocks/decoders/star_decode.cc
+  lib/gr_blocks/decoders/signal_decoder_sink_impl.cc
+  lib/gr_blocks/decoders/tps_decoder_sink_impl.cc
+  lib/gr_blocks/decoder_wrapper_impl.cc
   )
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")

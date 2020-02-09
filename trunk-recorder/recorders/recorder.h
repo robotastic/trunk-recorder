@@ -83,6 +83,8 @@ struct DecimSettings
 	static int rec_counter;
 	virtual boost::property_tree::ptree get_stats();
 
+	virtual void process_message_queues(void) {};
+
 protected:
 	int 	recording_count;
 	double	recording_duration;

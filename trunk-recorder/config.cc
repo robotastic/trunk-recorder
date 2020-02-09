@@ -85,6 +85,8 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
       system->set_star_enabled(node.second.get<bool>("decodeStar", false));
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
+      system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
       system->set_min_duration(node.second.get<double>("minDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
       systems.push_back(system);
@@ -215,7 +217,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
         error = 0;
       }
 
-      Source *source = new Source(center, rate, error, driver, device, &config);
+      Source *source = new Source(center, rate, error, driver, device, &config, tb);
       BOOST_LOG_TRIVIAL(info) << "Max HZ: " << FormatFreqHz(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min HZ: " << FormatFreqHz(source->get_min_hz());
 
@@ -264,7 +266,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       }
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
-      source->create_debug_recorders(tb, debug_recorders);
+      source->create_debug_recorder(tb, debug_recorders);
       source->create_sigmf_recorders(tb, sigmf_recorders);
       sources.push_back(source);
     }

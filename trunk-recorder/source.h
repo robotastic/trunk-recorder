@@ -12,7 +12,6 @@
 #include "recorders/debug_recorder.h"
 #include "recorders/sigmf_recorder.h"
 
-
 class Source
 {
 								
@@ -40,6 +39,7 @@ class Source
 								int max_debug_recorders;
 								int max_sigmf_recorders;
 								int max_analog_recorders;
+								int debug_recorder_port;
 								bool qpsk_mod;
 								int silence_frames;
 								Config * config;
@@ -100,6 +100,7 @@ public:
 								void print_recorders();
 								void tune_digital_recorders();
 								int debug_recorder_count();
+								int get_debug_recorder_port();
 								int sigmf_recorder_count();
 								int digital_recorder_count();
 								int analog_recorder_count();
@@ -110,7 +111,7 @@ public:
 								Recorder * get_analog_recorder(int priority);
 								void create_digital_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_digital_recorder(int priority);
-								void create_debug_recorders(gr::top_block_sptr tb, int r);
+								void create_debug_recorder(gr::top_block_sptr tb, int source_num);
 								Recorder * get_debug_recorder();
 								void create_sigmf_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_sigmf_recorder();

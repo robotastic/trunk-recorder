@@ -132,6 +132,39 @@ std::vector<float>design_filter(double interpolation, double deci) {
   return result;
 }
 
+void set_logging_level(std::string log_level)
+{
+    boost::log::trivial::severity_level sev_level = boost::log::trivial::info;
+
+    if (log_level == "trace")
+        sev_level = boost::log::trivial::trace;
+    else if (log_level == "debug")
+        sev_level = boost::log::trivial::debug;
+    else if (log_level == "info")
+        sev_level = boost::log::trivial::info;
+    else if (log_level == "warning")
+        sev_level = boost::log::trivial::warning;
+    else if (log_level == "error")
+        sev_level = boost::log::trivial::error;
+    else if (log_level == "fatal")
+        sev_level = boost::log::trivial::fatal;
+    else
+    {
+        BOOST_LOG_TRIVIAL(error) << "set_logging_level: Unknown logging level: " << log_level;
+        return;
+    }
+
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= sev_level
+
+    );
+
+    boost::log::core::get()->set_filter(
+        boost::log::trivial::severity >= sev_level
+    );
+}
+
 /**
  * Method name: load_config()
  * Description: <#description#>
@@ -141,6 +174,7 @@ void load_config(string config_file)
 {
   string system_modulation;
   int    sys_count = 0;
+  int    source_count = 0;
 
   try
   {
@@ -150,6 +184,11 @@ void load_config(string config_file)
     boost::property_tree::read_json(config_file, pt);
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n" << sys_count;
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n" << sys_count;
+    
+    config.debug_recorder   = pt.get<bool>("debugRecorder", 0);
+    config.debug_recorder_address = pt.get<std::string>("debugRecorderAddress", "127.0.0.1");
+    config.debug_recorder_port = pt.get<int>("debugRecorderPort", 1234);
+    
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))
     {
@@ -253,6 +292,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
       system->set_star_enabled(node.second.get<bool>("decodeStar", false));
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
+      system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
+      BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")){
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
@@ -297,6 +338,8 @@ void load_config(string config_file)
       system->set_min_duration(node.second.get<double>("minDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
 
+
+
       systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);
     }
@@ -327,7 +370,6 @@ void load_config(string config_file)
 
       std::string antenna   = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
-      int debug_recorders   = node.second.get<int>("debugRecorders", 0);
       int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
 
@@ -355,10 +397,9 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
-      BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
+      BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder",  0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0); 
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
-
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
@@ -451,8 +492,11 @@ void load_config(string config_file)
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_sigmf_recorders(tb, sigmf_recorders);
-      source->create_debug_recorders(tb, debug_recorders);
+      if (config.debug_recorder) {
+        source->create_debug_recorder(tb, source_count);
+      }
       sources.push_back(source);
+      source_count++;
       BOOST_LOG_TRIVIAL(info) <<  "\n-------------------------------------\n\n";
     }
 
@@ -499,10 +543,24 @@ void load_config(string config_file)
 
     statusAsString = pt.get<bool>("statusAsString", statusAsString);
     BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
+    std::string log_level = pt.get<std::string>("logLevel", "info");
+    BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
+    set_logging_level(log_level);
   }
   catch (std::exception const& e)
   {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
+    exit(0);
+  }
+  if (config.debug_recorder) {
+      BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nDEBUG RECORDER\n-------------------------------------\n";
+       BOOST_LOG_TRIVIAL(info) << "  Address: " << config.debug_recorder_address;
+
+      for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+        Source *source = *it;
+        BOOST_LOG_TRIVIAL(info) << "  " << source->get_driver() << " - " << source->get_device() << " [ " << FormatFreq(source->get_center()) << " ]  Port: " << source->get_debug_recorder_port();
+      }
+       BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
 }
 
@@ -645,6 +703,22 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     return false;
   }
   return false;
+}
+
+void process_message_queues() {
+    for (std::vector<System*>::iterator it = systems.begin(); it != systems.end(); ++it) {
+        System* sys = (System*)*it;
+
+        for (std::vector<analog_recorder_sptr>::iterator arit = sys->conventional_recorders.begin(); arit != sys->conventional_recorders.end(); ++arit) {
+            analog_recorder_sptr ar = (analog_recorder_sptr)*arit;
+            ar->process_message_queues();
+        }
+
+        for (std::vector<p25conventional_recorder_sptr>::iterator pit = sys->conventionalP25_recorders.begin(); pit != sys->conventionalP25_recorders.end(); ++pit) {
+            p25conventional_recorder_sptr pr = (p25conventional_recorder_sptr)*pit;
+            pr->process_message_queues();
+        }
+    }
 }
 
 void stop_inactive_recorders() {
@@ -1051,6 +1125,8 @@ void monitor_messages() {
       printf("\n Signal caught!\n");
       return;
     }
+
+    process_message_queues();
 
     if (config.status_server != "") {
       stats.poll_one();

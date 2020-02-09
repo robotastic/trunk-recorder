@@ -241,7 +241,7 @@ static void _dispatch(fsync_decoder_t *decoder, int x)
 			offset = 11 + (6*((i/6)+1)) - (i%6);
 			if(offset >= msglen)
 				return;	// truncated message (XXX could instead dispatch what we have but with a truncated flag
-			if(i >= sizeof(payload))
+			if((unsigned int)i >= sizeof(payload))
 				return; // should never happen unless paylen is corrupted
 
 			payload[i] = msg[offset];
@@ -264,7 +264,7 @@ static void _procbits(fsync_decoder_t *decoder, int x)
 
 	crc = _fsync_crc(decoder->word1[x], decoder->word2[x]);
 
-	if(crc == (decoder->word2[x] & 0x0000ffff))	// valid fs crc?
+	if(crc == (int)(decoder->word2[x] & 0x0000ffff))	// valid fs crc?
 	{
 		decoder->message[x][decoder->msglen[x]++] = (decoder->word1[x] >> 24) & 0xff;
 		decoder->message[x][decoder->msglen[x]++] = (decoder->word1[x] >> 16) & 0xff;
@@ -452,6 +452,7 @@ static void _shiftin(fsync_decoder_t *decoder, int x)
 	}
 }
 
+#ifdef ZEROCROSSING
 static void _zcproc(fsync_decoder_t *decoder, int x)
 {
 	// XXX optimize the 2400 case
@@ -486,16 +487,20 @@ static void _zcproc(fsync_decoder_t *decoder, int x)
 	}
 	_shiftin(decoder, x);
 }
-
+#endif
 
 int fsync_decoder_process_samples(fsync_decoder_t *decoder,
                                 fsync_sample_t *samples,
                                 int numSamples)
 {
-	fsync_int_t i, j, k;
+	fsync_int_t i, j;
 	fsync_sample_t sample;
 	fsync_float_t value;
+
+#ifdef ZEROCROSSING
+	fsync_int_t k;
 	fsync_float_t delta;
+#endif
 
 	if(!decoder)
 		return -1;
