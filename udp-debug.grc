@@ -46,11 +46,7 @@
     </param>
     <param>
       <key>id</key>
-<<<<<<< Updated upstream
-      <value>top_block</value>
-=======
       <value>debug_recorder</value>
->>>>>>> Stashed changes
     </param>
     <param>
       <key>max_nouts</key>
@@ -86,11 +82,7 @@
     </param>
     <param>
       <key>title</key>
-<<<<<<< Updated upstream
-      <value></value>
-=======
       <value>Trunk Recorder Debug Monitor</value>
->>>>>>> Stashed changes
     </param>
     <param>
       <key>placement</key>
@@ -98,37 +90,18 @@
     </param>
   </block>
   <block>
-<<<<<<< Updated upstream
-    <key>variable_qtgui_entry</key>
-=======
     <key>variable</key>
->>>>>>> Stashed changes
     <param>
       <key>comment</key>
       <value></value>
     </param>
     <param>
-<<<<<<< Updated upstream
-      <key>value</key>
-      <value>"127.0.0.1"</value>
-    </param>
-    <param>
-=======
->>>>>>> Stashed changes
       <key>_enabled</key>
       <value>True</value>
     </param>
     <param>
       <key>_coordinate</key>
-<<<<<<< Updated upstream
-      <value>(280, 84)</value>
-    </param>
-    <param>
-      <key>gui_hint</key>
-      <value></value>
-=======
       <value>(136, 152)</value>
->>>>>>> Stashed changes
     </param>
     <param>
       <key>_rotation</key>
@@ -139,17 +112,8 @@
       <value>address</value>
     </param>
     <param>
-<<<<<<< Updated upstream
-      <key>label</key>
-      <value></value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>string</value>
-=======
       <key>value</key>
       <value>"0.0.0.0"</value>
->>>>>>> Stashed changes
     </param>
   </block>
   <block>
@@ -168,11 +132,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-<<<<<<< Updated upstream
-      <value>(272, 160)</value>
-=======
       <value>(256, 148)</value>
->>>>>>> Stashed changes
     </param>
     <param>
       <key>gui_hint</key>
@@ -207,11 +167,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-<<<<<<< Updated upstream
-      <value>(472, 84)</value>
-=======
       <value>(136, 220)</value>
->>>>>>> Stashed changes
     </param>
     <param>
       <key>_rotation</key>
@@ -227,8 +183,6 @@
     </param>
   </block>
   <block>
-<<<<<<< Updated upstream
-=======
     <key>note</key>
     <param>
       <key>alias</key>
@@ -260,7 +214,6 @@
     </param>
   </block>
   <block>
->>>>>>> Stashed changes
     <key>blocks_udp_source</key>
     <param>
       <key>alias</key>
@@ -371,11 +324,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-<<<<<<< Updated upstream
-      <value>(584, 240)</value>
-=======
       <value>(656, 176)</value>
->>>>>>> Stashed changes
     </param>
     <param>
       <key>gui_hint</key>
