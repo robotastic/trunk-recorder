@@ -1375,6 +1375,8 @@ void start_zmq()
 
 		zmq_core->register_worker(system);
 	}
+
+	zmq_core->start();
 }
 
 int main(int argc, char** argv)
