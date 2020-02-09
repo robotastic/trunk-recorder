@@ -493,7 +493,7 @@ Config  * Source::get_config() {
   return config;
 }
 
-Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg, gr::top_block_sptr tb)
+Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg)
 {
   rate   = r;
   center = c;

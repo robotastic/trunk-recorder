@@ -419,7 +419,7 @@ void load_config(string config_file)
         error = 0;
       }
 
-      Source *source = new Source(center, rate, error, driver, device, &config, tb);
+      Source *source = new Source(center, rate, error, driver, device, &config);
       BOOST_LOG_TRIVIAL(info) << "Max Freqency: " << FormatFreq(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min Freqency: " << FormatFreq(source->get_min_hz());
 

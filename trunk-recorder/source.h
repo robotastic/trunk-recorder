@@ -55,7 +55,7 @@ class Source
 public:
 								int get_num_available_recorders();
 								int get_num();
-								Source(double c, double r, double e, std::string driver, std::string device, Config *cfg, gr::top_block_sptr tb);
+								Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
 								gr::basic_block_sptr get_src_block();
 								double get_min_hz();
 								double get_max_hz();
