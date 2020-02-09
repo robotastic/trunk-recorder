@@ -1382,6 +1382,15 @@ void start_zmq()
 	BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE: Started!";
 }
 
+void stop_zmq()
+{
+	BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE: Stopping...";
+
+	zmq_core->stop();
+
+	BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE: Stopped!";
+}
+
 int main(int argc, char** argv)
 {
 	//BOOST_STATIC_ASSERT(true) __attribute__((unused));
@@ -1480,6 +1489,8 @@ int main(int argc, char** argv)
 	else {
 		BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." << std::endl;
 	}
+
+	stop_zmq();
 
 	return 1;
 }

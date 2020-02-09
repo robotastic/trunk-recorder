@@ -37,7 +37,7 @@ namespace gr {
 
 					// Worker socket, publishes to the trunk_zmq_core::d_workers
 					d_worker = new zmq::socket_t(context, ZMQ_PUSH);
-					d_worker->connect(INPROC_WORKER_ADDR);
+					d_worker->connect(WORKER_ADDR);
 
 					connect_child_workers(context);
 

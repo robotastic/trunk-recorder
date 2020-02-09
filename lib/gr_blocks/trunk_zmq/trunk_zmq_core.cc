@@ -23,7 +23,7 @@ namespace gr {
 
 					// Public connections
 					d_clients = new zmq::socket_t(d_context, ZMQ_PULL);
-					d_clients->bind(INPROC_WORKER_ADDR);
+					d_clients->bind(WORKER_ADDR);
 
 					BOOST_LOG_TRIVIAL(info) << "ZMQ_PULL created, creating ZMQ_PUB";
 
@@ -41,6 +41,7 @@ namespace gr {
 			trunk_zmq_core::~trunk_zmq_core()
 			{
 				zmq_close(d_clients);
+				zmq_close(d_pub_server);
 
 				zmq_ctx_destroy(&d_context);
 			}
@@ -88,9 +89,11 @@ namespace gr {
 			{
 				if (!is_running()) return;
 
+				BOOST_LOG_TRIVIAL(info) << "Stopping ZMQ Core";
+
 				d_should_run = false;
 
-				BOOST_LOG_TRIVIAL(info) << "Stopping ZMQ Core";
+				boost::this_thread::sleep(boost::posix_time::milliseconds(250));
 
 				//need to stop d_background_thread
 				d_background_thread = 0;
