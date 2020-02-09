@@ -44,12 +44,13 @@
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
 #include "../state.h"
-#include <gr_blocks/trunk_zmq/trunk_zmq_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_core.h>
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
 
-class Recorder :public gr::blocks::trunk_zmq::trunk_zmq_worker
+class Recorder :public gr::blocks::trunk_ctrl::trunk_worker
 {
 
 public:

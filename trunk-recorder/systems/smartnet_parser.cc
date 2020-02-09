@@ -3,7 +3,7 @@
 
 using namespace std;
 SmartnetParser::SmartnetParser()
-    :gr::blocks::trunk_zmq::trunk_zmq_worker()
+    :gr::blocks::trunk_ctrl::trunk_worker()
 {
     lastaddress = 0;
     lastcmd = 0;
@@ -11,8 +11,6 @@ SmartnetParser::SmartnetParser()
     numConsumed = 0;
     set_worker_type("SmartnetParser");
 }
-
-void SmartnetParser::connect_child_workers(zmq::context_t& context) {}
 
 bool SmartnetParser::is_chan(int cmd, System *sys) {
     if(sys->get_bandfreq() == 800) {

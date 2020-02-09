@@ -2,12 +2,10 @@
 #include "../formatter.h"
 
 P25Parser::P25Parser()
-	:gr::blocks::trunk_zmq::trunk_zmq_worker()
+	:gr::blocks::trunk_ctrl::trunk_worker()
 {
 	set_worker_type("P25PARSER");
 }
-
-void P25Parser::connect_child_workers(zmq::context_t& context) {}
 
 void P25Parser::add_channel(int chan_id, Channel temp_chan, int sys_num) {
 	/*std::cout << "Add  - Channel id " << std::dec << chan_id << " freq " <<

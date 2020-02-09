@@ -54,7 +54,7 @@ namespace gr {
             : gr::hier_block2("decoder_wrapper_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
-            trunk_zmq::trunk_zmq_worker()
+            trunk_ctrl::trunk_worker()
         {
             set_worker_type("decoder_wrapper");
 
@@ -71,7 +71,7 @@ namespace gr {
             disconnect(self(), 0, d_tps_decoder_sink, 0);
         }
 
-        void decoder_wrapper_impl::connect_child_workers(zmq::context_t& context)
+        void decoder_wrapper_impl::connect_child_workers(trunk_ctrl::trunk_core* context)
         {
             d_signal_decoder_sink->connect_worker(context);
             d_tps_decoder_sink->connect_worker(context);

@@ -11,9 +11,10 @@
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
 #include "recorders/sigmf_recorder.h"
-#include <gr_blocks/trunk_zmq/trunk_zmq_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_core.h>
 
-class Source : public virtual gr::blocks::trunk_zmq::trunk_zmq_worker
+class Source : public virtual gr::blocks::trunk_ctrl::trunk_worker
 {
 
 	int src_num;
@@ -125,8 +126,5 @@ public:
 	}
 
 	std::vector<Recorder*> get_recorders();
-
-protected:
-	void connect_child_workers(zmq::context_t& context);
 };
 #endif

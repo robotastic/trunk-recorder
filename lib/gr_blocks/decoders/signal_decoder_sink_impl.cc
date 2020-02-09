@@ -118,7 +118,7 @@ namespace gr {
             : sync_block("signal_decoder_sink_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
-            trunk_zmq::trunk_zmq_worker(),
+            trunk_ctrl::trunk_worker(),
             d_mdc_enabled(false),
             d_fsync_enabled(false),
             d_star_enabled(false)

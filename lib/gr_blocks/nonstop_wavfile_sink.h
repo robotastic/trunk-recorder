@@ -25,7 +25,7 @@
 
 #include "../trunk-recorder/call.h"
 #include "../trunk-recorder/call_conventional.h"
-#include "trunk_zmq/trunk_zmq_worker.h"
+#include "trunk_ctrl/trunk_worker.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
@@ -41,7 +41,7 @@ namespace blocks {
  * Values must be floats within [-1;1].
  * Check gr_make_wavfile_sink() for extra info.
  */
-class BLOCKS_API nonstop_wavfile_sink : virtual public sync_block, virtual public trunk_zmq::trunk_zmq_worker
+class BLOCKS_API nonstop_wavfile_sink : virtual public sync_block, virtual public trunk_ctrl::trunk_worker
 {
 public:
 	// gr::blocks::wavfile_sink::sptr

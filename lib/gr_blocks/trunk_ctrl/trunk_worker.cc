@@ -1,43 +1,43 @@
 #include <string>
 #include <sstream>
 
-#include "trunk_zmq_worker.h"
+#include "trunk_worker.h"
+#include "trunk_core.h"
 #include "zhelpers.h"
 
 namespace gr {
 	namespace blocks {
-		namespace trunk_zmq {
+		namespace trunk_ctrl {
 
-			trunk_zmq_worker::trunk_zmq_worker()
+			trunk_worker::trunk_worker()
 				: d_zmq_running(false)
+			{
+				d_core = NULL;
+			}
+
+			trunk_worker::~trunk_worker()
 			{
 				//
 			}
 
-			trunk_zmq_worker::~trunk_zmq_worker()
-			{
-				zmq_close(d_worker);
-			}
-
-			std::string trunk_zmq_worker::get_worker_type()
+			std::string trunk_worker::get_worker_type()
 			{
 				return d_worker_type;
 			}
-			void trunk_zmq_worker::set_worker_type(std::string worker_type)
+			void trunk_worker::set_worker_type(std::string worker_type)
 			{
 				d_worker_type = worker_type;
 			}
 
-			bool trunk_zmq_worker::connect_worker(zmq::context_t& context)
+			bool trunk_worker::connect_worker(trunk_core* context)
 			{
 				if (d_zmq_running) return true;
+				if (context == NULL) return false;
 
 				try {
 					BOOST_LOG_TRIVIAL(info) << "ZMQ_WORKER: Connecting " << get_worker_type() << " to ZMQ Core";
 
-					// Worker socket, publishes to the trunk_zmq_core::d_workers
-					d_worker = new zmq::socket_t(context, ZMQ_PUSH);
-					d_worker->connect(WORKER_ADDR);
+					d_core = context;
 
 					connect_child_workers(context);
 
@@ -51,14 +51,12 @@ namespace gr {
 				return d_zmq_running;
 			}
 
-			void trunk_zmq_worker::connect_child_workers(zmq::context_t& context) {}
-
-			int trunk_zmq_worker::broadcast_message(const char* msg)
+			int trunk_worker::broadcast_message(const char* msg)
 			{
 				if (d_zmq_running)
 				{
 					BOOST_LOG_TRIVIAL(info) << "Broadcast: " << msg;
-					return s_send(d_worker, msg);
+					return d_core->broadcast_message(msg);
 				}
 				else
 				{
@@ -67,7 +65,7 @@ namespace gr {
 				}
 			}
 
-			int trunk_zmq_worker::broadcast_decoder_msg(std::string system_name, long unitId, const char* system_type, bool emergency, int unit_id_hex_digits)
+			int trunk_worker::broadcast_decoder_msg(std::string system_name, long unitId, const char* system_type, bool emergency, int unit_id_hex_digits)
 			{
 				std::stringstream ss;
 

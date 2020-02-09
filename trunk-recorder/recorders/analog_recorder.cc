@@ -40,7 +40,7 @@ void analog_recorder::calculate_iir_taps(double tau)
     d_fbtaps[1] = -p1;
 }
 
-void analog_recorder::connect_child_workers(zmq::context_t& context)
+void analog_recorder::connect_child_workers(gr::blocks::trunk_ctrl::trunk_core* context)
 {
     decoder_sink->connect_worker(context);
     wav_sink->connect_worker(context);

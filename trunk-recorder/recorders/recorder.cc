@@ -4,7 +4,7 @@
 
 
 Recorder::Recorder(std::string type)
-	: gr::blocks::trunk_zmq::trunk_zmq_worker()
+	: gr::blocks::trunk_ctrl::trunk_worker()
 {
 	set_worker_type(type);
 }

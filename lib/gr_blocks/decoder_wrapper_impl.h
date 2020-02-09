@@ -25,7 +25,8 @@
 
 #include "decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
-#include "trunk_zmq/trunk_zmq_worker.h"
+#include "trunk_ctrl/trunk_worker.h"
+#include "trunk_ctrl/trunk_core.h"
 
 #include "decoders/signal_decoder_sink.h"
 #include "decoders/tps_decoder_sink.h"
@@ -72,7 +73,7 @@ namespace gr {
 			void process_message_queues(void);
 
 		protected:
-			void connect_child_workers(zmq::context_t& context);
+			void connect_child_workers(trunk_ctrl::trunk_core* context);
 		};
 
 	} /* namespace blocks */

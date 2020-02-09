@@ -63,7 +63,7 @@
 #include <gnuradio/gr_complex.h>
 #include <gnuradio/top_block.h>
 
-#include <gr_blocks/trunk_zmq/trunk_zmq_core.h>
+#include <gr_blocks/trunk_ctrl/trunk_core.h>
 
 #include "formatter.h"
 #include "zmq_common.h"
@@ -88,7 +88,7 @@ SmartnetParser* smartnet_parser;
 P25Parser* p25_parser;
 
 Config config;
-gr::blocks::trunk_zmq::trunk_zmq_core* zmq_core;
+gr::blocks::trunk_ctrl::trunk_core* zmq_core;
 
 string default_mode;
 
@@ -1357,7 +1357,7 @@ void socket_connected()
 
 void setup_zmq()
 {
-	zmq_core = new gr::blocks::trunk_zmq::trunk_zmq_core("tcp://*:5580");
+	zmq_core = new gr::blocks::trunk_ctrl::trunk_core("tcp://*:5580");
 }
 
 void start_zmq()
@@ -1369,14 +1369,14 @@ void start_zmq()
 	{
 		Source* source = *it;
 
-		zmq_core->register_worker(source);
+		source->connect_worker(zmq_core);
 	}
 
 	for (vector<System*>::iterator it = systems.begin(); it != systems.end(); it++)
 	{
 		System* system = *it;
 
-		zmq_core->register_worker(system);
+		system->connect_worker(zmq_core);
 	}
 
 	BOOST_LOG_TRIVIAL(info) << "ZMQ_CORE: Started!";

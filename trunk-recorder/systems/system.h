@@ -22,7 +22,8 @@
 #endif
 
 #include <boost/property_tree/ptree.hpp>
-#include <gr_blocks/trunk_zmq/trunk_zmq_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_core.h>
 
 class Source;
 class analog_recorder;
@@ -34,7 +35,7 @@ typedef boost::shared_ptr<p25conventional_recorder> p25conventional_recorder_spt
 
 
 
-class System : public virtual gr::blocks::trunk_zmq::trunk_zmq_worker
+class System : public virtual gr::blocks::trunk_ctrl::trunk_worker
 {
 	int sys_num;
 	unsigned long sys_id;
@@ -173,8 +174,5 @@ private:
 	bool d_fsync_enabled;
 	bool d_star_enabled;
 	bool d_tps_enabled;
-
-protected:
-	void connect_child_workers(zmq::context_t& context);
 };
 #endif

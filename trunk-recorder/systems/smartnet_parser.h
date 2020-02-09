@@ -10,7 +10,8 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/log/trivial.hpp>
-#include <gr_blocks/trunk_zmq/trunk_zmq_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_core.h>
 
 #define OSW_BACKGROUND_IDLE     0x02f8
 #define OSW_FIRST_CODED_PC      0x0304
@@ -44,7 +45,7 @@ struct osw_stru {
 	int grp;
 };
 
-class SmartnetParser :public TrunkParser, public virtual gr::blocks::trunk_zmq::trunk_zmq_worker
+class SmartnetParser :public TrunkParser, public virtual gr::blocks::trunk_ctrl::trunk_worker
 {
 	int lastcmd;
 	long lastaddress;
@@ -58,8 +59,5 @@ public:
 	void print_osw(std::string s);
 	bool is_chan(int cmd, System* system);
 	std::vector<TrunkMessage> parse_message(std::string s, System* system);
-
-protected:
-	void connect_child_workers(zmq::context_t& context);
 };
 #endif

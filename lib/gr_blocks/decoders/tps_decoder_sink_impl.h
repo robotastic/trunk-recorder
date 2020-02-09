@@ -35,7 +35,7 @@
 #include <gnuradio/message.h>
 #include <gnuradio/blocks/copy.h>
 
-#include "../trunk_zmq/trunk_zmq_worker.h"
+#include "../trunk_ctrl/trunk_worker.h"
 
 namespace gr {
 	namespace blocks {
@@ -87,7 +87,7 @@ namespace gr {
             void process_message_queues(void);
 
         protected:
-            void connect_child_workers(zmq::context_t& context);
+            void connect_child_workers(gr::blocks::trunk_ctrl::trunk_core* context);
 		};
 
 	} /* namespace blocks */

@@ -57,7 +57,7 @@ namespace gr {
             : gr::hier_block2("tps_decoder_sink_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
-            trunk_zmq::trunk_zmq_worker()
+            trunk_ctrl::trunk_worker()
         {
             set_worker_type("TPS DECODER");
 
@@ -88,7 +88,7 @@ namespace gr {
             return result.str();
         }
 
-        void tps_decoder_sink_impl::connect_child_workers(zmq::context_t& context) {}
+        void tps_decoder_sink_impl::connect_child_workers(gr::blocks::trunk_ctrl::trunk_core* context) {}
 
         void tps_decoder_sink_impl::parse_p25_json(int src_num, std::string json) {
             try {

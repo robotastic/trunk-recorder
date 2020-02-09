@@ -75,7 +75,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   : sync_block("nonstop_wavfile_sink",
                io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
-    trunk_zmq::trunk_zmq_worker(),
+    trunk_ctrl::trunk_worker(),
   d_sample_rate(sample_rate), d_nchans(n_channels),
   d_use_float(use_float), d_fp(0)
 {

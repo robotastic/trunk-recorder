@@ -8,7 +8,8 @@
 #include <boost/dynamic_bitset.hpp>
 #include <boost/log/trivial.hpp>
 #include <gnuradio/message.h>
-#include <gr_blocks/trunk_zmq/trunk_zmq_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_core.h>
 #include <bitset>
 
 struct Channel {
@@ -21,7 +22,7 @@ struct Channel {
 	double bandwidth;
 };
 
-class P25Parser : public TrunkParser, public virtual gr::blocks::trunk_zmq::trunk_zmq_worker
+class P25Parser : public TrunkParser, public virtual gr::blocks::trunk_ctrl::trunk_worker
 {
 	std::map<int, std::map<int, Channel>> channels;
 	std::map<int, Channel>::iterator it;
@@ -37,9 +38,6 @@ public:
 	void add_channel(int chan_id, Channel chan, int sys_num);
 	double channel_id_to_frequency(int chan_id, int sys_num);
 	std::vector<TrunkMessage> parse_message(gr::message::sptr msg);
-
-protected:
-	void connect_child_workers(zmq::context_t& context);
 };
 
 #endif

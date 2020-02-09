@@ -34,7 +34,8 @@
 #include <gnuradio/blocks/float_to_short.h>
 
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
-
+#include <gr_blocks/trunk_ctrl/trunk_worker.h>
+#include <gr_blocks/trunk_ctrl/trunk_core.h>
 
 class Source;
 class analog_recorder;
@@ -80,7 +81,7 @@ public:
 	static bool logging;
 
 	void process_message_queues(void);
-	void connect_child_workers(zmq::context_t& context);
+	void connect_child_workers(gr::blocks::trunk_ctrl::trunk_core* context);
 
 private:
 
