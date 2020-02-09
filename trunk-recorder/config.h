@@ -19,6 +19,9 @@ struct Config {
         std::string instance_key;
         std::string instance_id;
         std::string capture_dir;
+        std::string debug_recorder_address;
+        bool debug_recorder;
+        int debug_recorder_port;
         int call_timeout;
         bool log_file;
         int control_message_warn_rate;

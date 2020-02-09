@@ -174,6 +174,7 @@ void load_config(string config_file)
 {
   string system_modulation;
   int    sys_count = 0;
+  int    source_count = 0;
 
   try
   {
@@ -183,6 +184,11 @@ void load_config(string config_file)
     boost::property_tree::read_json(config_file, pt);
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n" << sys_count;
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n" << sys_count;
+    
+    config.debug_recorder   = pt.get<bool>("debugRecorder", 0);
+    config.debug_recorder_address = pt.get<std::string>("debugRecorderAddress", "127.0.0.1");
+    config.debug_recorder_port = pt.get<int>("debugRecorderPort", 1234);
+    
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))
     {
@@ -332,6 +338,8 @@ void load_config(string config_file)
       system->set_min_duration(node.second.get<double>("minDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
 
+
+
       systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);
     }
@@ -362,7 +370,6 @@ void load_config(string config_file)
 
       std::string antenna   = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
-      int debug_recorders   = node.second.get<int>("debugRecorders", 0);
       int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
       int analog_recorders  = node.second.get<int>("analogRecorders", 0);
 
@@ -390,7 +397,7 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
-      BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
+      BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder",  0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0); 
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
 
@@ -485,8 +492,11 @@ void load_config(string config_file)
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_sigmf_recorders(tb, sigmf_recorders);
-      source->create_debug_recorders(tb, debug_recorders);
+      if (config.debug_recorder) {
+        source->create_debug_recorder(tb, source_count);
+      }
       sources.push_back(source);
+      source_count++;
       BOOST_LOG_TRIVIAL(info) <<  "\n-------------------------------------\n\n";
     }
 
@@ -533,7 +543,6 @@ void load_config(string config_file)
 
     statusAsString = pt.get<bool>("statusAsString", statusAsString);
     BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
-
     std::string log_level = pt.get<std::string>("logLevel", "info");
     BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
     set_logging_level(log_level);
@@ -541,6 +550,17 @@ void load_config(string config_file)
   catch (std::exception const& e)
   {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
+    exit(0);
+  }
+  if (config.debug_recorder) {
+      BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nDEBUG RECORDER\n-------------------------------------\n";
+       BOOST_LOG_TRIVIAL(info) << "  Address: " << config.debug_recorder_address;
+
+      for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+        Source *source = *it;
+        BOOST_LOG_TRIVIAL(info) << "  " << source->get_driver() << " - " << source->get_device() << " [ " << FormatFreq(source->get_center()) << " ]  Port: " << source->get_debug_recorder_port();
+      }
+       BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
 }
 
