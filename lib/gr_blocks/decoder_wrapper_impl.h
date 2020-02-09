@@ -20,39 +20,28 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H
-#define INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H
+#ifndef INCLUDED_GR_DECODER_WRAPPER_IMPL_H
+#define INCLUDED_GR_DECODER_WRAPPER_IMPL_H
 
-#include "signal_decoder_sink.h"
+#include "decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
 
-#include "mdc_decode.h"
-#include "fsync_decode.h"
-#include "star_decode.h"
+#include "decoders/signal_decoder_sink.h"
+#include "decoders/tps_decoder_sink.h"
 
 namespace gr {
 	namespace blocks {
 
-		class signal_decoder_sink_impl : public signal_decoder_sink
+		class decoder_wrapper_impl : public decoder_wrapper
 		{
 		private:
-			mdc_decoder_t * d_mdc_decoder;
-			fsync_decoder_t * d_fsync_decoder;
-			star_decoder_t * d_star_decoder;
-			Call * d_current_call;
-
-			bool d_mdc_enabled;
-			bool d_fsync_enabled;
-			bool d_star_enabled;
-
-		protected:
-
-			boost::mutex d_mutex;
-			virtual int dowork(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items);
+			gr::blocks::signal_decoder_sink::sptr d_signal_decoder_sink;
+			gr::blocks::tps_decoder_sink::sptr d_tps_decoder_sink;
+			Call* d_current_call;
 
 		public:
 
-			typedef boost::shared_ptr <signal_decoder_sink_impl> sptr;
+			typedef boost::shared_ptr <decoder_wrapper_impl> sptr;
 
 			/*
 			 * \param filename The .wav file to be opened
@@ -60,29 +49,29 @@ namespace gr {
 			 * \param sample_rate Sample rate [S/s]
 			 * \param bits_per_sample 16 or 8 bit, default is 16
 			 */
-			static sptr make(unsigned int sample_rate);
+			static sptr make(unsigned int sample_rate, int src_num);
 
-			signal_decoder_sink_impl(unsigned int sample_rate);
-
-			virtual int work(int noutput_items,
-				gr_vector_const_void_star& input_items,
-				gr_vector_void_star& output_items);
+			decoder_wrapper_impl(unsigned int sample_rate, int src_num);
+			~decoder_wrapper_impl();
 
 			void set_mdc_enabled(bool b);
 			void set_fsync_enabled(bool b);
 			void set_star_enabled(bool b);
+			void set_tps_enabled(bool b);
 
 			bool get_mdc_enabled();
 			bool get_fsync_enabled();
 			bool get_star_enabled();
+			bool get_tps_enabled();
 
 			void set_call(Call* call);
 			void end_call();
 
 			void log_decoder_msg(long unitId, const char* system_type, bool emergency);
+			void process_message_queues(void);
 		};
 
 	} /* namespace blocks */
 } /* namespace gr */
 
-#endif /* INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H */
+#endif /* INCLUDED_GR_DECODER_WRAPPER_IMPL_H */

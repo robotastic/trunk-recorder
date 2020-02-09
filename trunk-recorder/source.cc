@@ -3,7 +3,6 @@
 #include "recorders/p25conventional_recorder.h"
 
 
-
 static int src_counter=0;
 
 void Source::set_antenna(std::string ant)
