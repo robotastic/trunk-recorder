@@ -1418,6 +1418,7 @@ int main(int argc, char** argv)
 		std::cout << "Usage: options_description [options]\n";
 		std::cout << desc;
 		exit(0);
+		return 0;
 	}
 	string config_file = vm["config"].as<string>();
 
@@ -1441,6 +1442,7 @@ int main(int argc, char** argv)
 	if (!load_config(config_file)) {
 		BOOST_LOG_TRIVIAL(warning) << "Error loading configuration, exiting...";
 		exit(-1);
+		return -1;
 	}
 
 	stats.initialize(&config, &socket_connected);

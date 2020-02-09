@@ -23,7 +23,12 @@ namespace gr {
 
 					// Public connections
 					d_clients = new zmq::socket_t(d_context, ZMQ_PULL);
-					d_clients->connect(INPROC_WORKER_ADDR);
+					d_clients->bind(INPROC_WORKER_ADDR);
+
+					BOOST_LOG_TRIVIAL(info) << "ZMQ_PULL created, creating ZMQ_PUB";
+
+					d_pub_server = new zmq::socket_t(d_context, ZMQ_PUB);
+					d_pub_server->bind(PUBLISH_ADDR);
 
 					BOOST_LOG_TRIVIAL(info) << "ZMQ Core Setup!";
 				}
@@ -58,6 +63,7 @@ namespace gr {
 					char* msg = s_recv(d_clients, ZMQ_NOBLOCK);
 					if (msg != nullptr) {
 						BOOST_LOG_TRIVIAL(info) << "MSG: " << msg;
+						s_send(d_pub_server, msg, ZMQ_NOBLOCK);
 						free(msg);
 					} else {
 						boost::this_thread::sleep(boost::posix_time::milliseconds(100));

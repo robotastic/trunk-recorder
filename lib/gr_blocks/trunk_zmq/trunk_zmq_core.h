@@ -26,6 +26,7 @@ namespace gr {
 			private:
 				zmq::context_t d_context;
 				zmq::socket_t* d_clients;
+				zmq::socket_t* d_pub_server;
 				pthread_t d_background_thread;
 				bool d_should_run;
 
