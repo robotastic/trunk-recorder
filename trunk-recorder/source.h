@@ -60,6 +60,7 @@ public:
 								gr::basic_block_sptr get_src_block();
 								double get_min_hz();
 								double get_max_hz();
+								void set_min_max();
 								double get_center();
 								double get_rate();
 								std::string get_driver();
