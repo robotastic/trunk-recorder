@@ -492,13 +492,38 @@ Config  * Source::get_config() {
   return config;
 }
 
+void Source::set_min_max() {
+    long s = rate;
+    long if_freqs[] = {24000, 25000, 32000};
+    long decim = 24000;
+    for (int i = 0; i<3; i++) {
+        long if_freq = if_freqs[i];
+        if (s % if_freq != 0) {
+            continue;
+        }
+        long q = s / if_freq;
+        if (q & 1) {
+            continue;
+        }
+        
+        if ((q >= 40) && ((q & 3) ==0)) {
+            decim = q/4;
+        } else {
+            decim = q/2;
+        }
+ 
+    }
+    long if1 = rate / decim;
+    min_hz = center - ((rate/2) - (if1/2));
+    max_hz = center + ((rate/2) - (if1/2));
+}
+
 Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg)
 {
   rate   = r;
   center = c;
   error  = e;
-  min_hz = center - (rate / 2);
-  max_hz = center + (rate / 2);
+  set_min_max();
   driver = drv;
   device = dev;
   config = cfg;
