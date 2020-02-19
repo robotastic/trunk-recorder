@@ -3,10 +3,9 @@
 #include <boost/algorithm/string.hpp>
 #include "recorders/recorder.h"
 #include "call_conventional.h"
-#include "./uploaders/stat_socket.h"
 
-Call_conventional::Call_conventional(long t, double f, System *s, Config c, stat_socket * stat_socket) : Call(t,f,s,c) {
-  d_stat_socket = stat_socket;
+Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Call(t,f,s,c) {
+  
 }
 
 Call_conventional::~Call_conventional() {
@@ -15,7 +14,6 @@ Call_conventional::~Call_conventional() {
 void Call_conventional::restart_call() {
     idle_count       = 0;
     freq_count       = 0;
-    src_count        = 0;
     error_list_count = 0;
     curr_src_id      = 0;
     start_time       = time(NULL);
@@ -35,11 +33,10 @@ void Call_conventional::restart_call() {
 
 void Call_conventional::set_recorder(Recorder *r) {
   recorder = r;
-  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\tListening on Src: " << recorder->get_source()->get_device();
+  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq());
 }
 
 void Call_conventional::recording_started()
 {
   start_time = time(NULL);
-  d_stat_socket->send_call_start(this);
 }

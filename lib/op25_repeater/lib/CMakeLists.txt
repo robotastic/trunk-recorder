@@ -32,8 +32,8 @@ list(APPEND op25_repeater_sources
     vocoder_impl.cc
     gardner_costas_cc_impl.cc
     p25_frame_assembler_impl.cc
-    fsk4_slicer_fb_impl.cc
-    fsk4_demod_ff_impl.cc)
+    fsk4_demod_ff_impl.cc
+    fsk4_slicer_fb_impl.cc )
 
 list(APPEND op25_repeater_sources
     bch.cc
@@ -57,9 +57,11 @@ list(APPEND op25_repeater_sources
     hamming.cc
     golay2087.cc
     bptc19696.cc
+    trellis.cc
     dmr_cai.cc
     dmr_slot.cc
     op25_audio.cc
+    op25_timer
     CCITTChecksumReverse.cpp
 )
 

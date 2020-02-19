@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <boost/log/trivial.hpp>
 #include "../talkgroups.h"
+#include "../unit_tags.h"
 //#include "../source.h"
 #include "smartnet_trunking.h"
 #include "p25_trunking.h"
@@ -42,9 +43,11 @@ public:
         enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id=0, talkGroupDisplayFormat_id_tag=1, talkGroupDisplayFormat_tag_id=2};
 
         Talkgroups *talkgroups;
+        UnitTags *unit_tags;
         p25p2_lfsr *lfsr;
         Source *source;
         std::string talkgroups_file;
+        std::string unit_tags_file;
         std::string short_name;
         std::string api_key;
         std::string default_mode;
@@ -74,6 +77,7 @@ public:
         bool audio_archive;
         bool record_unknown;
         bool call_log;
+
         smartnet_trunking_sptr smartnet_trunking;
         p25_trunking_sptr p25_trunking;
 
@@ -93,6 +97,17 @@ public:
         void set_record_unknown(bool);
         bool get_call_log();
         void set_call_log(bool);
+
+        void set_mdc_enabled(bool b);
+        void set_fsync_enabled(bool b);
+        void set_star_enabled(bool b);
+        void set_tps_enabled(bool b);
+
+        bool get_mdc_enabled();
+        bool get_fsync_enabled();
+        bool get_star_enabled();
+        bool get_tps_enabled();
+
         std::string get_system_type();
         unsigned long get_sys_id();
         unsigned long get_wacn();
@@ -103,10 +118,13 @@ public:
         int get_sys_num();
         void set_system_type(std::string);
         std::string get_talkgroups_file();
+        std::string get_unit_tags_file();
         Source *get_source();
         void set_source(Source *);
         Talkgroup *find_talkgroup(long tg);
+        UnitTag* find_unit_tag(long unitID);
         void set_talkgroups_file(std::string);
+        void set_unit_tags_file(std::string);
         int control_channel_count();
         void add_control_channel(double channel);
         double get_next_control_channel();
@@ -152,5 +170,10 @@ private:
         bool d_delaycreateoutput;
         bool d_hideEncrypted;
         bool d_hideUnknown;
+
+        bool d_mdc_enabled;
+        bool d_fsync_enabled;
+        bool d_star_enabled;
+        bool d_tps_enabled;
 };
 #endif

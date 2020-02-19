@@ -13,7 +13,6 @@
 #include "recorders/debug_recorder.h"
 #include "recorders/sigmf_recorder.h"
 
-
 class Source
 {
 								
@@ -29,7 +28,6 @@ class Source
 								double ppm_adjust_interval;
 								double ppm_max_adjust;
 								double squelch_db;
-								double fsk_gain;
 								double analog_levels;
 								double digital_levels;
 								bool gain_mode;
@@ -46,6 +44,7 @@ class Source
 								int max_debug_recorders;
 								int max_sigmf_recorders;
 								int max_analog_recorders;
+								int debug_recorder_port;
 								bool qpsk_mod;
 								int silence_frames;
 								Config * config;
@@ -66,6 +65,7 @@ public:
 								gr::basic_block_sptr get_src_block();
 								double get_min_hz();
 								double get_max_hz();
+								void set_min_max();
 								double get_center();
 								double get_rate();
 								std::string get_driver();
@@ -82,8 +82,6 @@ public:
 								bool get_gain_mode();
 								void set_gain(int r);
 								int get_gain();
-								void set_fsk_gain(double r);
-								double get_fsk_gain();
 								void set_qpsk_mod(bool m);
 								bool get_qpsk_mod();
 								void set_silence_frames(int m);
@@ -117,6 +115,7 @@ public:
 								void print_recorders();
 								void tune_digital_recorders();
 								int debug_recorder_count();
+								int get_debug_recorder_port();
 								int sigmf_recorder_count();
 								int digital_recorder_count();
 								int analog_recorder_count();
@@ -127,7 +126,7 @@ public:
 								Recorder * get_analog_recorder(int priority);
 								void create_digital_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_digital_recorder(int priority);
-								void create_debug_recorders(gr::top_block_sptr tb, int r);
+								void create_debug_recorder(gr::top_block_sptr tb, int source_num);
 								Recorder * get_debug_recorder();
 								void create_sigmf_recorders(gr::top_block_sptr tb, int r);
 								Recorder * get_sigmf_recorder();

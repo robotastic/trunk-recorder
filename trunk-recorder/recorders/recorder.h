@@ -49,13 +49,20 @@
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);
 
-
 class Recorder
 {
 
 public:
+
+struct DecimSettings
+    {
+		long decim;
+		long decim2;
+	};
+
 	Recorder(std::string type);
 	virtual void tune_offset(double f) {};
+	virtual void tune_freq(double f) {};
 	virtual void start( Call *call) {};
 	virtual void stop() {};
   	virtual void set_tdma_slot(int slot) {};
@@ -75,6 +82,8 @@ public:
 	int rec_num;
 	static int rec_counter;
 	virtual boost::property_tree::ptree get_stats();
+
+	virtual void process_message_queues(void) {};
 
 protected:
 	int 	recording_count;

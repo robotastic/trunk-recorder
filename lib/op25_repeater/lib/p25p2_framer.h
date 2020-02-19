@@ -11,10 +11,9 @@
 #ifndef INCLUDED_P25P2_FRAMER_H
 #define INCLUDED_P25P2_FRAMER_H
 
+#include "frame_sync_magics.h"
+
 static const unsigned int P25P2_BURST_SIZE=360; /* in bits */
-static const uint64_t P25P2_FRAME_SYNC_MAGIC = 0x575D57F7FFLL;
-static const uint64_t P25P2_FRAME_SYNC_REV_P = 0x575D57F7FFLL ^ 0xAAAAAAAAAALL;
-static const uint64_t P25P2_FRAME_SYNC_MASK  = 0xFFFFFFFFFFLL;
 
 class p25p2_framer;
 

@@ -1,3 +1,4 @@
+#include <vector>
 #include "call_uploader.h"
 #include "../formatter.h"
 
@@ -81,7 +82,11 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
   conv.str("");
   add_post_field(oss, "start_time",    boost::lexical_cast<std::string>(call->start_time), boundary);
   add_post_field(oss, "stop_time",     boost::lexical_cast<std::string>(call->stop_time),  boundary);
-
+  conv << std::fixed << std::setprecision(0);
+  conv << call->length;
+  add_post_field(oss, "call_length",          conv.str(),       boundary);
+  conv.clear();
+  conv.str("");
   add_post_field(oss, "talkgroup_num", boost::lexical_cast<std::string>(call->talkgroup),  boundary);
   add_post_field(oss, "emergency",     boost::lexical_cast<std::string>(call->emergency),  boundary);
   add_post_field(oss, "api_key",       call->api_key,                                      boundary);
@@ -117,7 +122,11 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
 void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
 
-  int nchars = snprintf(shell_command, 400, "nice -n -10 ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=5\" -cutoff 18000 -hide_banner -loglevel error %s ", call_info->filename, call_info->converted);
+  //int nchars = snprintf(shell_command, 400, "nice -n -10 ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
+  //int nchars = snprintf(shell_command, 400, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm  -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
+  //int nchars = snprintf(shell_command, 400, "cd %s && fdkaac -S -b16 --raw-channels 1 --raw-rate 8000 %s", call_info->file_path, call_info->filename);
+  //hints from here https://github.com/nu774/fdkaac/issues/5 on how to pipe between the 2
+  int nchars = snprintf(shell_command, 400, "sox %s -t wav - --norm=-3 | fdkaac --ignorelength -b 8000 -o %s -", call_info->filename, call_info->converted);
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call Uploader: Path longer than 400 charecters";
@@ -125,8 +134,8 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
   // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
   // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
-  // system(shell_command);
-  int rc = system(shell_command);
+  int forget = system(shell_command);
+  //int rc = system(shell_command);
 
   // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
 
@@ -212,13 +221,14 @@ void send_call(Call *call, System *sys, Config config) {
     // call_info->path << "\n";
     strcpy(call_info->filename,  call->get_filename());
     strcpy(call_info->converted, call->get_converted_filename());
+    strcpy(call_info->file_path, call->get_path());
   } else {
     // std::cout << "Unable to parse Server URL\n";
     return;
   }
 
   // std::cout << "Setting up thread\n";
-  Call_Source *source_list = call->get_source_list();
+  std::vector<Call_Source> source_list = call->get_source_list();
   Call_Freq   *freq_list   = call->get_freq_list();
   //Call_Error  *error_list  = call->get_error_list();
   call_info->talkgroup        = call->get_talkgroup();
@@ -232,6 +242,7 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->freq_count       = call->get_freq_count();
   call_info->start_time       = call->get_start_time();
   call_info->stop_time        = call->get_stop_time();
+  call_info->length           = (int) call->get_final_length();
   call_info->api_key          = sys->get_api_key();
   call_info->short_name       = sys->get_short_name();
   call_info->audio_archive    = sys->get_audio_archive();
@@ -244,7 +255,7 @@ void send_call(Call *call, System *sys, Config config) {
   // call_info->path << "\n";
 
   for (int i = 0; i < call_info->source_count; i++) {
-    call_info->source_list[i] = source_list[i];
+    call_info->source_list.push_back(source_list[i]);
   }
 
   for (int i = 0; i < call_info->freq_count; i++) {

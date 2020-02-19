@@ -2,6 +2,8 @@
 #include "analog_recorder.h"
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
+#include "../../lib/gr_blocks/decoder_wrapper_impl.h"
+
 using namespace std;
 
 bool analog_recorder::logging = false;
@@ -165,6 +167,10 @@ analog_recorder::analog_recorder(Source *src)
 
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
+  BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
+  decoder_sink = gr::blocks::decoder_wrapper_impl::make(8000, src->get_num());
+  BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
+
   // Try and get rid of the FSK wobble
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
   high_f      = gr::filter::fir_filter_fff::make(1, high_f_taps);
@@ -181,6 +187,7 @@ analog_recorder::analog_recorder(Source *src)
     connect(demod,         0, deemph,        0);
     connect(deemph,        0, decim_audio,   0);
     connect(decim_audio,   0, high_f,        0);
+    connect(decim_audio,   0, decoder_sink,  0);
     connect(high_f,        0, squelch_two,   0);
     connect(squelch_two,   0, levels,        0);
     connect(levels,        0, wav_sink,      0);
@@ -194,6 +201,7 @@ analog_recorder::analog_recorder(Source *src)
     connect(demod,         0, deemph,        0);
     connect(deemph,        0, decim_audio,   0);
     connect(decim_audio,   0, levels,        0);
+    connect(decim_audio,   0, decoder_sink,  0);
     connect(levels,        0, wav_sink,      0);
   }
 }
@@ -217,6 +225,16 @@ void analog_recorder::stop() {
 
     BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an inactive Logger \t[ " << rec_num << " ] - freq[ " << FormatFreq(chan_freq) << "] \t talkgroup[ " << talkgroup << " ]";
   }
+
+  decoder_sink->set_mdc_enabled(false);
+  decoder_sink->set_fsync_enabled(false);
+  decoder_sink->set_star_enabled(false);
+  decoder_sink->set_tps_enabled(false);
+}
+
+void analog_recorder::process_message_queues()
+{
+    decoder_sink->process_message_queues();
 }
 
 bool analog_recorder::is_analog() {
@@ -279,6 +297,7 @@ void analog_recorder::tune_offset(double f) {
 void analog_recorder::start(Call *call) {
   starttime = time(NULL);
 
+  decoder_sink->set_call(call);
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 

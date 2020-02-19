@@ -3,7 +3,6 @@
 #include "recorders/p25conventional_recorder.h"
 
 
-
 static int src_counter=0;
 
 void Source::set_antenna(std::string ant)
@@ -43,13 +42,6 @@ int Source::get_silence_frames() {
   return silence_frames;
 }
 
-void Source::set_fsk_gain(double r) {
-  fsk_gain = r;
-}
-
-double Source::get_fsk_gain() {
-  return fsk_gain;
-}
 
 void Source::set_analog_levels(double r) {
   analog_levels = r;
@@ -393,15 +385,12 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   }
 }
 
-void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
-  max_debug_recorders = r;
-
-  for (int i = 0; i < max_debug_recorders; i++) {
-    debug_recorder_sptr log = make_debug_recorder(this);
-
+void Source::create_debug_recorder(gr::top_block_sptr tb, int source_num) {
+    max_debug_recorders = 1;
+    debug_recorder_port = config->debug_recorder_port + source_num;
+    debug_recorder_sptr log = make_debug_recorder(this, config->debug_recorder_address, debug_recorder_port);
     debug_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
-  }
 }
 
 Recorder * Source::get_debug_recorder()
@@ -419,7 +408,9 @@ Recorder * Source::get_debug_recorder()
   }
   return NULL;
 }
-
+int Source::get_debug_recorder_port() {
+  return debug_recorder_port;
+}
 void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
   max_sigmf_recorders = r;
 
@@ -555,13 +546,38 @@ Config  * Source::get_config() {
   return config;
 }
 
+void Source::set_min_max() {
+    long s = rate;
+    long if_freqs[] = {24000, 25000, 32000};
+    long decim = 24000;
+    for (int i = 0; i<3; i++) {
+        long if_freq = if_freqs[i];
+        if (s % if_freq != 0) {
+            continue;
+        }
+        long q = s / if_freq;
+        if (q & 1) {
+            continue;
+        }
+        
+        if ((q >= 40) && ((q & 3) ==0)) {
+            decim = q/4;
+        } else {
+            decim = q/2;
+        }
+ 
+    }
+    long if1 = rate / decim;
+    min_hz = center - ((rate/2) - (if1/2));
+    max_hz = center + ((rate/2) - (if1/2));
+}
+
 Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg)
 {
   rate   = r;
   center = c;
   error  = e;
-  min_hz = center - (rate / 2);
-  max_hz = center + (rate / 2);
+  set_min_max();
   driver = drv;
   device = dev;
   config = cfg;
@@ -572,6 +588,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   mix_gain = 0;
   if_gain = 0;
   src_num = src_counter++;
+  max_digital_recorders =0 ;
+  max_debug_recorders = 0;
+  max_sigmf_recorders = 0;
+  max_analog_recorders = 0;
+  debug_recorder_port = 0;
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;
