@@ -1,6 +1,6 @@
 # docker build -t robotastic/trunk-recorder:latest .
 
-FROM robotastic/docker-gnuradio:latest
+FROM registry.gitlab.com/erictendian/docker-gnuradio/master:latest
 
 RUN apt-get update && apt-get upgrade -y
 
