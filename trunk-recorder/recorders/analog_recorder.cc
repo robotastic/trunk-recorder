@@ -59,6 +59,8 @@ analog_recorder::analog_recorder(Source *src)
   rec_num = rec_counter++;
   state       = inactive;
 
+  sprintf(fifo_filename, "/app/media/recorder%i.wav", rec_num);
+
   timestamp = time(NULL);
   starttime = time(NULL);
 
@@ -165,6 +167,7 @@ analog_recorder::analog_recorder(Source *src)
 
   //tm *ltm = localtime(&starttime);
 
+  levels2  = gr::blocks::multiply_const_ff::make(src->get_analog_levels());
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
   BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
@@ -175,6 +178,7 @@ analog_recorder::analog_recorder(Source *src)
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
   high_f      = gr::filter::fir_filter_fff::make(1, high_f_taps);
 
+  wavfile_sink = gr::blocks::wavfile_sink::make(fifo_filename, 1, 8000);
 
   if (squelch_db != 0) {
     // using squelch
@@ -189,8 +193,10 @@ analog_recorder::analog_recorder(Source *src)
     connect(decim_audio,   0, high_f,        0);
     connect(decim_audio,   0, decoder_sink,  0);
     connect(high_f,        0, squelch_two,   0);
+    connect(high_f,        0, levels2,       0);
     connect(squelch_two,   0, levels,        0);
     connect(levels,        0, wav_sink,      0);
+    connect(levels2,       0, wavfile_sink,  0);
   } else {
     // No squelch used
     connect(self(),        0, valve,         0);
@@ -203,6 +209,7 @@ analog_recorder::analog_recorder(Source *src)
     connect(decim_audio,   0, levels,        0);
     connect(decim_audio,   0, decoder_sink,  0);
     connect(levels,        0, wav_sink,      0);
+    connect(levels,        0, wavfile_sink,  0);
   }
 }
 

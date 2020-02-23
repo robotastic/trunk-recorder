@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <gnuradio/blocks/wavfile_sink.h>
 
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>
@@ -92,6 +93,7 @@ private:
   time_t timestamp;
   time_t starttime;
   char   filename[160];
+  char   fifo_filename[160];
 
 
   State state;
@@ -133,6 +135,9 @@ void calculate_iir_taps(double tau);
   gr::blocks::copy::sptr valve;
 
   gr::blocks::decoder_wrapper::sptr decoder_sink;
+
+  gr::blocks::multiply_const_ff::sptr levels2;
+  gr::blocks::wavfile_sink::sptr wavfile_sink;
 };
 
 #endif // ifndef ANALOG_RECORDER_H
