@@ -95,5 +95,9 @@ char * p25conventional_recorder::get_filename() {
 }
 
 bool p25conventional_recorder::is_p25c() {
-  return true;
+  if (qpsk_mod) {
+    return true;
+  }
 }
+
+

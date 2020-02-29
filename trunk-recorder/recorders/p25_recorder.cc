@@ -269,7 +269,7 @@ void p25_recorder::initialize_qpsk() {
 }
 
 void p25_recorder::reset_costas() {
-  fprintf(stderr, "Reset costas\n");
+//  fprintf(stderr, "Reset costas\n");
   costas_clock->reset();
 }
 
