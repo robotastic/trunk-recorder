@@ -268,6 +268,11 @@ void p25_recorder::initialize_qpsk() {
   connect(rescale,              0, slicer,               0);
 }
 
+void p25_recorder::reset_costas() {
+  fprintf(stderr, "Reset costas\n");
+  costas_clock->reset();
+}
+
 void p25_recorder::initialize_p25() {
   //OP25 Slicer
   const float l[] = { -2.0, 0.0, 2.0, 4.0 };

@@ -93,3 +93,7 @@ char * p25conventional_recorder::get_filename() {
   this->call->create_filename();
   return this->call->get_filename();
 }
+
+bool p25conventional_recorder::is_p25c() {
+  return true;
+}

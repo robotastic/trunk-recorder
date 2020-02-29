@@ -794,6 +794,10 @@ void print_status() {
 
     if (recorder) {
       BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << FormatState(recorder->get_state());
+      if ( (recorder->is_p25c()) && (recorder->is_idle()) && (recorder->qpsk_mod()) ) {  // in case costas_clock has gone off somewhere far away
+        recorder->reset_costas();
+        BOOST_LOG_TRIVIAL(trace) << "\t[ " << recorder->get_num() << " ] Reset costas_clock";
+      }
     }
   }
 
