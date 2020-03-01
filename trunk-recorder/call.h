@@ -79,6 +79,9 @@ public:
 								int get_idle_count();
 								void increase_idle_count();
 								void reset_idle_count();
+								int get_total_idle_count();
+								void increase_total_idle_count();
+								void reset_total_idle_count();
 								int since_last_update();
 								long stopping_elapsed();
 								long elapsed();
@@ -127,6 +130,7 @@ protected:
 								long freq_count;
 								time_t last_update;
 								int idle_count;
+								int total_idle_count;
 								time_t stop_time;
 								time_t start_time;
 								bool debug_recording;

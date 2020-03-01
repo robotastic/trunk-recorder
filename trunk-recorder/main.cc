@@ -736,6 +736,7 @@ void stop_inactive_recorders() {
         if (call->get_recorder()->is_idle()) {
           // increase the number of periods it has not been recording for
           call->increase_idle_count();
+          call->increase_total_idle_count();
         } else if (call->get_idle_count() > 0) {
           // if it starts recording again, then reset the idle count
           call->reset_idle_count();

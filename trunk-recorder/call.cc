@@ -55,6 +55,7 @@ void Call::create_filename() {
 Call::Call(long t, double f, System *s, Config c) {
   config           = c;
   idle_count       = 0;
+  total_idle_count = 0;
   freq_count       = 0;
   error_list_count = 0;
   curr_freq        = 0;
@@ -80,6 +81,7 @@ Call::Call(long t, double f, System *s, Config c) {
 Call::Call(TrunkMessage message, System *s, Config c) {
   config           = c;
   idle_count       = 0;
+  total_idle_count = 0;
   freq_count       = 0;
   error_list_count = 0;
   curr_src_id      = 0;
@@ -133,8 +135,11 @@ void Call::end_call() {
       std::ofstream myfile(status_filename);
 
    if ( (recorder->is_analog()) || (recorder->is_p25c()) ) {
-      start_time = stop_time - final_length;  //  does not account for idle timer counts within the recording
+      BOOST_LOG_TRIVIAL(trace) << "Start " << start_time << " Stop " << stop_time << " Final " << final_length << " Idle " << total_idle_count;
+      start_time = stop_time - final_length - total_idle_count;  //  will have some cumulative rounding difference
    }
+   BOOST_LOG_TRIVIAL(trace) << "Reset total_idle_count";
+   this->reset_total_idle_count();
 
       if (myfile.is_open())
       {
@@ -463,6 +468,18 @@ void Call::reset_idle_count() {
 
 void Call::increase_idle_count() {
   idle_count++;
+}
+
+int Call::get_total_idle_count() {
+  return total_idle_count;
+}
+
+void Call::reset_total_idle_count() {
+  total_idle_count = 0;
+}
+
+void Call::increase_total_idle_count() {
+  total_idle_count++;
 }
 
 long Call::get_stop_time() {
