@@ -132,11 +132,15 @@ void Call::end_call() {
     if (sys->get_call_log()) {
       std::ofstream myfile(status_filename);
 
+   if ( (recorder->is_analog()) || (recorder->is_p25c()) ) {
+      start_time = stop_time - final_length;  //  does not account for idle timer counts within the recording
+   }
 
       if (myfile.is_open())
       {
         myfile << "{\n";
         myfile << "\"freq\": " << this->curr_freq << ",\n";
+        BOOST_LOG_TRIVIAL(info) << "Write start_time to JSON: " << start_time;
         myfile << "\"start_time\": " << this->start_time << ",\n";
         myfile << "\"stop_time\": " << this->stop_time << ",\n";
         myfile << "\"emergency\": " << this->emergency << ",\n";
@@ -544,7 +548,7 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("conventional", this->is_conventional());
   call_node.put("encrypted",    this->get_encrypted());
   call_node.put("emergency",    this->get_emergency());
-  call_node.put("startTime",    this->get_start_time());
+  call_node.put("startTime",    this->get_start_time());  //  fixme? for analog and p25c recordings
   call_node.put("stopTime",     this->get_stop_time());
 
   std::vector<Call_Source> source_list = this->get_source_list();
