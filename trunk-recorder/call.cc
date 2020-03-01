@@ -135,17 +135,16 @@ void Call::end_call() {
       std::ofstream myfile(status_filename);
 
    if ( (recorder->is_analog()) || (recorder->is_p25c()) ) {
-      BOOST_LOG_TRIVIAL(trace) << "Start " << start_time << " Stop " << stop_time << " Final " << final_length << " Idle " << total_idle_count;
+      // BOOST_LOG_TRIVIAL(trace) << "Start " << start_time << " Stop " << stop_time << " Final " << final_length << " Idle " << total_idle_count;
       start_time = stop_time - final_length - total_idle_count;  //  will have some cumulative rounding difference
    }
-   BOOST_LOG_TRIVIAL(trace) << "Reset total_idle_count";
+   // BOOST_LOG_TRIVIAL(trace) << "Reset total_idle_count";
    this->reset_total_idle_count();
 
       if (myfile.is_open())
       {
         myfile << "{\n";
         myfile << "\"freq\": " << this->curr_freq << ",\n";
-        BOOST_LOG_TRIVIAL(info) << "Write start_time to JSON: " << start_time;
         myfile << "\"start_time\": " << this->start_time << ",\n";
         myfile << "\"stop_time\": " << this->stop_time << ",\n";
         myfile << "\"emergency\": " << this->emergency << ",\n";
@@ -565,7 +564,7 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("conventional", this->is_conventional());
   call_node.put("encrypted",    this->get_encrypted());
   call_node.put("emergency",    this->get_emergency());
-  call_node.put("startTime",    this->get_start_time());  //  fixme? for analog and p25c recordings
+  call_node.put("startTime",    this->get_start_time());
   call_node.put("stopTime",     this->get_stop_time());
 
   std::vector<Call_Source> source_list = this->get_source_list();
