@@ -277,6 +277,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   } else {
     initialize_qpsk();
   }
+  tune_freq(chan_freq);
 }
 
 p25_trunking::~p25_trunking() {}
