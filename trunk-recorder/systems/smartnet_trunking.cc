@@ -211,6 +211,7 @@ smartnet_trunking::smartnet_trunking(float               f,
   connect(softbits,         0, slicer,           0);
   connect(slicer,           0, start_correlator, 0);
   connect(start_correlator, 0, decode,           0);
+  tune_freq(chan_freq);
 }
 
 void smartnet_trunking::reset() {
