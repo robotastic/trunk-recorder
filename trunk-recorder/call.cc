@@ -328,6 +328,10 @@ std::vector<Call_Source> Call::get_source_list() {
   return src_list;
 }
 
+void Call::clear_src_list() {
+  src_list.clear();
+}
+
 long Call::get_source_count() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";

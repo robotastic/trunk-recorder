@@ -108,6 +108,7 @@ public:
 								std::string get_talkgroup_display();
 								void set_talkgroup_display_format(std::string format);
 								void set_talkgroup_tag(std::string tag);
+                                                                void clear_src_list();
 								boost::property_tree::ptree get_stats();
 
 								bool add_signal_source(long src, const char* system_type, bool signal_emergency);
