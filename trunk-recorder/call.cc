@@ -330,6 +330,7 @@ std::vector<Call_Source> Call::get_source_list() {
 
 void Call::clear_src_list() {
   src_list.clear();
+  src_list.shrink_to_fit();
 }
 
 long Call::get_source_count() {
