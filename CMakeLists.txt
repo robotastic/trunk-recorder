@@ -66,6 +66,7 @@ set(GRC_BLOCKS_DIR      ${GR_PKG_DATA_DIR}/grc/blocks)
 ########################################################################
 # Find gnuradio build dependencies
 ########################################################################
+find_package(GnuradioAudio)
 find_package(GnuradioRuntime)
 find_package(CppUnit)
 
@@ -81,8 +82,9 @@ find_package(CppUnit)
 #    find_package(Gnuradio)
 #endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT)
+set(GR_REQUIRED_COMPONENTS AUDIO ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT)
 find_package(Gnuradio)
+find_package(GnuradioAudio)
 find_package(GnuradioRuntime)
 find_package(CppUnit)
 
