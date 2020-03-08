@@ -35,6 +35,7 @@ void p25conventional_recorder::start(Call *call) {
     timestamp = time(NULL);
     starttime = time(NULL);
 
+    call->clear_src_list();
     talkgroup = call->get_talkgroup();
     short_name = call->get_short_name();
     chan_freq      = call->get_freq();
@@ -79,6 +80,7 @@ void p25conventional_recorder::start(Call *call) {
     }
     state = active;
     valve->set_enabled(true);
+    wav_sink->set_call(call);
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25conventional_recorder.cc: Trying to Start an already Active Logger!!!";
   }

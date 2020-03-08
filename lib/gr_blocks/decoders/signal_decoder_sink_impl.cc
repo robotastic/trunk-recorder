@@ -174,7 +174,7 @@ namespace gr {
             }
             else
             {
-                BOOST_LOG_TRIVIAL(error) << "Logging " << system_type << " : " << unitId << " to current call.";
+                BOOST_LOG_TRIVIAL(info) << "Logging " << system_type << " : " << unitId << " to current call.";
                 d_current_call->add_signal_source(unitId, system_type, emergency);
             }
         }

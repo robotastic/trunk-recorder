@@ -114,6 +114,7 @@ public:
 								bool add_signal_source(long src, const char* system_type, bool signal_emergency);
 								
 								std::string get_talkgroup_tag();
+								std::string get_system_type();
 								double get_final_length();
 
 								System* get_system();

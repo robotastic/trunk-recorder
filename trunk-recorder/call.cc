@@ -518,6 +518,10 @@ char * Call::get_debug_filename() {
   return debug_filename;
 }
 
+std::string Call::get_system_type() {
+  return sys->get_system_type().c_str();
+}
+
 void Call::set_talkgroup_tag(std::string tag){
   talkgroup_tag = tag;
   update_talkgroup_display();

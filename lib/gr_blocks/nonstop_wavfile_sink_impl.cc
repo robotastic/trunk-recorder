@@ -213,6 +213,25 @@ bool nonstop_wavfile_sink_impl::stop()
   return true;
 }
 
+void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char* system_type, bool emergency)
+{
+  if (d_current_call == NULL) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
+  }
+  else {
+    BOOST_LOG_TRIVIAL(info) << "Logging " << system_type << " : " << unitId << " to current call.";
+    d_current_call->add_signal_source(unitId, system_type, emergency);
+  }
+}
+
+void nonstop_wavfile_sink_impl::set_call(Call* call) {
+  d_current_call = call;
+ }
+
+void nonstop_wavfile_sink_impl::end_call() {
+  set_call(NULL);
+}
+
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
@@ -238,17 +257,24 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
   pmt::pmt_t this_key(pmt::intern("src_id"));
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
+  unsigned pos = 0;
+  //long curr_src_id = 0;
+
   for (unsigned int i = 0; i < tags.size(); i++) {
     if (pmt::eq(this_key, tags[i].key)) {      
-      /*
-      long src_id  = pmt::to_long(tags[i].value);      
-      unsigned pos = d_sample_count + (tags[i].offset - nitems_read(0));      
-      double   sec = (double)pos  / (double)d_sample_rate;
-      if (curr_src_id != src_id) {
-        add_source(src_id, sec);
-        BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
-        curr_src_id = src_id;
-      }*/
+ 
+      if (d_current_call->get_system_type() == "conventionalP25" ) {
+
+        long src_id  = pmt::to_long(tags[i].value);      
+        pos = d_sample_count + (tags[i].offset - nitems_read(0));      
+        // double   sec = (double)pos  / (double)d_sample_rate;
+        if (curr_src_id != src_id) {
+          log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
+          // BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+          curr_src_id = src_id;
+        }
+
+      }
     }
   }
 
