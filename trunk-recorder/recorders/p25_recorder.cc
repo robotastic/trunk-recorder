@@ -1,9 +1,11 @@
 
 #include "p25_recorder.h"
+#include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.h"
 
+using namespace std;
 
 p25_recorder_sptr make_p25_recorder(Source * src)
 {
@@ -290,10 +292,20 @@ void p25_recorder::initialize_p25() {
   bool do_tdma               = 1;
   bool do_crypt              = 0;
 
+  bool enable_audio_sink = false;
+  std::vector<string> device_names;
+  if (const char* env = std::getenv("DIGITAL_AUDIO_SINKS")) {
+    enable_audio_sink = true;
+    boost::split(device_names, env, boost::is_any_of(";"));
+  }
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
+  if (enable_audio_sink) {
+    std::cout << "Setting up audio sink for digital recorder number " << rec_num << " with device " << device_names[rec_num] << std::endl;
+    audio_sink = gr::audio::sink::make(8000, device_names[rec_num]);
+  }
 
   slicer->set_max_output_buffer(4096);
   op25_frame_assembler->set_max_output_buffer(4096);
@@ -303,7 +315,10 @@ void p25_recorder::initialize_p25() {
   connect(slicer,               0, op25_frame_assembler, 0);
   connect(op25_frame_assembler, 0, converter,            0);
   connect(converter,            0, levels,               0);
-  connect(levels, 0, wav_sink, 0);
+  connect(levels,               0, wav_sink,             0);
+  if (enable_audio_sink) {
+    connect(levels, 0, audio_sink, 0);
+  }
 }
 void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink)
 {

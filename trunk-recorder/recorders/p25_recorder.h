@@ -54,6 +54,7 @@
 #include "recorder.h"
 #include "../config.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gnuradio/audio/sink.h>
 
 
 class Source;
@@ -118,6 +119,7 @@ protected:
 
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  gr::audio::sink::sptr audio_sink;
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
   gr::blocks::multiply_const_ff::sptr levels;

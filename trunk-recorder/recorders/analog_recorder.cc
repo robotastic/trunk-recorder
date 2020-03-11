@@ -1,5 +1,6 @@
 
 #include "analog_recorder.h"
+#include <boost/algorithm/string.hpp>
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
 #include "../../lib/gr_blocks/decoder_wrapper_impl.h"
@@ -165,7 +166,6 @@ analog_recorder::analog_recorder(Source *src)
 
   //tm *ltm = localtime(&starttime);
 
-  levels2  = gr::blocks::multiply_const_ff::make(src->get_analog_levels());
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
   BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
@@ -176,9 +176,18 @@ analog_recorder::analog_recorder(Source *src)
   high_f_taps =  gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
   high_f      = gr::filter::fir_filter_fff::make(1, high_f_taps);
 
-  const std::string device_names [] = { "hw:1,0,0", "hw:1,0,1", "hw:1,0,2", "hw:1,0,3", "hw:1,0,4", "hw:1,0,5", "hw:1,0,6", "hw:1,0,7", "hw:2,0,0", "hw:2,0,1", "hw:2,0,2", "hw:2,0,3", "hw:2,0,4", "hw:2,0,5", "hw:2,0,6", "hw:2,0,7", "hw:3,0,0", "hw:3,0,1", "hw:3,0,2", "hw:3,0,3", "hw:3,0,4", "hw:3,0,5", "hw:3,0,6", "hw:3,0,7" };
+  bool enable_audio_sink = false;
+  std::vector<string> device_names;
+  if (const char* env = std::getenv("ANALOG_AUDIO_SINKS")) {
+    enable_audio_sink = true;
+    boost::split(device_names, env, boost::is_any_of(";"));
+  }
 
-  audio_sink = gr::audio::sink::make(8000, device_names[rec_num]);
+  if (enable_audio_sink) {
+    levels2  = gr::blocks::multiply_const_ff::make(src->get_analog_levels());
+    std::cout << "Setting up audio sink for analog recorder number " << rec_num << " with device " << device_names[rec_num] << std::endl;
+    audio_sink = gr::audio::sink::make(8000, device_names[rec_num]);
+  }
 
   if (squelch_db != 0) {
     // using squelch
@@ -193,8 +202,10 @@ analog_recorder::analog_recorder(Source *src)
     connect(decim_audio,   0, high_f,        0);
     connect(decim_audio,   0, decoder_sink,  0);
     connect(high_f,        0, squelch_two,   0);
-    connect(high_f,        0, levels2,       0);
-    connect(levels2,       0, audio_sink,    0);
+    if (enable_audio_sink) {
+      connect(high_f,        0, levels2,       0);
+      connect(levels2,       0, audio_sink,    0);
+    }
     connect(squelch_two,   0, levels,        0);
     connect(levels,        0, wav_sink,      0);
   } else {
@@ -209,7 +220,9 @@ analog_recorder::analog_recorder(Source *src)
     connect(decim_audio,   0, levels,        0);
     connect(decim_audio,   0, decoder_sink,  0);
     connect(levels,        0, wav_sink,      0);
-    connect(levels,        0, audio_sink,    0);
+    if (enable_audio_sink) {
+      connect(levels,        0, audio_sink,    0);
+    }
   }
 }
 
