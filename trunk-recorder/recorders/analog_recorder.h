@@ -135,7 +135,6 @@ void calculate_iir_taps(double tau);
 
   gr::blocks::decoder_wrapper::sptr decoder_sink;
 
-  gr::blocks::multiply_const_ff::sptr levels2;
   gr::audio::sink::sptr audio_sink;
 };
 

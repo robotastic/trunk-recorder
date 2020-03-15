@@ -184,7 +184,6 @@ analog_recorder::analog_recorder(Source *src)
   }
 
   if (enable_audio_sink) {
-    levels2  = gr::blocks::multiply_const_ff::make(src->get_analog_levels());
     std::cout << "Setting up audio sink for analog recorder number " << rec_num << " with device " << device_names[rec_num] << std::endl;
     audio_sink = gr::audio::sink::make(8000, device_names[rec_num]);
   }
@@ -202,12 +201,11 @@ analog_recorder::analog_recorder(Source *src)
     connect(decim_audio,   0, high_f,        0);
     connect(decim_audio,   0, decoder_sink,  0);
     connect(high_f,        0, squelch_two,   0);
-    if (enable_audio_sink) {
-      connect(high_f,        0, levels2,       0);
-      connect(levels2,       0, audio_sink,    0);
-    }
     connect(squelch_two,   0, levels,        0);
     connect(levels,        0, wav_sink,      0);
+    if (enable_audio_sink) {
+      connect(levels,       0, audio_sink,    0);
+    }
   } else {
     // No squelch used
     connect(self(),        0, valve,         0);
