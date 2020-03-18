@@ -100,6 +100,7 @@ bool p25conventional_recorder::is_p25c() {
   if (qpsk_mod) {
     return true;
   }
+  return false;
 }
 
 
