@@ -18,7 +18,7 @@ p25_recorder_sptr make_p25_recorder(Source * src)
 void p25_recorder::generate_arb_taps() {
 
   double arb_size  = 32;
-  double arb_atten = 100;
+  double arb_atten = 60;
 // Create a filter that covers the full bandwidth of the output signal
 
 // If rate >= 1, we need to prevent images in the output,

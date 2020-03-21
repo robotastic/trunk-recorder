@@ -76,21 +76,19 @@ analog_recorder::analog_recorder(Source *src)
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
 
-  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
-//  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
-  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, initial_rate, 4000, 1000, 100);
+  double arb_rate  = (double(system_channel_rate) / resampled_rate);
+  double arb_size  = 32;
+  double arb_atten = 72; // for 12-bit ADC
 
+  inital_lpf_taps  = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 53, gr::filter::firdes::WIN_HAMMING);
+//  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
+  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, initial_rate, 3000, 1500, arb_atten);
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
   prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
 
   channel_lpf =  gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
-
-  double arb_rate  = (double(system_channel_rate) / resampled_rate);
-  double arb_size  = 32;
-  double arb_atten = 100;
-
 
   // Create a filter that covers the full bandwidth of the output signal
 
