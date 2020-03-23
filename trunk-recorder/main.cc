@@ -1290,10 +1290,11 @@ bool monitor_system() {
 
     if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25")) {
       std::vector<double> channels = system->get_channels();
-      int talkgroup                = 1;
+      int talkgroup                = 0;
 
       for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
         double channel = *chan_it;
+        talkgroup++;
 
         for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
           source = *src_it;
@@ -1313,7 +1314,6 @@ bool monitor_system() {
 
             BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " <<  FormatFreq(channel) << " Talkgroup: " << talkgroup;
             Call_conventional *call = new Call_conventional(talkgroup, channel, system, config);
-            talkgroup++;
             Talkgroup *talkgroup = system->find_talkgroup(call->get_talkgroup());
 
             if (talkgroup) {
