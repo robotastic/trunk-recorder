@@ -543,6 +543,8 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+    config.max_duration = pt.get<int>("maxDuration", 0);
+    BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (seconds): " << config.max_duration;
 
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << frequencyFormat;
 
@@ -749,8 +751,8 @@ void stop_inactive_recorders() {
           call->reset_idle_count();
         }
 
-        // if no additional recording has happened in the past X periods, stop and open new file
-        if (call->get_idle_count() > 5) {
+        // if no additional recording has happened in the past X periods, or the call has gone on for longer than max_duration, stop and open new file
+        if (call->get_idle_count() > 5 || ( call->get_current_length() > config.max_duration && config.max_duration > 0 )) {
           Recorder * recorder = call->get_recorder();
           call->end_call();
           stats.send_call_end(call);
