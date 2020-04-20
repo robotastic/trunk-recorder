@@ -103,6 +103,7 @@ find_package(GrOsmoSDR)
 find_package(LibHackRF)
 find_package(UHD)
 find_package(OpenSSL REQUIRED)
+find_package(CURL REQUIRED)
 
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to build " ${CMAKE_PROJECT_NAME})
@@ -161,6 +162,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/lib
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/include
     ${OPENSSL_INCLUDE_DIR}
+    ${CURL_INCLUDE_DIR}
     "lib"
 )
 
@@ -236,4 +238,4 @@ target_compile_options(
 
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES}  gnuradio-op25_repeater imbe_vocoder)
+target_link_libraries(recorder ssl crypto ${CURL_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES}  gnuradio-op25_repeater imbe_vocoder)

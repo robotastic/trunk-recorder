@@ -66,6 +66,10 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
 
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
+      system->set_bcfy_api_key(node.second.get<std::string>("broadcastifyApiKey", ""));
+      BOOST_LOG_TRIVIAL(info) << "Broadcastify API Key: " << system->get_bcfy_api_key();
+      system->set_bcfy_system_id(node.second.get<int>("broadcastifySystemId", ""));
+      BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
 
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
@@ -124,8 +128,10 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       config.capture_dir.erase(config.capture_dir.length() - 1);
     }
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config.upload_server = pt.get<std::string>("uploadServer", "encode-upload.sh");
+    config.upload_server = pt.get<std::string>("uploadServer", "");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
+    config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
     default_mode = pt.get<std::string>("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
