@@ -542,6 +542,8 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+    config.max_duration = pt.get<int>("maxDuration", 0);
+    BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (seconds): " << config.max_duration;
 
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << frequencyFormat;
 
@@ -744,9 +746,9 @@ void stop_inactive_recorders() {
           call->reset_idle_count();
         }
 
-        // if no additional recording has happened in the past X periods, stop and open new file
-        if (call->get_idle_count() > 5) {
-          Recorder *recorder = call->get_recorder();
+        // if no additional recording has happened in the past X periods, or the call has gone on for longer than max_duration, stop and open new file
+        if (call->get_idle_count() > 5 || ( call->get_current_length() > config.max_duration && config.max_duration > 0 )) {
+          Recorder * recorder = call->get_recorder();
           call->end_call();
           stats.send_call_end(call);
           call->restart_call();
@@ -755,7 +757,7 @@ void stop_inactive_recorders() {
           }
         }
       } else if (!call->get_recorder()->is_active()) {
-              // P25 Conventional Recorders need a have the graph unlocked before they can start recording.  
+              // P25 Conventional Recorders need a have the graph unlocked before they can start recording.
               Recorder *recorder = call->get_recorder();
               recorder->start(call);
               call->set_state(recording);
@@ -1320,7 +1322,7 @@ bool monitor_system() {
               rec = source->create_digital_conventional_recorder(tb);
               call->set_recorder((Recorder *)rec.get());
               calls.push_back(call);
-              
+
             }
 
             // break out of the for loop
@@ -1411,7 +1413,7 @@ int main(int argc, char **argv) {
       logging::trivial::severity >= logging::trivial::info
 
   );
-  
+
   boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");
 
   boost::log::add_common_attributes();

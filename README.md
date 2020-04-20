@@ -144,6 +144,7 @@ Here are the different arguments:
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects Type II `smartnet` trunking systems which can have both analog and digital talkpaths whereas `p25` trunking systems don't have analog talkpaths.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
+ - **maxDuration** - If a call is being recorded and the duration exceeds this value in seconds, the call will stop recording and a new call will pick up where the previous on left off. The default is *0* or "no timeout".
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
  - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
  - **controlWarnRate** - Log the control channel decode rate when it falls bellow this threshold. The default is *10*. The value of *-1* will always log the decode rate.

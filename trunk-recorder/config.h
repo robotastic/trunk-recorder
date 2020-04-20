@@ -27,6 +27,7 @@ struct Config {
   int call_timeout;
   bool log_file;
   int control_message_warn_rate;
+  int max_duration;
   int control_retune_limit;
   bool broadcast_signals;
 };
