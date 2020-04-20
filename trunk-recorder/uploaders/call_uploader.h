@@ -20,9 +20,12 @@ struct call_data_t {
         bool emergency;
         bool audio_archive;
         char filename[255];
+        char status_filename[255];
         char converted[255];
         char file_path[255];
         std::string upload_server;
+        std::string bcfy_api_key;
+        std::string bcfy_calls_server;
         std::string server;
         std::string scheme;
         std::string hostname;
@@ -30,6 +33,7 @@ struct call_data_t {
         std::string path;
         std::string api_key;
         std::string short_name;
+        int bcfy_system_id;
         int tdma_slot;
         int length;
         bool phase2_tdma;

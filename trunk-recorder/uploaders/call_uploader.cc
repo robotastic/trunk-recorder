@@ -1,4 +1,5 @@
 #include <vector>
+#include <curl/curl.h>
 #include "call_uploader.h"
 #include "../formatter.h"
 
@@ -119,6 +120,247 @@ void build_call_request(struct call_data_t *call, boost::asio::streambuf& reques
   post_stream << body_str;
 }
 
+static std::string response_body;
+
+static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+  ((std::string*) userp)->append((char*) contents, size * nmemb);
+  return size * nmemb;
+}
+
+void make_call_upload_request(struct call_data_t *call) {
+  struct stat file_info;
+
+  /* get the file size of the local file */
+  stat(call->converted, &file_info);
+
+  FILE * audio = fopen(call->converted, "rb");
+
+  // Make sure we have something to read.
+  if (!audio) {
+    BOOST_LOG_TRIVIAL(info) << "Error opening file " << call->converted;
+    return;
+  }
+
+  CURL *curl;
+  CURLcode res;
+
+  struct curl_slist *headers = NULL;
+
+  curl = curl_easy_init();
+  if (curl) {
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
+
+    /* enable uploading */
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+
+    /* HTTP PUT please */
+    curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+
+    /* specify target URL, and note that this URL should include a file
+       name, not only a directory */
+    curl_easy_setopt(curl, CURLOPT_URL, call->bcfy_calls_server.c_str());
+
+    /* now specify which file to upload */
+    curl_easy_setopt(curl, CURLOPT_READDATA, audio);
+
+    /* provide the size of the upload, we specially typecast the value
+       to curl_off_t since we must be sure to use the correct data size */
+    curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE,
+                     (curl_off_t)file_info.st_size);
+
+    headers = curl_slist_append(headers, "Content-Type: audio/aac");
+    /* Expect: 100-continue is not wanted */
+    headers = curl_slist_append(headers, "Expect:");
+    /* Transfer-Encoding: chunked is not wanted */
+    headers = curl_slist_append(headers, "Transfer-Encoding:");
+
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    /* Perform the request, res will get the return code */
+    res = curl_easy_perform(curl);
+    /* Check for errors */
+    if (res == CURLE_OK) {
+      BOOST_LOG_TRIVIAL(info) <<"[" << call->short_name <<  "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Audio Upload Success";
+    } else {
+      BOOST_LOG_TRIVIAL(error) <<"[" << call->short_name <<  "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Audio Upload Error";
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
+    }
+
+    /* always cleanup */
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+  }
+
+  fclose(audio);
+}
+
+void upload_to_broadcastify(struct call_data_t *call) {
+  std::string callDuration = std::to_string(call->length);
+  std::string systemId = std::to_string(call->bcfy_system_id);
+
+  CURL *curl;
+  CURLMcode res;
+  CURLM *multi_handle;
+  int still_running = 0;
+  std::string response_buffer;
+
+  struct curl_httppost *formpost = NULL;
+  struct curl_httppost *lastptr = NULL;
+  struct curl_slist *headerlist = NULL;
+
+  /* Fill in the file upload field. This makes libcurl load data from
+     the given file name when curl_easy_perform() is called. */
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "metadata",
+               CURLFORM_FILE, call->status_filename,
+               CURLFORM_CONTENTTYPE, "application/json",
+               CURLFORM_END);
+
+  /* Fill in the filename field */
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "filename",
+               CURLFORM_COPYCONTENTS, basename(call->converted),
+               CURLFORM_END);
+
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "callDuration",
+               CURLFORM_COPYCONTENTS, callDuration.c_str(),
+               CURLFORM_END);
+
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "systemId",
+               CURLFORM_COPYCONTENTS, systemId.c_str(),
+               CURLFORM_END);
+
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "apiKey",
+               CURLFORM_COPYCONTENTS, call->bcfy_api_key.c_str(),
+               CURLFORM_END);
+
+  curl = curl_easy_init();
+  multi_handle = curl_multi_init();
+
+  /* initialize custom header list (stating that Expect: 100-continue is not wanted */
+  headerlist = curl_slist_append(headerlist, "Expect:");
+  if (curl && multi_handle) {
+    /* what URL that receives this POST */
+    curl_easy_setopt(curl, CURLOPT_URL, call->bcfy_calls_server.c_str());
+
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
+
+    curl_multi_add_handle(multi_handle, curl);
+
+    curl_multi_perform(multi_handle, &still_running);
+
+    while (still_running) {
+      struct timeval timeout;
+      int rc; /* select() return code */
+      CURLMcode mc; /* curl_multi_fdset() return code */
+
+      fd_set fdread;
+      fd_set fdwrite;
+      fd_set fdexcep;
+      int maxfd = -1;
+
+      long curl_timeo = -1;
+
+      FD_ZERO(&fdread);
+      FD_ZERO(&fdwrite);
+      FD_ZERO(&fdexcep);
+
+      /* set a suitable timeout to play around with */
+      timeout.tv_sec = 1;
+      timeout.tv_usec = 0;
+
+      curl_multi_timeout(multi_handle, &curl_timeo);
+      if (curl_timeo >= 0) {
+        timeout.tv_sec = curl_timeo / 1000;
+        if (timeout.tv_sec > 1)
+          timeout.tv_sec = 1;
+        else
+          timeout.tv_usec = (curl_timeo % 1000) * 1000;
+      }
+
+      /* get file descriptors from the transfers */
+      mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+
+      if (mc != CURLM_OK) {
+        fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
+        break;
+      }
+
+      /* On success the value of maxfd is guaranteed to be >= -1. We call
+         select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
+         no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
+         to sleep 100ms, which is the minimum suggested value in the
+         curl_multi_fdset() doc. */
+
+      if (maxfd == -1) {
+        /* Portable sleep for platforms other than Windows. */
+        struct timeval wait = { 0, 100 * 1000 }; /* 100ms */
+        rc = select(0, NULL, NULL, NULL, &wait);
+      }
+      else {
+        /* Note that on some platforms 'timeout' may be modified by select().
+           If you need access to the original value save a copy beforehand. */
+        rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+      }
+
+      switch (rc) {
+        case -1:
+          /* select error */
+          break;
+        case 0:
+        default:
+          /* timeout or readable/writable sockets */
+          curl_multi_perform(multi_handle, &still_running);
+          break;
+      }
+    }
+
+    res = curl_multi_cleanup(multi_handle);
+
+    /* always cleanup */
+    curl_easy_cleanup(curl);
+
+    /* then cleanup the formpost chain */
+    curl_formfree(formpost);
+
+    /* free slist */
+    curl_slist_free_all(headerlist);
+
+    if (res == CURLM_OK) {
+      std::size_t spacepos = response_buffer.find(' ');
+      if (spacepos > 0) {
+        std::string code = response_buffer.substr(0, spacepos);
+        std::string message = response_buffer.substr(spacepos + 1);
+
+        if (code == "0") {
+          call->bcfy_calls_server = message;
+          make_call_upload_request(call);
+        } else {
+          BOOST_LOG_TRIVIAL(error) << "[" << call->short_name << "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Metadata Upload Error: " << message;
+        }
+      } else {
+        BOOST_LOG_TRIVIAL(error) << "[" << call->short_name << "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Metadata Upload Error: " << response_buffer;
+      }
+    } else {
+      BOOST_LOG_TRIVIAL(error) << "[" << call->short_name << "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Metadata Upload Error";
+    }
+  }
+}
+
 void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   char shell_command[400];
 
@@ -129,7 +371,7 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
   int nchars = snprintf(shell_command, 400, "sox %s -t wav - --norm=-3 | fdkaac --silent --ignorelength -b 8000 -o %s -", call_info->filename, call_info->converted);
 
   if (nchars >= 400) {
-    BOOST_LOG_TRIVIAL(error) << "Call Uploader: Path longer than 400 charecters";
+    BOOST_LOG_TRIVIAL(error) << "Call Uploader: Path longer than 400 characters";
   }
 
   // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
@@ -139,6 +381,18 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
   // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
 
+  if (call_info->bcfy_calls_server != "" && call_info->bcfy_api_key != "" && call_info->bcfy_system_id > 0) {
+    upload_to_broadcastify(call_info);
+  }
+
+  if (call_info->upload_server == "") {
+    if (!call_info->audio_archive) {
+      unlink(call_info->filename);
+      unlink(call_info->converted);
+    }
+    return;
+  }
+
   boost::asio::streambuf request_;
 
   build_call_request(call_info, request_);
@@ -147,23 +401,24 @@ void convert_upload_call(call_data_t *call_info, server_data_t *server_info) {
 
   size_t req_size = request_.size();
 
+  int error;
+
   if (call_info->scheme == "http") {
-    BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq)  << "\tHTTP Upload result: " << http_upload(server_info, request_);
+    error = http_upload(server_info, request_);
   }
 
   if (call_info->scheme == "https") {
-    int error = https_upload(server_info, request_);
+    error = https_upload(server_info, request_);
+  }
 
-    if (!error) {
-      BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTPS Upload Success - file size: " << req_size;
-      if (!call_info->audio_archive) {
-        unlink(call_info->filename);
-        unlink(call_info->converted);
-      }
-    } else {
-      BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTPS Upload Error - file size: " << req_size;
-
+  if (!error) {
+    BOOST_LOG_TRIVIAL(info) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTP(S) Upload Success - file size: " << req_size;
+    if (!call_info->audio_archive) {
+      unlink(call_info->filename);
+      unlink(call_info->converted);
     }
+  } else {
+    BOOST_LOG_TRIVIAL(error) <<"[" << call_info->short_name <<  "]\tTG: " << call_info->talkgroup << "\tFreq: " << FormatFreq(call_info->freq) << "\tHTTP(S) Upload Error - file size: " << req_size;
   }
 
   // BOOST_LOG_TRIVIAL(info) << "Try to clear: " << req_size;
@@ -207,23 +462,26 @@ void send_call(Call *call, System *sys, Config config) {
   boost::regex  ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
   boost::cmatch what;
 
-  if (regex_match(config.upload_server.c_str(), what, ex))
-  {
+  strcpy(call_info->filename,  call->get_filename());
+  strcpy(call_info->converted, call->get_converted_filename());
+  strcpy(call_info->status_filename, call->get_status_filename());
+  strcpy(call_info->file_path, call->get_path());
+
+  if (regex_match(config.upload_server.c_str(), what, ex)) {
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
     call_info->upload_server = config.upload_server;
     call_info->scheme        = std::string(what[1].first, what[1].second);
     call_info->hostname      = std::string(what[2].first, what[2].second);
     call_info->port          = std::string(what[3].first, what[3].second);
     call_info->path          = std::string(what[4].first, what[4].second);
+  }
+  if (regex_match(config.bcfy_calls_server.c_str(), what, ex)) {
+    call_info->bcfy_calls_server = config.bcfy_calls_server;
+  }
 
-    // std::cout << "Upload - Scheme: " << call_info->scheme << " Hostname: " <<
-    // call_info->hostname << " Port: " << call_info->port << " Path: " <<
-    // call_info->path << "\n";
-    strcpy(call_info->filename,  call->get_filename());
-    strcpy(call_info->converted, call->get_converted_filename());
-    strcpy(call_info->file_path, call->get_path());
-  } else {
-    // std::cout << "Unable to parse Server URL\n";
+  // Exit if neither of our above URLs were valid
+  if (call_info->upload_server.empty() && call_info->bcfy_calls_server.empty()) {
+    BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
     return;
   }
 
@@ -244,6 +502,8 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->stop_time        = call->get_stop_time();
   call_info->length           = (int) call->get_final_length();
   call_info->api_key          = sys->get_api_key();
+  call_info->bcfy_api_key     = sys->get_bcfy_api_key();
+  call_info->bcfy_system_id   = sys->get_bcfy_system_id();
   call_info->short_name       = sys->get_short_name();
   call_info->audio_archive    = sys->get_audio_archive();
   std::stringstream ss;

@@ -25,5 +25,6 @@ ChanList.csv
 .DS_Store
 .idea/
 cmake-build-debug/
+cmake-build-default/
 *.code-workspace
 /.vscode/

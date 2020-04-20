@@ -274,6 +274,10 @@ void load_config(string config_file)
 
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
+      system->set_bcfy_api_key(node.second.get<std::string>("broadcastifyApiKey", ""));
+      BOOST_LOG_TRIVIAL(info) << "Broadcastify API Key: " << system->get_bcfy_api_key();
+      system->set_bcfy_system_id(node.second.get<int>("broadcastifySystemId", 0));
+      BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
 
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
@@ -527,6 +531,8 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
     config.upload_server = pt.get<std::string>("uploadServer", "");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
+    config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
     config.status_server = pt.get<std::string>("statusServer", "");
     BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
     config.instance_key = pt.get<std::string>("instanceKey", "");
@@ -626,7 +632,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
      shell_command << "./" << sys->get_tracking_script() << " " << call->get_talkgroup() <<" tx &";
      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t TX: " << shell_command.str().c_str();
      //system(shell_command);
-     system(shell_command.str().c_str());
+     int forget = system(shell_command.str().c_str());
   }
 
   if (call->get_encrypted() == true) {
@@ -884,7 +890,7 @@ void unit_registration(long unit, long talkgroup, System *sys) {
 
   if (sys->get_tracking_script().length() != 0) {
     shell_command << "./" << sys->get_tracking_script() << " " << unit << " " << "on" << " " << talkgroup << " " << "&";
-    system(shell_command.str().c_str());
+    int forget = system(shell_command.str().c_str());
   }
 }
 
@@ -901,7 +907,7 @@ void unit_deregistration(long unit, System *sys) {
 
   if (sys->get_tracking_script().length() != 0) {
     shell_command << "./" << sys->get_tracking_script() << " " << unit << " " << "off" << "&";
-    system(shell_command.str().c_str());
+    int ignore = system(shell_command.str().c_str());
   }
 
 }
@@ -913,7 +919,7 @@ void group_affiliation(long unit, long talkgroup, System *sys) {
 
   if (sys->get_tracking_script().length() != 0) {
     shell_command << "./" << sys->get_tracking_script() << " " << unit << " " << "tg" << " " << talkgroup << " &";
-    system(shell_command.str().c_str());
+    int forget = system(shell_command.str().c_str());
   }
  }
 

@@ -176,7 +176,7 @@ void Call::end_call() {
     this->get_recorder()->stop();
 
     if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
-      if (this->config.upload_server != "") {
+      if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_call(this, sys, config);
       } else {}
 
