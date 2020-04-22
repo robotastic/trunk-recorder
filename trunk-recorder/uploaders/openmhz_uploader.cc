@@ -102,7 +102,7 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
 
   curl_formadd(&formpost,
                &lastptr,
-               CURLFORM_COPYNAME, "talkgroup_num",
+               CURLFORM_COPYNAME, "emergency",
                CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call->emergency).c_str(),
                CURLFORM_END);
 
