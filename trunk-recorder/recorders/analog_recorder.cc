@@ -1,5 +1,6 @@
 
 #include "analog_recorder.h"
+#include "../recorder_globals.h"
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
 #include "../../lib/gr_blocks/decoder_wrapper_impl.h"
@@ -297,6 +298,11 @@ void analog_recorder::tune_offset(double f) {
 void analog_recorder::decoder_callback_handler(long unitId, const char* signaling_type, gr::blocks::SignalType signal) {
   if(call != NULL) {
     call->add_signal_source(unitId, signaling_type, signal);
+
+    process_signal(unitId, signaling_type, signal, call->get_system(), this);
+  }
+  else {
+      process_signal(unitId, signaling_type, signal, NULL, this);
   }
 }
 
