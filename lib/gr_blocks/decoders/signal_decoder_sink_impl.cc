@@ -108,19 +108,20 @@ namespace gr {
         }
 
         signal_decoder_sink_impl::sptr
-            signal_decoder_sink_impl::make(unsigned int sample_rate)
+            signal_decoder_sink_impl::make(unsigned int sample_rate, decoder_callback callback)
         {
             return gnuradio::get_initial_sptr
-            (new signal_decoder_sink_impl(sample_rate));
+            (new signal_decoder_sink_impl(sample_rate, callback));
         }
 
-        signal_decoder_sink_impl::signal_decoder_sink_impl(unsigned int sample_rate)
+        signal_decoder_sink_impl::signal_decoder_sink_impl(unsigned int sample_rate, decoder_callback callback)
             : sync_block("signal_decoder_sink_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
+            d_callback(callback),
             d_mdc_enabled(false),
             d_fsync_enabled(false),
-            d_star_enabled(false)
+            d_star_enabled(false),
         {
             d_mdc_decoder = mdc_decoder_new(sample_rate);
             d_fsync_decoder = fsync_decoder_new(sample_rate);
@@ -168,33 +169,9 @@ namespace gr {
 
         void signal_decoder_sink_impl::log_decoder_msg(long unitId, const char* system_type, bool emergency)
         {
-            if (d_current_call == NULL)
-            {
-                BOOST_LOG_TRIVIAL(error) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
+            if(d_callback != NULL) {
+                d_callback(unitId, system_type, emergency);
             }
-            else
-            {
-                BOOST_LOG_TRIVIAL(error) << "Logging " << system_type << " : " << unitId << " to current call.";
-                d_current_call->add_signal_source(unitId, system_type, emergency);
-            }
-        }
-
-        void signal_decoder_sink_impl::set_call(Call* call) {
-            d_current_call = call;
-
-            if (d_current_call == NULL) {
-                d_mdc_enabled = false;
-                d_fsync_enabled = false;
-                d_star_enabled = false;
-            }
-            else {
-                d_mdc_enabled = d_current_call->get_system()->get_mdc_enabled();
-                d_fsync_enabled = d_current_call->get_system()->get_fsync_enabled();
-                d_star_enabled = d_current_call->get_system()->get_star_enabled();
-            }
-        }
-        void signal_decoder_sink_impl::end_call() {
-            set_call(NULL);
         }
     } /* namespace blocks */
 } /* namespace gr */

@@ -168,7 +168,7 @@ analog_recorder::analog_recorder(Source *src)
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
   BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
-  decoder_sink = gr::blocks::decoder_wrapper_impl::make(8000, src->get_num());
+  decoder_sink = gr::blocks::decoder_wrapper_impl::make(8000, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
 
   // Try and get rid of the FSK wobble
@@ -294,10 +294,26 @@ void analog_recorder::tune_offset(double f) {
   prefilter->set_center_freq(offset_amount);
 }
 
+void analog_recorder::decoder_callback_handler(long unitId, const char* system_type, bool emergency) {
+  if(call != NULL) {
+    call->add_signal_source(unitId, system_type, emergency);
+  }
+}
+
+void analog_recorder::setup_decoders_for_system(System *system) {
+  decoder_sink->set_mdc_enabled(system->get_mdc_enabled());
+  decoder_sink->set_fsync_enabled(system->get_fsync_enabled());
+  decoder_sink->set_star_enabled(system->get_star_enabled());
+  decoder_sink->set_tps_enabled(system->get_tps_enabled());
+}
+
 void analog_recorder::start(Call *call) {
   starttime = time(NULL);
 
-  decoder_sink->set_call(call);
+  this->call = call;
+
+  setup_decoders_for_system(call->get_system());
+  
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 

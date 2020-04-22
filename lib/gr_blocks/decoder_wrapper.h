@@ -23,14 +23,15 @@
 #ifndef INCLUDED_GR_DECODER_WRAPPER_H
 #define INCLUDED_GR_DECODER_WRAPPER_H
 
-#include "../trunk-recorder/call.h"
-#include "../trunk-recorder/call_conventional.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/hier_block2.h>
+#include <functional>
 
 namespace gr {
     namespace blocks {
+
+        typedef std::function<void(long unitId, const char* system_type, bool emergency)> decoder_callback;
 
         /*!
          * \brief Wrapps the decoder functions into a single block.
@@ -55,9 +56,6 @@ namespace gr {
             virtual bool get_fsync_enabled() { return false; };
             virtual bool get_star_enabled() { return false; };
             virtual bool get_tps_enabled() { return false; }
-
-            virtual void set_call(Call* call) {};
-            virtual void end_call() {};
 
             virtual void process_message_queues(void) {};
         };

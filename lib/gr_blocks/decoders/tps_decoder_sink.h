@@ -23,8 +23,6 @@
 #ifndef INCLUDED_GR_TPS_DECODER_SINK_H
 #define INCLUDED_GR_TPS_DECODER_SINK_H
 
-#include "../trunk-recorder/call.h"
-#include "../trunk-recorder/call_conventional.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/hier_block2.h>
@@ -48,9 +46,6 @@ namespace gr {
             virtual void set_enabled(bool b) {};
 
             virtual bool get_enabled() { return false; };
-
-            virtual void set_call(Call* call) {};
-            virtual void end_call() {};
 
             virtual void process_message_queues(void) {};
         };
