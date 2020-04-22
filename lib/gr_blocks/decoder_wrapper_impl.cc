@@ -79,10 +79,10 @@ namespace gr {
         bool decoder_wrapper_impl::get_star_enabled() { return d_signal_decoder_sink->get_star_enabled(); };
         bool decoder_wrapper_impl::get_tps_enabled() { return d_tps_decoder_sink->get_enabled(); };
 
-        void decoder_wrapper_impl::log_decoder_msg(long unitId, const char* system_type, bool emergency)
+        void decoder_wrapper_impl::log_decoder_msg(long unitId, const char* signaling_type, SignalType signal)
         {
             if(d_callback != NULL) {
-                d_callback(unitId, system_type, emergency);
+                d_callback(unitId, signaling_type, signal);
             }
         }
 

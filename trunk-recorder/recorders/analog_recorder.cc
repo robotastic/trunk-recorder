@@ -294,9 +294,9 @@ void analog_recorder::tune_offset(double f) {
   prefilter->set_center_freq(offset_amount);
 }
 
-void analog_recorder::decoder_callback_handler(long unitId, const char* system_type, bool emergency) {
+void analog_recorder::decoder_callback_handler(long unitId, const char* signaling_type, gr::blocks::SignalType signal) {
   if(call != NULL) {
-    call->add_signal_source(unitId, system_type, emergency);
+    call->add_signal_source(unitId, signaling_type, signal);
   }
 }
 

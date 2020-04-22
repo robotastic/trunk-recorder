@@ -26,6 +26,7 @@
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/hier_block2.h>
+#include "../decoder_wrapper.h"
 
 namespace gr {
     namespace blocks {

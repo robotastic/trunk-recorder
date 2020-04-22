@@ -8,7 +8,7 @@
 #include "../source.h"
 #include "../config.h"
 #include "../systems/system.h"
-
+#include "../../lib/gr_blocks/decoder_wrapper.h"
 
 // This header pulls in the WebSocket++ abstracted thread support that will
 // select between boost::thread and std::thread based on how the build system
@@ -42,6 +42,7 @@ class stat_socket {
   void send_recorders(std::vector<Recorder *>recorders);
   void send_systems(std::vector<System *> systems);
   void send_system(System * systems);
+  void send_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, System* system, Recorder* recorder);
 
 private:
     void reopen_stat();

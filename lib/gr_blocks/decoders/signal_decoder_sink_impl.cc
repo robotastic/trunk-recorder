@@ -44,6 +44,25 @@
 namespace gr {
     namespace blocks {
 
+        SignalType get_mdc_signal_type(unsigned char op, unsigned char arg)
+        {
+            switch (op)
+            {
+            case 0x00: return SignalType::Emergency;
+            case 0x01: return SignalType::Normal;
+            case 0x20: return SignalType::EmergencyAck;
+            case 0x63: return SignalType::RadioCheck;
+            case 0x03: return SignalType::RadioCheckAck;
+            case 0x07: return SignalType::Normal; //Message
+            case 0x23: return SignalType::Normal; //Message Ack
+            case 0x22: return SignalType::RadioCheck;
+            case 0x06: return SignalType::RadioCheckAck;
+            case 0x11: return SignalType::Normal; //Remote Monitor
+            case 0x2b: return (arg == 0x02) ? SignalType::RadioRevive : SignalType::RadioStun;
+            case 0x0b: return (arg == 0x02) ? SignalType::RadioReviveAck : SignalType::RadioStunAck;
+            default: return SignalType::Normal;
+            }
+        }
         void mdc_callback(int frameCount, // 1 or 2 - if 2 then extra0-3 are valid
             unsigned char op,
             unsigned char arg,
@@ -66,8 +85,9 @@ namespace gr {
 
             fprintf(stdout, "%s\n", json_buffer);
 
-            signal_decoder_sink_impl* decoder = (signal_decoder_sink_impl*)context;
-            decoder->log_decoder_msg(unitID, "MDC1200", op == 0x00);
+            signal_decoder_sink_impl* decoder = (signal_decoder_sink_impl*)context;            
+
+            decoder->log_decoder_msg(unitID, "MDC1200", get_mdc_signal_type(op,arg));
         }
 
         void fsync_callback(int cmd, int subcmd, int from_fleet, int from_unit, int to_fleet, int to_unit, int allflag, unsigned char* payload, int payload_len, unsigned char* raw_msg, int raw_msg_len, void* context, int is_fsync2, int is_2400) {
@@ -90,7 +110,7 @@ namespace gr {
             fprintf(stdout, "%s\n", json_buffer);
 
             signal_decoder_sink_impl* decoder = (signal_decoder_sink_impl*)context;
-            decoder->log_decoder_msg(from_unit, "FLEETSYNC", false);
+            decoder->log_decoder_msg(from_unit, "FLEETSYNC", SignalType::Normal);
         }
 
         void star_callback(int unitID, int tag, int status, int message, void* context) {
@@ -104,7 +124,7 @@ namespace gr {
             fprintf(stdout, "%s\n", json_buffer);
 
             signal_decoder_sink_impl* decoder = (signal_decoder_sink_impl*)context;
-            decoder->log_decoder_msg(unitID, "STAR", false);
+            decoder->log_decoder_msg(unitID, "STAR", SignalType::Normal);
         }
 
         signal_decoder_sink_impl::sptr
@@ -121,7 +141,7 @@ namespace gr {
             d_callback(callback),
             d_mdc_enabled(false),
             d_fsync_enabled(false),
-            d_star_enabled(false),
+            d_star_enabled(false)
         {
             d_mdc_decoder = mdc_decoder_new(sample_rate);
             d_fsync_decoder = fsync_decoder_new(sample_rate);
@@ -167,10 +187,13 @@ namespace gr {
             return noutput_items;
         }
 
-        void signal_decoder_sink_impl::log_decoder_msg(long unitId, const char* system_type, bool emergency)
+        void signal_decoder_sink_impl::log_decoder_msg(long unitId, const char* signaling_type, SignalType signal)
         {
             if(d_callback != NULL) {
-                d_callback(unitId, system_type, emergency);
+                d_callback(unitId, signaling_type, signal);
+            }
+            else {
+                BOOST_LOG_TRIVIAL(warning) << "log_decoder_msg dropped, no callback setup!";
             }
         }
     } /* namespace blocks */

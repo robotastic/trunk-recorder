@@ -137,6 +137,11 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
   root.put("instanceKey",   m_config->instance_key);
   root.put("logFile",       m_config->log_file);
   root.put("type",         "config");
+
+  if (m_config->broadcast_signals == true) {
+      root.put("broadcast_signals", m_config->broadcast_signals);
+  }
+
   std::stringstream stats_str;
   boost::property_tree::write_json(stats_str, root);
 
@@ -370,4 +375,24 @@ void stat_socket::send_stat(std::string val) {
                                 "Error Sending : " + ec.message());
     }
   }
+}
+
+void stat_socket::send_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, System* system, Recorder* recorder)
+{
+    if (m_open == false || m_config->broadcast_signals == false) return;
+
+    boost::property_tree::ptree signal;
+    signal.put("unit_id", unitId);
+    signal.put("signal_system_type", signaling_type);
+    signal.put("signal_type", sig_type);
+
+    if (recorder != NULL) {
+        signal.add_child("recorder", recorder->get_stats());
+    }
+
+    if (system != NULL) {
+        signal.add_child("system", system->get_stats());
+    }
+
+    send_object(signal, "signal", "signaling");
 }

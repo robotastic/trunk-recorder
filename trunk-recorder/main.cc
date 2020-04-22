@@ -38,7 +38,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-
+#include "recorder_globals.h"
 #include "source.h"
 #include "config.h"
 
@@ -53,10 +53,6 @@
 #include "systems/smartnet_parser.h"
 #include "systems/p25_parser.h"
 #include "systems/parser.h"
-
-
-
-
 
 #include <osmosdr/source.h>
 
@@ -86,9 +82,7 @@ gr::msg_queue::sptr msg_queue;
 volatile sig_atomic_t exit_flag = 0;
 SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
-
 Config config;
-
 string default_mode;
 
 #include <websocketpp/config/asio_no_tls_client.hpp>
@@ -518,6 +512,8 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
     config.instance_id = pt.get<std::string>("instanceId", "");
     BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
+    config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
+    BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
     default_mode = pt.get<std::string>("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
@@ -589,6 +585,10 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
 
   str.replace(start_pos, from.length(), to);
   return true;
+}
+
+void process_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, System* system, Recorder* recorder) {
+    stats.send_signal(unitId, signaling_type, sig_type, system, recorder);
 }
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {
@@ -975,7 +975,7 @@ void unit_check() {
     }
     myfile << "\n}\n}\n";
     sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-    int forget = system(shell_command);
+    system(shell_command);
     //int rc = system(shell_command);
     myfile.close();
   }

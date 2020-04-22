@@ -98,7 +98,7 @@ namespace gr {
                 int srcaddr = atoi(pt.get<std::string>("srcaddr", "0").c_str());
 
                 if (srcaddr > 0) {
-                    log_decoder_msg(srcaddr, "TPS", false);
+                    log_decoder_msg(srcaddr, "TPS", SignalType::Normal);
                 }
             }
             catch (std::exception const& e)
@@ -214,10 +214,10 @@ namespace gr {
 
         bool tps_decoder_sink_impl::get_enabled() { return valve->enabled(); };
 
-        void tps_decoder_sink_impl::log_decoder_msg(long unitId, const char* system_type, bool emergency)
+        void tps_decoder_sink_impl::log_decoder_msg(long unitId, const char* signaling_type, SignalType signal)
         {
             if(d_callback != NULL) {
-                d_callback(uintId, system_type, emergency);
+                d_callback(unitId, signaling_type, signal);
             }
         }
 
@@ -271,7 +271,7 @@ namespace gr {
             }
 
             if (unit_id > 0 || emergency) {
-                log_decoder_msg(unit_id, "TPS", emergency);
+                log_decoder_msg(unit_id, "TPS", emergency ? SignalType::Emergency : SignalType::Normal);
             }
         }
 
@@ -317,7 +317,7 @@ namespace gr {
             }
             
             if (unit_id > 0 || emergency) {
-                log_decoder_msg(unit_id, "TPS", emergency);
+                log_decoder_msg(unit_id, "TPS", emergency ? SignalType::Emergency : SignalType::Normal);
             }
         }
     } /* namespace blocks */

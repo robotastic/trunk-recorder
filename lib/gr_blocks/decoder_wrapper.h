@@ -31,7 +31,9 @@
 namespace gr {
     namespace blocks {
 
-        typedef std::function<void(long unitId, const char* system_type, bool emergency)> decoder_callback;
+        enum SignalType { Normal = 0, Emergency = 1, EmergencyAck = 2, RadioCheck = 3, RadioCheckAck = 4, RadioStun = 5, RadioStunAck = 6, RadioRevive = 7, RadioReviveAck = 8};
+
+        typedef std::function<void(long unitId, const char* signaling_type, SignalType signal)> decoder_callback;
 
         /*!
          * \brief Wrapps the decoder functions into a single block.

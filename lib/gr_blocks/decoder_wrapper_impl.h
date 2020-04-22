@@ -64,7 +64,7 @@ namespace gr {
 			bool get_star_enabled();
 			bool get_tps_enabled();
 
-			void log_decoder_msg(long unitId, const char* system_type, bool emergency);
+			void log_decoder_msg(long unitId, const char* signaling_type, SignalType signal);
 			void process_message_queues(void);
 		};
 

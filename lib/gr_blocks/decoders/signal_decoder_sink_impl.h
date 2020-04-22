@@ -23,6 +23,7 @@
 #ifndef INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H
 #define INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H
 
+#include "../decoder_wrapper.h"
 #include "signal_decoder_sink.h"
 #include <boost/log/trivial.hpp>
 
@@ -73,7 +74,7 @@ namespace gr {
 			bool get_fsync_enabled();
 			bool get_star_enabled();
 
-			void log_decoder_msg(long unitId, const char* system_type, bool emergency);
+			void log_decoder_msg(long unitId, const char* signaling_type, SignalType signal);
 		};
 
 	} /* namespace blocks */

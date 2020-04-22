@@ -144,7 +144,7 @@ void Call::end_call() {
         myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
         myfile << "\"srcList\": [ ";
 
-        for (int i = 0; i < src_list.size(); i++) {
+        for (std::size_t i = 0; i < src_list.size(); i++) {
           if (i != 0) {
             myfile << ", ";
           }
@@ -179,7 +179,7 @@ void Call::end_call() {
         BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
         signal(SIGCHLD, SIG_IGN);
         //int rc = system(shell_command.str().c_str());
-        int forget = system(shell_command.str().c_str());
+        system(shell_command.str().c_str());
       }
     } else {
       // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
@@ -392,7 +392,7 @@ const char * Call::get_xor_mask() {
   return sys->get_xor_mask();
 }
 
-bool Call::add_signal_source(long src, const char* system_type, bool signal_emergency)
+bool Call::add_signal_source(long src, const char* signaling_type, gr::blocks::SignalType signal)
 {
     if (src == 0) {
         return false;
@@ -408,17 +408,17 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
 
     double position = get_current_length();
 
-    if (signal_emergency) {
+    if (signal == gr::blocks::SignalType::Emergency) {
         set_emergency(true);
 
         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tEmergency flag set by " << src;
     }
 
-    std::string system((system_type == NULL) ? "" : strdup(system_type));
+    std::string system((signaling_type == NULL) ? "" : strdup(signaling_type));
     UnitTag* unit_tag = sys->find_unit_tag(src);
     std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
 
-    Call_Source call_source = { src, time(NULL), position, signal_emergency, system, tag };
+    Call_Source call_source = { src, time(NULL), position, signal == gr::blocks::SignalType::Emergency, system, tag };
 
     src_list.push_back(call_source);
     
@@ -429,7 +429,7 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
 }
 
 bool Call::add_source(long src) {
-    return add_signal_source(src, sys == NULL ? NULL : sys->get_system_type().c_str(), false);
+    return add_signal_source(src, sys == NULL ? NULL : sys->get_system_type().c_str(), gr::blocks::SignalType::Normal);
 }
 
 void Call::update(TrunkMessage message) {
@@ -548,7 +548,7 @@ boost::property_tree::ptree Call::get_stats()
   call_node.put("stopTime",     this->get_stop_time());
 
   std::vector<Call_Source> source_list = this->get_source_list();
-  for (int i = 0; i < source_list.size(); i++) {
+  for (std::size_t i = 0; i < source_list.size(); i++) {
     boost::property_tree::ptree source_node;
 
     source_node.put("source", source_list[i].source);
