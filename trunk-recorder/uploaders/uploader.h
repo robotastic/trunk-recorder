@@ -5,6 +5,8 @@
 #include <istream>
 #include <ostream>
 #include <string>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <boost/log/trivial.hpp>
 #include <curl/curl.h>
 
