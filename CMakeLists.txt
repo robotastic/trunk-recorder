@@ -191,6 +191,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/formatter.cc
   trunk-recorder/source.cc
   trunk-recorder/uploaders/uploader.cc
+  trunk-recorder/uploaders/broadcastify_uploader.cc
+  trunk-recorder/uploaders/openmhz_uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
   trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call_conventional.cc

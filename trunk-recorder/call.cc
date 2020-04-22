@@ -2,6 +2,7 @@
 #include "formatter.h"
 #include <boost/algorithm/string.hpp>
 #include <stdio.h>
+#include <signal.h>
 #include "recorders/recorder.h"
 #include "source.h"
 

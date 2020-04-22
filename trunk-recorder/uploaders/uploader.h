@@ -5,37 +5,47 @@
 #include <istream>
 #include <ostream>
 #include <string>
-#include <boost/asio.hpp>
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/detail/socket_option.hpp>
-#include <boost/bind.hpp>
-#include <boost/asio/ssl.hpp>
-#include <boost/regex.hpp>
 #include <boost/log/trivial.hpp>
-#include <pthread.h>
-#include <sstream>
+#include <curl/curl.h>
 
-#include "../config.h"
-#include "../systems/system.h"
-
-class Call;
-
+#include "../formatter.h"
 #include "../call.h"
 
-
-struct server_data_t {
-        std::string upload_server;
-        std::string server;
-        std::string scheme;
-        std::string hostname;
-        std::string port;
-        std::string path;
+struct call_data_t {
+    long talkgroup;
+    double freq;
+    long start_time;
+    long stop_time;
+    bool encrypted;
+    bool emergency;
+    bool audio_archive;
+    char filename[255];
+    char status_filename[255];
+    char converted[255];
+    char file_path[255];
+    std::string upload_server;
+    std::string bcfy_api_key;
+    std::string bcfy_calls_server;
+    std::string api_key;
+    std::string short_name;
+    int bcfy_system_id;
+    int tdma_slot;
+    int length;
+    bool phase2_tdma;
+    long source_count;
+    std::vector<Call_Source> source_list;
+    long freq_count;
+    Call_Freq freq_list[50];
+    long error_list_count;
+    Call_Error error_list[50];
 };
 
-void add_post_field(std::ostringstream& post_stream, std::string name, std::string value, std::string boundary);
-int http_upload(struct server_data_t *server_info,   boost::asio::streambuf& request_);
-int https_upload(struct server_data_t *server_info, boost::asio::streambuf& request_);
 
-
+class Uploader {
+public:
+    virtual int upload(struct call_data_t *call) = 0;
+protected:
+    static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
+};
 
 #endif
