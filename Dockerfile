@@ -3,7 +3,6 @@
 FROM registry.gitlab.com/erictendian/docker-gnuradio/master:latest
 
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y libcurl4-gnutls-dev
 
 COPY . /src/trunk-recorder
 RUN cd /src/trunk-recorder && cmake . && make
