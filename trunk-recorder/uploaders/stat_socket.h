@@ -29,6 +29,7 @@ class stat_socket {
   void on_fail(websocketpp::connection_hdl);
   void on_close(websocketpp::connection_hdl);
   void on_open(websocketpp::connection_hdl);
+  void on_message(websocketpp::connection_hdl hdl, websocketpp::config::asio_client::message_type::ptr msg);
   void open_stat();
   bool is_open();
   bool config_sent();

@@ -25,6 +25,7 @@ stat_socket::stat_socket() : m_open(false), m_done(false), m_config_sent(false) 
   m_client.set_access_channels(websocketpp::log::alevel::connect);
   m_client.set_access_channels(websocketpp::log::alevel::disconnect);
   m_client.set_access_channels(websocketpp::log::alevel::app);
+  m_client.set_access_channels(websocketpp::log::alevel::message_payload);
 
   // Initialize the Asio transport policy
   m_client.init_asio();
@@ -35,6 +36,7 @@ stat_socket::stat_socket() : m_open(false), m_done(false), m_config_sent(false) 
   m_client.set_open_handler(bind(&stat_socket::on_open, this, _1));
   m_client.set_close_handler(bind(&stat_socket::on_close, this, _1));
   m_client.set_fail_handler(bind(&stat_socket::on_fail, this, _1));
+  m_client.set_message_handler(bind(&stat_socket::on_message, this, _1, _2));
 }
 
 void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *>systems) {
@@ -358,6 +360,10 @@ void stat_socket::on_fail(websocketpp::connection_hdl) {
     reconnect_time = time( NULL) + reconnect_delay;
     m_client.get_alog().write(websocketpp::log::alevel::app,  "on_fail: Will try to reconnect in:  " + str_num);
   }
+}
+
+void stat_socket::on_message(websocketpp::connection_hdl hdl, websocketpp::config::asio_client::message_type::ptr msg) {
+    //Need to receive the message so they don't build up. TrunkPlayer sends a message to acknowledge what TrunkRecorder sends.
 }
 
 void stat_socket::send_stat(std::string val) {
