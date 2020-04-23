@@ -32,6 +32,7 @@ stat_socket::stat_socket() : m_open(false), m_done(false), m_config_sent(false) 
 
   // Bind the handlers we are using
   using websocketpp::lib::placeholders::_1;
+  using websocketpp::lib::placeholders::_2;
   using websocketpp::lib::bind;
   m_client.set_open_handler(bind(&stat_socket::on_open, this, _1));
   m_client.set_close_handler(bind(&stat_socket::on_close, this, _1));
@@ -362,7 +363,7 @@ void stat_socket::on_fail(websocketpp::connection_hdl) {
   }
 }
 
-void stat_socket::on_message(websocketpp::connection_hdl hdl, websocketpp::config::asio_client::message_type::ptr msg) {
+void stat_socket::on_message(websocketpp::connection_hdl, client::message_ptr msg) {
     //Need to receive the message so they don't build up. TrunkPlayer sends a message to acknowledge what TrunkRecorder sends.
 }
 
