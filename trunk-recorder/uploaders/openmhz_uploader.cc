@@ -67,7 +67,6 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
                CURLFORM_COPYNAME, "call",
                CURLFORM_FILE, call->converted,
                CURLFORM_CONTENTTYPE, "application/octet-stream",
-               CURLFORM_FILENAME, basename(call->converted),
                CURLFORM_END);
 
   curl_formadd(&formpost,
