@@ -2,6 +2,8 @@ Trunk Recorder - v3.1.2
 =======================
 *Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compressing audio for OpenMHz. Both utilities can be easily installed using apt-get*
 
+*Note: v3.1.3 adds a dependency for `libcurl`, you can install it thru `apt-get` with `sudo apt-get install libcurl4-openssl-dev`.*
+
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful? Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation.**
@@ -114,8 +116,11 @@ Here are the different arguments:
    - **recordUnknown** - record talkgroups if they are not listed in the Talkgroups File. The options are *true* and *false* (without quotes). The default is *true*.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
+   - **apiKey** - *(Optional, only if uploadServer set)* System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be.
+   - **broadcastifyApiKey** - *(Optional)* System-specific API key for Broadcastify Calls
+   - **broadcastifySystemId** - *(Optional)* System ID for Broadcastify Calls (this is an integer, and different from the RadioReference system ID)
    - **audioArchive** - should the recorded audio files be kept after successfully uploading them. The options are *true* and *false* (without quotes). The default is *true*.
-   - **callLog** - should a json file with the call details be generated. The options are *true* and *false* (without quotes). The default is *true*.
+   - **callLog** - should a json file with the call details be generated. The options are *true* and *false* (without quotes). The default is *true*. This is required if uploading to Broadcastify Calls or trunk-player.
    - **minDuration** - the minimum call (transmission) duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. The default is *0* (no minimum duration).
    - **bandplan** - [SmartNet only] this is the SmartNet bandplan that will be used. The options are *800_standard*, *800_reband*, *800_splinter*, and *400_custom*. *800_standard* is the default.
    - **bandplanBase** - [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz.
@@ -139,6 +144,8 @@ Here are the different arguments:
  - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *true*.
  - **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md) 
  - **broadcastSignals** - *(Optional)* Broadcast decoded signals to the status server. The default is *false*.
+ - **uploadServer** - *(Optional)* The URL for uploading to OpenMHz. The default is an empty string. See the Config tab for your system in OpenMHz to find what the value should be.
+ - **broadcastifyCallsServer** - *(Optional)* The URL for uploading to Broadcastify Calls. The default is an empty string. Refer to [Broadcastify's wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-API) for the upload URL.
  - **logLevel** - *(Optional)* the logging level to display in the console and log file. The options are *trace*, *debug*, *info*, *warning*, *error* & *fatal*. The default is *info*.
  - **debugRecorder** - Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion. The setting is either *true* or *false* and the default is *false*.
  - **debugRecorderPort** - The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. The default value is *1234*. 
