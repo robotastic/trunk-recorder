@@ -65,7 +65,7 @@ list(APPEND op25_repeater_sources
     CCITTChecksumReverse.cpp
 )
 
-add_library(gnuradio-op25_repeater STATIC ${op25_repeater_sources})
+add_library(gnuradio-op25_repeater SHARED ${op25_repeater_sources})
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.dylib )
 else(CMAKE_SYSTEM_NAME STREQUAL "Darwin")

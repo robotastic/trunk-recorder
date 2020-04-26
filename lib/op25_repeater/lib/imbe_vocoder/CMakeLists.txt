@@ -28,4 +28,4 @@ list(APPEND imbe_vocoder_sources
     v_uv_det.cc
 )
 
-add_library(imbe_vocoder STATIC ${imbe_vocoder_sources})
+add_library(imbe_vocoder ${imbe_vocoder_sources})
