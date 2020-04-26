@@ -14,7 +14,6 @@
 
 struct Config {
         std::string upload_script;
-        std::string tracking_script;
         std::string upload_server;
         std::string bcfy_calls_server;
         std::string status_server;

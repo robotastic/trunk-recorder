@@ -281,8 +281,6 @@ void load_config(string config_file)
 
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
-      system->set_tracking_script(node.second.get<std::string>("trackingScript", ""));
-      BOOST_LOG_TRIVIAL(info) << "Tracking Script: " << config.tracking_script;
       system->set_call_log(node.second.get<bool>("callLog", true));
       BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
       system->set_audio_archive(node.second.get<bool>("audioArchive", true));
@@ -621,19 +619,10 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   Recorder *recorder;
   Recorder *debug_recorder;
   Recorder *sigmf_recorder;
-  std::stringstream shell_command;
 
   // BOOST_LOG_TRIVIAL(info) << "\tCall created for: " << call->get_talkgroup()
   // << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " <<
   // call->get_encrypted() << "\tFreq: " << call->get_freq();
-
-     // if trackingScript is defined, run it here:
-  if (sys->get_tracking_script().length() != 0) {
-     shell_command << "./" << sys->get_tracking_script() << " " << call->get_talkgroup() <<" tx &";
-     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t TX: " << shell_command.str().c_str();
-     //system(shell_command);
-     int forget = system(shell_command.str().c_str());
-  }
 
   if (call->get_encrypted() == true) {
     if (sys->get_hideEncrypted() == false) {
@@ -883,45 +872,21 @@ void current_system_status(TrunkMessage message, System *sys) {
   }
 }
 
-void unit_registration(long unit, long talkgroup, System *sys) {
-  std::stringstream shell_command;
+void unit_registration(long unit) {}
 
-  // if trackingScript is defined, run it here:
-
-  if (sys->get_tracking_script().length() != 0) {
-    shell_command << "./" << sys->get_tracking_script() << " " << unit << " " << "on" << " " << talkgroup << " " << "&";
-    int forget = system(shell_command.str().c_str());
-  }
-}
-
-
-void unit_deregistration(long unit, System *sys) {
+void unit_deregistration(long unit) {
   std::map<long, long>::iterator it;
-  std::stringstream shell_command;
 
   it = unit_affiliations.find(unit);
 
   if (it != unit_affiliations.end()) {
     unit_affiliations.erase(it);
   }
-
-  if (sys->get_tracking_script().length() != 0) {
-    shell_command << "./" << sys->get_tracking_script() << " " << unit << " " << "off" << "&";
-    int ignore = system(shell_command.str().c_str());
-  }
-
 }
 
-void group_affiliation(long unit, long talkgroup, System *sys) {
-   unit_affiliations[unit] = talkgroup;
-  //char   shell_command[200];
-  std::stringstream shell_command;
-
-  if (sys->get_tracking_script().length() != 0) {
-    shell_command << "./" << sys->get_tracking_script() << " " << unit << " " << "tg" << " " << talkgroup << " &";
-    int forget = system(shell_command.str().c_str());
-  }
- }
+void group_affiliation(long unit, long talkgroup) {
+  unit_affiliations[unit] = talkgroup;
+}
 
 void handle_call(TrunkMessage message, System *sys) {
   bool call_found        = false;
@@ -1052,15 +1017,14 @@ void handle_message(std::vector<TrunkMessage>messages, System *sys) {
       break;
 
     case REGISTRATION:
-      unit_registration(message.source, message.talkgroup, sys);
       break;
 
     case DEREGISTRATION:
-      unit_deregistration(message.source, sys);
+      unit_deregistration(message.source);
       break;
 
     case AFFILIATION:
-      group_affiliation(message.source, message.talkgroup, sys);
+      group_affiliation(message.source, message.talkgroup);
       break;
 
     case SYSID:
