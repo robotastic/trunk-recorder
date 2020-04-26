@@ -362,7 +362,6 @@ void load_config(string config_file)
       double ppm            = node.second.get<double>("ppm", 0);
       double ppm_adjust_interval = node.second.get<double>("ppm_adjust_interval", 0);
       double ppm_max_adjust = node.second.get<double>("ppm_max_adjust", 20);
-      bool   agc            = node.second.get<bool>("agc", false);
       int    gain           = node.second.get<double>("gain", 0);
       int    if_gain        = node.second.get<double>("ifGain", 0);
       int    bb_gain        = node.second.get<double>("bbGain", 0);
@@ -395,7 +394,6 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "PPM Error: " <<  node.second.get<double>("ppm", 0);
       BOOST_LOG_TRIVIAL(info) << "PPM Adjust Interval: " <<  node.second.get<double>("ppm_adjust_interval", 0);
       BOOST_LOG_TRIVIAL(info) << "PPM Max Adjust: " <<  node.second.get<double>("ppm_max_adjust", 20);
-      BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << node.second.get<bool>("agc", false);
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
       BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
@@ -480,8 +478,6 @@ void load_config(string config_file)
         gain_set = true;
         source->set_vga2_gain(vga2_gain);
       }
-
-      source->set_gain_mode(agc);
 
       if (gain != 0) {
         gain_set = true;
