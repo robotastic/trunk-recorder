@@ -178,7 +178,7 @@ link_directories(
 )
 
 
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-unused-value -Wno-error=deprecated-declarations -g")
 
 SET(CMAKE_CXX_STANDARD 11)
 

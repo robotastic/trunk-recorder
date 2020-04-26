@@ -216,11 +216,11 @@ bool nonstop_wavfile_sink_impl::stop()
 void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char* system_type, bool emergency)
 {
   if (d_current_call == NULL) {
-    BOOST_LOG_TRIVIAL(error) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
+    BOOST_LOG_TRIVIAL(debug) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
   }
   else {
-    BOOST_LOG_TRIVIAL(info) << "Logging " << system_type << " : " << unitId << " to current call.";
-    d_current_call->add_signal_source(unitId, system_type, emergency);
+    BOOST_LOG_TRIVIAL(debug) << "Logging " << system_type << " : " << unitId << " to current call.";
+    d_current_call->add_signal_source(unitId, system_type, emergency ? SignalType::Emergency : SignalType::Normal);
   }
 }
 
