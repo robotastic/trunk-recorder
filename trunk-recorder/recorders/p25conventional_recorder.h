@@ -28,6 +28,7 @@ public:
   void start(Call *call);
   void recording_started();
   char * get_filename();
+  bool is_p25c();
 
 private:
   bool d_delayopen;

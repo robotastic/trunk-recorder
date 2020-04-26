@@ -57,6 +57,7 @@ void Call::create_filename() {
 Call::Call(long t, double f, System *s, Config c) {
   config           = c;
   idle_count       = 0;
+  total_idle_count = 0;
   freq_count       = 0;
   error_list_count = 0;
   curr_freq        = 0;
@@ -82,6 +83,7 @@ Call::Call(long t, double f, System *s, Config c) {
 Call::Call(TrunkMessage message, System *s, Config c) {
   config           = c;
   idle_count       = 0;
+  total_idle_count = 0;
   freq_count       = 0;
   error_list_count = 0;
   curr_src_id      = 0;
@@ -120,7 +122,7 @@ void Call::end_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
     final_length = recorder->get_current_length();
     // Fixes https://github.com/robotastic/trunk-recorder/issues/103#issuecomment-284825841
@@ -136,6 +138,12 @@ void Call::end_call() {
     if (sys->get_call_log()) {
       std::ofstream myfile(status_filename);
 
+   if ( (recorder->is_analog()) || (recorder->is_p25c()) ) {
+      // BOOST_LOG_TRIVIAL(trace) << "Start " << start_time << " Stop " << stop_time << " Final " << final_length << " Idle " << total_idle_count;
+      start_time = stop_time - final_length - total_idle_count;  //  will have some cumulative rounding difference
+   }
+   // BOOST_LOG_TRIVIAL(trace) << "Reset total_idle_count";
+   this->reset_total_idle_count();
 
       if (myfile.is_open())
       {
@@ -187,7 +195,7 @@ void Call::end_call() {
       }
     } else {
       // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
 
       if (remove(filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
@@ -227,7 +235,7 @@ Recorder * Call::get_debug_recorder() {
 
 void Call::set_recorder(Recorder *r) {
   recorder = r;
-  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
+  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
 }
 
 Recorder * Call::get_recorder() {
@@ -324,6 +332,11 @@ std::vector<Call_Source> Call::get_source_list() {
   return src_list;
 }
 
+void Call::clear_src_list() {
+  src_list.clear();
+  src_list.shrink_to_fit();
+}
+
 long Call::get_source_count() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
@@ -415,7 +428,7 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
     if (signal_emergency) {
         set_emergency(true);
 
-        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tEmergency flag set by " << src;
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tEmergency flag set by " << src;
     }
 
     std::string system((system_type == NULL) ? "" : strdup(system_type));
@@ -427,7 +440,7 @@ bool Call::add_signal_source(long src, const char* system_type, bool signal_emer
     src_list.push_back(call_source);
     
     if (tag != "") {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
     }
     return true;
 }
@@ -439,7 +452,7 @@ bool Call::add_source(long src) {
 void Call::update(TrunkMessage message) {
   last_update = time(NULL);
   if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
-    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, messge mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]-[" << this->get_sys_num() << "]\tCall Update, messge mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
   } else {
     add_source(message.source);
   }
@@ -463,6 +476,18 @@ void Call::reset_idle_count() {
 
 void Call::increase_idle_count() {
   idle_count++;
+}
+
+int Call::get_total_idle_count() {
+  return total_idle_count;
+}
+
+void Call::reset_total_idle_count() {
+  total_idle_count = 0;
+}
+
+void Call::increase_total_idle_count() {
+  total_idle_count++;
 }
 
 long Call::get_stop_time() {
@@ -495,6 +520,10 @@ char * Call::get_sigmf_filename() {
 
 char * Call::get_debug_filename() {
   return debug_filename;
+}
+
+std::string Call::get_system_type() {
+  return sys->get_system_type().c_str();
 }
 
 void Call::set_talkgroup_tag(std::string tag){

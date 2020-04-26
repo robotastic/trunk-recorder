@@ -314,6 +314,7 @@ void analog_recorder::start(Call *call) {
   starttime = time(NULL);
 
   decoder_sink->set_call(call);
+  call->clear_src_list(); // maybe only reset if aux decoder is enabled?
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 

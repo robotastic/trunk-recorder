@@ -79,6 +79,9 @@ public:
 								int get_idle_count();
 								void increase_idle_count();
 								void reset_idle_count();
+								int get_total_idle_count();
+								void increase_total_idle_count();
+								void reset_total_idle_count();
 								int since_last_update();
 								long stopping_elapsed();
 								long elapsed();
@@ -105,11 +108,13 @@ public:
 								std::string get_talkgroup_display();
 								void set_talkgroup_display_format(std::string format);
 								void set_talkgroup_tag(std::string tag);
+                                                                void clear_src_list();
 								boost::property_tree::ptree get_stats();
 
 								bool add_signal_source(long src, const char* system_type, bool signal_emergency);
 								
 								std::string get_talkgroup_tag();
+								std::string get_system_type();
 								double get_final_length();
 
 								System* get_system();
@@ -127,6 +132,7 @@ protected:
 								long freq_count;
 								time_t last_update;
 								int idle_count;
+								int total_idle_count;
 								time_t stop_time;
 								time_t start_time;
 								bool debug_recording;

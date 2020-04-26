@@ -270,6 +270,11 @@ void p25_recorder::initialize_qpsk() {
   connect(rescale,              0, slicer,               0);
 }
 
+void p25_recorder::reset_costas() {
+//  fprintf(stderr, "Reset costas\n");
+  costas_clock->reset();
+}
+
 void p25_recorder::initialize_p25() {
   //OP25 Slicer
   const float l[] = { -2.0, 0.0, 2.0, 4.0 };
@@ -570,6 +575,7 @@ void p25_recorder::start(Call *call) {
     wav_sink->open(call->get_filename());
     state = active;
     valve->set_enabled(true);
+    wav_sink->set_call(call);
     recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";

@@ -72,6 +72,9 @@ public:
 	 */
 	virtual void set_bits_per_sample(int bits_per_sample) = 0;
 	virtual double length_in_seconds() = 0;
+
+        virtual void set_call(Call* call) {};
+        virtual void end_call() {};
 };
 
 } /* namespace blocks */
