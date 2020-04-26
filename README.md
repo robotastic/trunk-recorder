@@ -144,6 +144,7 @@ Here are the different arguments:
  - **maxDuration** - If a clip is being recorded and the duration exceeds this value in seconds, the clip will stop recording and a new clip will pick up where the previous on left off. The default is *0* or "no timeout".
  - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *true*.
  - **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md) 
+ - **broadcastSignals** - *(Optional)* Broadcast decoded signals to the status server. The default is *false*.
  - **uploadServer** - *(Optional)* The URL for uploading to OpenMHz. The default is an empty string. See the Config tab for your system in OpenMHz to find what the value should be.
  - **broadcastifyCallsServer** - *(Optional)* The URL for uploading to Broadcastify Calls. The default is an empty string. Refer to [Broadcastify's wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-API) for the upload URL.
  - **logLevel** - *(Optional)* the logging level to display in the console and log file. The options are *trace*, *debug*, *info*, *warning*, *error* & *fatal*. The default is *info*.

@@ -67,8 +67,8 @@ debug_recorder::DecimSettings debug_recorder::get_decim(long speed) {
 }
 
 void debug_recorder::initialize_prefilter() {
-  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  //double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  //double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = 32000;
   long fa = 0;
   long fb = 0;

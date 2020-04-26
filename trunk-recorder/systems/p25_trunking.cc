@@ -144,7 +144,7 @@ void p25_trunking::initialize_prefilter() {
 void p25_trunking::initialize_fsk4() {
 
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  //double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   const double pi = M_PI;
 
   // FSK4: Phase Loop Lock - can only be Phase 1, so locking at that rate.
@@ -264,7 +264,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   this->sys_num = sys_num;
   chan_freq    = f;
   center_freq  = c;
-  long samp_rate = s;
+  //long samp_rate = s;
   input_rate = s;
   rx_queue      = queue;
   qpsk_mod = qpsk;

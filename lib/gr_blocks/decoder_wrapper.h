@@ -23,14 +23,17 @@
 #ifndef INCLUDED_GR_DECODER_WRAPPER_H
 #define INCLUDED_GR_DECODER_WRAPPER_H
 
-#include "../trunk-recorder/call.h"
-#include "../trunk-recorder/call_conventional.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/hier_block2.h>
+#include <functional>
 
 namespace gr {
     namespace blocks {
+
+        enum SignalType { Normal = 0, Emergency = 1, EmergencyAck = 2, RadioCheck = 3, RadioCheckAck = 4, RadioStun = 5, RadioStunAck = 6, RadioRevive = 7, RadioReviveAck = 8};
+
+        typedef std::function<void(long unitId, const char* signaling_type, SignalType signal)> decoder_callback;
 
         /*!
          * \brief Wrapps the decoder functions into a single block.
@@ -55,9 +58,6 @@ namespace gr {
             virtual bool get_fsync_enabled() { return false; };
             virtual bool get_star_enabled() { return false; };
             virtual bool get_tps_enabled() { return false; }
-
-            virtual void set_call(Call* call) {};
-            virtual void end_call() {};
 
             virtual void process_message_queues(void) {};
         };

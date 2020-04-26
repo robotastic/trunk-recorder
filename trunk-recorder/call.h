@@ -4,6 +4,7 @@
 #include <boost/log/trivial.hpp>
 #include <string>
 #include <vector>
+#include "../lib/gr_blocks/decoder_wrapper.h"
 
 struct Call_Source {
 	long source;
@@ -111,7 +112,7 @@ public:
                                                                 void clear_src_list();
 								boost::property_tree::ptree get_stats();
 
-								bool add_signal_source(long src, const char* system_type, bool signal_emergency);
+								bool add_signal_source(long src, const char* signaling_type, gr::blocks::SignalType signal);
 								
 								std::string get_talkgroup_tag();
 								std::string get_system_type();

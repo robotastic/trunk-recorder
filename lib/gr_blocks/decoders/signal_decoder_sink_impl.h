@@ -23,6 +23,7 @@
 #ifndef INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H
 #define INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H
 
+#include "../decoder_wrapper.h"
 #include "signal_decoder_sink.h"
 #include <boost/log/trivial.hpp>
 
@@ -39,7 +40,7 @@ namespace gr {
 			mdc_decoder_t * d_mdc_decoder;
 			fsync_decoder_t * d_fsync_decoder;
 			star_decoder_t * d_star_decoder;
-			Call * d_current_call;
+			decoder_callback d_callback;
 
 			bool d_mdc_enabled;
 			bool d_fsync_enabled;
@@ -57,9 +58,9 @@ namespace gr {
 			/*
 			 * \param sample_rate Sample rate [S/s]
 			 */
-			static sptr make(unsigned int sample_rate);
+			static sptr make(unsigned int sample_rate, decoder_callback callback);
 
-			signal_decoder_sink_impl(unsigned int sample_rate);
+			signal_decoder_sink_impl(unsigned int sample_rate, decoder_callback callback);
 
 			virtual int work(int noutput_items,
 				gr_vector_const_void_star& input_items,
@@ -73,10 +74,7 @@ namespace gr {
 			bool get_fsync_enabled();
 			bool get_star_enabled();
 
-			void set_call(Call* call);
-			void end_call();
-
-			void log_decoder_msg(long unitId, const char* system_type, bool emergency);
+			void log_decoder_msg(long unitId, const char* signaling_type, SignalType signal);
 		};
 
 	} /* namespace blocks */

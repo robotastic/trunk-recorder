@@ -1,6 +1,7 @@
 
-#include "analog_recorder.h"
 #include <boost/algorithm/string.hpp>
+#include "analog_recorder.h"
+#include "../recorder_globals.h"
 #include "../formatter.h"
 #include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
 #include "../../lib/gr_blocks/decoder_wrapper_impl.h"
@@ -167,7 +168,7 @@ analog_recorder::analog_recorder(Source *src)
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
 
   BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
-  decoder_sink = gr::blocks::decoder_wrapper_impl::make(8000, src->get_num());
+  decoder_sink = gr::blocks::decoder_wrapper_impl::make(8000, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
 
   // Try and get rid of the FSK wobble
@@ -310,11 +311,32 @@ void analog_recorder::tune_offset(double f) {
   prefilter->set_center_freq(offset_amount);
 }
 
+void analog_recorder::decoder_callback_handler(long unitId, const char* signaling_type, gr::blocks::SignalType signal) {
+  if(call != NULL) {
+    call->add_signal_source(unitId, signaling_type, signal);
+
+    process_signal(unitId, signaling_type, signal, call->get_system(), this);
+  }
+  else {
+      process_signal(unitId, signaling_type, signal, NULL, this);
+  }
+}
+
+void analog_recorder::setup_decoders_for_system(System *system) {
+  decoder_sink->set_mdc_enabled(system->get_mdc_enabled());
+  decoder_sink->set_fsync_enabled(system->get_fsync_enabled());
+  decoder_sink->set_star_enabled(system->get_star_enabled());
+  decoder_sink->set_tps_enabled(system->get_tps_enabled());
+}
+
 void analog_recorder::start(Call *call) {
   starttime = time(NULL);
 
-  decoder_sink->set_call(call);
-  call->clear_src_list(); // maybe only reset if aux decoder is enabled?
+  this->call = call;
+
+  setup_decoders_for_system(call->get_system());
+
+  call->clear_src_list(); // maybe only reset if aux decoder is enabled? 
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 

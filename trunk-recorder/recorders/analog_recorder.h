@@ -42,6 +42,8 @@ class analog_recorder;
 
 #include "recorder.h"
 #include "../config.h"
+#include "../systems/system.h"
+#include "../lib/gr_blocks/decoder_wrapper.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
 #include <gr_blocks/freq_xlating_fft_filter.h>
 #include <gr_blocks/decoder_wrapper.h>
@@ -81,6 +83,7 @@ public:
   static bool logging;
 
   void process_message_queues(void);
+  void decoder_callback_handler(long unitId, const char* signaling_type, gr::blocks::SignalType signal);
 
 private:
 
@@ -109,7 +112,7 @@ std::vector<double> d_fftaps;  /*! Feed forward taps. */
 std::vector<double> d_fbtaps;  /*! Feed back taps. */
     double      d_tau;           /*! De-emphasis time constant. */
 
-
+  Call *call;
   Config *config;
   Source *source;
 void calculate_iir_taps(double tau);
@@ -129,13 +132,13 @@ void calculate_iir_taps(double tau);
   gr::analog::quadrature_demod_cf::sptr demod;
   gr::blocks::float_to_short::sptr converter;
 
-
+  gr::audio::sink::sptr audio_sink;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
 
   gr::blocks::decoder_wrapper::sptr decoder_sink;
 
-  gr::audio::sink::sptr audio_sink;
+  void setup_decoders_for_system(System *system);
 };
 
 #endif // ifndef ANALOG_RECORDER_H
