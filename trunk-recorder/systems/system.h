@@ -50,9 +50,11 @@ public:
         std::string unit_tags_file;
         std::string short_name;
         std::string api_key;
+        std::string bcfy_api_key;
         std::string default_mode;
         std::string system_type;
         std::string upload_script;
+        int bcfy_system_id;
         int message_count;
         int retune_attempts;
         time_t last_message_time;
@@ -86,6 +88,10 @@ public:
         void set_upload_script(std::string script);
         std::string get_api_key();
         void set_api_key(std::string api_key);
+        std::string get_bcfy_api_key();
+        void set_bcfy_api_key(std::string bcfy_api_key);
+        int get_bcfy_system_id();
+        void set_bcfy_system_id(int bcfy_system_id);
         double get_min_duration();
         void set_min_duration(double duration);
         bool get_audio_archive();
