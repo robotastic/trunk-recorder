@@ -54,7 +54,7 @@ public:
         std::string default_mode;
         std::string system_type;
         std::string upload_script;
-	      std::string tracking_script;
+	std::string tracking_script;
         int bcfy_system_id;
         int message_count;
         int retune_attempts;
