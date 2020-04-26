@@ -9,6 +9,22 @@ void System::set_api_key(std::string api_key) {
   this->api_key = api_key;
 }
 
+std::string System::get_bcfy_api_key() {
+  return this->bcfy_api_key;
+}
+
+void System::set_bcfy_api_key(std::string bcfy_api_key) {
+  this->bcfy_api_key = bcfy_api_key;
+}
+
+int System::get_bcfy_system_id() {
+    return this->bcfy_system_id;
+}
+
+void System::set_bcfy_system_id(int bcfy_system_id) {
+    this->bcfy_system_id = bcfy_system_id;
+}
+
 std::string System::get_short_name() {
   return this->short_name;
 }
