@@ -32,7 +32,7 @@ struct call_data_t {
     std::string short_name;
     int bcfy_system_id;
     int tdma_slot;
-    int length;
+    double length;
     bool phase2_tdma;
     long source_count;
     std::vector<Call_Source> source_list;
