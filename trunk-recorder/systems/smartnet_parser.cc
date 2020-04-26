@@ -205,7 +205,7 @@ if (x.size()<3) {
 	// BOOST_LOG_TRIVIAL(info) << "MSG [ TG: " << dec << stack[0].full_address << "] \t CMD: ( " << hex << stack[0].cmd << " - \t" << hex << stack[1].cmd << " - \t " << hex << stack[2].cmd   << " ] " << " Grp: [ " << stack[0].grp << " - \t " << stack[1].grp << " - \t " << stack[2].grp << " ]";
 
   if (((command >= 0x340) && (command <= 0x34E)) || (command == 0x350)) {
-    BOOST_LOG_TRIVIAL(debug) << "Patching Command: " << hex << command << " Freq: " << FormatFreq(message.freq) << " Talkgroup: " << dec << address  << endl;
+    BOOST_LOG_TRIVIAL(info) << "Patching Command: " << hex << command << " Freq: " << FormatFreq(message.freq) << " Talkgroup: " << dec << address  << endl;
   }
 
   if ((address & 0xfc00) == 0x2800) {
@@ -233,12 +233,13 @@ if (x.size()<3) {
       message.message_type = GRANT;
       message.source       = stack[1].full_address;
     } else  if (stack[1].cmd == 0x320) {
-      BOOST_LOG_TRIVIAL(info) << "Non-Grant with source 0x" << stack[1].full_address << " " << std::dec << stack[1].full_address << " on TG 0x" << std::hex << stack[0].full_address << " " << std::dec << stack[0].full_address;
+      BOOST_LOG_TRIVIAL(info) << "Non-Grant with source 0x" << stack[1].full_address << " " << std::dec << stack[1].full_address << 
+                             " on TG 0x" << std::hex << stack[0].full_address << " " << std::dec << stack[0].full_address;
       message.message_type = UNKNOWN;
       message.source       = 0;
-
       return messages;
-    } else {
+      }        
+    else {
       message.message_type = UPDATE;
       //cout << "NEW UPDATE [ Freq: " << fixed << getfreq(stack[0].cmd) << " CMD0: " << hex << stack[0].cmd << " CMD1: " << hex << stack[1].cmd << " CMD2: " << hex << stack[2].cmd   << " ] " << " Grp: " << stack[0].grp << " Grp1: " << stack[1].grp << endl;
     }
