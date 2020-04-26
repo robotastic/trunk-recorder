@@ -11,7 +11,8 @@ before_script:
 build-master:
   stage: build
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - docker pull "$CI_REGISTRY_IMAGE" || true
+    - docker build --pull --cache-from "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE" .
     - docker push "$CI_REGISTRY_IMAGE"
   only:
     - crimeisdown-custom
@@ -19,7 +20,9 @@ build-master:
 build:
   stage: build
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+    - docker pull "$CI_REGISTRY_IMAGE" || true
+    - docker pull "$CI_REGISTRY_IMAGE:CI_COMMIT_REF_SLUG" || true
+    - docker build --pull --cache-from "$CI_REGISTRY_IMAGE" --cache-from "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
     - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
   except:
     - crimeisdown-custom
