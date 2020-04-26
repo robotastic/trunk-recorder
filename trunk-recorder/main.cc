@@ -1049,8 +1049,7 @@ void retune_system(System *system) {
   double  control_channel_freq = system->get_next_control_channel();
 
     BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << FormatFreq(control_channel_freq);
-    BOOST_LOG_TRIVIAL(info) << "\t - System Source - Min Freq: " << FormatFreq(source->get_min_hz()) << " Max Freq: " << FormatFreq(source->get_max_hz());
-
+    BOOST_LOG_TRIVIAL(info) << "\t - System Source " << source->get_num() << " - Min Freq: " << FormatFreq(source->get_min_hz()) << " Max Freq: " << FormatFreq(source->get_max_hz());
 
   if ((source->get_min_hz() <= control_channel_freq) &&
       (source->get_max_hz() >= control_channel_freq)) {
