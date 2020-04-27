@@ -37,7 +37,7 @@ namespace gr {
 		private:
 			gr::blocks::signal_decoder_sink::sptr d_signal_decoder_sink;
 			gr::blocks::tps_decoder_sink::sptr d_tps_decoder_sink;
-			Call* d_current_call;
+			decoder_callback d_callback;
 
 		public:
 
@@ -49,9 +49,9 @@ namespace gr {
 			 * \param sample_rate Sample rate [S/s]
 			 * \param bits_per_sample 16 or 8 bit, default is 16
 			 */
-			static sptr make(unsigned int sample_rate, int src_num);
+			static sptr make(unsigned int sample_rate, int src_num, decoder_callback callback);
 
-			decoder_wrapper_impl(unsigned int sample_rate, int src_num);
+			decoder_wrapper_impl(unsigned int sample_rate, int src_num, decoder_callback callback);
 			~decoder_wrapper_impl();
 
 			void set_mdc_enabled(bool b);
@@ -64,10 +64,7 @@ namespace gr {
 			bool get_star_enabled();
 			bool get_tps_enabled();
 
-			void set_call(Call* call);
-			void end_call();
-
-			void log_decoder_msg(long unitId, const char* system_type, bool emergency);
+			void log_decoder_msg(long unitId, const char* signaling_type, SignalType signal);
 			void process_message_queues(void);
 		};
 

@@ -47,7 +47,7 @@ namespace gr {
             const double phase2_symbol_rate = 6000;
 
             int d_src_num;
-			Call* d_current_call;
+            decoder_callback d_callback;
 
             gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
             gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
@@ -68,18 +68,15 @@ namespace gr {
 			typedef boost::shared_ptr <tps_decoder_sink_impl> sptr;
             gr::msg_queue::sptr rx_queue;
 
-			static sptr make(unsigned int sample_rate, int src_num);
+			static sptr make(unsigned int sample_rate, int src_num, decoder_callback callback);
 
-			tps_decoder_sink_impl(unsigned int sample_rate, int src_num);
+			tps_decoder_sink_impl(unsigned int sample_rate, int src_num, decoder_callback callback);
 
 			void set_enabled(bool b);
 			
 			bool get_enabled();
 			
-			void set_call(Call* call);
-			void end_call();
-
-			void log_decoder_msg(long unitId, const char* system_type, bool emergency);
+			void log_decoder_msg(long unitId, const char* signaling_type, SignalType signal);
 
             void process_message_queues(void);
 		};

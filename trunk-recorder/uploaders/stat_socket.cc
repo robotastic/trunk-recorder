@@ -25,16 +25,19 @@ stat_socket::stat_socket() : m_open(false), m_done(false), m_config_sent(false) 
   m_client.set_access_channels(websocketpp::log::alevel::connect);
   m_client.set_access_channels(websocketpp::log::alevel::disconnect);
   m_client.set_access_channels(websocketpp::log::alevel::app);
+  m_client.set_access_channels(websocketpp::log::alevel::message_payload);
 
   // Initialize the Asio transport policy
   m_client.init_asio();
 
   // Bind the handlers we are using
   using websocketpp::lib::placeholders::_1;
+  using websocketpp::lib::placeholders::_2;
   using websocketpp::lib::bind;
   m_client.set_open_handler(bind(&stat_socket::on_open, this, _1));
   m_client.set_close_handler(bind(&stat_socket::on_close, this, _1));
   m_client.set_fail_handler(bind(&stat_socket::on_fail, this, _1));
+  m_client.set_message_handler(bind(&stat_socket::on_message, this, _1, _2));
 }
 
 void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *>systems) {
@@ -137,6 +140,11 @@ void stat_socket::send_config(std::vector<Source *>sources, std::vector<System *
   root.put("instanceKey",   m_config->instance_key);
   root.put("logFile",       m_config->log_file);
   root.put("type",         "config");
+
+  if (m_config->broadcast_signals == true) {
+      root.put("broadcast_signals", m_config->broadcast_signals);
+  }
+
   std::stringstream stats_str;
   boost::property_tree::write_json(stats_str, root);
 
@@ -355,6 +363,10 @@ void stat_socket::on_fail(websocketpp::connection_hdl) {
   }
 }
 
+void stat_socket::on_message(websocketpp::connection_hdl, client::message_ptr msg) {
+    //Need to receive the message so they don't build up. TrunkPlayer sends a message to acknowledge what TrunkRecorder sends.
+}
+
 void stat_socket::send_stat(std::string val) {
   websocketpp::lib::error_code ec;
   if (m_open) {
@@ -370,4 +382,24 @@ void stat_socket::send_stat(std::string val) {
                                 "Error Sending : " + ec.message());
     }
   }
+}
+
+void stat_socket::send_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, System* system, Recorder* recorder)
+{
+    if (m_open == false || m_config->broadcast_signals == false) return;
+
+    boost::property_tree::ptree signal;
+    signal.put("unit_id", unitId);
+    signal.put("signal_system_type", signaling_type);
+    signal.put("signal_type", sig_type);
+
+    if (recorder != NULL) {
+        signal.add_child("recorder", recorder->get_stats());
+    }
+
+    if (system != NULL) {
+        signal.add_child("system", system->get_stats());
+    }
+
+    send_object(signal, "signal", "signaling");
 }

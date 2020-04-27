@@ -87,7 +87,7 @@ int BroadcastifyUploader::upload(struct call_data_t *call) {
   curl_formadd(&formpost,
                &lastptr,
                CURLFORM_COPYNAME, "filename",
-               CURLFORM_COPYCONTENTS, basename(call->converted),
+               CURLFORM_COPYCONTENTS, call->converted,
                CURLFORM_END);
 
   curl_formadd(&formpost,
