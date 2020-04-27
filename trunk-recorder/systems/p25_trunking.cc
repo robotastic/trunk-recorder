@@ -282,6 +282,15 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
 p25_trunking::~p25_trunking() {}
 
+void p25_trunking::set_center(double c) {
+  center_freq = c;
+}
+
+void p25_trunking::set_rate(long s) {
+  input_rate = s;
+  // TODO: Update/remake blocks that depend on input_rate
+}
+
 double p25_trunking::get_freq() {
   return chan_freq;
 }

@@ -852,6 +852,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
       }
       return true;
     } else {
+      // TODO: Find the source that has the frequency on it, update our recorder to use that source for the rest of the call
       //Couldn't find a source that covers it
       return false;
     }
@@ -1052,30 +1053,65 @@ System* find_system(int sys_num) {
 }
 
 void retune_system(System *system) {
-  //bool source_found            = false;
-  Source *source               = system->get_source();
+  bool source_found            = false;
+  Source *current_source       = system->get_source();
   double  control_channel_freq = system->get_next_control_channel();
 
-    BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]-[" << system->get_sys_num() << "] Retuning to Control Channel: " << FormatFreq(control_channel_freq);
-    BOOST_LOG_TRIVIAL(info) << "\t - System Source " << source->get_num() << " - Min Freq: " << FormatFreq(source->get_min_hz()) << " Max Freq: " << FormatFreq(source->get_max_hz());
+  BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << FormatFreq(control_channel_freq);
 
-  if ((source->get_min_hz() <= control_channel_freq) &&
-      (source->get_max_hz() >= control_channel_freq)) {
+  if ((current_source->get_min_hz() <= control_channel_freq) &&
+      (current_source->get_max_hz() >= control_channel_freq)) {
+    source_found = true;
+    BOOST_LOG_TRIVIAL(info) << "\t - System Source " << current_source->get_num() << " - Min Freq: " << FormatFreq(current_source->get_min_hz()) << " Max Freq: " << FormatFreq(current_source->get_max_hz());
     // The source can cover the System's control channel, break out of the
     // For Loop
     if (system->get_system_type() == "smartnet") {
-      // what you really need to do is go through all of the sources to find
-      // the one with the right frequencies
       system->smartnet_trunking->tune_freq(control_channel_freq);
     } else if (system->get_system_type() == "p25") {
-      // what you really need to do is go through all of the sources to find
-      // the one with the right frequencies
       system->p25_trunking->tune_freq(control_channel_freq);
     } else {
-      BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
+      BOOST_LOG_TRIVIAL(error) << "\t - Unknown system type for Retune";
     }
   } else {
-    BOOST_LOG_TRIVIAL(error) << "\t - Unable to retune System control channel, freq not covered by the Source used for the inital control channel freq.";
+    for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+      Source *source = *src_it;
+
+      if ((source->get_min_hz() <= control_channel_freq) &&
+          (source->get_max_hz() >= control_channel_freq)) {
+        source_found = true;
+        BOOST_LOG_TRIVIAL(info) << "\t - System Source " << source->get_num() << " - Min Freq: " << FormatFreq(source->get_min_hz()) << " Max Freq: " << FormatFreq(source->get_max_hz());
+
+        if (system->get_system_type() == "smartnet") {
+          system->set_source(source);
+          // We must lock the flow graph in order to disconnect and reconnect blocks
+          tb->lock();
+          tb->disconnect(current_source->get_src_block(), 0, system->smartnet_trunking, 0);
+          tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
+          tb->unlock();
+          system->smartnet_trunking->set_center(source->get_center());
+          system->smartnet_trunking->set_rate(source->get_rate());
+          system->smartnet_trunking->tune_freq(control_channel_freq);
+        } else if (system->get_system_type() == "p25") {
+          system->set_source(source);
+          // We must lock the flow graph in order to disconnect and reconnect blocks
+          tb->lock();
+          tb->disconnect(current_source->get_src_block(), 0, system->p25_trunking, 0);
+          tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
+          tb->unlock();
+          system->p25_trunking->set_center(source->get_center());
+          system->p25_trunking->set_rate(source->get_rate());
+          system->p25_trunking->tune_freq(control_channel_freq);
+        } else {
+          BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
+        }
+
+        // break out of the For Loop
+        break;
+      }
+    }
+  }
+  if (!source_found) {
+    BOOST_LOG_TRIVIAL(error) << "\t - Unable to retune System control channel, freq not covered by any source.";
   }
 }
 
