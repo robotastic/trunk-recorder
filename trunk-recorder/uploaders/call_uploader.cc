@@ -25,7 +25,7 @@ void* upload_call_thread(void *thread_arg) {
 
   // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
   // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
-  int forget = system(shell_command);
+  system(shell_command);
   //int rc = system(shell_command);
 
   // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";

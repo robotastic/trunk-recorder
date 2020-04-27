@@ -23,8 +23,6 @@
 #ifndef INCLUDED_GR_SIGNAL_DECODER_SINK_H
 #define INCLUDED_GR_SIGNAL_DECODER_SINK_H
 
-#include "../trunk-recorder/call.h"
-#include "../trunk-recorder/call_conventional.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
@@ -53,9 +51,6 @@ namespace gr {
             virtual bool get_mdc_enabled() { return false; };
             virtual bool get_fsync_enabled() { return false; };
             virtual bool get_star_enabled() { return false; };
-
-            virtual void set_call(Call* call) {};
-            virtual void end_call() {};
         };
 
     } /* namespace blocks */

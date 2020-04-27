@@ -47,17 +47,18 @@ namespace gr {
     namespace blocks {
 
         tps_decoder_sink_impl::sptr
-            tps_decoder_sink_impl::make(unsigned int sample_rate, int src_num)
+            tps_decoder_sink_impl::make(unsigned int sample_rate, int src_num, decoder_callback callback)
         {
             return gnuradio::get_initial_sptr
-            (new tps_decoder_sink_impl(sample_rate, src_num));
+            (new tps_decoder_sink_impl(sample_rate, src_num, callback));
         }
 
-        tps_decoder_sink_impl::tps_decoder_sink_impl(unsigned int sample_rate, int src_num)
+        tps_decoder_sink_impl::tps_decoder_sink_impl(unsigned int sample_rate, int src_num, decoder_callback callback)
             : hier_block2("tps_decoder_sink_impl",
                 io_signature::make(1, 1, sizeof(float)),
                 io_signature::make(0, 0, 0)),
-            d_src_num(src_num)
+            d_src_num(src_num),
+            d_callback(callback)
         {
             rx_queue = gr::msg_queue::make(100);
 
@@ -97,7 +98,7 @@ namespace gr {
                 int srcaddr = atoi(pt.get<std::string>("srcaddr", "0").c_str());
 
                 if (srcaddr > 0) {
-                    log_decoder_msg(srcaddr, "TPS", false);
+                    log_decoder_msg(srcaddr, "TPS", SignalType::Normal);
                 }
             }
             catch (std::exception const& e)
@@ -213,31 +214,11 @@ namespace gr {
 
         bool tps_decoder_sink_impl::get_enabled() { return valve->enabled(); };
 
-        void tps_decoder_sink_impl::log_decoder_msg(long unitId, const char* system_type, bool emergency)
+        void tps_decoder_sink_impl::log_decoder_msg(long unitId, const char* signaling_type, SignalType signal)
         {
-            if (d_current_call == NULL)
-            {
-                BOOST_LOG_TRIVIAL(error) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
+            if(d_callback != NULL) {
+                d_callback(unitId, signaling_type, signal);
             }
-            else
-            {
-                BOOST_LOG_TRIVIAL(error) << "Logging " << system_type << " : " << unitId << " to current call.";
-                d_current_call->add_signal_source(unitId, system_type, emergency);
-            }
-        }
-
-        void tps_decoder_sink_impl::set_call(Call* call) {
-            d_current_call = call;
-
-            if (d_current_call == NULL) {
-                set_enabled(false);
-            }
-            else {
-                set_enabled(d_current_call->get_system()->get_tps_enabled());
-            }
-        }
-        void tps_decoder_sink_impl::end_call() {
-            set_call(NULL);
         }
 
         void tps_decoder_sink_impl::initialize_p25()
@@ -290,7 +271,7 @@ namespace gr {
             }
 
             if (unit_id > 0 || emergency) {
-                log_decoder_msg(unit_id, "TPS", emergency);
+                log_decoder_msg(unit_id, "TPS", emergency ? SignalType::Emergency : SignalType::Normal);
             }
         }
 
@@ -336,7 +317,7 @@ namespace gr {
             }
             
             if (unit_id > 0 || emergency) {
-                log_decoder_msg(unit_id, "TPS", emergency);
+                log_decoder_msg(unit_id, "TPS", emergency ? SignalType::Emergency : SignalType::Normal);
             }
         }
     } /* namespace blocks */
