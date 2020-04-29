@@ -16,6 +16,10 @@
 Talkgroups::Talkgroups() {}
 
 void Talkgroups::load_talkgroups(std::string filename) {
+  if (filename == "") {
+    return;
+  }
+
   std::ifstream in(filename.c_str());
 
   if (!in.is_open()) {
