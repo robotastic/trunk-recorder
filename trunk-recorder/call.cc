@@ -76,6 +76,7 @@ Call::Call(long t, double f, System *s, Config c) {
   tdma_slot       = 0;
   encrypted       = false;
   emergency       = false;
+  ctcss           = 0;
   set_freq(f);
   this->create_filename();
   this->update_talkgroup_display();
@@ -406,6 +407,14 @@ bool Call::get_phase2_tdma() {
 
 const char * Call::get_xor_mask() {
   return sys->get_xor_mask();
+}
+
+void Call::set_ctcss(float freq) {
+  ctcss = freq;
+}
+
+float Call::get_ctcss() {
+  return ctcss;
 }
 
 bool Call::add_signal_source(long src, const char* signaling_type, gr::blocks::SignalType signal)

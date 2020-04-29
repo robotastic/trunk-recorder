@@ -15,7 +15,8 @@ public:
 								std::string tag;
 								std::string group;
 								int priority;
-								Talkgroup(long num, char m, std::string a, std::string d, std::string t, std::string g, int p);
+								float ctcss;
+								Talkgroup(long num, float pl, char m, std::string a, std::string d, std::string t, std::string g, int p);
 								bool is_active();
 								int get_priority();
 								void set_active(bool a);

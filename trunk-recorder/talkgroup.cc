@@ -2,6 +2,7 @@
 
 
 Talkgroup::Talkgroup(long        num,
+                     float       pl,
                      char        m,
                      std::string a,
                      std::string d,
@@ -9,6 +10,7 @@ Talkgroup::Talkgroup(long        num,
                      std::string g,
                      int         p) {
   number      = num;
+  ctcss       = pl;
   mode        = m;
   alpha_tag   = a;
   description = d;

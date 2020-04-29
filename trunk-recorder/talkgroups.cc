@@ -85,6 +85,9 @@ void Talkgroups::load_talkgroups(std::string filename) {
         if ( tg_exist = find_talkgroup(i) ) {
           tg_exist->number = i;
           tg_exist->mode = vec[2].at(0);
+          if (tg_exist->mode == 'A') {
+            tg_exist->ctcss = std::stof(vec[1]);
+          }
           tg_exist->alpha_tag = vec[3] + std::to_string(i);
           tg_exist->description = vec[4];
           tg_exist->tag = vec[5];
@@ -92,7 +95,12 @@ void Talkgroups::load_talkgroups(std::string filename) {
           tg_exist->priority = atoi(vec[7].c_str());
         }
         else {
-          Talkgroup *tg = new Talkgroup(i, vec[2].at(0), vec[3].c_str() + std::to_string(i), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
+          char mode = vec[2].at(0);
+          float ctcss = 0;
+          if (mode == 'A') {
+            ctcss = std::stof(vec[1]);
+          }
+          Talkgroup *tg = new Talkgroup(i, ctcss, mode, vec[3].c_str() + std::to_string(i), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
           //fprintf(stderr, "TG: %ld\tAlphaTag: %s\tPriority: %u\n", tg->number, tg->alpha_tag.c_str(), tg->priority );  // debugging
           talkgroups.push_back(tg);
           lines_pushed++;
@@ -106,6 +114,9 @@ void Talkgroups::load_talkgroups(std::string filename) {
        BOOST_LOG_TRIVIAL(info) << "TG " << vec[0].c_str() << " exists...overwriting";
        tg_exist->number = atoi(vec[0].c_str());
        tg_exist->mode = vec[2].at(0);
+       if (tg_exist->mode == 'A') {
+         tg_exist->ctcss = std::stof(vec[1]);
+       }
        tg_exist->alpha_tag = vec[3];
        tg_exist->description = vec[4];
        tg_exist->tag = vec[5];
@@ -114,7 +125,12 @@ void Talkgroups::load_talkgroups(std::string filename) {
        lines_read--;
       }
       else {
-        Talkgroup *tg = new Talkgroup(atoi(vec[0].c_str()), vec[2].at(0), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
+        char mode = vec[2].at(0);
+        float ctcss = 0;
+        if (mode == 'A') {
+          ctcss = std::stof(vec[1]);
+        }
+        Talkgroup *tg = new Talkgroup(atoi(vec[0].c_str()), ctcss, mode, vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
         //fprintf(stderr, "TG: %ld\tAlphaTag: %s\tPriority: %u\n", tg->number, tg->alpha_tag.c_str(), tg->priority );  // debugging
         talkgroups.push_back(tg);
         lines_pushed++;
@@ -161,6 +177,6 @@ Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
 
 void Talkgroups::add(long num, std::string alphaTag)
 {
-    Talkgroup *tg = new Talkgroup(num, 'X', alphaTag, "", "", "", 0);
+    Talkgroup *tg = new Talkgroup(num, 0, 'X', alphaTag, "", "", "", 0);
     talkgroups.push_back(tg);
 }

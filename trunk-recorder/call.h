@@ -100,6 +100,8 @@ public:
 								void set_tdma_slot(int s);
 								int get_tdma_slot();
 								const char * get_xor_mask();
+								void set_ctcss(float freq);
+								float get_ctcss();
 								//virtual bool is_conventional() { return true;}
 								virtual bool is_conventional() { return false;}
 								void set_encrypted(bool m);
@@ -148,6 +150,7 @@ protected:
 								char path[255];
 								bool phase2_tdma;
 								int tdma_slot;
+								float ctcss;
 								double final_length;
 
 								Config config;
