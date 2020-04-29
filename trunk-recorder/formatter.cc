@@ -4,12 +4,12 @@
 int frequencyFormat = 0;
 bool statusAsString = true;
 
-boost::format FormatFreq(float f)
+boost::format FormatFreq(double f)
 {
 	if (frequencyFormat == 1)
-		return boost::format("%10.6f")	% (f / 1000000);
+		return boost::format("%10.6f MHz")	% (f / 1000000.0);
 	else if (frequencyFormat == 2)
-		return boost::format("%.0f")	% f;
+		return boost::format("%.0f Hz")	% f;
 	else
 		return boost::format("%e")		% f;
 }
