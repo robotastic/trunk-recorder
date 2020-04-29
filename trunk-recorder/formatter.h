@@ -5,7 +5,7 @@
 #include <string>
 #include "state.h"
 
-extern boost::format FormatFreq(float f);
+extern boost::format FormatFreq(double f);
 extern boost::format FormatSamplingRate(float f);
 extern std::string FormatState(State state);
 extern int frequencyFormat;

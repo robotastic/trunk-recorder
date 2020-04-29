@@ -176,8 +176,18 @@ void load_config(string config_file)
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
-    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n" << sys_count;
-    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n" << sys_count;
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
+
+    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
+
+    if (boost::iequals(frequencyFormatString, "mhz")){
+      frequencyFormat = 1;
+    } else if (boost::iequals(frequencyFormatString, "hz")){
+      frequencyFormat = 2;
+    } else {
+      frequencyFormat = 0;
+    }
     
     config.debug_recorder   = pt.get<bool>("debugRecorder", 0);
     config.debug_recorder_address = pt.get<std::string>("debugRecorderAddress", "127.0.0.1");
@@ -195,7 +205,7 @@ void load_config(string config_file)
       unsigned long     nac;
       default_script << "sys_" << sys_count;
 
-      BOOST_LOG_TRIVIAL(info) << "\n\nSystem Number: " << sys_count << "\n-------------------------------------\n" << sys_count;
+      BOOST_LOG_TRIVIAL(info) << "\n\nSystem Number: " << sys_count << "\n-------------------------------------\n";
       system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
       BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
 
@@ -208,7 +218,7 @@ void load_config(string config_file)
         {
           double channel = sub_node.second.get<double>("", 0);
 
-          BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
+          BOOST_LOG_TRIVIAL(info) << "  " << FormatFreq(channel);
           system->add_channel(channel);
         }
 
@@ -219,7 +229,7 @@ void load_config(string config_file)
           BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("alphatags"))
           {
             std::string alphaTag = sub_node.second.get<std::string>("", "");
-            BOOST_LOG_TRIVIAL(info) << alphaTag << " ";
+            BOOST_LOG_TRIVIAL(info) << "  " << alphaTag;
             system->talkgroups->add(alphaIndex, alphaTag);
             alphaIndex++;
           }
@@ -231,7 +241,7 @@ void load_config(string config_file)
         {
           double channel = sub_node.second.get<double>("", 0);
 
-          BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
+          BOOST_LOG_TRIVIAL(info) << "  " << FormatFreq(channel);
           system->add_channel(channel);
         }
 
@@ -242,7 +252,7 @@ void load_config(string config_file)
           BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("alphatags"))
           {
             std::string alphaTag = sub_node.second.get<std::string>("", "");
-            BOOST_LOG_TRIVIAL(info) << alphaTag << " ";
+            BOOST_LOG_TRIVIAL(info) << "  " << alphaTag;
             system->talkgroups->add(alphaIndex, alphaTag);
             alphaIndex++;
           }
@@ -257,7 +267,7 @@ void load_config(string config_file)
         {
           double control_channel = sub_node.second.get<double>("", 0);
 
-          BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
+          BOOST_LOG_TRIVIAL(info) << "  " << FormatFreq(control_channel);
           system->add_control_channel(control_channel);
         }
       } else {
@@ -532,16 +542,6 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
     config.max_duration = pt.get<int>("maxDuration", 0);
     BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (seconds): " << config.max_duration;
-
-    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
-
-    if (boost::iequals(frequencyFormatString, "mhz")){
-      frequencyFormat = 1;
-    } else if (boost::iequals(frequencyFormatString, "hz")){
-      frequencyFormat = 2;
-    } else {
-      frequencyFormat = 0;
-    }
 
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << frequencyFormat;
 
