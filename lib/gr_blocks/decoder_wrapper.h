@@ -31,7 +31,7 @@
 namespace gr {
     namespace blocks {
 
-        enum SignalType { Normal = 0, Emergency = 1, EmergencyAck = 2, RadioCheck = 3, RadioCheckAck = 4, RadioStun = 5, RadioStunAck = 6, RadioRevive = 7, RadioReviveAck = 8};
+        enum SignalType { Normal = 0, Emergency = 1, EmergencyAck = 2, RadioCheck = 3, RadioCheckAck = 4, RadioStun = 5, RadioStunAck = 6, RadioRevive = 7, RadioReviveAck = 8, NormalPre = 9, EmergencyPre = 10};
 
         typedef std::function<void(long unitId, const char* signaling_type, SignalType signal)> decoder_callback;
 
