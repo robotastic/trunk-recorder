@@ -384,7 +384,7 @@ void stat_socket::send_stat(std::string val) {
   }
 }
 
-void stat_socket::send_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, System* system, Recorder* recorder)
+void stat_socket::send_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, Call* call, System* system, Recorder* recorder)
 {
     if (m_open == false || m_config->broadcast_signals == false) return;
 
@@ -392,6 +392,10 @@ void stat_socket::send_signal(long unitId, const char* signaling_type, gr::block
     signal.put("unit_id", unitId);
     signal.put("signal_system_type", signaling_type);
     signal.put("signal_type", sig_type);
+
+    if (call != NULL) {
+        signal.add_child("call", call->get_stats());
+    }
 
     if (recorder != NULL) {
         signal.add_child("recorder", recorder->get_stats());
