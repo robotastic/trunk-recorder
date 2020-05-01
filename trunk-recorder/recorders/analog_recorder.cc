@@ -315,10 +315,10 @@ void analog_recorder::decoder_callback_handler(long unitId, const char* signalin
   if(call != NULL) {
     call->add_signal_source(unitId, signaling_type, signal);
 
-    process_signal(unitId, signaling_type, signal, call->get_system(), this);
+    process_signal(unitId, signaling_type, signal, call, call->get_system(), this);
   }
   else {
-      process_signal(unitId, signaling_type, signal, NULL, this);
+      process_signal(unitId, signaling_type, signal, NULL, NULL, this);
   }
 }
 

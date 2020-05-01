@@ -595,8 +595,8 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
   return true;
 }
 
-void process_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, System* system, Recorder* recorder) {
-    stats.send_signal(unitId, signaling_type, sig_type, system, recorder);
+void process_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, Call* call, System* system, Recorder* recorder) {
+    stats.send_signal(unitId, signaling_type, sig_type, call, system, recorder);
 }
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {

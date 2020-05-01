@@ -433,7 +433,7 @@ bool Call::add_signal_source(long src, const char* signaling_type, gr::blocks::S
 
     double position = get_current_length();
 
-    if (signal == gr::blocks::SignalType::Emergency) {
+    if (signal == gr::blocks::SignalType::Emergency || signal == gr::blocks::SignalType::EmergencyPre) {
         set_emergency(true);
 
         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tEmergency flag set by " << src;
@@ -452,7 +452,7 @@ bool Call::add_signal_source(long src, const char* signaling_type, gr::blocks::S
     }
 
     if (signaling_type == NULL) {
-        process_signal(src, system.c_str(), signal, this->get_system(), NULL);
+        process_signal(src, system.c_str(), signal, this, this->get_system(), NULL);
     }
 
     return true;
