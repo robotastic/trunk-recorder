@@ -48,8 +48,8 @@ namespace gr {
         {
             switch (op)
             {
-            case 0x00: return SignalType::Emergency;
-            case 0x01: return SignalType::Normal;
+            case 0x00: return arg == 0x80 ? SignalType::EmergencyPre : SignalType::Emergency;
+            case 0x01: return arg == 0x80 ? SignalType::NormalPre : SignalType::Normal;
             case 0x20: return SignalType::EmergencyAck;
             case 0x63: return SignalType::RadioCheck;
             case 0x03: return SignalType::RadioCheckAck;

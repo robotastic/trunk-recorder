@@ -43,7 +43,7 @@ class stat_socket {
   void send_recorders(std::vector<Recorder *>recorders);
   void send_systems(std::vector<System *> systems);
   void send_system(System * systems);
-  void send_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, System* system, Recorder* recorder);
+  void send_signal(long unitId, const char* signaling_type, gr::blocks::SignalType sig_type, Call* call, System* system, Recorder* recorder);
 
 private:
     void reopen_stat();
