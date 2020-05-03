@@ -52,8 +52,11 @@ void* upload_call_thread(void *thread_arg) {
 
   if (!error) {
     if (!call_info->audio_archive) {
-      unlink(call_info->filename);
-      unlink(call_info->converted);
+      remove(call_info->filename);
+      remove(call_info->converted);
+    }
+    if (!call_info->call_log) {
+      remove(call_info->status_filename);
     }
   }
 
@@ -113,6 +116,7 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->bcfy_system_id   = sys->get_bcfy_system_id();
   call_info->short_name       = sys->get_short_name();
   call_info->audio_archive    = sys->get_audio_archive();
+  call_info->call_log         = sys->get_call_log();
 
   for (int i = 0; i < call_info->source_count; i++) {
     call_info->source_list.push_back(source_list[i]);
