@@ -89,7 +89,9 @@ Here are the different arguments:
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
    - **squelch** - Analog Squelch, my rtl-sdr's are around -60. [0 = Disabled] _Squelch needs to be set if the System using the source is conventional._
-   - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
+   - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz (when set to 0ppm)  to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
+   - **ppm** - the tuning error for the SDR in ppm (parts per million), as an alternative to `error` above. Use a program like GQRX to find an accurate value.
+   - **agc** - whether or not to enable the SDR's automatic gain control (if supported). This is false by default. It is not recommended to set this as it often yields worse performance compared to a manual gain setting.
    - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
    - **ifGain** - [hackrf only] sets the if gain.
    - **bbGain** - [hackrf only] sets the bb gain.
