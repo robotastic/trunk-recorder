@@ -91,7 +91,7 @@ Here are the different arguments:
    - **squelch** - Analog Squelch, my rtl-sdr's are around -60. [0 = Disabled] _Squelch needs to be set if the System using the source is conventional._
    - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
    - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
-   - **ifGain** - [hackrf only] sets the if gain.
+   - **ifGain** - [AirSpy/hackrf only] sets the if gain.
    - **bbGain** - [hackrf only] sets the bb gain.
    - **mixGain** - [AirSpy only] sets the mix gain.
    - **lnaGain** - [AirSpy/bladeRF only] sets the lna gain.
