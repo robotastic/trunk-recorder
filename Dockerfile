@@ -1,10 +1,12 @@
 # docker build -t robotastic/trunk-recorder:latest .
 
-FROM ubuntu:18.04 AS base
+FROM ubuntu:20.04 AS base
 
 RUN apt-get update
-RUN apt-get install -y gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev
-RUN apt-get install -y git cmake build-essential libboost-all-dev libusb-1.0-0.dev libssl-dev libcurl4-openssl-dev
+RUN apt-get install -y gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev libgmp-dev
+RUN apt-get install -y git cmake build-essential pkg-config libboost-all-dev libusb-1.0-0.dev libssl-dev libcurl4-openssl-dev liborc-0.4-dev
+# install deps for gnuradio audio
+RUN apt-get install -y libasound2-dev libjack-dev portaudio19-dev
 RUN apt-get install -y ca-certificates expat libgomp1 fdkaac sox
 # install necessary locales
 RUN apt-get install -y locales \
@@ -15,7 +17,7 @@ RUN apt-get autoremove -y && \
     apt-get clean -y
 
 COPY . /src/trunk-recorder
-RUN cd /src/trunk-recorder && cmake . && make
+RUN cd /src/trunk-recorder && cmake . && make -j`nproc`
 RUN mkdir /app && cp /src/trunk-recorder/recorder /app
 
 RUN mkdir /app/media \
