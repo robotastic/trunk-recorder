@@ -53,7 +53,7 @@ Eigen::VectorXi* dibits_to_bits(Eigen::VectorXi &dibits) {
 }
 
 // Tested OK
-Eigen::VectorXi *mk_array(unsigned long n, unsigned l) {
+Eigen::VectorXi *mk_array(unsigned long long n, unsigned l) {
 
   Eigen::VectorXi *a = new Eigen::VectorXi(l);
   for(int i=l-1; i>=0; i--) {
@@ -63,11 +63,11 @@ Eigen::VectorXi *mk_array(unsigned long n, unsigned l) {
   return a;
 }
 
-long unsigned mk_int(Eigen::VectorXi a) {
-  long unsigned res = 0L;
+unsigned long long mk_int(Eigen::VectorXi a) {
+  unsigned long long res = 0ULL;
   for (unsigned i=0; i< a.size(); i++) {
-    res *= 2;
-    res += (a(i) & 1);
+    res *= 2ULL;
+    res += (unsigned long long)(a(i) & 1);
   }
   return res;
 }
