@@ -81,10 +81,13 @@ find_package(CppUnit)
 #    find_package(Gnuradio)
 #endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT)
-find_package(Gnuradio)
+set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT FFT)
+find_package(Gnuradio REQUIRED COMPONENTS analog blocks digital filter fft)
 find_package(GnuradioRuntime)
 find_package(CppUnit)
+
+math(EXPR GNURADIO_VERSION "(${Gnuradio_VERSION_MAJOR} / 10) << 20 | (${Gnuradio_VERSION_MAJOR} % 10) << 16 | (${Gnuradio_VERSION_MINOR} / 10) << 12 | (${Gnuradio_VERSION_MINOR} % 10) <<  8 | (${Gnuradio_VERSION_PATCH} / 10) <<  4 | (${Gnuradio_VERSION_PATCH} % 10) <<  0   ")
+message(STATUS "GnuRadio Version: " ${GNURADIO_VERSION})
 
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to compile Trunk Recorder")
@@ -105,9 +108,7 @@ find_package(UHD)
 find_package(OpenSSL REQUIRED)
 find_package(CURL REQUIRED)
 
-if(NOT GNURADIO_RUNTIME_FOUND)
-    message(FATAL_ERROR "GnuRadio Runtime required to build " ${CMAKE_PROJECT_NAME})
-endif()
+
 
 ########################################################################
 # Setup boost
@@ -141,14 +142,14 @@ set(Boost_ADDITIONAL_VERSIONS
     "1.70.0" "1.70" "1.71.0" "1.71" "1.72.0" "1.72" "1.73.0" "1.73" "1.74.0" "1.74"
 )
 
-find_package(Boost COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
+find_package(Boost COMPONENTS ${BOOST_REQUIRED_COMPONENTS} REQUIRED)
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost required to build " ${CMAKE_PROJECT_NAME})
 endif()
 
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
-
+add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
 
 ########################################################################
 # Setup the include and linker paths
@@ -175,16 +176,13 @@ link_directories(
     ${OPENSSL_ROOT_DIR}/lib
 )
 
-
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g")
 
 SET(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
 
-
 add_subdirectory(lib/op25_repeater)
-
 
 list(APPEND trunk_recorder_sources
   trunk-recorder/main.cc
@@ -240,4 +238,13 @@ target_compile_options(
 
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(recorder ssl crypto ${CURL_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES}  gnuradio-op25_repeater imbe_vocoder)
+target_link_libraries(recorder ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)
+message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
+if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
+    target_link_libraries(recorder
+        gnuradio::gnuradio-analog
+        gnuradio::gnuradio-blocks
+        gnuradio::gnuradio-digital
+        gnuradio::gnuradio-filter
+    )
+endif()

@@ -20,24 +20,29 @@
 #include <gnuradio/hier_block2.h>
 
 #include <gnuradio/filter/firdes.h>
-#include <gnuradio/filter/fir_filter_ccc.h>
-#include <gnuradio/filter/fir_filter_ccf.h>
-#include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
-#include <gnuradio/filter/fft_filter_fff.h>
-
-#include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
 #include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/digital/diff_phasor_cc.h>
 
+#if GNURADIO_VERSION < 0x030800
+#include <gnuradio/analog/sig_source_c.h>
+#include <gnuradio/blocks/multiply_cc.h>
+#include <gnuradio/blocks/multiply_const_ff.h>
+#include <gnuradio/blocks/multiply_const_ss.h>
+#include <gnuradio/filter/fir_filter_ccf.h>
+#include <gnuradio/filter/fir_filter_fff.h>
+#else
+#include <gnuradio/analog/sig_source.h>
+#include <gnuradio/filter/fir_filter_blk.h>
+#include <gnuradio/blocks/multiply.h>
+#include <gnuradio/blocks/multiply_const.h>
+#endif
+
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
 #include <gnuradio/blocks/short_to_float.h>
-#include <gnuradio/blocks/multiply_const_ff.h>
-#include <gnuradio/blocks/multiply_cc.h>
-#include <gnuradio/blocks/multiply_const_ss.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>

@@ -1,5 +1,12 @@
 Trunk Recorder ChangeLog
 ========================
+### Version 3.2
+* Added support for GnuRadio 3.8
+
+### Version 3.1.3
+* Add support for uploading to Broadcastify
+* Switch to using LibCurl for networking
+
 ### Version 3.1.2
 * Added support for Motorola TPS Signaling
 * Made Debug Recorder work over a nextwork connection
