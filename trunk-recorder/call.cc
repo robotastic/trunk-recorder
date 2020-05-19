@@ -322,6 +322,11 @@ std::vector<Call_Source> Call::get_source_list() {
   return src_list;
 }
 
+void Call::clear_src_list() {
+  src_list.clear();
+  src_list.shrink_to_fit();
+}
+
 long Call::get_source_count() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
@@ -498,6 +503,10 @@ char * Call::get_sigmf_filename() {
 
 char * Call::get_debug_filename() {
   return debug_filename;
+}
+
+std::string Call::get_system_type() {
+  return sys->get_system_type().c_str();
 }
 
 void Call::set_talkgroup_tag(std::string tag){

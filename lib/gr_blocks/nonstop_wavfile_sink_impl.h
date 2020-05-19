@@ -42,9 +42,11 @@ private:
 	int d_normalize_shift;
 	int d_normalize_fac;
 	bool d_use_float;
+	long curr_src_id;
 
-  	char current_filename[255];
+	char current_filename[255];
 
+	Call* d_current_call;
 protected:
 	
 	unsigned d_sample_count;
@@ -112,6 +114,11 @@ public:
 	virtual int work(int noutput_items,
 	         gr_vector_const_void_star &input_items,
 	         gr_vector_void_star &output_items);
+
+	void set_call(Call* call);
+	void end_call();
+
+	void log_p25_metadata(long unitId, const char* system_type, bool emergency);
 
 };
 
