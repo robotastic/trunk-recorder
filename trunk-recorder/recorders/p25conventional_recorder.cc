@@ -64,7 +64,10 @@ void p25conventional_recorder::start(Call *call) {
 
     if (!qpsk_mod) {
       reset();
+    } else {
+      costas_clock->reset();
     }
+
     if (d_delayopen) {
       BOOST_LOG_TRIVIAL(info) << "\t- Listening P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
     } else {

@@ -24,9 +24,9 @@ private:
 
   Eigen::VectorXi * mk_xor_bits(unsigned long, unsigned long, unsigned long);
 
-  static long unsigned asm_reg( long unsigned s[6] );
-  static long unsigned * disasm_reg(long unsigned r);
-  static long unsigned cyc_reg(long unsigned reg);
+  static unsigned long long asm_reg(unsigned long long s[6] );
+  static unsigned long long * disasm_reg(unsigned long long r);
+  static unsigned long long cyc_reg(unsigned long long reg);
 
   Eigen::VectorXi *xorsyms;
   std::string *xor_chars;

@@ -84,7 +84,6 @@ find_package(CppUnit)
 
 set(GR_REQUIRED_COMPONENTS AUDIO ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT FFT)
 find_package(Gnuradio REQUIRED COMPONENTS audio analog blocks digital filter fft)
-find_package(GnuradioAudio)
 find_package(GnuradioRuntime)
 find_package(CppUnit)
 

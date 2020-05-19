@@ -14,6 +14,7 @@ fi
 
 sudo apt-get update
 sudo apt-get install gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev libgmp-dev
+sudo apt-get install fdkaac sox
 sudo apt-get install git cmake build-essential libboost-all-dev libusb-1.0-0.dev libssl-dev libcurl4-openssl-dev liborc-0.4-dev
 
 mkdir build
