@@ -437,8 +437,8 @@ void load_config(string config_file)
       }
 
       Source *source = new Source(center, rate, error, driver, device, &config);
-      BOOST_LOG_TRIVIAL(info) << "Max Freqency: " << FormatFreq(source->get_max_hz());
-      BOOST_LOG_TRIVIAL(info) << "Min Freqency: " << FormatFreq(source->get_min_hz());
+      BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << FormatFreq(source->get_max_hz());
+      BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << FormatFreq(source->get_min_hz());
 
       if (if_gain != 0) {
         gain_set = true;
@@ -901,10 +901,10 @@ void handle_call(TrunkMessage message, System *sys) {
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-            // we want to keep this call recordering, and now start a recording of the new call on another recorder
+            // we want to keep this call recording and now start a recording of the new call on another recorder
             call_found = false;
             retune_failed = true;
-            ++it; // go on to the next call, remember there maybe two calls
+            ++it; // go on to the next call, remember there may be two calls
           } else {
             // if you did retune, update the call info
             BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tUpdate Retuning - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";

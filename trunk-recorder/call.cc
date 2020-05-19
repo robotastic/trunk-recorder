@@ -442,7 +442,7 @@ bool Call::add_source(long src) {
 void Call::update(TrunkMessage message) {
   last_update = time(NULL);
   if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
-    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, messge mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, message mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
   } else {
     add_source(message.source);
   }
