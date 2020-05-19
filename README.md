@@ -1,9 +1,8 @@
-Trunk Recorder - v3.1.2
+Trunk Recorder - v3.2
 =======================
 *Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compressing audio for OpenMHz. Both utilities can be easily installed using apt-get*
 
 *Note: v3.1.3 adds a dependency for `libcurl`, you can install it thru `apt-get` with `sudo apt-get install libcurl4-openssl-dev`.*
-
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful? Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation.**
@@ -23,7 +22,7 @@ Trunk Recorder currently supports the following:
  - Ettus USRPs
  - P25 Phase 1, **P25 Phase 2** & Analog voice channels
 
-Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10 & 18.04), Arch Linux (2017.03.01), Debian 9.x and macOS (10.10, 10.11, 10.12, 10.13, 10.14). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
+Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10, 18.04 & 20.04), Arch Linux (2017.03.01), Debian 9.x and macOS (10.10, 10.11, 10.12, 10.13, 10.14). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
 
 # Wiki Pages
 
