@@ -74,7 +74,6 @@ public:
 	virtual double length_in_seconds() = 0;
 
 	virtual void set_call(Call* call) {};
-	virtual void end_call() {};
 };
 
 } /* namespace blocks */

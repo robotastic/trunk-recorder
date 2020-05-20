@@ -116,7 +116,6 @@ public:
 	         gr_vector_void_star &output_items);
 
 	void set_call(Call* call);
-	void end_call();
 
 	void log_p25_metadata(long unitId, const char* system_type, bool emergency);
 

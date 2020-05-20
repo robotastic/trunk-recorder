@@ -187,6 +187,7 @@ nonstop_wavfile_sink_impl::close()
   }
 
   close_wav();
+  set_call(NULL);
 }
 
 void
@@ -227,10 +228,6 @@ void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char* system
 void nonstop_wavfile_sink_impl::set_call(Call* call) {
   d_current_call = call;
  }
-
-void nonstop_wavfile_sink_impl::end_call() {
-  set_call(NULL);
-}
 
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   
