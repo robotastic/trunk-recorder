@@ -555,6 +555,7 @@ void p25_recorder::start(Call *call) {
     wav_sink->open(call->get_filename());
     state = active;
     valve->set_enabled(true);
+    wav_sink->set_call(call);
     recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";

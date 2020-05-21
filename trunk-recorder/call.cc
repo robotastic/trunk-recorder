@@ -322,6 +322,11 @@ std::vector<Call_Source> Call::get_source_list() {
   return src_list;
 }
 
+void Call::clear_src_list() {
+  src_list.clear();
+  src_list.shrink_to_fit();
+}
+
 long Call::get_source_count() {
   if ((state == recording) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
@@ -442,7 +447,7 @@ bool Call::add_source(long src) {
 void Call::update(TrunkMessage message) {
   last_update = time(NULL);
   if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
-    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, messge mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, message mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
   } else {
     add_source(message.source);
   }
@@ -498,6 +503,10 @@ char * Call::get_sigmf_filename() {
 
 char * Call::get_debug_filename() {
   return debug_filename;
+}
+
+std::string Call::get_system_type() {
+  return sys->get_system_type().c_str();
 }
 
 void Call::set_talkgroup_tag(std::string tag){

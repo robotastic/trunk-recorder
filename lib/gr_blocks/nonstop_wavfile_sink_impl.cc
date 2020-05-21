@@ -76,7 +76,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
                io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
   d_sample_rate(sample_rate), d_nchans(n_channels),
-  d_use_float(use_float), d_fp(0)
+  d_use_float(use_float), d_fp(0), d_current_call(NULL)
 {
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
@@ -187,6 +187,7 @@ nonstop_wavfile_sink_impl::close()
   }
 
   close_wav();
+  set_call(NULL);
 }
 
 void
@@ -213,6 +214,21 @@ bool nonstop_wavfile_sink_impl::stop()
   return true;
 }
 
+void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char* system_type, bool emergency)
+{
+  if (d_current_call == NULL) {
+    BOOST_LOG_TRIVIAL(debug) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
+  }
+  else {
+    BOOST_LOG_TRIVIAL(debug) << "Logging " << system_type << " : " << unitId << " to current call.";
+    d_current_call->add_signal_source(unitId, system_type, emergency ? SignalType::Emergency : SignalType::Normal);
+  }
+}
+
+void nonstop_wavfile_sink_impl::set_call(Call* call) {
+  d_current_call = call;
+ }
+
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
@@ -238,17 +254,19 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
   pmt::pmt_t this_key(pmt::intern("src_id"));
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
+  unsigned pos = 0;
+  //long curr_src_id = 0;
+
   for (unsigned int i = 0; i < tags.size(); i++) {
-    if (pmt::eq(this_key, tags[i].key)) {      
-      /*
-      long src_id  = pmt::to_long(tags[i].value);      
-      unsigned pos = d_sample_count + (tags[i].offset - nitems_read(0));      
-      double   sec = (double)pos  / (double)d_sample_rate;
+    if (pmt::eq(this_key, tags[i].key) && d_current_call->get_system_type() == "conventionalP25") {
+      long src_id  = pmt::to_long(tags[i].value);
+      pos = d_sample_count + (tags[i].offset - nitems_read(0));
+      // double   sec = (double)pos  / (double)d_sample_rate;
       if (curr_src_id != src_id) {
-        add_source(src_id, sec);
-        BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+        log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
+        // BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
-      }*/
+      }
     }
   }
 
