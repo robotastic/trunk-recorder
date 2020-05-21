@@ -76,7 +76,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
                io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
   d_sample_rate(sample_rate), d_nchans(n_channels),
-  d_use_float(use_float), d_fp(0)
+  d_use_float(use_float), d_fp(0), d_current_call(NULL)
 {
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
