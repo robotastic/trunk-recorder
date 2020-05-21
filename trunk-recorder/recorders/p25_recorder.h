@@ -126,6 +126,7 @@ protected:
   bool   qpsk_mod;
 
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
@@ -199,7 +200,7 @@ private:
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+
 
 };
 
