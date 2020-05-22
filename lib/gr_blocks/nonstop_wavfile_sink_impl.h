@@ -34,19 +34,18 @@ namespace blocks {
 class nonstop_wavfile_sink_impl : public nonstop_wavfile_sink
 {
 private:
+
 	unsigned d_sample_rate;
-	int d_nchans;	
-	
+	int d_nchans;		
 	int d_max_sample_val;
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
 	bool d_use_float;
-        long curr_src_id;
+	long curr_src_id;
+	char current_filename[255];
+	Call* d_current_call;
 
-  	char current_filename[255];
-
-        Call* d_current_call;
 protected:
 	
 	unsigned d_sample_count;
@@ -115,10 +114,9 @@ public:
 	         gr_vector_const_void_star &input_items,
 	         gr_vector_void_star &output_items);
 
-        void set_call(Call* call);
-        void end_call();
+	void set_call(Call* call);
 
-        void log_p25_metadata(long unitId, const char* system_type, bool emergency);
+	void log_p25_metadata(long unitId, const char* system_type, bool emergency);
 
 };
 
