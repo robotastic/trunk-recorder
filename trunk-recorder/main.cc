@@ -910,7 +910,7 @@ void handle_call(TrunkMessage message, System *sys) {
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
-            // we want to keep this call recording, and now start a recording of the new call on another recorder
+            // we want to keep this call recording and now start a recording of the new call on another recorder
             call_found = false;
             retune_failed = true;
             ++it; // go on to the next call, remember there may be two calls
