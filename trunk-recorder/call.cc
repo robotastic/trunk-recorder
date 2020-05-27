@@ -131,40 +131,37 @@ void Call::end_call() {
       freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
-    if (sys->get_call_log()) {
-      std::ofstream myfile(status_filename);
+    std::ofstream myfile(status_filename);
 
 
-      if (myfile.is_open())
-      {
-        myfile << "{\n";
-        myfile << "\"freq\": " << this->curr_freq << ",\n";
-        myfile << "\"start_time\": " << this->start_time << ",\n";
-        myfile << "\"stop_time\": " << this->stop_time << ",\n";
-        myfile << "\"emergency\": " << this->emergency << ",\n";
-        //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
-        myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
-        myfile << "\"srcList\": [ ";
+    if (myfile.is_open()) {
+      myfile << "{\n";
+      myfile << "\"freq\": " << this->curr_freq << ",\n";
+      myfile << "\"start_time\": " << this->start_time << ",\n";
+      myfile << "\"stop_time\": " << this->stop_time << ",\n";
+      myfile << "\"emergency\": " << this->emergency << ",\n";
+      //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
+      myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
+      myfile << "\"srcList\": [ ";
 
-        for (std::size_t i = 0; i < src_list.size(); i++) {
-          if (i != 0) {
-            myfile << ", ";
-          }
-          myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
+      for (std::size_t i = 0; i < src_list.size(); i++) {
+        if (i != 0) {
+          myfile << ", ";
         }
-        myfile << " ],\n";
-        myfile << "\"freqList\": [ ";
-
-        for (int i = 0; i < freq_count; i++) {
-          if (i != 0) {
-            myfile << ", ";
-          }
-          myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
-        }
-        myfile << "]\n";
-        myfile << "}\n";
-        myfile.close();
+        myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
       }
+      myfile << " ],\n";
+      myfile << "\"freqList\": [ ";
+
+      for (int i = 0; i < freq_count; i++) {
+        if (i != 0) {
+          myfile << ", ";
+        }
+        myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
+      }
+      myfile << "]\n";
+      myfile << "}\n";
+      myfile.close();
     }
 
     if (sys->get_upload_script().length() != 0) {
@@ -175,13 +172,23 @@ void Call::end_call() {
     if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
       if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_call(this, sys, config);
-      } else {}
+      }
 
       if (sys->get_upload_script().length() != 0) {
         BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
         signal(SIGCHLD, SIG_IGN);
         //int rc = system(shell_command.str().c_str());
         system(shell_command.str().c_str());
+      }
+
+      // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
+      if (this->config.upload_server == "" && this->config.bcfy_calls_server == "") {
+        if (!sys->get_audio_archive() && remove(filename) != 0) {
+          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
+        }
+        if (!sys->get_call_log() && remove(status_filename) != 0) {
+          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
+        }
       }
     } else {
       // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)

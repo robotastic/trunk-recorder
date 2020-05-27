@@ -20,15 +20,23 @@ void* upload_call_thread(void *thread_arg) {
   int nchars = snprintf(shell_command, 400, "sox %s -t wav - --norm=-3 | fdkaac --silent --ignorelength -b 8000 -o %s -", call_info->filename, call_info->converted);
 
   if (nchars >= 400) {
-    BOOST_LOG_TRIVIAL(error) << "Call uploader: Path longer than 400 characters";
+    BOOST_LOG_TRIVIAL(error) << "Call uploader: Command longer than 400 characters";
+    delete(call_info);
+    return NULL;
   }
 
-  // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
-  // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
-  system(shell_command);
-  //int rc = system(shell_command);
+  BOOST_LOG_TRIVIAL(trace) << "Converting: " << call_info->converted;
+  BOOST_LOG_TRIVIAL(trace) << "Command: " << shell_command;
 
-  // BOOST_LOG_TRIVIAL(info) << "Finished converting\n";
+  int rc = system(shell_command);
+
+  if (rc > 0) {
+    BOOST_LOG_TRIVIAL(error) << "Failed to convert call recording, see above error. Make sure you have sox and fdkaac installed.";
+    delete(call_info);
+    return NULL;
+  } else {
+    BOOST_LOG_TRIVIAL(trace) << "Finished converting call";
+  }
 
   int error = 0;
 
@@ -44,8 +52,11 @@ void* upload_call_thread(void *thread_arg) {
 
   if (!error) {
     if (!call_info->audio_archive) {
-      unlink(call_info->filename);
-      unlink(call_info->converted);
+      remove(call_info->filename);
+      remove(call_info->converted);
+    }
+    if (!call_info->call_log) {
+      remove(call_info->status_filename);
     }
   }
 
@@ -105,6 +116,7 @@ void send_call(Call *call, System *sys, Config config) {
   call_info->bcfy_system_id   = sys->get_bcfy_system_id();
   call_info->short_name       = sys->get_short_name();
   call_info->audio_archive    = sys->get_audio_archive();
+  call_info->call_log         = sys->get_call_log();
 
   for (int i = 0; i < call_info->source_count; i++) {
     call_info->source_list.push_back(source_list[i]);
