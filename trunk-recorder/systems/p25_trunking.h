@@ -96,8 +96,10 @@ public:
 
   ~p25_trunking();
 
+  void   set_center(double c);
+  void   set_rate(long s);
   void   tune_offset(double f);
-  void    tune_freq(double f);
+  void   tune_freq(double f);
   double get_freq();
   void   enable();
 

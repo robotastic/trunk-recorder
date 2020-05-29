@@ -225,6 +225,15 @@ void smartnet_trunking::reset() {
 
 }
 
+void smartnet_trunking::set_center(double c) {
+  center_freq = c;
+}
+
+void smartnet_trunking::set_rate(long s) {
+  input_rate = s;
+  // TODO: Update/remake blocks that depend on input_rate
+}
+
 void smartnet_trunking::tune_freq(double f) {
   chan_freq = f;
   int offset_amount = (center_freq - f);

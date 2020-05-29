@@ -58,6 +58,8 @@ public:
 		long decim;
 		long decim2;
 	};
+  void set_center(double c);
+  void set_rate(long s);
   void tune_offset(double f);
   void    tune_freq(double f);
   void reset();
