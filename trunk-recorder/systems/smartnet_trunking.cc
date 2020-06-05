@@ -40,7 +40,7 @@ if (arb_rate <= 1) {
   arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
 } else {
   BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
-  exit(0);
+  exit(1);
 }
 }
 
@@ -57,7 +57,7 @@ smartnet_trunking::DecimSettings smartnet_trunking::get_decim(long speed) {
         if (q & 1) {
             continue;
         }
-        
+
         if ((q >= 40) && ((q & 3) ==0)) {
             decim_settings.decim = q/4;
             decim_settings.decim2 = 4;
@@ -85,7 +85,7 @@ void smartnet_trunking::initialize_prefilter() {
 
 
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-  mixer = gr::blocks::multiply_cc::make(); 
+  mixer = gr::blocks::multiply_cc::make();
 
   DecimSettings decim_settings = get_decim(input_rate);
   if (decim_settings.decim != -1) {
@@ -111,7 +111,7 @@ void smartnet_trunking::initialize_prefilter() {
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
     decim = floor(input_rate / if_rate);
     resampled_rate = input_rate / decim;
-    
+
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
     resampled_rate = input_rate / decim;
     lo->set_max_output_buffer(4096);
@@ -128,7 +128,7 @@ void smartnet_trunking::initialize_prefilter() {
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking ARB - Initial Rate: "<< input_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
- 
+
   mixer->set_max_output_buffer(4096);
   lowpass_filter->set_max_output_buffer(4096);
   arb_resampler->set_max_output_buffer(4096);
@@ -242,8 +242,8 @@ void smartnet_trunking::tune_freq(double f) {
 
 void smartnet_trunking::tune_offset(double f) {
 
-        float freq = static_cast<float> (f); 
-        
+        float freq = static_cast<float> (f);
+
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
           BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate/2) - (if1/2));
