@@ -1352,7 +1352,7 @@ void add_logs(const F& fmt)
   boost::shared_ptr< sinks::synchronous_sink< sinks::basic_text_ostream_backend<char > > > sink =
 		boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
 
-		std::locale loc = std::locale("en_US.UTF-8");
+		std::locale loc = std::locale("C");
 
   sink->imbue(loc);
 }
@@ -1403,8 +1403,8 @@ int main(int argc, char **argv)
     % boost::log::expressions::smessage
     );
 
-//boost::log::sinks->imbue(std::locale("en_US.UTF-8"));
-	//std::locale::global(std::locale("en_US.UTF-8"));
+//boost::log::sinks->imbue(std::locale("C"));
+	//std::locale::global(std::locale("C"));
 
   boost::program_options::options_description desc("Options");
   desc.add_options()
