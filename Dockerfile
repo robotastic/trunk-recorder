@@ -1,9 +1,11 @@
-# docker build -t robotastic/trunk-recorder:latest .
-
 FROM robotastic/docker-gnuradio:latest
 
+WORKDIR /src
 
+COPY . .
 
-COPY . /src/trunk-recorder
-RUN cd /src/trunk-recorder && cmake . && make
-RUN mkdir /app && cp /src/trunk-recorder/recorder /app
+RUN cmake . && make -j`nproc` && cp recorder /recorder
+
+USER nobody
+
+CMD ["/recorder"]

@@ -283,6 +283,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
   catch (std::exception const& e)
   {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
+    exit(1);
   }
   return config;
 }

@@ -188,11 +188,11 @@ void load_config(string config_file)
     } else {
       frequencyFormat = 0;
     }
-    
+
     config.debug_recorder   = pt.get<bool>("debugRecorder", 0);
     config.debug_recorder_address = pt.get<std::string>("debugRecorderAddress", "127.0.0.1");
     config.debug_recorder_port = pt.get<int>("debugRecorderPort", 1234);
-    
+
     BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
                   pt.get_child("systems"))
     {
@@ -408,7 +408,7 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder",  0);
-      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0); 
+      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
@@ -555,7 +555,7 @@ void load_config(string config_file)
   catch (std::exception const& e)
   {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
-    exit(0);
+    exit(1);
   }
   if (config.debug_recorder) {
       BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nDEBUG RECORDER\n-------------------------------------\n";
@@ -885,9 +885,9 @@ void handle_call(TrunkMessage message, System *sys) {
 
 
 /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
-  that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new 
+  that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
   recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
-  of the original recorder gets flushed. */ 
+  of the original recorder gets flushed. */
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
@@ -1184,7 +1184,7 @@ void monitor_messages() {
 
       if (sys) {
         sys->message_count++;
-        
+
         if (sys->get_system_type() == "smartnet") {
           trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys);
           handle_message(trunk_messages, sys);
@@ -1352,7 +1352,7 @@ void add_logs(const F& fmt)
   boost::shared_ptr< sinks::synchronous_sink< sinks::basic_text_ostream_backend<char > > > sink =
 		boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
 
-		std::locale loc = std::locale("en_US.UTF-8");
+		std::locale loc = std::locale("C");
 
   sink->imbue(loc);
 }
@@ -1403,8 +1403,8 @@ int main(int argc, char **argv)
     % boost::log::expressions::smessage
     );
 
-//boost::log::sinks->imbue(std::locale("en_US.UTF-8"));
-	//std::locale::global(std::locale("en_US.UTF-8"));
+//boost::log::sinks->imbue(std::locale("C"));
+	//std::locale::global(std::locale("C"));
 
   boost::program_options::options_description desc("Options");
   desc.add_options()

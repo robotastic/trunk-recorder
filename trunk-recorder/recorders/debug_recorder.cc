@@ -3,7 +3,7 @@
 #include <boost/log/trivial.hpp>
 
 //static int rec_counter=0;
-  
+
 debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port)
 {
   return gnuradio::get_initial_sptr(new debug_recorder(src, address, port));
@@ -34,7 +34,7 @@ if (arb_rate <= 1) {
   arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
 } else {
   BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
-  exit(0);
+  exit(1);
 }
 }
 
@@ -51,7 +51,7 @@ debug_recorder::DecimSettings debug_recorder::get_decim(long speed) {
         if (q & 1) {
             continue;
         }
-        
+
         if ((q >= 40) && ((q & 3) ==0)) {
             decim_settings.decim = q/4;
             decim_settings.decim2 = 4;
@@ -74,14 +74,14 @@ void debug_recorder::initialize_prefilter() {
   long fb = 0;
   if1 = 0;
   if2 = 0;
-  samples_per_symbol  = phase1_samples_per_symbol; 
+  samples_per_symbol  = phase1_samples_per_symbol;
   symbol_rate         = phase1_symbol_rate;
   system_channel_rate = 32000; //symbol_rate * samples_per_symbol;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-  mixer = gr::blocks::multiply_cc::make(); 
+  mixer = gr::blocks::multiply_cc::make();
 
   debug_recorder::DecimSettings decim_settings = get_decim(input_rate);
   if (decim_settings.decim != -1) {
@@ -107,7 +107,7 @@ void debug_recorder::initialize_prefilter() {
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 12000, 2000);
     decim = floor(input_rate / if_rate);
     resampled_rate = input_rate / decim;
-    
+
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
     resampled_rate = input_rate / decim;
     lo->set_max_output_buffer(4096);
@@ -119,14 +119,14 @@ void debug_recorder::initialize_prefilter() {
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: "<< input_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
- 
+
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
   // power squelch works well. real FM receviers use a noise squelch, where
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-  
+
 
 
   connect(self(),      0, valve,         0);
@@ -224,9 +224,9 @@ void debug_recorder::tune_freq(double f) {
   tune_offset(freq);
 }
 void debug_recorder::tune_offset(double f) {
-        
-        float freq = static_cast<float> (f); 
-        
+
+        float freq = static_cast<float> (f);
+
         if (abs(freq) > ((input_rate/2) - (if1/2)))
         {
           BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate/2) - (if1/2));
@@ -244,7 +244,7 @@ void debug_recorder::tune_offset(double f) {
           }
           bfo->set_frequency(-bfz * if1);
 
-    
+
         } else {
           lo->set_frequency(freq);
         }

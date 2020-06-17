@@ -56,7 +56,7 @@ analog_recorder::analog_recorder(Source *src)
   talkgroup   = 0;
   recording_count = 0;
   recording_duration = 0;
-  
+
   rec_num = rec_counter++;
   state       = inactive;
 
@@ -117,7 +117,7 @@ analog_recorder::analog_recorder(Source *src)
     BOOST_LOG_TRIVIAL(info) << "Analog Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
-    exit(0);
+    exit(1);
   }
 
 
