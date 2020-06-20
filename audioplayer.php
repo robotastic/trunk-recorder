@@ -68,6 +68,7 @@ try {
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="format-detection" content="telephone=no">
         <title>Trunk Player</title>
         <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.0/flatly/bootstrap.min.css" rel="stylesheet" integrity="sha384-mhpbKVUOPCSocLzx2ElRISIORFRwr1ZbO9bAlowgM5kO7hnpRBe+brVj8NNPUiFs" crossorigin="anonymous">
         <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.0/flatly/bootstrap.min.css" rel="stylesheet" integrity="sha384-mhpbKVUOPCSocLzx2ElRISIORFRwr1ZbO9bAlowgM5kO7hnpRBe+brVj8NNPUiFs" crossorigin="anonymous" media="(prefers-color-scheme: light)">
@@ -98,11 +99,6 @@ try {
                     </div>
                 </form>
                 <div class="row">
-                    <div class="form-group col-lg-12">
-                        <audio preload="none" controls>
-                            Sorry, your browser does not support HTML5 audio.
-                        </audio>
-                    </div>
                     <div class="form-group col-lg-12">Click on a row to begin sequential playback, click file size to download</div>
                 </div>
             </div>
@@ -130,6 +126,15 @@ try {
                     </tr>
 <?php   endforeach; ?>
             </table>
+            <br />
+            <br />
+            <br />
+            <br />
+            <nav class="navbar fixed-bottom navbar-expand-sm navbar-light bg-light">
+                 <audio preload="none" controls>
+                    Sorry, your browser does not support HTML5 audio.
+                 </audio>
+            </nav>
         </div>
         <script>
             window.onload = _ => {
