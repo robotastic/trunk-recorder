@@ -1,4 +1,4 @@
-FROM robotastic/docker-gnuradio:latest
+FROM robotastic/gnuradio:latest
 
 WORKDIR /src
 
