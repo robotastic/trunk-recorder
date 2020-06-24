@@ -28,9 +28,11 @@ $TGFile = function (string $tgFilePath): array {
     return $return;
 };
 
-$TGS = [];
+
 foreach ($CONFIG->systems as $system) {
-    $TGS += $TGFile($system->talkgroupsFile);
+    $SHORTNAME = "{$system->shortName}";
+    $TGS[$SHORTNAME] = [];
+    $TGS[$SHORTNAME] += $TGFile($system->talkgroupsFile);
 }
 
 $files = [];
@@ -64,7 +66,7 @@ try {
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -73,6 +75,14 @@ try {
         <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.0/flatly/bootstrap.min.css" rel="stylesheet" integrity="sha384-mhpbKVUOPCSocLzx2ElRISIORFRwr1ZbO9bAlowgM5kO7hnpRBe+brVj8NNPUiFs" crossorigin="anonymous">
         <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.0/flatly/bootstrap.min.css" rel="stylesheet" integrity="sha384-mhpbKVUOPCSocLzx2ElRISIORFRwr1ZbO9bAlowgM5kO7hnpRBe+brVj8NNPUiFs" crossorigin="anonymous" media="(prefers-color-scheme: light)">
         <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.0/darkly/bootstrap.min.css" rel="stylesheet" integrity="sha384-Bo21yfmmZuXwcN/9vKrA5jPUMhr7znVBBeLxT9MA4r2BchhusfJ6+n8TLGUcRAtL" crossorigin="anonymous" media="(prefers-color-scheme: dark)">
+        <style>
+            #interface, audio {
+                width: 100%;
+            }
+            table {
+                text-align: center;
+            }
+        </style>
     </head>
     <body>
         <div class="container">
@@ -94,12 +104,12 @@ try {
                         </div>
                         <div class="form-group col-lg-4">
                             <label class="form-control-label">Controls</label>
-                            <button class="btn btn-outline-success btn-block" type="submit">Filter</button>
+                            <button class="btn btn-primary btn-block" type="submit">Filter</button>
                         </div>
                     </div>
                 </form>
                 <div class="row">
-                    <div class="form-group col-lg-12">Click on a row to begin sequential playback, click file size to download</div>
+                    <div class="form-group col-lg-12"><button class="btn btn-primary btn-block" onclick="window.scrollTo(0,document.body.scrollHeight);">Jump to bottom</button>Click on a row to begin sequential playback. Click file size to download. </div>
                 </div>
             </div>
             <table class="table">
@@ -120,7 +130,7 @@ try {
 <?php   foreach ($files as $FileTime => [$FileName, $FileSize, $TGID, $TIME, $FREQ, $SHORTNAME]):   ?>
                     <tr>
                         <td><?=date("H:i:s", $TIME)?></td>
-                        <td><?=($TGS[$TGID]) ?? $TGID?></td>
+                        <td><?=($TGS[$SHORTNAME][$TGID]) ?? $TGID?></td>
                         <td><?=sprintf("%3.4f", $FREQ)?></td>
                         <td><a href="<?="{$CONFIG->captureDir}/{$SHORTNAME}/{$date->format('Y/n/j')}/{$FileName}{$FileType}"?>"><?=$FileSize?>k</a></td>
                     </tr>
@@ -130,11 +140,11 @@ try {
             <br />
             <br />
             <br />
-            <nav class="navbar fixed-bottom navbar-expand-sm navbar-light bg-light">
-                 <audio preload="none" controls>
-                    Sorry, your browser does not support HTML5 audio.
-                 </audio>
-            </nav>
+        <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-primary">
+                        <audio preload="none" controls>
+                            Sorry, your browser does not support HTML5 audio.
+                        </audio>
+</nav>
         </div>
         <script>
             window.onload = _ => {
@@ -146,12 +156,12 @@ try {
 
                 list.addEventListener('click', e => {
                     if (tr[index])
-                        tr[index].classList.toggle('bg-secondary');
+                        tr[index].classList.toggle('table-active');
 
                     tr.forEach((thisRow, i) => {
                         if (e.target.parentElement == thisRow) {
                             index = i;
-                            tr[index].classList.toggle('bg-secondary');
+                            tr[index].classList.toggle('table-active');
                         }
                     });
 
@@ -163,20 +173,12 @@ try {
                 }, false);
 
                 audio.addEventListener('ended', _ => {
-                    tr[index++].classList.toggle('bg-secondary');
+                    tr[index++].classList.toggle('table-active');
                     if (tr[index])
                         tr[index].click();
                 }, false);
 
             }
         </script>
-        <style>
-            #interface, audio {
-                width: 100%;
-            }
-            table {
-                text-align: center;
-            }
-        </style>
     </body>
 </html>
