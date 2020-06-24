@@ -22,7 +22,7 @@ jobs:
         id: prepare
         run: |
           DOCKER_IMAGE=robotastic/trunk-recorder
-          DOCKER_PLATFORMS=linux/amd64,linux/arm64,linux/arm64/v8,linux/arm/v7
+          DOCKER_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7
           VERSION=edge
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
