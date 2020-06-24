@@ -4,7 +4,7 @@ WORKDIR /src
 
 COPY . .
 
-RUN cmake . && make -j`nproc` && cp recorder /recorder
+RUN cmake . && make && cp recorder /recorder
 
 USER nobody
 
