@@ -97,9 +97,12 @@ try {
                             <label class="form-control-label" for="tg">Talk Group</label>
                             <select class="form-control" id="tg" name="tg">
                                 <option value="">All Calls</option>
-<?php       foreach ($TGS as $TGID => $TGName): ?>
+<?php       foreach ($CONFIG->systems as $system) {
+    $SHORTNAME = "{$system->shortName}";
+    foreach ($TGS[$SHORTNAME] as $TGID => $TGName): ?>
                                 <option value="<?=$TGID?>"<?=($tg == $TGID) ? ' selected="selected"' : ''?>><?=$TGName?></option>
-<?php       endforeach; ?>
+<?php       endforeach;
+} ?>
                             </select>
                         </div>
                         <div class="form-group col-lg-4">
