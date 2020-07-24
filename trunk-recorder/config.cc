@@ -132,7 +132,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
     config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
     BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
-    default_mode = pt.get<std::string>("defaultMode", "digital");
+    default_mode = pt.get<std::string>("defaultMode", "analog");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;

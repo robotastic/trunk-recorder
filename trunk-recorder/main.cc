@@ -533,7 +533,7 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
     config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
     BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
-    default_mode = pt.get<std::string>("defaultMode", "digital");
+    default_mode = pt.get<std::string>("defaultMode", "analog");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
@@ -650,7 +650,9 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tTG not in Talkgroup File ";
 
         // A talkgroup was not found from the talkgroup file.
-          if (default_mode == "analog") {
+        // Use an analog recorder if this is a Type II trunk and defaultMode is analog.
+        // All other cases use a digital recorder.
+          if ((default_mode == "analog") && (sys->get_system_type() == "smartnet")) {
             recorder = source->get_analog_recorder(2);
           } else {
             recorder = source->get_digital_recorder(2);
