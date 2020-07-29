@@ -87,8 +87,18 @@ bool SmartnetParser::is_chan_inbound_obt(int cmd, System *sys) {
   return cmd < sys->get_bandplan_offset();
 }
 
-bool SmartnetParser::is_first_normal() {
-
+bool SmartnetParser::is_first_normal(int cmd, SYstem *sys) {
+  if (sys->get_bandfreq == 800) {
+    // anything "800" should be replaced with 8/9 compatible switching
+    return ((cmd == OSW_FIRST_NORMAL) || \
+            (cmd == OSW_FIRST_ASTRO));
+  } else {
+    // if we're looking at an OBT trunk, inbound channel commands are first normals too
+    // anything "400" should be replaced as "OBT" in the future =/
+    return (is_chan_obt_inbound(cmd, sys) || \
+            (cmd == OSW_FIRST_NORMAL) || \
+            (cmd == OSW_FIRST_ASTRO));
+  }
 }
 
 
