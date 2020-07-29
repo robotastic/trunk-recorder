@@ -6,7 +6,7 @@ SmartnetParser::SmartnetParser() {
   lastaddress = 0;
   lastcmd     = 0;
   numStacked  = 0;
-  numConsumed = 0;
+  numConsumed = 3; // "preload" the stack to where the scrubber head is before starting to parse
 }
 
 double SmartnetParser::getfreq(int cmd, System *sys) {
@@ -150,8 +150,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   cout.precision(0);
 
   // maintain a sliding stack of 5 OSWs. If previous iteration used more than
-  // one,
-  // don't utilize stack until all used ones have slid past.
+  // one, don't utilize stack until all used ones have slid past.
 
   switch (numStacked) // note: drop-thru is intentional!
   {
@@ -181,20 +180,12 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
     ++numStacked;
   }
 
-  /*
-     if (numConsumed > 0)
-     {
-      if (--numConsumed > 0)
-      {
-        return messages;
-      }
-     }
+  if (numConsumed > 0) {
+    --numConsumed;
+    messages.push_back(message);
+    return messages;
+  }
 
-     if (numStacked < 3)
-     {
-      return messages; // at least need a window of 3 and 5 is better.
-     }
-   */
   x.clear();
   vector<string>().swap(x);
 
@@ -204,6 +195,8 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   // BOOST_LOG_TRIVIAL(warning)
   //     << "[" << system->get_short_name()
   //     << "] [OSW!] [[["<< std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "]]]";
+
+
 
   // Message parsing strategy
   // OSW stack:      [0  1  2  3  4] (consume) - consume is how many OSWs to consume. This includes the 1-OSW regular increment.
@@ -295,11 +288,19 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
 
 
 
+
+
   // If we get here, we don't know about this OCW (and/or a combination of it with others beside it).
-  // Error accordingly and log the buffer.
+  // Error accordingly and log the stack.
+
   // If we just got started, then we also could just be looking at the tail of a known message.
-  // Adding the logic to test for this and stay quiet might be desirable, but for the time being,
-  // we are willing to accept an error (or up to 3) on a fresh start or CC retune.
+  // We preloaded the stack on a fresh start so there shouldn't be errors, but we have not
+  // emptied and reloaded the stack on a CC retune. Future request.
+
+  // There is also the possibility of missing OSWs and having incomplete messages.
+  // Adding the logic to test for this might be nice to have (test could be "if we got here,
+  // this OSW is is missing a header or other OSWs that comprise a valid message -
+  // test if we know this OSW command though, and if we do, discard the OSW and move on")
   BOOST_LOG_TRIVIAL(warning)
       << "[" << system->get_short_name()
       << "] [Unknown OSW!] [ "
