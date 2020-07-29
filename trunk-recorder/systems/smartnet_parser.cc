@@ -198,146 +198,22 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   x.clear();
   vector<string>().swap(x);
 
-  /*
-          if( (stack[0].cmd < 0x2d0) && (stack[2].cmd == 0x0320) &&
-             (stack[1].cmd == OSW_EXTENDED_FCN) )
-          {
-                                          numConsumed = 3;
-                                          //idlesWithNoId = 0; // got
-                                             identifying info...
-                                          //if( (stack[0].id & 0xfc00) ==
-                                             0x6000)
-                                          //{
-                                                          cout << "uhf/vhf
-                                                             equivalent of
-                                                             308/320/30b" <<
-                                                             endl;
-                                                          cout << "Freq: " <<
-                                                             getfreq(stack[0].cmd)
-                                                             << " 0add: " << dec
-                                                             <<
-                                                              stack[0].address
-                                                             << " 0full_add: "
-                                                             <<
-                                                             stack[0].full_address
-                                                              << " 1add: " <<
-                                                             stack[1].address <<
-                                                             " 1full_add: " <<
-                                                             stack[1].full_address
-                                                              << endl;
-                                          //}
 
-          }
-   */
 
-  // BOOST_LOG_TRIVIAL(info) << "MSG [ TG: " << dec << stack[0].full_address <<
-  // "] \t CMD: ( " << hex << stack[0].cmd << " - \t" << hex << stack[1].cmd <<
-  // " - \t " << hex << stack[2].cmd   << " ] " << " Grp: [ " << stack[0].grp <<
-  // " - \t " << stack[1].grp << " - \t " << stack[2].grp << " ]";
-
-  if (((command >= 0x340) && (command <= 0x34E)) || (command == 0x350)) {
-    BOOST_LOG_TRIVIAL(info) << "Patching Command: " << hex << command
-                            << " Freq: " << FormatFreq(message.freq)
-                            << " Talkgroup: " << dec << address << endl;
-  }
-
-  if ((address & 0xfc00) == 0x2800) {
-    message.sys_id = lastaddress;
-    message.message_type = SYSID;
-    messages.push_back(message);
-    return messages;
-  }
-
-  if (is_chan_outbound(stack[0].cmd, system) && stack[0].grp &&
-      getfreq(stack[0].cmd, system)) {
-    message.talkgroup = stack[0].full_address;
-    message.freq = getfreq(stack[0].cmd, system);
-
-    if ((stack[1].cmd == 0x308) || (stack[1].cmd == 0x321)) {
-      // cout << "NEW GRANT!! CMD1: " << fixed << hex << stack[1].cmd << " 0add:
-      // " << dec <<  stack[0].address << " 0full_add: " << stack[0].full_address
-      // << " 1add: " << stack[1].address << " 1full_add: " <<
-      // stack[1].full_address  << endl;
-      message.message_type = GRANT;
-      message.source = stack[1].full_address;
-    } else if (stack[1].cmd == 0x320) {
-      BOOST_LOG_TRIVIAL(info)
-          << "Non-Grant with source 0x" << stack[1].full_address << " "
-          << std::dec << stack[1].full_address << " on TG 0x" << std::hex
-          << stack[0].full_address << " " << std::dec << stack[0].full_address;
-      message.message_type = UNKNOWN;
-      message.source = 0;
-      return messages;
-    } else {
-      message.message_type = UPDATE;
-      // cout << "NEW UPDATE [ Freq: " << fixed << getfreq(stack[0].cmd) << "
-      // CMD0: " << hex << stack[0].cmd << " CMD1: " << hex << stack[1].cmd << "
-      // CMD2: " << hex << stack[2].cmd   << " ] " << " Grp: " << stack[0].grp <<
-      // " Grp1: " << stack[1].grp << endl;
-    }
-
-    messages.push_back(message);
-    return messages;
-  }
-  message.talkgroup = address;
-  message.freq = getfreq(command, system);
-
-  // cout << "Command: " << hex << command << " Last CMD: 0x" <<  hex <<
-  // lastcmd << " Freq: " << message.freq << " Talkgroup: " << dec << address
-  // << " Last Address: " << dec << lastaddress<< endl;
-
-  /*
-    if ((stack[2].cmd == 0x0320) && (stack[1].cmd == OSW_EXTENDED_FCN) &&
-  groupflag)
-    {
-      numConsumed = 3;
-
-      cout << "uhf/vhf equivalent of 308/320/30b" << endl;
-      cout << "Freq: " << fixed << getfreq(stack[0].cmd) << " 0add: " << dec <<
-  stack[0].address << " 0full_add: " << stack[0].full_address  << " 1add: " <<
-  stack[1].address << " 1full_add: " << stack[1].full_address  << endl;
-
-      // Channel Grant
-      message.message_type = GRANT;
-      message.source       = lastaddress;
-
-      // Check Status
-      cout << "Grant Command: " << hex << command << " Last CMD: 0x" <<  hex <<
-  lastcmd << " Freq: " << fixed <<  message.freq << " Talkgroup: " << dec <<
-  address << " Source: " << dec << lastaddress << " 1st: " << (address & 0x2000)
-  << " 2nd: " <<  (address & 0x0800) << " grp: " << groupflag << endl;
-
-      cout << "Status: " << status << endl;
-
-      if ((status == 2) || (status == 4) || (status == 5)) {
-        message.emergency = true;
-      } else if (status >= 8) { // Ignore DES Encryption
-        message.message_type = UNKNOWN;
-      }
-    } else  {
-      // Call continuation
-      if (groupflag) {
-        message.talkgroup    = full_address;
-        message.message_type = UPDATE;
-        cout << "UPDATE [ Freq: " << fixed << getfreq(command) << " TG: " << dec
-  << address << " Full: " << dec << full_address << " CMD: " << hex << command
-  << " Last CMD: " << hex << stack[1].cmd  << " ] Last CMD: " << hex << lastcmd
-  << " GRoup: " << groupflag << endl;
-      }
-    }
-  }
-
-  if (command == 0x03c0) {
-    message.message_type = STATUS;
-
-    // cout << "Status Command: " << hex << command << " Last CMD: 0x" <<  hex
-    // << lastcmd << " Freq: " << message.freq << " Talkgroup: " << dec <<
-    // address << " Last Address: " << dec << lastaddress<< endl;
-
-    // parse_status(command, address,groupflag);
-  }
-  */
-
+  // If we get here, we don't know about this OCW (and/or a combination of it with others beside it).
+  // Error accordingly and log the buffer.
+  // If we just got started, then we also could just be looking at the tail of a known message.
+  // Adding the logic to test for this and stay quiet might be desirable, but for the time being,
+  // we are willing to accept an error (or up to 3) on a fresh start or CC retune.
+  BOOST_LOG_TRIVIAL(warning)
+      << "[" << system->get_short_name()
+      << "] [Unknown OSW!] [ "
+      << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+      << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
+      << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
+      << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+      << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+  message.message_type = UNKNOWN;
   messages.push_back(message);
   return messages;
 }
