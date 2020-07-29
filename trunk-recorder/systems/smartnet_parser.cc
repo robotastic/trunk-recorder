@@ -11,8 +11,10 @@ SmartnetParser::SmartnetParser() {
 
 bool SmartnetParser::is_chan(int cmd, System *sys) {
     if(sys->get_bandfreq() == 800) {
-        if((cmd >= 0 && cmd <= 0x2F7) || (cmd >= 0x32f && cmd <= 0x33F) ||
-           (cmd >= 0x3c1 && cmd <= 0x3FE) ||cmd == 0x3BE ) {
+      if((cmd >= OSW_CHAN_BAND_1_MIN && cmd <= OSW_CHAN_BAND_1_MAX) || \
+         (cmd >= OSW_CHAN_BAND_2_MIN && cmd <= OSW_CHAN_BAND_2_MAX) || \
+         (cmd == OSW_CHAN_BAND_3) || \
+         (cmd >= OSW_CHAN_BAND_4_MIN && cmd <= OSW_CHAN_BAND_4_MAX)) {
             return true;
          }
     } else if(sys->get_bandfreq() == 400) {
@@ -225,12 +227,12 @@ if (x.size()<3) {
       message.message_type = GRANT;
       message.source       = stack[1].full_address;
     } else  if (stack[1].cmd == 0x320) {
-      BOOST_LOG_TRIVIAL(info) << "Non-Grant with source 0x" << stack[1].full_address << " " << std::dec << stack[1].full_address << 
+      BOOST_LOG_TRIVIAL(info) << "Non-Grant with source 0x" << stack[1].full_address << " " << std::dec << stack[1].full_address <<
                              " on TG 0x" << std::hex << stack[0].full_address << " " << std::dec << stack[0].full_address;
       message.message_type = UNKNOWN;
       message.source       = 0;
       return messages;
-      }        
+      }
     else {
       message.message_type = UPDATE;
       //cout << "NEW UPDATE [ Freq: " << fixed << getfreq(stack[0].cmd) << " CMD0: " << hex << stack[0].cmd << " CMD1: " << hex << stack[1].cmd << " CMD2: " << hex << stack[2].cmd   << " ] " << " Grp: " << stack[0].grp << " Grp1: " << stack[1].grp << endl;
