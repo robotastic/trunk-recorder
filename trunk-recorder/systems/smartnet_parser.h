@@ -41,6 +41,7 @@
 #define OSW_TY1_ALERT           0x318 // Unused - we don't support Type I trunks
 #define OSW_TY1_EMERGENCY       0x319 // Unused - we don't support Type I trunks
 #define OSW_TY2_CALL_ALERT      0x319
+#define OSW_SECOND_NORMAL       0x320
 #define OSW_FIRST_ASTRO         0x321
 #define OSW_SYSTEM_CLOCK        0x322
 #define OSW_SCAN_MARKER         0x32b

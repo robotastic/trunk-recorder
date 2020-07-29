@@ -87,7 +87,7 @@ bool SmartnetParser::is_chan_inbound_obt(int cmd, System *sys) {
   return cmd < sys->get_bandplan_offset();
 }
 
-bool SmartnetParser::is_first_normal(int cmd, SYstem *sys) {
+bool SmartnetParser::is_first_normal(int cmd, System *sys) {
   if (sys->get_bandfreq == 800) {
     // anything "800" should be replaced with 8/9 compatible switching
     return ((cmd == OSW_FIRST_NORMAL) || \
