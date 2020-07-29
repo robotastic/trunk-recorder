@@ -95,7 +95,7 @@ bool SmartnetParser::is_first_normal(int cmd, SYstem *sys) {
   } else {
     // if we're looking at an OBT trunk, inbound channel commands are first normals too
     // anything "400" should be replaced as "OBT" in the future =/
-    return (is_chan_obt_inbound(cmd, sys) || \
+    return (is_chan_inbound_obt(cmd, sys) || \
             (cmd == OSW_FIRST_NORMAL) || \
             (cmd == OSW_FIRST_ASTRO));
   }
@@ -180,6 +180,10 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
     ++numStacked;
   }
 
+  // Rename this in the future to "additional shift" or "overconsumed"
+  // or something. For now this will do though.
+  // Theoretically will never be more than 1, but maybe we'll want to add
+  // erroring in the future to cover impossible situations.
   if (numConsumed > 0) {
     --numConsumed;
     messages.push_back(message);
@@ -222,10 +226,10 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   // but this really isn't worth it.
 
   // 1-OSW message: dynamic - call continue
-  // is_chan(stack[3].cmd) returns if a command is a valid outbound channel indicator
+  // is_chan_outbound(stack[3].cmd) returns if a command is a valid outbound channel indicator
   //                       (taking into consideration band and bandplan base/high/spacing/offset).
   // If stack[3].cmd is a valid outbound word, then we have a valid call continue.
-  if (is_chan(stack[3].cmd, system)) {
+  if (is_chan_outbound(stack[3].cmd, system)) {
     // this is a call continue
     if (stack[3].grp) {
       // this is a group call continue
@@ -326,7 +330,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   // n-OSW messages (which must have a known static head)
   // FIRST_NORMAL
   if (is_first_normal(stack[3].cmd, system)) {
-    if (is_chan(stack[2].cmd, system)) {
+    if (is_chan_outbound(stack[2].cmd, system)) {
       // this is a call grant
       ++numConsumed;
       if (stack[2].grp) {
@@ -367,6 +371,105 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         // if not, then we only consume and discard 2-OSWs.
         ++numConsumed;
         message.message_type = UNKNOWN;
+        messages.push_back(message);
+        return messages;
+      }
+      if (stack[2].cmd == OSW_EXTENDED_FCN) {
+        // we have a 2-OSW message, process it.
+        ++numConsumed;
+        // we have an extended function
+        // lots of possibilities here: reg, dereg, patch/msel, Sys ID, etc.
+        // For now use if statements, but some sort of lookup table for function
+        // type may be more useful in the future.
+        if (stack[2].full_address == 0x2021) {
+          // Patch Termination
+          // BOOST_LOG_TRIVIAL(warning)
+          //     << "[" << system->get_short_name() << "] [patch/msel termination] TG $"
+          //     << std::hex << stack[3].full_address;
+          message.message_type = UNKNOWN;
+          message.talkgroup    = stack[3].full_address;
+          messages.push_back(message);
+          return messages;
+        }
+        if (stack[2].full_address == 0x261b) {
+          // Registration
+          // BOOST_LOG_TRIVIAL(warning)
+          //     << "[" << system->get_short_name() << "] [  registration] RID $"
+          //     << std::hex << stack[3].full_address;
+          message.message_type = REGISTRATION;
+          message.source       = stack[3].full_address;
+          messages.push_back(message);
+          return messages;
+        }
+        if (stack[2].full_address == 0x261c) {
+          // Dereg
+          // BOOST_LOG_TRIVIAL(warning)
+          //     << "[" << system->get_short_name() << "] [deregistration] RID $"
+          //     << std::hex << stack[3].full_address;
+          message.message_type = DEREGISTRATION;
+          message.source       = stack[3].full_address;
+          messages.push_back(message);
+          return messages;
+        }
+        if (stack[2].full_address == 0x2a69) {
+          // Data Channel announcement
+          // when we start storing Sys ID in active run memory, test to make sure
+          // the full address of the header is the Sys ID
+          messages.push_back(message);
+          return messages;
+        }
+        if (stack[2].full_address == 0x2c47) {
+          // Busy Override Deny
+          // BOOST_LOG_TRIVIAL(warning)
+          //     << "[" << system->get_short_name() << "] [busy override deny] RID $"
+          //     << std::hex << stack[3].full_address;
+          message.message_type = UNKNOWN;
+          message.source       = stack[3].full_address;
+          messages.push_back(message);
+          return messages;
+        }
+        if (stack[2].full_address == 0x2c65) {
+          // Access Deny
+          // BOOST_LOG_TRIVIAL(warning)
+          //     << "[" << system->get_short_name() << "] [deny ($2c65)] RID $"
+          //     << std::hex << stack[3].full_address;
+          message.message_type = UNKNOWN;
+          message.source       = stack[3].full_address;
+          messages.push_back(message);
+          return messages;
+        }
+        if ((0 <= (stack[2].full_address - 0x2800)) && ((stack[2].full_address - 0x2800) < 0x2f7)) {
+          // System ID
+          // BOOST_LOG_TRIVIAL(warning)
+          //     << "[" << system->get_short_name() << "] [Sys ID] SID $"
+          //     << std::hex << stack[3].full_address
+          //     << ", CC $" << std::hex << stack[2].full_address - 0x2800
+          //     << " -> " << getfreq(stack[2].full_address - 0x2800, system);
+          message.message_type = SYSID;
+          message.freq         = getfreq(stack[2].full_address - 0x2800, system);
+          message.sys_id       = stack[3].full_address;
+          messages.push_back(message);
+          return messages;
+        }
+      }
+      // further work needs to be done on patches/msels
+      if (stack[2].cmd == 0x340) {
+        // we have a patch
+        ++numConsumed;
+        message.message_type = UNKNOWN;
+        messages.push_back(message);
+        return messages;
+      }
+      if (stack[2].cmd == OSW_TY2_AFFILIATION) {
+        // we have an affiliation
+        ++numConsumed;
+        // BOOST_LOG_TRIVIAL(warning)
+        //     << "[" << system->get_short_name() << "] [affiliation] RID $"
+        //     << std::hex << stack[3].full_address
+        //     << " TG $" << std::hex << stack[2].full_address;
+        message.message_type = AFFILIATION;
+        message.talkgroup    = stack[2].full_address;
+        message.source       = stack[3].full_address;
         messages.push_back(message);
         return messages;
       }
