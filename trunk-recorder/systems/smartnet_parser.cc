@@ -4,28 +4,9 @@
 using namespace std;
 SmartnetParser::SmartnetParser() {
   lastaddress = 0;
-  lastcmd = 0;
-  numStacked = 0;
+  lastcmd     = 0;
+  numStacked  = 0;
   numConsumed = 0;
-}
-
-bool SmartnetParser::is_chan(int cmd, System *sys) {
-  if (sys->get_bandfreq() == 800) {
-    if ((cmd >= OSW_CHAN_BAND_1_MIN && cmd <= OSW_CHAN_BAND_1_MAX) ||
-        (cmd >= OSW_CHAN_BAND_2_MIN && cmd <= OSW_CHAN_BAND_2_MAX) ||
-        (cmd == OSW_CHAN_BAND_3) ||
-        (cmd >= OSW_CHAN_BAND_4_MIN && cmd <= OSW_CHAN_BAND_4_MAX)) {
-      return true;
-    }
-  } else if (sys->get_bandfreq() == 400) {
-    if (cmd >= sys->get_bandplan_offset() &&
-        cmd <= sys->get_bandplan_offset() + 380) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  return false;
 }
 
 double SmartnetParser::getfreq(int cmd, System *sys) {
@@ -81,6 +62,35 @@ double SmartnetParser::getfreq(int cmd, System *sys) {
   }
   return freq * 1000000;
 }
+
+bool SmartnetParser::is_chan_outbound(int cmd, System *sys) {
+  if (sys->get_bandfreq() == 800) {
+    if ((cmd >= OSW_CHAN_BAND_1_MIN && cmd <= OSW_CHAN_BAND_1_MAX) ||
+        (cmd >= OSW_CHAN_BAND_2_MIN && cmd <= OSW_CHAN_BAND_2_MAX) ||
+        (cmd == OSW_CHAN_BAND_3) ||
+        (cmd >= OSW_CHAN_BAND_4_MIN && cmd <= OSW_CHAN_BAND_4_MAX)) {
+      return true;
+    }
+  } else if (sys->get_bandfreq() == 400) {
+    //
+    if (cmd >= sys->get_bandplan_offset() &&
+        cmd <= sys->get_bandplan_offset() + 380) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return false;
+}
+
+bool SmartnetParser::is_chan_inbound_obt(int cmd, System *sys) {
+  return cmd < sys->get_bandplan_offset();
+}
+
+bool SmartnetParser::is_first_normal() {
+  
+}
+
 
 std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
                                                         System *system) {
@@ -228,7 +238,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
     return messages;
   }
 
-  if (is_chan(stack[0].cmd, system) && stack[0].grp &&
+  if (is_chan_outbound(stack[0].cmd, system) && stack[0].grp &&
       getfreq(stack[0].cmd, system)) {
     message.talkgroup = stack[0].full_address;
     message.freq = getfreq(stack[0].cmd, system);

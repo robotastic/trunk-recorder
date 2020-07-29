@@ -85,9 +85,11 @@ public:
 	short numStacked;
 	short numConsumed;
 	SmartnetParser();
-	double getfreq(int cmd, System *system);
 	void print_osw(std::string s);
-	bool is_chan(int cmd, System *system);
+	double getfreq(int cmd, System *system);
+	bool is_chan_outbound(int cmd, System *system);
+	bool is_chan_inbound_obt(int cmd, System *system);
+	bool is_first_normal(int cmd, System *system);
 	std::vector<TrunkMessage> parse_message(std::string s, System *system);
 };
 #endif
