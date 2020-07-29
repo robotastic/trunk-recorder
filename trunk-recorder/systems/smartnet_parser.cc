@@ -88,7 +88,7 @@ bool SmartnetParser::is_chan_inbound_obt(int cmd, System *sys) {
 }
 
 bool SmartnetParser::is_first_normal(int cmd, System *sys) {
-  if (sys->get_bandfreq == 800) {
+  if (sys->get_bandfreq() == 800) {
     // anything "800" should be replaced with 8/9 compatible switching
     return ((cmd == OSW_FIRST_NORMAL) || \
             (cmd == OSW_FIRST_ASTRO));
@@ -302,15 +302,14 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       ++numConsumed;
       if (stack[1].cmd == OSW_EXTENDED_FCN) {
         // we have a 3-OSW message.
+
+        // if we don't have a valid 3-OSW message but the second OSW
+        // is still a OSW_SECOND_NORMAL, then we want to know about it in development.
+        // we'll still consume 2-OSWs because we incremented after checking OSW_SECOND_NORMAL.
         ++numConsumed;
         message.message_type = UNKNOWN;
         messages.push_back(message);
         return messages;
-      } else {
-        // if we don't have a valid 3-OSW message but the second OSW
-        // is still a OSW_SECOND_NORMAL, then we want to know about it in development.
-        // breaking out will only have us consume (and discard) 2-OSWs.
-        break;
       }
     }
     if (stack[2].cmd == OSW_EXTENDED_FCN) {
