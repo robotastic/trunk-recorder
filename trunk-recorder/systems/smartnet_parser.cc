@@ -481,14 +481,14 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   // Adding the logic to test for this might be nice to have (test could be "if we got here,
   // this OSW is is missing a header or other OSWs that comprise a valid message -
   // test if we know this OSW command though, and if we do, discard the OSW and move on")
-  BOOST_LOG_TRIVIAL(warning)
-      << "[" << system->get_short_name()
-      << "] [Unknown OSW!] [ "
-      << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
-      << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
-      << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
-      << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
-      << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+  // BOOST_LOG_TRIVIAL(warning)
+  //     << "[" << system->get_short_name()
+  //     << "] [Unknown OSW!] [ "
+  //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+  //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
+  //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
+  //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+  //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
   message.message_type = UNKNOWN;
   messages.push_back(message);
   return messages;
