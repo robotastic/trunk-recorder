@@ -200,6 +200,36 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
 
 
 
+  // raw OSW stream
+  // BOOST_LOG_TRIVIAL(warning)
+  //     << "[" << system->get_short_name()
+  //     << "] [OSW!] [[["<< std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "]]]";
+
+  // Message parsing strategy
+  // OSW stack:      [0  1  2  3  4] (consume) - consume is how many OSWs to consume. This includes the 1-OSW regular increment.
+  //                           ^
+  // Direction:       Tail --> Head
+  // Order of tests: [0  1  2  3  4] (consume) - consume is how many OSWs to consume. This includes the 1-OSW regular increment.
+  //                                 (1) test if [3] is a 1-OSW message, such as:
+  //                          [3]            1-OSW message dynamic command: call continue
+  //                          [3]            1-OSW message static  command: IDLE, RfA, etc.
+  //                          [3]            1-OSW message dynamic command: AMSS site announcement
+  //                    [1  2  3]    (n) test if [3] is an OSW with a FIRST_NORMAL or STATUS, both of which can be variable in length.
+  //                    [1  2  3]            If [3] is a FIRST_NORMAL or STATUS, ++numConsumed.
+  //                    [1  2  3]            If [2] is SECOND, ++numConsumed, and see if [1] is an EXTENDED_FCN.
+  //                    [1  2  3]                If [1] is an EXTENDED_FCN, then we have a valid 3-OSW message.
+  //                    [1  2  3]                If not, then we have a malformed 3-OSW message. Process accordingly.
+  //                    [1  2  3]            If [2] is not SECOND, then see if it's an EXTENDED.
+  //                    [1  2  3]                If it is, then we have a valid 2-OSW message. Process accordingly.
+  //                    [1  2  3]                If not, then we have a malformed 2-OSW message.
+  // An OSW is 32 bits - round that up to 36 bits, 3600 b/s CC -> 100 OSWs/s -> 10 ms/OSW.
+  // Even though we're now looking 2 OSWs later than the previous parser, that's only a 20 ms hit, 40 ms past the system.
+  // If we wish to eek 10 ms better performance, we can shift over 1 and test [0 1 2] instead of [1 2 3] instead.
+  // If we wish to eek 20 ms on top of that, we could check call continues on [0] and do weird message history backfilling,
+  // but this really isn't worth it.
+
+
+
   // If we get here, we don't know about this OCW (and/or a combination of it with others beside it).
   // Error accordingly and log the buffer.
   // If we just got started, then we also could just be looking at the tail of a known message.
