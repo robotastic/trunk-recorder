@@ -284,9 +284,94 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
     return messages;
   }
 
+  // n-OSW messages (which must have a known static head)
+  // Net/System status messages can be delivered standalone or paired with
+  // an extended function individual OSW. This seems to happen right after
+  // a radio joins up (so that the radio immediately gets status information).
+  // Since we know about this case, consume that additional OSW.
+  // No handling required though since that 2-OSW message already comes with
+  // the header being a group OSW.
+  // There's also the possibility that Net/Status messages can be 3-OSW.
+  // We don't know about this, so we'll catch them by failing through to the end.
+  if ((stack[3].cmd == OSW_SYS_NETSTAT) || (stack[3].cmd == OSW_SYS_STATUS)) {
+    if (stack[2].cmd == OSW_SECOND_NORMAL) {
+      ++numConsumed;
+      if (stack[1].cmd == OSW_EXTENDED_FCN) {
+        // we have a 3-OSW message.
+        ++numConsumed;
+        message.message_type = UNKNOWN;
+        messages.push_back(message);
+        return messages;
+      } else {
+        // if we don't have a valid 3-OSW message but the second OSW
+        // is still a OSW_SECOND_NORMAL, then we want to know about it in development.
+        // breaking out will only have us consume (and discard) 2-OSWs.
+        break;
+      }
+    }
+    if (stack[2].cmd == OSW_EXTENDED_FCN) {
+      // we have a 2-OSW message.
+      ++numConsumed;
+      message.message_type = UNKNOWN;
+      messages.push_back(message);
+      return messages;
+    }
+    // we have a 1-OSW message.
+    message.message_type = UNKNOWN;
+    messages.push_back(message);
+    return messages;
+  }
 
 
-
+  // n-OSW messages (which must have a known static head)
+  // FIRST_NORMAL
+  if (is_first_normal(stack[3].cmd, system)) {
+    if (is_chan(stack[2].cmd, system)) {
+      // this is a call grant
+      ++numConsumed;
+      if (stack[2].grp) {
+        // this is a group call grant
+        // BOOST_LOG_TRIVIAL(warning)
+        //     << "[" << system->get_short_name() << "] [group call grant] [ "
+        //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+        //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  | >"
+        //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  |  "
+        //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+        //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+        message.message_type = GRANT;
+        message.freq         = getfreq(stack[2].cmd, system);
+        message.talkgroup    = stack[2].full_address;
+        // message.encrypted    = false;
+        // message.emergency    = false;
+        message.source       = stack[3].full_address;
+        messages.push_back(message);
+        return messages;
+      } else {
+        // this is an individual call grant
+        // BOOST_LOG_TRIVIAL(warning)
+        //     << "[" << system->get_short_name() << "] [individual call grant] [ "
+        //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+        //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  | >"
+        //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  |  "
+        //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+        //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+        message.message_type = UNKNOWN;
+        messages.push_back(message);
+        return messages;
+      }
+    }
+    if (stack[2].cmd == OSW_SECOND_NORMAL) {
+      ++numConsumed;
+      if (stack[1].cmd == OSW_EXTENDED_FCN) {
+        // valid 3-OSW message.
+        // if not, then we only consume and discard 2-OSWs.
+        ++numConsumed;
+        message.message_type = UNKNOWN;
+        messages.push_back(message);
+        return messages;
+      }
+    }
+  }
 
 
 
