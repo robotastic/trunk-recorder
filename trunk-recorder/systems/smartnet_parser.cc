@@ -74,7 +74,7 @@ bool SmartnetParser::is_chan_outbound(int cmd, System *sys) {
   } else if (sys->get_bandfreq() == 400) {
     //
     if (cmd >= sys->get_bandplan_offset() &&
-        cmd <= sys->get_bandplan_offset() + 380) {
+        cmd <  sys->get_bandplan_offset() + 380) {
       return true;
     } else {
       return false;
@@ -88,7 +88,7 @@ bool SmartnetParser::is_chan_inbound_obt(int cmd, System *sys) {
 }
 
 bool SmartnetParser::is_first_normal() {
-  
+
 }
 
 
