@@ -228,6 +228,71 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   // If we wish to eek 20 ms on top of that, we could check call continues on [0] and do weird message history backfilling,
   // but this really isn't worth it.
 
+  // 1-OSW message: dynamic - call continue
+  // is_chan(stack[3].cmd) returns if a command is a valid outbound channel indicator
+  //                       (taking into consideration band and bandplan base/high/spacing/offset).
+  // If stack[3].cmd is a valid outbound word, then we have a valid call continue.
+  if (is_chan(stack[3].cmd, system)) {
+    // this is a call continue
+    if (stack[3].grp) {
+      // this is a group call continue
+      // BOOST_LOG_TRIVIAL(warning)
+      //     << "[" << system->get_short_name() << "] [group call continue] [ "
+      //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+      //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
+      //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
+      //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+      //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+      message.message_type = UPDATE;
+      message.freq         = getfreq(stack[3].cmd, system);
+      message.talkgroup    = stack[3].full_address;
+      // message.encrypted    = false;
+      // message.emergency    = false;
+      messages.push_back(message);
+      return messages;
+    } else {
+      // this is an individual call continue
+      // BOOST_LOG_TRIVIAL(warning)
+      //     << "[" << system->get_short_name() << "] [individual call continue] [ "
+      //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+      //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
+      //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
+      //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+      //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+      message.message_type = UNKNOWN;
+      messages.push_back(message);
+      return messages;
+    }
+  }
+
+  // 1-OSW message: static
+  // Is there any useful information in the group/full address of an idle 1-OSW message?
+  if (stack[3].cmd == OSW_BACKGROUND_IDLE) {
+    message.message_type = UNKNOWN;
+    messages.push_back(message);
+    return messages;
+  }
+  if (stack[3].cmd == 0x32a) {
+    // System sent request for affiliation from radio full_address
+    message.message_type = UNKNOWN;
+    messages.push_back(message);
+    return messages;
+  }
+
+  // 1-OSW message: dynamic - AMSS/SmartZone site # announcement
+  // There is also potentially a site name that would need to be cobbled together
+  // over multiple runs of parse_message since 3 unique ones are needed.
+  if ((OSW_AMSS_ID_MIN <= stack[3].cmd) && (stack[3].cmd <= OSW_AMSS_ID_MAX)) {
+    // BOOST_LOG_TRIVIAL(warning)
+    //     << "[" << system->get_short_name() << "] [Type II AMSS/SmartZone Site Announcement] Site $"
+    //     << std::hex << stack[3].cmd - OSW_AMSS_ID_MIN + 1;
+    message.message_type = UNKNOWN;
+    messages.push_back(message);
+    return messages;
+  }
+
+
+
 
 
   // If we get here, we don't know about this OCW (and/or a combination of it with others beside it).
