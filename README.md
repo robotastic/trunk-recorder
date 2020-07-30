@@ -136,7 +136,7 @@ Here are the different arguments:
    - **decodeFSync** - *(Optional, For conventional systems)* enable the Fleet Sync signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeStar** - *(Optional, For conventional systems)* enable the Star signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeTPS** - *(Optional, For conventional systems)* enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
- - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *analog*. This argument is global and not system-specific, and only affects `smartnet` systems as `p25` systems don't have analog talkpaths.
+ - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects Type II `smartnet` trunking systems which can have both analog and digital talkpaths whereas `p25` trunking systems don't have analog talkpaths.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
