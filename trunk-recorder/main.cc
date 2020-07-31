@@ -1402,8 +1402,8 @@ bool monitor_system() {
               (source->get_max_hz() >= channel)) {
             // There's no control channel in conventional resources...
             // The source can cover the System's control channel
-            // system->set_source(source);
-            // system_added = true;
+            system->set_source(source);
+            system_added = true;
 
             channel_added = true;
             if (source->get_squelch_db() == 0) {
