@@ -1455,7 +1455,7 @@ bool monitor_system() {
             break;
           }
         }
-        if (channel_added) {
+        if (!channel_added) {
           BOOST_LOG_TRIVIAL(warning)
               << "[" << system->get_short_name()
               << "]\t Unable to find a source for this conventional channel! Channel not added: " << FormatFreq(channel)
