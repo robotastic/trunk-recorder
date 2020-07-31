@@ -1456,7 +1456,7 @@ bool monitor_system() {
           }
         }
         if (channel_added) {
-          BOOST_LOG_TRIVIAL(error)
+          BOOST_LOG_TRIVIAL(warning)
               << "[" << system->get_short_name()
               << "]\t Unable to find a source for this conventional channel! Channel not added: " << FormatFreq(channel)
               << " Talkgroup: " << tg_iterate_index;
