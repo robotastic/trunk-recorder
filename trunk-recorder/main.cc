@@ -1398,9 +1398,10 @@ bool monitor_system() {
 
           if ((source->get_min_hz() <= channel) &&
               (source->get_max_hz() >= channel)) {
+            // There's no control channel in conventional resources...
             // The source can cover the System's control channel
-            system->set_source(source);
-            system_added = true;
+            // system->set_source(source);
+            // system_added = true;
 
             if (source->get_squelch_db() == 0) {
               BOOST_LOG_TRIVIAL(error)
@@ -1412,6 +1413,7 @@ bool monitor_system() {
               system_added = true;
             }
 
+            // This source can be used for this channel (and a squelch is set)
             BOOST_LOG_TRIVIAL(info)
                 << "[" << system->get_short_name()
                 << "]\tMonitoring Conventional Channel: " << FormatFreq(channel)
