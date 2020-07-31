@@ -1392,7 +1392,7 @@ bool monitor_system() {
            chan_it != channels.end(); chan_it++) {
         double channel = *chan_it;
         ++tg_iterate_index;
-        int channel_added = false;
+        bool channel_added = false;
 
         for (vector<Source *>::iterator src_it = sources.begin();
              src_it != sources.end(); src_it++) {
