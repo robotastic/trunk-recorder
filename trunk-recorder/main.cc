@@ -1391,8 +1391,9 @@ bool monitor_system() {
       for (vector<double>::iterator chan_it = channels.begin();
            chan_it != channels.end(); chan_it++) {
         double channel = *chan_it;
-
         ++tg_iterate_index;
+        int channel_added = false;
+
         for (vector<Source *>::iterator src_it = sources.begin();
              src_it != sources.end(); src_it++) {
           source = *src_it;
@@ -1404,6 +1405,7 @@ bool monitor_system() {
             // system->set_source(source);
             // system_added = true;
 
+            channel_added = true;
             if (source->get_squelch_db() == 0) {
               BOOST_LOG_TRIVIAL(error)
                   << "[" << system->get_short_name()
@@ -1452,6 +1454,12 @@ bool monitor_system() {
             // break out of the for loop
             break;
           }
+        }
+        if (channel_added) {
+          BOOST_LOG_TRIVIAL(info)
+              << "[" << system->get_short_name()
+              << "]\t Unable to find a source for this conventional channel! Channel not added: " << FormatFreq(channel)
+              << " Talkgroup: " << tg_iterate_index;
         }
       }
     } else {
