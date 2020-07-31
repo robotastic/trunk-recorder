@@ -1418,9 +1418,9 @@ bool monitor_system() {
             BOOST_LOG_TRIVIAL(info)
                 << "[" << system->get_short_name()
                 << "]\tMonitoring Conventional Channel: " << FormatFreq(channel)
-                << " Talkgroup: " << talkgroup;
+                << " Talkgroup: " << tg_iterate_index;
             Call_conventional *call =
-                new Call_conventional(talkgroup, channel, system, config);
+                new Call_conventional(tg_iterate_index, channel, system, config);
             Talkgroup *talkgroup =
                 system->find_talkgroup(call->get_talkgroup());
 
