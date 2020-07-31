@@ -1386,7 +1386,7 @@ bool monitor_system() {
     if ((system->get_system_type() == "conventional") ||
         (system->get_system_type() == "conventionalP25")) {
       std::vector<double> channels = system->get_channels();
-      int talkgroup = 1;
+      int tg_iterate_index = 1;
 
       for (vector<double>::iterator chan_it = channels.begin();
            chan_it != channels.end(); chan_it++) {
@@ -1420,7 +1420,7 @@ bool monitor_system() {
                 << " Talkgroup: " << talkgroup;
             Call_conventional *call =
                 new Call_conventional(talkgroup, channel, system, config);
-            talkgroup++;
+            tg_iterate_index++;
             Talkgroup *talkgroup =
                 system->find_talkgroup(call->get_talkgroup());
 
