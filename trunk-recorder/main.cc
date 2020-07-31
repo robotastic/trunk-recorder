@@ -1381,7 +1381,6 @@ bool monitor_system() {
   for (vector<System *>::iterator sys_it = systems.begin();
        sys_it != systems.end(); sys_it++) {
     System *system = *sys_it;
-    // bool    source_found = false;
 
     if ((system->get_system_type() == "conventional") ||
         (system->get_system_type() == "conventionalP25")) {
@@ -1400,11 +1399,6 @@ bool monitor_system() {
 
           if ((source->get_min_hz() <= channel) &&
               (source->get_max_hz() >= channel)) {
-            // There's no control channel in conventional resources...
-            // The source can cover the System's control channel
-            system->set_source(source);
-            system_added = true;
-
             channel_added = true;
             if (source->get_squelch_db() == 0) {
               BOOST_LOG_TRIVIAL(error)
@@ -1458,11 +1452,13 @@ bool monitor_system() {
         if (!channel_added) {
           BOOST_LOG_TRIVIAL(warning)
               << "[" << system->get_short_name()
-              << "]\t Unable to find a source for this conventional channel! Channel not added: " << FormatFreq(channel)
+              << "]\t Unable to find a source for this conventional channel! "
+                 "Channel not added: " << FormatFreq(channel)
               << " Talkgroup: " << tg_iterate_index;
         }
       }
     } else {
+      // If it's not a conventional system, then it's a trunking system
       double control_channel_freq = system->get_current_control_channel();
       BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name()
                               << "]\tStarted with Control Channel: "
