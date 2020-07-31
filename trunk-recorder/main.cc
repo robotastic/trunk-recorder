@@ -533,7 +533,7 @@ void load_config(string config_file)
     BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
     config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
     BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
-    default_mode = pt.get<std::string>("defaultMode", "analog");
+    default_mode = pt.get<std::string>("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
