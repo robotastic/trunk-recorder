@@ -7,12 +7,12 @@
 #include <boost/log/trivial.hpp>
 #include <boost/tokenizer.hpp>
 
-#include <fstream>
-#include <iostream>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 #include <string>
 
-std::istream& safeGetline(std::istream& is, std::string& t);
+std::istream &safeGetline(std::istream &is, std::string &t);
 
 #endif // _CSV_HELPER_H_

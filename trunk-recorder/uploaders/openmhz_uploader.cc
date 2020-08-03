@@ -1,5 +1,5 @@
-#include "uploader.h"
 #include "openmhz_uploader.h"
+#include "uploader.h"
 
 int OpenmhzUploader::upload(struct call_data_t *call) {
   std::ostringstream freq;
@@ -21,7 +21,7 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
       source_list << "{ \"pos\": " << std::setprecision(2) << call_source_list[i].position << ", \"src\": " << std::setprecision(0) << call_source_list[i].source << " }";
 
       if (i < (call->source_count - 1)) {
-        source_list <<  ", ";
+        source_list << ", ";
       } else {
         source_list << "]";
       }
@@ -147,7 +147,7 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
 
     while (still_running) {
       struct timeval timeout;
-      int rc; /* select() return code */
+      int rc;       /* select() return code */
       CURLMcode mc; /* curl_multi_fdset() return code */
 
       fd_set fdread;
@@ -190,24 +190,23 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
 
       if (maxfd == -1) {
         /* Portable sleep for platforms other than Windows. */
-        struct timeval wait = { 0, 100 * 1000 }; /* 100ms */
+        struct timeval wait = {0, 100 * 1000}; /* 100ms */
         rc = select(0, NULL, NULL, NULL, &wait);
-      }
-      else {
+      } else {
         /* Note that on some platforms 'timeout' may be modified by select().
            If you need access to the original value save a copy beforehand. */
         rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
       }
 
       switch (rc) {
-        case -1:
-          /* select error */
-          break;
-        case 0:
-        default:
-          /* timeout or readable/writable sockets */
-          curl_multi_perform(multi_handle, &still_running);
-          break;
+      case -1:
+        /* select error */
+        break;
+      case 0:
+      default:
+        /* timeout or readable/writable sockets */
+        curl_multi_perform(multi_handle, &still_running);
+        break;
       }
     }
 
@@ -229,7 +228,8 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
       struct stat file_info;
       stat(call->converted, &file_info);
 
-      BOOST_LOG_TRIVIAL(info) <<"[" << call->short_name <<  "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tOpenMHz Upload Success - file size: " << file_info.st_size;;
+      BOOST_LOG_TRIVIAL(info) << "[" << call->short_name << "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tOpenMHz Upload Success - file size: " << file_info.st_size;
+      ;
       return 0;
     }
   }

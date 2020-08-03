@@ -1,5 +1,5 @@
-#include "uploader.h"
 #include "broadcastify_uploader.h"
+#include "uploader.h"
 
 CURLcode BroadcastifyUploader::upload_audio_file(std::string converted, std::string url) {
   struct stat file_info;
@@ -7,7 +7,7 @@ CURLcode BroadcastifyUploader::upload_audio_file(std::string converted, std::str
   /* get the file size of the local file */
   stat(converted.c_str(), &file_info);
 
-  FILE * audio = fopen(converted.c_str(), "rb");
+  FILE *audio = fopen(converted.c_str(), "rb");
 
   // Make sure we have something to read.
   if (!audio) {
@@ -130,7 +130,7 @@ int BroadcastifyUploader::upload(struct call_data_t *call) {
 
     while (still_running) {
       struct timeval timeout;
-      int rc; /* select() return code */
+      int rc;       /* select() return code */
       CURLMcode mc; /* curl_multi_fdset() return code */
 
       fd_set fdread;
@@ -173,24 +173,23 @@ int BroadcastifyUploader::upload(struct call_data_t *call) {
 
       if (maxfd == -1) {
         /* Portable sleep for platforms other than Windows. */
-        struct timeval wait = { 0, 100 * 1000 }; /* 100ms */
+        struct timeval wait = {0, 100 * 1000}; /* 100ms */
         rc = select(0, NULL, NULL, NULL, &wait);
-      }
-      else {
+      } else {
         /* Note that on some platforms 'timeout' may be modified by select().
            If you need access to the original value save a copy beforehand. */
         rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
       }
 
       switch (rc) {
-        case -1:
-          /* select error */
-          break;
-        case 0:
-        default:
-          /* timeout or readable/writable sockets */
-          curl_multi_perform(multi_handle, &still_running);
-          break;
+      case -1:
+        /* select error */
+        break;
+      case 0:
+      default:
+        /* timeout or readable/writable sockets */
+        curl_multi_perform(multi_handle, &still_running);
+        break;
       }
     }
 
@@ -237,7 +236,7 @@ int BroadcastifyUploader::upload(struct call_data_t *call) {
     struct stat file_info;
     stat(call->converted, &file_info);
 
-    BOOST_LOG_TRIVIAL(info) <<"[" << call->short_name <<  "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Upload Success - file size: " << file_info.st_size;
+    BOOST_LOG_TRIVIAL(info) << "[" << call->short_name << "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Upload Success - file size: " << file_info.st_size;
     return 0;
   } else {
     return 1;

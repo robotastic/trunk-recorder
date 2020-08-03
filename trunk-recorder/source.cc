@@ -353,9 +353,11 @@ Recorder *Source::get_debug_recorder() {
   }
   return NULL;
 }
+
 int Source::get_debug_recorder_port() {
   return debug_recorder_port;
 }
+
 void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
   max_sigmf_recorders = r;
 

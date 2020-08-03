@@ -4,21 +4,19 @@
 class System;
 class Recorder;
 
-#include <string>
 #include "call.h"
-
+#include <string>
 
 class Call_conventional : public Call {
 public:
+  Call_conventional(long t, double f, System *s, Config c);
+  ~Call_conventional();
 
-								Call_conventional( long t, double f, System *s, Config c);
-								~Call_conventional();
-
-								virtual bool is_conventional() { return true;}
-								void restart_call();
-								void set_recorder(Recorder *r);
-								char * get_filename();
-								void recording_started();
+  virtual bool is_conventional() { return true; }
+  void restart_call();
+  void set_recorder(Recorder *r);
+  char *get_filename();
+  void recording_started();
 };
 
 #endif

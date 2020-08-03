@@ -4,8 +4,8 @@
 using namespace std;
 SmartnetParser::SmartnetParser() {
   lastaddress = 0;
-  lastcmd     = 0;
-  numStacked  = 0;
+  lastcmd = 0;
+  numStacked = 0;
   numConsumed = 3; // "preload" the stack to where the scrubber head is before starting to parse
 }
 
@@ -74,7 +74,7 @@ bool SmartnetParser::is_chan_outbound(int cmd, System *sys) {
   } else if (sys->get_bandfreq() == 400) {
     //
     if (cmd >= sys->get_bandplan_offset() &&
-        cmd <  sys->get_bandplan_offset() + 380) {
+        cmd < sys->get_bandplan_offset() + 380) {
       return true;
     } else {
       return false;
@@ -90,17 +90,16 @@ bool SmartnetParser::is_chan_inbound_obt(int cmd, System *sys) {
 bool SmartnetParser::is_first_normal(int cmd, System *sys) {
   if (sys->get_bandfreq() == 800) {
     // anything "800" should be replaced with 8/9 compatible switching
-    return ((cmd == OSW_FIRST_NORMAL) || \
+    return ((cmd == OSW_FIRST_NORMAL) ||
             (cmd == OSW_FIRST_ASTRO));
   } else {
     // if we're looking at an OBT trunk, inbound channel commands are first normals too
     // anything "400" should be replaced as "OBT" in the future =/
-    return (is_chan_inbound_obt(cmd, sys) || \
-            (cmd == OSW_FIRST_NORMAL) || \
+    return (is_chan_inbound_obt(cmd, sys) ||
+            (cmd == OSW_FIRST_NORMAL) ||
             (cmd == OSW_FIRST_ASTRO));
   }
 }
-
 
 std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
                                                         System *system) {
@@ -193,14 +192,10 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   x.clear();
   vector<string>().swap(x);
 
-
-
   // raw OSW stream
   // BOOST_LOG_TRIVIAL(warning)
   //     << "[" << system->get_short_name()
   //     << "] [OSW!] [[["<< std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "]]]";
-
-
 
   // Message parsing strategy
   // OSW stack:      [0  1  2  3  4] (consume) - consume is how many OSWs to consume. This includes the 1-OSW regular increment.
@@ -241,8 +236,8 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
       //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
       message.message_type = UPDATE;
-      message.freq         = getfreq(stack[3].cmd, system);
-      message.talkgroup    = stack[3].full_address;
+      message.freq = getfreq(stack[3].cmd, system);
+      message.talkgroup = stack[3].full_address;
       // message.encrypted    = false;
       // message.emergency    = false;
       messages.push_back(message);
@@ -325,7 +320,6 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
     return messages;
   }
 
-
   // n-OSW messages (which must have a known static head)
   // FIRST_NORMAL
   if (is_first_normal(stack[3].cmd, system)) {
@@ -342,11 +336,11 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
         //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
         message.message_type = GRANT;
-        message.freq         = getfreq(stack[2].cmd, system);
-        message.talkgroup    = stack[2].full_address;
+        message.freq = getfreq(stack[2].cmd, system);
+        message.talkgroup = stack[2].full_address;
         // message.encrypted    = false;
         // message.emergency    = false;
-        message.source       = stack[3].full_address;
+        message.source = stack[3].full_address;
         messages.push_back(message);
         return messages;
       } else {
@@ -387,7 +381,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << "[" << system->get_short_name() << "] [patch/msel termination] TG $"
         //     << std::hex << stack[3].full_address;
         message.message_type = UNKNOWN;
-        message.talkgroup    = stack[3].full_address;
+        message.talkgroup = stack[3].full_address;
         messages.push_back(message);
         return messages;
       }
@@ -397,7 +391,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << "[" << system->get_short_name() << "] [  registration] RID $"
         //     << std::hex << stack[3].full_address;
         message.message_type = REGISTRATION;
-        message.source       = stack[3].full_address;
+        message.source = stack[3].full_address;
         messages.push_back(message);
         return messages;
       }
@@ -407,7 +401,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << "[" << system->get_short_name() << "] [deregistration] RID $"
         //     << std::hex << stack[3].full_address;
         message.message_type = DEREGISTRATION;
-        message.source       = stack[3].full_address;
+        message.source = stack[3].full_address;
         messages.push_back(message);
         return messages;
       }
@@ -417,7 +411,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << "[" << system->get_short_name() << "] [busy override deny] RID $"
         //     << std::hex << stack[3].full_address;
         message.message_type = UNKNOWN;
-        message.source       = stack[3].full_address;
+        message.source = stack[3].full_address;
         messages.push_back(message);
         return messages;
       }
@@ -427,7 +421,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << "[" << system->get_short_name() << "] [deny ($2c65)] RID $"
         //     << std::hex << stack[3].full_address;
         message.message_type = UNKNOWN;
-        message.source       = stack[3].full_address;
+        message.source = stack[3].full_address;
         messages.push_back(message);
         return messages;
       }
@@ -439,8 +433,8 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << ", CC $" << std::hex << stack[2].full_address - 0x2800
         //     << " -> " << getfreq(stack[2].full_address - 0x2800, system);
         message.message_type = SYSID;
-        message.freq         = getfreq(stack[2].full_address - 0x2800, system);
-        message.sys_id       = stack[3].full_address;
+        message.freq = getfreq(stack[2].full_address - 0x2800, system);
+        message.sys_id = stack[3].full_address;
         messages.push_back(message);
         return messages;
       }
@@ -461,14 +455,12 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       //     << std::hex << stack[3].full_address
       //     << " TG $" << std::hex << stack[2].full_address;
       message.message_type = AFFILIATION;
-      message.talkgroup    = stack[2].full_address;
-      message.source       = stack[3].full_address;
+      message.talkgroup = stack[2].full_address;
+      message.source = stack[3].full_address;
       messages.push_back(message);
       return messages;
     }
   }
-
-
 
   // If we get here, we don't know about this OCW (and/or a combination of it with others beside it).
   // Error accordingly and log the stack.

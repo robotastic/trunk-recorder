@@ -1,11 +1,11 @@
-#include <boost/regex.hpp>
 #include "call_uploader.h"
-#include "uploader.h"
 #include "broadcastify_uploader.h"
 #include "openmhz_uploader.h"
+#include "uploader.h"
+#include <boost/regex.hpp>
 
-void* upload_call_thread(void *thread_arg) {
-  call_data_t   *call_info;
+void *upload_call_thread(void *thread_arg) {
+  call_data_t *call_info;
 
   pthread_detach(pthread_self());
 
@@ -21,7 +21,7 @@ void* upload_call_thread(void *thread_arg) {
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: Command longer than 400 characters";
-    delete(call_info);
+    delete (call_info);
     return NULL;
   }
 
@@ -32,7 +32,7 @@ void* upload_call_thread(void *thread_arg) {
 
   if (rc > 0) {
     BOOST_LOG_TRIVIAL(error) << "Failed to convert call recording, see above error. Make sure you have sox and fdkaac installed.";
-    delete(call_info);
+    delete (call_info);
     return NULL;
   } else {
     BOOST_LOG_TRIVIAL(trace) << "Finished converting call";
@@ -60,7 +60,7 @@ void* upload_call_thread(void *thread_arg) {
     }
   }
 
-  delete(call_info);
+  delete (call_info);
   return NULL;
 
   // pthread_exit(NULL);
@@ -70,14 +70,13 @@ void send_call(Call *call, System *sys, Config config) {
   // struct call_data_t *call_info = (struct call_data_t *) malloc(sizeof(struct
   // call_data_t));
   call_data_t *call_info = new call_data_t;
-  pthread_t    thread;
-
+  pthread_t thread;
 
   // from: http://www.zedwood.com/article/cpp-boost-url-regex
-  boost::regex  ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+  boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
   boost::cmatch what;
 
-  strcpy(call_info->filename,  call->get_filename());
+  strcpy(call_info->filename, call->get_filename());
   strcpy(call_info->converted, call->get_converted_filename());
   strcpy(call_info->status_filename, call->get_status_filename());
   strcpy(call_info->file_path, call->get_path());
@@ -97,26 +96,26 @@ void send_call(Call *call, System *sys, Config config) {
 
   // std::cout << "Setting up thread\n";
   std::vector<Call_Source> source_list = call->get_source_list();
-  Call_Freq   *freq_list   = call->get_freq_list();
+  Call_Freq *freq_list = call->get_freq_list();
   //Call_Error  *error_list  = call->get_error_list();
-  call_info->talkgroup        = call->get_talkgroup();
-  call_info->freq             = call->get_freq();
-  call_info->encrypted        = call->get_encrypted();
-  call_info->emergency        = call->get_emergency();
-  call_info->tdma_slot        = call->get_tdma_slot();
-  call_info->phase2_tdma      = call->get_phase2_tdma();
+  call_info->talkgroup = call->get_talkgroup();
+  call_info->freq = call->get_freq();
+  call_info->encrypted = call->get_encrypted();
+  call_info->emergency = call->get_emergency();
+  call_info->tdma_slot = call->get_tdma_slot();
+  call_info->phase2_tdma = call->get_phase2_tdma();
   call_info->error_list_count = call->get_error_list_count();
-  call_info->source_count     = call->get_source_count();
-  call_info->freq_count       = call->get_freq_count();
-  call_info->start_time       = call->get_start_time();
-  call_info->stop_time        = call->get_stop_time();
-  call_info->length           = call->get_final_length();
-  call_info->api_key          = sys->get_api_key();
-  call_info->bcfy_api_key     = sys->get_bcfy_api_key();
-  call_info->bcfy_system_id   = sys->get_bcfy_system_id();
-  call_info->short_name       = sys->get_short_name();
-  call_info->audio_archive    = sys->get_audio_archive();
-  call_info->call_log         = sys->get_call_log();
+  call_info->source_count = call->get_source_count();
+  call_info->freq_count = call->get_freq_count();
+  call_info->start_time = call->get_start_time();
+  call_info->stop_time = call->get_stop_time();
+  call_info->length = call->get_final_length();
+  call_info->api_key = sys->get_api_key();
+  call_info->bcfy_api_key = sys->get_bcfy_api_key();
+  call_info->bcfy_system_id = sys->get_bcfy_system_id();
+  call_info->short_name = sys->get_short_name();
+  call_info->audio_archive = sys->get_audio_archive();
+  call_info->call_log = sys->get_call_log();
 
   for (int i = 0; i < call_info->source_count; i++) {
     call_info->source_list.push_back(source_list[i]);
