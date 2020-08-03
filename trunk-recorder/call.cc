@@ -1,49 +1,46 @@
 #include "call.h"
 #include "formatter.h"
-#include <boost/algorithm/string.hpp>
-#include <stdio.h>
-#include <signal.h>
+#include "recorder_globals.h"
 #include "recorders/recorder.h"
 #include "source.h"
-#include "recorder_globals.h"
+#include <boost/algorithm/string.hpp>
+#include <signal.h>
+#include <stdio.h>
 
 //static int rec_counter=0;
-
-
 
 void Call::create_filename() {
   tm *ltm = localtime(&start_time);
 
-
   std::stringstream path_stream;
 
-  path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" <<  1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
   strcpy(path, path_stream.str().c_str());
   boost::filesystem::create_directories(path_stream.str());
 
   int nchars;
-  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%.0f.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.wav", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
-  nchars = snprintf(status_filename,  255,  "%s/%ld-%ld_%.0f.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(status_filename, 255, "%s/%ld-%ld_%.0f.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(debug_filename,   255,        "%s/%ld-%ld_%.0f.debug",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(debug_filename, 255, "%s/%ld-%ld_%.0f.debug", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(sigmf_filename,   255,        "%s/%ld-%ld_%.0f.raw",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(sigmf_filename, 255, "%s/%ld-%ld_%.0f.raw", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
@@ -55,50 +52,50 @@ void Call::create_filename() {
 }
 
 Call::Call(long t, double f, System *s, Config c) {
-  config           = c;
-  idle_count       = 0;
-  freq_count       = 0;
+  config = c;
+  idle_count = 0;
+  freq_count = 0;
   error_list_count = 0;
-  curr_freq        = 0;
-  curr_src_id      = 0;
-  talkgroup       = t;
-  sys             = s;
-  start_time      = time(NULL);
-  stop_time       = time(NULL);
-  last_update     = time(NULL);
-  state           = monitoring;
+  curr_freq = 0;
+  curr_src_id = 0;
+  talkgroup = t;
+  sys = s;
+  start_time = time(NULL);
+  stop_time = time(NULL);
+  last_update = time(NULL);
+  state = monitoring;
   debug_recording = false;
   sigmf_recording = false;
-  recorder        = NULL;
-  phase2_tdma     = false;
-  tdma_slot       = 0;
-  encrypted       = false;
-  emergency       = false;
+  recorder = NULL;
+  phase2_tdma = false;
+  tdma_slot = 0;
+  encrypted = false;
+  emergency = false;
   set_freq(f);
   this->create_filename();
   this->update_talkgroup_display();
 }
 
 Call::Call(TrunkMessage message, System *s, Config c) {
-  config           = c;
-  idle_count       = 0;
-  freq_count       = 0;
+  config = c;
+  idle_count = 0;
+  freq_count = 0;
   error_list_count = 0;
-  curr_src_id      = 0;
-  curr_freq        = 0;
-  talkgroup  = message.talkgroup;
-  sys        = s;
+  curr_src_id = 0;
+  curr_freq = 0;
+  talkgroup = message.talkgroup;
+  sys = s;
   start_time = time(NULL);
-  stop_time       = time(NULL);
-  last_update     = time(NULL);
-  state           = monitoring;
+  stop_time = time(NULL);
+  last_update = time(NULL);
+  state = monitoring;
   debug_recording = false;
   sigmf_recording = false;
-  recorder        = NULL;
-  phase2_tdma     = message.phase2_tdma;
-  tdma_slot       = message.tdma_slot;
-  encrypted       = message.encrypted;
-  emergency       = message.emergency;
+  recorder = NULL;
+  phase2_tdma = message.phase2_tdma;
+  tdma_slot = message.tdma_slot;
+  encrypted = message.encrypted;
+  emergency = message.emergency;
   set_freq(message.freq);
   add_source(message.source);
   this->create_filename();
@@ -126,13 +123,12 @@ void Call::end_call() {
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
-      freq_list[freq_count - 1].total_len   = rx_status.total_len;
+      freq_list[freq_count - 1].total_len = rx_status.total_len;
       freq_list[freq_count - 1].spike_count = rx_status.spike_count;
       freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
     std::ofstream myfile(status_filename);
-
 
     if (myfile.is_open()) {
       myfile << "{\n";
@@ -157,7 +153,7 @@ void Call::end_call() {
         if (i != 0) {
           myfile << ", ";
         }
-        myfile << "{ \"freq\": " << std::fixed <<  freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
+        myfile << "{ \"freq\": " << std::fixed << freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
       }
       myfile << "]\n";
       myfile << "}\n";
@@ -217,25 +213,24 @@ void Call::set_sigmf_recorder(Recorder *r) {
   sigmf_recorder = r;
 }
 
-Recorder * Call::get_sigmf_recorder() {
+Recorder *Call::get_sigmf_recorder() {
   return sigmf_recorder;
 }
-
 
 void Call::set_debug_recorder(Recorder *r) {
   debug_recorder = r;
 }
 
-Recorder * Call::get_debug_recorder() {
+Recorder *Call::get_debug_recorder() {
   return debug_recorder;
 }
 
 void Call::set_recorder(Recorder *r) {
   recorder = r;
-  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " <<  FormatFreq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
+  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
 }
 
-Recorder * Call::get_recorder() {
+Recorder *Call::get_recorder() {
   return recorder;
 }
 
@@ -248,7 +243,7 @@ double Call::get_final_length() {
 }
 
 double Call::get_current_length() {
-  if ((state == recording) && recorder)  {
+  if ((state == recording) && recorder) {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::get_current_length() State is recording, but no recorder assigned!";
     }
@@ -259,7 +254,7 @@ double Call::get_current_length() {
 }
 
 void Call::set_error(Rx_Status rx_status) {
-  Call_Error call_error = { curr_freq, rx_status.total_len, rx_status.error_count, rx_status.spike_count };
+  Call_Error call_error = {curr_freq, rx_status.total_len, rx_status.error_count, rx_status.spike_count};
 
   if (error_list_count < 49) {
     error_list[error_list_count] = call_error;
@@ -269,8 +264,8 @@ void Call::set_error(Rx_Status rx_status) {
   }
 }
 
-System* Call::get_system() {
-    return sys;
+System *Call::get_system() {
+  return sys;
 }
 
 void Call::set_freq(double f) {
@@ -280,12 +275,12 @@ void Call::set_freq(double f) {
     // if there call is being recorded and it isn't the first time the freq is being set
     if (recorder && (freq_count > 0)) {
       Rx_Status rx_status = recorder->get_rx_status();
-      freq_list[freq_count - 1].total_len   = rx_status.total_len;
+      freq_list[freq_count - 1].total_len = rx_status.total_len;
       freq_list[freq_count - 1].spike_count = rx_status.spike_count;
       freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
-    Call_Freq call_freq = { f, time(NULL), position };
+    Call_Freq call_freq = {f, time(NULL), position};
 
     if (freq_count < 49) {
       freq_list[freq_count] = call_freq;
@@ -306,7 +301,7 @@ long Call::get_talkgroup() {
   return talkgroup;
 }
 
-Call_Error * Call::get_error_list() {
+Call_Error *Call::get_error_list() {
   return error_list;
 }
 
@@ -314,7 +309,7 @@ long Call::get_error_list_count() {
   return error_list_count;
 }
 
-Call_Freq * Call::get_freq_list() {
+Call_Freq *Call::get_freq_list() {
   return freq_list;
 }
 
@@ -356,8 +351,6 @@ void Call::set_sigmf_recording(bool m) {
 bool Call::get_sigmf_recording() {
   return sigmf_recording;
 }
-
-
 
 void Call::set_state(State s) {
   state = s;
@@ -402,53 +395,52 @@ bool Call::get_phase2_tdma() {
   return phase2_tdma;
 }
 
-const char * Call::get_xor_mask() {
+const char *Call::get_xor_mask() {
   return sys->get_xor_mask();
 }
 
-bool Call::add_signal_source(long src, const char* signaling_type, gr::blocks::SignalType signal)
-{
-    if (src == 0) {
-        return false;
+bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal) {
+  if (src == 0) {
+    return false;
+  }
+
+  // Check to see if the Src is the current source in the list, if so, just exit
+  if (!src_list.empty()) {
+    Call_Source last_source = src_list.back();
+    if (last_source.source == src) {
+      return false;
     }
+  }
 
-    // Check to see if the Src is the current source in the list, if so, just exit
-    if (!src_list.empty()){
-      Call_Source last_source = src_list.back();
-      if (last_source.source == src) {
-        return false;
-      }
-    }
+  double position = get_current_length();
 
-    double position = get_current_length();
+  if (signal == gr::blocks::SignalType::Emergency || signal == gr::blocks::SignalType::EmergencyPre) {
+    set_emergency(true);
 
-    if (signal == gr::blocks::SignalType::Emergency || signal == gr::blocks::SignalType::EmergencyPre) {
-        set_emergency(true);
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tEmergency flag set by " << src;
+  }
 
-        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tEmergency flag set by " << src;
-    }
+  std::string system((signaling_type == NULL) ? strdup(this->get_system()->get_system_type().c_str()) : strdup(signaling_type));
+  UnitTag *unit_tag = sys->find_unit_tag(src);
+  std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
 
-    std::string system((signaling_type == NULL) ? strdup(this->get_system()->get_system_type().c_str()) : strdup(signaling_type));
-    UnitTag* unit_tag = sys->find_unit_tag(src);
-    std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
+  Call_Source call_source = {src, time(NULL), position, signal == gr::blocks::SignalType::Emergency, system, tag};
 
-    Call_Source call_source = { src, time(NULL), position, signal == gr::blocks::SignalType::Emergency, system, tag };
+  src_list.push_back(call_source);
 
-    src_list.push_back(call_source);
-    
-    if (tag != "") {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
-    }
+  if (tag != "") {
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
+  }
 
-    if (signaling_type == NULL) {
-        process_signal(src, system.c_str(), signal, this, this->get_system(), NULL);
-    }
+  if (signaling_type == NULL) {
+    process_signal(src, system.c_str(), signal, this, this->get_system(), NULL);
+  }
 
-    return true;
+  return true;
 }
 
 bool Call::add_source(long src) {
-    return add_signal_source(src, NULL, gr::blocks::SignalType::Normal);
+  return add_signal_source(src, NULL, gr::blocks::SignalType::Normal);
 }
 
 void Call::update(TrunkMessage message) {
@@ -488,27 +480,27 @@ long Call::get_start_time() {
   return start_time;
 }
 
-char * Call::get_converted_filename() {
+char *Call::get_converted_filename() {
   return converted_filename;
 }
 
-char * Call::get_filename() {
+char *Call::get_filename() {
   return filename;
 }
 
-char * Call::get_path() {
+char *Call::get_path() {
   return path;
 }
 
-char * Call::get_status_filename() {
+char *Call::get_status_filename() {
   return status_filename;
 }
 
-char * Call::get_sigmf_filename() {
+char *Call::get_sigmf_filename() {
   return sigmf_filename;
 }
 
-char * Call::get_debug_filename() {
+char *Call::get_debug_filename() {
   return debug_filename;
 }
 
@@ -516,7 +508,7 @@ std::string Call::get_system_type() {
   return sys->get_system_type().c_str();
 }
 
-void Call::set_talkgroup_tag(std::string tag){
+void Call::set_talkgroup_tag(std::string tag) {
   talkgroup_tag = tag;
   update_talkgroup_display();
 }
@@ -529,7 +521,7 @@ std::string Call::get_talkgroup_tag() {
   return talkgroup_tag;
 }
 
-void Call::update_talkgroup_display(){
+void Call::update_talkgroup_display() {
   boost::trim(talkgroup_tag);
   if (talkgroup_tag.empty()) {
     talkgroup_tag = "-";
@@ -546,29 +538,28 @@ void Call::update_talkgroup_display(){
   talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 }
 
-boost::property_tree::ptree Call::get_stats()
-{
+boost::property_tree::ptree Call::get_stats() {
   boost::property_tree::ptree call_node;
   boost::property_tree::ptree freq_list_node;
   boost::property_tree::ptree source_list_node;
-  call_node.put("id",           boost::lexical_cast<std::string>(this->get_sys_num()) + "_" + boost::lexical_cast<std::string>(this->get_talkgroup()) + "_" + boost::lexical_cast<std::string>(this->get_start_time()));
-  call_node.put("freq",         this->get_freq());
-  call_node.put("sysNum",       this->get_sys_num());
-  call_node.put("shortName",    this->get_short_name());
-  call_node.put("talkgroup",    this->get_talkgroup());
+  call_node.put("id", boost::lexical_cast<std::string>(this->get_sys_num()) + "_" + boost::lexical_cast<std::string>(this->get_talkgroup()) + "_" + boost::lexical_cast<std::string>(this->get_start_time()));
+  call_node.put("freq", this->get_freq());
+  call_node.put("sysNum", this->get_sys_num());
+  call_node.put("shortName", this->get_short_name());
+  call_node.put("talkgroup", this->get_talkgroup());
   call_node.put("talkgrouptag", this->get_talkgroup_tag());
-  call_node.put("elasped",      this->elapsed());
+  call_node.put("elasped", this->elapsed());
   if (get_state() == recording)
-    call_node.put("length",     this->get_current_length());
+    call_node.put("length", this->get_current_length());
   else
-    call_node.put("length",     this->get_final_length());
-  call_node.put("state",        this->get_state());
-  call_node.put("phase2",       this->get_phase2_tdma());
+    call_node.put("length", this->get_final_length());
+  call_node.put("state", this->get_state());
+  call_node.put("phase2", this->get_phase2_tdma());
   call_node.put("conventional", this->is_conventional());
-  call_node.put("encrypted",    this->get_encrypted());
-  call_node.put("emergency",    this->get_emergency());
-  call_node.put("startTime",    this->get_start_time());
-  call_node.put("stopTime",     this->get_stop_time());
+  call_node.put("encrypted", this->get_encrypted());
+  call_node.put("emergency", this->get_emergency());
+  call_node.put("startTime", this->get_start_time());
+  call_node.put("stopTime", this->get_stop_time());
 
   std::vector<Call_Source> source_list = this->get_source_list();
   for (std::size_t i = 0; i < source_list.size(); i++) {
@@ -585,7 +576,7 @@ boost::property_tree::ptree Call::get_stats()
   call_node.add_child("sourceList", source_list_node);
 
   Call_Freq *freq_list = this->get_freq_list();
-  int freq_count       = this->get_freq_count();
+  int freq_count = this->get_freq_count();
 
   for (int i = 0; i < freq_count; i++) {
     boost::property_tree::ptree freq_node;
@@ -603,15 +594,15 @@ boost::property_tree::ptree Call::get_stats()
   Recorder *recorder = this->get_recorder();
 
   if (recorder) {
-    call_node.put("recNum",   recorder->get_num());
-    call_node.put("srcNum",   recorder->get_source()->get_num());
+    call_node.put("recNum", recorder->get_num());
+    call_node.put("srcNum", recorder->get_source()->get_num());
     call_node.put("recState", recorder->get_state());
-    call_node.put("analog",   recorder->is_analog());
+    call_node.put("analog", recorder->is_analog());
   }
-  call_node.put("sigmffilename",   this->get_sigmf_filename());
-  call_node.put("debugfilename",   this->get_debug_filename());
-  call_node.put("filename",   this->get_filename());
-  call_node.put("statusfilename",   this->get_status_filename());
+  call_node.put("sigmffilename", this->get_sigmf_filename());
+  call_node.put("debugfilename", this->get_debug_filename());
+  call_node.put("filename", this->get_filename());
+  call_node.put("statusfilename", this->get_status_filename());
 
   return call_node;
 }

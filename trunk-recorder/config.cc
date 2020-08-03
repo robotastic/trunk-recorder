@@ -5,21 +5,18 @@
  * Description: <#description#>
  * Parameters: <#parameters#>
  */
-Config load_config(std::string config_file, std::vector<Source *> &sources, std::vector<System *> &systems)
-{
+Config load_config(std::string config_file, std::vector<Source *> &sources, std::vector<System *> &systems) {
   std::string system_modulation;
   Config config;
-  int    sys_count = 0;
+  int sys_count = 0;
 
-  try
-  {
+  try {
     // const std::string json_filename = "config.json";
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
-    BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
-                  pt.get_child("systems"))
-    {
+    BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
+                   pt.get_child("systems")) {
       // each system should have a unique index value;
       System *system = new System(sys_count++);
       std::stringstream default_script;
@@ -31,17 +28,15 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
 
       if (system->get_system_type() == "conventional") {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
-        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("channels"))
-        {
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
           double channel = sub_node.second.get<double>("", 0);
 
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
           system->add_channel(channel);
         }
-      }  else if (system->get_system_type() == "conventionalP25") {
+      } else if (system->get_system_type() == "conventionalP25") {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
-        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("channels"))
-        {
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
           double channel = sub_node.second.get<double>("", 0);
 
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
@@ -49,8 +44,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
         }
       } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-        BOOST_FOREACH(boost::property_tree::ptree::value_type  & sub_node, node.second.get_child("control_channels"))
-        {
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels")) {
           double control_channel = sub_node.second.get<double>("", 0);
 
           BOOST_LOG_TRIVIAL(info) << sub_node.second.get<double>("", 0) << " ";
@@ -123,8 +117,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
     size_t pos = config.capture_dir.find_last_of("/");
 
-    if (pos == config.capture_dir.length() - 1)
-    {
+    if (pos == config.capture_dir.length() - 1) {
       config.capture_dir.erase(config.capture_dir.length() - 1);
     }
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
@@ -141,34 +134,32 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
     BOOST_LOG_TRIVIAL(info) << "Control channel rate warning: " << config.control_message_warn_rate;
 
-
-    BOOST_FOREACH(boost::property_tree::ptree::value_type  & node,
-                  pt.get_child("sources"))
-    {
-      bool   qpsk_mod       = true;
-      int    silence_frames = node.second.get<int>("silenceFrames", 0);
-      double center         = node.second.get<double>("center", 0);
-      double rate           = node.second.get<double>("rate", 0);
-      double error          = node.second.get<double>("error", 0);
-      double ppm            = node.second.get<double>("ppm", 0);
-      bool   agc            = node.second.get<bool>("agc", false);
-      int    gain           = node.second.get<double>("gain", 0);
-      int    if_gain        = node.second.get<double>("ifGain", 0);
-      int    bb_gain        = node.second.get<double>("bbGain", 0);
-      int    mix_gain       = node.second.get<double>("mixGain", 0);
-      int    lna_gain       = node.second.get<double>("lnaGain", 0);
-      int    pga_gain       = node.second.get<double>("pgaGain", 0);
-      int    tia_gain       = node.second.get<double>("tiaGain", 0);
-      int    vga1_gain      = node.second.get<double>("vga1Gain", 0);
-      int    vga2_gain      = node.second.get<double>("vga2Gain", 0);
+    BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
+                   pt.get_child("sources")) {
+      bool qpsk_mod = true;
+      int silence_frames = node.second.get<int>("silenceFrames", 0);
+      double center = node.second.get<double>("center", 0);
+      double rate = node.second.get<double>("rate", 0);
+      double error = node.second.get<double>("error", 0);
+      double ppm = node.second.get<double>("ppm", 0);
+      bool agc = node.second.get<bool>("agc", false);
+      int gain = node.second.get<double>("gain", 0);
+      int if_gain = node.second.get<double>("ifGain", 0);
+      int bb_gain = node.second.get<double>("bbGain", 0);
+      int mix_gain = node.second.get<double>("mixGain", 0);
+      int lna_gain = node.second.get<double>("lnaGain", 0);
+      int pga_gain = node.second.get<double>("pgaGain", 0);
+      int tia_gain = node.second.get<double>("tiaGain", 0);
+      int vga1_gain = node.second.get<double>("vga1Gain", 0);
+      int vga2_gain = node.second.get<double>("vga2Gain", 0);
       double digital_levels = node.second.get<double>("digitalLevels", 8.0);
-      double analog_levels  = node.second.get<double>("analogLevels", 8.0);
-      double squelch_db     = node.second.get<double>("squelch", 0);
-      std::string antenna   = node.second.get<std::string>("antenna", "");
+      double analog_levels = node.second.get<double>("analogLevels", 8.0);
+      double squelch_db = node.second.get<double>("squelch", 0);
+      std::string antenna = node.second.get<std::string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
-      int debug_recorders   = node.second.get<int>("debugRecorders", 0);
-      int sigmf_recorders   = node.second.get<int>("sigmfRecorders", 0);
-      int analog_recorders  = node.second.get<int>("analogRecorders", 0);
+      int debug_recorders = node.second.get<int>("debugRecorders", 0);
+      int sigmf_recorders = node.second.get<int>("sigmfRecorders", 0);
+      int analog_recorders = node.second.get<int>("analogRecorders", 0);
 
       std::string driver = node.second.get<std::string>("driver", "");
 
@@ -181,7 +172,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Center: " << node.second.get<double>("center", 0);
       BOOST_LOG_TRIVIAL(info) << "Rate: " << node.second.get<double>("rate", 0);
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
-      BOOST_LOG_TRIVIAL(info) << "PPM Error: " <<  node.second.get<double>("ppm", 0);
+      BOOST_LOG_TRIVIAL(info) << "PPM Error: " << node.second.get<double>("ppm", 0);
       BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << node.second.get<bool>("agc", false);
       BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
       BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
@@ -195,18 +186,17 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
-      BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders",  0);
-      BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver",  "");
+      BOOST_LOG_TRIVIAL(info) << "Debug Recorders: " << node.second.get<int>("debugRecorders", 0);
+      BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
+      BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
+      BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver", "");
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
       if (mod_exists) {
         system_modulation = node.second.get<std::string>("modulation");
 
-        if (boost::iequals(system_modulation, "qpsk"))
-        {
+        if (boost::iequals(system_modulation, "qpsk")) {
           qpsk_mod = true;
           BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
         } else if (boost::iequals(system_modulation, "fsk4")) {
@@ -221,7 +211,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       }
 
       if ((ppm != 0) && (error != 0)) {
-        BOOST_LOG_TRIVIAL(info) <<  "Both PPM and Error should not be set at the same time. Setting Error to 0.";
+        BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
         error = 0;
       }
 
@@ -279,9 +269,7 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
       source->create_sigmf_recorders(tb, sigmf_recorders);
       sources.push_back(source);
     }
-  }
-  catch (std::exception const& e)
-  {
+  } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
     exit(1);
   }
