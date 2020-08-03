@@ -1245,20 +1245,9 @@ bool monitor_system() {
     System *system       = *sys_it;
     //bool    source_found = false;
 
-<<<<<<< HEAD
-  for (vector<System *>::iterator sys_it = systems.begin();
-       sys_it != systems.end(); sys_it++) {
-    System *system = *sys_it;
-=======
->>>>>>> parent of e583cf1... clang-format main.cc
-
     if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25")) {
       std::vector<double> channels = system->get_channels();
-<<<<<<< HEAD
       int tg_iterate_index = 0;
-=======
-      int talkgroup                = 1;
->>>>>>> parent of e583cf1... clang-format main.cc
 
       for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
         double channel = *chan_it;
@@ -1278,22 +1267,10 @@ bool monitor_system() {
               system_added = true;
             }
 
-<<<<<<< HEAD
             // This source can be used for this channel (and a squelch is set)
-            BOOST_LOG_TRIVIAL(info)
-                << "[" << system->get_short_name()
-                << "]\tMonitoring Conventional Channel: " << FormatFreq(channel)
-                << " Talkgroup: " << tg_iterate_index;
-            Call_conventional *call =
-                new Call_conventional(tg_iterate_index, channel, system, config);
-            Talkgroup *talkgroup =
-                system->find_talkgroup(call->get_talkgroup());
-=======
-            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " <<  FormatFreq(channel) << " Talkgroup: " << talkgroup;
-            Call_conventional *call = new Call_conventional(talkgroup, channel, system, config);
-            talkgroup++;
+            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << FormatFreq(channel)  << " Talkgroup: " << tg_iterate_index;
+            Call_conventional *call = new Call_conventional(tg_iterate_index, channel, system, config);
             Talkgroup *talkgroup = system->find_talkgroup(call->get_talkgroup());
->>>>>>> parent of e583cf1... clang-format main.cc
 
             if (talkgroup) {
               call->set_talkgroup_tag(talkgroup->alpha_tag);
