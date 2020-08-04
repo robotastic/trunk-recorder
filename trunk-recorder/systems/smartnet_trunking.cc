@@ -97,8 +97,6 @@ void smartnet_trunking::initialize_prefilter() {
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-    bandpass_filter->set_max_output_buffer(4096);
-    bfo->set_max_output_buffer(4096);
   } else {
     double_decim = false;
     BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
@@ -109,7 +107,6 @@ void smartnet_trunking::initialize_prefilter() {
 
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
     resampled_rate = input_rate / decim;
-    lo->set_max_output_buffer(4096);
   }
 
   // Cut-Off Filter
@@ -123,11 +120,6 @@ void smartnet_trunking::initialize_prefilter() {
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
-
-  mixer->set_max_output_buffer(4096);
-  lowpass_filter->set_max_output_buffer(4096);
-  arb_resampler->set_max_output_buffer(4096);
-  cutoff_filter->set_max_output_buffer(4096);
 
   if (double_decim) {
     connect(self(), 0, bandpass_filter, 0);
@@ -185,12 +177,6 @@ smartnet_trunking::smartnet_trunking(float f,
   start_correlator = gr::digital::correlate_access_code_tag_bb::make("10101100", 0, "smartnet_preamble");
 
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_num);
-
-  carriertrack->set_max_output_buffer(4096);
-  pll_demod->set_max_output_buffer(4096);
-  softbits->set_max_output_buffer(4096);
-  slicer->set_max_output_buffer(4096);
-  start_correlator->set_max_output_buffer(4096);
 
   connect(cutoff_filter, 0, carriertrack, 0);
   connect(carriertrack, 0, pll_demod, 0);

@@ -97,8 +97,6 @@ void debug_recorder::initialize_prefilter() {
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-    bandpass_filter->set_max_output_buffer(4096);
-    bfo->set_max_output_buffer(4096);
   } else {
     double_decim = false;
     BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
@@ -109,7 +107,6 @@ void debug_recorder::initialize_prefilter() {
 
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
     resampled_rate = input_rate / decim;
-    lo->set_max_output_buffer(4096);
   }
 
   // ARB Resampler
