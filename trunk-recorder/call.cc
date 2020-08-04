@@ -193,7 +193,7 @@ void Call::end_call() {
       if (remove(filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
       }
-      if (remove(status_filename) != 0) {
+      if (!sys->get_call_log() && remove(status_filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
       }
     }
