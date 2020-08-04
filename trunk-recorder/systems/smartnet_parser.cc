@@ -238,8 +238,15 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       message.message_type = UPDATE;
       message.freq = getfreq(stack[3].cmd, system);
       message.talkgroup = stack[3].full_address;
-      // message.encrypted    = false;
-      // message.emergency    = false;
+      if (stack[3].status >= 8) {
+        message.encrypted = true;
+        if ((stack[3].status == 10) || (stack[3].status == 12) || (stack[3].status == 13)) {
+          message.emergency = true;
+        }
+      }
+      if ((stack[3].status == 2) || (stack[3].status == 4) || (stack[3].status == 5)) {
+        message.emergency = true;
+      }
       messages.push_back(message);
       return messages;
     } else {
@@ -338,8 +345,15 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         message.message_type = GRANT;
         message.freq = getfreq(stack[2].cmd, system);
         message.talkgroup = stack[2].full_address;
-        // message.encrypted    = false;
-        // message.emergency    = false;
+        if (stack[3].status >= 8) {
+          message.encrypted = true;
+          if ((stack[3].status == 10) || (stack[3].status == 12) || (stack[3].status == 13)) {
+            message.emergency = true;
+          }
+        }
+        if ((stack[3].status == 2) || (stack[3].status == 4) || (stack[3].status == 5)) {
+          message.emergency = true;
+        }
         message.source = stack[3].full_address;
         messages.push_back(message);
         return messages;
