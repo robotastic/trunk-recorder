@@ -156,7 +156,7 @@ void set_logging_level(std::string log_level) {
  * Description: <#description#>
  * Parameters: <#parameters#>
  */
-void load_config(string config_file) {
+bool load_config(string config_file) {
   string system_modulation;
   int sys_count = 0;
   int source_count = 0;
@@ -530,7 +530,7 @@ void load_config(string config_file) {
     set_logging_level(log_level);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
-    exit(1);
+    return false;
   }
   if (config.debug_recorder) {
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nDEBUG RECORDER\n-------------------------------------\n";
@@ -542,6 +542,7 @@ void load_config(string config_file) {
     }
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
+  return true;
 }
 
 int get_total_recorders() {
@@ -1343,7 +1344,7 @@ void socket_connected() {
 
 int main(int argc, char **argv) {
   //BOOST_STATIC_ASSERT(true) __attribute__((unused));
-  signal(SIGINT, exit_interupt);
+
   logging::core::get()->set_filter(
       logging::trivial::severity >= logging::trivial::info
 
@@ -1387,7 +1388,13 @@ int main(int argc, char **argv) {
 
   std::string uri = "ws://localhost:3005";
 
-  load_config(config_file);
+  if (!load_config(config_file)) {
+    tb->unlock();
+    tb->stop();
+    tb->wait();
+    exit(1);
+  }
+
   stats.initialize(&config, &socket_connected);
   stats.open_stat();
 
@@ -1401,6 +1408,7 @@ int main(int argc, char **argv) {
   }
 
   if (monitor_system()) {
+    signal(SIGINT, exit_interupt);
     tb->unlock();
 
     monitor_messages();
