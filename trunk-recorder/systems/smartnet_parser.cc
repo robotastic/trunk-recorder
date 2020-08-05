@@ -237,7 +237,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
       message.message_type = UPDATE;
       message.freq = getfreq(stack[3].cmd, system);
-      message.talkgroup = stack[3].full_address;
+      message.talkgroup = stack[3].address;
       if (stack[3].status >= 8) {
         message.encrypted = true;
         if ((stack[3].status == 10) || (stack[3].status == 12) || (stack[3].status == 13)) {
@@ -344,7 +344,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
         message.message_type = GRANT;
         message.freq = getfreq(stack[2].cmd, system);
-        message.talkgroup = stack[2].full_address;
+        message.talkgroup = stack[2].address;
         if (stack[2].status >= 8) {
           message.encrypted = true;
           if ((stack[2].status == 10) || (stack[2].status == 12) || (stack[2].status == 13)) {
@@ -395,7 +395,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         //     << "[" << system->get_short_name() << "] [patch/msel termination] TG $"
         //     << std::hex << stack[3].full_address;
         message.message_type = UNKNOWN;
-        message.talkgroup = stack[3].full_address;
+        message.talkgroup = stack[3].address;
         messages.push_back(message);
         return messages;
       }
@@ -469,7 +469,7 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       //     << std::hex << stack[3].full_address
       //     << " TG $" << std::hex << stack[2].full_address;
       message.message_type = AFFILIATION;
-      message.talkgroup = stack[2].full_address;
+      message.talkgroup = stack[2].address;
       message.source = stack[3].full_address;
       messages.push_back(message);
       return messages;
