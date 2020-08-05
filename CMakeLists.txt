@@ -82,7 +82,7 @@ find_package(CppUnit)
 #endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
 set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT FFT)
-find_package(Gnuradio REQUIRED COMPONENTS analog blocks digital filter fft)
+find_package(Gnuradio REQUIRED COMPONENTS analog blocks digital filter pmt fft)
 find_package(GnuradioRuntime)
 find_package(CppUnit)
 
@@ -246,5 +246,6 @@ if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
         gnuradio::gnuradio-blocks
         gnuradio::gnuradio-digital
         gnuradio::gnuradio-filter
+        gnuradio::gnuradio-pmt
     )
 endif()

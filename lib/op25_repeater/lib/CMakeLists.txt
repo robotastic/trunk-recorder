@@ -68,11 +68,13 @@ list(APPEND op25_repeater_sources
 add_library(gnuradio-op25_repeater SHARED ${op25_repeater_sources})
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.dylib )
+    find_library(GR_PMT_LIBRARY libgnuradio-pmt.dylib )
 else(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.so )
 endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 set(GR_FILTER_LIBRARIES ${GR_FILTER_LIBRARY})
-target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_FILTER_LIBRARIES} imbe_vocoder)
+set(GR_PMT_LIBRARIES ${GR_PMT_LIBRARY})
+target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_PMT_LIBRARIES} ${GR_FILTER_LIBRARIES} imbe_vocoder)
 set_target_properties(gnuradio-op25_repeater PROPERTIES DEFINE_SYMBOL "gnuradio_op25_repeater_EXPORTS")
 
 ########################################################################
