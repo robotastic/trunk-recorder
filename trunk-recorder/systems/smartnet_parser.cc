@@ -345,13 +345,13 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         message.message_type = GRANT;
         message.freq = getfreq(stack[2].cmd, system);
         message.talkgroup = stack[2].full_address;
-        if (stack[3].status >= 8) {
+        if (stack[2].status >= 8) {
           message.encrypted = true;
-          if ((stack[3].status == 10) || (stack[3].status == 12) || (stack[3].status == 13)) {
+          if ((stack[2].status == 10) || (stack[2].status == 12) || (stack[2].status == 13)) {
             message.emergency = true;
           }
         }
-        if ((stack[3].status == 2) || (stack[3].status == 4) || (stack[3].status == 5)) {
+        if ((stack[2].status == 2) || (stack[2].status == 4) || (stack[2].status == 5)) {
           message.emergency = true;
         }
         message.source = stack[3].full_address;
