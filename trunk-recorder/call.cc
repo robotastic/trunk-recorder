@@ -527,13 +527,13 @@ void Call::update_talkgroup_display() {
     talkgroup_tag = "-";
   }
 
-  char formattedTalkgroup[42];
+  char formattedTalkgroup[62];
   if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_id_tag) {
-    snprintf(formattedTalkgroup, 41, "%10ld (%23s)", talkgroup, talkgroup_tag.c_str());
+    snprintf(formattedTalkgroup, 61, "%10ld (%c[%dm%23s%c[0m)", talkgroup, 0x1B, 35, talkgroup_tag.c_str(), 0x1B);
   } else if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_tag_id) {
-    snprintf(formattedTalkgroup, 41, "%23s (%10ld)", talkgroup_tag.c_str(), talkgroup);
+    snprintf(formattedTalkgroup, 61, "%c[%dm%23s%c[0m (%10ld)", 0x1B, 35, talkgroup_tag.c_str(), 0x1B, talkgroup);
   } else {
-    snprintf(formattedTalkgroup, 41, "%10ld", talkgroup);
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, talkgroup, 0x1B);
   }
   talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 }
