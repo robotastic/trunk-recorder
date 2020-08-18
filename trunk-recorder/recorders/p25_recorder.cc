@@ -219,10 +219,14 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
 
   initialize_prefilter();
   initialize_p25();
+
+  modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
+  modulation_selector->set_enabled(true);
     if (squelch_db != 0) {
     connect(cutoff_filter, 0, squelch, 0);
+    connect(squelch, 0, modulation_selector, 0);
   } else {
-    
+       connect(cutoff_filter, 0, modulation_selector, 0);
   }
 /*
 

@@ -27,6 +27,7 @@
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
 #include <gnuradio/blocks/short_to_float.h>
+#include <gnuradio/blocks/selector.h>
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/analog/sig_source_c.h>
