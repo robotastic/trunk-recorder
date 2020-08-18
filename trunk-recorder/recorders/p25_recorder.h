@@ -20,11 +20,9 @@
 
 #include <gnuradio/filter/fft_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
-
-#include <gnuradio/analog/feedforward_agc_cc.h>
-#include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/analog/pwr_squelch_cc.h>
-#include <gnuradio/digital/diff_phasor_cc.h>
+#include <gnuradio/analog/pll_freqdet_cf.h>
+
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
@@ -45,10 +43,9 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-#include <gnuradio/blocks/complex_to_arg.h>
+#include <op25_repeater/gardner_costas_cc.h>
 
 #include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
 #include <op25_repeater/include/op25_repeater/rx_status.h>
@@ -105,7 +102,7 @@ public:
   Source *get_source();
   void autotune();
   void reset();
-  gr::msg_queue::sptr tune_queue;
+
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
 
@@ -123,12 +120,12 @@ protected:
   bool qpsk_mod;
 
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
-  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
   gr::blocks::multiply_const_ff::sptr levels;
 
+gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 private:
   double system_channel_rate;
   double arb_rate;
@@ -151,8 +148,8 @@ private:
   const double phase2_symbol_rate = 6000;
 
   std::vector<float> arb_taps;
-  std::vector<float> sym_taps;
-  std::vector<float> baseband_noise_filter_taps;
+
+ 
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
@@ -166,26 +163,21 @@ private:
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
-  gr::filter::fir_filter_fff::sptr sym_filter;
 
-  gr::filter::fft_filter_fff::sptr noise_filter;
 
-  gr::digital::diff_phasor_cc::sptr diffdec;
+
+
+
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
   gr::blocks::short_to_float::sptr converter;
-  gr::analog::feedforward_agc_cc::sptr agc;
-  gr::blocks::multiply_const_ff::sptr pll_amp;
-  gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
-  gr::analog::pwr_squelch_cc::sptr squelch;
-
-  gr::blocks::multiply_const_ff::sptr rescale;
-
-  gr::blocks::complex_to_arg::sptr to_float;
-
-  gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
+gr::analog::pwr_squelch_cc::sptr squelch;
 
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
+  gr::blocks::multiply_const_ff::sptr rescale;
+
+
+
 };
 
 #endif // ifndef P25_RECORDER_H

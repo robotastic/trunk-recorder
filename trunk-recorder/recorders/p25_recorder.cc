@@ -163,85 +163,8 @@ void p25_recorder::initialize_prefilter() {
   connect(lowpass_filter, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
 }
-void p25_recorder::initialize_fsk4() {
-  const double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  const double pi = M_PI;
 
-  // FSK4: Phase Loop Lock - can only be Phase 1, so locking at that rate.
-  double freq_to_norm_radians = pi / (phase1_channel_rate / 2.0);
-  double fc = 0.0;
-  double fd = 600.0;
-  double pll_demod_gain = 1.0 / (fd * freq_to_norm_radians);
-  pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
-  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0);
 
-  //FSK4: noise filter - can only be Phase 1, so locking at that rate.
-  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
-  noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
-
-  //FSK4: Symbol Taps
-  double symbol_decim = 1;
-
-  for (int i = 0; i < samples_per_symbol; i++) {
-    sym_taps.push_back(1.0 / samples_per_symbol);
-  }
-  sym_filter = gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
-
-  //FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
-  tune_queue = gr::msg_queue::make(20);
-  fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
-
-  if (squelch_db != 0) {
-    connect(cutoff_filter, 0, squelch, 0);
-    connect(squelch, 0, pll_freq_lock, 0);
-  } else {
-    connect(cutoff_filter, 0, pll_freq_lock, 0);
-  }
-  connect(pll_freq_lock, 0, pll_amp, 0);
-  connect(pll_amp, 0, noise_filter, 0);
-  connect(noise_filter, 0, sym_filter, 0);
-  connect(sym_filter, 0, fsk4_demod, 0);
-  connect(fsk4_demod, 0, slicer, 0);
-}
-
-void p25_recorder::initialize_qpsk() {
-  const double pi = M_PI;
-
-  agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
-
-  // Gardner Costas Clock
-  double gain_mu = 0.025; // 0.025
-  double costas_alpha = 0.04;
-  double omega = double(system_channel_rate) / symbol_rate; // set to 6000 for TDMA, should be symbol_rate
-  double gain_omega = 0.1 * gain_mu * gain_mu;
-  double alpha = costas_alpha;
-  double beta = 0.125 * alpha * alpha;
-  double fmax = 3000; // Hz
-  fmax = 2 * pi * fmax / double(system_channel_rate);
-
-  costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha, beta, fmax, -fmax);
-
-  // QPSK: Perform Differential decoding on the constellation
-  diffdec = gr::digital::diff_phasor_cc::make();
-
-  // QPSK: take angle of the difference (in radians)
-  to_float = gr::blocks::complex_to_arg::make();
-
-  // QPSK: convert from radians such that signal is in -3/-1/+1/+3
-  rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
-
-  if (squelch_db != 0) {
-    connect(cutoff_filter, 0, squelch, 0);
-    connect(squelch, 0, agc, 0);
-  } else {
-    connect(cutoff_filter, 0, agc, 0);
-  }
-  connect(agc, 0, costas_clock, 0);
-  connect(costas_clock, 0, diffdec, 0);
-  connect(diffdec, 0, to_float, 0);
-  connect(to_float, 0, rescale, 0);
-  connect(rescale, 0, slicer, 0);
-}
 
 void p25_recorder::initialize_p25() {
   //OP25 Slicer
@@ -295,12 +218,12 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
 
   initialize_prefilter();
   initialize_p25();
-
+/*
   if (!qpsk_mod) {
     initialize_fsk4();
   } else {
     initialize_qpsk();
-  }
+  }*/
 }
 
 void p25_recorder::switch_tdma(bool phase2) {
@@ -346,7 +269,7 @@ void p25_recorder::clear() {
 }
 
 void p25_recorder::autotune() {
-  if (!qpsk_mod) {
+  /*if (!qpsk_mod) {
     gr::message::sptr msg;
     msg = tune_queue->delete_head_nowait();
 
@@ -356,7 +279,7 @@ void p25_recorder::autotune() {
       // tune_offset(freq + (msg->arg1()*100));
       tune_queue->flush();
     }
-  }
+  }*/
 }
 
 p25_recorder::~p25_recorder() {}
