@@ -162,6 +162,7 @@ void p25_recorder::initialize_prefilter() {
   connect(mixer, 0, lowpass_filter, 0);
   connect(lowpass_filter, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
+
 }
 
 
@@ -218,7 +219,13 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
 
   initialize_prefilter();
   initialize_p25();
+    if (squelch_db != 0) {
+    connect(cutoff_filter, 0, squelch, 0);
+  } else {
+    
+  }
 /*
+
   if (!qpsk_mod) {
     initialize_fsk4();
   } else {
