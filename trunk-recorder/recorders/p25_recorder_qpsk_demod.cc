@@ -9,7 +9,7 @@ p25_recorder_qpsk_demod_sptr make_p25_recorder_qpsk_demod() {
 p25_recorder_qpsk_demod::p25_recorder_qpsk_demod()
     : gr::hier_block2("p25_recorder_qpsk_demod",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                      gr::io_signature::make(0, 0, sizeof(float))) {
+                      gr::io_signature::make(1, 1, sizeof(char))) {
 }
 
 p25_recorder_qpsk_demod::~p25_recorder_qpsk_demod() {
@@ -42,12 +42,9 @@ void p25_recorder_qpsk_demod::initialize() {
   // QPSK: convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
-  if (squelch_db != 0) {
-    connect(self(), 0, squelch, 0);
-    connect(squelch, 0, agc, 0);
-  } else {
+
     connect(self(), 0, agc, 0);
-  }
+  
   connect(agc, 0, costas_clock, 0);
   connect(costas_clock, 0, diffdec, 0);
   connect(diffdec, 0, to_float, 0);

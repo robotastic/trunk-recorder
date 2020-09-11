@@ -26,7 +26,7 @@
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
-#include <gnuradio/blocks/short_to_float.h>
+
 #include <gnuradio/blocks/selector.h>
 
 #if GNURADIO_VERSION < 0x030800
@@ -44,13 +44,6 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-#include <op25_repeater/gardner_costas_cc.h>
-
-#include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
-#include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
-#include <op25_repeater/include/op25_repeater/rx_status.h>
-#include <op25_repeater/vocoder.h>
 
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/blocks/head.h>
@@ -59,6 +52,9 @@
 
 #include "../config.h"
 #include "recorder.h"
+#include "p25_recorder_decode.h"
+#include "p25_recorder_fsk4_demod.h"
+#include "p25_recorder_qpsk_demod.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
 class Source;
@@ -104,8 +100,7 @@ public:
   void autotune();
   void reset();
 
-  gr::msg_queue::sptr traffic_queue;
-  gr::msg_queue::sptr rx_queue;
+
 
 protected:
   State state;
@@ -120,11 +115,11 @@ protected:
   double center_freq;
   bool qpsk_mod;
 
-  gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
-  gr::blocks::multiply_const_ff::sptr levels;
+
 
 gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 private:
@@ -150,6 +145,9 @@ private:
 
   std::vector<float> arb_taps;
 
+  p25_recorder_fsk4_demod_sptr fsk4_demod;
+  p25_recorder_qpsk_demod_sptr qpsk_demod;
+  p25_recorder_decode_sptr     p25_decode;
  
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
@@ -171,10 +169,10 @@ private:
 
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-  gr::blocks::short_to_float::sptr converter;
-gr::analog::pwr_squelch_cc::sptr squelch;
 
-  gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
+  gr::analog::pwr_squelch_cc::sptr squelch;
+  gr::blocks::selector::sptr modulation_selector;
+
   gr::blocks::multiply_const_ff::sptr rescale;
 
 

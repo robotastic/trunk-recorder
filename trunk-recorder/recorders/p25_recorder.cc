@@ -167,35 +167,7 @@ void p25_recorder::initialize_prefilter() {
 
 
 
-void p25_recorder::initialize_p25() {
-  //OP25 Slicer
-  const float l[] = {-2.0, 0.0, 2.0, 4.0};
-  std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
-  slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
 
-  //OP25 Frame Assembler
-  traffic_queue = gr::msg_queue::make(2);
-  rx_queue = gr::msg_queue::make(100);
-
-  int udp_port = 0;
-  int verbosity = 0; // 10 = lots of debug messages
-  const char *wireshark_host = "127.0.0.1";
-  bool do_imbe = 1;
-  bool do_output = 1;
-  bool do_msgq = 0;
-  bool do_audio_output = 1;
-  bool do_tdma = 1;
-  bool do_crypt = 0;
-
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
-  converter = gr::blocks::short_to_float::make(1, 32768.0);
-  levels = gr::blocks::multiply_const_ff::make(source->get_digital_levels());
-
-  connect(slicer, 0, op25_frame_assembler, 0);
-  connect(op25_frame_assembler, 0, converter, 0);
-  connect(converter, 0, levels, 0);
-  connect(levels, 0, wav_sink, 0);
-}
 void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink) {
   source = src;
   chan_freq = source->get_center();
@@ -218,9 +190,11 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   starttime = time(NULL);
 
   initialize_prefilter();
-  initialize_p25();
+  //initialize_p25();
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
+  qpsk_demod = make_p25_recorder_qpsk_demod();
+
   modulation_selector->set_enabled(true);
     if (squelch_db != 0) {
     connect(cutoff_filter, 0, squelch, 0);
@@ -228,8 +202,9 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   } else {
        connect(cutoff_filter, 0, modulation_selector, 0);
   }
-/*
 
+/*
+source->get_digital_levels()
   if (!qpsk_mod) {
     initialize_fsk4();
   } else {
@@ -266,7 +241,7 @@ void p25_recorder::switch_tdma(bool phase2) {
   fmax = 2 * pi * fmax / double(system_channel_rate);
   costas_clock->update_omega(omega);
   costas_clock->update_fmax(fmax);
-  op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
+  //op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
 }
 
 void p25_recorder::set_tdma(bool phase2) {
@@ -368,7 +343,7 @@ void p25_recorder::tune_offset(double f) {
   } else {
     costas_clock->reset();
   }
-  op25_frame_assembler->reset_rx_status();
+  //op25_frame_assembler->reset_rx_status();
 }
 
 State p25_recorder::get_state() {
@@ -376,7 +351,8 @@ State p25_recorder::get_state() {
 }
 
 Rx_Status p25_recorder::get_rx_status() {
-  return op25_frame_assembler->get_rx_status();
+    Rx_Status rx_status = {0, 0, 0};
+    return rx_status;
 }
 void p25_recorder::stop() {
   if (state == active) {
@@ -388,7 +364,7 @@ void p25_recorder::stop() {
     valve->set_enabled(false);
     wav_sink->close();
     //Rx_Status rx_status = op25_frame_assembler->get_rx_status();
-    op25_frame_assembler->reset_rx_status();
+    //op25_frame_assembler->reset_rx_status();
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }
@@ -405,7 +381,7 @@ void p25_recorder::reset() {
 void p25_recorder::set_tdma_slot(int slot) {
 
   tdma_slot = slot;
-  op25_frame_assembler->set_slotid(tdma_slot);
+  //op25_frame_assembler->set_slotid(tdma_slot);
 }
 
 void p25_recorder::start(Call *call) {
@@ -425,7 +401,7 @@ void p25_recorder::start(Call *call) {
       set_tdma_slot(call->get_tdma_slot());
 
       if (call->get_xor_mask()) {
-        op25_frame_assembler->set_xormask(call->get_xor_mask());
+        //op25_frame_assembler->set_xormask(call->get_xor_mask());
       } else {
         BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       }

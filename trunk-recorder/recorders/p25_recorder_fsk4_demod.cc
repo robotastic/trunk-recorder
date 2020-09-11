@@ -10,7 +10,7 @@ p25_recorder_fsk4_demod_sptr make_p25_recorder_fsk4_demod() {
 p25_recorder_fsk4_demod::p25_recorder_fsk4_demod()
     : gr::hier_block2("p25_recorder_fsk4_demod",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                      gr::io_signature::make(0, 0, sizeof(float))) {
+                      gr::io_signature::make(1, 1, sizeof(char))) {
 }
 
 p25_recorder_fsk4_demod::~p25_recorder_fsk4_demod() {

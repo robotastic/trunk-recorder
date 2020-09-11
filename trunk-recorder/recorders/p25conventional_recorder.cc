@@ -47,7 +47,7 @@ void p25conventional_recorder::start(Call *call) {
       set_tdma_slot(call->get_tdma_slot());
 
       if (call->get_xor_mask()) {
-        op25_frame_assembler->set_xormask(call->get_xor_mask());
+        //op25_frame_assembler->set_xormask(call->get_xor_mask());
       } else {
         BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       }
