@@ -6,8 +6,7 @@
 
 p25_recorder_sptr make_p25_recorder(Source *src) {
   p25_recorder *recorder = new p25_recorder();
-  //recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, false));
-  recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true));
+  recorder->initialize(src);
   return gnuradio::get_initial_sptr(recorder);
 }
 
@@ -138,16 +137,7 @@ void p25_recorder::initialize_prefilter() {
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
-  // Squelch DB
-  // on a trunked network where you know you will have good signal, a carrier
-  // power squelch works well. real FM receviers use a noise squelch, where
-  // the received audio is high-passed above the cutoff and then fed to a
-  // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-  if (squelch_db != 0) {
-    // Non-blocking as we are using squelch_two as a gate.
-    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
-  }
 
 
   connect(self(), 0, valve, 0);
@@ -168,7 +158,7 @@ void p25_recorder::initialize_prefilter() {
 
 
 
-void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink) {
+void p25_recorder::initialize(Source *src) {
   source = src;
   chan_freq = source->get_center();
   center_freq = source->get_center();
@@ -177,7 +167,7 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   qpsk_mod = source->get_qpsk_mod();
   silence_frames = source->get_silence_frames();
   squelch_db = source->get_squelch_db();
-  this->wav_sink = wav_sink;
+  
   talkgroup = 0;
   d_phase2_tdma = false;
   rec_num = rec_counter++;
@@ -194,6 +184,21 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
+  qpsk_p25_decode = make_p25_recorder_decode(source->get_digital_levels(), silence_frames );  
+  fsk4_demod = make_p25_recorder_fsk4_demod();
+  fsk4_p25_decode = make_p25_recorder_decode(source->get_digital_levels(), silence_frames );
+
+  // Squelch DB
+  // on a trunked network where you know you will have good signal, a carrier
+  // power squelch works well. real FM receviers use a noise squelch, where
+  // the received audio is high-passed above the cutoff and then fed to a
+  // reverse squelch. If the power is then BELOW a threshold, open the squelch.
+
+  if (squelch_db != 0) {
+    // Non-blocking as we are using squelch_two as a gate.
+    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
+  }
+
 
   modulation_selector->set_enabled(true);
     if (squelch_db != 0) {
@@ -202,6 +207,13 @@ void p25_recorder::initialize(Source *src, gr::blocks::nonstop_wavfile_sink::spt
   } else {
        connect(cutoff_filter, 0, modulation_selector, 0);
   }
+
+  connect(modulation_selector, 0, fsk4_demod, 0);
+  connect(fsk4_demod,0,fsk4_p25_decode,0);
+
+  connect(modulation_selector, 0, qpsk_demod, 0);
+  connect(qpsk_demod,0,qpsk_p25_decode,0);
+
 
 /*
 source->get_digital_levels()
@@ -236,12 +248,11 @@ void p25_recorder::switch_tdma(bool phase2) {
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
-  omega = double(system_channel_rate) / double(symbol_rate);
-  fmax = symbol_rate / 2; // Hz
-  fmax = 2 * pi * fmax / double(system_channel_rate);
-  costas_clock->update_omega(omega);
-  costas_clock->update_fmax(fmax);
   //op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
+  if (qpsk_mod) {
+    qpsk_p25_decode->switch_tdma(phase2);
+    qpsk_demod->switch_tdma(phase2);
+  }
 }
 
 void p25_recorder::set_tdma(bool phase2) {
@@ -298,7 +309,11 @@ double p25_recorder::get_freq() {
 }
 
 double p25_recorder::get_current_length() {
-  return wav_sink->length_in_seconds();
+  if (qpsk_mod) {
+    return qpsk_p25_decode->get_current_length();
+  } else {
+    return fsk4_p25_decode->get_current_length();
+  }
 }
 
 int p25_recorder::lastupdate() {
@@ -341,7 +356,7 @@ void p25_recorder::tune_offset(double f) {
   if (!qpsk_mod) {
     reset();
   } else {
-    costas_clock->reset();
+    qpsk_demod->reset();
   }
   //op25_frame_assembler->reset_rx_status();
 }
@@ -356,13 +371,21 @@ Rx_Status p25_recorder::get_rx_status() {
 }
 void p25_recorder::stop() {
   if (state == active) {
-    recording_duration += wav_sink->length_in_seconds();
+    if (qpsk_mod) {
+      recording_duration += qpsk_p25_decode->get_current_length();
+    } else {
+      recording_duration += fsk4_p25_decode->get_current_length();
+    }
     clear();
     BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
     state = inactive;
     valve->set_enabled(false);
-    wav_sink->close();
+    if (qpsk_mod) {
+      qpsk_p25_decode->stop();
+    } else {
+      fsk4_p25_decode->stop();
+    }
     //Rx_Status rx_status = op25_frame_assembler->get_rx_status();
     //op25_frame_assembler->reset_rx_status();
   } else {
@@ -379,9 +402,12 @@ void p25_recorder::reset() {
 }
 
 void p25_recorder::set_tdma_slot(int slot) {
-
+  if (qpsk_mod) {
+    qpsk_p25_decode->set_tdma_slot(slot);
+  } else {
+    fsk4_p25_decode->set_tdma_slot(slot);
+  }
   tdma_slot = slot;
-  //op25_frame_assembler->set_slotid(tdma_slot);
 }
 
 void p25_recorder::start(Call *call) {
@@ -401,7 +427,7 @@ void p25_recorder::start(Call *call) {
       set_tdma_slot(call->get_tdma_slot());
 
       if (call->get_xor_mask()) {
-        //op25_frame_assembler->set_xormask(call->get_xor_mask());
+        qpsk_p25_decode->set_xor_mask(call->get_xor_mask());
       } else {
         BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       }
@@ -417,11 +443,15 @@ void p25_recorder::start(Call *call) {
     int offset_amount = (center_freq - chan_freq);
 
     tune_offset(offset_amount);
-
-    wav_sink->open(call->get_filename());
+    if (qpsk_mod) {
+      qpsk_p25_decode->start(call);
+    } else {
+      fsk4_p25_decode->start(call);
+    }
     state = active;
     valve->set_enabled(true);
-    wav_sink->set_call(call);
+    modulation_selector->set_enabled(true);
+    modulation_selector->set_input_index(0);
     recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";

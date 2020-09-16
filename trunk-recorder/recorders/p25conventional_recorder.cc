@@ -8,10 +8,10 @@ p25conventional_recorder_sptr make_p25conventional_recorder(Source *src, bool de
   if (delayopen) {
     boost::shared_ptr<gr::blocks::nonstop_wavfile_delayopen_sink_impl> w = gr::blocks::nonstop_wavfile_delayopen_sink_impl::make(1, 8000, 16, true);
     w->set_recorder(recorder);
-    recorder->initialize(src, w);
+    recorder->initialize(src);
   } else {
     boost::shared_ptr<gr::blocks::nonstop_wavfile_sink_impl> w = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
-    recorder->initialize(src, w);
+    recorder->initialize(src);
   }
   return gnuradio::get_initial_sptr<p25conventional_recorder>(recorder);
 }
@@ -35,7 +35,7 @@ void p25conventional_recorder::start(Call *call) {
     this->call = call;
 
     if (d_delayopen) {
-      boost::static_pointer_cast<gr::blocks::nonstop_wavfile_delayopen_sink_impl>(this->wav_sink)->reset();
+      //boost::static_pointer_cast<gr::blocks::nonstop_wavfile_delayopen_sink_impl>(this->wav_sink)->reset();
     }
 
     //((gr::blocks::nonstop_wavfile_delayopen_sink_impl *)this->wav_sink)->reset();
@@ -71,11 +71,11 @@ void p25conventional_recorder::start(Call *call) {
     tune_offset(offset_amount);
 
     if (d_delayopen == false) {
-      wav_sink->open(call->get_filename());
+      //wav_sink->open(call->get_filename());
     }
     state = active;
     valve->set_enabled(true);
-    wav_sink->set_call(call);
+    //wav_sink->set_call(call);
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25conventional_recorder.cc: Trying to Start an already Active Logger!!!";
   }

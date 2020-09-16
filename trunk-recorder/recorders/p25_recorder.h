@@ -69,7 +69,7 @@ class p25_recorder : public gr::hier_block2, public Recorder {
 protected:
   p25_recorder();
   p25_recorder(std::string type);
-  virtual void initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink);
+  virtual void initialize(Source *src);
 
 public:
   virtual ~p25_recorder();
@@ -100,8 +100,6 @@ public:
   void autotune();
   void reset();
 
-
-
 protected:
   State state;
   time_t timestamp;
@@ -116,7 +114,7 @@ protected:
   bool qpsk_mod;
 
 
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+ 
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
 
@@ -146,8 +144,9 @@ private:
   std::vector<float> arb_taps;
 
   p25_recorder_fsk4_demod_sptr fsk4_demod;
+    p25_recorder_decode_sptr     fsk4_p25_decode;
   p25_recorder_qpsk_demod_sptr qpsk_demod;
-  p25_recorder_decode_sptr     p25_decode;
+  p25_recorder_decode_sptr     qpsk_p25_decode;
  
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;

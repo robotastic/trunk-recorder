@@ -9,11 +9,43 @@ p25_recorder_qpsk_demod_sptr make_p25_recorder_qpsk_demod() {
 p25_recorder_qpsk_demod::p25_recorder_qpsk_demod()
     : gr::hier_block2("p25_recorder_qpsk_demod",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                      gr::io_signature::make(1, 1, sizeof(char))) {
+                      gr::io_signature::make(1, 1, sizeof(float))) {
+    symbol_rate = 4800;
+    samples_per_symbol = 5;
+    symbol_rate = phase1_symbol_rate;
+    system_channel_rate = symbol_rate * samples_per_symbol;
 }
 
 p25_recorder_qpsk_demod::~p25_recorder_qpsk_demod() {
   
+}
+
+void p25_recorder_qpsk_demod::reset() {
+
+    costas_clock->reset();
+}
+
+void p25_recorder_qpsk_demod::switch_tdma(bool phase2) {
+  double omega;
+  double fmax;
+  const double pi = M_PI;
+
+  if (phase2) {
+    symbol_rate = 6000;
+    samples_per_symbol = 4; //5;//4;
+  } else {
+    symbol_rate = 4800;
+    samples_per_symbol = 5;
+  }
+
+  system_channel_rate = symbol_rate * samples_per_symbol;
+
+  omega = double(system_channel_rate) / double(symbol_rate);
+  fmax = symbol_rate / 2; // Hz
+  fmax = 2 * pi * fmax / double(system_channel_rate);
+  costas_clock->update_omega(omega);
+  costas_clock->update_fmax(fmax);
+  //op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
 }
 
 void p25_recorder_qpsk_demod::initialize() {
@@ -44,7 +76,6 @@ void p25_recorder_qpsk_demod::initialize() {
 
 
     connect(self(), 0, agc, 0);
-  
   connect(agc, 0, costas_clock, 0);
   connect(costas_clock, 0, diffdec, 0);
   connect(diffdec, 0, to_float, 0);

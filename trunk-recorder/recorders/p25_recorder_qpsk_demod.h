@@ -42,10 +42,12 @@ protected:
 public:
   p25_recorder_qpsk_demod();
   virtual ~p25_recorder_qpsk_demod();
-
+  void switch_tdma(bool phase2);
+  void reset();
 private:
   double system_channel_rate;
   double symbol_rate;
+  int samples_per_symbol;
   const int phase1_samples_per_symbol = 5;
   const int phase2_samples_per_symbol = 4;
   const double phase1_symbol_rate = 4800;
