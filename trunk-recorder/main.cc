@@ -257,13 +257,42 @@ bool load_config(string config_file) {
         exit(1);
       }
 
+      bool qpsk_mod = true;
+      double digital_levels = node.second.get<double>("digitalLevels", 1.0);
+      double analog_levels = node.second.get<double>("analogLevels", 8.0);
+      double squelch_db = node.second.get<double>("squelch", 0);
+
+      boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
+
+      if (mod_exists) {
+        system_modulation = node.second.get<std::string>("modulation");
+
+        if (boost::iequals(system_modulation, "qpsk")) {
+          qpsk_mod = true;
+          BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
+        } else if (boost::iequals(system_modulation, "fsk4")) {
+          qpsk_mod = false;
+          BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";
+        } else {
+          qpsk_mod = true;
+          BOOST_LOG_TRIVIAL(error) << "! System Modulation Not Specified, could be fsk4 or qpsk, assuming qpsk";
+        }
+      } else {
+        qpsk_mod = true;
+      }
+
+      system->set_squelch_db(squelch_db);
+      system->set_analog_levels(analog_levels);
+      system->set_digital_levels(digital_levels);
+      system->set_qpsk_mod(qpsk_mod);
+
+      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
       system->set_bcfy_api_key(node.second.get<std::string>("broadcastifyApiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "Broadcastify API Key: " << system->get_bcfy_api_key();
       system->set_bcfy_system_id(node.second.get<int>("broadcastifySystemId", 0));
       BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
-
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
       system->set_call_log(node.second.get<bool>("callLog", true));
@@ -335,7 +364,7 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nSOURCES\n-------------------------------------\n";
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
                    pt.get_child("sources")) {
-      bool qpsk_mod = true;
+
       bool gain_set = false;
       int silence_frames = node.second.get<int>("silenceFrames", 0);
       double center = node.second.get<double>("center", 0);
@@ -352,9 +381,7 @@ bool load_config(string config_file) {
       int tia_gain = node.second.get<double>("tiaGain", 0);
       int vga1_gain = node.second.get<double>("vga1Gain", 0);
       int vga2_gain = node.second.get<double>("vga2Gain", 0);
-      double digital_levels = node.second.get<double>("digitalLevels", 1.0);
-      double analog_levels = node.second.get<double>("analogLevels", 8.0);
-      double squelch_db = node.second.get<double>("squelch", 0);
+
 
       std::string antenna = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
@@ -383,31 +410,12 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
-      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder", 0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
 
-      boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
-
-      if (mod_exists) {
-        system_modulation = node.second.get<std::string>("modulation");
-
-        if (boost::iequals(system_modulation, "qpsk")) {
-          qpsk_mod = true;
-          BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
-        } else if (boost::iequals(system_modulation, "fsk4")) {
-          qpsk_mod = false;
-          BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";
-        } else {
-          qpsk_mod = true;
-          BOOST_LOG_TRIVIAL(error) << "! System Modulation Not Specified, could be fsk4 or qpsk, assuming qpsk";
-        }
-      } else {
-        qpsk_mod = true;
-      }
 
       if ((ppm != 0) && (error != 0)) {
         BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
@@ -469,10 +477,6 @@ bool load_config(string config_file) {
 
       source->set_gain_mode(agc);
       source->set_antenna(antenna);
-      source->set_squelch_db(squelch_db);
-      source->set_analog_levels(analog_levels);
-      source->set_digital_levels(digital_levels);
-      source->set_qpsk_mod(qpsk_mod);
       source->set_silence_frames(silence_frames);
 
       if (ppm != 0) {
@@ -1225,7 +1229,7 @@ bool monitor_system() {
           if ((source->get_min_hz() <= channel) &&
               (source->get_max_hz() >= channel)) {
             channel_added = true;
-            if (source->get_squelch_db() == 0) {
+            if (system->get_squelch_db() == 0) {
               BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
               system_added = false;
             } else {
@@ -1301,7 +1305,7 @@ bool monitor_system() {
                                                      source->get_center(),
                                                      source->get_rate(),
                                                      msg_queue,
-                                                     source->get_qpsk_mod(),
+                                                     system->get_qpsk_mod(),
                                                      system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
           }

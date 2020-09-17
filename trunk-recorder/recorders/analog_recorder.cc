@@ -51,6 +51,7 @@ analog_recorder::analog_recorder(Source *src)
   center_freq = source->get_center();
   config = source->get_config();
   samp_rate = source->get_rate();
+  squelch_db = 0;
   talkgroup = 0;
   recording_count = 0;
   recording_duration = 0;
@@ -123,9 +124,7 @@ analog_recorder::analog_recorder(Source *src)
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-  squelch_db = source->get_squelch_db();
 
-  if (squelch_db != 0) {
     // Non-blocking as we are using squelch_two as a gate.
     squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
@@ -133,7 +132,7 @@ analog_recorder::analog_recorder(Source *src)
     // set low -200 since its after demod and its just gate for previous squelch so that the audio
     // recording doesn't contain blank spaces between transmissions
     squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
-  }
+  
 
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
   float quad_gain;
@@ -141,7 +140,7 @@ analog_recorder::analog_recorder(Source *src)
   /* demodulator gain */
   quad_gain = system_channel_rate / (2.0 * M_PI * d_max_dev);
   demod = gr::analog::quadrature_demod_cf::make(quad_gain);
-  levels = gr::blocks::multiply_const_ff::make(src->get_analog_levels()); // 33);
+  levels = gr::blocks::multiply_const_ff::make(1); // 33);
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
@@ -169,7 +168,7 @@ analog_recorder::analog_recorder(Source *src)
   high_f_taps = gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
   high_f = gr::filter::fir_filter_fff::make(1, high_f_taps);
 
-  if (squelch_db != 0) {
+
     // using squelch
     connect(self(), 0, valve, 0);
     connect(valve, 0, prefilter, 0);
@@ -184,19 +183,7 @@ analog_recorder::analog_recorder(Source *src)
     connect(high_f, 0, squelch_two, 0);
     connect(squelch_two, 0, levels, 0);
     connect(levels, 0, wav_sink, 0);
-  } else {
-    // No squelch used
-    connect(self(), 0, valve, 0);
-    connect(valve, 0, prefilter, 0);
-    connect(prefilter, 0, channel_lpf, 0);
-    connect(channel_lpf, 0, arb_resampler, 0);
-    connect(arb_resampler, 0, demod, 0);
-    connect(demod, 0, deemph, 0);
-    connect(deemph, 0, decim_audio, 0);
-    connect(decim_audio, 0, levels, 0);
-    connect(decim_audio, 0, decoder_sink, 0);
-    connect(levels, 0, wav_sink, 0);
-  }
+
 }
 
 analog_recorder::~analog_recorder() {}
@@ -303,9 +290,11 @@ void analog_recorder::setup_decoders_for_system(System *system) {
   decoder_sink->set_tps_enabled(system->get_tps_enabled());
 }
 
+
+
 void analog_recorder::start(Call *call) {
   starttime = time(NULL);
-
+  System *system = call->get_system();
   this->call = call;
 
   setup_decoders_for_system(call->get_system());
@@ -313,6 +302,10 @@ void analog_recorder::start(Call *call) {
   call->clear_src_list();
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
+
+  squelch_db = system->get_squelch_db();
+  squelch->set_threshold(squelch_db);
+  levels->set_k(system->get_analog_levels());
 
   prefilter->set_center_freq(chan_freq - center_freq);
 

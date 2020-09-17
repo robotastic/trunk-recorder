@@ -1,9 +1,9 @@
 
 #include "p25_recorder_decode.h"
 
-p25_recorder_decode_sptr make_p25_recorder_decode( double digital_levels, int silence_frames) {
+p25_recorder_decode_sptr make_p25_recorder_decode(  int silence_frames) {
   p25_recorder_decode *decoder = new p25_recorder_decode();
-  decoder->initialize( digital_levels, silence_frames);
+  decoder->initialize(  silence_frames);
   return gnuradio::get_initial_sptr(decoder);
 }
 
@@ -22,6 +22,7 @@ void p25_recorder_decode::stop() {
 }
 
 void p25_recorder_decode::start(Call *call) {
+    levels->set_k(call->get_system()->get_digital_levels());
     wav_sink->open(call->get_filename());
     wav_sink->set_call(call);
 }
@@ -42,7 +43,7 @@ void p25_recorder_decode::switch_tdma(bool phase2_tdma) {
     op25_frame_assembler->set_phase2_tdma(phase2_tdma);
 }
 
-void p25_recorder_decode::initialize( double digital_levels, int silence_frames) {
+void p25_recorder_decode::initialize(  int silence_frames) {
   //OP25 Slicer
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
@@ -64,7 +65,7 @@ void p25_recorder_decode::initialize( double digital_levels, int silence_frames)
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
-  levels = gr::blocks::multiply_const_ff::make(digital_levels);
+  levels = gr::blocks::multiply_const_ff::make(1);
 
     connect( self(),0, slicer,0);
   connect(slicer, 0, op25_frame_assembler, 0);

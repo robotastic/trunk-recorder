@@ -164,9 +164,9 @@ void p25_recorder::initialize(Source *src) {
   center_freq = source->get_center();
   config = source->get_config();
   input_rate = source->get_rate();
-  qpsk_mod = source->get_qpsk_mod();
+  qpsk_mod = true;
   silence_frames = source->get_silence_frames();
-  squelch_db = source->get_squelch_db();
+  squelch_db = 0;
   
   talkgroup = 0;
   d_phase2_tdma = false;
@@ -184,9 +184,9 @@ void p25_recorder::initialize(Source *src) {
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
-  qpsk_p25_decode = make_p25_recorder_decode(source->get_digital_levels(), silence_frames );  
+  qpsk_p25_decode = make_p25_recorder_decode(silence_frames );  
   fsk4_demod = make_p25_recorder_fsk4_demod();
-  fsk4_p25_decode = make_p25_recorder_decode(source->get_digital_levels(), silence_frames );
+  fsk4_p25_decode = make_p25_recorder_decode(silence_frames );
 
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
@@ -194,19 +194,17 @@ void p25_recorder::initialize(Source *src) {
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-  if (squelch_db != 0) {
+
     // Non-blocking as we are using squelch_two as a gate.
     squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
-  }
+  
 
 
   modulation_selector->set_enabled(true);
-    if (squelch_db != 0) {
+    
     connect(cutoff_filter, 0, squelch, 0);
     connect(squelch, 0, modulation_selector, 0);
-  } else {
-       connect(cutoff_filter, 0, modulation_selector, 0);
-  }
+ 
 
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod,0,fsk4_p25_decode,0);
@@ -214,14 +212,6 @@ void p25_recorder::initialize(Source *src) {
   connect(modulation_selector, 0, qpsk_demod, 0);
   connect(qpsk_demod,0,qpsk_p25_decode,0);
 
-
-/*
-source->get_digital_levels()
-  if (!qpsk_mod) {
-    initialize_fsk4();
-  } else {
-    initialize_qpsk();
-  }*/
 }
 
 void p25_recorder::switch_tdma(bool phase2) {
@@ -412,6 +402,7 @@ void p25_recorder::set_tdma_slot(int slot) {
 
 void p25_recorder::start(Call *call) {
   if (state == inactive) {
+    System *system = call->get_system();
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -420,6 +411,9 @@ void p25_recorder::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
 
+  squelch_db = system->get_squelch_db();
+  squelch->set_threshold(squelch_db);
+  qpsk_mod = system->get_qpsk_mod();
     set_tdma(call->get_phase2_tdma());
 
     if (call->get_phase2_tdma()) {

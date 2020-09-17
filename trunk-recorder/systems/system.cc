@@ -138,6 +138,38 @@ void System::set_call_log(bool call_log) {
   this->call_log = call_log;
 }
 
+void System::set_squelch_db(double s) {
+  squelch_db = s;
+}
+
+double System::get_squelch_db() {
+  return squelch_db;
+}
+
+void System::set_analog_levels(double r) {
+  analog_levels = r;
+}
+
+double System::get_analog_levels() {
+  return analog_levels;
+}
+
+void System::set_digital_levels(double r) {
+  digital_levels = r;
+}
+
+double System::get_digital_levels() {
+  return digital_levels;
+}
+
+void System::set_qpsk_mod(bool m) {
+  qpsk_mod = m;
+}
+
+bool System::get_qpsk_mod() {
+  return qpsk_mod;
+}
+
 void System::set_mdc_enabled(bool b) { d_mdc_enabled = b; };
 void System::set_fsync_enabled(bool b) { d_fsync_enabled = b; };
 void System::set_star_enabled(bool b) { d_star_enabled = b; };

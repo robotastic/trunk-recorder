@@ -66,6 +66,11 @@ public:
   int bandplan_offset;
   double min_call_duration;
 
+  bool qpsk_mod;
+  double squelch_db;
+  double analog_levels;
+  double digital_levels;
+
   unsigned xor_mask_len;
   const char *xor_mask;
   std::vector<double> control_channels;
@@ -74,7 +79,6 @@ public:
   std::vector<analog_recorder_sptr> conventional_recorders;
   std::vector<p25conventional_recorder_sptr> conventionalP25_recorders;
 
-  bool qpsk_mod;
   bool audio_archive;
   bool record_unknown;
   bool call_log;
@@ -110,6 +114,15 @@ public:
   bool get_fsync_enabled();
   bool get_star_enabled();
   bool get_tps_enabled();
+
+  void set_analog_levels(double r);
+  double get_analog_levels();
+  void set_digital_levels(double r);
+  double get_digital_levels();
+  void set_qpsk_mod(bool m);
+  bool get_qpsk_mod();
+  void set_squelch_db(double s);
+  double get_squelch_db();
 
   std::string get_system_type();
   unsigned long get_sys_id();

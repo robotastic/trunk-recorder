@@ -22,9 +22,7 @@ class Source {
   double actual_rate;
   double error;
   double ppm;
-  double squelch_db;
-  double analog_levels;
-  double digital_levels;
+
   bool gain_mode;
   int gain;
   int bb_gain;
@@ -40,7 +38,7 @@ class Source {
   int max_sigmf_recorders;
   int max_analog_recorders;
   int debug_recorder_port;
-  bool qpsk_mod;
+
   int silence_frames;
   Config *config;
 
@@ -71,20 +69,15 @@ public:
   double get_error();
   void set_if_gain(int i);
   int get_if_gain();
-  void set_squelch_db(double s);
-  double get_squelch_db();
+
   void set_gain_mode(bool m);
   bool get_gain_mode();
   void set_gain(int r);
   int get_gain();
-  void set_qpsk_mod(bool m);
-  bool get_qpsk_mod();
+
   void set_silence_frames(int m);
   int get_silence_frames();
-  void set_analog_levels(double r);
-  double get_analog_levels();
-  void set_digital_levels(double r);
-  double get_digital_levels();
+
   void set_bb_gain(int b);
   int get_bb_gain();
   void set_mix_gain(int b);

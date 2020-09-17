@@ -27,14 +27,14 @@
 
 class p25_recorder_decode;
 typedef boost::shared_ptr<p25_recorder_decode> p25_recorder_decode_sptr;
-p25_recorder_decode_sptr make_p25_recorder_decode( double digital_levels, int silence_frames);
+p25_recorder_decode_sptr make_p25_recorder_decode(  int silence_frames);
 
 class p25_recorder_decode : public gr::hier_block2 {
-  friend p25_recorder_decode_sptr make_p25_recorder_decode( double digital_levels, int silence_frames);
+  friend p25_recorder_decode_sptr make_p25_recorder_decode( int silence_frames);
 
 protected:
 
-  virtual void initialize( double digital_levels, int silence_frames);
+  virtual void initialize(  int silence_frames);
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
     gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;

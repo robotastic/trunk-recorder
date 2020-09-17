@@ -22,36 +22,12 @@ std::string Source::get_antenna() {
   return antenna;
 }
 
-void Source::set_qpsk_mod(bool m) {
-  qpsk_mod = m;
-}
-
-bool Source::get_qpsk_mod() {
-  return qpsk_mod;
-}
-
 void Source::set_silence_frames(int m) {
   silence_frames = m;
 }
 
 int Source::get_silence_frames() {
   return silence_frames;
-}
-
-void Source::set_analog_levels(double r) {
-  analog_levels = r;
-}
-
-double Source::get_analog_levels() {
-  return analog_levels;
-}
-
-void Source::set_digital_levels(double r) {
-  digital_levels = r;
-}
-
-double Source::get_digital_levels() {
-  return digital_levels;
 }
 
 double Source::get_min_hz() {
@@ -266,13 +242,6 @@ int Source::get_if_gain() {
   return if_gain;
 }
 
-void Source::set_squelch_db(double s) {
-  squelch_db = s;
-}
-
-double Source::get_squelch_db() {
-  return squelch_db;
-}
 
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
 
