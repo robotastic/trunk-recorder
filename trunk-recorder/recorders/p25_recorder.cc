@@ -201,15 +201,16 @@ void p25_recorder::initialize(Source *src) {
 
 
   modulation_selector->set_enabled(true);
-    
+  /*  
     connect(cutoff_filter, 0, squelch, 0);
-    connect(squelch, 0, modulation_selector, 0);
+    connect(squelch, 0, modulation_selector, 0);*/
+        connect(cutoff_filter, 0, modulation_selector, 0);
  
 
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod,0,fsk4_p25_decode,0);
 
-  connect(modulation_selector, 0, qpsk_demod, 0);
+  connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod,0,qpsk_p25_decode,0);
 
 }
@@ -432,20 +433,22 @@ void p25_recorder::start(Call *call) {
     if (!qpsk_mod) {
       reset();
     }
-    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);
 
     tune_offset(offset_amount);
     if (qpsk_mod) {
+      modulation_selector->set_output_index(1);
       qpsk_p25_decode->start(call);
     } else {
+      modulation_selector->set_output_index(0);
       fsk4_p25_decode->start(call);
     }
     state = active;
     valve->set_enabled(true);
     modulation_selector->set_enabled(true);
-    modulation_selector->set_input_index(0);
+    
     recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";
