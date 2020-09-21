@@ -1,6 +1,5 @@
 #include "source.h"
 #include "formatter.h"
-#include "recorders/p25conventional_recorder.h"
 
 static int src_counter = 0;
 
@@ -252,14 +251,6 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb)
   return log;
 }
 
-p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen) {
-
-  p25conventional_recorder_sptr log = make_p25conventional_recorder(this, delayopen);
-
-  digital_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
-  return log;
-}
 
 void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
   max_analog_recorders = r;
@@ -299,6 +290,13 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
   }
+}
+
+p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb) {
+  // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
+    p25_recorder_sptr log = make_p25_recorder(this);
+    tb->connect(source_block, 0, log, 0);
+    return log;
 }
 
 void Source::create_debug_recorder(gr::top_block_sptr tb, int source_num) {

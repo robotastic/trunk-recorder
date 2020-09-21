@@ -96,7 +96,6 @@ public:
   void set_tdma_slot(int s);
   int get_tdma_slot();
   const char *get_xor_mask();
-  //virtual bool is_conventional() { return true;}
   virtual bool is_conventional() { return false; }
   void set_encrypted(bool m);
   bool get_encrypted();

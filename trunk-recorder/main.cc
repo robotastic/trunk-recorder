@@ -42,7 +42,6 @@
 
 #include "recorders/analog_recorder.h"
 #include "recorders/p25_recorder.h"
-#include "recorders/p25conventional_recorder.h"
 #include "recorders/recorder.h"
 
 #include "systems/p25_parser.h"
@@ -703,11 +702,6 @@ void process_message_queues() {
       analog_recorder_sptr ar = (analog_recorder_sptr)*arit;
       ar->process_message_queues();
     }
-
-    for (std::vector<p25conventional_recorder_sptr>::iterator pit = sys->conventionalP25_recorders.begin(); pit != sys->conventionalP25_recorders.end(); ++pit) {
-      p25conventional_recorder_sptr pr = (p25conventional_recorder_sptr)*pit;
-      pr->process_message_queues();
-    }
   }
 }
 
@@ -1255,12 +1249,11 @@ bool monitor_system() {
               calls.push_back(call);
               stats.send_recorder((Recorder *)rec.get());
             } else { // has to be "conventionalP25"
-              p25conventional_recorder_sptr rec;
-              rec = source->create_conventionalP25_recorder(tb, system->get_delaycreateoutput());
+              p25_recorder_sptr rec;
+              rec = source->create_digital_conventional_recorder(tb);
               rec->start(call);
               call->set_recorder((Recorder *)rec.get());
               call->set_state(recording);
-              system->add_conventionalP25_recorder(rec);
               calls.push_back(call);
               stats.send_recorder((Recorder *)rec.get());
             }

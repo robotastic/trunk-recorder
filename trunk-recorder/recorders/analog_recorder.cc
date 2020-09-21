@@ -309,7 +309,7 @@ void analog_recorder::start(Call *call) {
 
   prefilter->set_center_freq(chan_freq - center_freq);
 
-  wav_sink->open(call->get_filename());
+  wav_sink->open(call);
 
   state = active;
   valve->set_enabled(true);

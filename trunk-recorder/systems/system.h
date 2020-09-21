@@ -28,8 +28,6 @@ class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-class p25conventional_recorder;
-typedef boost::shared_ptr<p25conventional_recorder> p25conventional_recorder_sptr;
 
 class System {
   int sys_num;
@@ -77,7 +75,7 @@ public:
   unsigned int current_control_channel;
   std::vector<double> channels;
   std::vector<analog_recorder_sptr> conventional_recorders;
-  std::vector<p25conventional_recorder_sptr> conventionalP25_recorders;
+  std::vector<p25_recorder_sptr> conventionalP25_recorders;
 
   bool audio_archive;
   bool record_unknown;
@@ -149,8 +147,8 @@ public:
   void add_channel(double channel);
   void add_conventional_recorder(analog_recorder_sptr rec);
   std::vector<analog_recorder_sptr> get_conventional_recorders();
-  void add_conventionalP25_recorder(p25conventional_recorder_sptr rec);
-  std::vector<p25conventional_recorder_sptr> get_conventionalP25_recorders();
+  void add_conventionalP25_recorder(p25_recorder_sptr rec);
+  std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();
   System(int sys_id);

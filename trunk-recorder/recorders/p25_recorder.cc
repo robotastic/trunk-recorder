@@ -1,6 +1,5 @@
 
 #include "p25_recorder.h"
-#include "../../lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.h"
 #include "../formatter.h"
 #include <boost/log/trivial.hpp>
 
@@ -184,7 +183,7 @@ void p25_recorder::initialize(Source *src) {
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
-  qpsk_p25_decode = make_p25_recorder_decode(silence_frames );  
+  qpsk_p25_decode = make_p25_recorder_decode(silence_frames );
   fsk4_demod = make_p25_recorder_fsk4_demod();
   fsk4_p25_decode = make_p25_recorder_decode(silence_frames );
 
@@ -201,15 +200,10 @@ void p25_recorder::initialize(Source *src) {
 
 
   modulation_selector->set_enabled(true);
-  /*  
-    connect(cutoff_filter, 0, squelch, 0);
-    connect(squelch, 0, modulation_selector, 0);*/
-        connect(cutoff_filter, 0, modulation_selector, 0);
- 
 
+  connect(cutoff_filter, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod,0,fsk4_p25_decode,0);
-
   connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod,0,qpsk_p25_decode,0);
 
@@ -288,6 +282,8 @@ bool p25_recorder::is_active() {
   }
 }
 
+
+
 bool p25_recorder::is_idle() {
   if (state == active) {
     return !squelch->unmuted();
@@ -345,11 +341,12 @@ void p25_recorder::tune_offset(double f) {
   }
 
   if (!qpsk_mod) {
-    reset();
+    fsk4_demod->reset();
+    fsk4_p25_decode->reset_rx_status();
   } else {
     qpsk_demod->reset();
+    qpsk_p25_decode->reset_rx_status();
   }
-  //op25_frame_assembler->reset_rx_status();
 }
 
 State p25_recorder::get_state() {
@@ -357,9 +354,20 @@ State p25_recorder::get_state() {
 }
 
 Rx_Status p25_recorder::get_rx_status() {
-    Rx_Status rx_status = {0, 0, 0};
-    return rx_status;
+  if (qpsk_mod) {
+    return qpsk_p25_decode->get_rx_status();
+  } else {
+    return fsk4_p25_decode->get_rx_status();
+  }
 }
+
+/* This is called by wav_sink_delayed_open to get a new filename when samples start to come in */
+
+char *p25_recorder::get_filename() {
+  this->call->create_filename();
+  return this->call->get_filename();
+}
+
 void p25_recorder::stop() {
   if (state == active) {
     if (qpsk_mod) {
@@ -374,23 +382,16 @@ void p25_recorder::stop() {
     valve->set_enabled(false);
     if (qpsk_mod) {
       qpsk_p25_decode->stop();
+      qpsk_p25_decode->reset_rx_status();
     } else {
       fsk4_p25_decode->stop();
+      fsk4_p25_decode->reset_rx_status();
     }
-    //Rx_Status rx_status = op25_frame_assembler->get_rx_status();
-    //op25_frame_assembler->reset_rx_status();
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }
 }
-void p25_recorder::reset() {
-  /*
-  pll_freq_lock->update_gains();
-  pll_freq_lock->frequency_limit();
-  pll_freq_lock->phase_wrap();
-  fsk4_demod->reset();*/
-  //pll_demod->set_phase(0);
-}
+
 
 void p25_recorder::set_tdma_slot(int slot) {
   if (qpsk_mod) {
@@ -412,6 +413,7 @@ void p25_recorder::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
 
+
   squelch_db = system->get_squelch_db();
   squelch->set_threshold(squelch_db);
   qpsk_mod = system->get_qpsk_mod();
@@ -430,9 +432,7 @@ void p25_recorder::start(Call *call) {
       set_tdma_slot(0);
     }
 
-    if (!qpsk_mod) {
-      reset();
-    }
+    
     BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);

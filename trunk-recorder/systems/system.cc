@@ -255,11 +255,11 @@ std::vector<analog_recorder_sptr> System::get_conventional_recorders() {
   return conventional_recorders;
 }
 
-void System::add_conventionalP25_recorder(p25conventional_recorder_sptr rec) {
+void System::add_conventionalP25_recorder(p25_recorder_sptr rec) {
   conventionalP25_recorders.push_back(rec);
 }
 
-std::vector<p25conventional_recorder_sptr> System::get_conventionalP25_recorders() {
+std::vector<p25_recorder_sptr> System::get_conventionalP25_recorders() {
   return conventionalP25_recorders;
 }
 

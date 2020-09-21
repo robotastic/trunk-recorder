@@ -39,6 +39,7 @@ protected:
 public:
   p25_recorder_fsk4_demod();
   virtual ~p25_recorder_fsk4_demod();
+  void reset();
 
 private:
 

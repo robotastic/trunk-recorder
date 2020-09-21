@@ -10,6 +10,7 @@
 //#include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
+#include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 
 class Source {
@@ -102,10 +103,10 @@ public:
   int analog_recorder_count();
   Config *get_config();
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
-  p25conventional_recorder_sptr create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen);
   void create_analog_recorders(gr::top_block_sptr tb, int r);
   Recorder *get_analog_recorder(int priority);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
+  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
   Recorder *get_digital_recorder(int priority);
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   Recorder *get_debug_recorder();

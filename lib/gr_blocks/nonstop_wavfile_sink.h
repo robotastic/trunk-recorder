@@ -49,7 +49,7 @@ public:
 	/*!
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.
 	 */
-	virtual bool open(const char* filename) = 0;
+	virtual bool open(Call* call) = 0;
 
 	/*!
 	 * \brief Closes the currently active file and completes the WAV
@@ -73,7 +73,7 @@ public:
 	virtual void set_bits_per_sample(int bits_per_sample) = 0;
 	virtual double length_in_seconds() = 0;
 
-	virtual void set_call(Call* call) {};
+
 };
 
 } /* namespace blocks */

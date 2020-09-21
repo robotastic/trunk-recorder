@@ -17,6 +17,15 @@ p25_recorder_fsk4_demod::~p25_recorder_fsk4_demod() {
 
 }
 
+void p25_recorder_fsk4_demod::reset() {
+  /*
+  pll_freq_lock->update_gains();
+  pll_freq_lock->frequency_limit();
+  pll_freq_lock->phase_wrap();
+  fsk4_demod->reset();*/
+  //pll_demod->set_phase(0);
+}
+
 void p25_recorder_fsk4_demod::initialize() {
   const double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   const double pi = M_PI;

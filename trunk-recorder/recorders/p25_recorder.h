@@ -41,6 +41,7 @@
 #include <gnuradio/analog/sig_source.h>
 #include <gnuradio/blocks/multiply.h>
 #include <gnuradio/blocks/multiply_const.h>
+
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
@@ -56,6 +57,7 @@
 #include "p25_recorder_fsk4_demod.h"
 #include "p25_recorder_qpsk_demod.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/selector.h>
 
 class Source;
 class p25_recorder;
@@ -94,6 +96,7 @@ public:
   bool is_idle();
   State get_state();
   Rx_Status get_rx_status();
+  char *get_filename();
   int lastupdate();
   long elapsed();
   Source *get_source();
@@ -112,6 +115,7 @@ protected:
   double chan_freq;
   double center_freq;
   bool qpsk_mod;
+  bool conventional;
 
 
  
@@ -161,17 +165,9 @@ private:
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
-
-
-
-
-
-
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::selector::sptr modulation_selector;
-
   gr::blocks::multiply_const_ff::sptr rescale;
 
 
