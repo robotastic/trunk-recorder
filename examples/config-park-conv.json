@@ -6,7 +6,6 @@
         "gain": 28,
         "debugRecorders": 0,
         "digitalRecorders": 0,
-        "squelch": -50,
         "driver": "osmosdr"
     }],
     "systems": [
@@ -16,7 +15,8 @@
             "shortName": "park",
             "talkgroupsFile": "park-conv.csv",
             "callLog": true,
-            "audioArchive": true
+            "audioArchive": true,
+            "squelch": -50
 }
 ],
   "uploadServer": "https://api.openmhz.com"

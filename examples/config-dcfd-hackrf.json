@@ -7,12 +7,12 @@
         "ifGain": 24,
         "bbGain": 42,
         "digitalRecorders": 2,
-        "modulation": "QPSK",
         "driver": "osmosdr"
     }],
     "systems": [{
         "control_channels": [855462500],
         "type": "p25",
-        "talkgroupsFile": "ChanList.csv"
+        "talkgroupsFile": "ChanList.csv",
+        "modulation": "qpsk"
     }]
 }

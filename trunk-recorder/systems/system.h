@@ -62,6 +62,8 @@ public:
   double bandplan_high;
   double bandplan_spacing;
   int bandplan_offset;
+  int max_dev;
+  double filter_width;
   double min_call_duration;
 
   bool qpsk_mod;
@@ -121,6 +123,10 @@ public:
   bool get_qpsk_mod();
   void set_squelch_db(double s);
   double get_squelch_db();
+  void set_max_dev(int max_dev);
+  int get_max_dev();
+  void set_filter_width(double f);
+  double get_filter_width();
 
   std::string get_system_type();
   unsigned long get_sys_id();

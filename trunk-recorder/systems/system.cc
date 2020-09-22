@@ -146,6 +146,22 @@ double System::get_squelch_db() {
   return squelch_db;
 }
 
+void System::set_filter_width(double filter_width) {
+  this->filter_width = filter_width;
+}
+
+double System::get_filter_width() {
+  return filter_width;
+}
+
+void System::set_max_dev(int max_dev) {
+  this->max_dev = max_dev;
+}
+
+int System::get_max_dev() {
+  return max_dev;
+}
+
 void System::set_analog_levels(double r) {
   analog_levels = r;
 }

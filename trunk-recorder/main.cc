@@ -260,6 +260,8 @@ bool load_config(string config_file) {
       double digital_levels = node.second.get<double>("digitalLevels", 1.0);
       double analog_levels = node.second.get<double>("analogLevels", 8.0);
       double squelch_db = node.second.get<double>("squelch", 0);
+      int    max_dev        = node.second.get<int>("maxDev", 4000);
+      double filter_width   = node.second.get<double>("filterWidth", 1.0);
 
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
@@ -284,7 +286,10 @@ bool load_config(string config_file) {
       system->set_analog_levels(analog_levels);
       system->set_digital_levels(digital_levels);
       system->set_qpsk_mod(qpsk_mod);
-
+      system->set_max_dev(max_dev);
+      system->set_filter_width(filter_width);
+      BOOST_LOG_TRIVIAL(info) << "Max Dev: " << node.second.get<int>("maxDev", 4000);
+      BOOST_LOG_TRIVIAL(info) << "Filter Width: " << filter_width;
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
@@ -1248,7 +1253,7 @@ bool monitor_system() {
               system->add_conventional_recorder(rec);
               calls.push_back(call);
               stats.send_recorder((Recorder *)rec.get());
-            } else { // has to be "conventionalP25"
+            } else { // has to be "conventional P25"
               p25_recorder_sptr rec;
               rec = source->create_digital_conventional_recorder(tb);
               rec->start(call);

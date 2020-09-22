@@ -8,7 +8,6 @@
             "ifGain": 40,
             "bbGain": 40,
             "digitalRecorders": 4,
-            "modulation": "fsk4",
             "debugRecorders": 0,
             "driver": "osmosdr"
         }
@@ -17,6 +16,7 @@
         "control_channels": [496537500, 496437500],
         "type": "smartnet",
         "talkgroupsFile": "wmata.csv",
-        "shortName": "wmata"
+        "shortName": "wmata",
+        "modulation": "fsk4"
     }]
 }
