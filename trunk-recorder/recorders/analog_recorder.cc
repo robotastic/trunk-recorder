@@ -66,12 +66,13 @@ analog_recorder::analog_recorder(Source *src)
 
   //int samp_per_sym        = 10;
   system_channel_rate = 96000; //4800 * samp_per_sym;
+  wave_sample_rate = 16000;    // Must be an integer decimation of system_channel_rate
                                /*  int decim               = floor(samp_rate / 384000);
 
   double pre_channel_rate = samp_rate / decim;*/
 
   int initial_decim = floor(samp_rate / 480000);
-  double initial_rate = double(samp_rate) / double(initial_decim);
+  initial_rate = double(samp_rate) / double(initial_decim);
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
 
@@ -96,7 +97,8 @@ analog_recorder::analog_recorder(Source *src)
   // width of 0.5.  If rate < 1, we need to filter to less
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
-  double percent = 0.80;
+  //double percent = 0.80;
+  double percent = 1.00; // Slightly widening this filter helps wideband and makes the audio a little better when using a higher sample rate
 
   if (arb_rate <= 1) {
     double halfband = 0.5 * arb_rate;
@@ -124,18 +126,16 @@ analog_recorder::analog_recorder(Source *src)
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
+  // Non-blocking as we are using squelch_two as a gate.
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
-    // Non-blocking as we are using squelch_two as a gate.
-    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
-
-    //  based on squelch code form ham2mon
-    // set low -200 since its after demod and its just gate for previous squelch so that the audio
-    // recording doesn't contain blank spaces between transmissions
-    squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
-  
+  //  based on squelch code form ham2mon
+  // set low -200 since its after demod and its just gate for previous squelch so that the audio
+  // recording doesn't contain blank spaces between transmissions
+  squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
 
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
-  float quad_gain;
+  
   int d_max_dev = 5000;
   /* demodulator gain */
   quad_gain = system_channel_rate / (2.0 * M_PI * d_max_dev);
@@ -151,39 +151,41 @@ analog_recorder::analog_recorder(Source *src)
   calculate_iir_taps(d_tau);
   deemph = gr::filter::iir_filter_ffd::make(d_fftaps, d_fbtaps);
 
-  audio_resampler_taps = design_filter(1, 12);
+  audio_resampler_taps = design_filter(1, (system_channel_rate / wave_sample_rate)); // Calculated to make sample rate changable -- must be an integer
 
   // downsample from 48k to 8k
-  decim_audio = gr::filter::fir_filter_fff::make(12, audio_resampler_taps);
+  decim_audio = gr::filter::fir_filter_fff::make((system_channel_rate / wave_sample_rate), audio_resampler_taps); // Calculated to make sample rate changable
 
   //tm *ltm = localtime(&starttime);
 
-  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
+  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wave_sample_rate, 16, true); //  Configurable
 
   BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
   decoder_sink = gr::blocks::decoder_wrapper_impl::make(8000, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
 
   // Try and get rid of the FSK wobble
-  high_f_taps = gr::filter::firdes::high_pass(1, 8000, 300, 50, gr::filter::firdes::WIN_HANN);
+  high_f_taps = gr::filter::firdes::high_pass(1, wave_sample_rate, 300, 50, gr::filter::firdes::WIN_HANN); // Configurable
   high_f = gr::filter::fir_filter_fff::make(1, high_f_taps);
 
-
-    // using squelch
-    connect(self(), 0, valve, 0);
-    connect(valve, 0, prefilter, 0);
-    connect(prefilter, 0, channel_lpf, 0);
+  // using squelch
+  connect(self(), 0, valve, 0);
+  connect(valve, 0, prefilter, 0);
+  connect(prefilter, 0, channel_lpf, 0);
+  if (arb_rate == 1) {
+    connect(channel_lpf, 0, squelch, 0);
+  } else {
     connect(channel_lpf, 0, arb_resampler, 0);
     connect(arb_resampler, 0, squelch, 0);
-    connect(squelch, 0, demod, 0);
-    connect(demod, 0, deemph, 0);
-    connect(deemph, 0, decim_audio, 0);
-    connect(decim_audio, 0, high_f, 0);
-    connect(decim_audio, 0, decoder_sink, 0);
-    connect(high_f, 0, squelch_two, 0);
-    connect(squelch_two, 0, levels, 0);
-    connect(levels, 0, wav_sink, 0);
-
+  }
+  connect(squelch, 0, demod, 0);
+  connect(demod, 0, deemph, 0);
+  connect(deemph, 0, decim_audio, 0);
+  connect(decim_audio, 0, high_f, 0);
+  connect(decim_audio, 0, decoder_sink, 0);
+  connect(high_f, 0, squelch_two, 0);
+  connect(squelch_two, 0, levels, 0);
+  connect(levels, 0, wav_sink, 0);
 }
 
 analog_recorder::~analog_recorder() {}
@@ -290,8 +292,6 @@ void analog_recorder::setup_decoders_for_system(System *system) {
   decoder_sink->set_tps_enabled(system->get_tps_enabled());
 }
 
-
-
 void analog_recorder::start(Call *call) {
   starttime = time(NULL);
   System *system = call->get_system();
@@ -306,7 +306,12 @@ void analog_recorder::start(Call *call) {
   squelch_db = system->get_squelch_db();
   squelch->set_threshold(squelch_db);
   levels->set_k(system->get_analog_levels());
-
+  int d_max_dev = system->get_max_dev();
+  double d_filter_width = system->get_filter_width();
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, d_max_dev, 1000, 100);
+  channel_lpf->set_taps(channel_lpf_taps);
+  quad_gain = system_channel_rate / (2.0 * M_PI * (d_max_dev + 1000));
+  demod->set_gain(quad_gain);
   prefilter->set_center_freq(chan_freq - center_freq);
 
   wav_sink->open(call);

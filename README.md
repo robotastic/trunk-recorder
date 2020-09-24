@@ -109,6 +109,7 @@ Here are the different arguments:
    - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 1.
    - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
    - **squelch** - Squelch in DB, this needs to be set for all convetional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. Defaults to 0, which is disabled. 
+   - **maxDev** - Allows you to set the maximum deviation for analog channels. The default is 4000. If you analog recordings sound good or if you have a completely digital system, then there is no need to tough this.
    - **channels** - *(For conventional systems)* an array of the channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used.
    - **alphatags** - *(Optional, For conventional systems)* an array of the alpha tags, these will be outputed to the logfiles *talkgroupDisplayFormat* is set to include tags. Alpha tags will be applied to the *channels* in the order the values appear in the array.
    - **type** - the type of trunking system. The options are *smartnet*, *p25*,  *conventional* & *conventionalP25*.

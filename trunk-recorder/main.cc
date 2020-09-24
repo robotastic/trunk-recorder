@@ -288,7 +288,7 @@ bool load_config(string config_file) {
       system->set_qpsk_mod(qpsk_mod);
       system->set_max_dev(max_dev);
       system->set_filter_width(filter_width);
-      BOOST_LOG_TRIVIAL(info) << "Max Dev: " << node.second.get<int>("maxDev", 4000);
+      BOOST_LOG_TRIVIAL(info) << "Analog Recorder Maximum Deviation: " << node.second.get<int>("maxDev", 4000);
       BOOST_LOG_TRIVIAL(info) << "Filter Width: " << filter_width;
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
