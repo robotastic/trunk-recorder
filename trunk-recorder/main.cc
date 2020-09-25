@@ -165,6 +165,16 @@ bool load_config(string config_file) {
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
+    double config_ver = pt.get<double>("ver", 0);
+    if (config_ver < 2) {
+      BOOST_LOG_TRIVIAL(info) << "The formatting for config files has changed.";
+      BOOST_LOG_TRIVIAL(info) << "Modulation type, Squelch and audio levels are now set in each System instead of under a Source.";
+      BOOST_LOG_TRIVIAL(info) << "See sample config files in the /example folder and look at readme.md for more details.";
+      BOOST_LOG_TRIVIAL(info) <<  "After you have made these updates, make sure you add \"ver\": 2, to the top.\n\n";
+      return false;
+    }
+
+
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
 

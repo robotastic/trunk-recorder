@@ -1,5 +1,7 @@
-Trunk Recorder - v3.2
+Trunk Recorder - v3.3
 =======================
+*Note: v3.3 changes the format of the config.json file. Modulation type, Squelch and audio levels are now set in each System instead of under a Source. See sample config files in the /example folder. Config files are also now versioned, to help catch misconfigurations. After you have updated your config file, add "ver": 2, to the top. The processing of SmartNet talkgroup numbers as also been fixed. The decimal talkgroup numbers will now match what is in Radio Reference. Please update your talkgroup.csv, if needed.*
+
 *Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compressing audio for OpenMHz. Both utilities can be easily installed using apt-get*
 
 *Note: v3.1.3 adds a dependency for `libcurl`, you can install it thru `apt-get` with `sudo apt-get install libcurl4-openssl-dev`.*
@@ -84,6 +86,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 }
 ```
 Here are the different arguments:
+ - **ver** - the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. 
  - **sources** - an array of JSON objects that define the different SDRs available. The following options are used to configure each Source:
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
