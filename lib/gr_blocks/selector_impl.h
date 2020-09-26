@@ -23,7 +23,7 @@
 #ifndef INCLUDED_GR_SELECTOR_IMPL_H
 #define INCLUDED_GR_SELECTOR_IMPL_H
 
-#include <gnuradio/blocks/selector.h>
+#include "selector.h"
 #include <gnuradio/thread/thread.h>
 
 namespace gr {
