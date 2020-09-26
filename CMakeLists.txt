@@ -224,6 +224,7 @@ list(APPEND trunk_recorder_sources
   lib/gr_blocks/decoders/signal_decoder_sink_impl.cc
   lib/gr_blocks/decoders/tps_decoder_sink_impl.cc
   lib/gr_blocks/decoder_wrapper_impl.cc
+  lib/gr_blocks/selector_impl.cc
   )
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")

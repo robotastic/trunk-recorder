@@ -27,7 +27,7 @@
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
 
-#include <gnuradio/blocks/selector.h>
+//#include <gnuradio/blocks/selector.h>
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/analog/sig_source_c.h>
@@ -41,7 +41,6 @@
 #include <gnuradio/analog/sig_source.h>
 #include <gnuradio/blocks/multiply.h>
 #include <gnuradio/blocks/multiply_const.h>
-
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
