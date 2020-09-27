@@ -241,7 +241,6 @@ int Source::get_if_gain() {
   return if_gain;
 }
 
-
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
 
   analog_recorder_sptr log = make_analog_recorder(this);
@@ -250,7 +249,6 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb)
   tb->connect(source_block, 0, log, 0);
   return log;
 }
-
 
 void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
   max_analog_recorders = r;
@@ -263,7 +261,10 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 }
 
 Recorder *Source::get_analog_recorder(int priority) {
-  if (priority > 99) {
+
+  int num_available_recorders = get_num_available_recorders();
+  if (priority > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
+
     BOOST_LOG_TRIVIAL(info) << "\t\tNot recording because of priority";
     return NULL;
   }
@@ -294,9 +295,9 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
 p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
-    p25_recorder_sptr log = make_p25_recorder(this);
-    tb->connect(source_block, 0, log, 0);
-    return log;
+  p25_recorder_sptr log = make_p25_recorder(this);
+  tb->connect(source_block, 0, log, 0);
+  return log;
 }
 
 void Source::create_debug_recorder(gr::top_block_sptr tb, int source_num) {
@@ -412,14 +413,25 @@ int Source::get_num_available_recorders() {
   return num_available_recorders;
 }
 
+int Source::get_num_available_analog_recorders() {
+  int num_available_recorders = 0;
+
+  for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
+    analog_recorder_sptr rx = *it;
+
+    if (rx->get_state() == inactive) {
+      num_available_recorders++;
+    }
+  }
+  return num_available_recorders;
+}
+
 Recorder *Source::get_digital_recorder(int priority) {
   // int num_available_recorders = get_num_available_recorders();
   // BOOST_LOG_TRIVIAL(info) << "\tTG Priority: "<< priority << " Available
   // Digital Recorders: " <<num_available_recorders;
-
-  if (priority > 99) { // num_available_recorders) { // a low priority is bad.
-                       // You need atleast the number of availalbe recorders to
-                       // your priority
+  int num_available_recorders = get_num_available_recorders();
+  if (priority > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
     BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
     return NULL;
   }
