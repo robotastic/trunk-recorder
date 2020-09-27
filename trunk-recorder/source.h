@@ -53,7 +53,7 @@ class Source {
   gr::basic_block_sptr source_block;
 
 public:
-  int get_num_available_recorders();
+  int get_num_available_digital_recorders();
   int get_num_available_analog_recorders();
   int get_num();
   Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
@@ -105,10 +105,12 @@ public:
   Config *get_config();
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
   void create_analog_recorders(gr::top_block_sptr tb, int r);
-  Recorder *get_analog_recorder(int priority);
+  Recorder *get_analog_recorder();
+  Recorder *get_analog_recorder(Talkgroup *talkgroup);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
-  Recorder *get_digital_recorder(int priority);
+  Recorder *get_digital_recorder();
+  Recorder *get_digital_recorder(Talkgroup *talkgroup);
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   Recorder *get_debug_recorder();
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);

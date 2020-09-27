@@ -636,9 +636,9 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
       if (talkgroup) {
         if (talkgroup->mode == 'A') {
-          recorder = source->get_analog_recorder(talkgroup->get_priority());
+          recorder = source->get_analog_recorder(talkgroup);
         } else {
-          recorder = source->get_digital_recorder(talkgroup->get_priority());
+          recorder = source->get_digital_recorder(talkgroup);
         }
       } else {
         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tTG not in Talkgroup File ";
@@ -647,9 +647,9 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         // Use an analog recorder if this is a Type II trunk and defaultMode is analog.
         // All other cases use a digital recorder.
         if ((default_mode == "analog") && (sys->get_system_type() == "smartnet")) {
-          recorder = source->get_analog_recorder(2);
+          recorder = source->get_analog_recorder();
         } else {
-          recorder = source->get_digital_recorder(2);
+          recorder = source->get_digital_recorder();
         }
       }
       //int total_recorders = get_total_recorders();
