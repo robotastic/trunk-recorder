@@ -28,8 +28,6 @@ class analog_recorder;
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 class p25_recorder;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-class p25conventional_recorder;
-typedef boost::shared_ptr<p25conventional_recorder> p25conventional_recorder_sptr;
 
 class System {
   int sys_num;
@@ -64,7 +62,14 @@ public:
   double bandplan_high;
   double bandplan_spacing;
   int bandplan_offset;
+  int max_dev;
+  double filter_width;
   double min_call_duration;
+
+  bool qpsk_mod;
+  double squelch_db;
+  double analog_levels;
+  double digital_levels;
 
   unsigned xor_mask_len;
   const char *xor_mask;
@@ -72,9 +77,8 @@ public:
   unsigned int current_control_channel;
   std::vector<double> channels;
   std::vector<analog_recorder_sptr> conventional_recorders;
-  std::vector<p25conventional_recorder_sptr> conventionalP25_recorders;
+  std::vector<p25_recorder_sptr> conventionalP25_recorders;
 
-  bool qpsk_mod;
   bool audio_archive;
   bool record_unknown;
   bool call_log;
@@ -111,6 +115,19 @@ public:
   bool get_star_enabled();
   bool get_tps_enabled();
 
+  void set_analog_levels(double r);
+  double get_analog_levels();
+  void set_digital_levels(double r);
+  double get_digital_levels();
+  void set_qpsk_mod(bool m);
+  bool get_qpsk_mod();
+  void set_squelch_db(double s);
+  double get_squelch_db();
+  void set_max_dev(int max_dev);
+  int get_max_dev();
+  void set_filter_width(double f);
+  double get_filter_width();
+
   std::string get_system_type();
   unsigned long get_sys_id();
   unsigned long get_wacn();
@@ -136,8 +153,8 @@ public:
   void add_channel(double channel);
   void add_conventional_recorder(analog_recorder_sptr rec);
   std::vector<analog_recorder_sptr> get_conventional_recorders();
-  void add_conventionalP25_recorder(p25conventional_recorder_sptr rec);
-  std::vector<p25conventional_recorder_sptr> get_conventionalP25_recorders();
+  void add_conventionalP25_recorder(p25_recorder_sptr rec);
+  std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();
   System(int sys_id);

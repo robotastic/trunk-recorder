@@ -57,14 +57,9 @@
 namespace gr {
 namespace blocks {
 nonstop_wavfile_sink_impl::sptr
-nonstop_wavfile_sink_impl::make(int          n_channels,
-                           unsigned int sample_rate,
-                           int          bits_per_sample,
-                           bool         use_float)
+nonstop_wavfile_sink_impl::make(int          n_channels,  unsigned int sample_rate, int          bits_per_sample, bool         use_float)
 {
-  return gnuradio::get_initial_sptr
-           (new nonstop_wavfile_sink_impl( n_channels,
-                                          sample_rate, bits_per_sample, use_float));
+  return gnuradio::get_initial_sptr(new nonstop_wavfile_sink_impl( n_channels, sample_rate, bits_per_sample, use_float));
 }
 
 nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
@@ -82,15 +77,22 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
   d_bytes_per_sample = bits_per_sample / 8;
+  d_first_work = true;
+  d_sample_count = 0;
 }
 
 char * nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
 }
 
-bool nonstop_wavfile_sink_impl::open(const char *filename) {
+bool nonstop_wavfile_sink_impl::open(Call *call) {
   gr::thread::scoped_lock guard(d_mutex);
-  return open_internal(filename);
+  d_current_call = call;
+  d_conventional = call->is_conventional();
+  d_first_work = true;
+  d_sample_count = 0;
+  
+  return true;
 }
 
 bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
@@ -129,36 +131,13 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
     return false;
   }
 
-  // Scan headers, check file validity
-  if (wavheader_parse(d_fp,
-                      d_sample_rate,
-                      d_nchans,
-                      d_bytes_per_sample,
-                      d_first_sample_pos,
-                      d_samples_per_chan)) {
-    d_sample_count = (unsigned)d_samples_per_chan * d_nchans;
-
-    // std::cout << "Wav: " << filename << " Existing Wav Sample Count: " <<
-    // d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " <<
-    // d_samples_per_chan <<std::endl;
-    // fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
-    fseek(d_fp, 0, SEEK_END);
-  } else {
     d_sample_count = 0;
 
-    // you have to rewind the d_new_fp because the read failed.
-    if (fseek(d_fp, 0, SEEK_SET) != 0) {
-      BOOST_LOG_TRIVIAL(error) << "Error rewinding " << std::endl;
-      return false;
-    }
-
-    // std::cout << "Adding Wav header, bytes per sample: " <<
-    // d_bytes_per_sample << std::endl;
     if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
       fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
       return false;
     }
-  }
+  
 
   if (d_bytes_per_sample == 1) {
     d_max_sample_val  = UCHAR_MAX;
@@ -176,6 +155,7 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
   return true;
 }
 
+
 void
 nonstop_wavfile_sink_impl::close()
 {
@@ -187,7 +167,7 @@ nonstop_wavfile_sink_impl::close()
   }
 
   close_wav();
-  set_call(NULL);
+  d_current_call = NULL;
 }
 
 void
@@ -200,8 +180,6 @@ nonstop_wavfile_sink_impl::close_wav()
   fclose(d_fp);
   d_fp = NULL;
 
-  // std::cout <<  "Closing wav File - byte count: " << byte_count << " samples:
-  // " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl()
@@ -225,16 +203,42 @@ void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char* system
   }
 }
 
-void nonstop_wavfile_sink_impl::set_call(Call* call) {
-  d_current_call = call;
- }
+
 
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
 
-  return dowork(noutput_items, input_items, output_items);
+    if (d_first_work ) // drop output on the floor
+    {
+      if (d_fp) {
+        BOOST_LOG_TRIVIAL(error) << "Weird - trying to open a file, but already have a FP";
+    
+      }
+
+        d_current_call->create_filename();
+        if (!open_internal(d_current_call->get_filename())) {
+            BOOST_LOG_TRIVIAL(error) << "can't open file";
+        }
+      d_first_work = false;
+      d_start_time = time(NULL);
+    }
+
+  int nwritten = dowork(noutput_items, input_items, output_items);
+
+  d_stop_time = time(NULL);
+
+  return nwritten;
 }
+
+time_t nonstop_wavfile_sink_impl::get_start_time() {
+	return d_start_time;
+}
+
+time_t nonstop_wavfile_sink_impl::get_stop_time() {
+	return d_stop_time;
+}
+
 
 int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   // block

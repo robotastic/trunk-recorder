@@ -20,15 +20,14 @@
 
 #include <gnuradio/filter/fft_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
-
-#include <gnuradio/analog/feedforward_agc_cc.h>
-#include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/analog/pwr_squelch_cc.h>
-#include <gnuradio/digital/diff_phasor_cc.h>
+#include <gnuradio/analog/pll_freqdet_cf.h>
+
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
-#include <gnuradio/blocks/short_to_float.h>
+
+//#include <gnuradio/blocks/selector.h>
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/analog/sig_source_c.h>
@@ -45,14 +44,6 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-#include <gnuradio/blocks/complex_to_arg.h>
-
-#include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/gardner_costas_cc.h>
-#include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
-#include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
-#include <op25_repeater/include/op25_repeater/rx_status.h>
-#include <op25_repeater/vocoder.h>
 
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/blocks/head.h>
@@ -61,7 +52,11 @@
 
 #include "../config.h"
 #include "recorder.h"
+#include "p25_recorder_decode.h"
+#include "p25_recorder_fsk4_demod.h"
+#include "p25_recorder_qpsk_demod.h"
 #include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/selector.h>
 
 class Source;
 class p25_recorder;
@@ -75,7 +70,7 @@ class p25_recorder : public gr::hier_block2, public Recorder {
 protected:
   p25_recorder();
   p25_recorder(std::string type);
-  virtual void initialize(Source *src, gr::blocks::nonstop_wavfile_sink::sptr wav_sink);
+  virtual void initialize(Source *src);
 
 public:
   virtual ~p25_recorder();
@@ -100,14 +95,12 @@ public:
   bool is_idle();
   State get_state();
   Rx_Status get_rx_status();
+  char *get_filename();
   int lastupdate();
   long elapsed();
   Source *get_source();
   void autotune();
   void reset();
-  gr::msg_queue::sptr tune_queue;
-  gr::msg_queue::sptr traffic_queue;
-  gr::msg_queue::sptr rx_queue;
 
 protected:
   State state;
@@ -121,14 +114,15 @@ protected:
   double chan_freq;
   double center_freq;
   bool qpsk_mod;
+  bool conventional;
 
-  gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
-  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+
+ 
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
-  gr::blocks::multiply_const_ff::sptr levels;
 
+
+gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 private:
   double system_channel_rate;
   double arb_rate;
@@ -151,8 +145,12 @@ private:
   const double phase2_symbol_rate = 6000;
 
   std::vector<float> arb_taps;
-  std::vector<float> sym_taps;
-  std::vector<float> baseband_noise_filter_taps;
+
+  p25_recorder_fsk4_demod_sptr fsk4_demod;
+    p25_recorder_decode_sptr     fsk4_p25_decode;
+  p25_recorder_qpsk_demod_sptr qpsk_demod;
+  p25_recorder_decode_sptr     qpsk_p25_decode;
+ 
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
@@ -166,26 +164,13 @@ private:
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
-  gr::filter::fir_filter_fff::sptr sym_filter;
-
-  gr::filter::fft_filter_fff::sptr noise_filter;
-
-  gr::digital::diff_phasor_cc::sptr diffdec;
-
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-  gr::blocks::short_to_float::sptr converter;
-  gr::analog::feedforward_agc_cc::sptr agc;
-  gr::blocks::multiply_const_ff::sptr pll_amp;
-  gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
   gr::analog::pwr_squelch_cc::sptr squelch;
-
+  gr::blocks::selector::sptr modulation_selector;
   gr::blocks::multiply_const_ff::sptr rescale;
 
-  gr::blocks::complex_to_arg::sptr to_float;
 
-  gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
 
-  gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
 };
 
 #endif // ifndef P25_RECORDER_H

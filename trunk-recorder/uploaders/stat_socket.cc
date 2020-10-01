@@ -57,10 +57,9 @@ void stat_socket::send_config(std::vector<Source *> sources, std::vector<System 
     boost::property_tree::ptree source_node;
     source_node.put("source_num", source->get_num());
     source_node.put("antenna", source->get_antenna());
-    source_node.put("qpsk", source->get_qpsk_mod());
+
     source_node.put("silence_frames", source->get_silence_frames());
-    source_node.put("analog_levels", source->get_analog_levels());
-    source_node.put("digital_levels", source->get_digital_levels());
+
     source_node.put("min_hz", source->get_min_hz());
     source_node.put("max_hz", source->get_max_hz());
     source_node.put("center", source->get_center());
@@ -75,7 +74,7 @@ void stat_socket::send_config(std::vector<Source *> sources, std::vector<System 
     source_node.put("bb_gain", source->get_bb_gain());
     source_node.put("gain", source->get_gain());
     source_node.put("if_gain", source->get_if_gain());
-    source_node.put("squelch_db", source->get_squelch_db());
+
     source_node.put("antenna", source->get_antenna());
     source_node.put("analog_recorders", source->analog_recorder_count());
     source_node.put("digital_recorders", source->digital_recorder_count());
@@ -97,6 +96,10 @@ void stat_socket::send_config(std::vector<Source *> sources, std::vector<System 
     sys_node.put("recordUnkown", sys->get_record_unknown());
     sys_node.put("callLog", sys->get_call_log());
     sys_node.put("talkgroupsFile", sys->get_talkgroups_file());
+    sys_node.put("analog_levels", sys->get_analog_levels());
+    sys_node.put("digital_levels", sys->get_digital_levels());
+    sys_node.put("qpsk", sys->get_qpsk_mod());
+    sys_node.put("squelch_db", sys->get_squelch_db());
     std::vector<double> channels;
 
     if ((sys->get_system_type() == "conventional") || (sys->get_system_type() == "conventionalP25")) {

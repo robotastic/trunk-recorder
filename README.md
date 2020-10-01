@@ -1,5 +1,7 @@
-Trunk Recorder - v3.2
+Trunk Recorder - v3.3
 =======================
+*Note: v3.3 changes the format of the config.json file. Modulation type, Squelch and audio levels are now set in each System instead of under a Source. See sample config files in the /example folder. Config files are also now versioned, to help catch misconfigurations. After you have updated your config file, add "ver": 2, to the top. The processing of SmartNet talkgroup numbers as also been fixed. The decimal talkgroup numbers will now match what is in Radio Reference. Please update your talkgroup.csv, if needed.*
+
 *Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compressing audio for OpenMHz. Both utilities can be easily installed using apt-get*
 
 *Note: v3.1.3 adds a dependency for `libcurl`, you can install it thru `apt-get` with `sudo apt-get install libcurl4-openssl-dev`.*
@@ -84,10 +86,10 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 }
 ```
 Here are the different arguments:
+ - **ver** - the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. 
  - **sources** - an array of JSON objects that define the different SDRs available. The following options are used to configure each Source:
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
-   - **squelch** - Analog Squelch, my rtl-sdr's are around -60. [0 = Disabled] _Squelch needs to be set if the System using the source is conventional._
    - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz (when set to 0ppm)  to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
    - **ppm** - the tuning error for the SDR in ppm (parts per million), as an alternative to `error` above. Use a program like GQRX to find an accurate value.
    - **agc** - whether or not to enable the SDR's automatic gain control (if supported). This is false by default. It is not recommended to set this as it often yields worse performance compared to a manual gain setting.
@@ -100,15 +102,17 @@ Here are the different arguments:
    - **vga2Gain** - [bladeRF only] sets the vga2 gain.
    - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
    - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
-   - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 1.
-   - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
    - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
-   - **analogLevels** - the amount of amplification that will be applied to the analog audio. The value should be between 1-32. The default value is 8.
    - **debugRecorders** - the number of Debug Recorder to have attached to this source. Debug Recorders capture a raw sample that you can examine later using GNURadio Companion. This is helpful if you want to fine tune your the error and gain for this Source.
    - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
    - **device** - osmosdr device name and possibly serial number or index of the device, see [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for each device and parameters. You only need to do this if there are more than one. (`bladerf=00001` for BladeRF with serial 00001 or `rtl=00923838` for RTL-SDR with serial 00923838, just airspy for an airspy) It seems that when you have 5 or more RTLSDRs on one system you need to decrease the buffer size. I think it has something to do with the driver. Try adding buflen: `"device": "rtl=serial_num,buflen=65536"`, there should be no space between buflen and the comma
  - **systems** - An array of JSON objects that define the trunking systems that will be recorded. The following options are used to configure each System.
    - **control_channels** - *(For trunked systems)* an array of the control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel.
+   - **analogLevels** - the amount of amplification that will be applied to the analog audio. The value should be between 1-32. The default value is 8.
+   - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 1.
+   - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
+   - **squelch** - Squelch in DB, this needs to be set for all convetional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. Defaults to 0, which is disabled. 
+   - **maxDev** - Allows you to set the maximum deviation for analog channels. The default is 4000. If you analog recordings sound good or if you have a completely digital system, then there is no need to tough this.
    - **channels** - *(For conventional systems)* an array of the channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used.
    - **alphatags** - *(Optional, For conventional systems)* an array of the alpha tags, these will be outputed to the logfiles *talkgroupDisplayFormat* is set to include tags. Alpha tags will be applied to the *channels* in the order the values appear in the array.
    - **type** - the type of trunking system. The options are *smartnet*, *p25*,  *conventional* & *conventionalP25*.
@@ -129,7 +133,6 @@ Here are the different arguments:
    - **bandplanSpacing** - [SmartNet, 400_custom only] this is the channel spacing, specified in Hz. Typically this is *25000*.
    - **bandplanOffset** - [SmartNet, 400_custom only] this is the offset used to calculate frequencies.
    - **talkgroupDisplayFormat** - the display format for talkgroups in the console and log file. the options are *id*, *id_tag*, *tag_id*. The default is *id*. [*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified]
-   - **delayCreateOutput** - [conventionalP25 only] this will delay the creation of the output file until there is activity, The options are *true* or *false*, without quotes. The default is *false*.
    - **hideEncrypted** - hide encrypted talkgroups log entries, The options are *true* or *false*, without quotes. The default is *false*.
    - **hideUnknownTalkgroups** - hide unknown talkgroups from log, The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeMDC** - *(Optional, For conventional systems)* enable the MDC-1200 signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.

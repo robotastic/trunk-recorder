@@ -1,6 +1,5 @@
 #include "source.h"
 #include "formatter.h"
-#include "recorders/p25conventional_recorder.h"
 
 static int src_counter = 0;
 
@@ -22,36 +21,12 @@ std::string Source::get_antenna() {
   return antenna;
 }
 
-void Source::set_qpsk_mod(bool m) {
-  qpsk_mod = m;
-}
-
-bool Source::get_qpsk_mod() {
-  return qpsk_mod;
-}
-
 void Source::set_silence_frames(int m) {
   silence_frames = m;
 }
 
 int Source::get_silence_frames() {
   return silence_frames;
-}
-
-void Source::set_analog_levels(double r) {
-  analog_levels = r;
-}
-
-double Source::get_analog_levels() {
-  return analog_levels;
-}
-
-void Source::set_digital_levels(double r) {
-  digital_levels = r;
-}
-
-double Source::get_digital_levels() {
-  return digital_levels;
 }
 
 double Source::get_min_hz() {
@@ -266,28 +241,11 @@ int Source::get_if_gain() {
   return if_gain;
 }
 
-void Source::set_squelch_db(double s) {
-  squelch_db = s;
-}
-
-double Source::get_squelch_db() {
-  return squelch_db;
-}
-
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
 
   analog_recorder_sptr log = make_analog_recorder(this);
 
   analog_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
-  return log;
-}
-
-p25conventional_recorder_sptr Source::create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen) {
-
-  p25conventional_recorder_sptr log = make_p25conventional_recorder(this, delayopen);
-
-  digital_recorders.push_back(log);
   tb->connect(source_block, 0, log, 0);
   return log;
 }
@@ -302,12 +260,19 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
   }
 }
 
-Recorder *Source::get_analog_recorder(int priority) {
-  if (priority > 99) {
-    BOOST_LOG_TRIVIAL(info) << "\t\tNot recording because of priority";
+Recorder *Source::get_analog_recorder(Talkgroup *talkgroup) {
+  int num_available_recorders = get_num_available_analog_recorders();
+
+  if (talkgroup && talkgroup->get_priority() > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
+    BOOST_LOG_TRIVIAL(info) << "\t\tNot recording talkgroup " << talkgroup->number << " (" << talkgroup->alpha_tag << ")" << ", priority is " <<
+      talkgroup->get_priority() << " but only " << num_available_recorders << " recorders available";
     return NULL;
   }
 
+  return get_analog_recorder();
+}
+
+Recorder *Source::get_analog_recorder() {
   for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin();
        it != analog_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
@@ -330,6 +295,13 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
   }
+}
+
+p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb) {
+  // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
+  p25_recorder_sptr log = make_p25_recorder(this);
+  tb->connect(source_block, 0, log, 0);
+  return log;
 }
 
 void Source::create_debug_recorder(gr::top_block_sptr tb, int source_num) {
@@ -431,7 +403,7 @@ int Source::get_num() {
   return src_num;
 };
 
-int Source::get_num_available_recorders() {
+int Source::get_num_available_digital_recorders() {
   int num_available_recorders = 0;
 
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
@@ -445,18 +417,32 @@ int Source::get_num_available_recorders() {
   return num_available_recorders;
 }
 
-Recorder *Source::get_digital_recorder(int priority) {
-  // int num_available_recorders = get_num_available_recorders();
-  // BOOST_LOG_TRIVIAL(info) << "\tTG Priority: "<< priority << " Available
-  // Digital Recorders: " <<num_available_recorders;
+int Source::get_num_available_analog_recorders() {
+  int num_available_recorders = 0;
 
-  if (priority > 99) { // num_available_recorders) { // a low priority is bad.
-                       // You need atleast the number of availalbe recorders to
-                       // your priority
-    BOOST_LOG_TRIVIAL(info) << "Not recording because of priority";
+  for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
+    analog_recorder_sptr rx = *it;
+
+    if (rx->get_state() == inactive) {
+      num_available_recorders++;
+    }
+  }
+  return num_available_recorders;
+}
+
+Recorder *Source::get_digital_recorder(Talkgroup *talkgroup) {
+  int num_available_recorders = get_num_available_digital_recorders();
+
+  if (talkgroup && talkgroup->get_priority() > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
+    BOOST_LOG_TRIVIAL(info) << "\t\tNot recording talkgroup " << talkgroup->number << " (" << talkgroup->alpha_tag << ")" << ", priority is " <<
+      talkgroup->get_priority() << " but only " << num_available_recorders << " recorders available";
     return NULL;
   }
 
+  return get_digital_recorder();
+}
+
+Recorder *Source::get_digital_recorder() {
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;

@@ -138,6 +138,54 @@ void System::set_call_log(bool call_log) {
   this->call_log = call_log;
 }
 
+void System::set_squelch_db(double s) {
+  squelch_db = s;
+}
+
+double System::get_squelch_db() {
+  return squelch_db;
+}
+
+void System::set_filter_width(double filter_width) {
+  this->filter_width = filter_width;
+}
+
+double System::get_filter_width() {
+  return filter_width;
+}
+
+void System::set_max_dev(int max_dev) {
+  this->max_dev = max_dev;
+}
+
+int System::get_max_dev() {
+  return max_dev;
+}
+
+void System::set_analog_levels(double r) {
+  analog_levels = r;
+}
+
+double System::get_analog_levels() {
+  return analog_levels;
+}
+
+void System::set_digital_levels(double r) {
+  digital_levels = r;
+}
+
+double System::get_digital_levels() {
+  return digital_levels;
+}
+
+void System::set_qpsk_mod(bool m) {
+  qpsk_mod = m;
+}
+
+bool System::get_qpsk_mod() {
+  return qpsk_mod;
+}
+
 void System::set_mdc_enabled(bool b) { d_mdc_enabled = b; };
 void System::set_fsync_enabled(bool b) { d_fsync_enabled = b; };
 void System::set_star_enabled(bool b) { d_star_enabled = b; };
@@ -223,11 +271,11 @@ std::vector<analog_recorder_sptr> System::get_conventional_recorders() {
   return conventional_recorders;
 }
 
-void System::add_conventionalP25_recorder(p25conventional_recorder_sptr rec) {
+void System::add_conventionalP25_recorder(p25_recorder_sptr rec) {
   conventionalP25_recorders.push_back(rec);
 }
 
-std::vector<p25conventional_recorder_sptr> System::get_conventionalP25_recorders() {
+std::vector<p25_recorder_sptr> System::get_conventionalP25_recorders() {
   return conventionalP25_recorders;
 }
 

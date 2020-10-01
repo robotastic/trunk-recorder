@@ -206,9 +206,11 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/recorders/sigmf_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
   lib/gr_blocks/nonstop_wavfile_sink_impl.cc
-  lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
-  trunk-recorder/recorders/p25conventional_recorder.cc
   trunk-recorder/recorders/p25_recorder.cc
+  trunk-recorder/recorders/p25_recorder_fsk4_demod.cc
+  trunk-recorder/recorders/p25_recorder_qpsk_demod.cc
+
+  trunk-recorder/recorders/p25_recorder_decode.cc
   trunk-recorder/csv_helper.cc
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
@@ -222,6 +224,7 @@ list(APPEND trunk_recorder_sources
   lib/gr_blocks/decoders/signal_decoder_sink_impl.cc
   lib/gr_blocks/decoders/tps_decoder_sink_impl.cc
   lib/gr_blocks/decoder_wrapper_impl.cc
+  lib/gr_blocks/selector_impl.cc
   )
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")

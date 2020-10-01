@@ -10,6 +10,7 @@
 //#include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
+#include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 
 class Source {
@@ -22,9 +23,7 @@ class Source {
   double actual_rate;
   double error;
   double ppm;
-  double squelch_db;
-  double analog_levels;
-  double digital_levels;
+
   bool gain_mode;
   int gain;
   int bb_gain;
@@ -40,7 +39,7 @@ class Source {
   int max_sigmf_recorders;
   int max_analog_recorders;
   int debug_recorder_port;
-  bool qpsk_mod;
+
   int silence_frames;
   Config *config;
 
@@ -54,7 +53,8 @@ class Source {
   gr::basic_block_sptr source_block;
 
 public:
-  int get_num_available_recorders();
+  int get_num_available_digital_recorders();
+  int get_num_available_analog_recorders();
   int get_num();
   Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
   gr::basic_block_sptr get_src_block();
@@ -71,20 +71,15 @@ public:
   double get_error();
   void set_if_gain(int i);
   int get_if_gain();
-  void set_squelch_db(double s);
-  double get_squelch_db();
+
   void set_gain_mode(bool m);
   bool get_gain_mode();
   void set_gain(int r);
   int get_gain();
-  void set_qpsk_mod(bool m);
-  bool get_qpsk_mod();
+
   void set_silence_frames(int m);
   int get_silence_frames();
-  void set_analog_levels(double r);
-  double get_analog_levels();
-  void set_digital_levels(double r);
-  double get_digital_levels();
+
   void set_bb_gain(int b);
   int get_bb_gain();
   void set_mix_gain(int b);
@@ -109,11 +104,13 @@ public:
   int analog_recorder_count();
   Config *get_config();
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
-  p25conventional_recorder_sptr create_conventionalP25_recorder(gr::top_block_sptr tb, bool delayopen);
   void create_analog_recorders(gr::top_block_sptr tb, int r);
-  Recorder *get_analog_recorder(int priority);
+  Recorder *get_analog_recorder();
+  Recorder *get_analog_recorder(Talkgroup *talkgroup);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
-  Recorder *get_digital_recorder(int priority);
+  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
+  Recorder *get_digital_recorder();
+  Recorder *get_digital_recorder(Talkgroup *talkgroup);
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   Recorder *get_debug_recorder();
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);

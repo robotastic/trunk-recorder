@@ -91,6 +91,9 @@ private:
   long samp_rate;
 
   double system_channel_rate;
+  double initial_rate;
+  float quad_gain;
+  double wave_sample_rate;
   double squelch_db;
   time_t timestamp;
   time_t starttime;
