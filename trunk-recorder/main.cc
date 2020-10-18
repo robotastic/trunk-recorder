@@ -620,7 +620,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     call->set_talkgroup_tag("-");
   }
 
-  if (call->get_encrypted() == true) {
+  if (call->get_encrypted() == true || talkgroup->mode == 'E') {
     if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
