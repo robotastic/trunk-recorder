@@ -305,6 +305,7 @@ void analog_recorder::start(Call *call) {
 
   squelch_db = system->get_squelch_db();
   squelch->set_threshold(squelch_db);
+  BOOST_LOG_TRIVIAL(error) << "Setting squelch to: " << squelch_db;
   levels->set_k(system->get_analog_levels());
   int d_max_dev = system->get_max_dev();
   double d_filter_width = system->get_filter_width();
