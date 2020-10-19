@@ -750,6 +750,12 @@ void stop_inactive_recorders() {
             stats.send_recorder(recorder);
           }
         }
+      } else if (!call->get_recorder()->is_active()) {
+              // P25 Conventional Recorders need a have the graph unlocked before they can start recording.  
+              Recorder *recorder = call->get_recorder();
+              recorder->start(call);
+              call->set_state(recording);
+              //stats.send_recorder((Recorder *)recorder->get());
       }
       ++it;
     } else {
@@ -1235,8 +1241,7 @@ bool monitor_system() {
         for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
           source = *src_it;
 
-          if ((source->get_min_hz() <= channel) &&
-              (source->get_max_hz() >= channel)) {
+          if ((source->get_min_hz() <= channel) && (source->get_max_hz() >= channel)) {
             channel_added = true;
             if (system->get_squelch_db() == 0) {
               BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
@@ -1264,13 +1269,14 @@ bool monitor_system() {
               calls.push_back(call);
               stats.send_recorder((Recorder *)rec.get());
             } else { // has to be "conventional P25"
+              // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
+              // This has something to do with the way the Selector block works.
+              // the stop_inactive_recorders() function handles adding and starting the P25 Recorder
               p25_recorder_sptr rec;
               rec = source->create_digital_conventional_recorder(tb);
-              rec->start(call);
               call->set_recorder((Recorder *)rec.get());
-              call->set_state(recording);
               calls.push_back(call);
-              stats.send_recorder((Recorder *)rec.get());
+              
             }
 
             // break out of the for loop

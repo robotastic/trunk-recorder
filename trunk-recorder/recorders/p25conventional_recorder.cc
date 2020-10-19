@@ -20,6 +20,7 @@ p25conventional_recorder::~p25conventional_recorder() {
 
 void p25conventional_recorder::start(Call *call) {
   if (state == inactive) {
+    System *system = call->get_system();
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -29,10 +30,20 @@ void p25conventional_recorder::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
 
-    if (d_delayopen) {
-      p25_decode->reset_wav_sink();
-    }
+    squelch_db = system->get_squelch_db();
+    squelch->set_threshold(squelch_db);
+    qpsk_mod = system->get_qpsk_mod();
 
+    set_tdma(call->get_phase2_tdma());
+    /*
+    if (d_delayopen) {  
+      if (qpsk_mod) {
+        qpsk_p25_decode->reset_wav_sink();
+      } else {
+        fsk4_p25_decode->reset_wav_sink();
+      }
+    }
+*/
     //((gr::blocks::nonstop_wavfile_delayopen_sink_impl *)this->wav_sink)->reset();
 
     set_tdma(call->get_phase2_tdma());
@@ -50,11 +61,7 @@ void p25conventional_recorder::start(Call *call) {
       set_tdma_slot(0);
     }
 
-    if (!qpsk_mod) {
-      reset();
-    } else {
-      costas_clock->reset();
-    }
+ 
 
     if (d_delayopen) {
       BOOST_LOG_TRIVIAL(info) << "\t- Listening P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
@@ -62,23 +69,36 @@ void p25conventional_recorder::start(Call *call) {
       recording_started();
     }
 
-    int offset_amount = (center_freq - chan_freq);
-    tune_offset(offset_amount);
+ 
 
     if (d_delayopen == false) {
       //wav_sink->open(call->get_filename());
     }
+
+    int offset_amount = (center_freq - chan_freq);
+    tune_offset(offset_amount);
+    
+    if (qpsk_mod) {
+      modulation_selector->set_output_index(1);
+      qpsk_p25_decode->start(call);
+    } else {
+      modulation_selector->set_output_index(0);
+      fsk4_p25_decode->start(call);
+    }
     state = active;
     valve->set_enabled(true);
+    modulation_selector->set_enabled(true);
+
+
     //wav_sink->set_call(call);
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25conventional_recorder.cc: Trying to Start an already Active Logger!!!";
   }
-}
-/*
+} 
+
 void p25conventional_recorder::recording_started() {
   BOOST_LOG_TRIVIAL(info) << "\t- Started P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
-}*/
+}
 
 char *p25conventional_recorder::get_filename() {
   this->call->create_filename();

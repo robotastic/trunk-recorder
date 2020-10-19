@@ -115,12 +115,17 @@ protected:
   double center_freq;
   bool qpsk_mod;
   bool conventional;
-
-
- 
+  double squelch_db;
+  gr::analog::pwr_squelch_cc::sptr squelch;
+  gr::blocks::selector::sptr modulation_selector;
   gr::blocks::copy::sptr valve;
   //gr::blocks::multiply_const_ss::sptr levels;
 
+
+  p25_recorder_fsk4_demod_sptr fsk4_demod;
+  p25_recorder_decode_sptr     fsk4_p25_decode;
+  p25_recorder_qpsk_demod_sptr qpsk_demod;
+  p25_recorder_decode_sptr     qpsk_p25_decode;
 
 gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 private:
@@ -131,7 +136,7 @@ private:
   double initial_rate;
   long decim;
   double resampled_rate;
-  double squelch_db;
+
   int silence_frames;
   int tdma_slot;
   bool d_phase2_tdma;
@@ -146,10 +151,7 @@ private:
 
   std::vector<float> arb_taps;
 
-  p25_recorder_fsk4_demod_sptr fsk4_demod;
-    p25_recorder_decode_sptr     fsk4_p25_decode;
-  p25_recorder_qpsk_demod_sptr qpsk_demod;
-  p25_recorder_decode_sptr     qpsk_p25_decode;
+
  
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
@@ -165,8 +167,8 @@ private:
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-  gr::analog::pwr_squelch_cc::sptr squelch;
-  gr::blocks::selector::sptr modulation_selector;
+
+
   gr::blocks::multiply_const_ff::sptr rescale;
 
 

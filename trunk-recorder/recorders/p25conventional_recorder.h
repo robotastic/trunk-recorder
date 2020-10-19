@@ -4,6 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <boost/shared_ptr.hpp>
 
+
 class p25_recorder;
 class Source;
 class p25conventional_recorder;
@@ -15,6 +16,7 @@ p25conventional_recorder_sptr make_p25conventional_recorder(Source *src, bool de
 #include "p25_recorder.h"
 
 class p25conventional_recorder : public p25_recorder {
+
   friend p25conventional_recorder_sptr make_p25conventional_recorder(Source *src, bool delayopen);
 
 protected:
