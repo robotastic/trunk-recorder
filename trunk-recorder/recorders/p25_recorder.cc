@@ -201,7 +201,8 @@ void p25_recorder::initialize(Source *src) {
 
   modulation_selector->set_enabled(true);
 
-  connect(cutoff_filter, 0, modulation_selector, 0);
+  connect(cutoff_filter, 0, squelch, 0);
+  connect(squelch, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod,0,fsk4_p25_decode,0);
   connect(modulation_selector, 1, qpsk_demod, 0);
@@ -420,7 +421,9 @@ void p25_recorder::start(Call *call) {
     set_tdma(call->get_phase2_tdma());
 
     if (call->get_phase2_tdma()) {
-
+      if (!qpsk_mod) {
+             BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";
+      }
       set_tdma_slot(call->get_tdma_slot());
 
       if (call->get_xor_mask()) {
@@ -432,6 +435,13 @@ void p25_recorder::start(Call *call) {
       set_tdma_slot(0);
     }
 
+/*
+    if (d_delayopen) {
+      BOOST_LOG_TRIVIAL(info) << "\t- Listening P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+    } else {
+      recording_started();
+    }
+*/
     
     BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
