@@ -269,7 +269,7 @@ bool load_config(string config_file) {
       bool qpsk_mod = true;
       double digital_levels = node.second.get<double>("digitalLevels", 1.0);
       double analog_levels = node.second.get<double>("analogLevels", 8.0);
-      double squelch_db = node.second.get<double>("squelch", 0);
+      double squelch_db = node.second.get<double>("squelch", -160);
       int    max_dev        = node.second.get<int>("maxDev", 4000);
       double filter_width   = node.second.get<double>("filterWidth", 1.0);
 
@@ -300,7 +300,7 @@ bool load_config(string config_file) {
       system->set_filter_width(filter_width);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorder Maximum Deviation: " << node.second.get<int>("maxDev", 4000);
       BOOST_LOG_TRIVIAL(info) << "Filter Width: " << filter_width;
-      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", 0);
+      BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", -160);
       system->set_api_key(node.second.get<std::string>("apiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
       system->set_bcfy_api_key(node.second.get<std::string>("broadcastifyApiKey", ""));
@@ -1243,7 +1243,7 @@ bool monitor_system() {
 
           if ((source->get_min_hz() <= channel) && (source->get_max_hz() >= channel)) {
             channel_added = true;
-            if (system->get_squelch_db() == 0) {
+            if (system->get_squelch_db() == -160) {
               BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
               system_added = false;
             } else {
