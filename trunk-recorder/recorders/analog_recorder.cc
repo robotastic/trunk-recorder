@@ -299,7 +299,6 @@ void analog_recorder::start(Call *call) {
 
   setup_decoders_for_system(call->get_system());
 
-  call->clear_src_list();
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 
