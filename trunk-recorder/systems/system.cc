@@ -320,6 +320,14 @@ double System::get_next_control_channel() {
   return this->control_channels[current_control_channel];
 }
 
+void System::set_transmission_mode(bool mode) {
+  this->transmission_mode = mode;
+}
+
+ bool System::get_transmission_mode() {
+  return this->transmission_mode;
+}
+
 void System::set_bandplan(std::string bandplan) {
   this->bandplan = bandplan;
 }

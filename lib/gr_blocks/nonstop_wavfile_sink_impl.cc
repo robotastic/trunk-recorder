@@ -77,7 +77,6 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
   d_bytes_per_sample = bits_per_sample / 8;
-  d_first_work = true;
   d_sample_count = 0;
 }
 
@@ -89,7 +88,7 @@ bool nonstop_wavfile_sink_impl::open(Call *call) {
   gr::thread::scoped_lock guard(d_mutex);
   d_current_call = call;
   d_conventional = call->is_conventional();
-  d_first_work = true;
+  curr_src_id = d_current_call->get_current_source();
   d_sample_count = 0;
   
   return true;
@@ -102,7 +101,7 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
   // we use the open system call to get access to the O_LARGEFILE flag.
   //  O_APPEND|
   int fd;
-
+  d_sample_count = 0;
   if ((fd = ::open(filename,
                    O_RDWR | O_CREAT | OUR_O_LARGEFILE | OUR_O_BINARY,
                    0664)) < 0) {
@@ -156,8 +155,7 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 }
 
 
-void
-nonstop_wavfile_sink_impl::close()
+void nonstop_wavfile_sink_impl::close()
 {
   gr::thread::scoped_lock guard(d_mutex);
 
@@ -166,12 +164,10 @@ nonstop_wavfile_sink_impl::close()
     return;
   }
 
-  close_wav();
-  d_current_call = NULL;
+  close_wav(true);
 }
 
-void
-nonstop_wavfile_sink_impl::close_wav()
+void nonstop_wavfile_sink_impl::close_wav(bool close_call)
 {
   unsigned int byte_count = d_sample_count * d_bytes_per_sample;
 
@@ -179,6 +175,9 @@ nonstop_wavfile_sink_impl::close_wav()
 
   fclose(d_fp);
   d_fp = NULL;
+  if (close_call) {
+    d_current_call = NULL;
+  }
 
 }
 
@@ -209,21 +208,6 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
   
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
 
-    if (d_first_work ) // drop output on the floor
-    {
-      if (d_fp) {
-        BOOST_LOG_TRIVIAL(error) << "Weird - trying to open a file, but already have a FP";
-    
-      }
-
-        d_current_call->create_filename();
-        if (!open_internal(d_current_call->get_filename())) {
-            BOOST_LOG_TRIVIAL(error) << "can't open file";
-        }
-      d_first_work = false;
-      d_start_time = time(NULL);
-    }
-
   int nwritten = dowork(noutput_items, input_items, output_items);
 
   d_stop_time = time(NULL);
@@ -249,16 +233,13 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
 
   int nwritten;
 
-  if (!d_fp) // drop output on the floor
-  {
-    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
-    return noutput_items;
-  }
   std::vector<gr::tag_t> tags;
   pmt::pmt_t this_key(pmt::intern("src_id"));
+  pmt::pmt_t that_key(pmt::intern("terminate"));
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
   unsigned pos = 0;
+  bool next_file = false;
   //long curr_src_id = 0;
 
   for (unsigned int i = 0; i < tags.size(); i++) {
@@ -266,15 +247,52 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
       long src_id  = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
       // double   sec = (double)pos  / (double)d_sample_rate;
-      if (curr_src_id != src_id) {
+      if (src_id && (curr_src_id != src_id)) {
         log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
         // BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
       }
     }
+        if (pmt::eq(that_key, tags[i].key)) {
+      next_file = true;
+      //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : Pos - " << d_sample_count << " offset: " << tags[i].offset - nitems_read(0) << " : "  << std::endl;
+
+     }
+
   }
 
-  // std::cout << std::endl;
+// if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... 
+if (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
+          BOOST_LOG_TRIVIAL(info) << " A new call should have been started, we are getting a termination in the middle of a file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
+}
+
+
+// The recording is just starting out...
+if ( d_sample_count == 0) {
+    
+       if (d_fp) {
+        // if we are already recording a file for this call, close it before starting a new one.
+        close_wav(false);
+      }
+
+         // create a new filename, based on the current time and source.
+        d_current_call->create_filename();
+        if (!open_internal(d_current_call->get_filename())) {
+            BOOST_LOG_TRIVIAL(error) << "can't open file";
+        }
+
+
+       curr_src_id = d_current_call->get_current_source();
+      d_start_time = time(NULL);
+
+       
+  }
+
+   if (!d_fp) // drop output on the floor
+  {
+    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
+    return noutput_items;
+  }
 
   for (nwritten = 0; nwritten < noutput_items; nwritten++) {
     for (int chan = 0; chan < d_nchans; chan++) {

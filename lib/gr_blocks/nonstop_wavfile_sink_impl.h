@@ -76,8 +76,7 @@ protected:
 	 * assumes d_fp is a valid file pointer, should thus only be called by
 	 * other methods.
 	 */
-	void close_wav();
-
+	void close_wav(bool close_call);
 protected:
 	bool stop();
 	bool open_internal(const char *filename);

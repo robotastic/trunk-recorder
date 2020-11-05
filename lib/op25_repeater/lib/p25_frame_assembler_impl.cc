@@ -216,11 +216,20 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
          amt_produce = noutput_items;
          }*/
       silence_frame_count = d_silence_frames;
-    } else if (silence_frame_count > 0) {
-      std::fill(out, out + noutput_items, 0);
-      amt_produce = noutput_items;
-      silence_frame_count--;
+    } else {
+
+      if (p1fdma.get_call_terminated()) {
+        add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src);
+        //BOOST_LOG_TRIVIAL(info) << "Call Terminated, NO amount produced: " << amt_produce << " SRC: " << p1fdma.get_curr_src_id() << " n written " << nitems_written(0);
+      }
+      if (silence_frame_count > 0) {
+        std::fill(out, out + noutput_items, 0);
+        amt_produce = noutput_items;
+        silence_frame_count--;
+      }
     }
+    
+
   }
   consume_each(ninput_items[0]);
 

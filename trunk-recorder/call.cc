@@ -399,6 +399,14 @@ const char *Call::get_xor_mask() {
   return sys->get_xor_mask();
 }
 
+long Call::get_current_source() {
+     if (!src_list.empty()) {
+     Call_Source last_source = src_list.back();
+      return last_source.source;
+     }
+     return 0;
+ }
+
 bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal) {
   if (src == 0) {
     return false;
@@ -519,6 +527,10 @@ std::string Call::get_talkgroup_display() {
 
 std::string Call::get_talkgroup_tag() {
   return talkgroup_tag;
+}
+
+bool Call::get_transmission_mode() {
+  return sys->get_transmission_mode();
 }
 
 void Call::update_talkgroup_display() {

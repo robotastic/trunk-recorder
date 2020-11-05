@@ -170,10 +170,9 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "The formatting for config files has changed.";
       BOOST_LOG_TRIVIAL(info) << "Modulation type, Squelch and audio levels are now set in each System instead of under a Source.";
       BOOST_LOG_TRIVIAL(info) << "See sample config files in the /example folder and look at readme.md for more details.";
-      BOOST_LOG_TRIVIAL(info) <<  "After you have made these updates, make sure you add \"ver\": 2, to the top.\n\n";
+      BOOST_LOG_TRIVIAL(info) << "After you have made these updates, make sure you add \"ver\": 2, to the top.\n\n";
       return false;
     }
-
 
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
@@ -270,9 +269,9 @@ bool load_config(string config_file) {
       double digital_levels = node.second.get<double>("digitalLevels", 1.0);
       double analog_levels = node.second.get<double>("analogLevels", 8.0);
       double squelch_db = node.second.get<double>("squelch", -160);
-      int    max_dev        = node.second.get<int>("maxDev", 4000);
-      double filter_width   = node.second.get<double>("filterWidth", 1.0);
-
+      int max_dev = node.second.get<int>("maxDev", 4000);
+      double filter_width = node.second.get<double>("filterWidth", 1.0);
+      bool transmission_mode = node.second.get<bool>("transmissionMode", false);
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
       if (mod_exists) {
@@ -298,6 +297,8 @@ bool load_config(string config_file) {
       system->set_qpsk_mod(qpsk_mod);
       system->set_max_dev(max_dev);
       system->set_filter_width(filter_width);
+      system->set_transmission_mode(transmission_mode);
+      BOOST_LOG_TRIVIAL(info) << "Transmission Mode: " << transmission_mode;
       BOOST_LOG_TRIVIAL(info) << "Analog Recorder Maximum Deviation: " << node.second.get<int>("maxDev", 4000);
       BOOST_LOG_TRIVIAL(info) << "Filter Width: " << filter_width;
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", -160);
@@ -396,7 +397,6 @@ bool load_config(string config_file) {
       int vga1_gain = node.second.get<double>("vga1Gain", 0);
       int vga2_gain = node.second.get<double>("vga2Gain", 0);
 
-
       std::string antenna = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
       int sigmf_recorders = node.second.get<int>("sigmfRecorders", 0);
@@ -429,7 +429,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder", 0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
-
 
       if ((ppm != 0) && (error != 0)) {
         BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
@@ -741,7 +740,7 @@ void stop_inactive_recorders() {
         }
 
         // if no additional recording has happened in the past X periods, stop and open new file
-        if (call->get_idle_count() > 5) {
+        if (call->get_idle_count() > config.call_timeout) {
           Recorder *recorder = call->get_recorder();
           call->end_call();
           stats.send_call_end(call);
@@ -751,11 +750,11 @@ void stop_inactive_recorders() {
           }
         }
       } else if (!call->get_recorder()->is_active()) {
-              // P25 Conventional Recorders need a have the graph unlocked before they can start recording.  
-              Recorder *recorder = call->get_recorder();
-              recorder->start(call);
-              call->set_state(recording);
-              //stats.send_recorder((Recorder *)recorder->get());
+        // P25 Conventional Recorders need a have the graph unlocked before they can start recording.
+        Recorder *recorder = call->get_recorder();
+        recorder->start(call);
+        call->set_state(recording);
+        //stats.send_recorder((Recorder *)recorder->get());
       }
       ++it;
     } else {
@@ -892,20 +891,20 @@ void handle_call(TrunkMessage message, System *sys) {
       if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
         if (call->get_state() == recording) {
           // see if we can retune the recorder, You may not be able to if the Freq is beyond what the current source can handle
-          int retuned = retune_recorder(message, call);
+          /* int retuned = retune_recorder(message, call);
 
-          if (!retuned) {
-            // we want to keep this call recording and now start a recording of the new call on another recorder
-            call_found = false;
-            retune_failed = true;
-            ++it; // go on to the next call, remember there may be two calls
-          } else {
+          if (!retuned) {*/
+          // we want to keep this call recording and now start a recording of the new call on another recorder
+          call_found = false;
+          retune_failed = true;
+          ++it; // go on to the next call, remember there may be two calls
+          /*} else {
             // if you did retune, update the call info
             BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tUpdate Retuning - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
             call->update(message);
             call_retune = true;
             break;
-          }
+          }*/
         } else {
           // the Call is not being recorded, simply update and continue
           call->set_freq(message.freq);
@@ -915,10 +914,24 @@ void handle_call(TrunkMessage message, System *sys) {
           break;
         }
       } else {
+        // gotta make sure we have the message.source in there because sometimes it is randomly 0 and we don't want to do anything in those scenarios.
+        if (sys->get_transmission_mode() && (call->get_state() == recording) && message.source && (message.source != call->get_current_source())) {
+          BOOST_LOG_TRIVIAL(info) << "Source Switch [" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s" << message.source << " " << call->get_current_source();
 
-        // everything about the current recording matches, simply update the info
-        call->update(message);
-        break;
+          Recorder *recorder = call->get_recorder();
+          call->end_call();
+          /*stats.send_call_end(call);
+             if (recorder != NULL) {
+               stats.send_recorder(recorder);
+             }*/
+          it = calls.erase(it);
+          delete call;
+          break;
+        } else {
+          // everything about the current recording matches, simply update the info
+          call->update(message);
+          break;
+        }
       }
     } else {
       ++it;
@@ -1276,7 +1289,6 @@ bool monitor_system() {
               rec = source->create_digital_conventional_recorder(tb);
               call->set_recorder((Recorder *)rec.get());
               calls.push_back(call);
-              
             }
 
             // break out of the for loop

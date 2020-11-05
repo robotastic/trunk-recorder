@@ -112,7 +112,8 @@ public:
   std::string get_talkgroup_tag();
   std::string get_system_type();
   double get_final_length();
-
+  long get_current_source();
+  bool get_transmission_mode();
   System *get_system();
 
 protected:
