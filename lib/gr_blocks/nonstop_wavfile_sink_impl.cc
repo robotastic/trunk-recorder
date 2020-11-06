@@ -260,8 +260,16 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
      }
 
   }
-
+   if (!d_fp ) // drop output on the floor
+  {
+    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
+    return noutput_items;
+  }
 // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... 
+if (!d_current_call) {
+  BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  "  <<  current_filename << std::endl;
+  return noutput_items;
+}
 if (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
           BOOST_LOG_TRIVIAL(info) << " A new call should have been started, we are getting a termination in the middle of a file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
 }
@@ -288,11 +296,7 @@ if ( d_sample_count == 0) {
        
   }
 
-   if (!d_fp) // drop output on the floor
-  {
-    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
-    return noutput_items;
-  }
+
 
   for (nwritten = 0; nwritten < noutput_items; nwritten++) {
     for (int chan = 0; chan < d_nchans; chan++) {

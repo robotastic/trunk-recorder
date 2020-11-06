@@ -530,6 +530,10 @@ std::string Call::get_talkgroup_tag() {
 }
 
 bool Call::get_transmission_mode() {
+  if (!sys) {
+       BOOST_LOG_TRIVIAL(error) << "\tWEIRD! for some reason, call has no sys - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq();
+    return false;
+  }
   return sys->get_transmission_mode();
 }
 
