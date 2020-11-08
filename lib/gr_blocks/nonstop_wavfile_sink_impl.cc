@@ -242,6 +242,13 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
   bool next_file = false;
   //long curr_src_id = 0;
 
+// it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
+if (!d_current_call) {
+  BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  "  <<  current_filename << std::endl;
+  return noutput_items;
+}
+
+
   for (unsigned int i = 0; i < tags.size(); i++) {
     if (pmt::eq(this_key, tags[i].key) && d_current_call->get_system_type() == "conventionalP25") {
       long src_id  = pmt::to_long(tags[i].value);
@@ -262,10 +269,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
   }
 
 // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... 
-if (!d_current_call) {
-  BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  "  <<  current_filename << std::endl;
-  return noutput_items;
-}
+
 if (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
           BOOST_LOG_TRIVIAL(info) << " A new call should have been started, we are getting a termination in the middle of a file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
 }
