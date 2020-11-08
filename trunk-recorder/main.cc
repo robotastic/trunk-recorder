@@ -895,6 +895,8 @@ void handle_call(TrunkMessage message, System *sys) {
 
           if (!retuned) {*/
           // we want to keep this call recording and now start a recording of the new call on another recorder
+         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tCould have retuned: - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
+            
           call_found = false;
           retune_failed = true;
           ++it; // go on to the next call, remember there may be two calls

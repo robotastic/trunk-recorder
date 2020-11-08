@@ -271,7 +271,7 @@ if (!d_current_call) {
 // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... 
 
 if (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
-          BOOST_LOG_TRIVIAL(info) << " A new call should have been started, we are getting a termination in the middle of a file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
+          BOOST_LOG_TRIVIAL(info) << " A new call should have been started, we are getting a termination in the middle of a file, Call Src:  "  << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
 }
 
 
