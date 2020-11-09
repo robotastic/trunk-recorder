@@ -244,7 +244,8 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
 
 // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
 if (!d_current_call) {
-  BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  "  <<  current_filename << std::endl;
+  time_t now = time(NULL);
+  BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  "  <<  current_filename << " Length: " << d_sample_count << " Now: " << now <<std::endl;
   return noutput_items;
 }
 
@@ -271,7 +272,7 @@ if (!d_current_call) {
 // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... 
 
 if (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
-          BOOST_LOG_TRIVIAL(info) << " A new call should have been started, we are getting a termination in the middle of a file, Call Src:  "  << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
+          BOOST_LOG_TRIVIAL(info) << " The same source prob Stop/Started, we are getting a termination in the middle of a file, Call Src:  "  << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
 }
 
 
