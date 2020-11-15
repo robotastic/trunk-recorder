@@ -1,16 +1,19 @@
 
 #include "p25_recorder_decode.h"
+#include <gr_blocks/plugin_wrapper_impl.h>
+#include "../plugins/plugin-manager.h"
 
-p25_recorder_decode_sptr make_p25_recorder_decode(  int silence_frames) {
-  p25_recorder_decode *decoder = new p25_recorder_decode();
+p25_recorder_decode_sptr make_p25_recorder_decode( Recorder* recorder, int silence_frames) {
+  p25_recorder_decode *decoder = new p25_recorder_decode(recorder);
   decoder->initialize(  silence_frames);
   return gnuradio::get_initial_sptr(decoder);
 }
 
-p25_recorder_decode::p25_recorder_decode()
+p25_recorder_decode::p25_recorder_decode(Recorder* recorder)
     : gr::hier_block2("p25_recorder_decode",
                       gr::io_signature::make(1, 1, sizeof(float)),
                       gr::io_signature::make(0, 0, sizeof(float))) {
+  _recorder = recorder;
 }
 
 p25_recorder_decode::~p25_recorder_decode(){
@@ -74,10 +77,16 @@ void p25_recorder_decode::initialize(  int silence_frames) {
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(1);
+  plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&p25_recorder_decode::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
 
-    connect( self(),0, slicer,0);
+  connect( self(),0, slicer,0);
   connect(slicer, 0, op25_frame_assembler, 0);
   connect(op25_frame_assembler, 0, converter, 0);
   connect(converter, 0, levels, 0);
+  connect(converter, 0, plugin_sink, 0);
   connect(levels, 0, wav_sink, 0);
+}
+
+void p25_recorder_decode::plugin_callback_handler(float *samples, int sampleCount) {
+  plugman_audio_callback(_recorder, samples, sampleCount);
 }

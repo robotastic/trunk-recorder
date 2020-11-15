@@ -183,9 +183,9 @@ void p25_recorder::initialize(Source *src) {
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
-  qpsk_p25_decode = make_p25_recorder_decode(silence_frames );
+  qpsk_p25_decode = make_p25_recorder_decode( this, silence_frames );
   fsk4_demod = make_p25_recorder_fsk4_demod();
-  fsk4_p25_decode = make_p25_recorder_decode(silence_frames );
+  fsk4_p25_decode = make_p25_recorder_decode( this, silence_frames );
 
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
