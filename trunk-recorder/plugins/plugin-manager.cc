@@ -12,11 +12,11 @@ std::vector<plugin_t *> plugins;
 
 void initialize_plugins(boost::property_tree::ptree &cfg) {
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
-        std::string plugin_lib = node.second.get<std::string>("lirary", "");
+        std::string plugin_lib = node.second.get<std::string>("library", "");
         std::string plugin_name = node.second.get<std::string>("name", "");
 
         plugin_t *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
-        if(plugin != NULL && plugin_parse_config(plugin, node.get_child("settings")) == 0) {
+        if(plugin != NULL && plugin_parse_config(plugin, node) == 0) {
             plugins.push_back(plugin);
         }
     }
@@ -51,7 +51,7 @@ void plugman_poll_one() {
 }
 
 void plugman_audio_callback(Recorder *recorder, float *samples, int sampleCount) {
-    int num = recorder->get_num;
+    int num = recorder->get_num();
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_audio_stream(plugin, num, samples, sampleCount);
