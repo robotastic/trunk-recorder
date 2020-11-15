@@ -12,7 +12,7 @@ std::vector<plugin_t *> plugins;
 
 void setup_plugin(std::string plugin_lib, std::string plugin_name, boost::property_tree::ptree &cfg) {
   plugin_t *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
-  if(plugin != NULL && plugin_parse_config(plugin, node) == 0) {
+  if(plugin != NULL && plugin_parse_config(plugin, cfg) == 0) {
     plugins.push_back(plugin);
   }
 }
