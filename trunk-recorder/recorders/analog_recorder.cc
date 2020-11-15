@@ -189,6 +189,7 @@ analog_recorder::analog_recorder(Source *src)
   connect(deemph, 0, decim_audio, 0);
   connect(decim_audio, 0, high_f, 0);
   connect(decim_audio, 0, decoder_sink, 0);
+  connect(decim_audio, 0, plugin_sink, 0);
   connect(high_f, 0, squelch_two, 0);
   connect(squelch_two, 0, levels, 0);
   connect(levels, 0, wav_sink, 0);
