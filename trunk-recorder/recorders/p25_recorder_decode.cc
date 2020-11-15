@@ -2,7 +2,7 @@
 #include "p25_recorder_decode.h"
 
 p25_recorder_decode_sptr make_p25_recorder_decode( Recorder* recorder, int silence_frames) {
-  p25_recorder_decode *decoder = new p25_recorder_decode();
+  p25_recorder_decode *decoder = new p25_recorder_decode(recorder);
   decoder->initialize(  silence_frames);
   return gnuradio::get_initial_sptr(decoder);
 }
