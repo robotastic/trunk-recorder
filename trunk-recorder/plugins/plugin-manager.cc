@@ -10,9 +10,9 @@
 
 std::vector<plugin_t *> plugins;
 
-void setup_plugin(std::string plugin_lib, std::string plugin_name, boost::property_tree::ptree &cfg) {
+void setup_plugin(std::string plugin_lib, std::string plugin_name, boost::property_tree::ptree::value_type &node) {
   plugin_t *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
-  if(plugin != NULL && plugin_parse_config(plugin, cfg) == 0) {
+  if(plugin != NULL && plugin_parse_config(plugin, node) == 0) {
     plugins.push_back(plugin);
   }
 }
@@ -22,7 +22,7 @@ void initialize_plugins(boost::property_tree::ptree &cfg) {
         std::string plugin_lib = node.second.get<std::string>("library", "");
         std::string plugin_name = node.second.get<std::string>("name", "");
 
-        setup_plugin(plugin_lib, plugin_name, cfg);
+        setup_plugin(plugin_lib, plugin_name, node);
     }
 
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
@@ -31,8 +31,8 @@ void initialize_plugins(boost::property_tree::ptree &cfg) {
     }
 }
 
-void initialize_internal_plugin(std::string name, boost::property_tree::ptree &cfg) {
-  setup_plugin("", name, cfg);
+void initialize_internal_plugin(std::string name, boost::property_tree::ptree::value_type &node) {
+  setup_plugin("", name, node);
 }
 
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems) {
