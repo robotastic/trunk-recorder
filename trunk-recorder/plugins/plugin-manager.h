@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 void initialize_plugins(boost::property_tree::ptree &cfg);
+void initialize_internal_plugin(std::string name, boost::property_tree::ptree &cfg); // For use by internal plugins, like the uploaders. Should be called before initialize_plugins
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems);
 void stop_plugins();
 
