@@ -122,14 +122,14 @@ int plugin_signal(plugin_t * const plugin, long unitId, const char *signaling_ty
     return err;
 }
 
-int plugin_audio_stream(plugin_t * const plugin, int rec_num, float *samples, int sampleCount) {
+int plugin_audio_stream(plugin_t * const plugin, Recorder* recorder, float *samples, int sampleCount) {
     assert(plugin != NULL);
 
     int err = 0;
     errno = 0;
 
     if(plugin->state == PLUGIN_RUNNING && plugin->audio_stream != NULL) {
-        err = plugin->audio_stream(plugin, rec_num, samples, sampleCount);
+        err = plugin->audio_stream(plugin, recorder, samples, sampleCount);
     }
     return err;
 }
@@ -168,19 +168,6 @@ int plugin_setup_recorder(plugin_t * const plugin, Recorder *recorder) {
 
     if(plugin->state == PLUGIN_RUNNING && plugin->setup_recorder != NULL) {
         err = plugin->setup_recorder(plugin, recorder);
-    }
-
-    return err;
-}
-
-int plugin_setup_recorders(plugin_t * const plugin, std::vector<Recorder *> recorders) {
-    assert(plugin != NULL);
-
-    int err = 0;
-    errno = 0;
-
-    if(plugin->state == PLUGIN_RUNNING && plugin->setup_recorders != NULL) {
-        err = plugin->setup_recorders(plugin, recorders);
     }
 
     return err;

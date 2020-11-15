@@ -154,7 +154,10 @@ Here are the different arguments:
  - **debugRecorder** - Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion. The setting is either *true* or *false* and the default is *false*.
  - **debugRecorderPort** - The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. The default value is *1234*.
  - **debugRecorderAddress** - The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder.
-
+ - **plugins** - an array of JSON objects that define the different plugins to use. Refer to the [Plugin System](PLUGIN-SYSTEM.md) documentation for more details. The following options are used to configure each Plugin:
+   - **library** - the name of the library that contains the plugin. This can be left blank if the plugin is in the main trunk-recorder codebase.
+   - **name** - the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin.
+   - *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.*
 
 **talkgroupsFile**
 

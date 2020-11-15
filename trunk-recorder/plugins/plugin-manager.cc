@@ -51,10 +51,9 @@ void plugman_poll_one() {
 }
 
 void plugman_audio_callback(Recorder *recorder, float *samples, int sampleCount) {
-    int num = recorder->get_num();
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
-      plugin_audio_stream(plugin, num, samples, sampleCount);
+      plugin_audio_stream(plugin, recorder, samples, sampleCount);
     }
 }
 
@@ -81,13 +80,6 @@ void plugman_setup_recorder(Recorder *recorder) {
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_recorder(plugin, recorder);
-    }
-}
-
-void plugman_setup_recorders(std::vector<Recorder *> recorders) {
-    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
-      plugin_t *plugin = *it;
-      plugin_setup_recorders(plugin, recorders);
     }
 }
 

@@ -1375,7 +1375,6 @@ void socket_connected() {
     recorders.insert(recorders.end(), sourceRecorders.begin(), sourceRecorders.end());
   }
 
-  plugman_setup_recorders(recorders);
   stats.send_recorders(recorders);
 }
 

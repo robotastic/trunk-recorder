@@ -18,7 +18,6 @@ void plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalT
 void plugman_call_start(Call *call);
 void plugman_call_end(Call *call);
 void plugman_setup_recorder(Recorder *recorder);
-void plugman_setup_recorders(std::vector<Recorder *> recorders);
 void plugman_setup_system(System * system);
 void plugman_setup_systems(std::vector<System *> systems);
 void plugman_setup_sources(std::vector<Source *> sources);
