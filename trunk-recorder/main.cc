@@ -1454,11 +1454,11 @@ int main(int argc, char **argv) {
     // ------------------------------------------------------------------
     // -- stop flow graph execution
     // ------------------------------------------------------------------
-    BOOST_LOG_TRIVIAL(info) << "stopping flow graph";
+    BOOST_LOG_TRIVIAL(info) << "stopping flow graph" << std::endl;
     tb->stop();
     tb->wait();
 
-    BOOST_LOG_TRIVIAL(info) << "stopping plugins"
+    BOOST_LOG_TRIVIAL(info) << "stopping plugins" << std::endl;
     stop_plugins();
   } else {
     BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." << std::endl;

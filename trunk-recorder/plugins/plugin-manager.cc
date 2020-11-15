@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/foreach.hpp>
+#include <boost/log/trivial.hpp>
 
 std::vector<plugin_t *> plugins;
 
