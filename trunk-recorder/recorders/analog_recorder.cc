@@ -1,9 +1,11 @@
 
 #include "analog_recorder.h"
-#include "../../lib/gr_blocks/decoder_wrapper_impl.h"
-#include "../../lib/gr_blocks/nonstop_wavfile_sink_impl.h"
+#include <gr_blocks/decoder_wrapper_impl.h>
+#include <gr_blocks/plugin_wrapper_impl.h>
+#include <gr_blocks/nonstop_wavfile_sink_impl.h>
 #include "../formatter.h"
 #include "../recorder_globals.h"
+#include "../plugins/plugin-manager.h"
 
 using namespace std;
 
@@ -160,6 +162,10 @@ analog_recorder::analog_recorder(Source *src)
 
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wave_sample_rate, 16, true); //  Configurable
 
+  BOOST_LOG_TRIVIAL(info) << "Creating plugin sink..." << std::endl;
+  plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&analog_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
+  BOOST_LOG_TRIVIAL(info) << "Plugin sink created!" << std::endl;
+
   BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
   decoder_sink = gr::blocks::decoder_wrapper_impl::make(wave_sample_rate, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
@@ -283,6 +289,10 @@ void analog_recorder::decoder_callback_handler(long unitId, const char *signalin
   } else {
     process_signal(unitId, signaling_type, signal, NULL, NULL, this);
   }
+}
+
+void analog_recorder::plugin_callback_handler(float *samples, int sampleCount) {
+  plugman_audio_callback(this, samples, sampleCount);
 }
 
 void analog_recorder::setup_decoders_for_system(System *system) {

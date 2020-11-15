@@ -215,6 +215,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroups.cc
   trunk-recorder/unit_tag.cc
   trunk-recorder/unit_tags.cc
+  trunk-recorder/plugins/plugin-common.cc
+  trunk-recorder/plugins/plugin-manager.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
   lib/gr_blocks/decoders/fsync_decode.cc
@@ -223,6 +225,7 @@ list(APPEND trunk_recorder_sources
   lib/gr_blocks/decoders/signal_decoder_sink_impl.cc
   lib/gr_blocks/decoders/tps_decoder_sink_impl.cc
   lib/gr_blocks/decoder_wrapper_impl.cc
+  lib/gr_blocks/plugin_wrapper_impl.cc
   lib/gr_blocks/selector_impl.cc
   )
 

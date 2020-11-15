@@ -43,10 +43,10 @@ class Source;
 class analog_recorder;
 
 #include "../config.h"
-#include "../lib/gr_blocks/decoder_wrapper.h"
 #include "../systems/system.h"
 #include "recorder.h"
 #include <gr_blocks/decoder_wrapper.h>
+#include <gr_blocks/plugin_wrapper.h>
 #include <gr_blocks/freq_xlating_fft_filter.h>
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
@@ -84,6 +84,7 @@ public:
 
   void process_message_queues(void);
   void decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal);
+  void plugin_callback_handler(float *samples, int sampleCount);
 
 private:
   double center_freq, chan_freq;
@@ -137,6 +138,7 @@ private:
   gr::blocks::copy::sptr valve;
 
   gr::blocks::decoder_wrapper::sptr decoder_sink;
+  gr::blocks::plugin_wrapper::sptr plugin_sink;
 
   void setup_decoders_for_system(System *system);
 };

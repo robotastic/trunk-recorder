@@ -61,6 +61,8 @@
 #include <gnuradio/top_block.h>
 #include <gnuradio/uhd/usrp_source.h>
 
+#include "plugin-manager.h"
+
 using namespace std;
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
@@ -546,6 +548,9 @@ bool load_config(string config_file) {
     std::string log_level = pt.get<std::string>("logLevel", "info");
     BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
     set_logging_level(log_level);
+
+    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
+    initialize_plugins(pt);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
     return false;
@@ -560,6 +565,7 @@ bool load_config(string config_file) {
     }
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
+
   return true;
 }
 
@@ -592,6 +598,7 @@ bool replace(std::string &str, const std::string &from, const std::string &to) {
 }
 
 void process_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) {
+  plugman_signal(unitId, signaling_type, sig_type, call, system, recorder);
   stats.send_signal(unitId, signaling_type, sig_type, call, system, recorder);
 }
 
@@ -662,6 +669,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         recorder->start(call);
         call->set_recorder(recorder);
         call->set_state(recording);
+        plugman_setup_recorder(recorder);
         stats.send_recorder(recorder);
         recorder_found = true;
       } else {
@@ -676,6 +684,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         debug_recorder->start(call);
         call->set_debug_recorder(debug_recorder);
         call->set_debug_recording(true);
+        plugman_setup_recorder(debug_recorder);
         stats.send_recorder(debug_recorder);
         recorder_found = true;
       } else {
@@ -688,6 +697,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         sigmf_recorder->start(call);
         call->set_sigmf_recorder(sigmf_recorder);
         call->set_sigmf_recording(true);
+        plugman_setup_recorder(sigmf_recorder);
         stats.send_recorder(sigmf_recorder);
         recorder_found = true;
       } else {
@@ -696,6 +706,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
       if (recorder_found) {
         // recording successfully started.
+        plugman_call_start(call);
         stats.send_call_start(call);
         return true;
       }
@@ -747,6 +758,7 @@ void stop_inactive_recorders() {
           stats.send_call_end(call);
           call->restart_call();
           if (recorder != NULL) {
+            plugman_setup_recorder(recorder);
             stats.send_recorder(recorder);
           }
         }
@@ -765,8 +777,10 @@ void stop_inactive_recorders() {
         }
         Recorder *recorder = call->get_recorder();
         call->end_call();
+        plugman_call_end(call);
         stats.send_call_end(call);
         if (recorder != NULL) {
+          plugman_setup_recorder(recorder);
           stats.send_recorder(recorder);
         }
         it = calls.erase(it);
@@ -851,6 +865,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
 void current_system_status(TrunkMessage message, System *sys) {
   if (sys->update_status(message)) {
+    plugman_setup_system(sys);
     stats.send_system(sys);
   }
 }
@@ -1163,6 +1178,8 @@ void monitor_messages() {
       stats.poll_one();
     }
 
+    plugman_poll_one();
+
     // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
 
@@ -1267,6 +1284,7 @@ bool monitor_system() {
               call->set_state(recording);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
+              plugman_setup_recorder((Recorder *)rec.get());
               stats.send_recorder((Recorder *)rec.get());
             } else { // has to be "conventional P25"
               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
@@ -1357,6 +1375,7 @@ void socket_connected() {
     recorders.insert(recorders.end(), sourceRecorders.begin(), sourceRecorders.end());
   }
 
+  plugman_setup_recorders(recorders);
   stats.send_recorders(recorders);
 }
 
@@ -1415,6 +1434,7 @@ int main(int argc, char **argv) {
 
   stats.initialize(&config, &socket_connected);
   stats.open_stat();
+  start_plugins(sources, systems);
 
   if (config.log_file) {
     logging::add_file_log(
@@ -1437,6 +1457,9 @@ int main(int argc, char **argv) {
     BOOST_LOG_TRIVIAL(info) << "stopping flow graph";
     tb->stop();
     tb->wait();
+
+    BOOST_LOG_TRIVIAL(info) << "stopping plugins"
+    stop_plugins();
   } else {
     BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." << std::endl;
   }
