@@ -2,14 +2,16 @@
 #include "plugin-common.h"
 #include <stdlib.h>
 #include <vector>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
 #include <boost/log/trivial.hpp>
 
 std::vector<plugin_t *> plugins;
 
 void initialize_plugins(boost::property_tree::ptree &cfg) {
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, pt.get_child("plugins")) {
+    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
         std::string plugin_lib = node.second.get<std::string>("lirary", "");
         std::string plugin_name = node.second.get<std::string>("name", "");
 
@@ -19,14 +21,14 @@ void initialize_plugins(boost::property_tree::ptree &cfg) {
         }
     }
 
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_init(plugin);
     }
 }
 
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_start(plugin);
       plugin_setup_sources(plugin, sources);
@@ -35,14 +37,14 @@ void start_plugins(std::vector<Source *> sources, std::vector<System *> systems)
 }
 
 void stop_plugins() {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_stop(plugin);
     }
 }
 
 void plugman_poll_one() {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_poll_one(plugin);
     }
@@ -50,61 +52,61 @@ void plugman_poll_one() {
 
 void plugman_audio_callback(Recorder *recorder, float *samples, int sampleCount) {
     int num = recorder->get_num;
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_audio_stream(plugin, num, samples, sampleCount);
     }
 }
 
 void plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_signal(plugin, unitId, signaling_type, sig_type, call, system, recorder);
     }
 }
 void plugman_call_start(Call *call) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_call_start(plugin, call);
     }
 }
 void plugman_call_end(Call *call) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_call_end(plugin, call);
     }
 }
 
 void plugman_setup_recorder(Recorder *recorder) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_recorder(plugin, recorder);
     }
 }
 
 void plugman_setup_recorders(std::vector<Recorder *> recorders) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_recorders(plugin, recorders);
     }
 }
 
 void plugman_setup_system(System * system) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_system(plugin, system);
     }
 }
 
 void plugman_setup_systems(std::vector<System *> systems) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_systems(plugin, systems);
     }
 }
 
 void plugman_setup_sources(std::vector<Source *> sources) {
-    for (vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_sources(plugin, sources);
     }
