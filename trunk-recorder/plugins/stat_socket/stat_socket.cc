@@ -433,6 +433,7 @@ int init(plugin_t * const plugin, Config* config){
     stat_data->config = config;
 
     stats.initialize(config, &socket_connected, plugin);
+    return 0;
 }
 int start(plugin_t * const plugin){
     stats.open_stat();
