@@ -416,7 +416,7 @@ void socket_connected(void* context) {
   stats.send_calls_active(stat_data->calls);
   std::vector<Recorder *> recorders;
 
-  for (std::vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+  for (std::vector<Source *>::iterator it = stat_data->sources.begin(); it != stat_data->sources.end(); it++) {
     Source *source = *it;
 
     std::vector<Recorder *> sourceRecorders = source->get_recorders();
