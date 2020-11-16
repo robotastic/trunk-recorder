@@ -410,7 +410,7 @@ void socket_connected(void* context) {
     plugin_t *plugin = (plugin_t*)context;
     stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
 
-  stats.send_config(stat_data->sources, &stat_data->systems);
+  stats.send_config(stat_data->sources, stat_data->systems);
   stats.send_systems(stat_data->systems);
   stats.send_calls_active(stat_data->calls);
   std::vector<Recorder *> recorders;
