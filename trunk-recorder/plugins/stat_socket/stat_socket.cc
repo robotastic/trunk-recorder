@@ -1,4 +1,5 @@
 #include "stat_socket.h"
+#include "../plugin-common.h"
 
 /**
  * The telemetry client connects to a WebSocket server and sends a message every
@@ -496,7 +497,7 @@ int system_rates(plugin_t * const plugin, std::vector<System *> systems, float t
     return 0;
 }
 
-MODULE_EXPORT plugin_t* stat_socket_plugin_new() {
+MODULE_EXPORT plugin_t *stat_socket_plugin_new() {
     stat_plugin_t *stat_data = (stat_plugin_t *)malloc(sizeof(stat_plugin_t));
     //stat_data->config = NULL;
     //stat_data->sources = NULL;
