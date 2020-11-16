@@ -40,7 +40,7 @@ public:
   void send_call_start(Call *call);
   void send_call_end(Call *call);
   void send_recorder(Recorder *recorder);
-  void initialize(Config *config, void (*callback)(void), void* context);
+  void initialize(Config *config, void (*callback)(void*), void* context);
   void send_recorders(std::vector<Recorder *> recorders);
   void send_systems(std::vector<System *> systems);
   void send_system(System *systems);

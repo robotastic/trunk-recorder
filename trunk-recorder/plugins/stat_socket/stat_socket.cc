@@ -241,7 +241,7 @@ void stat_socket::send_object(boost::property_tree::ptree data, std::string name
   send_stat(stats_str.str());
 }
 
-void stat_socket::initialize(Config *config, void (*callback)(void), void* context) {
+void stat_socket::initialize(Config *config, void (*callback)(void*), void* context) {
   m_config = config;
   m_callback = callback;
   m_context = context;
@@ -410,12 +410,12 @@ void socket_connected(void* context) {
     plugin_t *plugin = (plugin_t*)context;
     stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
 
-  stats.send_config(stat_data->sources, stat_data->systems);
+  stats.send_config(stat_data->sources, &stat_data->systems);
   stats.send_systems(stat_data->systems);
   stats.send_calls_active(stat_data->calls);
   std::vector<Recorder *> recorders;
 
-  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+  for (std::vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     Source *source = *it;
 
     std::vector<Recorder *> sourceRecorders = source->get_recorders();
@@ -469,7 +469,7 @@ int setup_recorder(plugin_t * const plugin, Recorder *recorder){
     return 0;
 }
 int setup_system(plugin_t * const plugin, System * system){
-    stats.send_system(sys);
+    stats.send_system(system);
     return 0;
 }
 int setup_systems(plugin_t * const plugin, std::vector<System *> systems){
@@ -496,11 +496,11 @@ int system_rates(plugin_t * const plugin, std::vector<System *> systems, float t
     return 0;
 }
 
-MODULE_EXPORT plugin_t * stat_socket_plugin_new() {
+MODULE_EXPORT plugin_t* stat_socket_plugin_new() {
     stat_plugin_t *stat_data = (stat_plugin_t *)malloc(sizeof(stat_plugin_t));
-    stat_data->config = NULL;
-    stat_data->sources = NULL;
-    stat_data->systems = NULL;
+    //stat_data->config = NULL;
+    //stat_data->sources = NULL;
+    //stat_data->systems = NULL;
 
     plugin_t *plug_data = (plugin_t *)malloc(sizeof(plugin_t));
 
