@@ -70,6 +70,6 @@ struct stat_plugin_t {
   std::vector<System *> systems;
   std::vector<Call *> calls;
   Config* config;
-}
+};
 
 #endif
