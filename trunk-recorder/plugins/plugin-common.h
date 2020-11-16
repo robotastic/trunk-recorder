@@ -26,6 +26,8 @@ typedef enum {
 } plugin_state_t;
 #define PLUGIN_STATE_CNT 6
 
+typedef struct plugin_t plugin_t;
+
 struct plugin_t {
     void *plugin_data; // This is internal data for use by the plugin.
     plugin_state_t state;
