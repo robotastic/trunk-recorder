@@ -2,13 +2,15 @@
 #define STAT_SOCKET_H
 
 #include <time.h>
+#include <vector>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
 
 #include <gr_blocks/decoder_wrapper.h>
-#include "../config.h"
-#include "../source.h"
-#include "../systems/system.h"
+#include "../../config.h"
+#include "../../source.h"
+#include "../../systems/system.h"
+#include "../plugin-common.h"
 
 // This header pulls in the WebSocket++ abstracted thread support that will
 // select between boost::thread and std::thread based on how the build system
@@ -38,7 +40,7 @@ public:
   void send_call_start(Call *call);
   void send_call_end(Call *call);
   void send_recorder(Recorder *recorder);
-  void initialize(Config *config, void (*callback)(void));
+  void initialize(Config *config, void (*callback)(void), void* context);
   void send_recorders(std::vector<Recorder *> recorders);
   void send_systems(std::vector<System *> systems);
   void send_system(System *systems);
@@ -56,8 +58,18 @@ private:
   bool m_done;
   bool m_config_sent;
   Config *m_config;
-  void (*m_callback)(void);
+  void* m_context;
+  void (*m_callback)(void*);
   void send_object(boost::property_tree::ptree data, std::string name, std::string type);
 };
+
+struct stat_plugin_t {
+  std::vector<Source *> sources;
+  std::vector<System *> systems;
+  std::vector<Call *> calls;
+  Config* config;
+}
+
+plugin_t * stat_socket_plugin_new();
 
 #endif

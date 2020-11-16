@@ -1,5 +1,6 @@
 #include "plugin-manager.h"
 #include "plugin-common.h"
+#include "../config.h"
 #include <stdlib.h>
 #include <vector>
 #include <boost/property_tree/json_parser.hpp>
@@ -17,7 +18,7 @@ void setup_plugin(std::string plugin_lib, std::string plugin_name, boost::proper
   }
 }
 
-void initialize_plugins(boost::property_tree::ptree &cfg) {
+void initialize_plugins(boost::property_tree::ptree &cfg, Config* config) {
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
         std::string plugin_lib = node.second.get<std::string>("library", "");
         std::string plugin_name = node.second.get<std::string>("name", "");
@@ -84,6 +85,13 @@ void plugman_call_end(Call *call) {
     }
 }
 
+void plugman_calls_active(std::vector<Call *> calls) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+      plugin_t *plugin = *it;
+      plugin_calls_active(plugin, calls);
+    }
+}
+
 void plugman_setup_recorder(Recorder *recorder) {
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
@@ -109,5 +117,19 @@ void plugman_setup_sources(std::vector<Source *> sources) {
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_sources(plugin, sources);
+    }
+}
+
+void plugman_setup_config(std::vector<Source *> sources, std::vector<System *> systems) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+      plugin_t *plugin = *it;
+      plugin_setup_config(plugin, sources, systems);
+    }
+}
+
+void plugman_system_rates(std::vector<System *> systems, float timeDiff) {
+  for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+      plugin_t *plugin = *it;
+      plugin_system_rates(plugin, systems, timeDiff);
     }
 }

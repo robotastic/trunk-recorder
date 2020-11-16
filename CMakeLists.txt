@@ -192,7 +192,6 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/uploaders/broadcastify_uploader.cc
   trunk-recorder/uploaders/openmhz_uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
-  trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call_conventional.cc
   trunk-recorder/call.cc
   trunk-recorder/systems/smartnet_trunking.cc
@@ -217,6 +216,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/unit_tags.cc
   trunk-recorder/plugins/plugin-common.cc
   trunk-recorder/plugins/plugin-manager.cc
+  trunk-recorder/plugins/stat_socket/stat_socket.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
   lib/gr_blocks/decoders/fsync_decode.cc

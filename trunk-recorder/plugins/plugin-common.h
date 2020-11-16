@@ -8,6 +8,13 @@
 #include "../recorders/recorder.h"
 #include "../systems/system.h"
 #include "../source.h"
+#include "../config.h"
+
+#ifndef __MINGW32__
+#define MODULE_EXPORT extern "C"
+#else
+#define MODULE_EXPORT extern "C" __declspec(dllexport)
+#endif
 
 typedef enum {
     PLUGIN_UNKNOWN = 0,
@@ -22,7 +29,7 @@ typedef enum {
 struct plugin_t {
     void *plugin_data; // This is internal data for use by the plugin.
     plugin_state_t state;
-    int (*init)(plugin_t * const plugin);
+    int (*init)(plugin_t * const plugin, Config* config);
     int (*parse_config)(plugin_t * const plugin, boost::property_tree::ptree::value_type &cfg);
     int (*start)(plugin_t * const plugin);
     int (*stop)(plugin_t * const plugin);
@@ -31,14 +38,17 @@ struct plugin_t {
     int (*audio_stream)(plugin_t * const plugin, Recorder *recorder, float *samples, int sampleCount);
     int (*call_start)(plugin_t * const plugin, Call *call);
     int (*call_end)(plugin_t * const plugin, Call *call);
+    int (*calls_active)(plugin_t * const plugin, std::vector<Call *> calls);
     int (*setup_recorder)(plugin_t * const plugin, Recorder *recorder);
     int (*setup_system)(plugin_t * const plugin, System * system);
     int (*setup_systems)(plugin_t * const plugin, std::vector<System *> systems);
     int (*setup_sources)(plugin_t * const plugin, std::vector<Source *> sources);
+    int (*setup_config)(plugin_t * const plugin, std::vector<Source *> sources, std::vector<System *> systems);
+    int (*system_rates)(plugin_t * const plugin, std::vector<System *> systems, float timeDiff);
 };
 
 plugin_t *plugin_new(const char * const plugin_file, char const * const plugin_name);
-int plugin_init(plugin_t * const plugin);
+int plugin_init(plugin_t * const plugin, Config* config);
 int plugin_parse_config(plugin_t * const plugin, boost::property_tree::ptree::value_type &cfg);
 int plugin_start(plugin_t * const plugin);
 int plugin_stop(plugin_t * const plugin);
@@ -47,9 +57,12 @@ int plugin_signal(plugin_t * const plugin, long unitId, const char *signaling_ty
 int plugin_audio_stream(plugin_t * const plugin, Recorder *recorder, float *samples, int sampleCount);
 int plugin_call_start(plugin_t * const plugin, Call *call);
 int plugin_call_end(plugin_t * const plugin, Call *call);
+int plugin_calls_active(plugin_t * const plugin, std::vector<Call *> calls);
 int plugin_setup_recorder(plugin_t * const plugin, Recorder *recorder);
 int plugin_setup_system(plugin_t * const plugin, System * system);
 int plugin_setup_systems(plugin_t * const plugin, std::vector<System *> systems);
 int plugin_setup_sources(plugin_t * const plugin, std::vector<Source *> sources);
+int plugin_setup_config(plugin_t * const plugin, std::vector<Source *> sources, std::vector<System *> systems);
+int plugin_system_rates(plugin_t * const plugin, std::vector<System *> systems, float timeDiff);
 
 #endif // PLUGIN_COMMON_H
