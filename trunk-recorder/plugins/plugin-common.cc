@@ -40,11 +40,11 @@ plugin_t *plugin_new(const char * const plugin_file, char const * const plugin_n
     return plugin;
 }
 
-int plugin_init(plugin_t * const plugin) {
+int plugin_init(plugin_t * const plugin, Config* config) {
     assert(plugin != NULL);
     plugin_state_t new_state = PLUGIN_FAILED;
     errno = 0;
-    int ret = plugin->init(plugin);
+    int ret = plugin->init(plugin, config);
     if(ret < 0) {
         ret = -1;
     } else {
