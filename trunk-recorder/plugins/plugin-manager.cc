@@ -24,7 +24,7 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config* config) {
         std::string plugin_lib = node.second.get<std::string>("library", "");
         std::string plugin_name = node.second.get<std::string>("name", "");
 
-        plugin_t* plugin = setup_plugin(plugin_lib, plugin_name, node);
+        plugin_t* plugin = setup_plugin(plugin_lib, plugin_name);
         if(plugin != NULL) {
           plugin_parse_config(plugin, node);
         }
