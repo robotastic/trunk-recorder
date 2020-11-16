@@ -63,13 +63,13 @@ private:
   void send_object(boost::property_tree::ptree data, std::string name, std::string type);
 };
 
+typedef struct stat_plugin_t stat_plugin_t;
+
 struct stat_plugin_t {
   std::vector<Source *> sources;
   std::vector<System *> systems;
   std::vector<Call *> calls;
   Config* config;
 }
-
-plugin_t * stat_socket_plugin_new();
 
 #endif
