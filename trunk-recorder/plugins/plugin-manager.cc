@@ -28,7 +28,7 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config* config) {
 
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
-      plugin_init(plugin);
+      plugin_init(plugin, config);
     }
 }
 
