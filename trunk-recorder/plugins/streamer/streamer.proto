@@ -102,7 +102,6 @@ message ConfigInfo {
     string instance_id = 7;
     string instance_key = 8;
     bool broadcast_signals = 9;
-  }
 }
 
 message CallInfo {
