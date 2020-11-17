@@ -11,12 +11,8 @@
 #include <grpcpp/impl/codegen/channel_interface.h>
 #include <grpcpp/impl/codegen/client_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
-#include <grpcpp/impl/codegen/message_allocator.h>
-#include <grpcpp/impl/codegen/method_handler.h>
+#include <grpcpp/impl/codegen/method_handler_impl.h>
 #include <grpcpp/impl/codegen/rpc_service_method.h>
-#include <grpcpp/impl/codegen/server_callback.h>
-#include <grpcpp/impl/codegen/server_callback_handlers.h>
-#include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
 namespace streamer {
@@ -53,10 +49,6 @@ TrunkRecorderStreamer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterfac
   return ::grpc::internal::ClientWriterFactory< ::streamer::AudioSample>::Create(channel_.get(), rpcmethod_SendStream_, context, response);
 }
 
-void TrunkRecorderStreamer::Stub::experimental_async::SendStream(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::experimental::ClientWriteReactor< ::streamer::AudioSample>* reactor) {
-  ::grpc::internal::ClientCallbackWriterFactory< ::streamer::AudioSample>::Create(stub_->channel_.get(), stub_->rpcmethod_SendStream_, context, response, reactor);
-}
-
 ::grpc::ClientAsyncWriter< ::streamer::AudioSample>* TrunkRecorderStreamer::Stub::AsyncSendStreamRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) {
   return ::grpc::internal::ClientAsyncWriterFactory< ::streamer::AudioSample>::Create(channel_.get(), cq, rpcmethod_SendStream_, context, response, true, tag);
 }
@@ -67,10 +59,6 @@ void TrunkRecorderStreamer::Stub::experimental_async::SendStream(::grpc::ClientC
 
 ::grpc::ClientWriter< ::streamer::SignalInfo>* TrunkRecorderStreamer::Stub::SendSignalRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response) {
   return ::grpc::internal::ClientWriterFactory< ::streamer::SignalInfo>::Create(channel_.get(), rpcmethod_SendSignal_, context, response);
-}
-
-void TrunkRecorderStreamer::Stub::experimental_async::SendSignal(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::experimental::ClientWriteReactor< ::streamer::SignalInfo>* reactor) {
-  ::grpc::internal::ClientCallbackWriterFactory< ::streamer::SignalInfo>::Create(stub_->channel_.get(), stub_->rpcmethod_SendSignal_, context, response, reactor);
 }
 
 ::grpc::ClientAsyncWriter< ::streamer::SignalInfo>* TrunkRecorderStreamer::Stub::AsyncSendSignalRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) {
@@ -86,22 +74,15 @@ void TrunkRecorderStreamer::Stub::experimental_async::SendSignal(::grpc::ClientC
 }
 
 void TrunkRecorderStreamer::Stub::experimental_async::CallStarted(::grpc::ClientContext* context, const ::streamer::CallInfo* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_CallStarted_, context, request, response, std::move(f));
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_CallStarted_, context, request, response, std::move(f));
 }
 
-void TrunkRecorderStreamer::Stub::experimental_async::CallStarted(::grpc::ClientContext* context, const ::streamer::CallInfo* request, ::google::protobuf::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_CallStarted_, context, request, response, reactor);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncCallStartedRaw(::grpc::ClientContext* context, const ::streamer::CallInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_CallStarted_, context, request, true);
 }
 
 ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::PrepareAsyncCallStartedRaw(::grpc::ClientContext* context, const ::streamer::CallInfo& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_CallStarted_, context, request, false);
-}
-
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncCallStartedRaw(::grpc::ClientContext* context, const ::streamer::CallInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncCallStartedRaw(context, request, cq);
-  result->StartCall();
-  return result;
 }
 
 ::grpc::Status TrunkRecorderStreamer::Stub::CallEnded(::grpc::ClientContext* context, const ::streamer::CallInfo& request, ::google::protobuf::Empty* response) {
@@ -109,22 +90,15 @@ void TrunkRecorderStreamer::Stub::experimental_async::CallStarted(::grpc::Client
 }
 
 void TrunkRecorderStreamer::Stub::experimental_async::CallEnded(::grpc::ClientContext* context, const ::streamer::CallInfo* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_CallEnded_, context, request, response, std::move(f));
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_CallEnded_, context, request, response, std::move(f));
 }
 
-void TrunkRecorderStreamer::Stub::experimental_async::CallEnded(::grpc::ClientContext* context, const ::streamer::CallInfo* request, ::google::protobuf::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_CallEnded_, context, request, response, reactor);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncCallEndedRaw(::grpc::ClientContext* context, const ::streamer::CallInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_CallEnded_, context, request, true);
 }
 
 ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::PrepareAsyncCallEndedRaw(::grpc::ClientContext* context, const ::streamer::CallInfo& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_CallEnded_, context, request, false);
-}
-
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncCallEndedRaw(::grpc::ClientContext* context, const ::streamer::CallInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncCallEndedRaw(context, request, cq);
-  result->StartCall();
-  return result;
 }
 
 ::grpc::Status TrunkRecorderStreamer::Stub::SetupRecorder(::grpc::ClientContext* context, const ::streamer::RecorderInfo& request, ::google::protobuf::Empty* response) {
@@ -132,22 +106,15 @@ void TrunkRecorderStreamer::Stub::experimental_async::CallEnded(::grpc::ClientCo
 }
 
 void TrunkRecorderStreamer::Stub::experimental_async::SetupRecorder(::grpc::ClientContext* context, const ::streamer::RecorderInfo* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupRecorder_, context, request, response, std::move(f));
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupRecorder_, context, request, response, std::move(f));
 }
 
-void TrunkRecorderStreamer::Stub::experimental_async::SetupRecorder(::grpc::ClientContext* context, const ::streamer::RecorderInfo* request, ::google::protobuf::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_SetupRecorder_, context, request, response, reactor);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupRecorderRaw(::grpc::ClientContext* context, const ::streamer::RecorderInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupRecorder_, context, request, true);
 }
 
 ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::PrepareAsyncSetupRecorderRaw(::grpc::ClientContext* context, const ::streamer::RecorderInfo& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupRecorder_, context, request, false);
-}
-
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupRecorderRaw(::grpc::ClientContext* context, const ::streamer::RecorderInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncSetupRecorderRaw(context, request, cq);
-  result->StartCall();
-  return result;
 }
 
 ::grpc::Status TrunkRecorderStreamer::Stub::SetupSystem(::grpc::ClientContext* context, const ::streamer::SystemInfo& request, ::google::protobuf::Empty* response) {
@@ -155,22 +122,15 @@ void TrunkRecorderStreamer::Stub::experimental_async::SetupRecorder(::grpc::Clie
 }
 
 void TrunkRecorderStreamer::Stub::experimental_async::SetupSystem(::grpc::ClientContext* context, const ::streamer::SystemInfo* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupSystem_, context, request, response, std::move(f));
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupSystem_, context, request, response, std::move(f));
 }
 
-void TrunkRecorderStreamer::Stub::experimental_async::SetupSystem(::grpc::ClientContext* context, const ::streamer::SystemInfo* request, ::google::protobuf::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_SetupSystem_, context, request, response, reactor);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupSystemRaw(::grpc::ClientContext* context, const ::streamer::SystemInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupSystem_, context, request, true);
 }
 
 ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::PrepareAsyncSetupSystemRaw(::grpc::ClientContext* context, const ::streamer::SystemInfo& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupSystem_, context, request, false);
-}
-
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupSystemRaw(::grpc::ClientContext* context, const ::streamer::SystemInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncSetupSystemRaw(context, request, cq);
-  result->StartCall();
-  return result;
 }
 
 ::grpc::Status TrunkRecorderStreamer::Stub::SetupSource(::grpc::ClientContext* context, const ::streamer::SourceInfo& request, ::google::protobuf::Empty* response) {
@@ -178,22 +138,15 @@ void TrunkRecorderStreamer::Stub::experimental_async::SetupSystem(::grpc::Client
 }
 
 void TrunkRecorderStreamer::Stub::experimental_async::SetupSource(::grpc::ClientContext* context, const ::streamer::SourceInfo* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupSource_, context, request, response, std::move(f));
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupSource_, context, request, response, std::move(f));
 }
 
-void TrunkRecorderStreamer::Stub::experimental_async::SetupSource(::grpc::ClientContext* context, const ::streamer::SourceInfo* request, ::google::protobuf::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_SetupSource_, context, request, response, reactor);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupSourceRaw(::grpc::ClientContext* context, const ::streamer::SourceInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupSource_, context, request, true);
 }
 
 ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::PrepareAsyncSetupSourceRaw(::grpc::ClientContext* context, const ::streamer::SourceInfo& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupSource_, context, request, false);
-}
-
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupSourceRaw(::grpc::ClientContext* context, const ::streamer::SourceInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncSetupSourceRaw(context, request, cq);
-  result->StartCall();
-  return result;
 }
 
 ::grpc::Status TrunkRecorderStreamer::Stub::SetupConfig(::grpc::ClientContext* context, const ::streamer::ConfigInfo& request, ::google::protobuf::Empty* response) {
@@ -201,22 +154,15 @@ void TrunkRecorderStreamer::Stub::experimental_async::SetupSource(::grpc::Client
 }
 
 void TrunkRecorderStreamer::Stub::experimental_async::SetupConfig(::grpc::ClientContext* context, const ::streamer::ConfigInfo* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupConfig_, context, request, response, std::move(f));
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SetupConfig_, context, request, response, std::move(f));
 }
 
-void TrunkRecorderStreamer::Stub::experimental_async::SetupConfig(::grpc::ClientContext* context, const ::streamer::ConfigInfo* request, ::google::protobuf::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_SetupConfig_, context, request, response, reactor);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupConfigRaw(::grpc::ClientContext* context, const ::streamer::ConfigInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupConfig_, context, request, true);
 }
 
 ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::PrepareAsyncSetupConfigRaw(::grpc::ClientContext* context, const ::streamer::ConfigInfo& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncResponseReaderFactory< ::google::protobuf::Empty>::Create(channel_.get(), cq, rpcmethod_SetupConfig_, context, request, false);
-}
-
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* TrunkRecorderStreamer::Stub::AsyncSetupConfigRaw(::grpc::ClientContext* context, const ::streamer::ConfigInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncSetupConfigRaw(context, request, cq);
-  result->StartCall();
-  return result;
 }
 
 TrunkRecorderStreamer::Service::Service() {
@@ -224,82 +170,42 @@ TrunkRecorderStreamer::Service::Service() {
       TrunkRecorderStreamer_method_names[0],
       ::grpc::internal::RpcMethod::CLIENT_STREAMING,
       new ::grpc::internal::ClientStreamingHandler< TrunkRecorderStreamer::Service, ::streamer::AudioSample, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             ::grpc::ServerReader<::streamer::AudioSample>* reader,
-             ::google::protobuf::Empty* resp) {
-               return service->SendStream(ctx, reader, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::SendStream), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       TrunkRecorderStreamer_method_names[1],
       ::grpc::internal::RpcMethod::CLIENT_STREAMING,
       new ::grpc::internal::ClientStreamingHandler< TrunkRecorderStreamer::Service, ::streamer::SignalInfo, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             ::grpc::ServerReader<::streamer::SignalInfo>* reader,
-             ::google::protobuf::Empty* resp) {
-               return service->SendSignal(ctx, reader, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::SendSignal), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       TrunkRecorderStreamer_method_names[2],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< TrunkRecorderStreamer::Service, ::streamer::CallInfo, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::streamer::CallInfo* req,
-             ::google::protobuf::Empty* resp) {
-               return service->CallStarted(ctx, req, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::CallStarted), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       TrunkRecorderStreamer_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< TrunkRecorderStreamer::Service, ::streamer::CallInfo, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::streamer::CallInfo* req,
-             ::google::protobuf::Empty* resp) {
-               return service->CallEnded(ctx, req, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::CallEnded), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       TrunkRecorderStreamer_method_names[4],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< TrunkRecorderStreamer::Service, ::streamer::RecorderInfo, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::streamer::RecorderInfo* req,
-             ::google::protobuf::Empty* resp) {
-               return service->SetupRecorder(ctx, req, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::SetupRecorder), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       TrunkRecorderStreamer_method_names[5],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< TrunkRecorderStreamer::Service, ::streamer::SystemInfo, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::streamer::SystemInfo* req,
-             ::google::protobuf::Empty* resp) {
-               return service->SetupSystem(ctx, req, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::SetupSystem), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       TrunkRecorderStreamer_method_names[6],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< TrunkRecorderStreamer::Service, ::streamer::SourceInfo, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::streamer::SourceInfo* req,
-             ::google::protobuf::Empty* resp) {
-               return service->SetupSource(ctx, req, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::SetupSource), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       TrunkRecorderStreamer_method_names[7],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< TrunkRecorderStreamer::Service, ::streamer::ConfigInfo, ::google::protobuf::Empty>(
-          [](TrunkRecorderStreamer::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::streamer::ConfigInfo* req,
-             ::google::protobuf::Empty* resp) {
-               return service->SetupConfig(ctx, req, resp);
-             }, this)));
+          std::mem_fn(&TrunkRecorderStreamer::Service::SetupConfig), this)));
 }
 
 TrunkRecorderStreamer::Service::~Service() {
