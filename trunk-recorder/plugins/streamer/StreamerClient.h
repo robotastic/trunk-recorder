@@ -33,6 +33,6 @@ class StreamerClient {
         ::grpc::ClientContext audio_context_;
         ::google::protobuf::Empty signal_response_;
         ::google::protobuf::Empty audio_response_;
-}
+};
 
 #endif // STREAMERCLIENT_H
