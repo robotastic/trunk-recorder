@@ -165,6 +165,8 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/include
     ${OPENSSL_INCLUDE_DIR}
     ${CURL_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIR}
+    ${GRPC_INCLUDE_DIR}
     "lib"
 )
 
