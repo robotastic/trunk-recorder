@@ -12,7 +12,7 @@
 
 class StreamerClient {
     public:
-        StreamerClient(std::shared_ptr<Channel> channel, bool enable_audio_streams);
+        StreamerClient(std::shared_ptr<::grpc::Channel> channel, bool enable_audio_streams);
         ~StreamerClient();
 
         void SendAudio(const ::streamer::AudioSample& request);
@@ -26,7 +26,7 @@ class StreamerClient {
 
     private:
         bool m_enable_audio_streams;
-        std::unique_ptr<TrunkRecorderStreamer::Stub> stub_;
+        std::unique_ptr< ::streamer::TrunkRecorderStreamer::Stub> stub_;
         std::unique_ptr< ::grpc::ClientWriter< ::streamer::SignalInfo>> signal_writer_;
         std::unique_ptr< ::grpc::ClientWriter< ::streamer::AudioSample>> audio_writer_;
         ::grpc::ClientContext signal_context_;
