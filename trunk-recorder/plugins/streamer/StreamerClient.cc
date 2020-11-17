@@ -17,8 +17,8 @@ StreamerClient::StreamerClient(std::shared_ptr<::grpc::Channel> channel, bool en
 }
 StreamerClient::~StreamerClient() {
     signal_writer_->WritesDone();
-    if(m_enale_audio_streams) {
-        audio_writer_->WriteDone();
+    if(m_enable_audio_streams) {
+        audio_writer_->WritesDone();
     }
 }
 
