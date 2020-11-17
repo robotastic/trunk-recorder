@@ -217,6 +217,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/plugins/plugin-common.cc
   trunk-recorder/plugins/plugin-manager.cc
   trunk-recorder/plugins/stat_socket/stat_socket.cc
+  trunk-recorder/plugins/streamer/StreamerClient.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
   lib/gr_blocks/decoders/fsync_decode.cc
