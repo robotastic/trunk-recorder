@@ -13,7 +13,7 @@ if [ ! -d trunk-recorder/recorders ]; then
 fi
 
 pre_reqs() {
-    PKG_LIST="gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev libgmp-dev"
+    PKG_LIST="gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev libgmp-dev libprotobuf-dev libprotoc-dev libgrpc-dev libgrpc++-dev"
     PKG_LIST="$PKG_LIST fdkaac sox"
     PKG_LIST="$PKG_LIST git cmake build-essential libboost-all-dev libusb-1.0-0.dev libssl-dev libcurl4-openssl-dev liborc-0.4-dev"
 
