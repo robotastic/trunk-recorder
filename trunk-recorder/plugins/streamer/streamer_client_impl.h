@@ -12,7 +12,7 @@ typedef struct streamer_client_plugin_t streamer_client_plugin_t;
 struct streamer_client_plugin_t {
     bool enable_audio_streaming;
     std::string server_addr;
-    StreamerClient* client;
+    StreamerClient client;
 };
 
 #endif // STREAMER_CLIENT_IMPL_H

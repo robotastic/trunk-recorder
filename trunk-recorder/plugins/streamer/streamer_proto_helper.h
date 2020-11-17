@@ -3,6 +3,9 @@
 
 #include "streamer.pb.h"
 #include "../../call.h"
+#include "../../recorders/recorder.h"
+#include "../../systems/system.h"
+#include "../../source.h"
 
 streamer::AudioSample* ToAudioSample(Recorder *recorder, float *samples, int sampleCount);
 streamer::CallInfo* ToCallInfo(Call *call);

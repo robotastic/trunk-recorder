@@ -6,16 +6,18 @@ using grpc::ClientContext;
 using grpc::Status;
 using streamer::TrunkRecorderStreamer;
 
-StreamerClient::StreamerClient(std::shared_ptr<::grpc::Channel> channel, bool enable_audio_streams)
-    : stub_(::streamer::TrunkRecorderStreamer::NewStub(channel)),
-{
+StreamerClient::StreamerClient(){}
+
+void StreamerClient::Init(std::shared_ptr<::grpc::Channel> channel, bool enable_audio_streams) {
+    stub_ = streamer::TrunkRecorderStreamer::NewStub(channel);
     m_enable_audio_streams = enable_audio_streams;
     signal_writer_ = stub_->SendSignal(&signal_context_, &signal_response_);
     if(m_enable_audio_streams) {
         audio_writer_ = stub_->SendStream(&audio_context_, &audio_response_);
     }
 }
-StreamerClient::~StreamerClient() {
+
+void StreamerClient::Done() {
     signal_writer_->WritesDone();
     if(m_enable_audio_streams) {
         audio_writer_->WritesDone();

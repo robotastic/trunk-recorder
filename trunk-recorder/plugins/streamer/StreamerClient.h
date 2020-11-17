@@ -12,8 +12,10 @@
 
 class StreamerClient {
     public:
-        StreamerClient(std::shared_ptr<::grpc::Channel> channel, bool enable_audio_streams);
-        ~StreamerClient();
+        StreamerClient();
+
+        void Init(std::shared_ptr<::grpc::Channel> channel, bool enable_audio_streams);
+        void Done();
 
         void SendAudio(const ::streamer::AudioSample& request);
         void SendSignal(const ::streamer::SignalInfo& request);
