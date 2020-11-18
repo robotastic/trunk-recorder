@@ -1,6 +1,5 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 option java_multiple_files = true;
 option java_package = "io.trunk.recorder.streamer";

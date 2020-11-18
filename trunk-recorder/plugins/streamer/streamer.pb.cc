@@ -19,9 +19,6 @@
 #endif
 // @@protoc_insertion_point(includes)
 
-namespace protobuf_google_2fprotobuf_2ftimestamp_2eproto {
-extern PROTOBUF_INTERNAL_EXPORT_protobuf_google_2fprotobuf_2ftimestamp_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_Timestamp;
-}  // namespace protobuf_google_2fprotobuf_2ftimestamp_2eproto
 namespace protobuf_streamer_2eproto {
 extern PROTOBUF_INTERNAL_EXPORT_protobuf_streamer_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_CallInfo;
 extern PROTOBUF_INTERNAL_EXPORT_protobuf_streamer_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_RecorderInfo;
@@ -77,9 +74,8 @@ static void InitDefaultsAudioSample() {
   ::streamer::AudioSample::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<1> scc_info_AudioSample =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsAudioSample}, {
-      &protobuf_google_2fprotobuf_2ftimestamp_2eproto::scc_info_Timestamp.base,}};
+::google::protobuf::internal::SCCInfo<0> scc_info_AudioSample =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsAudioSample}, {}};
 
 static void InitDefaultsRecorderInfo() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -181,7 +177,7 @@ void InitDefaults() {
 }
 
 ::google::protobuf::Metadata file_level_metadata[7];
-const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[2];
+const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[3];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
@@ -189,7 +185,6 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::AudioSample, sample_time_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::AudioSample, recorder_num_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::AudioSample, sample_),
   ~0u,  // no _has_bits_
@@ -207,6 +202,9 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::RecorderInfo, status_len_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::RecorderInfo, status_error_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::RecorderInfo, status_spike_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::RecorderInfo, audio_sample_rate_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::RecorderInfo, audio_channels_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::RecorderInfo, audio_format_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::streamer::SourceInfo, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -293,12 +291,12 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::streamer::AudioSample)},
-  { 8, -1, sizeof(::streamer::RecorderInfo)},
-  { 23, -1, sizeof(::streamer::SourceInfo)},
-  { 48, -1, sizeof(::streamer::SystemInfo)},
-  { 72, -1, sizeof(::streamer::ConfigInfo)},
-  { 86, -1, sizeof(::streamer::CallInfo)},
-  { 95, -1, sizeof(::streamer::SignalInfo)},
+  { 7, -1, sizeof(::streamer::RecorderInfo)},
+  { 25, -1, sizeof(::streamer::SourceInfo)},
+  { 50, -1, sizeof(::streamer::SystemInfo)},
+  { 74, -1, sizeof(::streamer::ConfigInfo)},
+  { 88, -1, sizeof(::streamer::CallInfo)},
+  { 97, -1, sizeof(::streamer::SignalInfo)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -333,80 +331,82 @@ void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
       "\n\016streamer.proto\022\010streamer\032\033google/proto"
-      "buf/empty.proto\032\037google/protobuf/timesta"
-      "mp.proto\"d\n\013AudioSample\022/\n\013sample_time\030\001"
-      " \001(\0132\032.google.protobuf.Timestamp\022\024\n\014reco"
-      "rder_num\030\002 \001(\005\022\016\n\006sample\030\003 \001(\014\"\326\002\n\014Recor"
-      "derInfo\022\024\n\014recorder_num\030\001 \001(\005\022\025\n\rrecorde"
-      "r_type\030\002 \001(\t\022\022\n\nsource_num\030\003 \001(\005\022\n\n\002id\030\004"
-      " \001(\t\022\026\n\016recorder_count\030\005 \001(\005\022\031\n\021recorder"
-      "_duration\030\006 \001(\001\022<\n\016recorder_state\030\007 \001(\0162"
-      "$.streamer.RecorderInfo.RecorderState\022\022\n"
-      "\nstatus_len\030\010 \001(\001\022\024\n\014status_error\030\t \001(\001\022"
-      "\024\n\014status_spike\030\n \001(\001\"H\n\rRecorderState\022\016"
-      "\n\nMonitoring\020\000\022\r\n\tRecording\020\001\022\014\n\010Inactiv"
-      "e\020\002\022\n\n\006Active\020\003\"\202\003\n\nSourceInfo\022\022\n\nsource"
-      "_num\030\001 \001(\005\022\016\n\006min_hz\030\002 \001(\001\022\016\n\006max_hz\030\003 \001"
-      "(\001\022\021\n\tcenter_hz\030\004 \001(\001\022\014\n\004rate\030\005 \001(\001\022\016\n\006d"
-      "river\030\006 \001(\t\022\016\n\006device\030\007 \001(\t\022\017\n\007antenna\030\010"
-      " \001(\t\022\r\n\005error\030\t \001(\001\022\020\n\010mix_gain\030\n \001(\005\022\020\n"
-      "\010lna_gain\030\013 \001(\005\022\021\n\tvga1_gain\030\014 \001(\005\022\021\n\tvg"
-      "a2_gain\030\r \001(\005\022\017\n\007bb_gain\030\016 \001(\005\022\014\n\004gain\030\017"
-      " \001(\005\022\017\n\007if_gain\030\020 \001(\005\022\030\n\020analog_recorder"
-      "s\030\021 \001(\005\022\031\n\021digital_recorders\030\022 \001(\005\022\027\n\017de"
-      "bug_recorders\030\023 \001(\005\022\027\n\017sigmf_recorders\030\024"
-      " \001(\005\"\243\003\n\nSystemInfo\022\022\n\nsystem_num\030\001 \001(\005\022"
-      "\023\n\013system_type\030\002 \001(\t\022\023\n\013system_name\030\003 \001("
-      "\t\022\025\n\raudio_archive\030\004 \001(\010\022\025\n\rupload_scrip"
-      "t\030\005 \001(\t\022\026\n\016record_unknown\030\006 \001(\010\022\020\n\010call_"
-      "log\030\007 \001(\010\022\027\n\017talkgroups_file\030\010 \001(\t\022\025\n\ran"
-      "alog_levels\030\t \001(\001\022\026\n\016digital_levels\030\n \001("
-      "\001\022\014\n\004qpsk\030\013 \001(\010\022\022\n\nsquelch_db\030\014 \001(\001\022\020\n\010c"
-      "hannels\030\r \003(\001\022\020\n\010bandplan\030\016 \001(\t\022\020\n\010bandf"
-      "req\030\017 \001(\005\022\025\n\rbandplan_base\030\020 \001(\001\022\025\n\rband"
-      "plan_high\030\021 \001(\001\022\030\n\020bandplan_spacing\030\022 \001("
-      "\001\022\027\n\017bandplan_offset\030\023 \001(\005\"\364\001\n\nConfigInf"
-      "o\022%\n\007sources\030\001 \003(\0132\024.streamer.SourceInfo"
-      "\022%\n\007systems\030\002 \003(\0132\024.streamer.SystemInfo\022"
-      "\023\n\013capture_dir\030\003 \001(\t\022\025\n\rupload_server\030\004 "
-      "\001(\t\022\024\n\014call_timeout\030\005 \001(\005\022\020\n\010log_file\030\006 "
-      "\001(\010\022\023\n\013instance_id\030\007 \001(\t\022\024\n\014instance_key"
-      "\030\010 \001(\t\022\031\n\021broadcast_signals\030\t \001(\010\"\\\n\010Cal"
-      "lInfo\022\023\n\013call_active\030\001 \001(\010\022\024\n\014recorder_n"
-      "um\030\002 \001(\005\022\022\n\nsystem_num\030\003 \001(\005\022\021\n\tcurr_fre"
-      "q\030\004 \001(\001\"\262\003\n\nSignalInfo\022\017\n\007unit_id\030\001 \001(\003\022"
-      "\026\n\016signaling_type\030\002 \001(\t\0224\n\013signal_type\030\003"
-      " \001(\0162\037.streamer.SignalInfo.SignalType\022%\n"
-      "\tcall_info\030\004 \001(\0132\022.streamer.CallInfo\022)\n\013"
-      "system_info\030\005 \001(\0132\024.streamer.SystemInfo\022"
-      "-\n\rrecorder_info\030\006 \001(\0132\026.streamer.Record"
-      "erInfo\"\303\001\n\nSignalType\022\n\n\006Normal\020\000\022\r\n\tEme"
-      "rgency\020\001\022\020\n\014EmergencyAck\020\002\022\016\n\nRadioCheck"
-      "\020\003\022\021\n\rRadioCheckAck\020\004\022\r\n\tRadioStun\020\005\022\020\n\014"
-      "RadioStunAck\020\006\022\017\n\013RadioRevive\020\007\022\022\n\016Radio"
-      "ReviveAck\020\010\022\r\n\tNormalPre\020\t\022\020\n\014EmergencyP"
-      "re\020\n2\200\004\n\025TrunkRecorderStreamer\022=\n\nSendSt"
-      "ream\022\025.streamer.AudioSample\032\026.google.pro"
-      "tobuf.Empty(\001\022<\n\nSendSignal\022\024.streamer.S"
-      "ignalInfo\032\026.google.protobuf.Empty(\001\0229\n\013C"
-      "allStarted\022\022.streamer.CallInfo\032\026.google."
-      "protobuf.Empty\0227\n\tCallEnded\022\022.streamer.C"
-      "allInfo\032\026.google.protobuf.Empty\022\?\n\rSetup"
-      "Recorder\022\026.streamer.RecorderInfo\032\026.googl"
-      "e.protobuf.Empty\022;\n\013SetupSystem\022\024.stream"
-      "er.SystemInfo\032\026.google.protobuf.Empty\022;\n"
-      "\013SetupSource\022\024.streamer.SourceInfo\032\026.goo"
-      "gle.protobuf.Empty\022;\n\013SetupConfig\022\024.stre"
-      "amer.ConfigInfo\032\026.google.protobuf.EmptyB"
-      "=\n\032io.trunk.recorder.streamerP\001\242\002\003TRS\252\002\026"
-      "TrunkRecorder.Streamerb\006proto3"
+      "buf/empty.proto\"3\n\013AudioSample\022\024\n\014record"
+      "er_num\030\001 \001(\005\022\016\n\006sample\030\002 \001(\014\"\230\004\n\014Recorde"
+      "rInfo\022\024\n\014recorder_num\030\001 \001(\005\022\025\n\rrecorder_"
+      "type\030\002 \001(\t\022\022\n\nsource_num\030\003 \001(\005\022\n\n\002id\030\004 \001"
+      "(\t\022\026\n\016recorder_count\030\005 \001(\005\022\031\n\021recorder_d"
+      "uration\030\006 \001(\001\022<\n\016recorder_state\030\007 \001(\0162$."
+      "streamer.RecorderInfo.RecorderState\022\022\n\ns"
+      "tatus_len\030\010 \001(\001\022\024\n\014status_error\030\t \001(\001\022\024\n"
+      "\014status_spike\030\n \001(\001\022\031\n\021audio_sample_rate"
+      "\030\013 \001(\005\022\026\n\016audio_channels\030\014 \001(\005\0228\n\014audio_"
+      "format\030\r \001(\0162\".streamer.RecorderInfo.Aud"
+      "ioFormat\"H\n\rRecorderState\022\016\n\nMonitoring\020"
+      "\000\022\r\n\tRecording\020\001\022\014\n\010Inactive\020\002\022\n\n\006Active"
+      "\020\003\"S\n\013AudioFormat\022\013\n\007Float32\020\000\022\014\n\010Signed"
+      "16\020\001\022\014\n\010Signed24\020\002\022\014\n\010Signed32\020\003\022\r\n\tUnsi"
+      "gned8\020\004\"\202\003\n\nSourceInfo\022\022\n\nsource_num\030\001 \001"
+      "(\005\022\016\n\006min_hz\030\002 \001(\001\022\016\n\006max_hz\030\003 \001(\001\022\021\n\tce"
+      "nter_hz\030\004 \001(\001\022\014\n\004rate\030\005 \001(\001\022\016\n\006driver\030\006 "
+      "\001(\t\022\016\n\006device\030\007 \001(\t\022\017\n\007antenna\030\010 \001(\t\022\r\n\005"
+      "error\030\t \001(\001\022\020\n\010mix_gain\030\n \001(\005\022\020\n\010lna_gai"
+      "n\030\013 \001(\005\022\021\n\tvga1_gain\030\014 \001(\005\022\021\n\tvga2_gain\030"
+      "\r \001(\005\022\017\n\007bb_gain\030\016 \001(\005\022\014\n\004gain\030\017 \001(\005\022\017\n\007"
+      "if_gain\030\020 \001(\005\022\030\n\020analog_recorders\030\021 \001(\005\022"
+      "\031\n\021digital_recorders\030\022 \001(\005\022\027\n\017debug_reco"
+      "rders\030\023 \001(\005\022\027\n\017sigmf_recorders\030\024 \001(\005\"\243\003\n"
+      "\nSystemInfo\022\022\n\nsystem_num\030\001 \001(\005\022\023\n\013syste"
+      "m_type\030\002 \001(\t\022\023\n\013system_name\030\003 \001(\t\022\025\n\raud"
+      "io_archive\030\004 \001(\010\022\025\n\rupload_script\030\005 \001(\t\022"
+      "\026\n\016record_unknown\030\006 \001(\010\022\020\n\010call_log\030\007 \001("
+      "\010\022\027\n\017talkgroups_file\030\010 \001(\t\022\025\n\ranalog_lev"
+      "els\030\t \001(\001\022\026\n\016digital_levels\030\n \001(\001\022\014\n\004qps"
+      "k\030\013 \001(\010\022\022\n\nsquelch_db\030\014 \001(\001\022\020\n\010channels\030"
+      "\r \003(\001\022\020\n\010bandplan\030\016 \001(\t\022\020\n\010bandfreq\030\017 \001("
+      "\005\022\025\n\rbandplan_base\030\020 \001(\001\022\025\n\rbandplan_hig"
+      "h\030\021 \001(\001\022\030\n\020bandplan_spacing\030\022 \001(\001\022\027\n\017ban"
+      "dplan_offset\030\023 \001(\005\"\364\001\n\nConfigInfo\022%\n\007sou"
+      "rces\030\001 \003(\0132\024.streamer.SourceInfo\022%\n\007syst"
+      "ems\030\002 \003(\0132\024.streamer.SystemInfo\022\023\n\013captu"
+      "re_dir\030\003 \001(\t\022\025\n\rupload_server\030\004 \001(\t\022\024\n\014c"
+      "all_timeout\030\005 \001(\005\022\020\n\010log_file\030\006 \001(\010\022\023\n\013i"
+      "nstance_id\030\007 \001(\t\022\024\n\014instance_key\030\010 \001(\t\022\031"
+      "\n\021broadcast_signals\030\t \001(\010\"\\\n\010CallInfo\022\023\n"
+      "\013call_active\030\001 \001(\010\022\024\n\014recorder_num\030\002 \001(\005"
+      "\022\022\n\nsystem_num\030\003 \001(\005\022\021\n\tcurr_freq\030\004 \001(\001\""
+      "\262\003\n\nSignalInfo\022\017\n\007unit_id\030\001 \001(\003\022\026\n\016signa"
+      "ling_type\030\002 \001(\t\0224\n\013signal_type\030\003 \001(\0162\037.s"
+      "treamer.SignalInfo.SignalType\022%\n\tcall_in"
+      "fo\030\004 \001(\0132\022.streamer.CallInfo\022)\n\013system_i"
+      "nfo\030\005 \001(\0132\024.streamer.SystemInfo\022-\n\rrecor"
+      "der_info\030\006 \001(\0132\026.streamer.RecorderInfo\"\303"
+      "\001\n\nSignalType\022\n\n\006Normal\020\000\022\r\n\tEmergency\020\001"
+      "\022\020\n\014EmergencyAck\020\002\022\016\n\nRadioCheck\020\003\022\021\n\rRa"
+      "dioCheckAck\020\004\022\r\n\tRadioStun\020\005\022\020\n\014RadioStu"
+      "nAck\020\006\022\017\n\013RadioRevive\020\007\022\022\n\016RadioReviveAc"
+      "k\020\010\022\r\n\tNormalPre\020\t\022\020\n\014EmergencyPre\020\n2\200\004\n"
+      "\025TrunkRecorderStreamer\022=\n\nSendStream\022\025.s"
+      "treamer.AudioSample\032\026.google.protobuf.Em"
+      "pty(\001\022<\n\nSendSignal\022\024.streamer.SignalInf"
+      "o\032\026.google.protobuf.Empty(\001\0229\n\013CallStart"
+      "ed\022\022.streamer.CallInfo\032\026.google.protobuf"
+      ".Empty\0227\n\tCallEnded\022\022.streamer.CallInfo\032"
+      "\026.google.protobuf.Empty\022\?\n\rSetupRecorder"
+      "\022\026.streamer.RecorderInfo\032\026.google.protob"
+      "uf.Empty\022;\n\013SetupSystem\022\024.streamer.Syste"
+      "mInfo\032\026.google.protobuf.Empty\022;\n\013SetupSo"
+      "urce\022\024.streamer.SourceInfo\032\026.google.prot"
+      "obuf.Empty\022;\n\013SetupConfig\022\024.streamer.Con"
+      "figInfo\032\026.google.protobuf.EmptyB=\n\032io.tr"
+      "unk.recorder.streamerP\001\242\002\003TRS\252\002\026TrunkRec"
+      "order.Streamerb\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 2710);
+      descriptor, 2822);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "streamer.proto", &protobuf_RegisterTypes);
   ::protobuf_google_2fprotobuf_2fempty_2eproto::AddDescriptors();
-  ::protobuf_google_2fprotobuf_2ftimestamp_2eproto::AddDescriptors();
 }
 
 void AddDescriptors() {
@@ -446,9 +446,36 @@ const RecorderInfo_RecorderState RecorderInfo::RecorderState_MIN;
 const RecorderInfo_RecorderState RecorderInfo::RecorderState_MAX;
 const int RecorderInfo::RecorderState_ARRAYSIZE;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-const ::google::protobuf::EnumDescriptor* SignalInfo_SignalType_descriptor() {
+const ::google::protobuf::EnumDescriptor* RecorderInfo_AudioFormat_descriptor() {
   protobuf_streamer_2eproto::protobuf_AssignDescriptorsOnce();
   return protobuf_streamer_2eproto::file_level_enum_descriptors[1];
+}
+bool RecorderInfo_AudioFormat_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return true;
+    default:
+      return false;
+  }
+}
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const RecorderInfo_AudioFormat RecorderInfo::Float32;
+const RecorderInfo_AudioFormat RecorderInfo::Signed16;
+const RecorderInfo_AudioFormat RecorderInfo::Signed24;
+const RecorderInfo_AudioFormat RecorderInfo::Signed32;
+const RecorderInfo_AudioFormat RecorderInfo::Unsigned8;
+const RecorderInfo_AudioFormat RecorderInfo::AudioFormat_MIN;
+const RecorderInfo_AudioFormat RecorderInfo::AudioFormat_MAX;
+const int RecorderInfo::AudioFormat_ARRAYSIZE;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+const ::google::protobuf::EnumDescriptor* SignalInfo_SignalType_descriptor() {
+  protobuf_streamer_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_streamer_2eproto::file_level_enum_descriptors[2];
 }
 bool SignalInfo_SignalType_IsValid(int value) {
   switch (value) {
@@ -489,17 +516,8 @@ const int SignalInfo::SignalType_ARRAYSIZE;
 // ===================================================================
 
 void AudioSample::InitAsDefaultInstance() {
-  ::streamer::_AudioSample_default_instance_._instance.get_mutable()->sample_time_ = const_cast< ::google::protobuf::Timestamp*>(
-      ::google::protobuf::Timestamp::internal_default_instance());
-}
-void AudioSample::clear_sample_time() {
-  if (GetArenaNoVirtual() == NULL && sample_time_ != NULL) {
-    delete sample_time_;
-  }
-  sample_time_ = NULL;
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int AudioSample::kSampleTimeFieldNumber;
 const int AudioSample::kRecorderNumFieldNumber;
 const int AudioSample::kSampleFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
@@ -519,20 +537,13 @@ AudioSample::AudioSample(const AudioSample& from)
   if (from.sample().size() > 0) {
     sample_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.sample_);
   }
-  if (from.has_sample_time()) {
-    sample_time_ = new ::google::protobuf::Timestamp(*from.sample_time_);
-  } else {
-    sample_time_ = NULL;
-  }
   recorder_num_ = from.recorder_num_;
   // @@protoc_insertion_point(copy_constructor:streamer.AudioSample)
 }
 
 void AudioSample::SharedCtor() {
   sample_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&sample_time_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&recorder_num_) -
-      reinterpret_cast<char*>(&sample_time_)) + sizeof(recorder_num_));
+  recorder_num_ = 0;
 }
 
 AudioSample::~AudioSample() {
@@ -542,7 +553,6 @@ AudioSample::~AudioSample() {
 
 void AudioSample::SharedDtor() {
   sample_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (this != internal_default_instance()) delete sample_time_;
 }
 
 void AudioSample::SetCachedSize(int size) const {
@@ -566,10 +576,6 @@ void AudioSample::Clear() {
   (void) cached_has_bits;
 
   sample_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (GetArenaNoVirtual() == NULL && sample_time_ != NULL) {
-    delete sample_time_;
-  }
-  sample_time_ = NULL;
   recorder_num_ = 0;
   _internal_metadata_.Clear();
 }
@@ -584,22 +590,10 @@ bool AudioSample::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .google.protobuf.Timestamp sample_time = 1;
+      // int32 recorder_num = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
-               input, mutable_sample_time()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // int32 recorder_num = 2;
-      case 2: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
@@ -610,10 +604,10 @@ bool AudioSample::MergePartialFromCodedStream(
         break;
       }
 
-      // bytes sample = 3;
-      case 3: {
+      // bytes sample = 2;
+      case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_sample()));
         } else {
@@ -648,21 +642,15 @@ void AudioSample::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .google.protobuf.Timestamp sample_time = 1;
-  if (this->has_sample_time()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, this->_internal_sample_time(), output);
-  }
-
-  // int32 recorder_num = 2;
+  // int32 recorder_num = 1;
   if (this->recorder_num() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->recorder_num(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->recorder_num(), output);
   }
 
-  // bytes sample = 3;
+  // bytes sample = 2;
   if (this->sample().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
-      3, this->sample(), output);
+      2, this->sample(), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -679,23 +667,16 @@ void AudioSample::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .google.protobuf.Timestamp sample_time = 1;
-  if (this->has_sample_time()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      InternalWriteMessageToArray(
-        1, this->_internal_sample_time(), deterministic, target);
-  }
-
-  // int32 recorder_num = 2;
+  // int32 recorder_num = 1;
   if (this->recorder_num() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->recorder_num(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->recorder_num(), target);
   }
 
-  // bytes sample = 3;
+  // bytes sample = 2;
   if (this->sample().size() > 0) {
     target =
       ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        3, this->sample(), target);
+        2, this->sample(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -715,21 +696,14 @@ size_t AudioSample::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // bytes sample = 3;
+  // bytes sample = 2;
   if (this->sample().size() > 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->sample());
   }
 
-  // .google.protobuf.Timestamp sample_time = 1;
-  if (this->has_sample_time()) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::MessageSize(
-        *sample_time_);
-  }
-
-  // int32 recorder_num = 2;
+  // int32 recorder_num = 1;
   if (this->recorder_num() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::Int32Size(
@@ -767,9 +741,6 @@ void AudioSample::MergeFrom(const AudioSample& from) {
 
     sample_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.sample_);
   }
-  if (from.has_sample_time()) {
-    mutable_sample_time()->::google::protobuf::Timestamp::MergeFrom(from.sample_time());
-  }
   if (from.recorder_num() != 0) {
     set_recorder_num(from.recorder_num());
   }
@@ -801,7 +772,6 @@ void AudioSample::InternalSwap(AudioSample* other) {
   using std::swap;
   sample_.Swap(&other->sample_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
-  swap(sample_time_, other->sample_time_);
   swap(recorder_num_, other->recorder_num_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
 }
@@ -827,6 +797,9 @@ const int RecorderInfo::kRecorderStateFieldNumber;
 const int RecorderInfo::kStatusLenFieldNumber;
 const int RecorderInfo::kStatusErrorFieldNumber;
 const int RecorderInfo::kStatusSpikeFieldNumber;
+const int RecorderInfo::kAudioSampleRateFieldNumber;
+const int RecorderInfo::kAudioChannelsFieldNumber;
+const int RecorderInfo::kAudioFormatFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 RecorderInfo::RecorderInfo()
@@ -849,8 +822,8 @@ RecorderInfo::RecorderInfo(const RecorderInfo& from)
     id_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.id_);
   }
   ::memcpy(&recorder_num_, &from.recorder_num_,
-    static_cast<size_t>(reinterpret_cast<char*>(&status_spike_) -
-    reinterpret_cast<char*>(&recorder_num_)) + sizeof(status_spike_));
+    static_cast<size_t>(reinterpret_cast<char*>(&audio_format_) -
+    reinterpret_cast<char*>(&recorder_num_)) + sizeof(audio_format_));
   // @@protoc_insertion_point(copy_constructor:streamer.RecorderInfo)
 }
 
@@ -858,8 +831,8 @@ void RecorderInfo::SharedCtor() {
   recorder_type_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   id_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&recorder_num_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&status_spike_) -
-      reinterpret_cast<char*>(&recorder_num_)) + sizeof(status_spike_));
+      reinterpret_cast<char*>(&audio_format_) -
+      reinterpret_cast<char*>(&recorder_num_)) + sizeof(audio_format_));
 }
 
 RecorderInfo::~RecorderInfo() {
@@ -895,8 +868,8 @@ void RecorderInfo::Clear() {
   recorder_type_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   id_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&recorder_num_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&status_spike_) -
-      reinterpret_cast<char*>(&recorder_num_)) + sizeof(status_spike_));
+      reinterpret_cast<char*>(&audio_format_) -
+      reinterpret_cast<char*>(&recorder_num_)) + sizeof(audio_format_));
   _internal_metadata_.Clear();
 }
 
@@ -1055,6 +1028,49 @@ bool RecorderInfo::MergePartialFromCodedStream(
         break;
       }
 
+      // int32 audio_sample_rate = 11;
+      case 11: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(88u /* 88 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &audio_sample_rate_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // int32 audio_channels = 12;
+      case 12: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(96u /* 96 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &audio_channels_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // .streamer.RecorderInfo.AudioFormat audio_format = 13;
+      case 13: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(104u /* 104 & 0xFF */)) {
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          set_audio_format(static_cast< ::streamer::RecorderInfo_AudioFormat >(value));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
       default: {
       handle_unusual:
         if (tag == 0) {
@@ -1142,6 +1158,22 @@ void RecorderInfo::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteDouble(10, this->status_spike(), output);
   }
 
+  // int32 audio_sample_rate = 11;
+  if (this->audio_sample_rate() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(11, this->audio_sample_rate(), output);
+  }
+
+  // int32 audio_channels = 12;
+  if (this->audio_channels() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(12, this->audio_channels(), output);
+  }
+
+  // .streamer.RecorderInfo.AudioFormat audio_format = 13;
+  if (this->audio_format() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      13, this->audio_format(), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -1217,6 +1249,22 @@ void RecorderInfo::SerializeWithCachedSizes(
   // double status_spike = 10;
   if (this->status_spike() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteDoubleToArray(10, this->status_spike(), target);
+  }
+
+  // int32 audio_sample_rate = 11;
+  if (this->audio_sample_rate() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(11, this->audio_sample_rate(), target);
+  }
+
+  // int32 audio_channels = 12;
+  if (this->audio_channels() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(12, this->audio_channels(), target);
+  }
+
+  // .streamer.RecorderInfo.AudioFormat audio_format = 13;
+  if (this->audio_format() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      13, this->audio_format(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1297,6 +1345,26 @@ size_t RecorderInfo::ByteSizeLong() const {
     total_size += 1 + 8;
   }
 
+  // int32 audio_sample_rate = 11;
+  if (this->audio_sample_rate() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->audio_sample_rate());
+  }
+
+  // int32 audio_channels = 12;
+  if (this->audio_channels() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->audio_channels());
+  }
+
+  // .streamer.RecorderInfo.AudioFormat audio_format = 13;
+  if (this->audio_format() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::EnumSize(this->audio_format());
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -1356,6 +1424,15 @@ void RecorderInfo::MergeFrom(const RecorderInfo& from) {
   if (from.status_spike() != 0) {
     set_status_spike(from.status_spike());
   }
+  if (from.audio_sample_rate() != 0) {
+    set_audio_sample_rate(from.audio_sample_rate());
+  }
+  if (from.audio_channels() != 0) {
+    set_audio_channels(from.audio_channels());
+  }
+  if (from.audio_format() != 0) {
+    set_audio_format(from.audio_format());
+  }
 }
 
 void RecorderInfo::CopyFrom(const ::google::protobuf::Message& from) {
@@ -1394,6 +1471,9 @@ void RecorderInfo::InternalSwap(RecorderInfo* other) {
   swap(status_len_, other->status_len_);
   swap(status_error_, other->status_error_);
   swap(status_spike_, other->status_spike_);
+  swap(audio_sample_rate_, other->audio_sample_rate_);
+  swap(audio_channels_, other->audio_channels_);
+  swap(audio_format_, other->audio_format_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 

@@ -32,7 +32,6 @@
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 #include <google/protobuf/empty.pb.h>
-#include <google/protobuf/timestamp.pb.h>
 // @@protoc_insertion_point(includes)
 #define PROTOBUF_INTERNAL_EXPORT_protobuf_streamer_2eproto 
 
@@ -106,6 +105,30 @@ inline bool RecorderInfo_RecorderState_Parse(
     const ::std::string& name, RecorderInfo_RecorderState* value) {
   return ::google::protobuf::internal::ParseNamedEnum<RecorderInfo_RecorderState>(
     RecorderInfo_RecorderState_descriptor(), name, value);
+}
+enum RecorderInfo_AudioFormat {
+  RecorderInfo_AudioFormat_Float32 = 0,
+  RecorderInfo_AudioFormat_Signed16 = 1,
+  RecorderInfo_AudioFormat_Signed24 = 2,
+  RecorderInfo_AudioFormat_Signed32 = 3,
+  RecorderInfo_AudioFormat_Unsigned8 = 4,
+  RecorderInfo_AudioFormat_RecorderInfo_AudioFormat_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
+  RecorderInfo_AudioFormat_RecorderInfo_AudioFormat_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
+};
+bool RecorderInfo_AudioFormat_IsValid(int value);
+const RecorderInfo_AudioFormat RecorderInfo_AudioFormat_AudioFormat_MIN = RecorderInfo_AudioFormat_Float32;
+const RecorderInfo_AudioFormat RecorderInfo_AudioFormat_AudioFormat_MAX = RecorderInfo_AudioFormat_Unsigned8;
+const int RecorderInfo_AudioFormat_AudioFormat_ARRAYSIZE = RecorderInfo_AudioFormat_AudioFormat_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* RecorderInfo_AudioFormat_descriptor();
+inline const ::std::string& RecorderInfo_AudioFormat_Name(RecorderInfo_AudioFormat value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    RecorderInfo_AudioFormat_descriptor(), value);
+}
+inline bool RecorderInfo_AudioFormat_Parse(
+    const ::std::string& name, RecorderInfo_AudioFormat* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<RecorderInfo_AudioFormat>(
+    RecorderInfo_AudioFormat_descriptor(), name, value);
 }
 enum SignalInfo_SignalType {
   SignalInfo_SignalType_Normal = 0,
@@ -226,9 +249,9 @@ class AudioSample : public ::google::protobuf::Message /* @@protoc_insertion_poi
 
   // accessors -------------------------------------------------------
 
-  // bytes sample = 3;
+  // bytes sample = 2;
   void clear_sample();
-  static const int kSampleFieldNumber = 3;
+  static const int kSampleFieldNumber = 2;
   const ::std::string& sample() const;
   void set_sample(const ::std::string& value);
   #if LANG_CXX11
@@ -240,21 +263,9 @@ class AudioSample : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::std::string* release_sample();
   void set_allocated_sample(::std::string* sample);
 
-  // .google.protobuf.Timestamp sample_time = 1;
-  bool has_sample_time() const;
-  void clear_sample_time();
-  static const int kSampleTimeFieldNumber = 1;
-  private:
-  const ::google::protobuf::Timestamp& _internal_sample_time() const;
-  public:
-  const ::google::protobuf::Timestamp& sample_time() const;
-  ::google::protobuf::Timestamp* release_sample_time();
-  ::google::protobuf::Timestamp* mutable_sample_time();
-  void set_allocated_sample_time(::google::protobuf::Timestamp* sample_time);
-
-  // int32 recorder_num = 2;
+  // int32 recorder_num = 1;
   void clear_recorder_num();
-  static const int kRecorderNumFieldNumber = 2;
+  static const int kRecorderNumFieldNumber = 1;
   ::google::protobuf::int32 recorder_num() const;
   void set_recorder_num(::google::protobuf::int32 value);
 
@@ -263,7 +274,6 @@ class AudioSample : public ::google::protobuf::Message /* @@protoc_insertion_poi
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr sample_;
-  ::google::protobuf::Timestamp* sample_time_;
   ::google::protobuf::int32 recorder_num_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_streamer_2eproto::TableStruct;
@@ -385,6 +395,38 @@ class RecorderInfo : public ::google::protobuf::Message /* @@protoc_insertion_po
     return RecorderInfo_RecorderState_Parse(name, value);
   }
 
+  typedef RecorderInfo_AudioFormat AudioFormat;
+  static const AudioFormat Float32 =
+    RecorderInfo_AudioFormat_Float32;
+  static const AudioFormat Signed16 =
+    RecorderInfo_AudioFormat_Signed16;
+  static const AudioFormat Signed24 =
+    RecorderInfo_AudioFormat_Signed24;
+  static const AudioFormat Signed32 =
+    RecorderInfo_AudioFormat_Signed32;
+  static const AudioFormat Unsigned8 =
+    RecorderInfo_AudioFormat_Unsigned8;
+  static inline bool AudioFormat_IsValid(int value) {
+    return RecorderInfo_AudioFormat_IsValid(value);
+  }
+  static const AudioFormat AudioFormat_MIN =
+    RecorderInfo_AudioFormat_AudioFormat_MIN;
+  static const AudioFormat AudioFormat_MAX =
+    RecorderInfo_AudioFormat_AudioFormat_MAX;
+  static const int AudioFormat_ARRAYSIZE =
+    RecorderInfo_AudioFormat_AudioFormat_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  AudioFormat_descriptor() {
+    return RecorderInfo_AudioFormat_descriptor();
+  }
+  static inline const ::std::string& AudioFormat_Name(AudioFormat value) {
+    return RecorderInfo_AudioFormat_Name(value);
+  }
+  static inline bool AudioFormat_Parse(const ::std::string& name,
+      AudioFormat* value) {
+    return RecorderInfo_AudioFormat_Parse(name, value);
+  }
+
   // accessors -------------------------------------------------------
 
   // string recorder_type = 2;
@@ -463,6 +505,24 @@ class RecorderInfo : public ::google::protobuf::Message /* @@protoc_insertion_po
   double status_spike() const;
   void set_status_spike(double value);
 
+  // int32 audio_sample_rate = 11;
+  void clear_audio_sample_rate();
+  static const int kAudioSampleRateFieldNumber = 11;
+  ::google::protobuf::int32 audio_sample_rate() const;
+  void set_audio_sample_rate(::google::protobuf::int32 value);
+
+  // int32 audio_channels = 12;
+  void clear_audio_channels();
+  static const int kAudioChannelsFieldNumber = 12;
+  ::google::protobuf::int32 audio_channels() const;
+  void set_audio_channels(::google::protobuf::int32 value);
+
+  // .streamer.RecorderInfo.AudioFormat audio_format = 13;
+  void clear_audio_format();
+  static const int kAudioFormatFieldNumber = 13;
+  ::streamer::RecorderInfo_AudioFormat audio_format() const;
+  void set_audio_format(::streamer::RecorderInfo_AudioFormat value);
+
   // @@protoc_insertion_point(class_scope:streamer.RecorderInfo)
  private:
 
@@ -477,6 +537,9 @@ class RecorderInfo : public ::google::protobuf::Message /* @@protoc_insertion_po
   double status_len_;
   double status_error_;
   double status_spike_;
+  ::google::protobuf::int32 audio_sample_rate_;
+  ::google::protobuf::int32 audio_channels_;
+  int audio_format_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_streamer_2eproto::TableStruct;
 };
@@ -1562,56 +1625,7 @@ class SignalInfo : public ::google::protobuf::Message /* @@protoc_insertion_poin
 #endif  // __GNUC__
 // AudioSample
 
-// .google.protobuf.Timestamp sample_time = 1;
-inline bool AudioSample::has_sample_time() const {
-  return this != internal_default_instance() && sample_time_ != NULL;
-}
-inline const ::google::protobuf::Timestamp& AudioSample::_internal_sample_time() const {
-  return *sample_time_;
-}
-inline const ::google::protobuf::Timestamp& AudioSample::sample_time() const {
-  const ::google::protobuf::Timestamp* p = sample_time_;
-  // @@protoc_insertion_point(field_get:streamer.AudioSample.sample_time)
-  return p != NULL ? *p : *reinterpret_cast<const ::google::protobuf::Timestamp*>(
-      &::google::protobuf::_Timestamp_default_instance_);
-}
-inline ::google::protobuf::Timestamp* AudioSample::release_sample_time() {
-  // @@protoc_insertion_point(field_release:streamer.AudioSample.sample_time)
-  
-  ::google::protobuf::Timestamp* temp = sample_time_;
-  sample_time_ = NULL;
-  return temp;
-}
-inline ::google::protobuf::Timestamp* AudioSample::mutable_sample_time() {
-  
-  if (sample_time_ == NULL) {
-    auto* p = CreateMaybeMessage<::google::protobuf::Timestamp>(GetArenaNoVirtual());
-    sample_time_ = p;
-  }
-  // @@protoc_insertion_point(field_mutable:streamer.AudioSample.sample_time)
-  return sample_time_;
-}
-inline void AudioSample::set_allocated_sample_time(::google::protobuf::Timestamp* sample_time) {
-  ::google::protobuf::Arena* message_arena = GetArenaNoVirtual();
-  if (message_arena == NULL) {
-    delete reinterpret_cast< ::google::protobuf::MessageLite*>(sample_time_);
-  }
-  if (sample_time) {
-    ::google::protobuf::Arena* submessage_arena =
-      reinterpret_cast<::google::protobuf::MessageLite*>(sample_time)->GetArena();
-    if (message_arena != submessage_arena) {
-      sample_time = ::google::protobuf::internal::GetOwnedMessage(
-          message_arena, sample_time, submessage_arena);
-    }
-    
-  } else {
-    
-  }
-  sample_time_ = sample_time;
-  // @@protoc_insertion_point(field_set_allocated:streamer.AudioSample.sample_time)
-}
-
-// int32 recorder_num = 2;
+// int32 recorder_num = 1;
 inline void AudioSample::clear_recorder_num() {
   recorder_num_ = 0;
 }
@@ -1625,7 +1639,7 @@ inline void AudioSample::set_recorder_num(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:streamer.AudioSample.recorder_num)
 }
 
-// bytes sample = 3;
+// bytes sample = 2;
 inline void AudioSample::clear_sample() {
   sample_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -1898,6 +1912,48 @@ inline void RecorderInfo::set_status_spike(double value) {
   
   status_spike_ = value;
   // @@protoc_insertion_point(field_set:streamer.RecorderInfo.status_spike)
+}
+
+// int32 audio_sample_rate = 11;
+inline void RecorderInfo::clear_audio_sample_rate() {
+  audio_sample_rate_ = 0;
+}
+inline ::google::protobuf::int32 RecorderInfo::audio_sample_rate() const {
+  // @@protoc_insertion_point(field_get:streamer.RecorderInfo.audio_sample_rate)
+  return audio_sample_rate_;
+}
+inline void RecorderInfo::set_audio_sample_rate(::google::protobuf::int32 value) {
+  
+  audio_sample_rate_ = value;
+  // @@protoc_insertion_point(field_set:streamer.RecorderInfo.audio_sample_rate)
+}
+
+// int32 audio_channels = 12;
+inline void RecorderInfo::clear_audio_channels() {
+  audio_channels_ = 0;
+}
+inline ::google::protobuf::int32 RecorderInfo::audio_channels() const {
+  // @@protoc_insertion_point(field_get:streamer.RecorderInfo.audio_channels)
+  return audio_channels_;
+}
+inline void RecorderInfo::set_audio_channels(::google::protobuf::int32 value) {
+  
+  audio_channels_ = value;
+  // @@protoc_insertion_point(field_set:streamer.RecorderInfo.audio_channels)
+}
+
+// .streamer.RecorderInfo.AudioFormat audio_format = 13;
+inline void RecorderInfo::clear_audio_format() {
+  audio_format_ = 0;
+}
+inline ::streamer::RecorderInfo_AudioFormat RecorderInfo::audio_format() const {
+  // @@protoc_insertion_point(field_get:streamer.RecorderInfo.audio_format)
+  return static_cast< ::streamer::RecorderInfo_AudioFormat >(audio_format_);
+}
+inline void RecorderInfo::set_audio_format(::streamer::RecorderInfo_AudioFormat value) {
+  
+  audio_format_ = value;
+  // @@protoc_insertion_point(field_set:streamer.RecorderInfo.audio_format)
 }
 
 // -------------------------------------------------------------------
@@ -3434,6 +3490,11 @@ template <> struct is_proto_enum< ::streamer::RecorderInfo_RecorderState> : ::st
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::streamer::RecorderInfo_RecorderState>() {
   return ::streamer::RecorderInfo_RecorderState_descriptor();
+}
+template <> struct is_proto_enum< ::streamer::RecorderInfo_AudioFormat> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::streamer::RecorderInfo_AudioFormat>() {
+  return ::streamer::RecorderInfo_AudioFormat_descriptor();
 }
 template <> struct is_proto_enum< ::streamer::SignalInfo_SignalType> : ::std::true_type {};
 template <>
