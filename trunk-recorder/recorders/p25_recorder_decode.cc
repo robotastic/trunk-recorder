@@ -90,3 +90,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
 void p25_recorder_decode::plugin_callback_handler(float *samples, int sampleCount) {
   plugman_audio_callback(_recorder, samples, sampleCount);
 }
+
+double p25_recorder_decode::get_output_sample_rate() {
+  return 8000;
+}

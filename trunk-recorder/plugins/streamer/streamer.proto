@@ -22,9 +22,8 @@ service TrunkRecorderStreamer {
 }
 
 message AudioSample {
-    google.protobuf.Timestamp sample_time = 1;
-    int32 recorder_num = 2;
-    bytes sample = 3;
+    int32 recorder_num = 1;
+    bytes sample = 2;
 }
 
 message RecorderInfo {
@@ -45,6 +44,17 @@ message RecorderInfo {
     double status_len = 8;
     double status_error = 9;
     double status_spike = 10;
+    int32 audio_sample_rate = 11;
+    int32 audio_channels = 12;
+    
+    enum AudioFormat {
+        Float32 = 0;
+        Signed16 = 1;
+        Signed24 = 2;
+        Signed32 = 3;
+        Unsigned8 = 4;
+    }
+    AudioFormat audio_format = 13;
 }
 
 message SourceInfo {

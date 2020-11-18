@@ -103,6 +103,9 @@ streamer::RecorderInfo* ToRecorderInfo(Recorder *recorder) {
     ri->set_id(boost::lexical_cast<std::string>(recorder->get_source()->get_num()) + "_" + boost::lexical_cast<std::string>(recorder->get_num()));
     ri->set_recorder_count(recorder->get_recording_count());
     ri->set_recorder_duration(recorder->get_recording_duration());
+    ri->set_audio_sample_rate(recorder->get_output_sample_rate());
+    ri->set_audio_channels(recorder->get_output_channels());
+    ri->set_audio_format(::streamer::RecorderInfo_AudioFormat_Float32);
     //
     return ri;
 }

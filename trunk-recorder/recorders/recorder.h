@@ -96,6 +96,8 @@ public:
   virtual double get_recording_duration() { return recording_duration; }
 
   virtual void process_message_queues(void){};
+  virtual double get_output_sample_rate(){ return 0;}
+  virtual int get_output_channels() { return 1; }
 
 protected:
   int recording_count;

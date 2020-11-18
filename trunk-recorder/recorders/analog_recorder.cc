@@ -330,3 +330,7 @@ void analog_recorder::start(Call *call) {
   state = active;
   valve->set_enabled(true);
 }
+
+double analog_recorder::get_output_sample_rate() {
+  return wave_sample_rate;
+}
