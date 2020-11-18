@@ -55,13 +55,14 @@ blacklist() {
 }
 
 rebuild_steps() {
+    pre_reqs
     freshen_repo
     do_build
     do_install
 }
 
 install_steps() {
-    pre_reqs
+#    pre_reqs
     rebuild_steps
     blacklist
 }
