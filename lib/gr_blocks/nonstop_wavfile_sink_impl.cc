@@ -195,7 +195,8 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if (!d_current_call) {
     time_t now = time(NULL);
-    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Now: " << now << std::endl;
+    double its_been = difftime(now, d_stop_time);
+    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << std::endl;
     return noutput_items;
   }
   // The recording is just starting out...
