@@ -169,9 +169,6 @@ void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
 
   fclose(d_fp);
   d_fp = NULL;
-  //if (close_call) {
-
-  //}
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl() {
@@ -194,6 +191,30 @@ void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char *system
 int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
+
+  // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
+  if (!d_current_call) {
+    time_t now = time(NULL);
+    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Now: " << now << std::endl;
+    return noutput_items;
+  }
+  // The recording is just starting out...
+  if (d_sample_count == 0) {
+
+    if (d_fp) {
+      // if we are already recording a file for this call, close it before starting a new one.
+      close_wav(false);
+    }
+
+    // create a new filename, based on the current time and source.
+    d_current_call->create_filename();
+    if (!open_internal(d_current_call->get_filename())) {
+      BOOST_LOG_TRIVIAL(error) << "can't open file";
+    }
+
+    curr_src_id = d_current_call->get_current_source();
+    d_start_time = time(NULL);
+  }
 
   int nwritten = dowork(noutput_items, input_items, output_items);
 
@@ -228,12 +249,6 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   bool next_file = false;
   //long curr_src_id = 0;
 
-  // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
-  if (!d_current_call) {
-    time_t now = time(NULL);
-    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Now: " << now << std::endl;
-    return noutput_items;
-  }
 
   for (unsigned int i = 0; i < tags.size(); i++) {
     if (pmt::eq(this_key, tags[i].key) && d_current_call->get_system_type() == "conventionalP25") {
@@ -258,23 +273,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     BOOST_LOG_TRIVIAL(info) << " The same source prob Stop/Started, we are getting a termination in the middle of a file, Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
   }
 
-  // The recording is just starting out...
-  if (d_sample_count == 0) {
 
-    if (d_fp) {
-      // if we are already recording a file for this call, close it before starting a new one.
-      close_wav(false);
-    }
-
-    // create a new filename, based on the current time and source.
-    d_current_call->create_filename();
-    if (!open_internal(d_current_call->get_filename())) {
-      BOOST_LOG_TRIVIAL(error) << "can't open file";
-    }
-
-    curr_src_id = d_current_call->get_current_source();
-    d_start_time = time(NULL);
-  }
   if (!d_fp) // drop output on the floor
   {
     BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
