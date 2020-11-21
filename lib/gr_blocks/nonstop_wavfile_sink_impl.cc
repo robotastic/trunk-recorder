@@ -154,7 +154,7 @@ void nonstop_wavfile_sink_impl::close() {
   gr::thread::scoped_lock guard(d_mutex);
 
   if (!d_fp) {
-    BOOST_LOG_TRIVIAL(error) << "wav error closing file" << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "wav error closing file - this is probabl because no samples were received, so no file was opened." << std::endl;
     return;
   }
 
