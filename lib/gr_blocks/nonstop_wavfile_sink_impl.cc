@@ -196,7 +196,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   if (!d_current_call) {
     time_t now = time(NULL);
     double its_been = difftime(now, d_stop_time);
-    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << " exptected: " << noutput_items << std::endl;
     return noutput_items;
   }
   // The recording is just starting out...
@@ -267,17 +267,17 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : Pos - " << d_sample_count << " offset: " << tags[i].offset - nitems_read(0) << " : "  << std::endl;
     }
   }
-
+  tags.clear();
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
 
-  if (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
+  if (d_current_call && d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
     BOOST_LOG_TRIVIAL(info) << " The same source prob Stop/Started, we are getting a termination in the middle of a file, Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
   }
 
 
   if (!d_fp) // drop output on the floor
   {
-    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp or Current Call: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
     return noutput_items;
   }
 
@@ -309,7 +309,6 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   }
 
   // fflush (d_fp);  // this is added so unbuffered content is written.
-  tags.clear();
   return nwritten;
 }
 
