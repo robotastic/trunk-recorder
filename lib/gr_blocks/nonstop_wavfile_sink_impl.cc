@@ -270,7 +270,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   tags.clear();
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
 
-  if (d_current_call && d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) {
+  if (d_current_call && !d_current_call->get_conversation_mode() && next_file && d_sample_count > 0) {
     BOOST_LOG_TRIVIAL(info) << " The same source prob Stop/Started, we are getting a termination in the middle of a file, Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
   }
 

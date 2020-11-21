@@ -271,7 +271,7 @@ bool load_config(string config_file) {
       double squelch_db = node.second.get<double>("squelch", -160);
       int max_dev = node.second.get<int>("maxDev", 4000);
       double filter_width = node.second.get<double>("filterWidth", 1.0);
-      bool transmission_mode = node.second.get<bool>("transmissionMode", false);
+      bool conversation_mode = node.second.get<bool>("conversationMode", true);
       boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
 
       if (mod_exists) {
@@ -297,8 +297,8 @@ bool load_config(string config_file) {
       system->set_qpsk_mod(qpsk_mod);
       system->set_max_dev(max_dev);
       system->set_filter_width(filter_width);
-      system->set_transmission_mode(transmission_mode);
-      BOOST_LOG_TRIVIAL(info) << "Transmission Mode: " << transmission_mode;
+      system->set_conversation_mode(conversation_mode);
+      BOOST_LOG_TRIVIAL(info) << "Conversation Mode: " << conversation_mode;
       BOOST_LOG_TRIVIAL(info) << "Analog Recorder Maximum Deviation: " << node.second.get<int>("maxDev", 4000);
       BOOST_LOG_TRIVIAL(info) << "Filter Width: " << filter_width;
       BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", -160);
@@ -920,7 +920,7 @@ void handle_call(TrunkMessage message, System *sys) {
         }
       } else {
         // gotta make sure we have the message.source in there because sometimes it is randomly 0 and we don't want to do anything in those scenarios.
-        if (sys->get_transmission_mode() && (call->get_state() == recording) && message.source && (message.source != call->get_current_source())) {
+        if (!sys->get_conversation_mode() && (call->get_state() == recording) && message.source && (message.source != call->get_current_source())) {
           BOOST_LOG_TRIVIAL(info) << "Source Switch [" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s" << message.source << " " << call->get_current_source();
 
           Recorder *recorder = call->get_recorder();
