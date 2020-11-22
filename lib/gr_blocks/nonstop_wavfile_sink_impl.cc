@@ -252,19 +252,20 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
 
   for (unsigned int i = 0; i < tags.size(); i++) {
-    if (pmt::eq(this_key, tags[i].key) && d_current_call->get_system_type() == "conventionalP25") {
+    if (pmt::eq(this_key, tags[i].key) ) { //&& d_current_call->get_system_type() == "conventionalP25") {
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
       // double   sec = (double)pos  / (double)d_sample_rate;
+      BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ SRC TAG - SRC: " << src_id << " Call Src:  " << d_current_call->get_current_source() << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << "  ] " << std::endl;
+    
       if (src_id && (curr_src_id != src_id)) {
         log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
-        // BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
       }
     }
     if (pmt::eq(that_key, tags[i].key)) {
       next_file = true;
-      //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : Pos - " << d_sample_count << " offset: " << tags[i].offset - nitems_read(0) << " : "  << std::endl;
+      BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
     }
   }
   tags.clear();
@@ -280,7 +281,8 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp or Current Call: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
     return noutput_items;
   }
-
+  BOOST_LOG_TRIVIAL(info) << " [  ]-[  : WRITING " <<  noutput_items << " Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
+  
   for (nwritten = 0; nwritten < noutput_items; nwritten++) {
     for (int chan = 0; chan < d_nchans; chan++) {
       // Write zeros to channels which are in the WAV file
