@@ -324,9 +324,19 @@ std::vector<Call_Source> Call::get_source_list() {
   return src_list;
 }
 
+
+void Call::clear_transmission_list() {
+  transmission_list.clear();
+  transmission_list.shrink_to_fit();
+}
+
 void Call::clear_src_list() {
   src_list.clear();
   src_list.shrink_to_fit();
+}
+
+void Call::add_transmission(Transmission t) {
+  transmission_list.push_back(t);
 }
 
 long Call::get_source_count() {
