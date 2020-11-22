@@ -105,7 +105,9 @@ public:
   void set_talkgroup_display_format(std::string format);
   void set_talkgroup_tag(std::string tag);
   void clear_src_list();
+  void clear_transmission_list();
   boost::property_tree::ptree get_stats();
+  void add_transmission(Transmission t);
 
   bool add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal);
 
