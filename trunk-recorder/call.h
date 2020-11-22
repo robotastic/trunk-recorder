@@ -6,6 +6,16 @@
 #include <sys/time.h>
 #include <vector>
 
+
+struct Transmission {
+  long source;
+  long start_time;
+  long stop_time;
+  double freq;
+  char filename[255];
+};
+
+
 struct Call_Source {
   long source;
   long time;
