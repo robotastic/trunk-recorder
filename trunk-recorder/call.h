@@ -11,6 +11,7 @@ struct Transmission {
   long source;
   long start_time;
   long stop_time;
+  long sample_count;
   double freq;
   char filename[255];
 };

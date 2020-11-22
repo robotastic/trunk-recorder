@@ -199,47 +199,6 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << " exptected: " << noutput_items << std::endl;
     return noutput_items;
   }
-  // The recording is just starting out...
-  if (d_sample_count == 0) {
-
-    if (d_fp) {
-      // if we are already recording a file for this call, close it before starting a new one.
-      close_wav(false);
-    }
-
-    // create a new filename, based on the current time and source.
-    d_current_call->create_filename();
-    if (!open_internal(d_current_call->get_filename())) {
-      BOOST_LOG_TRIVIAL(error) << "can't open file";
-    }
-
-    curr_src_id = d_current_call->get_current_source();
-    d_start_time = time(NULL);
-  }
-
-  int nwritten = dowork(noutput_items, input_items, output_items);
-
-  d_stop_time = time(NULL);
-
-  return nwritten;
-}
-
-time_t nonstop_wavfile_sink_impl::get_start_time() {
-  return d_start_time;
-}
-
-time_t nonstop_wavfile_sink_impl::get_stop_time() {
-  return d_stop_time;
-}
-
-int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
-  // block
-
-  int n_in_chans = input_items.size();
-
-  short int sample_buf_s;
-
-  int nwritten;
 
   std::vector<gr::tag_t> tags;
   pmt::pmt_t this_key(pmt::intern("src_id"));
@@ -271,15 +230,11 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   tags.clear();
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
 
-  if (d_current_call && !d_current_call->get_conversation_mode() && next_file && d_sample_count > 0) {
-    BOOST_LOG_TRIVIAL(info) << " The same source prob Stop/Started, we are getting a termination in the middle of a file, Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
-  }
-
 
 
 // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... OR
 // The recording is just starting out...
-if ( (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) || (d_sample_count == 0)) {
+if (( d_current_call && !d_current_call->get_conversation_mode() && next_file && d_sample_count > 0) || (d_sample_count == 0)) {
       
       if (d_fp) {
         // if we are already recording a file for this call, close it before starting a new one.
@@ -292,9 +247,9 @@ if ( (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0
         curr_src_id, // Source ID for the Call
         d_start_time, // Start time of the Call
         d_stop_time, // when the Call eneded
+        d_sample_count,
         d_current_call->get_freq(), // Freq for the recording
         "" // leave the filenames blank
-        
         };
         strcpy(t.filename,current_filename);  // Copy the filename
         d_current_call->add_transmission(t);
@@ -314,6 +269,42 @@ if ( (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0
           BOOST_LOG_TRIVIAL(info) << " Skipping to next file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
       }
   }
+
+  if (next_file) {
+    return 0;
+  }
+  
+  int nwritten = dowork(noutput_items, input_items, output_items);
+
+  d_stop_time = time(NULL);
+
+  return nwritten;
+}
+
+time_t nonstop_wavfile_sink_impl::get_start_time() {
+  return d_start_time;
+}
+
+time_t nonstop_wavfile_sink_impl::get_stop_time() {
+  return d_stop_time;
+}
+
+int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
+  // block
+
+  int n_in_chans = input_items.size();
+
+  short int sample_buf_s;
+
+  int nwritten;
+
+/*
+  if (d_current_call && !d_current_call->get_conversation_mode() && next_file && d_sample_count > 0) {
+    BOOST_LOG_TRIVIAL(info) << " The same source prob Stop/Started, we are getting a termination in the middle of a file, Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
+  }
+*/
+
+
 
 
 

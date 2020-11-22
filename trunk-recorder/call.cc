@@ -10,6 +10,7 @@
 //static int rec_counter=0;
 
 void Call::create_filename() {
+  time_t now = time(NULL);
   tm *ltm = localtime(&start_time);
 
   std::stringstream path_stream;
@@ -19,7 +20,7 @@ void Call::create_filename() {
   boost::filesystem::create_directories(path_stream.str());
 
   int nchars;
-  nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.wav", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.wav", path_stream.str().c_str(), talkgroup, now, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
