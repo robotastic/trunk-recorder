@@ -276,6 +276,48 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   }
 
 
+
+// if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... OR
+// The recording is just starting out...
+if ( (d_current_call->get_transmission_mode() && next_file && d_sample_count > 0) || (d_sample_count == 0)) {
+      
+      if (d_fp) {
+        // if we are already recording a file for this call, close it before starting a new one.
+        close_wav(false);
+      }
+
+      // if an Transmission has ended, mark it and send it to Call.
+      if (next_file) {
+      Transmission t = {
+        curr_src_id, // Source ID for the Call
+        d_start_time, // Start time of the Call
+        d_stop_time, // when the Call eneded
+        d_current_call->get_freq(), // Freq for the recording
+        "" // leave the filenames blank
+        
+        };
+        strcpy(t.filename,current_filename);  // Copy the filename
+        d_current_call->add_transmission(t);
+    }
+
+        // create a new filename, based on the current time and source.
+        d_current_call->create_filename();
+        if (!open_internal(d_current_call->get_filename())) {
+            BOOST_LOG_TRIVIAL(error) << "can't open file";
+        }
+
+
+      curr_src_id = d_current_call->get_current_source();
+      d_start_time = time(NULL);
+
+      if (next_file) {
+          BOOST_LOG_TRIVIAL(info) << " Skipping to next file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
+      }
+  }
+
+
+
+
   if (!d_fp) // drop output on the floor
   {
     BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp or Current Call: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
