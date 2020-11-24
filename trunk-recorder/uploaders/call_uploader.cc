@@ -122,7 +122,7 @@ void send_transmissions(Call *call, System *sys, Config config) {
     
     Call_Freq call_freq = {call->transmission_list[i].freq, call->transmission_list[i].start_time, 0};
 
-      call_info->freq_list[i] = freq_list[i];
+      call_info->freq_list[0] = call_freq;
     
 
     int rc = pthread_create(&thread, NULL, upload_call_thread, (void *)call_info);
