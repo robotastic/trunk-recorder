@@ -239,7 +239,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
       // double   sec = (double)pos  / (double)d_sample_rate;
-      BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ SRC TAG - SRC: " << src_id << " Call Src:  " << d_current_call->get_current_source() << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << "  ] " << std::endl;
+      //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ SRC TAG - SRC: " << src_id << " Call Src:  " << d_current_call->get_current_source() << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << "  ] " << std::endl;
     
       if (src_id && (curr_src_id != src_id)) {
         log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
