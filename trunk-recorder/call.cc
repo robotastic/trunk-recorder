@@ -224,7 +224,7 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
       myfile << "}\n";
       myfile.close();
     }
-
+}
     if (sys->get_upload_script().length() != 0) {
       shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
     }
@@ -263,7 +263,7 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
       }*/
     }
 
-}
+
 }
 
 
