@@ -76,6 +76,8 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   }
   d_bytes_per_sample = bits_per_sample / 8;
   d_sample_count = 0;
+  d_first_work = true;
+  d_termination_flag = false;
 }
 
 char *nonstop_wavfile_sink_impl::get_filename() {
@@ -153,13 +155,34 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 void nonstop_wavfile_sink_impl::close() {
   gr::thread::scoped_lock guard(d_mutex);
 
+
   if (!d_fp) {
     BOOST_LOG_TRIVIAL(error) << "wav error closing file - this is probabl because no samples were received, so no file was opened." << std::endl;
     return;
   }
 
+  // If conversations are not being used, then add the current transmission to the transmission list for the call. 
+  if (d_current_call && !d_current_call->get_conversation_mode()) {
+    Transmission t = {
+    curr_src_id, // Source ID for the Call
+    d_start_time, // Start time of the Call
+    d_stop_time, // when the Call eneded
+    d_sample_count,
+    d_current_call->get_freq(), // Freq for the recording
+    "", // leave the filenames blank
+    "",
+    ""
+    };
+    strcpy(t.filename,current_filename);  // Copy the filename
+    strcpy(t.status_filename, current_status_filename);
+    strcpy(t.converted_filename, current_converted_filename);
+    d_current_call->add_transmission(t);
+  }
+
   close_wav(true);
   d_current_call = NULL;
+  d_first_work = true;
+  d_termination_flag = false;
 }
 
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
@@ -168,6 +191,7 @@ void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
   wavheader_complete(d_fp, byte_count);
 
   fclose(d_fp);
+  
   d_fp = NULL;
 }
 
@@ -206,7 +230,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
   unsigned pos = 0;
-  bool next_file = false;
+  bool termination_flag = false;
   //long curr_src_id = 0;
 
 
@@ -223,8 +247,10 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
       }
     }
     if (pmt::eq(that_key, tags[i].key)) {
-      next_file = true;
+      d_termination_flag = true;
+      
       BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
+        return noutput_items;
     }
   }
   tags.clear();
@@ -234,29 +260,15 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
 
 // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... OR
 // The recording is just starting out...
-if (( d_current_call && !d_current_call->get_conversation_mode() && next_file && d_sample_count > 0) || (d_sample_count == 0)) {
-      
+if (d_first_work) {
       if (d_fp) {
         // if we are already recording a file for this call, close it before starting a new one.
         close_wav(false);
       }
-
-      // if an Transmission has ended, mark it and send it to Call.
-      if (next_file) {
-      Transmission t = {
-        curr_src_id, // Source ID for the Call
-        d_start_time, // Start time of the Call
-        d_stop_time, // when the Call eneded
-        d_sample_count,
-        d_current_call->get_freq(), // Freq for the recording
-        "" // leave the filenames blank
-        };
-        strcpy(t.filename,current_filename);  // Copy the filename
-        d_current_call->add_transmission(t);
-    }
-
         // create a new filename, based on the current time and source.
         d_current_call->create_filename();
+        strcpy(current_status_filename,d_current_call->get_status_filename());
+        strcpy(current_converted_filename,d_current_call->get_converted_filename());
         if (!open_internal(d_current_call->get_filename())) {
             BOOST_LOG_TRIVIAL(error) << "can't open file";
         }
@@ -264,15 +276,12 @@ if (( d_current_call && !d_current_call->get_conversation_mode() && next_file &&
 
       curr_src_id = d_current_call->get_current_source();
       d_start_time = time(NULL);
+      d_first_work = false;
+}
 
-      if (next_file) {
-          BOOST_LOG_TRIVIAL(info) << " Skipping to next file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
-      }
-  }
 
-  if (next_file) {
-    return 0;
-  }
+
+
   
   int nwritten = dowork(noutput_items, input_items, output_items);
 
@@ -299,13 +308,62 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   int nwritten;
 
 /*
-  if (d_current_call && !d_current_call->get_conversation_mode() && next_file && d_sample_count > 0) {
+  if (d_current_call && !d_current_call->get_conversation_mode() && termination_flag && d_sample_count > 0) {
     BOOST_LOG_TRIVIAL(info) << " The same source prob Stop/Started, we are getting a termination in the middle of a file, Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << " Filename: " << current_filename << std::endl;
   }
 */
 
 
+if ( d_current_call && !d_current_call->get_conversation_mode() && d_termination_flag )  {
 
+    if   (d_sample_count > 0) {
+      if (d_fp) {
+        // if we are already recording a file for this call, close it before starting a new one.
+        close_wav(false);
+      }
+
+      // if an Transmission has ended, mark it and send it to Call.
+
+      Transmission t = {
+        curr_src_id, // Source ID for the Call
+        d_start_time, // Start time of the Call
+        d_stop_time, // when the Call eneded
+        d_sample_count,
+        d_current_call->get_freq(), // Freq for the recording
+        "", // leave the filenames blank
+        "",
+        ""
+        };
+        strcpy(t.filename,current_filename);  // Copy the filename
+        strcpy(t.status_filename, current_status_filename);
+        strcpy(t.converted_filename, current_converted_filename);
+        d_current_call->add_transmission(t);
+    
+
+        // create a new filename, based on the current time and source.
+        d_current_call->create_filename();
+        strcpy(current_filename,d_current_call->get_transmission_filename());
+        strcat(current_filename, ".wav");
+        strcpy(current_status_filename,d_current_call->get_transmission_filename());
+        strcat(current_status_filename, ".json");
+        strcpy(current_converted_filename,d_current_call->get_transmission_filename());
+        strcat(current_converted_filename, ".m4a");
+        if (!open_internal(current_filename)) {
+            BOOST_LOG_TRIVIAL(error) << "can't open file";
+        }
+
+
+      curr_src_id = d_current_call->get_current_source();
+      d_start_time = time(NULL);
+
+
+          BOOST_LOG_TRIVIAL(info) << " Skipping to next file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
+      d_termination_flag = false;
+    } else {
+      // No samples have been written yet. This means there was a Termination Flag (d_termination_flag) set prior to anything being written. Lets clear the flag.
+      d_termination_flag = false;
+    }
+  }
 
 
 

@@ -920,23 +920,23 @@ void handle_call(TrunkMessage message, System *sys) {
         }
       } else {
         // gotta make sure we have the message.source in there because sometimes it is randomly 0 and we don't want to do anything in those scenarios.
-        if (!sys->get_conversation_mode() && (call->get_state() == recording) && message.source && (message.source != call->get_current_source())) {
+        /*if (!sys->get_conversation_mode() && (call->get_state() == recording) && message.source && (message.source != call->get_current_source())) {
           BOOST_LOG_TRIVIAL(info) << "Source Switch [" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s" << message.source << " " << call->get_current_source();
 
           Recorder *recorder = call->get_recorder();
-          call->end_call();
+          call->end_call();*/
           /*stats.send_call_end(call);
              if (recorder != NULL) {
                stats.send_recorder(recorder);
              }*/
-          it = calls.erase(it);
+       /*   it = calls.erase(it);
           delete call;
           break;
-        } else {
+        } else {*/
           // everything about the current recording matches, simply update the info
           call->update(message);
           break;
-        }
+        //}
       }
     } else {
       ++it;

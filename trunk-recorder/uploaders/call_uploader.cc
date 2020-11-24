@@ -66,6 +66,75 @@ void *upload_call_thread(void *thread_arg) {
   // pthread_exit(NULL);
 }
 
+void send_transmissions(Call *call, System *sys, Config config) {
+  // struct call_data_t *call_info = (struct call_data_t *) malloc(sizeof(struct
+  // call_data_t));
+  for (std::size_t i = 0; i < call->transmission_list.size(); i++) {
+    call_data_t *call_info = new call_data_t;
+    pthread_t thread;
+
+    // from: http://www.zedwood.com/article/cpp-boost-url-regex
+    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    boost::cmatch what;
+
+    strcpy(call_info->filename, call->transmission_list[i].filename);
+    strcpy(call_info->converted, call->transmission_list[i].converted_filename);
+    strcpy(call_info->status_filename, call->transmission_list[i].status_filename);
+    strcpy(call_info->file_path, call->get_path());
+
+    if (regex_match(config.upload_server.c_str(), what, ex)) {
+      call_info->upload_server = config.upload_server;
+    }
+    if (regex_match(config.bcfy_calls_server.c_str(), what, ex)) {
+      call_info->bcfy_calls_server = config.bcfy_calls_server;
+    }
+
+    // Exit if neither of our above URLs were valid
+    if (config.upload_server.empty() && config.bcfy_calls_server.empty()) {
+      BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
+      return;
+    }
+
+    // std::cout << "Setting up thread\n";
+    std::vector<Call_Source> source_list = call->get_source_list();
+    Call_Freq *freq_list = call->get_freq_list();
+    //Call_Error  *error_list  = call->get_error_list();
+    call_info->talkgroup = call->get_talkgroup();
+    call_info->freq = call->transmission_list[i].freq;
+    call_info->encrypted = call->get_encrypted();
+    call_info->emergency = call->get_emergency();
+    call_info->tdma_slot = call->get_tdma_slot();
+    call_info->phase2_tdma = call->get_phase2_tdma();
+    call_info->error_list_count = call->get_error_list_count();
+    call_info->source_count = 1;
+    call_info->freq_count = 1;
+    call_info->start_time = call->transmission_list[i].start_time;
+    call_info->stop_time = call->transmission_list[i].stop_time;
+    call_info->length = call->transmission_list[i].sample_count / 8000;
+    call_info->api_key = sys->get_api_key();
+    call_info->bcfy_api_key = sys->get_bcfy_api_key();
+    call_info->bcfy_system_id = sys->get_bcfy_system_id();
+    call_info->short_name = sys->get_short_name();
+    call_info->audio_archive = sys->get_audio_archive();
+    call_info->call_log = sys->get_call_log();
+    Call_Source call_source = {call->transmission_list[i].source, call->transmission_list[i].start_time, 0, 0, "", ""};
+    call_info->source_list.push_back(call_source);
+    
+    Call_Freq call_freq = {call->transmission_list[i].freq, call->transmission_list[i].start_time, 0};
+
+      call_info->freq_list[i] = freq_list[i];
+    
+
+    int rc = pthread_create(&thread, NULL, upload_call_thread, (void *)call_info);
+
+    // pthread_detach(thread);
+
+    if (rc) {
+      printf("ERROR; return code from pthread_create() is %d", rc);
+    }
+  }
+}
+
 void send_call(Call *call, System *sys, Config config) {
   // struct call_data_t *call_info = (struct call_data_t *) malloc(sizeof(struct
   // call_data_t));

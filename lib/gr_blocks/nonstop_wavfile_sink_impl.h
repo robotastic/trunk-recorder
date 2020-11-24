@@ -45,10 +45,13 @@ private:
 	bool d_use_float;
 	bool d_conventional;
 	bool d_first_work;
+	bool d_termination_flag;
 	time_t d_start_time;
 	time_t d_stop_time;
 	long curr_src_id;
 	char current_filename[255];
+	char current_status_filename[255];
+	char current_converted_filename[255];
 	Call* d_current_call;
 
 protected:
