@@ -124,7 +124,7 @@ void send_transmissions(Call *call, System *sys, Config config) {
 
       call_info->freq_list[0] = call_freq;
     
-
+    BOOST_LOG_TRIVIAL(info) << "Trying to upload: " << call_info->converted << " Source: " << call->transmission_list[i].source;
     int rc = pthread_create(&thread, NULL, upload_call_thread, (void *)call_info);
 
     // pthread_detach(thread);
