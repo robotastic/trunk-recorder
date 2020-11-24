@@ -886,10 +886,10 @@ void handle_call(TrunkMessage message, System *sys) {
 
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       call_found = true;
-      
+      /*
       if (call->get_state() == recording) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq())  << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \t" << message.source << " " << call->get_current_source();;
-      }
+      }*/
       // Check to make sure the Freq and TDMA info match up with what is being currenty recorded
       if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
         if (call->get_state() == recording) {
@@ -898,7 +898,7 @@ void handle_call(TrunkMessage message, System *sys) {
 
           if (!retuned) {*/
           // we want to keep this call recording and now start a recording of the new call on another recorder
-         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tCould have retuned: - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
+         //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tCould have retuned: - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
             
           call_found = false;
           retune_failed = true;

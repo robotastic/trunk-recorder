@@ -249,7 +249,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (pmt::eq(that_key, tags[i].key)) {
       d_termination_flag = true;
       
-      BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
+      //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
         return noutput_items;
     }
   }
@@ -356,8 +356,8 @@ if ( d_current_call && !d_current_call->get_conversation_mode() && d_termination
       curr_src_id = d_current_call->get_current_source();
       d_start_time = time(NULL);
 
-
-          BOOST_LOG_TRIVIAL(info) << " Skipping to next file, Call Src:  "  << d_current_call->get_current_source() << std::endl;
+      BOOST_LOG_TRIVIAL(info) << " Source Termination - starting new file" <<  noutput_items << " Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
+  
       d_termination_flag = false;
     } else {
       // No samples have been written yet. This means there was a Termination Flag (d_termination_flag) set prior to anything being written. Lets clear the flag.
@@ -372,7 +372,6 @@ if ( d_current_call && !d_current_call->get_conversation_mode() && d_termination
     BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp or Current Call: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
     return noutput_items;
   }
-  BOOST_LOG_TRIVIAL(info) << " [  ]-[  : WRITING " <<  noutput_items << " Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
   
   for (nwritten = 0; nwritten < noutput_items; nwritten++) {
     for (int chan = 0; chan < d_nchans; chan++) {
