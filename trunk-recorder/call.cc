@@ -230,7 +230,7 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
     }
     
 
-    if ((transmission_list[i].start_time/8000) > sys->get_min_duration()) {
+    //if ((transmission_list[i].start_time/8000) > sys->get_min_duration()) {
       if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_transmissions(this, sys, config);
       }
@@ -251,17 +251,17 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
           BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
         }
       }
-    } else {
+    /*} else {
       // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
-     /*BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
+     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
 
       if (remove(filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
       }
       if (!sys->get_call_log() && remove(status_filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
-      }*/
-    }
+      }
+    }*/
 
 
 }
