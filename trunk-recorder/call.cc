@@ -116,78 +116,77 @@ Call::~Call() {
 void Call::restart_call() {
 }
 
-
 void Call::end_conversation() {
-    std::stringstream shell_command;
-    final_length = recorder->get_current_length();
+  std::stringstream shell_command;
+  final_length = recorder->get_current_length();
 
-    if (freq_count > 0) {
-      Rx_Status rx_status = recorder->get_rx_status();
-      freq_list[freq_count - 1].total_len = rx_status.total_len;
-      freq_list[freq_count - 1].spike_count = rx_status.spike_count;
-      freq_list[freq_count - 1].error_count = rx_status.error_count;
+  if (freq_count > 0) {
+    Rx_Status rx_status = recorder->get_rx_status();
+    freq_list[freq_count - 1].total_len = rx_status.total_len;
+    freq_list[freq_count - 1].spike_count = rx_status.spike_count;
+    freq_list[freq_count - 1].error_count = rx_status.error_count;
+  }
+
+  std::ofstream myfile(status_filename);
+
+  if (myfile.is_open()) {
+    myfile << "{\n";
+    myfile << "\"freq\": " << this->curr_freq << ",\n";
+    myfile << "\"start_time\": " << this->start_time << ",\n";
+    myfile << "\"stop_time\": " << this->stop_time << ",\n";
+    myfile << "\"emergency\": " << this->emergency << ",\n";
+    //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
+    myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
+    myfile << "\"srcList\": [ ";
+
+    for (std::size_t i = 0; i < src_list.size(); i++) {
+      if (i != 0) {
+        myfile << ", ";
+      }
+      myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
     }
+    myfile << " ],\n";
+    myfile << "\"freqList\": [ ";
 
-    std::ofstream myfile(status_filename);
-
-    if (myfile.is_open()) {
-      myfile << "{\n";
-      myfile << "\"freq\": " << this->curr_freq << ",\n";
-      myfile << "\"start_time\": " << this->start_time << ",\n";
-      myfile << "\"stop_time\": " << this->stop_time << ",\n";
-      myfile << "\"emergency\": " << this->emergency << ",\n";
-      //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
-      myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
-      myfile << "\"srcList\": [ ";
-
-      for (std::size_t i = 0; i < src_list.size(); i++) {
-        if (i != 0) {
-          myfile << ", ";
-        }
-        myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
+    for (int i = 0; i < freq_count; i++) {
+      if (i != 0) {
+        myfile << ", ";
       }
-      myfile << " ],\n";
-      myfile << "\"freqList\": [ ";
+      myfile << "{ \"freq\": " << std::fixed << freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
+    }
+    myfile << "]\n";
+    myfile << "}\n";
+    myfile.close();
+  }
 
-      for (int i = 0; i < freq_count; i++) {
-        if (i != 0) {
-          myfile << ", ";
-        }
-        myfile << "{ \"freq\": " << std::fixed << freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
-      }
-      myfile << "]\n";
-      myfile << "}\n";
-      myfile.close();
+  if (sys->get_upload_script().length() != 0) {
+    shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
+  }
+
+  if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
+    if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
+      send_call(this, sys, config);
     }
 
     if (sys->get_upload_script().length() != 0) {
-      shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
+      BOOST_LOG_TRIVIAL(info) << "Running conversation upload script: " << shell_command.str();
+      signal(SIGCHLD, SIG_IGN);
+      //int rc = system(shell_command.str().c_str());
+      system(shell_command.str().c_str());
     }
 
-    if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
-      if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
-        send_call(this, sys, config);
+    // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
+    if (this->config.upload_server == "" && this->config.bcfy_calls_server == "") {
+      if (!sys->get_audio_archive() && remove(filename) != 0) {
+        BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
       }
-
-      if (sys->get_upload_script().length() != 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
-        signal(SIGCHLD, SIG_IGN);
-        //int rc = system(shell_command.str().c_str());
-        system(shell_command.str().c_str());
+      if (!sys->get_call_log() && remove(status_filename) != 0) {
+        BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
       }
-
-      // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
-      if (this->config.upload_server == "" && this->config.bcfy_calls_server == "") {
-        if (!sys->get_audio_archive() && remove(filename) != 0) {
-          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
-        }
-        if (!sys->get_call_log() && remove(status_filename) != 0) {
-          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
-        }
-      }
-    } else {
-      // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
-     /*BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
+    }
+  } else {
+    // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
+    /*BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
 
       if (remove(filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
@@ -195,15 +194,13 @@ void Call::end_conversation() {
       if (!sys->get_call_log() && remove(status_filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
       }*/
-    }
-  
+  }
 }
 
 void Call::end_transmissions() {
+
+  for (std::size_t i = 0; i < transmission_list.size(); i++) {
     std::stringstream shell_command;
-for (std::size_t i = 0; i < transmission_list.size(); i++) {
-
-
 
     std::ofstream myfile(transmission_list[i].status_filename);
     BOOST_LOG_TRIVIAL(info) << "Status file: " << transmission_list[i].status_filename;
@@ -216,7 +213,7 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
       //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
       myfile << "\"srcList\": [ ";
-      myfile << "{\"src\": " << std::fixed << transmission_list[i].source << ", \"time\": " << transmission_list[i].start_time << ", \"pos\": 0.0, \"emergency\": 0, \"signal_system\": \"\", \"tag\": \"\"}";  
+      myfile << "{\"src\": " << std::fixed << transmission_list[i].source << ", \"time\": " << transmission_list[i].start_time << ", \"pos\": 0.0, \"emergency\": 0, \"signal_system\": \"\", \"tag\": \"\"}";
       myfile << " ],\n";
       myfile << "\"freqList\": [ ";
       myfile << "{ \"freq\": " << std::fixed << transmission_list[i].freq << ", \"time\": " << transmission_list[i].start_time << ", \"pos\": 0, \"len\": 0, \"error_count\": 0, \"spike_count\": 0}";
@@ -224,34 +221,31 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
       myfile << "}\n";
       myfile.close();
     }
-}
+
     if (sys->get_upload_script().length() != 0) {
-      shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
+      shell_command << "./" << sys->get_upload_script() << " " << transmission_list[i].filename << " &";
+      BOOST_LOG_TRIVIAL(info) << "Running transmission upload script: " << shell_command.str();
+      signal(SIGCHLD, SIG_IGN);
+      //int rc = system(shell_command.str().c_str());
+      system(shell_command.str().c_str());
     }
-    
+  }
 
-    //if ((transmission_list[i].start_time/8000) > sys->get_min_duration()) {
-      if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
-        send_transmissions(this, sys, config);
-      }
+  //if ((transmission_list[i].start_time/8000) > sys->get_min_duration()) {
+  if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
+    send_transmissions(this, sys, config);
+  }
 
-      if (sys->get_upload_script().length() != 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
-        signal(SIGCHLD, SIG_IGN);
-        //int rc = system(shell_command.str().c_str());
-        system(shell_command.str().c_str());
-      }
-
-      // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
-      if (this->config.upload_server == "" && this->config.bcfy_calls_server == "") {
-        if (!sys->get_audio_archive() && remove(filename) != 0) {
-          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
-        }
-        if (!sys->get_call_log() && remove(status_filename) != 0) {
-          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
-        }
-      }
-    /*} else {
+  // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
+  if (this->config.upload_server == "" && this->config.bcfy_calls_server == "") {
+    if (!sys->get_audio_archive() && remove(filename) != 0) {
+      BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
+    }
+    if (!sys->get_call_log() && remove(status_filename) != 0) {
+      BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
+    }
+  }
+  /*} else {
       // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
 
@@ -262,16 +256,11 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
       }
     }*/
-
-
 }
-
-
 
 void Call::end_call() {
 
   stop_time = time(NULL);
-
 
   if (state == recording) {
     if (!recorder) {
@@ -279,25 +268,24 @@ void Call::end_call() {
     }
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed() << " Transmissions: " << transmission_list.size();
 
+    this->get_recorder()->stop();
+    if (this->get_sigmf_recording() == true) {
+      this->get_sigmf_recorder()->stop();
+    }
 
-this->get_recorder()->stop();
-  if (this->get_sigmf_recording() == true) {
-    this->get_sigmf_recorder()->stop();
-  }
+    if (this->get_debug_recording() == true) {
+      this->get_debug_recorder()->stop();
+    }
 
-  if (this->get_debug_recording() == true) {
-    this->get_debug_recorder()->stop();
-  }
+    this->set_state(inactive);
 
-  this->set_state(inactive);
-  
-  if (transmission_list.size()>0) {
-    BOOST_LOG_TRIVIAL(info) << "Doing end_transmissions() " << transmission_list.size();
-    this->end_transmissions();
-  } else {
-    BOOST_LOG_TRIVIAL(info) << "Doing end_conversation() " << transmission_list.size();
-    this->end_conversation();
-  }
+    if (transmission_list.size() > 0) {
+      BOOST_LOG_TRIVIAL(info) << "Doing end_transmissions() " << transmission_list.size();
+      this->end_transmissions();
+    } else {
+      BOOST_LOG_TRIVIAL(info) << "Doing end_conversation() " << transmission_list.size();
+      this->end_conversation();
+    }
   }
 }
 
@@ -416,7 +404,6 @@ std::vector<Call_Source> Call::get_source_list() {
   return src_list;
 }
 
-
 void Call::clear_transmission_list() {
   transmission_list.clear();
   transmission_list.shrink_to_fit();
@@ -502,12 +489,12 @@ const char *Call::get_xor_mask() {
 }
 
 long Call::get_current_source() {
-     if (!src_list.empty()) {
-     Call_Source last_source = src_list.back();
-      return last_source.source;
-     }
-     return 0;
- }
+  if (!src_list.empty()) {
+    Call_Source last_source = src_list.back();
+    return last_source.source;
+  }
+  return 0;
+}
 
 bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal) {
   if (src == 0) {
@@ -602,7 +589,6 @@ char *Call::get_transmission_filename() {
   return transmission_filename;
 }
 
-
 char *Call::get_path() {
   return path;
 }
@@ -638,7 +624,7 @@ std::string Call::get_talkgroup_tag() {
 
 bool Call::get_conversation_mode() {
   if (!sys) {
-       BOOST_LOG_TRIVIAL(error) << "\tWEIRD! for some reason, call has no sys - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq();
+    BOOST_LOG_TRIVIAL(error) << "\tWEIRD! for some reason, call has no sys - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq();
     return false;
   }
   return sys->get_conversation_mode();
