@@ -167,7 +167,7 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
                                        gr_vector_const_void_star& input_items,
                                        gr_vector_void_star      & output_items)
 {
-
+  bool terminate_call = false;
   const uint8_t *in = (const uint8_t *)input_items[0];
 
   p1fdma.rx_sym(in, ninput_items[0]);
@@ -175,11 +175,18 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
     for (int i = 0; i < ninput_items[0]; i++) {
       if (p2tdma.rx_sym(in[i])) {
         int rc = p2tdma.handle_frame();
+        if (p2tdma.get_call_terminated()) {
+          terminate_call = true;
+        }
 			if (rc > -1) {
           p25p2_queue_msg(rc);
 				p1fdma.reset_timer(); // prevent P1 timeouts due to long TDMA transmissions
         }
       }
+    }
+  } else {
+    if (p1fdma.get_call_terminated()) {
+      terminate_call = true;
     }
   }
   int amt_produce = 0;
@@ -218,7 +225,7 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
       silence_frame_count = d_silence_frames;
     } else {
 
-      if (p1fdma.get_call_terminated()) {
+      if (terminate_call) {
         add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src);
         std::fill(out, out + 1, 0);
         amt_produce = 1;
