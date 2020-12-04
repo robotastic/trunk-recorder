@@ -170,7 +170,7 @@ void Call::end_conversation() {
       }
 
       if (sys->get_upload_script().length() != 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
+        BOOST_LOG_TRIVIAL(info) << "Running conversation upload script: " << shell_command.str();
         signal(SIGCHLD, SIG_IGN);
         //int rc = system(shell_command.str().c_str());
         system(shell_command.str().c_str());
@@ -200,46 +200,44 @@ void Call::end_conversation() {
 }
 
 void Call::end_transmissions() {
-    std::stringstream shell_command;
-for (std::size_t i = 0; i < transmission_list.size(); i++) {
+    for (std::size_t i = 0; i < transmission_list.size(); i++) {
+      std::stringstream shell_command;
 
-
-
-    std::ofstream myfile(transmission_list[i].status_filename);
-    BOOST_LOG_TRIVIAL(info) << "Status file: " << transmission_list[i].status_filename;
-    if (myfile.is_open()) {
-      myfile << "{\n";
-      myfile << "\"freq\": " << transmission_list[i].freq << ",\n";
-      myfile << "\"start_time\": " << transmission_list[i].start_time << ",\n";
-      myfile << "\"stop_time\": " << transmission_list[i].stop_time << ",\n";
-      myfile << "\"emergency\": " << this->emergency << ",\n";
-      //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
-      myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
-      myfile << "\"srcList\": [ ";
-      myfile << "{\"src\": " << std::fixed << transmission_list[i].source << ", \"time\": " << transmission_list[i].start_time << ", \"pos\": 0.0, \"emergency\": 0, \"signal_system\": \"\", \"tag\": \"\"}";  
-      myfile << " ],\n";
-      myfile << "\"freqList\": [ ";
-      myfile << "{ \"freq\": " << std::fixed << transmission_list[i].freq << ", \"time\": " << transmission_list[i].start_time << ", \"pos\": 0, \"len\": 0, \"error_count\": 0, \"spike_count\": 0}";
-      myfile << "]\n";
-      myfile << "}\n";
-      myfile.close();
-    }
-}
-    if (sys->get_upload_script().length() != 0) {
-      shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
+      std::ofstream myfile(transmission_list[i].status_filename);
+      BOOST_LOG_TRIVIAL(info) << "Status file: " << transmission_list[i].status_filename;
+      if (myfile.is_open()) {
+        myfile << "{\n";
+        myfile << "\"freq\": " << transmission_list[i].freq << ",\n";
+        myfile << "\"start_time\": " << transmission_list[i].start_time << ",\n";
+        myfile << "\"stop_time\": " << transmission_list[i].stop_time << ",\n";
+        myfile << "\"emergency\": " << this->emergency << ",\n";
+        //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
+        myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
+        myfile << "\"srcList\": [ ";
+        myfile << "{\"src\": " << std::fixed << transmission_list[i].source << ", \"time\": " << transmission_list[i].start_time << ", \"pos\": 0.0, \"emergency\": 0, \"signal_system\": \"\", \"tag\": \"\"}";  
+        myfile << " ],\n";
+        myfile << "\"freqList\": [ ";
+        myfile << "{ \"freq\": " << std::fixed << transmission_list[i].freq << ", \"time\": " << transmission_list[i].start_time << ", \"pos\": 0, \"len\": 0, \"error_count\": 0, \"spike_count\": 0}";
+        myfile << "]\n";
+        myfile << "}\n";
+        myfile.close();
+      }
+    
+      if (sys->get_upload_script().length() != 0) {
+        shell_command << "./" << sys->get_upload_script() << " " << transmission_list[i].filename << " &";
+        BOOST_LOG_TRIVIAL(info) << "Running transmission upload script: " << shell_command.str();
+        signal(SIGCHLD, SIG_IGN);
+        //int rc = system(shell_command.str().c_str());
+        system(shell_command.str().c_str());
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "No transmission upload script for : " << transmission_list[i].status_filename;
+      }
     }
     
 
     //if ((transmission_list[i].start_time/8000) > sys->get_min_duration()) {
       if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_transmissions(this, sys, config);
-      }
-
-      if (sys->get_upload_script().length() != 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
-        signal(SIGCHLD, SIG_IGN);
-        //int rc = system(shell_command.str().c_str());
-        system(shell_command.str().c_str());
       }
 
       // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
