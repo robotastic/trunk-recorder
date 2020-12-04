@@ -170,7 +170,7 @@ void Call::end_conversation() {
       }
 
       if (sys->get_upload_script().length() != 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running conversation upload script: " << shell_command.str();
+        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
         signal(SIGCHLD, SIG_IGN);
         //int rc = system(shell_command.str().c_str());
         system(shell_command.str().c_str());
@@ -200,9 +200,9 @@ void Call::end_conversation() {
 }
 
 void Call::end_transmissions() {
-    
+    std::stringstream shell_command;
 for (std::size_t i = 0; i < transmission_list.size(); i++) {
-  std::stringstream shell_command;
+
 
 
     std::ofstream myfile(transmission_list[i].status_filename);
@@ -224,19 +224,22 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
       myfile << "}\n";
       myfile.close();
     }
-
-    if (sys->get_upload_script().length() != 0) {
-         shell_command << "./" << sys->get_upload_script() << " " << transmission_list[i].filename << " &";
-       BOOST_LOG_TRIVIAL(info) << "Running transmission upload script: " << shell_command.str();
-        signal(SIGCHLD, SIG_IGN);
-        //int rc = system(shell_command.str().c_str());
-        system(shell_command.str().c_str());
-      } 
 }
+    if (sys->get_upload_script().length() != 0) {
+      shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
+    }
+    
 
     //if ((transmission_list[i].start_time/8000) > sys->get_min_duration()) {
       if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_transmissions(this, sys, config);
+      }
+
+      if (sys->get_upload_script().length() != 0) {
+        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
+        signal(SIGCHLD, SIG_IGN);
+        //int rc = system(shell_command.str().c_str());
+        system(shell_command.str().c_str());
       }
 
       // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
