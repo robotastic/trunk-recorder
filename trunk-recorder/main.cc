@@ -658,11 +658,15 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
           BOOST_LOG_TRIVIAL(trace) << message.meta;
         }
 
-        recorder->start(call);
+        if (recorder->start(call)) {
         call->set_recorder(recorder);
         call->set_state(recording);
         stats.send_recorder(recorder);
         recorder_found = true;
+        } else {
+        recorder_found = false;
+        return false;
+        }
       } else {
         // not recording call either because the priority was too low or no
         // recorders were available

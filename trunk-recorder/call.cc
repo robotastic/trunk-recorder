@@ -206,7 +206,6 @@ for (std::size_t i = 0; i < transmission_list.size(); i++) {
 
 
     std::ofstream myfile(transmission_list[i].status_filename);
-    BOOST_LOG_TRIVIAL(info) << "Status file: " << transmission_list[i].status_filename;
     if (myfile.is_open()) {
       myfile << "{\n";
       myfile << "\"freq\": " << transmission_list[i].freq << ",\n";
@@ -292,10 +291,10 @@ this->get_recorder()->stop();
   this->set_state(inactive);
   
   if (transmission_list.size()>0) {
-    BOOST_LOG_TRIVIAL(info) << "Doing end_transmissions() " << transmission_list.size();
+    //BOOST_LOG_TRIVIAL(info) << "Doing end_transmissions() " << transmission_list.size();
     this->end_transmissions();
   } else {
-    BOOST_LOG_TRIVIAL(info) << "Doing end_conversation() " << transmission_list.size();
+    //BOOST_LOG_TRIVIAL(info) << "Doing end_conversation() " << transmission_list.size();
     this->end_conversation();
   }
   }

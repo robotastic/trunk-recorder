@@ -65,7 +65,7 @@ protected:
 public:
   ~analog_recorder();
   void tune_offset(double f);
-  void start(Call *call);
+  bool start(Call *call);
   void stop();
   double get_freq();
   Source *get_source();

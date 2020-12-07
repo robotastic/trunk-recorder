@@ -243,7 +243,7 @@ void debug_recorder::stop() {
   }
 }
 
-void debug_recorder::start(Call *call) {
+bool debug_recorder::start(Call *call) {
   if (state == inactive) {
     timestamp = time(NULL);
     starttime = time(NULL);
@@ -260,5 +260,7 @@ void debug_recorder::start(Call *call) {
     valve->set_enabled(true);
   } else {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Trying to Start an already Active Logger!!!";
+    return false;
   }
+  return true;
 }

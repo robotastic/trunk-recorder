@@ -292,7 +292,7 @@ void analog_recorder::setup_decoders_for_system(System *system) {
   decoder_sink->set_tps_enabled(system->get_tps_enabled());
 }
 
-void analog_recorder::start(Call *call) {
+bool analog_recorder::start(Call *call) {
   starttime = time(NULL);
   System *system = call->get_system();
   this->call = call;
@@ -318,4 +318,5 @@ void analog_recorder::start(Call *call) {
 
   state = active;
   valve->set_enabled(true);
+  return true;
 }
