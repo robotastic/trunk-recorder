@@ -14,4 +14,5 @@ class System;
 
 void send_call(Call *call, System *sys, Config config);
 void send_transmissions(Call *call, System *sys, Config config);
+void send_transmission(Call *call, Transmission transmission, System *sys, Config config);
 #endif

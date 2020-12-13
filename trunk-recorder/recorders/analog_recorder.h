@@ -73,6 +73,7 @@ public:
   time_t get_start_time();
   char *get_filename();
   double get_current_length();
+  long get_wav_hz(); 
   bool is_active();
   bool is_analog();
   bool is_idle();
@@ -93,7 +94,7 @@ private:
   double system_channel_rate;
   double initial_rate;
   float quad_gain;
-  double wave_sample_rate;
+  double wav_sample_rate;
   double squelch_db;
   time_t timestamp;
   time_t starttime;

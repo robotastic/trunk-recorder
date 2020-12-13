@@ -77,6 +77,7 @@ public:
   virtual Call_Source *get_source_list() { return NULL; };
   virtual int get_num() { return -1; };
   virtual long get_source_count() { return 0; };
+  virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
   virtual State get_state() { return inactive; };
   virtual Rx_Status get_rx_status() {

@@ -169,6 +169,7 @@ void nonstop_wavfile_sink_impl::close() {
     d_stop_time, // when the Call eneded
     d_sample_count,
     d_current_call->get_freq(), // Freq for the recording
+    length_in_seconds(),
     "", // leave the filenames blank
     "",
     ""
@@ -330,6 +331,7 @@ if ( d_current_call && !d_current_call->get_conversation_mode() && d_termination
         d_stop_time, // when the Call eneded
         d_sample_count,
         d_current_call->get_freq(), // Freq for the recording
+        length_in_seconds(), // length in seconds
         "", // leave the filenames blank
         "",
         ""

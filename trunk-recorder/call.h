@@ -13,6 +13,7 @@ struct Transmission {
   long stop_time;
   long sample_count;
   double freq;
+  double length;
   char filename[255];
   char status_filename[255];
   char converted_filename[255];
