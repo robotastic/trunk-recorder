@@ -46,6 +46,7 @@
 #include "op25_imbe_frame.h"
 #include "software_imbe_decoder.h"
 #include "op25_audio.h"
+#include "op25_msg_types.h"
 
 namespace gr{
     namespace op25_repeater{
@@ -57,10 +58,46 @@ void rx_sync::cbuf_insert(const uint8_t c) {
 }
 
 void rx_sync::sync_reset(void) {
+	// Sync counters and registers reset
+	d_symbol_count = 0;
+	d_rx_count = 0;
 	d_threshold = 0;
 	d_shift_reg = 0;
-	d_unmute_until[0] = 0;
-	d_unmute_until[1] = 0;
+	d_sync_reg = 0;
+	d_expires = 0;
+
+	// Audio reset
+	for (int chan = 0; chan <= 1; chan++) {
+		if (d_unmute_until[chan]) {
+			d_unmute_until[chan] = 0;
+			d_audio.send_audio_flag_channel(op25_audio::DRAIN, chan);
+			if (d_debug >= 10) {
+				fprintf(stderr, "%s mute channel(%d)\n", logts.get(d_msgq_id), chan);
+			}
+		}
+	}
+}
+
+void rx_sync::set_slot_mask(int mask) {
+	if (mask == d_slot_mask)
+		return;
+
+	if (d_debug >= 10) {
+		fprintf(stderr, "%s rx_sync::set_slot_mask: current(%d), new(%d)\n", logts.get(d_msgq_id), d_slot_mask, mask);
+	}
+
+	if (d_slot_mask == 4) {
+		sync_timer.reset();
+		sync_reset();
+	}
+	d_slot_mask = mask;
+}
+
+void rx_sync::set_xor_mask(int mask) {
+	if (d_debug >= 10) {
+		fprintf(stderr, "%s rx_sync::set_xor_mask: current(%d), new(%d)\n", logts.get(d_msgq_id), d_xor_mask, mask);
+	}
+	d_xor_mask = mask;
 }
 
 static int ysf_decode_fich(const uint8_t src[100], uint8_t dest[32]) {   // input is 100 dibits, result is 32 bits
@@ -129,60 +166,34 @@ void rx_sync::ysf_sync(const uint8_t dibitbuf[], bool& ysf_fullrate, bool& unmut
 		break;
 	}
 	if (d_debug > 5 && !unmute)
-		fprintf(stderr, "ysf_sync: muting audio: dt: %d, rc: %d\n", d_shift_reg, rc);
+		fprintf(stderr, "%s ysf_sync: muting audio: dt: %d, rc: %d\n", logts.get(d_msgq_id), d_shift_reg, rc);
 }
 
-void rx_sync::dmr_sync(const uint8_t bitbuf[], int& current_slot, bool& unmute) {
-	static const int slot_ids[] = {0, 1, 0, 0, 1, 1, 0, 1};
-	int tact;
-	int chan;
-	int fstype;
-	uint8_t tactbuf[sizeof(cach_tact_bits)];
-
-	for (size_t i=0; i<sizeof(cach_tact_bits); i++)
-		tactbuf[i] = bitbuf[cach_tact_bits[i]];
-	tact = hamming_7_4_decode[load_i(tactbuf, 7)];
-	chan = (tact>>2) & 1;
-	d_shift_reg = (d_shift_reg << 1) + chan;
-	current_slot = slot_ids[d_shift_reg & 7];
-
-	uint64_t sync = load_reg64(bitbuf + (MODE_DATA[RX_TYPE_DMR].sync_offset << 1), MODE_DATA[RX_TYPE_DMR].sync_len);
-	if (check_frame_sync(DMR_VOICE_SYNC_MAGIC ^ sync, d_threshold, MODE_DATA[RX_TYPE_DMR].sync_len))
-		fstype = 1;
-	else if (check_frame_sync(DMR_IDLE_SYNC_MAGIC ^ sync, d_threshold, MODE_DATA[RX_TYPE_DMR].sync_len))
-		fstype = 2;
-	else
-		fstype = 0;
-	if (fstype > 0)
-		d_expires = d_symbol_count + MODE_DATA[d_current_type].expiration;
-	if (fstype == 1) {
-		if (!d_unmute_until[current_slot] && d_debug > 5)
-			fprintf(stderr, "unmute slot %d\n", current_slot);
-		d_unmute_until[current_slot] = d_symbol_count + MODE_DATA[d_current_type].expiration;
-	} else if (fstype == 2) {
-		if (d_unmute_until[current_slot] && d_debug > 5)
-			fprintf(stderr, "mute slot %d\n", current_slot);
-		d_unmute_until[current_slot] = 0;
-	}
-	if (d_unmute_until[current_slot] <= d_symbol_count) {
-		d_unmute_until[current_slot] = 0;
-	}
-	unmute = d_unmute_until[current_slot] > 0;
-}
-
-rx_sync::rx_sync(const char * options, int debug) :	// constructor
+rx_sync::rx_sync(const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue) :	// constructor
+	d_xor_mask(0),
+	d_slot_mask(3),
 	d_symbol_count(0),
 	d_sync_reg(0),
 	d_cbuf_idx(0),
 	d_current_type(RX_TYPE_NONE),
 	d_rx_count(0),
 	d_expires(0),
-	d_stereo(false),
+	d_stereo(true),
 	d_debug(debug),
-	d_audio(options, debug)
+	d_msgq_id(msgq_id),
+	d_msg_queue(queue),
+	sync_timer(op25_timer(1000000)),
+	d_audio(options, debug),
+	dmr(debug, msgq_id, queue)
 {
+	if (msgq_id >= 0)
+		d_stereo = false; // single channel audio for trunking
+
 	mbe_initMbeParms (&cur_mp[0], &prev_mp[0], &enh_mp[0]);
 	mbe_initMbeParms (&cur_mp[1], &prev_mp[1], &enh_mp[1]);
+	mbe_initToneParms (&tone_mp[0]);
+	mbe_initToneParms (&tone_mp[1]);
+	sync_timer.reset();
 	sync_reset();
 }
 
@@ -190,6 +201,17 @@ rx_sync::~rx_sync()	// destructor
 {
 }
 
+void rx_sync::sync_timeout()
+{
+	if ((d_msgq_id < 0) || (d_msg_queue->full_p()))
+	return;
+
+	std::string m_buf;
+	gr::message::sptr msg = gr::message::make_from_string(m_buf, get_msg_type(PROTOCOL_DMR, M_DMR_TIMEOUT), (d_msgq_id << 1), logts.get_ts());
+	d_msg_queue->insert_tail(msg);
+
+	sync_timer.reset();
+}
 
 void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_type, int slot_id) {
 	static const int x=4;
@@ -197,19 +219,46 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 	static const uint8_t majority[8] = {0,0,0,1,0,1,1,1};
 
 	int b[9];
+	int U[4];
 	uint8_t buf[4*26];
 	uint8_t tmp_codeword [144];
 	uint32_t E0, ET;
 	uint32_t u[8];
+	size_t errs = 0;
 	bool do_fullrate = false;
 	bool do_silence = false;
+	bool do_tone = false;
+	packed_codeword p_cw;
 	voice_codeword fullrate_cw(voice_codeword_sz);
 
 	switch(codeword_type) {
 	case CODEWORD_DMR:
-		interleaver.process_vcw(cw, b);
-		if (b[0] < 120)
+		errs = interleaver.process_vcw(cw, b, U);
+		interleaver.pack_cw(p_cw, U);
+		if (d_debug >= 9) {
+			fprintf(stderr, "%s AMBE %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(d_msgq_id),
+			       	p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5], p_cw[6], errs);
+		}
+		if (d_xor_mask) {
+			uint8_t skipped_bits = p_cw[1] & 0xf0;
+			for (int i = 0; i <= 6; i++)
+				p_cw[i]   ^= (d_xor_mask >> ((i + 1) % 2) * 8);
+			p_cw[1] = (p_cw[1] & 0x0f) + skipped_bits;
+			interleaver.unpack_cw(p_cw, U);
+			interleaver.unpack_b(b, U);
+			interleaver.pack_cw(p_cw, U);
+
+			if (d_debug >= 9) {
+				fprintf(stderr, "%s ambe %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(d_msgq_id),
+			       		p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5], p_cw[6], errs);
+			}
+		}
+
+		if (mbe_dequantizeAmbeTone(&tone_mp[slot_id], U) == 0) {
+			do_tone = true;
+		} else if (b[0] < 120) { // TODO: handle Erasures/Frame Repeat
 			mbe_dequantizeAmbe2250Parms(&cur_mp[slot_id], &prev_mp[slot_id], b);
+		}
 		break;
 	case CODEWORD_DSTAR:
 		interleaver.decode_dstar(cw, b, false);
@@ -235,8 +284,17 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 	case CODEWORD_P25P1:	// 144 bits
 		for (int i=0; i<144; i++)
 			fullrate_cw[i] = cw[i];
-		imbe_header_decode(fullrate_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+		errs = imbe_header_decode(fullrate_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
 		do_fullrate = true;
+		if (d_debug >= 10) {
+			packed_codeword p_cw;
+			imbe_pack(p_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
+			fprintf(stderr, "%s IMBE %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x errs %lu\n",
+					logts.get(d_msgq_id),
+					p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5],
+				       	p_cw[6], p_cw[7], p_cw[8], p_cw[9], p_cw[10], errs);
+		}
+
 		break;
 	case CODEWORD_YSF_FULLRATE:	// 144 bits
 		for (int i=0; i<144; i++)
@@ -245,6 +303,9 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 		do_fullrate = true;
 		break;
 	}
+	if (do_tone) {
+		d_software_decoder[slot_id].decode_tone(tone_mp[slot_id].ID, tone_mp[slot_id].AD, &tone_mp[slot_id].n);
+	} else {
 	mbe_moveMbeParms (&cur_mp[slot_id], &prev_mp[slot_id]);
 	if (do_fullrate) {
 		d_software_decoder[slot_id].decode(fullrate_cw);
@@ -254,6 +315,7 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 		} else {
 			d_software_decoder[slot_id].decode_tap(cur_mp[slot_id].L, 0, cur_mp[slot_id].w0, &cur_mp[slot_id].Vl[1], &cur_mp[slot_id].Ml[1]);
 		}
+	}
 	}
 	audio_samples *samples = d_software_decoder[slot_id].audio();
 	float snd;
@@ -273,10 +335,10 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 }
 
 void rx_sync::output(int16_t * samp_buf, const ssize_t slot_id) {
-	if (!d_stereo) {
+	if (d_stereo) 
 		d_audio.send_audio_channel(samp_buf, NSAMP_OUTPUT * sizeof(int16_t), slot_id);
-		return;
-	}
+	else
+		d_audio.send_audio(samp_buf, NSAMP_OUTPUT * sizeof(int16_t));
 }
 
 void rx_sync::rx_sym(const uint8_t sym)
@@ -288,17 +350,24 @@ void rx_sync::rx_sym(const uint8_t sym)
 	uint8_t tmpcw[144];
 	bool ysf_fullrate;
 
+        if (d_slot_mask & 0x4) // Setting bit 3 of slot mask disables framing for idle receiver 
+		return;
+
 	d_symbol_count ++;
 	d_sync_reg = (d_sync_reg << 2) | (sym & 3);
-	for (int i = 1; i < RX_N_TYPES; i++) {
-		if (check_frame_sync(MODE_DATA[i].sync ^ d_sync_reg, (i == d_current_type) ? d_threshold : 0, MODE_DATA[i].sync_len)) {
-			sync_detected = (enum rx_types) i;
+	for (int i = 0; i < KNOWN_MAGICS; i++) {
+		if (check_frame_sync(SYNC_MAGIC[i].magic ^ d_sync_reg, (SYNC_MAGIC[i].type == d_current_type) ? d_threshold : 0, MODE_DATA[SYNC_MAGIC[i].type].sync_len)) {
+			sync_detected = (enum rx_types) SYNC_MAGIC[i].type;
 			break;
 		}
 	}
 	cbuf_insert(sym);
-	if (d_current_type == RX_TYPE_NONE && sync_detected == RX_TYPE_NONE)
+	if (d_current_type == RX_TYPE_NONE && sync_detected == RX_TYPE_NONE) {
+		if (sync_timer.expired()) {
+			sync_timeout();
+		}
 		return;
+        }
 	d_rx_count ++;
 	if (sync_detected != RX_TYPE_NONE) {
 		if (d_current_type != sync_detected) {
@@ -307,8 +376,8 @@ void rx_sync::rx_sym(const uint8_t sym)
 			d_rx_count = 0;
 		}
 		if (d_rx_count != MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1)) {
-			if (d_debug)
-				fprintf(stderr, "resync at count %d for protocol %s\n", d_rx_count, MODE_DATA[d_current_type].type);
+			if (d_debug >= 10)
+				fprintf(stderr, "%s resync at count %d for protocol %s (expected count %d)\n", logts.get(d_msgq_id), d_rx_count, MODE_DATA[d_current_type].type, (MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1)));
 			sync_reset();
 			d_rx_count = MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1);
 		} else {
@@ -317,9 +386,10 @@ void rx_sync::rx_sym(const uint8_t sym)
 		d_expires = d_symbol_count + MODE_DATA[d_current_type].expiration;
 	}
 	if (d_symbol_count >= d_expires) {
-		if (d_debug)
-			fprintf(stderr, "%s: timeout, symbol %d\n", MODE_DATA[d_current_type].type, d_symbol_count);
+		if (d_debug >= 10)
+			fprintf(stderr, "%s %s: timeout, symbol %d\n", logts.get(d_msgq_id), MODE_DATA[d_current_type].type, d_symbol_count);
 		d_current_type = RX_TYPE_NONE;
+		sync_timeout();
 		return;
 	}
 	if (d_rx_count < MODE_DATA[d_current_type].fragment_len)
@@ -344,14 +414,34 @@ void rx_sync::rx_sym(const uint8_t sym)
 		}
 		break;
 	case RX_TYPE_DMR:
-		dmr_sync(bit_ptr, current_slot, unmute);
-		if (!unmute)
+		// frame with explicit sync resets expiration counter
+		if (dmr.load_frame(symbol_ptr, unmute))
+			d_expires = d_symbol_count + MODE_DATA[d_current_type].expiration;
+
+		// update audio timeout counters etc
+		if (unmute && ((dmr.chan() + 1) & d_slot_mask)) {
+			if (!d_unmute_until[dmr.chan()])
+				if (d_debug >= 10) {
+					fprintf(stderr, "%s unmute channel(%d)\n", logts.get(d_msgq_id), dmr.chan());
+				}
+			d_unmute_until[dmr.chan()] = d_symbol_count + MODE_DATA[d_current_type].expiration;
+		}
+		if (!unmute || (d_symbol_count >= d_unmute_until[dmr.chan()])) {
+			if (d_unmute_until[dmr.chan()]) {
+				d_unmute_until[dmr.chan()] = 0;
+				d_audio.send_audio_flag_channel(op25_audio::DRAIN, dmr.chan());
+				if (d_debug >= 10) {
+					fprintf(stderr, "%s mute channel(%d)\n", logts.get(d_msgq_id), dmr.chan());
+				}
+			}
 			break;
-		codeword(symbol_ptr+12, CODEWORD_DMR, current_slot);
+		}
+
+		codeword(symbol_ptr+12, CODEWORD_DMR, dmr.chan());
 		memcpy(tmpcw, symbol_ptr+48, 18);
 		memcpy(tmpcw+18, symbol_ptr+90, 18);
-		codeword(tmpcw, CODEWORD_DMR, current_slot);
-		codeword(symbol_ptr+108, CODEWORD_DMR, current_slot);
+		codeword(tmpcw, CODEWORD_DMR, dmr.chan());
+		codeword(symbol_ptr+108, CODEWORD_DMR, dmr.chan());
 		break;
 	case RX_TYPE_DSTAR:
 		codeword(bit_ptr, CODEWORD_DSTAR, 0);   // 72 bits = 72 symbols

@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <sys/time.h>
 
+#include "op25_msg_types.h"
 #include "p25p2_duid.h"
 #include "p25p2_sync.h"
 #include "p25p2_tdma.h"
@@ -104,10 +105,13 @@ p25p2_tdma::p25p2_tdma(const op25_audio& udp, int slotid, int debug, bool do_msg
         ESS_B(16,0),
         ess_algid(0x80),
         ess_keyid(0),
+        mbe_err_cnt(0),
+        tone_frame(false),
 	p2framer()
 {
 	assert (slotid == 0 || slotid == 1);
 	mbe_initMbeParms (&cur_mp, &prev_mp, &enh_mp);
+	mbe_initToneParms (&tone_mp);
 }
 
 bool p25p2_tdma::rx_sym(uint8_t sym)
@@ -133,7 +137,7 @@ p25p2_tdma::set_xormask(const char*p) {
 		tdma_xormask[i] = p[i] & 3;
 }
 
-int p25p2_tdma::process_mac_pdu(const uint8_t byte_buf[], const unsigned int len) 
+int p25p2_tdma::process_mac_pdu(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) 
 {
 	unsigned int opcode = (byte_buf[0] >> 5) & 0x7;
 	unsigned int offset = (byte_buf[0] >> 2) & 0x7;
@@ -141,23 +145,23 @@ int p25p2_tdma::process_mac_pdu(const uint8_t byte_buf[], const unsigned int len
         switch (opcode)
         {
                 case 1: // MAC_PTT
-                        handle_mac_ptt(byte_buf, len);
+                        handle_mac_ptt(byte_buf, len, rs_errs);
                         break;
 
                 case 2: // MAC_END_PTT
-                        handle_mac_end_ptt(byte_buf, len);
+                        handle_mac_end_ptt(byte_buf, len, rs_errs);
                         break;
 
                 case 3: // MAC_IDLE
-                        handle_mac_idle(byte_buf, len);
+                        handle_mac_idle(byte_buf, len, rs_errs);
                         break;
 
                 case 4: // MAC_ACTIVE
-                        handle_mac_active(byte_buf, len);
+                        handle_mac_active(byte_buf, len, rs_errs);
                         break;
 
                 case 6: // MAC_HANGTIME
-                        handle_mac_hangtime(byte_buf, len);
+                        handle_mac_hangtime(byte_buf, len, rs_errs);
                         op25audio.send_audio_flag(op25_audio::DRAIN);
                         break;
         }
@@ -166,7 +170,7 @@ int p25p2_tdma::process_mac_pdu(const uint8_t byte_buf[], const unsigned int len
 	return opcode_map[opcode];
 }
 
-void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len) 
+void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) 
 {
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
@@ -176,41 +180,37 @@ void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len
         if (d_debug >= 10) {
                 fprintf(stderr, "%s MAC_PTT: srcaddr=%u, grpaddr=%u", logts.get(), srcaddr, grpaddr);
         }
-        if (d_do_nocrypt) {
+
                 for (int i = 0; i < 9; i++) {
                         ess_mi[i] = byte_buf[i+1];
                 }
                 ess_algid = byte_buf[10];
                 ess_keyid = (byte_buf[11] << 8) + byte_buf[12];
                 if (d_debug >= 10) {
-                        fprintf(stderr, ", algid=%x, keyid=%x, mi=", ess_algid, ess_keyid);
-                        for (int i = 0; i < 9; i++) {
-                                fprintf(stderr,"%02x ", ess_mi[i]);
-                        }
-                }
-        }
-        if (d_debug >= 10) {
-                fprintf(stderr, "\n");
+                fprintf(stderr, ", algid=%x, keyid=%x, mi=%02x %02x %02x %02x %02x %02x %02x %02x %02x, rs_errs=%d\n",
+			ess_algid, ess_keyid,
+			ess_mi[0], ess_mi[1], ess_mi[2], ess_mi[3], ess_mi[4], ess_mi[5],ess_mi[6], ess_mi[7], ess_mi[8],
+			rs_errs);
         }
 
         reset_vb();
 }
 
-void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int len) 
+void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) 
 {
         uint16_t colorcd = ((byte_buf[1] & 0x0f) << 8) + byte_buf[2];
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
 
         if (d_debug >= 10)
-                fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u\n", logts.get(), colorcd, srcaddr, grpaddr);
+                fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u, rs_errs=%d\n", logts.get(), colorcd, srcaddr, grpaddr, rs_errs);
 
-        std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
-        send_msg(s, -3);
+        //std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
+        //send_msg(s, -3);	// can cause data display issues if this message is processed after the DUID15
         op25audio.send_audio_flag(op25_audio::DRAIN);
 }
 
-void p25p2_tdma::handle_mac_idle(const uint8_t byte_buf[], const unsigned int len) 
+void p25p2_tdma::handle_mac_idle(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) 
 {
         if (d_debug >= 10)
                 fprintf(stderr, "%s MAC_IDLE: ", logts.get());
@@ -219,10 +219,10 @@ void p25p2_tdma::handle_mac_idle(const uint8_t byte_buf[], const unsigned int le
         op25audio.send_audio_flag(op25_audio::DRAIN);
 
         if (d_debug >= 10)
-                fprintf(stderr, "\n");
+                fprintf(stderr, ", rs_errs=%d\n", rs_errs);
 }
 
-void p25p2_tdma::handle_mac_active(const uint8_t byte_buf[], const unsigned int len) 
+void p25p2_tdma::handle_mac_active(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) 
 {
         if (d_debug >= 10)
                 fprintf(stderr, "%s MAC_ACTIVE: ", logts.get());
@@ -230,10 +230,10 @@ void p25p2_tdma::handle_mac_active(const uint8_t byte_buf[], const unsigned int 
         decode_mac_msg(byte_buf, len);
 
         if (d_debug >= 10)
-                fprintf(stderr, "\n");
+                fprintf(stderr, ", rs_errs=%d\n", rs_errs);
 }
 
-void p25p2_tdma::handle_mac_hangtime(const uint8_t byte_buf[], const unsigned int len) 
+void p25p2_tdma::handle_mac_hangtime(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) 
 {
         if (d_debug >= 10)
                 fprintf(stderr, "%s MAC_HANGTIME: ", logts.get());
@@ -242,7 +242,7 @@ void p25p2_tdma::handle_mac_hangtime(const uint8_t byte_buf[], const unsigned in
         op25audio.send_audio_flag(op25_audio::DRAIN);
 
         if (d_debug >= 10)
-                fprintf(stderr, "\n");
+                fprintf(stderr, ", rs_errs=%d\n", rs_errs);
 }
 
 
@@ -449,7 +449,7 @@ void p25p2_tdma::decode_mac_msg(const uint8_t byte_buf[], const unsigned int len
 
 int p25p2_tdma::handle_acch_frame(const uint8_t dibits[], bool fast) 
 {
-	int i, j, rc;
+	int i, j, rc, rs_errs = 0;
 	uint8_t bits[512];
 	std::vector<uint8_t> HB(63,0);
 	std::vector<int> Erasures;
@@ -504,9 +504,13 @@ int p25p2_tdma::handle_acch_frame(const uint8_t dibits[], bool fast)
 		HB[j] = (bits[i] << 5) + (bits[i+1] << 4) + (bits[i+2] << 3) + (bits[i+3] << 2) + (bits[i+4] << 1) + bits[i+5];
 		j++;
 	}
-	rc = rs28.decode(HB, Erasures);
-	if (rc < 0)
+	rs_errs = rs28.decode(HB, Erasures);
+	if (rs_errs < 0)
 		return -1;
+
+	// Adjust FEC error counter to eliminate erasures
+	if (rs_errs >= Erasures.size())
+		rs_errs -= Erasures.size();
 
 	if (fast) {
 		j = 9;
@@ -531,9 +535,7 @@ int p25p2_tdma::handle_acch_frame(const uint8_t dibits[], bool fast)
 		for (int i=0; i<len/8; i++) {
 			byte_buf[i] = (bits[i*8 + 0] << 7) + (bits[i*8 + 1] << 6) + (bits[i*8 + 2] << 5) + (bits[i*8 + 3] << 4) + (bits[i*8 + 4] << 3) + (bits[i*8 + 5] << 2) + (bits[i*8 + 6] << 1) + (bits[i*8 + 7] << 0);
 		}
-		rc = process_mac_pdu(byte_buf, len/8);
-	} else {
-		crc_errors++;
+		rc = process_mac_pdu(byte_buf, len/8, rs_errs);
 	}
 	return rc;
 }
@@ -541,31 +543,78 @@ int p25p2_tdma::handle_acch_frame(const uint8_t dibits[], bool fast)
 void p25p2_tdma::handle_voice_frame(const uint8_t dibits[]) 
 {
 	static const int NSAMP_OUTPUT=160;
+	audio_samples *samples = NULL;
+	int u[4];
 	int b[9];
+	size_t errs;
 	int16_t snd;
 	int K;
 	int rc = -1;
 
-	vf.process_vcw(dibits, b);
-	if (b[0] < 120) // anything above 120 is an erasure or special frame
+	// Deinterleave and figure out frame type:
+	errs = vf.process_vcw(dibits, b, u);
+	if (d_debug >= 9) {
+		packed_codeword p_cw;
+		vf.pack_cw(p_cw, u);
+		fprintf(stderr, "%s AMBE %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(),
+			       	p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5], p_cw[6], errs);
+	}
+	rc = mbe_dequantizeAmbeTone(&tone_mp, u);
+	if (rc == 0) {					// Tone Frame
+		tone_frame = true;
+		mbe_err_cnt = 0;
+	} else {
 		rc = mbe_dequantizeAmbe2250Parms (&cur_mp, &prev_mp, b);
-	/* FIXME: check RC */
+		if (rc == 0) {				// Voice Frame
+			tone_frame = false;
+			mbe_err_cnt = 0;
+		} else if (++mbe_err_cnt < 4) {		// Erasure with Frame Repeat per TIA-102.BABA.5.6
+        		if (!tone_frame) 
+				mbe_useLastMbeParms(&cur_mp, &prev_mp);
+			rc = 0;
+		} else {
+			tone_frame = false;		// Mute audio output after 3 successive Frame Repeats
+		}
+	}
+
+	// Synthesize tones or speech
+	if (rc == 0) {
+		if (tone_frame) {
+			software_decoder.decode_tone(tone_mp.ID, tone_mp.AD, &tone_mp.n);
+			samples = software_decoder.audio();
+		} else {
 	K = 12;
 	if (cur_mp.L <= 36)
 		K = int(float(cur_mp.L + 2.0) / 3.0);
-	if (rc == 0)
 		software_decoder.decode_tap(cur_mp.L, K, cur_mp.w0, &cur_mp.Vl[1], &cur_mp.Ml[1]);
-	audio_samples *samples = software_decoder.audio();
+			samples = software_decoder.audio();
+		}
+	}
+
+	// Populate output buffer with either audio samples or silence
 	write_bufp = 0;
 	for (int i=0; i < NSAMP_OUTPUT; i++) {
-		if (samples->size() > 0) {
+		if (samples && (samples->size() > 0)) {
 			snd = (int16_t)(samples->front());
 			samples->pop_front();
 		} else {
 			snd = 0;
 		}
 		output_queue_decode.push_back(snd);
+		write_buf[write_bufp++] = snd & 0xFF ;
+		write_buf[write_bufp++] = snd >> 8;
 	}
+	if (d_do_audio_output && (write_bufp >= 0)) { 
+		op25audio.send_audio(write_buf, write_bufp);
+		write_bufp = 0;
+	}
+
+	// This should never happen; audio samples should never be left in buffer
+	if (software_decoder.audio()->size() != 0) {
+		fprintf(stderr, "%s p25p2_tdma::handle_voice_frame(): residual audio sample buffer non-zero (len=%lu)\n", logts.get(), software_decoder.audio()->size());
+		software_decoder.audio()->clear();
+	}
+
 	mbe_moveMbeParms (&cur_mp, &prev_mp);
 	mbe_moveMbeParms (&cur_mp, &enh_mp);
 }
@@ -631,16 +680,11 @@ int p25p2_tdma::handle_packet(const uint8_t dibits[])
 
 void p25p2_tdma::handle_4V2V_ess(const uint8_t dibits[])
 {
+	int ec = 0;
+
         if (d_debug >= 10) {
 		fprintf(stderr, "%s %s_BURST ", logts.get(), (burst_id < 4) ? "4V" : "2V");
 	}
-
-        if ( !d_do_nocrypt ) {
-                if (d_debug >= 10) {
-	                fprintf(stderr, "\n");
-                }
-                return;
-        }
 
         if (burst_id < 4) {
                 for (int i=0; i < 12; i += 3) { // ESS-B is 4 hexbits / 12 dibits
@@ -648,7 +692,7 @@ void p25p2_tdma::handle_4V2V_ess(const uint8_t dibits[])
                 }
         }
         else {
-                int i, j, k, ec;
+                int i, j, k;
 
                 j = 0;
                 for (i = 0; i < 28; i++) { // ESS-A is 28 hexbits / 84 dibits
@@ -673,11 +717,10 @@ void p25p2_tdma::handle_4V2V_ess(const uint8_t dibits[])
         }     
 
         if (d_debug >= 10) {
-                fprintf(stderr, "ESS: algid=%x, keyid=%x, mi=", ess_algid, ess_keyid);        
-                for (int i = 0; i < 9; i++) {
-                        fprintf(stderr,"%02x ", ess_mi[i]);
-                }
-		fprintf(stderr, "\n");
+                fprintf(stderr, "ESS: algid=%x, keyid=%x, mi=%02x %02x %02x %02x %02x %02x %02x %02x %02x, rs_errs=%d\n",
+			ess_algid, ess_keyid,
+			ess_mi[0], ess_mi[1], ess_mi[2], ess_mi[3], ess_mi[4], ess_mi[5],ess_mi[6], ess_mi[7], ess_mi[8],
+			ec);        
         }
 }
 

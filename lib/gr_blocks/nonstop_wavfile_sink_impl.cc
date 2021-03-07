@@ -57,14 +57,9 @@
 namespace gr {
 namespace blocks {
 nonstop_wavfile_sink_impl::sptr
-nonstop_wavfile_sink_impl::make(int          n_channels,
-                           unsigned int sample_rate,
-                           int          bits_per_sample,
-                           bool         use_float)
+nonstop_wavfile_sink_impl::make(int          n_channels,  unsigned int sample_rate, int          bits_per_sample, bool         use_float)
 {
-  return gnuradio::get_initial_sptr
-           (new nonstop_wavfile_sink_impl( n_channels,
-                                          sample_rate, bits_per_sample, use_float));
+  return gnuradio::get_initial_sptr(new nonstop_wavfile_sink_impl( n_channels, sample_rate, bits_per_sample, use_float));
 }
 
 nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
@@ -76,21 +71,28 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
                io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
                io_signature::make(0, 0, 0)),
   d_sample_rate(sample_rate), d_nchans(n_channels),
-  d_use_float(use_float), d_fp(0)
+  d_use_float(use_float), d_fp(0), d_current_call(NULL)
 {
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
   d_bytes_per_sample = bits_per_sample / 8;
+  d_first_work = true;
+  d_sample_count = 0;
 }
 
 char * nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
 }
 
-bool nonstop_wavfile_sink_impl::open(const char *filename) {
+bool nonstop_wavfile_sink_impl::open(Call *call) {
   gr::thread::scoped_lock guard(d_mutex);
-  return open_internal(filename);
+  d_current_call = call;
+  d_conventional = call->is_conventional();
+  d_first_work = true;
+  d_sample_count = 0;
+  
+  return true;
 }
 
 bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
@@ -129,36 +131,13 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
     return false;
   }
 
-  // Scan headers, check file validity
-  if (wavheader_parse(d_fp,
-                      d_sample_rate,
-                      d_nchans,
-                      d_bytes_per_sample,
-                      d_first_sample_pos,
-                      d_samples_per_chan)) {
-    d_sample_count = (unsigned)d_samples_per_chan * d_nchans;
-
-    // std::cout << "Wav: " << filename << " Existing Wav Sample Count: " <<
-    // d_sample_count << " n_chans: " << d_nchans << " samples per_chan: " <<
-    // d_samples_per_chan <<std::endl;
-    // fprintf(stderr, "Existing Wav Sample Count: %d\n", d_sample_count);
-    fseek(d_fp, 0, SEEK_END);
-  } else {
     d_sample_count = 0;
 
-    // you have to rewind the d_new_fp because the read failed.
-    if (fseek(d_fp, 0, SEEK_SET) != 0) {
-      BOOST_LOG_TRIVIAL(error) << "Error rewinding " << std::endl;
-      return false;
-    }
-
-    // std::cout << "Adding Wav header, bytes per sample: " <<
-    // d_bytes_per_sample << std::endl;
     if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
       fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
       return false;
     }
-  }
+  
 
   if (d_bytes_per_sample == 1) {
     d_max_sample_val  = UCHAR_MAX;
@@ -176,6 +155,7 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
   return true;
 }
 
+
 void
 nonstop_wavfile_sink_impl::close()
 {
@@ -187,6 +167,7 @@ nonstop_wavfile_sink_impl::close()
   }
 
   close_wav();
+  d_current_call = NULL;
 }
 
 void
@@ -199,8 +180,6 @@ nonstop_wavfile_sink_impl::close_wav()
   fclose(d_fp);
   d_fp = NULL;
 
-  // std::cout <<  "Closing wav File - byte count: " << byte_count << " samples:
-  // " << d_sample_count << " bytes per: " << d_bytes_per_sample << std::endl;
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl()
@@ -213,12 +192,53 @@ bool nonstop_wavfile_sink_impl::stop()
   return true;
 }
 
+void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char* system_type, bool emergency)
+{
+  if (d_current_call == NULL) {
+    BOOST_LOG_TRIVIAL(debug) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
+  }
+  else {
+    BOOST_LOG_TRIVIAL(debug) << "Logging " << system_type << " : " << unitId << " to current call.";
+    d_current_call->add_signal_source(unitId, system_type, emergency ? SignalType::Emergency : SignalType::Normal);
+  }
+}
+
+
+
 int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
 
-  return dowork(noutput_items, input_items, output_items);
+    if (d_first_work ) // drop output on the floor
+    {
+      if (d_fp) {
+        BOOST_LOG_TRIVIAL(error) << "Weird - trying to open a file, but already have a FP";
+    
+      }
+
+        d_current_call->create_filename();
+        if (!open_internal(d_current_call->get_filename())) {
+            BOOST_LOG_TRIVIAL(error) << "can't open file";
+        }
+      d_first_work = false;
+      d_start_time = time(NULL);
+    }
+
+  int nwritten = dowork(noutput_items, input_items, output_items);
+
+  d_stop_time = time(NULL);
+
+  return nwritten;
 }
+
+time_t nonstop_wavfile_sink_impl::get_start_time() {
+	return d_start_time;
+}
+
+time_t nonstop_wavfile_sink_impl::get_stop_time() {
+	return d_stop_time;
+}
+
 
 int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   // block
@@ -238,17 +258,19 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_s
   pmt::pmt_t this_key(pmt::intern("src_id"));
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
+  unsigned pos = 0;
+  //long curr_src_id = 0;
+
   for (unsigned int i = 0; i < tags.size(); i++) {
-    if (pmt::eq(this_key, tags[i].key)) {      
-      /*
-      long src_id  = pmt::to_long(tags[i].value);      
-      unsigned pos = d_sample_count + (tags[i].offset - nitems_read(0));      
-      double   sec = (double)pos  / (double)d_sample_rate;
+    if (pmt::eq(this_key, tags[i].key) && d_current_call->get_system_type() == "conventionalP25") {
+      long src_id  = pmt::to_long(tags[i].value);
+      pos = d_sample_count + (tags[i].offset - nitems_read(0));
+      // double   sec = (double)pos  / (double)d_sample_rate;
       if (curr_src_id != src_id) {
-        add_source(src_id, sec);
-        BOOST_LOG_TRIVIAL(trace) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+        log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
+        // BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
         curr_src_id = src_id;
-      }*/
+      }
     }
   }
 

@@ -60,6 +60,9 @@ private:
 	mbe_parms cur_mp;
 	mbe_parms prev_mp;
 	mbe_parms enh_mp;
+	mbe_tone tone_mp;
+	int mbe_err_cnt;
+	bool tone_frame;
 	software_imbe_decoder software_decoder;
 	gr::msg_queue::sptr d_msg_queue;
 	std::deque<int16_t> &output_queue_decode;
@@ -80,20 +83,20 @@ private:
         std::vector<uint8_t> ESS_A; // ESS_A and ESS_B are hexbits vectors
         std::vector<uint8_t> ESS_B;
 
-        uint8_t ess_keyid;
-        uint16_t ess_algid;
+        uint16_t ess_keyid;
+        uint8_t ess_algid;
 	uint8_t ess_mi[9] = {0};
 
 	p25p2_framer p2framer;
 
 	int handle_acch_frame(const uint8_t dibits[], bool fast) ;
 	void handle_voice_frame(const uint8_t dibits[]) ;
-	int process_mac_pdu(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_idle(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_active(const uint8_t byte_buf[], const unsigned int len) ;
-        void handle_mac_hangtime(const uint8_t byte_buf[], const unsigned int len) ;
+	int process_mac_pdu(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_idle(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_active(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
+        void handle_mac_hangtime(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
         void decode_mac_msg(const uint8_t byte_buf[], const unsigned int len) ;
         void handle_4V2V_ess(const uint8_t dibits[]);
         inline bool encrypted() { return (ess_algid != 0x80); }

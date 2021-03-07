@@ -833,8 +833,6 @@ static const int hamming_16_11[] = {
 static const uint8_t dmr_bs_voice_sync[24] = {
 	1,3,1,1,1,1,3,3,3,1,1,3,3,1,3,3,1,3,1,1,3,3,1,3
 };
-static const uint64_t DMR_VOICE_SYNC_MAGIC = 0x755fd7df75f7LL;
-static const uint64_t DMR_IDLE_SYNC_MAGIC  = 0xdff57d75df5dLL;
 
 static const uint8_t dmr_bs_idle_sync[24] = {
 	3,1,3,3,3,3,1,1,1,3,3,1,1,3,1,1,3,1,3,3,1,1,3,1

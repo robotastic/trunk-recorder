@@ -735,6 +735,7 @@ software_imbe_decoder::software_imbe_decoder()
    int i,j;
 	//initialize
    OldL = 0;
+   L = 9;
    Old = 1; New = 0;
    psi1 = 0.0;
    for(i=0; i < 58; i++) {
@@ -967,6 +968,166 @@ software_imbe_decoder::decode_tap(int _L, int _K, float _w0, const int * _v, con
    OldL = L;
    Oldw0 = w0;
    tmp_f = Old; Old = New; New = tmp_f;
+}
+
+void
+software_imbe_decoder::decode_tone(int _ID, int _AD, int * _n)
+{
+   int en;
+   float step1, step2, sample, amplitude;
+   float freq1 = 0, freq2 = 0;
+   audio_samples *samples = audio();
+
+#ifdef DISABLE_AMBE_TONES
+   return;
+#endif
+
+   switch(_ID) {
+      // single tones, set frequency
+      case 5:
+         freq1 = 156.25; freq2 = freq1;
+         break;
+      case 6:
+         freq1 = 187.5; freq2 = freq1;
+         break;
+      // DTMF
+      case 128:
+         freq1 = 1336; freq2 = 941;
+         break;
+      case 129:
+         freq1 = 1209; freq2 = 697;
+         break;
+      case 130:
+         freq1 = 1336; freq2 = 697;
+         break;
+      case 131:
+         freq1 = 1477; freq2 = 697;
+         break;
+      case 132:
+         freq1 = 1209; freq2 = 770;
+         break;
+      case 133:
+         freq1 = 1336; freq2 = 770;
+         break;
+      case 134:
+         freq1 = 1477; freq2 = 770;
+         break;
+      case 135:
+         freq1 = 1209; freq2 = 852;
+         break;
+      case 136:
+         freq1 = 1336; freq2 = 852;
+         break;
+      case 137:
+         freq1 = 1477; freq2 = 852;
+         break;
+      case 138:
+         freq1 = 1633; freq2 = 697;
+         break;
+      case 139:
+         freq1 = 1633; freq2 = 770;
+         break;
+      case 140:
+         freq1 = 1633; freq2 = 852;
+         break;
+      case 141:
+         freq1 = 1633; freq2 = 941;
+         break;
+      case 142:
+         freq1 = 1209; freq2 = 941;
+         break;
+      case 143:
+         freq1 = 1477; freq2 = 941;
+         break;
+      // KNOX
+      case 144:
+         freq1 = 1162; freq2 = 820;
+         break;
+      case 145:
+         freq1 = 1052; freq2 = 606;
+         break;
+      case 146:
+         freq1 = 1162; freq2 = 606;
+         break;
+      case 147:
+         freq1 = 1279; freq2 = 606;
+         break;
+      case 148:
+         freq1 = 1052; freq2 = 672;
+         break;
+      case 149:
+         freq1 = 1162; freq2 = 672;
+         break;
+      case 150:
+         freq1 = 1279; freq2 = 672;
+         break;
+      case 151:
+         freq1 = 1052; freq2 = 743;
+         break;
+      case 152:
+         freq1 = 1162; freq2 = 743;
+         break;
+      case 153:
+         freq1 = 1279; freq2 = 743;
+         break;
+      case 154:
+         freq1 = 1430; freq2 = 606;
+         break;
+      case 155:
+         freq1 = 1430; freq2 = 672;
+         break;
+      case 156:
+         freq1 = 1430; freq2 = 743;
+         break;
+      case 157:
+         freq1 = 1430; freq2 = 820;
+         break;
+      case 158:
+         freq1 = 1052; freq2 = 820;
+         break;
+      case 159:
+         freq1 = 1279; freq2 = 820;
+         break;
+      // dual tones
+      case 160:
+         freq1 = 440; freq2 = 350;
+         break;
+      case 161:
+         freq1 = 480; freq2 = 440;
+         break;
+      case 162:
+         freq1 = 620; freq2 = 480;
+         break;
+      case 163:
+         freq1 = 490; freq2 = 350;
+         break;
+      // zero amplitude
+      case 255:
+         freq1 = 0; freq2 = 0;
+      default:
+      // single tones, calculated frequency
+         if ((_ID >= 7) && (_ID <= 122)) {
+            freq1 = 31.25 * _ID; freq2 = freq1;
+         }
+   }
+
+   // Zero Amplitude and unimplemented tones
+   if ((freq1 == 0) && (freq2 == 0)) {
+      for(en = 0; en <= 159; en++) {
+         samples->push_back(0);
+      }
+      return;
+   }
+
+   // Synthesize tones
+   step1 = 2 * M_PI * freq1 / 8000;
+   step2 = 2 * M_PI * freq2 / 8000;
+   amplitude = _AD * 75; // make adjustment to overall tone amplitude here
+   for (en = 0; en<=159; en++) {
+      sample =  amplitude * (sin((*_n) * step1)/2 + sin((*_n) * step2)/2);
+      samples->push_back(sample);
+      (*_n)++;
+   }
 }
 
 void
