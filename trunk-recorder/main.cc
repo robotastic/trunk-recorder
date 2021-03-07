@@ -908,7 +908,7 @@ void handle_call(TrunkMessage message, System *sys) {
   unit_affiliations[message.source] = message.talkgroup;
 
   char   shell_command[200];
-  sprintf(shell_command, "radiochange.sh %li %li &", unit, talkgroup);
+  sprintf(shell_command, "radiochange.sh %li %li &", message.source, message.talkgroup);
   int rc = system(shell_command);
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
