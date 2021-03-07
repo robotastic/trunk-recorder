@@ -460,28 +460,28 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.emergency = emergency;
     message.encrypted = encrypted;
     BOOST_LOG_TRIVIAL(trace) << "tsbk06\tUnit to Unit Chan Update\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
-    } else if (opcode == 0x08) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk08: Telephone Interconnect Voice Channel Grant";
-    } else if (opcode == 0x09) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk09: Telephone Interconnect Voice Channel Grant Update";
-    } else if (opcode == 0x0a) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk0a: Telephone Interconnect Answer Request";
-    } else if (opcode == 0x14) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk14: SNDCP Data Channel Grant";
-    } else if (opcode == 0x15) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk15: SNDCP Data Page Request";
-    } else if (opcode == 0x16) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk16: SNDCP Data Channel Announcement -Explicit";
-    } else if (opcode == 0x18) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk18: Status Update";
-    } else if (opcode == 0x1a) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk1a: Status Query";
-    } else if (opcode == 0x1c) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk1c: Messag Update";
-    } else if (opcode == 0x1d) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk1d: Radio Unit Monitor Command";
-    } else if (opcode == 0x1f) {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk1f: Call Alert";
+  } else if (opcode == 0x08) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk08: Telephone Interconnect Voice Channel Grant";
+  } else if (opcode == 0x09) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk09: Telephone Interconnect Voice Channel Grant Update";
+  } else if (opcode == 0x0a) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk0a: Telephone Interconnect Answer Request";
+  } else if (opcode == 0x14) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk14: SNDCP Data Channel Grant";
+  } else if (opcode == 0x15) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk15: SNDCP Data Page Request";
+  } else if (opcode == 0x16) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk16: SNDCP Data Channel Announcement -Explicit";
+  } else if (opcode == 0x18) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk18: Status Update";
+  } else if (opcode == 0x1a) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk1a: Status Query";
+  } else if (opcode == 0x1c) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk1c: Messag Update";
+  } else if (opcode == 0x1d) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk1d: Radio Unit Monitor Command";
+  } else if (opcode == 0x1f) {
+    BOOST_LOG_TRIVIAL(debug) << "tsbk1f: Call Alert";
   } else if (opcode == 0x20) { // Acknowledge response
     // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
     unsigned long ga = bitset_shift_mask(tsbk, 40, 0xffff);
