@@ -878,9 +878,6 @@ void unit_deregistration(long unit) {
   /* char   shell_command[200];
   sprintf(shell_command, "radiochange.sh %li off &", unit);
   int rc = system(shell_command); */
-  }
-
-  }
 }
 
 void unit_ack(long unit) {
