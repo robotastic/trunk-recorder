@@ -33,6 +33,7 @@ Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10, 18.
 ### Install Required Prequisites
 * [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
 * [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
+* [Ubuntu minimal](https://github.com/robotastic/trunk-recorder/wiki/MinimalInstall)
 * [Arch Linux](https://github.com/robotastic/trunk-recorder/wiki/Arch-Linux)
 * [macOS](https://github.com/robotastic/trunk-recorder/wiki/macOS)
 * [Raspberry Pi Buster Install](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Buster-Install) (Also works for the ASUS Tinker Board [S])
@@ -139,6 +140,7 @@ Here are the different arguments:
    - **decodeFSync** - *(Optional, For conventional systems)* enable the Fleet Sync signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeStar** - *(Optional, For conventional systems)* enable the Star signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeTPS** - *(Optional, For conventional systems)* enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
+   - **onUnitChange** *(Optional)* run a script when a unit radio registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), or sends an acknowledgment response. The radio ID and action are passed as two parameters.
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects Type II `smartnet` trunking systems which can have both analog and digital talkpaths whereas `p25` trunking systems don't have analog talkpaths.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
@@ -156,7 +158,7 @@ Here are the different arguments:
  - **debugRecorderAddress** - The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder.
 
 
-**talkgroupsFile**
+**talkgroupsFile**/
 
 This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. If you are not a Radio Reference member, try clicking on the "List All in one table" link, selecting everything in the table and copying it into Excel or a spreadsheet, and then exporting or saving as a CSV file.
 
