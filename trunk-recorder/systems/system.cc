@@ -240,12 +240,12 @@ void System::set_unit_tags_file(std::string unit_tags_file) {
   this->unit_tags->load_unit_tags(unit_tags_file);
 }
 
-std::string System::get_onunitchange_file() {
-  return this->onunitchange_file;
+std::string System::get_onunitchange_script() {
+  return this->onunitchange_script;
 }
 
-void System::set_onunitchange_file(std::string onunitchange_file) {
-  this->onunitchange_file = onunitchange_file;
+void System::set_onunitchange_script(std::string onunitchange_script) {
+  this->onunitchange_script = onunitchange_script;
 }
 
 Source *System::get_source() {

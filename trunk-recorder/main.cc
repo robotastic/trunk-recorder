@@ -327,8 +327,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
       system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
       BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
-      system->set_onunitchange_file(node.second.get<std::string>("onUnitChange", ""));
-      BOOST_LOG_TRIVIAL(info) << "Unit Change Script: " << system->get_onunitchange_file();
+      system->set_onunitchange_script(node.second.get<std::string>("onUnitChange", ""));
+      BOOST_LOG_TRIVIAL(info) << "On Unit Change Script: " << system->get_onunitchange_script();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")) {
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
@@ -857,16 +857,17 @@ void current_system_status(TrunkMessage message, System *sys) {
   }
 }
 
-void unit_registration(long unit) {
+void unit_registration(string onchange, long unit) {
   unit_affiliations[unit] = 0;
 
-  char   shell_command[200];
-  sprintf(shell_command, "onunitchange.sh %li on &", unit);
-  int rc = system(shell_command);
-
+  if (onchange.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li on &", onchange, unit);
+    int rc = system(shell_command);
+  }
 }
 
-void unit_deregistration(long unit) {
+void unit_deregistration(string onchange, long unit) {
   /* std::map<long, long>::iterator it;
 
   it = unit_affiliations.find(unit);
@@ -875,24 +876,29 @@ void unit_deregistration(long unit) {
 
   unit_affiliations[unit] = -1;
 
-  char   shell_command[200];
-  sprintf(shell_command, "onunitchange.sh %li off &", unit);
-  int rc = system(shell_command);
+  if (onchange.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li off &", onchange, unit);
+    int rc = system(shell_command);
+  }
 }
 
-void unit_ack(long unit) {
-  char   shell_command[200];
-  sprintf(shell_command, "onunitchange.sh %li ackresp &", unit);
-  int rc = system(shell_command);
+void unit_ack(string onchange, long unit) {
+  if (onchange.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li ackresp &", onchange, unit);
+    int rc = system(shell_command);
+  }
 }
 
-void group_affiliation(long unit, long talkgroup) {
+void group_affiliation(string onchange, long unit, long talkgroup) {
   unit_affiliations[unit] = talkgroup;
 
-  char   shell_command[200];
-  sprintf(shell_command, "onunitchange.sh %li %li &", unit, talkgroup);
-  int rc = system(shell_command);
-
+  if (onchange.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li %li &", onchange, unit, talkgroup);
+    int rc = system(shell_command);
+  }
 }
 
 void handle_call(TrunkMessage message, System *sys) {
@@ -908,9 +914,10 @@ void handle_call(TrunkMessage message, System *sys) {
 
   unit_affiliations[message.source] = message.talkgroup;
 
-  char   shell_command[200];
-  sprintf(shell_command, "onunitchange.sh %li %li &", message.source, message.talkgroup);
-  int rc = system(shell_command);
+  if (sys.get_onunitchange_script.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li %li call &", get_onunitchange_script.str().c_str(), message.source, message.talkgroup);
+    int rc = system(shell_command);
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
