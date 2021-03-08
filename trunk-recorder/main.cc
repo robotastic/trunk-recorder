@@ -916,7 +916,7 @@ void handle_call(TrunkMessage message, System *sys) {
 
   if (sys->get_onunitchange_script.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %s %li call %li &", sys->get_onunitchange_script.c_str(), sys->get_short_name().c_str(), message.source, message.talkgroup);
+    sprintf(shell_command, "%s %s %li call %li &", sys->get_onunitchange_script().c_str(), sys->get_short_name().c_str(), message.source, message.talkgroup);
     int rc = system(shell_command);
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
