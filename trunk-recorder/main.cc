@@ -862,7 +862,7 @@ void unit_registration(string onchange, long unit) {
 
   if (onchange.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li on &", onchange, unit);
+    sprintf(shell_command, "%s %li on &", onchange.c_str.c_str(), unit);
     int rc = system(shell_command);
   }
 }
@@ -878,7 +878,7 @@ void unit_deregistration(string onchange, long unit) {
 
   if (onchange.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li off &", onchange, unit);
+    sprintf(shell_command, "%s %li off &", onchange.c_str.c_str, unit);
     int rc = system(shell_command);
   }
 }
@@ -886,7 +886,7 @@ void unit_deregistration(string onchange, long unit) {
 void unit_ack(string onchange, long unit) {
   if (onchange.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li ackresp &", onchange, unit);
+    sprintf(shell_command, "%s %li ackresp &", onchange.c_str, unit);
     int rc = system(shell_command);
   }
 }
@@ -896,7 +896,7 @@ void group_affiliation(string onchange, long unit, long talkgroup) {
 
   if (onchange.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li %li &", onchange, unit, talkgroup);
+    sprintf(shell_command, "%s %li %li &", onchange.c_str, unit, talkgroup);
     int rc = system(shell_command);
   }
 }
