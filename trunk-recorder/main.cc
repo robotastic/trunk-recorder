@@ -1031,15 +1031,15 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case REGISTRATION:
-      unit_registration(message.source);
+      unit_registration(sys->get_onunitchange_script(), message.source);
       break;
 
     case DEREGISTRATION:
-      unit_deregistration(message.source);
+      unit_deregistration(sys->get_onunitchange_script(), message.source);
       break;
 
     case AFFILIATION:
-      group_affiliation(message.source, message.talkgroup);
+      group_affiliation(sys->get_onunitchange_script(), message.source, message.talkgroup);
       break;
 
     case SYSID:
@@ -1050,7 +1050,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case ACKRESP:
-      unit_ack(message.source);
+      unit_ack(sys->get_onunitchange_script(), message.source);
       break;
 
     case UNKNOWN:
