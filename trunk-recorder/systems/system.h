@@ -46,7 +46,7 @@ public:
   Source *source;
   std::string talkgroups_file;
   std::string unit_tags_file;
-  std::string onunitchange_script;
+  std::string unit_script;
   std::string short_name;
   std::string api_key;
   std::string bcfy_api_key;
@@ -140,14 +140,14 @@ public:
   void set_system_type(std::string);
   std::string get_talkgroups_file();
   std::string get_unit_tags_file();
-  std::string get_onunitchange_script();
+  std::string get_unit_script();
   Source *get_source();
   void set_source(Source *);
   Talkgroup *find_talkgroup(long tg);
   UnitTag *find_unit_tag(long unitID);
   void set_talkgroups_file(std::string);
   void set_unit_tags_file(std::string);
-  void set_onunitchange_script(std::string);
+  void set_unit_script(std::string);
   int control_channel_count();
   void add_control_channel(double channel);
   double get_next_control_channel();
