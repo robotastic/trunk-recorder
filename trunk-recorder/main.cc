@@ -328,6 +328,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
       system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
       BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
+      system->set_unit_script(node.second.get<std::string>("unitScript", ""));
+      BOOST_LOG_TRIVIAL(info) << "Unit Script: " << system->get_unit_script();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")) {
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
@@ -858,20 +860,48 @@ void current_system_status(TrunkMessage message, System *sys) {
   }
 }
 
-void unit_registration(long unit) {}
+void unit_registration(string unit_script, long unit) {
+  unit_affiliations[unit] = 0;
 
-void unit_deregistration(long unit) {
-  std::map<long, long>::iterator it;
-
-  it = unit_affiliations.find(unit);
-
-  if (it != unit_affiliations.end()) {
-    unit_affiliations.erase(it);
+  if (unit_script.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li on &", unit_script.c_str(), unit);
+    int rc = system(shell_command);
   }
 }
 
-void group_affiliation(long unit, long talkgroup) {
+void unit_deregistration(string unit_script, long unit) {
+  /* std::map<long, long>::iterator it;
+
+  it = unit_affiliations.find(unit);
+  if (it != unit_affiliations.end()) {
+    unit_affiliations.erase(it); */
+
+  unit_affiliations[unit] = -1;
+
+  if (unit_script.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li off &", unit_script.c_str(), unit);
+    int rc = system(shell_command);
+  }
+}
+
+void unit_ack(string unit_script, long unit) {
+  if (unit_script.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li ackresp &", unit_script.c_str(), unit);
+    int rc = system(shell_command);
+  }
+}
+
+void group_affiliation(string unit_script, long unit, long talkgroup) {
   unit_affiliations[unit] = talkgroup;
+
+  if (unit_script.length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %li join %li &", unit_script.c_str(), unit, talkgroup);
+    int rc = system(shell_command);
+  }
 }
 
 void handle_call(TrunkMessage message, System *sys) {
@@ -884,6 +914,14 @@ void handle_call(TrunkMessage message, System *sys) {
   that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
   recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
   of the original recorder gets flushed. */
+
+  unit_affiliations[message.source] = message.talkgroup;
+
+  if (sys->get_unit_script().length() != 0) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %s %li call %li &", sys->get_unit_script().c_str(), sys->get_short_name().c_str(), message.source, message.talkgroup);
+    int rc = system(shell_command);
+  }
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
@@ -980,7 +1018,7 @@ void unit_check() {
     talkgroup_totals[it->second]++;
   }
 
-  sprintf(unit_filename, "%s/%ld-unit_check.json", path_stream.str().c_str(), starttime);
+  sprintf(unit_filename, "%s/radiolist.json", path_stream.str().c_str());
 
   ofstream myfile(unit_filename);
 
@@ -992,12 +1030,11 @@ void unit_check() {
       if (it != talkgroup_totals.begin()) {
         myfile << ",\n";
       }
-      myfile << "\"" << it->first << "\": " << it->second;
+      myfile << "\"" << it->first << "\":" << it->second;
     }
-    myfile << "\n}\n}\n";
-    sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-    system(shell_command);
+    //sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
     //int rc = system(shell_command);
+    myfile << "}";
     myfile.close();
   }
 }
@@ -1017,14 +1054,15 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case REGISTRATION:
+      unit_registration(sys->get_unit_script(), message.source);
       break;
 
     case DEREGISTRATION:
-      unit_deregistration(message.source);
+      unit_deregistration(sys->get_unit_script(), message.source);
       break;
 
     case AFFILIATION:
-      group_affiliation(message.source, message.talkgroup);
+      group_affiliation(sys->get_unit_script(), message.source, message.talkgroup);
       break;
 
     case SYSID:
@@ -1032,6 +1070,10 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
 
     case STATUS:
       current_system_status(message, sys);
+      break;
+
+    case ACKRESP:
+      unit_ack(sys->get_unit_script(), message.source);
       break;
 
     case UNKNOWN:
