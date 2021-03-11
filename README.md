@@ -122,6 +122,7 @@ Here are the different arguments:
    - **recordUnknown** - record talkgroups if they are not listed in the Talkgroups File. The options are *true* and *false* (without quotes). The default is *true*.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
+   - **unitScript** - this script is called when radio join or leave a system. Checkout *unit-script.sh* in the example direcotry. The script should be located in the same directory as the trunk-recorder executable. The script will be passed 4 parameters: System ShortName, Radio ID, Action, and Talkgroup.
    - **apiKey** - *(Optional, only if uploadServer set)* System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be.
    - **broadcastifyApiKey** - *(Optional)* System-specific API key for Broadcastify Calls
    - **broadcastifySystemId** - *(Optional)* System ID for Broadcastify Calls (this is an integer, and different from the RadioReference system ID)
