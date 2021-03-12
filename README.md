@@ -122,7 +122,7 @@ Here are the different arguments:
    - **recordUnknown** - record talkgroups if they are not listed in the Talkgroups File. The options are *true* and *false* (without quotes). The default is *true*.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
-   - **unitScript** - this script is called when radio join or leave a system. Checkout *unit-script.sh* in the example direcotry. The script should be located in the same directory as the trunk-recorder executable. The script will be passed 4 parameters: System ShortName, Radio ID, Action, and Talkgroup.
+   - **unitScript** - *(Optional)* run a script when a unit radio registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName` `radio ID` `on|join|off|ackresp|call`. On joins and transmissions, `<talk group>` is passed as a fourth parameter.
    - **apiKey** - *(Optional, only if uploadServer set)* System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be.
    - **broadcastifyApiKey** - *(Optional)* System-specific API key for Broadcastify Calls
    - **broadcastifySystemId** - *(Optional)* System ID for Broadcastify Calls (this is an integer, and different from the RadioReference system ID)
@@ -141,7 +141,6 @@ Here are the different arguments:
    - **decodeFSync** - *(Optional, For conventional systems)* enable the Fleet Sync signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeStar** - *(Optional, For conventional systems)* enable the Star signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
    - **decodeTPS** - *(Optional, For conventional systems)* enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
-   - **onUnitChange** *(Optional)* run a script when a unit radio registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName` `radio ID` `on|join|off|ackresp|call`. On joins and transmissions, `<talk group>` is passed as a fourth parameter.
  - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects Type II `smartnet` trunking systems which can have both analog and digital talkpaths whereas `p25` trunking systems don't have analog talkpaths.
  - **captureDir** - the complete path to the directory where recordings should be saved.
  - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
