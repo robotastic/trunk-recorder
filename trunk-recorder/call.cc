@@ -178,8 +178,7 @@ void Call::end_conversation() {
         BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command_string;
 
         signal(SIGCHLD, SIG_IGN);
-        //int rc = system(shell_command.str().c_str());
-        system(shell_command_string.c_str());
+        int rc = system(shell_command_string.c_str());
       }
 
       // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
@@ -236,7 +235,7 @@ void Call::end_transmissions() {
         signal(SIGCHLD, SIG_IGN);
         //int rc = system(shell_command.str().c_str());
         shell_command_string = shell_command.str();
-        system(shell_command_string.c_str());
+        int rc = system(shell_command_string.c_str());
       } else {
         //BOOST_LOG_TRIVIAL(info) << "No transmission upload script for : " << transmission_list[i].status_filename;
       }
