@@ -1,13 +1,30 @@
 #!/bin/bash
+
+CAPTUREDIR="test" #fill this in with the path used in config.json, no ending /
+
+# Creates a list of radio IDs in a file named "radiolist.csv" located in the
+# shortName directory along side the recordings, and logs of radio activity to
+# "radiolog.csv" located in each day's recordings directory
+
+# file format: radioID, timestamp, action, talkgroup
+# for radiolist.csv, acknowledgment response timestamp in 5th column when it
+# was seen after other action
+
+# Feel free to customize this script; to use for multiple systems, include in
+# each system's config.json section
+
+# NOTE: You need to run "echo > radiolist.csv" where the file(s) is going to be
+# beforehand as sed doesn't work on empty files, and to capture actions before
+# trunk-recorder makes the daily directory upon recording the first call,
+# set up a daily cron task of mkdir -p <capturedir>/
+
+# sed usage based on https://stackoverflow.com/a/49852337
+
 printf -v TRDATE '%(%Y/%-m/%-d)T'
 printf -v NOWTIME '%(%s)T'
-SHORTNAME=$1
-RADIOID=$2
-ACTION=$3
-TALKGROUP=$4
-if $3 != "ackresp"
-sed <capture_dir>/$1/radiolist.csv 's/^$RADIOID,(.*)/$RADIOID,$NOWTIME,$ACTION,$TALKGROUP,/'
-elif
-sed <capture_dir>/$1/radiolist.csv 's/$RADIOID,(\d+),([on|join|off|call]),(\d+),(\d+)/$RADIOID,$1,$2,$3,$NOWTIME'
-done
-echo "$2,$3,$4" >> <capture_dir>/$1/$TRDATE/radiolog.csv
+if [ ! "$3" == "ackresp" ]; then
+  sed -i -e '/^'${2}',.*/{s//'${2}','${NOWTIME}','${3}','${4}',/;:a;n;ba;q}' -e '$a'${2}','${NOWTIME}','${3}','${4}',' $CAPTUREDIR/$1/radiolist.csv
+else
+  sed -i -e '/^'${2}',\([0-9]*\),ackresp,,/{s//'${2}','${NOWTIME}',\1,ackresp,,/;:a;n;ba;q}' -e '/^'${2}',\([0-9]*\),\([a-z]*\),\([0-9]*\),\([0-9]*\)/{s//'${2}',\1,\2,\3,'${NOWTIME}'/;:a;n;ba;q}' -e '$a'${2}','${NOWTIME}',ackresp,,' $CAPTUREDIR/$1/radiolist.csv
+fi
+#echo "$2,$NOWTIME,$3,$4" >> $CAPTUREDIR/$1/$TRDATE/radiolog.csv
