@@ -309,6 +309,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
+      system->set_unit_script(node.second.get<std::string>("unitScript", ""));
+      BOOST_LOG_TRIVIAL(info) << "Unit Script: " << system->get_unit_script();
       system->set_call_log(node.second.get<bool>("callLog", true));
       BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
       system->set_audio_archive(node.second.get<bool>("audioArchive", true));
@@ -327,8 +329,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
       system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
       BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
-      system->set_unit_script(node.second.get<std::string>("unitScript", ""));
-      BOOST_LOG_TRIVIAL(info) << "Unit Script: " << system->get_unit_script();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")) {
         system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
