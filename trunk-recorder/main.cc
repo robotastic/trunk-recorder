@@ -857,17 +857,17 @@ void current_system_status(TrunkMessage message, System *sys) {
   }
 }
 
-void unit_registration(string unit_script, long unit) {
+void unit_registration(string unit_script, string shortName, long unit) {
   unit_affiliations[unit] = 0;
 
   if (unit_script.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li on &", unit_script.c_str(), unit);
+    sprintf(shell_command, "%s %s %li on &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
   }
 }
 
-void unit_deregistration(string unit_script, long unit) {
+void unit_deregistration(string unit_script, string shortName, long unit) {
   /* std::map<long, long>::iterator it;
 
   it = unit_affiliations.find(unit);
@@ -878,25 +878,25 @@ void unit_deregistration(string unit_script, long unit) {
 
   if (unit_script.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li off &", unit_script.c_str(), unit);
+    sprintf(shell_command, "%s %s %li off &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
   }
 }
 
-void unit_ack(string unit_script, long unit) {
+void unit_ack(string unit_script, string shortName, long unit) {
   if (unit_script.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li ackresp &", unit_script.c_str(), unit);
+    sprintf(shell_command, "%s %s %li ackresp &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
   }
 }
 
-void group_affiliation(string unit_script, long unit, long talkgroup) {
+void group_affiliation(string unit_script, string shortName, long unit, long talkgroup) {
   unit_affiliations[unit] = talkgroup;
 
   if (unit_script.length() != 0) {
     char   shell_command[200];
-    sprintf(shell_command, "%s %li join %li &", unit_script.c_str(), unit, talkgroup);
+    sprintf(shell_command, "%s %s %li join %li &", unit_script.c_str(), shortName.c_str(), unit, talkgroup);
     int rc = system(shell_command);
   }
 }
@@ -1032,15 +1032,15 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case REGISTRATION:
-      unit_registration(sys->get_unit_script(), message.source);
+      unit_registration(sys->get_unit_script(), sys->get_short_name(), message.source);
       break;
 
     case DEREGISTRATION:
-      unit_deregistration(sys->get_unit_script(), message.source);
+      unit_deregistration(sys->get_unit_script(), sys->get_short_name(), message.source);
       break;
 
     case AFFILIATION:
-      group_affiliation(sys->get_unit_script(), message.source, message.talkgroup);
+      group_affiliation(sys->get_unit_script(), sys->get_short_name(), message.source, message.talkgroup);
       break;
 
     case SYSID:
@@ -1051,7 +1051,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case ACKRESP:
-      unit_ack(sys->get_unit_script(), message.source);
+      unit_ack(sys->get_unit_script(), sys->get_short_name(), message.source);
       break;
 
     case UNKNOWN:
