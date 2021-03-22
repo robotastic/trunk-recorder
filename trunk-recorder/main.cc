@@ -59,7 +59,6 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 #include <gnuradio/top_block.h>
-#include <gnuradio/uhd/usrp_source.h>
 
 using namespace std;
 namespace logging = boost::log;
@@ -860,7 +859,7 @@ void current_system_status(TrunkMessage message, System *sys) {
 void unit_registration(string unit_script, string shortName, long unit) {
   unit_affiliations[unit] = 0;
 
-  if (unit_script.length() != 0) {
+  if ((unit_script.length() != 0) && (unit != 0)) {
     char   shell_command[200];
     sprintf(shell_command, "%s %s %li on &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
@@ -876,7 +875,7 @@ void unit_deregistration(string unit_script, string shortName, long unit) {
 
   unit_affiliations[unit] = -1;
 
-  if (unit_script.length() != 0) {
+  if ((unit_script.length() != 0) && (unit != 0)) {
     char   shell_command[200];
     sprintf(shell_command, "%s %s %li off &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
@@ -884,7 +883,7 @@ void unit_deregistration(string unit_script, string shortName, long unit) {
 }
 
 void unit_ack(string unit_script, string shortName, long unit) {
-  if (unit_script.length() != 0) {
+  if ((unit_script.length() != 0) && (unit != 0)) {
     char   shell_command[200];
     sprintf(shell_command, "%s %s %li ackresp &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
@@ -894,7 +893,7 @@ void unit_ack(string unit_script, string shortName, long unit) {
 void group_affiliation(string unit_script, string shortName, long unit, long talkgroup) {
   unit_affiliations[unit] = talkgroup;
 
-  if (unit_script.length() != 0) {
+  if ((unit_script.length() != 0) && (unit != 0)) {
     char   shell_command[200];
     sprintf(shell_command, "%s %s %li join %li &", unit_script.c_str(), shortName.c_str(), unit, talkgroup);
     int rc = system(shell_command);
@@ -914,7 +913,7 @@ void handle_call(TrunkMessage message, System *sys) {
 
   unit_affiliations[message.source] = message.talkgroup;
 
-  if (sys->get_unit_script().length() != 0) {
+  if ((sys->get_unit_script().length() != 0) && (message.source != 0)) {
     char   shell_command[200];
     sprintf(shell_command, "%s %s %li call %li &", sys->get_unit_script().c_str(), sys->get_short_name().c_str(), message.source, message.talkgroup);
     int rc = system(shell_command);
