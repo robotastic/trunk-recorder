@@ -81,6 +81,11 @@ find_package(CppUnit)
 #    find_package(Gnuradio)
 #endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBS OFF)
+SET(CMAKE_EXE_LINKER_FLAGS "-static")
+SET(Boost_USE_STATIC_LIBS   ON)
+
 set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT FFT)
 find_package(Gnuradio REQUIRED COMPONENTS analog blocks digital filter pmt fft)
 find_package(GnuradioRuntime)
@@ -148,7 +153,7 @@ if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost required to build " ${CMAKE_PROJECT_NAME})
 endif()
 
-ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
+#ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
 add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
 
 ########################################################################
