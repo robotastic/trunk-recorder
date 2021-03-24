@@ -49,7 +49,7 @@ ARG BOOST_HASH=953db31e016db7bb207f11432bef7df100516eeb746843fa0486a222e3fd49cb
 RUN set -ex \
     && curl -s -L -o  boost_${BOOST_VERSION}.tar.bz2 https://dl.bintray.com/boostorg/release/${BOOST_VERSION_DOT}/source/boost_${BOOST_VERSION}.tar.bz2 \
     && echo "${BOOST_HASH}  boost_${BOOST_VERSION}.tar.bz2" | sha256sum -c \
-    && tar -xvf boost_${BOOST_VERSION}.tar.bz2 \
+    && tar -xf boost_${BOOST_VERSION}.tar.bz2 \
     && cd boost_${BOOST_VERSION} \
     && ./bootstrap.sh \
     && ./b2 --with-chrono --with-date_time --with-filesystem --with-log --with-program_options --with-random --with-regex --with-serialization --with-system --with-test --with-thread threading=multi threadapi=pthread cflags="-fPIC" cxxflags="-fPIC" install
