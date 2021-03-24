@@ -22,6 +22,11 @@
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
 
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBS OFF)
+SET(CMAKE_EXE_LINKER_FLAGS "-static")
+set(Boost_USE_STATIC_LIBS   ON)
+
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 list(APPEND op25_repeater_sources
@@ -65,7 +70,7 @@ list(APPEND op25_repeater_sources
     CCITTChecksumReverse.cpp
 )
 
-add_library(gnuradio-op25_repeater SHARED ${op25_repeater_sources})
+add_library(gnuradio-op25_repeater ${op25_repeater_sources})
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.dylib )
     find_library(GR_PMT_LIBRARY libgnuradio-pmt.dylib )
