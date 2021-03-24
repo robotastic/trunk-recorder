@@ -1,4 +1,4 @@
-FROM robotastic/gnuradio:latest
+FROM robotastic/gnuradio:nightly
 
 WORKDIR /src
 
