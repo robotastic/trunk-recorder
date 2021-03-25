@@ -86,10 +86,15 @@ char *nonstop_wavfile_sink_impl::get_filename() {
 
 bool nonstop_wavfile_sink_impl::open(Call *call) {
   gr::thread::scoped_lock guard(d_mutex);
+  if (d_current_call && d_fp) {
+    BOOST_LOG_TRIVIAL(trace) << "Open() - Current_Call & fp are not null! current_filename is: " << current_filename << " Length: " << d_sample_count << std::endl;
+  }
   d_current_call = call;
   d_conventional = call->is_conventional();
   curr_src_id = d_current_call->get_current_source();
   d_sample_count = 0;
+  /* Should reset more variables here */
+
 
   return true;
 }
@@ -265,6 +270,8 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
 if (d_first_work) {
       if (d_fp) {
         // if we are already recording a file for this call, close it before starting a new one.
+        BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but d_first_work was true:  " << current_filename << std::endl;
+    
         close_wav(false);
       }
         // create a new filename, based on the current time and source.
