@@ -431,7 +431,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
   } else if (opcode == 0x05) { // Unit To Unit Answer Request
-    BOOST_LOG_TRIVIAL(debug) << "tsbk05";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk05: Unit To Unit Answer Request";
   } else if (opcode == 0x06) { //  Unit to Unit Voice Channel Grant Update (UU_V_CH_GRANT_UPDT)
     //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -488,7 +488,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long op = bitset_shift_mask(tsbk, 48, 0xff);
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
 
-      message.message_type = ACKRESP;
+    message.message_type = ACKRESP;
     message.talkgroup = ga;
     message.source = sa;
 
@@ -537,9 +537,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk29 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2, sys_num) << ") ";
   } else if (opcode == 0x2a) { // Group Affiliation Query
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2a";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2a Group Affiliation Query";
   } else if (opcode == 0x2b) { // Location Registration Response
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2b";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2b Location Registration Response";
   } else if (opcode == 0x2c) { // Unit Registration Response
     // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -634,7 +634,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk34 iden vhf/uhf id " << std::dec << iden << " toff " << toff * spac * 0.125 * 1e-3 << " spac " << spac * 0.125 << " freq " << freq * 0.000005 << " [ " << txt[toff_sign] << "]";
   } else if (opcode == 0x35) { // Time and Date Announcement
-    BOOST_LOG_TRIVIAL(debug) << "tsbk35 time date ann";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk35 Time and Date Announcement";
   } else if (opcode == 0x36) { //
     BOOST_LOG_TRIVIAL(debug) << "tsbk36";
   } else if (opcode == 0x37) { //
