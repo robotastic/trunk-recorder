@@ -139,16 +139,17 @@ void p25_recorder::initialize_prefilter() {
 
 
 
-  connect(self(), 0, valve, 0);
+  
   if (double_decim) {
-    connect(valve, 0, bandpass_filter, 0);
+    connect(self(), 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(valve, 0, mixer, 0);
+    connect(self(), 0, mixer, 0);
     connect(lo, 0, mixer, 1);
   }
-  connect(mixer, 0, lowpass_filter, 0);
+  connect(mixer, 0, valve, 0);
+  connect(valve, 0, lowpass_filter, 0);
   connect(lowpass_filter, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
 
