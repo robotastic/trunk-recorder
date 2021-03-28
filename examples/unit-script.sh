@@ -1,13 +1,14 @@
 #!/bin/bash
+
+#README: unit-script.txt
+
+CAPTUREDIR=""
+
 printf -v TRDATE '%(%Y/%-m/%-d)T'
 printf -v NOWTIME '%(%s)T'
-SHORTNAME=$1
-RADIOID=$2
-ACTION=$3
-TALKGROUP=$4
-if $3 != "ackresp"
-sed <capture_dir>/$1/radiolist.csv 's/^$RADIOID,(.*)/$RADIOID,$NOWTIME,$ACTION,$TALKGROUP,/'
-elif
-sed <capture_dir>/$1/radiolist.csv 's/$RADIOID,(\d+),([on|join|off|call]),(\d+),(\d+)/$RADIOID,$1,$2,$3,$NOWTIME'
-done
-echo "$2,$3,$4" >> <capture_dir>/$1/$TRDATE/radiolog.csv
+if [ ! "$3" == "ackresp" ]; then
+  sed -i -e '/^'${2}',.*/{s//'${2}','${NOWTIME}','${3}','${4}',/;:a;n;ba;q}' -e '$a'${2}','${NOWTIME}','${3}','${4}',' $CAPTUREDIR/$1/radiolist.csv
+else
+  sed -i -e '/^'${2}',\([0-9]*\),ackresp,,/{s//'${2}','${NOWTIME}',ackresp,,/;:a;n;ba;q}' -e '/^'${2}',\([0-9]*\),\([a-z]*\),\([0-9]*\),\([0-9]*\)/{s//'${2}',\1,\2,\3,'${NOWTIME}'/;:a;n;ba;q}' -e '$a'${2}','${NOWTIME}',ackresp,,' $CAPTUREDIR/$1/radiolist.csv
+fi
+echo "$2,$NOWTIME,$3,$4" >> $CAPTUREDIR/$1/$TRDATE/radiolog.csv
