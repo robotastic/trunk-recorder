@@ -795,7 +795,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
   }
   s = s.substr(2);
 
-  BOOST_LOG_TRIVIAL(trace) << std::dec << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << std::hex << "nac " << nac << std::dec << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
   // //" at %f state %d len %d" %(nac, type, time.time(), self.state, len(s))
   if ((type == 7) || (type == 12)) // and nac not in self.trunked_systems:
   {
