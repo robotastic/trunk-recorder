@@ -1201,7 +1201,7 @@ void monitor_messages() {
   while (1) {
 
     if (exit_flag) { // my action when signal set it 1
-      printf("\n Signal caught!\n");
+      BOOST_LOG_TRIVIAL(info) << "Signal caught! Exiting...";
       return;
     }
 
