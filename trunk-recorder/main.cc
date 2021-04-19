@@ -1201,7 +1201,20 @@ void monitor_messages() {
   while (1) {
 
     if (exit_flag) { // my action when signal set it 1
-      BOOST_LOG_TRIVIAL(info) << "Signal caught! Exiting...";
+      BOOST_LOG_TRIVIAL(info) << "Signal caught! Closing calls...";
+      for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+        Call *call = *it;
+        Recorder *recorder = call->get_recorder();
+        call->end_call();
+        stats.send_call_end(call);
+        if (recorder != NULL) {
+          stats.send_recorder(recorder);
+        }
+        it = calls.erase(it);
+        delete call;
+      }
+      stats.send_calls_active(calls);
+      BOOST_LOG_TRIVIAL(info) << "Exiting...";
       return;
     }
 
