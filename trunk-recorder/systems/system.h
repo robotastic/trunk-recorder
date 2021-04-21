@@ -84,6 +84,7 @@ public:
   bool audio_archive;
   bool record_unknown;
   bool call_log;
+  bool daily_log;
 
   smartnet_trunking_sptr smartnet_trunking;
   p25_trunking_sptr p25_trunking;
@@ -108,6 +109,8 @@ public:
   void set_record_unknown(bool);
   bool get_call_log();
   void set_call_log(bool);
+  bool get_daily_log();
+  void set_daily_log(bool);
 
   void set_mdc_enabled(bool b);
   void set_fsync_enabled(bool b);

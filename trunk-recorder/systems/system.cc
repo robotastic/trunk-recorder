@@ -146,6 +146,14 @@ void System::set_call_log(bool call_log) {
   this->call_log = call_log;
 }
 
+bool System::get_daily_log() {
+  return this->daily_log;
+}
+
+void System::set_daily_log(bool daily_log) {
+  this->daily_log = daily_log;
+}
+
 void System::set_squelch_db(double s) {
   squelch_db = s;
 }
