@@ -23,6 +23,9 @@ struct TrunkMessage {
   long talkgroup;
   bool encrypted;
   bool emergency;
+  bool duplex;
+  bool mode;
+  long priority;
   int tdma_slot;
   bool phase2_tdma;
   long source;

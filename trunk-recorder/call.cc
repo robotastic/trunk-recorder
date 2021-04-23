@@ -73,6 +73,9 @@ Call::Call(long t, double f, System *s, Config c) {
   tdma_slot = 0;
   encrypted = false;
   emergency = false;
+  duplex = false;
+  mode = false;
+  priority = 0;
   set_freq(f);
   this->create_filename();
   this->update_talkgroup_display();
@@ -98,6 +101,9 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   tdma_slot = message.tdma_slot;
   encrypted = message.encrypted;
   emergency = message.emergency;
+  duplex = message.duplex;
+  mode = message.mode;
+  priority = message.priority;
   set_freq(message.freq);
   add_source(message.source);
   this->create_filename();
@@ -143,6 +149,9 @@ void Call::end_call() {
       myfile << "\"start_time\": " << this->get_start_time() << ",\n";
       myfile << "\"stop_time\": " << this->stop_time << ",\n";
       myfile << "\"emergency\": " << this->emergency << ",\n";
+      myfile << "\"duplex\": " << this->duplex << ",\n";
+      myfile << "\"mode\": " << this->mode << ",\n";
+      myfile << "\"priority\": " << this->priority << ",\n";
       myfile << "\"call_length\": " << this->final_length << ",\n";
       //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
