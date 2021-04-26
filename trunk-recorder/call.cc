@@ -470,6 +470,12 @@ void Call::update(TrunkMessage message) {
 }
 
 int Call::since_last_update() {
+  if (get_recorder()) {
+    Rx_Status temp = recorder->get_rx_status();
+    BOOST_LOG_TRIVIAL(trace) << "temp.last_update: " << temp.last_update << " diff: " << time(NULL) - temp.last_update;
+    return time(NULL) - temp.last_update;
+    //last_update = temp.last_update;
+  } else
   return time(NULL) - last_update;
 }
 
