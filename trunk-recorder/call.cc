@@ -183,7 +183,7 @@ void Call::end_call() {
     this->get_recorder()->stop();
     shell_command_string = shell_command.str();
     if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
-      if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
+      if (sys->get_api_key().length() != 0 || sys->get_bcfy_api_key().length() != 0) {
         send_call(this, sys, config);
       }
 
