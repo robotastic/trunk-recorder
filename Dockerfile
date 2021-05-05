@@ -35,6 +35,8 @@ RUN curl https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor
     apt-get update && \
     export DEBIAN_FRONTEND=noninteractive && apt-get install -y cmake && rm -rf /var/lib/apt/lists/*
 
+RUN echo "blacklist rtl2832" > /etc/modprobe.d/blacklist.conf
+
 WORKDIR /src
 
 COPY . .
