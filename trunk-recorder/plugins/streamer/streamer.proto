@@ -1,0 +1,144 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+option java_package = "io.trunk.recorder.streamer";
+option objc_class_prefix = "TRS";
+option csharp_namespace = "TrunkRecorder.Streamer";
+
+package streamer;
+
+service TrunkRecorderStreamer {
+    rpc SendStream(stream AudioSample) returns (google.protobuf.Empty);
+    rpc SendSignal(stream SignalInfo) returns (google.protobuf.Empty);
+
+    rpc CallStarted(CallInfo) returns (google.protobuf.Empty);
+    rpc CallEnded(CallInfo) returns (google.protobuf.Empty);
+    rpc SetupRecorder(RecorderInfo) returns (google.protobuf.Empty);
+    rpc SetupSystem(SystemInfo) returns (google.protobuf.Empty);
+    rpc SetupSource(SourceInfo) returns (google.protobuf.Empty);
+    rpc SetupConfig(ConfigInfo) returns (google.protobuf.Empty);
+}
+
+message AudioSample {
+    int32 recorder_num = 1;
+    bytes sample = 2;
+}
+
+message RecorderInfo {
+    int32 recorder_num = 1;
+    string recorder_type = 2;
+    int32 source_num = 3;
+    string id = 4;
+    int32 recorder_count = 5;
+    double recorder_duration = 6;
+
+    enum RecorderState {
+        Monitoring = 0;
+        Recording = 1;
+        Inactive = 2;
+        Active = 3;
+    }
+    RecorderState recorder_state = 7;
+    double status_len = 8;
+    double status_error = 9;
+    double status_spike = 10;
+    int32 audio_sample_rate = 11;
+    int32 audio_channels = 12;
+    
+    enum AudioFormat {
+        Float32 = 0;
+        Signed16 = 1;
+        Signed24 = 2;
+        Signed32 = 3;
+        Unsigned8 = 4;
+    }
+    AudioFormat audio_format = 13;
+}
+
+message SourceInfo {
+    int32 source_num = 1;
+    double min_hz = 2;
+    double max_hz = 3;
+    double center_hz = 4;
+    double rate = 5;
+    string driver = 6;
+    string device = 7;
+    string antenna = 8;
+    double error = 9;
+    int32 mix_gain = 10;
+    int32 lna_gain = 11;
+    int32 vga1_gain = 12;
+    int32 vga2_gain = 13;
+    int32 bb_gain = 14;
+    int32 gain = 15;
+    int32 if_gain = 16;
+    int32 analog_recorders = 17;
+    int32 digital_recorders = 18;
+    int32 debug_recorders = 19;
+    int32 sigmf_recorders = 20;
+}
+
+message SystemInfo {
+    int32 system_num = 1;
+    string system_type = 2;
+    string system_name = 3;
+    bool audio_archive = 4;
+    string upload_script = 5;
+    bool record_unknown = 6;
+    bool call_log = 7;
+    string talkgroups_file = 8;
+    double analog_levels = 9;
+    double digital_levels = 10;
+    bool qpsk = 11;
+    double squelch_db = 12;
+    repeated double channels = 13;
+    string bandplan = 14;
+    int32 bandfreq = 15;
+    double bandplan_base = 16;
+    double bandplan_high = 17;
+    double bandplan_spacing = 18;
+    int32 bandplan_offset = 19;
+}
+
+message ConfigInfo {
+    repeated SourceInfo sources = 1;
+    repeated SystemInfo systems = 2;
+    string capture_dir = 3;
+    string upload_server = 4;
+    int32 call_timeout = 5;
+    bool log_file = 6;
+    string instance_id = 7;
+    string instance_key = 8;
+    bool broadcast_signals = 9;
+}
+
+message CallInfo {
+    bool call_active = 1;
+    int32 recorder_num = 2;
+    int32 system_num = 3;
+    double curr_freq = 4;
+}
+
+message SignalInfo {
+    int64 unit_id = 1;
+    string signaling_type = 2;
+
+    enum SignalType {
+        Normal = 0;
+        Emergency = 1;
+        EmergencyAck = 2;
+        RadioCheck = 3;
+        RadioCheckAck = 4;
+        RadioStun = 5;
+        RadioStunAck = 6;
+        RadioRevive = 7;
+        RadioReviveAck = 8;
+        NormalPre = 9;
+        EmergencyPre = 10;
+    }
+    SignalType signal_type = 3;
+    CallInfo call_info = 4;
+    SystemInfo system_info = 5;
+    RecorderInfo recorder_info = 6;
+}

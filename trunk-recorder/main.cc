@@ -61,6 +61,8 @@
 #include <gnuradio/top_block.h>
 #include <gnuradio/uhd/usrp_source.h>
 
+#include "plugins/plugin-manager.h"
+
 using namespace std;
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
@@ -81,16 +83,6 @@ SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 Config config;
 string default_mode;
-
-#include <websocketpp/client.hpp>
-#include <websocketpp/config/asio_no_tls_client.hpp>
-
-// This header pulls in the WebSocket++ abstracted thread support that will
-// select between boost::thread and std::thread based on how the build system
-// is configured.
-#include "uploaders/stat_socket.h"
-#include <websocketpp/common/thread.hpp>
-stat_socket stats;
 
 void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
@@ -550,6 +542,10 @@ bool load_config(string config_file) {
     std::string log_level = pt.get<std::string>("logLevel", "info");
     BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
     set_logging_level(log_level);
+
+    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
+    initialize_internal_plugin("stat_socket");
+    initialize_plugins(pt, &config);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
     return false;
@@ -564,6 +560,7 @@ bool load_config(string config_file) {
     }
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
+
   return true;
 }
 
@@ -596,7 +593,7 @@ bool replace(std::string &str, const std::string &from, const std::string &to) {
 }
 
 void process_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) {
-  stats.send_signal(unitId, signaling_type, sig_type, call, system, recorder);
+  plugman_signal(unitId, signaling_type, sig_type, call, system, recorder);
 }
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {
@@ -666,7 +663,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         recorder->start(call);
         call->set_recorder(recorder);
         call->set_state(recording);
-        stats.send_recorder(recorder);
+        plugman_setup_recorder(recorder);
         recorder_found = true;
       } else {
         // not recording call either because the priority was too low or no
@@ -680,7 +677,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         debug_recorder->start(call);
         call->set_debug_recorder(debug_recorder);
         call->set_debug_recording(true);
-        stats.send_recorder(debug_recorder);
+        plugman_setup_recorder(debug_recorder);
         recorder_found = true;
       } else {
         // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
@@ -692,7 +689,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         sigmf_recorder->start(call);
         call->set_sigmf_recorder(sigmf_recorder);
         call->set_sigmf_recording(true);
-        stats.send_recorder(sigmf_recorder);
+        plugman_setup_recorder(sigmf_recorder);
         recorder_found = true;
       } else {
         // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
@@ -700,7 +697,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
       if (recorder_found) {
         // recording successfully started.
-        stats.send_call_start(call);
+        plugman_call_start(call);
         return true;
       }
     }
@@ -748,10 +745,10 @@ void stop_inactive_recorders() {
         if (call->get_idle_count() > 5) {
           Recorder *recorder = call->get_recorder();
           call->end_call();
-          stats.send_call_end(call);
+          plugman_call_end(call);
           call->restart_call();
           if (recorder != NULL) {
-            stats.send_recorder(recorder);
+            plugman_setup_recorder(recorder);
           }
         }
       } else if (!call->get_recorder()->is_active()) {
@@ -759,7 +756,7 @@ void stop_inactive_recorders() {
               Recorder *recorder = call->get_recorder();
               recorder->start(call);
               call->set_state(recording);
-              //stats.send_recorder((Recorder *)recorder->get());
+              //plugman_setup_recorder((Recorder *)recorder->get());
       }
       ++it;
     } else {
@@ -769,9 +766,9 @@ void stop_inactive_recorders() {
         }
         Recorder *recorder = call->get_recorder();
         call->end_call();
-        stats.send_call_end(call);
+        plugman_call_end(call);
         if (recorder != NULL) {
-          stats.send_recorder(recorder);
+          plugman_setup_recorder(recorder);
         }
         it = calls.erase(it);
         delete call;
@@ -782,7 +779,7 @@ void stop_inactive_recorders() {
   }
 
   if (ended_recording) {
-    stats.send_calls_active(calls);
+    plugman_calls_active(calls);
   }
   /*     for (vector<Source *>::iterator it = sources.begin(); it !=
      sources.end();
@@ -855,7 +852,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
 
 void current_system_status(TrunkMessage message, System *sys) {
   if (sys->update_status(message)) {
-    stats.send_system(sys);
+    plugman_setup_system(sys);
   }
 }
 
@@ -976,7 +973,7 @@ void handle_call(TrunkMessage message, System *sys) {
   }
 
   if (call_retune || recording_started) {
-    stats.send_calls_active(calls);
+    plugman_calls_active(calls);
   }
 }
 
@@ -1144,8 +1141,8 @@ void retune_system(System *system) {
 }
 
 void check_message_count(float timeDiff) {
-  stats.send_config(sources, systems);
-  stats.send_sys_rates(systems, timeDiff);
+  plugman_setup_config(sources, systems);
+  plugman_system_rates(systems, timeDiff);
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
@@ -1203,9 +1200,7 @@ void monitor_messages() {
 
     process_message_queues();
 
-    if (config.status_server != "") {
-      stats.poll_one();
-    }
+    plugman_poll_one();
 
     // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
     msg = msg_queue->delete_head_nowait();
@@ -1311,7 +1306,7 @@ bool monitor_system() {
               call->set_state(recording);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
-              stats.send_recorder((Recorder *)rec.get());
+              plugman_setup_recorder((Recorder *)rec.get());
             } else { // has to be "conventional P25"
               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
               // This has something to do with the way the Selector block works.
@@ -1387,23 +1382,6 @@ void add_logs(const F &fmt) {
   sink->imbue(loc);
 }
 
-void socket_connected() {
-  stats.send_config(sources, systems);
-  stats.send_systems(systems);
-  stats.send_calls_active(calls);
-  std::vector<Recorder *> recorders;
-
-  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-    Source *source = *it;
-
-    std::vector<Recorder *> sourceRecorders = source->get_recorders();
-
-    recorders.insert(recorders.end(), sourceRecorders.begin(), sourceRecorders.end());
-  }
-
-  stats.send_recorders(recorders);
-}
-
 int main(int argc, char **argv) {
   //BOOST_STATIC_ASSERT(true) __attribute__((unused));
 
@@ -1459,8 +1437,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  stats.initialize(&config, &socket_connected);
-  stats.open_stat();
+  start_plugins(sources, systems);
 
   if (config.log_file) {
     logging::add_file_log(
@@ -1480,9 +1457,12 @@ int main(int argc, char **argv) {
     // ------------------------------------------------------------------
     // -- stop flow graph execution
     // ------------------------------------------------------------------
-    BOOST_LOG_TRIVIAL(info) << "stopping flow graph";
+    BOOST_LOG_TRIVIAL(info) << "stopping flow graph" << std::endl;
     tb->stop();
     tb->wait();
+
+    BOOST_LOG_TRIVIAL(info) << "stopping plugins" << std::endl;
+    stop_plugins();
   } else {
     BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." << std::endl;
   }

@@ -1,4 +1,5 @@
 #include "stat_socket.h"
+#include "../plugin-common.h"
 
 /**
  * The telemetry client connects to a WebSocket server and sends a message every
@@ -241,9 +242,10 @@ void stat_socket::send_object(boost::property_tree::ptree data, std::string name
   send_stat(stats_str.str());
 }
 
-void stat_socket::initialize(Config *config, void (*callback)(void)) {
+void stat_socket::initialize(Config *config, void (*callback)(void*), void* context) {
   m_config = config;
   m_callback = callback;
+  m_context = context;
 }
 
 void stat_socket::reopen_stat() {
@@ -314,7 +316,7 @@ void stat_socket::on_open(websocketpp::connection_hdl) {
     m_open = true;
     retry_attempt = 0;
   }
-  m_callback();
+  m_callback(m_context);
 }
 
 // The close handler will signal that we should stop sending telemetry
@@ -401,4 +403,127 @@ void stat_socket::send_signal(long unitId, const char *signaling_type, gr::block
   }
 
   send_object(signal, "signal", "signaling");
+}
+
+stat_socket stats;
+
+void socket_connected(void* context) {
+    plugin_t *plugin = (plugin_t*)context;
+    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+
+  stats.send_config(stat_data->sources, stat_data->systems);
+  stats.send_systems(stat_data->systems);
+  stats.send_calls_active(stat_data->calls);
+  std::vector<Recorder *> recorders;
+
+  for (std::vector<Source *>::iterator it = stat_data->sources.begin(); it != stat_data->sources.end(); it++) {
+    Source *source = *it;
+
+    std::vector<Recorder *> sourceRecorders = source->get_recorders();
+
+    recorders.insert(recorders.end(), sourceRecorders.begin(), sourceRecorders.end());
+  }
+
+  stats.send_recorders(recorders);
+}
+
+int init(plugin_t * const plugin, Config* config){
+    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+
+    stat_data->config = config;
+
+    stats.initialize(config, &socket_connected, plugin);
+    return 0;
+}
+int start(plugin_t * const plugin){
+    stats.open_stat();
+    return 0;
+}
+int poll_one(plugin_t * const plugin){
+    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+
+    if(stat_data->config->status_server != "") {
+        stats.poll_one();
+    }
+    return 0;
+}
+int signal(plugin_t * const plugin, long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder){
+    stats.send_signal(unitId, signaling_type, sig_type, call, system, recorder);
+    return 0;
+}
+int call_start(plugin_t * const plugin, Call *call){
+    stats.send_call_start(call);
+    return 0;
+}
+int call_end(plugin_t * const plugin, Call *call){
+    stats.send_call_end(call);
+    return 0;
+}
+int calls_active(plugin_t * const plugin, std::vector<Call *> calls) {
+    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+    stat_data->calls = calls;
+
+    stats.send_calls_active(calls);
+    return 0;
+}
+int setup_recorder(plugin_t * const plugin, Recorder *recorder){
+    stats.send_recorder(recorder);
+    return 0;
+}
+int setup_system(plugin_t * const plugin, System * system){
+    stats.send_system(system);
+    return 0;
+}
+int setup_systems(plugin_t * const plugin, std::vector<System *> systems){
+    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+    stat_data->systems = systems;
+
+    stats.send_systems(systems);
+    return 0;
+}
+int setup_config(plugin_t * const plugin, std::vector<Source *> sources, std::vector<System *> systems) {
+    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+
+    stat_data->sources = sources;
+    stat_data->systems = systems;
+
+    stats.send_config(sources, systems);
+    return 0;
+}
+int system_rates(plugin_t * const plugin, std::vector<System *> systems, float timeDiff) {
+    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+    stat_data->systems = systems;
+
+    stats.send_sys_rates(systems, timeDiff);
+    return 0;
+}
+
+MODULE_EXPORT plugin_t *stat_socket_plugin_new() {
+    stat_plugin_t *stat_data = (stat_plugin_t *)malloc(sizeof(stat_plugin_t));
+    //stat_data->config = NULL;
+    //stat_data->sources = NULL;
+    //stat_data->systems = NULL;
+
+    plugin_t *plug_data = (plugin_t *)malloc(sizeof(plugin_t));
+
+    plug_data->init = init;
+    plug_data->parse_config = NULL;
+    plug_data->start = start;
+    plug_data->stop = NULL;
+    plug_data->poll_one = poll_one;
+    plug_data->signal = signal;
+    plug_data->audio_stream = NULL;
+    plug_data->call_start = call_start;
+    plug_data->call_end = call_end;
+    plug_data->calls_active = calls_active;
+    plug_data->setup_recorder = setup_recorder;
+    plug_data->setup_system = setup_system;
+    plug_data->setup_systems = setup_systems;
+    plug_data->setup_sources = NULL;
+    plug_data->setup_config = setup_config;
+    plug_data->system_rates = system_rates;
+
+    plug_data->plugin_data = stat_data;
+
+    return plug_data;
 }
