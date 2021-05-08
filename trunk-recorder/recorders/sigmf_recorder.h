@@ -89,7 +89,7 @@ public:
   ~sigmf_recorder();
 
   void tune_offset(double f);
-  void start(Call *call);
+  bool start(Call *call);
   void stop();
   double get_freq();
   int get_num();

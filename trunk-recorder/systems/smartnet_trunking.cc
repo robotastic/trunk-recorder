@@ -193,7 +193,7 @@ void smartnet_trunking::reset() {
   pll_demod->update_gains();
   //pll_demod->frequency_limit();
   pll_demod->phase_wrap();
-  softbits->set_verbose(true);
+  //softbits->set_verbose(true);
   //pll_demod->set_phase(0);
 }
 

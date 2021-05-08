@@ -111,7 +111,7 @@ void sigmf_recorder::stop() {
   }
 }
 
-void sigmf_recorder::start(Call *call) {
+bool sigmf_recorder::start(Call *call) {
   if (state == inactive) {
     timestamp = time(NULL);
     starttime = time(NULL);
@@ -127,4 +127,5 @@ void sigmf_recorder::start(Call *call) {
   } else {
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Trying to Start an already Active Logger!!!";
   }
+  return true;
 }

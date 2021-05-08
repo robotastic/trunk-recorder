@@ -50,6 +50,7 @@ public:
 	void set_xormask(const char*p);
 	bool rx_sym(uint8_t sym);
 	int handle_frame(void) ;
+  	bool get_call_terminated();
 private:
 	p25p2_sync sync;
 	p25p2_duid duid;
@@ -69,6 +70,7 @@ private:
 	bool d_do_msgq;
 	bool d_do_audio_output;
         bool d_do_nocrypt;
+		bool terminate_call;
         const op25_audio& op25audio;
 	log_ts logts;
 

@@ -80,6 +80,7 @@ private:
   p25_framer *framer;
   long curr_src_id;
   struct timeval last_qtime;
+  bool terminate_call;
   p25p1_voice_decode p1voice_decode;
         const op25_audio& op25audio;
 	log_ts logts;
@@ -102,6 +103,7 @@ private:
   // Where all the action really happens
   long get_curr_src_id();
   void reset_rx_status();
+  bool get_call_terminated();
   Rx_Status get_rx_status();
   void clear();
   int general_work(int                        noutput_items,
