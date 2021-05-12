@@ -8,7 +8,6 @@
 #include <gnuradio/io_signature.h>
 
 #include "nonstop_wavfile_delayopen_sink_impl.h"
-#include "../trunk-recorder/recorders/p25conventional_recorder.h"
 
 namespace gr
 {

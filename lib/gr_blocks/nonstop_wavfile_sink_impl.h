@@ -34,16 +34,21 @@ namespace blocks {
 class nonstop_wavfile_sink_impl : public nonstop_wavfile_sink
 {
 private:
+
 	unsigned d_sample_rate;
-	int d_nchans;	
-	
+	int d_nchans;		
 	int d_max_sample_val;
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
 	bool d_use_float;
-
-  	char current_filename[255];
+	bool d_conventional;
+	bool d_first_work;
+	time_t d_start_time;
+	time_t d_stop_time;
+	long curr_src_id;
+	char current_filename[255];
+	Call* d_current_call;
 
 protected:
 	
@@ -97,7 +102,7 @@ public:
 													bool use_float);
 	virtual ~nonstop_wavfile_sink_impl();
 	char *get_filename();
-	virtual bool open(const char* filename);
+	virtual bool open(Call *call);
 	virtual void close();
 
 	void set_sample_rate(unsigned int sample_rate);
@@ -110,8 +115,13 @@ public:
 	Call_Source * get_source_list();
 	int get_source_count();
 	virtual int work(int noutput_items,
-	         gr_vector_const_void_star &input_items,
-	         gr_vector_void_star &output_items);
+	gr_vector_const_void_star &input_items,
+	gr_vector_void_star &output_items);
+
+	time_t get_start_time();
+	time_t get_stop_time();
+
+	void log_p25_metadata(long unitId, const char* system_type, bool emergency);
 
 };
 

@@ -54,6 +54,13 @@ void p25_frame_assembler_impl::set_xormask(const char *p) {
 
 void p25_frame_assembler_impl::set_slotid(int slotid) {
   p2tdma.set_slotid(slotid);
+    }
+
+    void p25_frame_assembler_impl::set_slotkey(int key) {
+    }
+
+    void p25_frame_assembler_impl::reset_timer() {
+	p1fdma.reset_timer();
 }
 
 p25_frame_assembler::sptr

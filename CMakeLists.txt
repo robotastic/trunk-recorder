@@ -24,6 +24,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(Trunk-Recorder CXX C)
 
+
 #select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
@@ -80,10 +81,13 @@ find_package(CppUnit)
 #    find_package(Gnuradio)
 #endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT)
-find_package(Gnuradio)
+set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT FFT)
+find_package(Gnuradio REQUIRED COMPONENTS analog blocks digital filter pmt fft)
 find_package(GnuradioRuntime)
 find_package(CppUnit)
+
+math(EXPR GNURADIO_VERSION "(${Gnuradio_VERSION_MAJOR} / 10) << 20 | (${Gnuradio_VERSION_MAJOR} % 10) << 16 | (${Gnuradio_VERSION_MINOR} / 10) << 12 | (${Gnuradio_VERSION_MINOR} % 10) <<  8 | (${Gnuradio_VERSION_PATCH} / 10) <<  4 | (${Gnuradio_VERSION_PATCH} % 10) <<  0   ")
+message(STATUS "GnuRadio Version: " ${GNURADIO_VERSION})
 
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to compile Trunk Recorder")
@@ -97,19 +101,14 @@ endif()
 ########################################################################
 # Find build dependencies
 ########################################################################
-#find_package(LibOsmoSDR)
-#find_package(LibRTLSDR)
-#find_package(LibMiriSDR)
-#find_package(LibbladeRF)
 find_package(GnuradioUHD)
 find_package(GrOsmoSDR)
 find_package(LibHackRF)
 find_package(UHD)
 find_package(OpenSSL REQUIRED)
+find_package(CURL REQUIRED)
 
-if(NOT GNURADIO_RUNTIME_FOUND)
-    message(FATAL_ERROR "GnuRadio Runtime required to build " ${CMAKE_PROJECT_NAME})
-endif()
+
 
 ########################################################################
 # Setup boost
@@ -140,16 +139,17 @@ set(Boost_ADDITIONAL_VERSIONS
     "1.55.0" "1.55" "1.56.0" "1.56" "1.57.0" "1.57" "1.58.0" "1.58" "1.59.0" "1.59"
     "1.60.0" "1.60" "1.61.0" "1.61" "1.62.0" "1.62" "1.63.0" "1.63" "1.64.0" "1.64"
     "1.65.0" "1.65" "1.66.0" "1.66" "1.67.0" "1.67" "1.68.0" "1.68" "1.69.0" "1.69"
+    "1.70.0" "1.70" "1.71.0" "1.71" "1.72.0" "1.72" "1.73.0" "1.73" "1.74.0" "1.74"
 )
 
-find_package(Boost COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
+find_package(Boost COMPONENTS ${BOOST_REQUIRED_COMPONENTS} REQUIRED)
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost required to build " ${CMAKE_PROJECT_NAME})
 endif()
 
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
-
+add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
 
 ########################################################################
 # Setup the include and linker paths
@@ -163,6 +163,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/lib
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/include
     ${OPENSSL_INCLUDE_DIR}
+    ${CURL_INCLUDE_DIR}
     "lib"
 )
 
@@ -175,36 +176,21 @@ link_directories(
     ${OPENSSL_ROOT_DIR}/lib
 )
 
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g")
 
-
-
-#include(CheckCXXCompilerFlag)
-#CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-#CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-#if(COMPILER_SUPPORTS_CXX11)
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-#elseif(COMPILER_SUPPORTS_CXX0X)
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-#else()
-#        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-#endif()
-
-#SET(CMAKE_CXX_STANDARD 98)
 SET(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
 
-
 add_subdirectory(lib/op25_repeater)
-
 
 list(APPEND trunk_recorder_sources
   trunk-recorder/main.cc
   trunk-recorder/formatter.cc
   trunk-recorder/source.cc
   trunk-recorder/uploaders/uploader.cc
+  trunk-recorder/uploaders/broadcastify_uploader.cc
+  trunk-recorder/uploaders/openmhz_uploader.cc
   trunk-recorder/uploaders/call_uploader.cc
   trunk-recorder/uploaders/stat_socket.cc
   trunk-recorder/call_conventional.cc
@@ -220,13 +206,24 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/recorders/sigmf_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
   lib/gr_blocks/nonstop_wavfile_sink_impl.cc
-  lib/gr_blocks/nonstop_wavfile_delayopen_sink_impl.cc
-  trunk-recorder/recorders/p25conventional_recorder.cc
   trunk-recorder/recorders/p25_recorder.cc
+  trunk-recorder/recorders/p25_recorder_fsk4_demod.cc
+  trunk-recorder/recorders/p25_recorder_qpsk_demod.cc
+  trunk-recorder/recorders/p25_recorder_decode.cc
+  trunk-recorder/csv_helper.cc
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
+  trunk-recorder/unit_tag.cc
+  trunk-recorder/unit_tags.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
+  lib/gr_blocks/decoders/fsync_decode.cc
+  lib/gr_blocks/decoders/mdc_decode.cc
+  lib/gr_blocks/decoders/star_decode.cc
+  lib/gr_blocks/decoders/signal_decoder_sink_impl.cc
+  lib/gr_blocks/decoders/tps_decoder_sink_impl.cc
+  lib/gr_blocks/decoder_wrapper_impl.cc
+  lib/gr_blocks/selector_impl.cc
   )
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
@@ -243,4 +240,14 @@ target_compile_options(
 
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(recorder ssl crypto ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES} ${Boost_LIBRARIES} ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)
+target_link_libraries(recorder ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder)
+message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
+if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
+    target_link_libraries(recorder
+        gnuradio::gnuradio-analog
+        gnuradio::gnuradio-blocks
+        gnuradio::gnuradio-digital
+        gnuradio::gnuradio-filter
+        gnuradio::gnuradio-pmt
+    )
+endif()
