@@ -775,7 +775,7 @@ void stop_inactive_recorders() {
       }
       ++it;
     } else {
-      if (call->since_last_update() > config.call_timeout) {
+      if (call->since_last_update() > config.call_timeout || ( call->get_current_length() > config.max_duration && config.max_duration > 0 )) {
         if (call->get_state() == recording) {
           ended_recording = true;
         }
@@ -1024,9 +1024,15 @@ void unit_check() {
       }
       myfile << "\"" << it->first << "\":" << it->second;
     }
+<<<<<<< HEAD
     //sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
     //int rc = system(shell_command);
     myfile << "}";
+=======
+    myfile << "\n}\n}\n";
+    sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
+    int rc = system(shell_command);
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
     myfile.close();
   }
 }

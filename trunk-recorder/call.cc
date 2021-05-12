@@ -21,12 +21,20 @@ void Call::create_filename() {
   boost::filesystem::create_directories(path_string);
 
   int nchars;
+<<<<<<< HEAD
   nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.wav", path_string.c_str(), talkgroup, start_time, curr_freq);
+=======
+  nchars = snprintf(filename,   255,        "%s/%ld-%ld_%.0f.wav",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
+<<<<<<< HEAD
   nchars = snprintf(status_filename, 255, "%s/%ld-%ld_%.0f.json", path_string.c_str(), talkgroup, start_time, curr_freq);
+=======
+  nchars = snprintf(status_filename,  255,  "%s/%ld-%ld_%.0f.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
@@ -37,12 +45,20 @@ void Call::create_filename() {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
+<<<<<<< HEAD
   nchars = snprintf(debug_filename, 255, "%s/%ld-%ld_%.0f.debug", path_string.c_str(), talkgroup, start_time, curr_freq);
+=======
+  nchars = snprintf(debug_filename,   255,        "%s/%ld-%ld_%.0f.debug",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
+<<<<<<< HEAD
   nchars = snprintf(sigmf_filename, 255, "%s/%ld-%ld_%.0f.raw", path_string.c_str(), talkgroup, start_time, curr_freq);
+=======
+  nchars = snprintf(sigmf_filename,   255,        "%s/%ld-%ld_%.0f.raw",  path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
@@ -176,6 +192,7 @@ void Call::end_call() {
       if (sys->get_upload_script().length() != 0) {
         BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command_string;
         signal(SIGCHLD, SIG_IGN);
+<<<<<<< HEAD
         //int rc = system(shell_command.str().c_str());
         system(shell_command_string.c_str());
       }
@@ -188,6 +205,10 @@ void Call::end_call() {
         if (!sys->get_call_log() && remove(status_filename) != 0) {
           BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
         }
+=======
+        int rc = system(shell_command.str().c_str());
+        // system(shell_command.str().c_str());
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
       }
     } else {
       // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)

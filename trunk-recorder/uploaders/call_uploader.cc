@@ -25,8 +25,15 @@ void *upload_call_thread(void *thread_arg) {
     return NULL;
   }
 
+<<<<<<< HEAD
   BOOST_LOG_TRIVIAL(trace) << "Converting: " << call_info->converted;
   BOOST_LOG_TRIVIAL(trace) << "Command: " << shell_command;
+=======
+  // BOOST_LOG_TRIVIAL(info) << "Converting: " << call_info->converted << "\n";
+  // BOOST_LOG_TRIVIAL(info) <<"Command: " << shell_command << "\n";
+  // system(shell_command);
+  int rc = system(shell_command);
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
 
   int rc = system(shell_command);
 

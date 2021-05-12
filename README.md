@@ -147,6 +147,7 @@ Here are the different arguments:
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
  - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
  - **controlWarnRate** - Log the control channel decode rate when it falls bellow this threshold. The default is *10*. The value of *-1* will always log the decode rate.
+<<<<<<< HEAD
  - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *true*.
  - **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md)
  - **broadcastSignals** - *(Optional)* Broadcast decoded signals to the status server. The default is *false*.
@@ -157,6 +158,10 @@ Here are the different arguments:
  - **debugRecorderPort** - The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. The default value is *1234*.
  - **debugRecorderAddress** - The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder.
 
+=======
+ - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *false*.
+  - **maxDuration** - If a clip is being recorded and the duration exceeds this value in seconds, the clip will stop recording and a new clip will pick up where the previous on left off. The default is *0* or "no timeout".
+>>>>>>> 01bd004d20fd4a8c2fee72038698308646aaa205
 
 **talkgroupsFile**
 
