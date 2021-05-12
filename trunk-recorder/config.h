@@ -13,6 +13,7 @@
 */
 
 struct Config {
+<<<<<<< HEAD
   std::string upload_script;
   std::string upload_server;
   std::string bcfy_calls_server;
@@ -29,6 +30,19 @@ struct Config {
   int control_message_warn_rate;
   int control_retune_limit;
   bool broadcast_signals;
+=======
+        std::string upload_script;
+        std::string upload_server;
+        std::string status_server;
+        std::string instance_key;
+        std::string instance_id;
+        std::string capture_dir;
+        int call_timeout;
+        bool log_file;
+        int control_message_warn_rate;
+        int max_duration;
+        int control_retune_limit;
+>>>>>>> add maximum call duration
 };
 
 //Config load_config(std::string config_file, std::vector<Source *> &sources, std::vector<System *> &systems);
