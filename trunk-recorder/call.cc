@@ -111,6 +111,7 @@ Call::~Call() {
 void Call::restart_call() {
 }
 
+
 void Call::end_call() {
   std::stringstream shell_command;
   std::string shell_command_string;
@@ -121,8 +122,11 @@ void Call::end_call() {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
-
+    
     final_length = recorder->get_current_length();
+
+
+    
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
@@ -136,7 +140,7 @@ void Call::end_call() {
     if (myfile.is_open()) {
       myfile << "{\n";
       myfile << "\"freq\": " << this->curr_freq << ",\n";
-      myfile << "\"start_time\": " << this->start_time << ",\n";
+      myfile << "\"start_time\": " << this->get_start_time() << ",\n";
       myfile << "\"stop_time\": " << this->stop_time << ",\n";
       myfile << "\"emergency\": " << this->emergency << ",\n";
       //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
@@ -477,10 +481,6 @@ void Call::increase_idle_count() {
 
 long Call::get_stop_time() {
   return stop_time;
-}
-
-long Call::get_start_time() {
-  return start_time;
 }
 
 char *Call::get_converted_filename() {
