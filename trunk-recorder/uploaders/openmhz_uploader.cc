@@ -3,14 +3,17 @@
 
 int OpenmhzUploader::upload(struct call_data_t *call) {
   std::ostringstream freq;
+  std::string freq_string;
   freq << std::fixed << std::setprecision(0);
   freq << call->freq;
 
   std::ostringstream call_length;
+  std::string call_length_string;
   call_length << std::fixed << std::setprecision(0);
   call_length << call->length;
 
   std::ostringstream source_list;
+  std::string source_list_string;
   source_list << std::fixed << std::setprecision(2);
   source_list << "[";
 
@@ -31,6 +34,7 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
   }
 
   std::ostringstream freq_list;
+  std::string freq_list_string;
   freq_list << std::fixed << std::setprecision(2);
   freq_list << "[";
 
@@ -55,6 +59,10 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
   CURLM *multi_handle;
   int still_running = 0;
   std::string response_buffer;
+  freq_string = freq.str();
+  freq_list_string = freq_list.str();
+  source_list_string = source_list.str();
+  call_length_string = call_length.str();
 
   struct curl_httppost *formpost = NULL;
   struct curl_httppost *lastptr = NULL;
@@ -72,7 +80,7 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
   curl_formadd(&formpost,
                &lastptr,
                CURLFORM_COPYNAME, "freq",
-               CURLFORM_COPYCONTENTS, freq.str().c_str(),
+               CURLFORM_COPYCONTENTS, freq_string.c_str(),
                CURLFORM_END);
 
   curl_formadd(&formpost,
@@ -90,7 +98,7 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
   curl_formadd(&formpost,
                &lastptr,
                CURLFORM_COPYNAME, "call_length",
-               CURLFORM_COPYCONTENTS, call_length.str().c_str(),
+               CURLFORM_COPYCONTENTS, call_length_string.c_str(),
                CURLFORM_END);
 
   curl_formadd(&formpost,
@@ -114,13 +122,13 @@ int OpenmhzUploader::upload(struct call_data_t *call) {
   curl_formadd(&formpost,
                &lastptr,
                CURLFORM_COPYNAME, "source_list",
-               CURLFORM_COPYCONTENTS, source_list.str().c_str(),
+               CURLFORM_COPYCONTENTS, source_list_string.c_str(),
                CURLFORM_END);
 
   curl_formadd(&formpost,
                &lastptr,
                CURLFORM_COPYNAME, "freq_list",
-               CURLFORM_COPYCONTENTS, freq_list.str().c_str(),
+               CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
                CURLFORM_END);
 
   curl = curl_easy_init();

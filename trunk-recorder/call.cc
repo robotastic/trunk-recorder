@@ -14,33 +14,35 @@ void Call::create_filename() {
 
   std::stringstream path_stream;
 
+  // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
   path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-  strcpy(path, path_stream.str().c_str());
-  boost::filesystem::create_directories(path_stream.str());
+  std::string path_string = path_stream.str();
+  strcpy(path, path_string.c_str());
+  boost::filesystem::create_directories(path_string);
 
   int nchars;
-  nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.wav", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.wav", path_string.c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
-  nchars = snprintf(status_filename, 255, "%s/%ld-%ld_%.0f.json", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(status_filename, 255, "%s/%ld-%ld_%.0f.json", path_string.c_str(), talkgroup, start_time, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a", path_string.c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(debug_filename, 255, "%s/%ld-%ld_%.0f.debug", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(debug_filename, 255, "%s/%ld-%ld_%.0f.debug", path_string.c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
-  nchars = snprintf(sigmf_filename, 255, "%s/%ld-%ld_%.0f.raw", path_stream.str().c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(sigmf_filename, 255, "%s/%ld-%ld_%.0f.raw", path_string.c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
@@ -109,8 +111,10 @@ Call::~Call() {
 void Call::restart_call() {
 }
 
+
 void Call::end_call() {
   std::stringstream shell_command;
+  std::string shell_command_string;
   stop_time = time(NULL);
 
   if (state == recording) {
@@ -118,8 +122,11 @@ void Call::end_call() {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
-
+    
     final_length = recorder->get_current_length();
+
+
+    
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
@@ -133,9 +140,10 @@ void Call::end_call() {
     if (myfile.is_open()) {
       myfile << "{\n";
       myfile << "\"freq\": " << this->curr_freq << ",\n";
-      myfile << "\"start_time\": " << this->start_time << ",\n";
+      myfile << "\"start_time\": " << this->get_start_time() << ",\n";
       myfile << "\"stop_time\": " << this->stop_time << ",\n";
       myfile << "\"emergency\": " << this->emergency << ",\n";
+      myfile << "\"call_length\": " << this->final_length << ",\n";
       //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
       myfile << "\"srcList\": [ ";
@@ -164,17 +172,17 @@ void Call::end_call() {
       shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
     }
     this->get_recorder()->stop();
-
+    shell_command_string = shell_command.str();
     if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
       if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_call(this, sys, config);
       }
 
       if (sys->get_upload_script().length() != 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
+        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command_string;
         signal(SIGCHLD, SIG_IGN);
         //int rc = system(shell_command.str().c_str());
-        system(shell_command.str().c_str());
+        system(shell_command_string.c_str());
       }
 
       // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
@@ -474,10 +482,6 @@ void Call::increase_idle_count() {
 
 long Call::get_stop_time() {
   return stop_time;
-}
-
-long Call::get_start_time() {
-  return start_time;
 }
 
 char *Call::get_converted_filename() {

@@ -82,7 +82,7 @@ public:
   int since_last_update();
   long stopping_elapsed();
   long elapsed();
-  long get_start_time();
+
   double get_current_length();
   long get_stop_time();
   void set_debug_recording(bool m);
@@ -96,6 +96,7 @@ public:
   void set_tdma_slot(int s);
   int get_tdma_slot();
   const char *get_xor_mask();
+  virtual time_t get_start_time() {return start_time;}
   virtual bool is_conventional() { return false; }
   void set_encrypted(bool m);
   bool get_encrypted();

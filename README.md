@@ -33,6 +33,7 @@ Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10, 18.
 ### Install Required Prequisites
 * [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
 * [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
+* [Ubuntu minimal](https://github.com/robotastic/trunk-recorder/wiki/MinimalInstall)
 * [Arch Linux](https://github.com/robotastic/trunk-recorder/wiki/Arch-Linux)
 * [macOS](https://github.com/robotastic/trunk-recorder/wiki/macOS)
 * [Raspberry Pi Buster Install](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Buster-Install) (Also works for the ASUS Tinker Board [S])
@@ -121,6 +122,7 @@ Here are the different arguments:
    - **recordUnknown** - record talkgroups if they are not listed in the Talkgroups File. The options are *true* and *false* (without quotes). The default is *true*.
    - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
    - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
+   - **unitScript** - *(Optional)* run a script when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on|join|off|ackresp|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`).
    - **apiKey** - *(Optional, only if uploadServer set)* System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be.
    - **broadcastifyApiKey** - *(Optional)* System-specific API key for Broadcastify Calls
    - **broadcastifySystemId** - *(Optional)* System ID for Broadcastify Calls (this is an integer, and different from the RadioReference system ID)
