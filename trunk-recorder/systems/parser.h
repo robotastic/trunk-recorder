@@ -12,7 +12,8 @@ enum MessageType {
   DEREGISTRATION = 5,
   AFFILIATION = 6,
   SYSID = 7,
-  ACKRESP = 8,
+  ACKNOWLEDGE = 8,
+  LOCATION = 9,
   UNKNOWN = 99
 };
 

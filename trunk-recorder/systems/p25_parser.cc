@@ -527,7 +527,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long op = bitset_shift_mask(tsbk, 48, 0xff);
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
 
-    message.message_type = ACKRESP;
+    message.message_type = ACKNOWLEDGE;
     message.talkgroup = ga;
     message.source = sa;
 
@@ -577,7 +577,16 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x2a) { // Group Affiliation Query
     BOOST_LOG_TRIVIAL(debug) << "tsbk2a Group Affiliation Query";
   } else if (opcode == 0x2b) { // Location Registration Response
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2b Location Registration Response";
+      // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
+    unsigned long ga = bitset_shift_mask(tsbk, 56, 0xffff);
+    unsigned long rv = bitset_shift_mask(tsbk, 72, 0x03);
+    unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+
+    message.message_type = LOCATION;
+    message.talkgroup = ga;
+    message.source = sa;
+
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2b\tLocation Registration Response\tga " << std::dec << ga  << "\tsa " << sa << "\tValue: " << rv;
   } else if (opcode == 0x2c) { // Unit Registration Response
     // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);

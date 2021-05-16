@@ -887,10 +887,18 @@ void unit_deregistration(string unit_script, string shortName, long unit) {
   }
 }
 
-void unit_ack(string unit_script, string shortName, long unit) {
+void unit_acknowledge(string unit_script, string shortName, long unit) {
   if ((unit_script.length() != 0) && (unit != 0)) {
     char   shell_command[200];
     sprintf(shell_command, "%s %s %li ackresp &", unit_script.c_str(), shortName.c_str(), unit);
+    int rc = system(shell_command);
+  }
+}
+
+void unit_location_registration(string unit_script, string shortName, long unit, long talkgroup) {
+  if ((unit_script.length() != 0) && (unit != 0)) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %s %li locreg %li &", unit_script.c_str(), shortName.c_str(), unit, talkgroup);
     int rc = system(shell_command);
   }
 }
@@ -1058,8 +1066,12 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       current_system_status(message, sys);
       break;
 
-    case ACKRESP:
-      unit_ack(sys->get_unit_script(), sys->get_short_name(), message.source);
+    case ACKNOWLEDGE:
+      unit_acknowledge(sys->get_unit_script(), sys->get_short_name(), message.source);
+      break;
+
+    case LOCATION:
+      unit_location_registration(sys->get_unit_script(), sys->get_short_name(), message.source, message.talkgroup);
       break;
 
     case UNKNOWN:
