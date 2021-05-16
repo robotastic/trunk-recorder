@@ -303,7 +303,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         message.tdma_slot = 0;
       }
 
-      os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tsg " << std::setw(7) << sg << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa;
+      os << "tsbk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tsg " << std::setw(7) << sg << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa;
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
     } else {
@@ -587,11 +587,11 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.message_type = REGISTRATION;
     message.source = si;
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2c\tUnit Registration Response\tsa " << std::setw(7) << sa << " Source ID: " << si;
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2c\tUnit Registration COMMAND\tsa " << std::setw(7) << sa << " Source ID: " << si;
   } else if (opcode == 0x2d) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2d";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2d AUTHENTICATION COMMAND";
   } else if (opcode == 0x2e) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2e";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2e DE-REGISTRATION ACKNOWLEDGE";
   } else if (opcode == 0x2f) { // Unit DeRegistration Ack
     // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -602,11 +602,11 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si;
   } else if (opcode == 0x30) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk30";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
   } else if (opcode == 0x31) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk31";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk31 AUTHENTICATION DEMAND";
   } else if (opcode == 0x32) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk32";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk32 AUTHENTICATION RESPONSE";
   } else if (opcode == 0x33) { // iden_up_tdma
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
 
@@ -674,11 +674,11 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x35) { // Time and Date Announcement
     BOOST_LOG_TRIVIAL(debug) << "tsbk35 Time and Date Announcement";
   } else if (opcode == 0x36) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk36";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk36 ROAMING ADDRESS COMMAND";
   } else if (opcode == 0x37) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk37";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk37 ROAMING ADDRESS UPDATE";
   } else if (opcode == 0x38) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk38";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk38 SYSTEM SERVICE BROADCAST";
   } else if (opcode == 0x39) { // secondary cc
     unsigned long rfid = bitset_shift_mask(tsbk, 72, 0xff);
     unsigned long stid = bitset_shift_mask(tsbk, 64, 0xff);
