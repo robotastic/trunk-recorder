@@ -815,7 +815,6 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
     messages.push_back(message);
     return messages;
   } else if (type == -1) { //	# timeout
-    BOOST_LOG_TRIVIAL(debug) << "process_data_unit timeout";
 
     // self.update_state('timeout', curr_time)
     messages.push_back(message);
