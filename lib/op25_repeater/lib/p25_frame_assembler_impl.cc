@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <errno.h>
 #include <vector>
 #include <sys/time.h>
 
@@ -190,8 +189,7 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
 
 
     if (amt_produce > (int)output_queue.size()) {
-      // BOOST_LOG_TRIVIAL(info) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << "
-      // noutput_items: " <<  noutput_items;
+      BOOST_LOG_TRIVIAL(trace) << "Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
       amt_produce = output_queue.size();
     }
 
@@ -215,8 +213,10 @@ p25_frame_assembler_impl::general_work(int                        noutput_items,
          std::fill(out + amt_produce, out + noutput_items, 0);
          amt_produce = noutput_items;
          }*/
+      BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
       silence_frame_count = d_silence_frames;
     } else if (silence_frame_count > 0) {
+      BOOST_LOG_TRIVIAL(trace) << "Call Terminated, amount produced: " << amt_produce << " SRC: " << p1fdma.get_curr_src_id() << " silence_frame_count " << silence_frame_count;
       std::fill(out, out + noutput_items, 0);
       amt_produce = noutput_items;
       silence_frame_count--;

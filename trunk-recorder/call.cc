@@ -136,6 +136,8 @@ void Call::end_call() {
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
+      if (rx_status.last_update > 0)
+        stop_time = rx_status.last_update;
       freq_list[freq_count - 1].total_len = rx_status.total_len;
       freq_list[freq_count - 1].spike_count = rx_status.spike_count;
       freq_list[freq_count - 1].error_count = rx_status.error_count;
@@ -470,13 +472,15 @@ void Call::update(TrunkMessage message) {
 }
 
 int Call::since_last_update() {
-  if (get_recorder()) {
-    Rx_Status temp = recorder->get_rx_status();
-    BOOST_LOG_TRIVIAL(trace) << "temp.last_update: " << temp.last_update << " diff: " << time(NULL) - temp.last_update;
-    return time(NULL) - temp.last_update;
+  long last_rx;
+  if (get_recorder() && (last_rx = recorder->get_rx_status().last_update)) {
+    BOOST_LOG_TRIVIAL(trace) << "temp.last_update: " << last_rx << " diff: " << time(NULL) - last_rx;
+    return time(NULL) - last_rx;
     //last_update = temp.last_update;
-  } else
-  return time(NULL) - last_update;
+  } else {
+    BOOST_LOG_TRIVIAL(trace) << "last_update: " << last_update << " diff: " << time(NULL) - last_update;
+    return time(NULL) - last_update;
+  }
 }
 
 long Call::elapsed() {

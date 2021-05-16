@@ -211,6 +211,7 @@ p25p1_fdma::p25p1_fdma(int sys_num, const op25_audio& udp, int debug, bool do_im
   rx_status.error_count = 0;
   rx_status.total_len = 0;
   rx_status.spike_count = 0;
+  rx_status.last_update = time(NULL);
   for (int i=0; i<20; i++)
     error_history[i] = -1;
 }
@@ -219,6 +220,7 @@ void p25p1_fdma::reset_rx_status() {
   rx_status.error_count = 0;
   rx_status.total_len = 0;
   rx_status.spike_count = 0;
+  rx_status.last_update = 0;
   /*for (int i=0; i<20; i++)
     error_history[i] = -1;*/
 }
