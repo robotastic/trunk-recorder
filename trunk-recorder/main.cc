@@ -628,6 +628,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
+    stats.send_call_start(call);
     return false;
   }
 
