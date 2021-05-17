@@ -221,6 +221,11 @@ int BroadcastifyUploader::upload(struct call_data_t *call) {
     std::string code = response_buffer.substr(0, spacepos);
     std::string message = response_buffer.substr(spacepos + 1);
 
+    if (code == "1" && message == "SKIPPED---ALREADY-RECEIVED-THIS-CALL") {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->short_name << "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Upload Skipped: " << message;
+      return 0;
+    }
+
     if (code != "0") {
       BOOST_LOG_TRIVIAL(error) << "[" << call->short_name << "]\tTG: " << call->talkgroup << "\tFreq: " << FormatFreq(call->freq) << "\tBroadcastify Metadata Upload Error: " << message;
       return 1;
