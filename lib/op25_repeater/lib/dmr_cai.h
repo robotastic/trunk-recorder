@@ -23,22 +23,17 @@
 
 #include <stdint.h>
 #include <vector>
-#include <gnuradio/msg_queue.h>
 
 #include "dmr_slot.h"
-#include "log_ts.h"
 
 typedef std::vector<bool> bit_vector;
 
-static const unsigned int slot_ids[] = {0, 1, 0, 0, 1, 1, 0, 1};
-
 class dmr_cai {
 public:
-	dmr_cai(int debug, int msgq_id, gr::msg_queue::sptr queue);
+	dmr_cai(int debug);
 	~dmr_cai();
-	bool load_frame(const uint8_t fr_sym[], bool& unmute);
+	int load_frame(const uint8_t fr_sym[]);
 	inline int chan() { return d_chan; };
-	inline void set_slot_mask(int mask);
 
 private:
 	static const int FRAME_SIZE = 288; // frame length in bits
@@ -47,17 +42,13 @@ private:
 	uint8_t d_frame[FRAME_SIZE];       // array of bits comprising the current frame
 	dmr_slot d_slot[2];
 	bit_vector d_cach_sig;
-	int d_slot_mask;
 	int d_chan;
 	int d_shift_reg;
 	int d_debug;
-	int d_msgq_id;
-	gr::msg_queue::sptr d_msg_queue;
-	log_ts logts;
 
 	void extract_cach_fragment();
 	bool decode_shortLC();
-	void send_msg(const std::string& m_buf, const int m_type);
+
 };
 
 #endif /* INCLUDED_DMR_CAI_H */

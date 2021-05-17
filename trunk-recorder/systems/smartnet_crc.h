@@ -23,9 +23,9 @@
 #ifndef smartnet_crc_H
 #define smartnet_crc_H
 
-#include <boost/log/trivial.hpp>
-#include <gnuradio/msg_queue.h>
 #include <gnuradio/sync_block.h>
+#include <gnuradio/msg_queue.h>
+#include <boost/log/trivial.hpp>
 
 class smartnet_crc;
 
@@ -58,25 +58,26 @@ smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue, int sys_num);
  *
  * This uses the preferred technique: subclassing gr_crc_block.
  */
-class smartnet_crc : public gr::sync_block {
+class smartnet_crc : public gr::sync_block
+{
 private:
-  // The friend declaration allows smartnet_make_crc to
-  // access the private constructor.
+	// The friend declaration allows smartnet_make_crc to
+	// access the private constructor.
 
-  friend smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue, int sys_num);
+	friend smartnet_crc_sptr smartnet_make_crc(gr::msg_queue::sptr queue, int sys_num);
 
-  smartnet_crc(gr::msg_queue::sptr queue, int sys_num); // private constructor
-  gr::msg_queue::sptr d_queue;
-  int sys_num;
+	smartnet_crc(gr::msg_queue::sptr queue, int sys_num);   // private constructor
+	gr::msg_queue::sptr d_queue;
+	int sys_num;
 
 public:
-  ~smartnet_crc(); // public destructor
+	~smartnet_crc();  // public destructor
 
-  // Where all the action really happens
+	// Where all the action really happens
 
-  int work(int noutput_items,
-           gr_vector_const_void_star &input_items,
-           gr_vector_void_star &output_items);
+	int work (int noutput_items,
+	          gr_vector_const_void_star &input_items,
+	          gr_vector_void_star &output_items);
 };
 
 #endif /* smartnet_crc_H */

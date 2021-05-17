@@ -1,5 +1,4 @@
 {
-    "ver": 2,
     "sources": [{
         "center": 167000000,
         "rate": 2048000,
@@ -7,6 +6,7 @@
         "gain": 28,
         "debugRecorders": 0,
         "digitalRecorders": 0,
+        "squelch": -50,
         "driver": "osmosdr"
     }],
     "systems": [
@@ -16,8 +16,7 @@
             "shortName": "park",
             "talkgroupsFile": "park-conv.csv",
             "callLog": true,
-            "audioArchive": true,
-            "squelch": -50
+            "audioArchive": true
 }
 ],
   "uploadServer": "https://api.openmhz.com"

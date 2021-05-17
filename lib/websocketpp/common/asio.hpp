@@ -101,19 +101,9 @@ namespace lib {
             bool is_neg(T duration) {
                 return duration.count() < 0;
             }
-
-            // If boost believes it has std::chrono available it will use it
-            // so we should also use it for things that relate to boost, even
-            // if the library would otherwise use boost::chrono.
-            #if defined(BOOST_ASIO_HAS_STD_CHRONO)
-                inline std::chrono::milliseconds milliseconds(long duration) {
-                    return std::chrono::milliseconds(duration);
-                }
-            #else
-                inline lib::chrono::milliseconds milliseconds(long duration) {
-                    return lib::chrono::milliseconds(duration);
-                }
-            #endif
+            inline lib::chrono::milliseconds milliseconds(long duration) {
+                return lib::chrono::milliseconds(duration);
+            }
         #else
             // Using boost::asio <1.49 we pretend a deadline timer is a steady
             // timer and wrap the negative detection and duration conversion

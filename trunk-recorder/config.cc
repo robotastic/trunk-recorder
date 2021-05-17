@@ -5,8 +5,6 @@
  * Description: <#description#>
  * Parameters: <#parameters#>
  */
-<<<<<<< HEAD
-=======
 Config load_config(std::string config_file, std::vector<Source *> &sources, std::vector<System *> &systems)
 {
   std::string system_modulation;
@@ -273,4 +271,3 @@ Config load_config(std::string config_file, std::vector<Source *> &sources, std:
   }
   return config;
 }
->>>>>>> add maximum call duration
