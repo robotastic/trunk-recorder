@@ -32,8 +32,8 @@ list(APPEND op25_repeater_sources
     vocoder_impl.cc
     gardner_costas_cc_impl.cc
     p25_frame_assembler_impl.cc
-    fsk4_slicer_fb_impl.cc
-    fsk4_demod_ff_impl.cc)
+    fsk4_demod_ff_impl.cc
+    fsk4_slicer_fb_impl.cc )
 
 list(APPEND op25_repeater_sources
     bch.cc
@@ -57,20 +57,24 @@ list(APPEND op25_repeater_sources
     hamming.cc
     golay2087.cc
     bptc19696.cc
+    trellis.cc
     dmr_cai.cc
     dmr_slot.cc
     op25_audio.cc
+    op25_timer
     CCITTChecksumReverse.cpp
 )
 
 add_library(gnuradio-op25_repeater SHARED ${op25_repeater_sources})
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.dylib )
+    find_library(GR_PMT_LIBRARY libgnuradio-pmt.dylib )
 else(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.so )
 endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 set(GR_FILTER_LIBRARIES ${GR_FILTER_LIBRARY})
-target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_FILTER_LIBRARIES} imbe_vocoder)
+set(GR_PMT_LIBRARIES ${GR_PMT_LIBRARY})
+target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_PMT_LIBRARIES} ${GR_FILTER_LIBRARIES} imbe_vocoder)
 set_target_properties(gnuradio-op25_repeater PROPERTIES DEFINE_SYMBOL "gnuradio_op25_repeater_EXPORTS")
 
 ########################################################################

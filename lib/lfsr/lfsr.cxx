@@ -1,5 +1,5 @@
 /*
- * lfsr.h
+ * lfsr.cxx
  *
  * Translation of lfsr.py to c++ - source file
  *
@@ -54,12 +54,12 @@ const char * p25p2_lfsr::getXorChars(unsigned &len) const {
 
 Eigen::VectorXi * p25p2_lfsr::mk_xor_bits(unsigned long nac, unsigned long sysid, unsigned long wacn) {
 
-  unsigned long n = 16777216*wacn + 4096*sysid + nac;
+  unsigned long long int n = 16777216ULL*wacn + 4096*sysid + nac;
   Eigen::VectorXi *reg = mk_array(n, 44);
 
   Eigen::VectorXi product = reg->transpose()*M;
 
-  long unsigned sreg = mk_int(product);
+  unsigned long long sreg = mk_int(product);
 
   const unsigned ssize = 4320;
   Eigen::VectorXi *s = new Eigen::VectorXi(ssize);
@@ -74,55 +74,55 @@ Eigen::VectorXi * p25p2_lfsr::mk_xor_bits(unsigned long nac, unsigned long sysid
 }
 
 
-long unsigned p25p2_lfsr::asm_reg( long unsigned s[6] ) {
-  s[0] = s[0] & 0xfL;
-  s[1] = s[1] & 0x1fL;
-  s[2] = s[2] & 0x3fL;
-  s[3] = s[3] & 0x1fL;
-  s[4] = s[4] & 0x3fffL;
-  s[5] = s[5] & 0x3ffL;
+unsigned long long p25p2_lfsr::asm_reg(unsigned long long s[6] ) {
+  s[0] = s[0] & 0xfULL;
+  s[1] = s[1] & 0x1fULL;
+  s[2] = s[2] & 0x3fULL;
+  s[3] = s[3] & 0x1fULL;
+  s[4] = s[4] & 0x3fffULL;
+  s[5] = s[5] & 0x3ffULL;
   return (s[0]<<40)+(s[1]<<35)+(s[2]<<29)+(s[3]<<24)+(s[4]<<10)+s[5];
 }
 
-long unsigned * p25p2_lfsr::disasm_reg(long unsigned r) {
+unsigned long long * p25p2_lfsr::disasm_reg(unsigned long long r) {
 
-  long unsigned *s = new long unsigned[6];
-  s[0] = (r>>40) & 0xfL;
-  s[1] = (r>>35) & 0x1fL;
-  s[2] = (r>>29) & 0x3fL;
-  s[3] = (r>>24) & 0x1fL;
-  s[4] = (r>>10) & 0x3fffL;
-  s[5] =  r      & 0x3ffL;
+  unsigned long long *s = new unsigned long long[6];
+  s[0] = (r>>40) & 0xfULL;
+  s[1] = (r>>35) & 0x1fULL;
+  s[2] = (r>>29) & 0x3fULL;
+  s[3] = (r>>24) & 0x1fULL;
+  s[4] = (r>>10) & 0x3fffULL;
+  s[5] =  r      & 0x3ffULL;
 
   return s;
 }
 
-long unsigned p25p2_lfsr::cyc_reg(long unsigned reg) {
+unsigned long long p25p2_lfsr::cyc_reg(unsigned long long reg) {
 
-  long unsigned *s = disasm_reg(reg);
-  long unsigned cy1 = (s[0] >> 3) & 1L;
-  long unsigned cy2 = (s[1] >> 4) & 1L;
-  long unsigned cy3 = (s[2] >> 5) & 1L;
-  long unsigned cy4 = (s[3] >> 4) & 1L;
-  long unsigned cy5 = (s[4] >> 13) & 1L;
-  long unsigned cy6 = (s[5] >> 9) & 1L;
-  long unsigned x1 = cy1 ^ cy2;
-  long unsigned x2 = cy1 ^ cy3;
-  long unsigned x3 = cy1 ^ cy4;
-  long unsigned x4 = cy1 ^ cy5;
-  long unsigned x5 = cy1 ^ cy6;
-  s[0] = (s[0] << 1) & 0xfL;
-  s[1] = (s[1] << 1) & 0x1fL;
-  s[2] = (s[2] << 1) & 0x3fL;
-  s[3] = (s[3] << 1) & 0x1fL;
-  s[4] = (s[4] << 1) & 0x3fffL;
-  s[5] = (s[5] << 1) & 0x3ffL;
-  s[0] = s[0] | (x1 & 1L);
-  s[1] = s[1] | (x2 & 1L);
-  s[2] = s[2] | (x3 & 1L);
-  s[3] = s[3] | (x4 & 1L);
-  s[4] = s[4] | (x5 & 1L);
-  s[5] = s[5] | (cy1 & 1L);
+  unsigned long long *s = disasm_reg(reg);
+  unsigned long long cy1 = (s[0] >> 3) & 1L;
+  unsigned long long cy2 = (s[1] >> 4) & 1L;
+  unsigned long long cy3 = (s[2] >> 5) & 1L;
+  unsigned long long cy4 = (s[3] >> 4) & 1L;
+  unsigned long long cy5 = (s[4] >> 13) & 1L;
+  unsigned long long cy6 = (s[5] >> 9) & 1L;
+  unsigned long long x1 = cy1 ^ cy2;
+  unsigned long long x2 = cy1 ^ cy3;
+  unsigned long long x3 = cy1 ^ cy4;
+  unsigned long long x4 = cy1 ^ cy5;
+  unsigned long long x5 = cy1 ^ cy6;
+  s[0] = (s[0] << 1) & 0xfULL;
+  s[1] = (s[1] << 1) & 0x1fULL;
+  s[2] = (s[2] << 1) & 0x3fULL;
+  s[3] = (s[3] << 1) & 0x1fULL;
+  s[4] = (s[4] << 1) & 0x3fffULL;
+  s[5] = (s[5] << 1) & 0x3ffULL;
+  s[0] = s[0] | (x1 & 1ULL);
+  s[1] = s[1] | (x2 & 1ULL);
+  s[2] = s[2] | (x3 & 1ULL);
+  s[3] = s[3] | (x4 & 1ULL);
+  s[4] = s[4] | (x5 & 1ULL);
+  s[5] = s[5] | (cy1 & 1ULL);
 
   return asm_reg(s);
 }
