@@ -1,0 +1,2 @@
+# Makes sure all C & C++ files are classified as such.
+lib/op25_repeater/lib/*.h linguist-language=C++

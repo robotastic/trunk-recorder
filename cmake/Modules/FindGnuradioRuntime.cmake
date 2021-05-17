@@ -25,6 +25,7 @@ if(PC_GNURADIO_RUNTIME_FOUND)
           /usr/local/lib64
           /usr/lib
           /usr/lib64
+          /usr/lib/x86_64-linux-gnu/lib
     )
 
   set(GNURADIO_RUNTIME_FOUND ${PC_GNURADIO_RUNTIME_FOUND})
