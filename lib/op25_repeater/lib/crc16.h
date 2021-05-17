@@ -22,30 +22,6 @@
 
 #include <string.h>
 
-static uint8_t crc7(const uint8_t bits[], unsigned int len) {
-	uint8_t crc=0;
-	static const unsigned int K = 7;
-	static const uint8_t poly[K+1] = {1,0,1,0,0,1,1,1}; // crc7 poly
-	uint8_t buf[256];
-	if (len+K > sizeof(buf)) {
-		fprintf (stderr, "crc8: buffer length %u exceeds maximum %lu\n", len+K, sizeof(buf));
-		return 0;
-	}
-	memset (buf, 0, sizeof(buf));
-	for (int i=0; i<len; i++){
-		buf[i] = bits[i];
-	}
-	for (int i=0; i<len; i++)
-		if (buf[i])
-			for (int j=0; j<K+1; j++)
-				buf[i+j] ^= poly[j];
-	for (int i=0; i<K; i++){
-		crc = (crc << 1) + buf[len + i];
-	}
-	return crc;
-}
-
-
 static uint8_t crc8(const uint8_t bits[], unsigned int len) {
 	uint8_t crc=0;
 	static const unsigned int K = 8;
@@ -88,20 +64,5 @@ static inline uint16_t crc16(const uint8_t buf[], int len) {
 	}
         crc = crc ^ 0xffff;
         return crc & 0xffff;
-}
-
-static inline uint32_t crc32(const uint8_t buf[], size_t len)
-{
-    uint32_t poly = 0xedb88320;
-    uint32_t crc  = 0;
-    int k;
-
-    crc = ~crc;
-    while (len--) {
-        crc ^= *buf++;
-        for (k = 0; k < 8; k++)
-            crc = crc & 1 ? (crc >> 1) ^ poly : crc >> 1;
-    }
-    return ~crc;
 }
 #endif /* INCLUDED_CRC16_H */

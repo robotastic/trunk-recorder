@@ -1,5 +1,4 @@
 {
-    "ver": 2,
     "sources": [{
         "center": 857800000,
         "rate": 2048000,
@@ -7,6 +6,7 @@
         "gain": 39,
         "debugRecorders": 0,
         "digitalRecorders": 4,
+        "modulation": "qpsk",
         "driver": "osmosdr",
         "device": "rtl=40"
     }, {
@@ -15,6 +15,7 @@
         "error": 0,
         "gain": 39,
         "digitalRecorders": 4,
+        "modulation": "qpsk",
         "driver": "osmosdr",
         "device": "rtl=41"
     }, {
@@ -23,6 +24,7 @@
         "error": 0,
         "gain": 39,
         "digitalRecorders": 4,
+        "modulation": "qpsk",
         "driver": "osmosdr",
         "device": "rtl=42"
     }],
@@ -30,8 +32,7 @@
         "control_channels": [855462500],
         "type": "p25",
         "talkgroupsFile": "ChanList.csv",
-        "shortName": "dcfems",
-        "modulation": "qpsk"
+				"shortName": "dcfems"
     }],
     "captureDir": "/home/luke/gnuradio/trunk-recorder/"
 }

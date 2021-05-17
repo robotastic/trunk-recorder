@@ -1,7 +1,6 @@
 /*.json
 /*.csv
 sys_*/
-audio/
 junk/
 tester/
 fake/
@@ -27,7 +26,3 @@ ChanList.csv
 cmake-build-debug/
 *.code-workspace
 /.vscode/
-/.vs/
-/out/
-top_block.py
-debug_recorder.py

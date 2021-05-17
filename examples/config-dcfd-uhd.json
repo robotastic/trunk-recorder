@@ -1,5 +1,4 @@
 {
-    "ver": 2,
     "sources": [{
         "center": 857000000.0,
         "rate": 8000000.0,
@@ -12,7 +11,6 @@
     "systems": [{
         "control_channels": [855462500],
         "type": "p25",
-        "talkgroupsFile": "ChanList.csv",
-        "modulation": "qpsk"
+        "talkgroupsFile": "ChanList.csv"
     }]
 }

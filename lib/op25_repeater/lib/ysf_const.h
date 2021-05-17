@@ -362,6 +362,8 @@ static const uint8_t scramble_code[180] = {
 // frame sync dibits
 static const uint8_t ysf_fs[20] = { 3, 1, 1, 0, 1, 3, 0, 1, 3, 0, 2, 1, 1, 2, 0, 3, 1, 0, 3, 1 };
 
+static const uint64_t YSF_FRAME_SYNC_MAGIC = 0xd471c9634dLL;
+
 /* thx gr-ysf fr_vch_decoder_bb_impl.cc * Copyright 2015 Mathias Weyland */
 // I hold Sylvain Munaut in high esteem for figuring this out.
 static const uint8_t ysf_permutation[144] = {

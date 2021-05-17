@@ -46,7 +46,6 @@
 #include "op25_imbe_frame.h"
 #include "software_imbe_decoder.h"
 #include "op25_audio.h"
-#include "op25_msg_types.h"
 
 namespace gr{
     namespace op25_repeater{
@@ -58,46 +57,10 @@ void rx_sync::cbuf_insert(const uint8_t c) {
 }
 
 void rx_sync::sync_reset(void) {
-	// Sync counters and registers reset
-	d_symbol_count = 0;
-	d_rx_count = 0;
 	d_threshold = 0;
 	d_shift_reg = 0;
-	d_sync_reg = 0;
-	d_expires = 0;
-
-	// Audio reset
-	for (int chan = 0; chan <= 1; chan++) {
-		if (d_unmute_until[chan]) {
-			d_unmute_until[chan] = 0;
-			d_audio.send_audio_flag_channel(op25_audio::DRAIN, chan);
-			if (d_debug >= 10) {
-				fprintf(stderr, "%s mute channel(%d)\n", logts.get(d_msgq_id), chan);
-			}
-		}
-	}
-}
-
-void rx_sync::set_slot_mask(int mask) {
-	if (mask == d_slot_mask)
-		return;
-
-	if (d_debug >= 10) {
-		fprintf(stderr, "%s rx_sync::set_slot_mask: current(%d), new(%d)\n", logts.get(d_msgq_id), d_slot_mask, mask);
-	}
-
-	if (d_slot_mask == 4) {
-		sync_timer.reset();
-		sync_reset();
-	}
-	d_slot_mask = mask;
-}
-
-void rx_sync::set_xor_mask(int mask) {
-	if (d_debug >= 10) {
-		fprintf(stderr, "%s rx_sync::set_xor_mask: current(%d), new(%d)\n", logts.get(d_msgq_id), d_xor_mask, mask);
-	}
-	d_xor_mask = mask;
+	d_unmute_until[0] = 0;
+	d_unmute_until[1] = 0;
 }
 
 static int ysf_decode_fich(const uint8_t src[100], uint8_t dest[32]) {   // input is 100 dibits, result is 32 bits
@@ -166,34 +129,67 @@ void rx_sync::ysf_sync(const uint8_t dibitbuf[], bool& ysf_fullrate, bool& unmut
 		break;
 	}
 	if (d_debug > 5 && !unmute)
-		fprintf(stderr, "%s ysf_sync: muting audio: dt: %d, rc: %d\n", logts.get(d_msgq_id), d_shift_reg, rc);
+		fprintf(stderr, "ysf_sync: muting audio: dt: %d, rc: %d\n", d_shift_reg, rc);
 }
 
-rx_sync::rx_sync(const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue) :	// constructor
-	d_xor_mask(0),
-	d_slot_mask(3),
+void rx_sync::dmr_sync(const uint8_t bitbuf[], int& current_slot, bool& unmute) {
+	static const int slot_ids[] = {0, 1, 0, 0, 1, 1, 0, 1};
+	int tact;
+	int chan;
+	int fstype;
+	uint8_t tactbuf[sizeof(cach_tact_bits)];
+
+	for (size_t i=0; i<sizeof(cach_tact_bits); i++)
+		tactbuf[i] = bitbuf[cach_tact_bits[i]];
+	tact = hamming_7_4_decode[load_i(tactbuf, 7)];
+	chan = (tact>>2) & 1;
+	d_shift_reg = (d_shift_reg << 1) + chan;
+	current_slot = slot_ids[d_shift_reg & 7];
+
+	if ((d_debug >= 10) && (chan != current_slot)) {
+		fprintf(stderr, "DMR cach chan=%d does not match current_slot=%d\n", chan, current_slot);
+	}
+
+	uint64_t sync = load_reg64(bitbuf + (MODE_DATA[RX_TYPE_DMR].sync_offset << 1), MODE_DATA[RX_TYPE_DMR].sync_len);
+	if (check_frame_sync(DMR_VOICE_SYNC_MAGIC ^ sync, d_threshold, MODE_DATA[RX_TYPE_DMR].sync_len))
+		fstype = 1;
+	else if (check_frame_sync(DMR_DATA_SYNC_MAGIC ^ sync, d_threshold, MODE_DATA[RX_TYPE_DMR].sync_len))
+		fstype = 2;
+	else
+		fstype = 0;
+	if (fstype > 0)
+		d_expires = d_symbol_count + MODE_DATA[d_current_type].expiration;
+	if (fstype == 1) {
+		if (!d_unmute_until[current_slot] && d_debug >= 5)
+			fprintf(stderr, "unmute slot %d\n", current_slot);
+		d_unmute_until[current_slot] = d_symbol_count + MODE_DATA[d_current_type].expiration;
+	} else if (fstype == 2) {
+		if (d_unmute_until[current_slot] && d_debug >= 5)
+			fprintf(stderr, "mute slot %d\n", current_slot);
+		d_unmute_until[current_slot] = 0;
+	}
+	if (d_unmute_until[current_slot] <= d_symbol_count) {
+		d_unmute_until[current_slot] = 0;
+	}
+	unmute = d_unmute_until[current_slot] > 0;
+}
+
+rx_sync::rx_sync(const char * options, int debug) :	// constructor
 	d_symbol_count(0),
 	d_sync_reg(0),
 	d_cbuf_idx(0),
 	d_current_type(RX_TYPE_NONE),
 	d_rx_count(0),
 	d_expires(0),
-	d_stereo(true),
+	d_stereo(false),
 	d_debug(debug),
-	d_msgq_id(msgq_id),
-	d_msg_queue(queue),
-	sync_timer(op25_timer(1000000)),
 	d_audio(options, debug),
-	dmr(debug, msgq_id, queue)
+	dmr(debug)
 {
-	if (msgq_id >= 0)
-		d_stereo = false; // single channel audio for trunking
-
 	mbe_initMbeParms (&cur_mp[0], &prev_mp[0], &enh_mp[0]);
 	mbe_initMbeParms (&cur_mp[1], &prev_mp[1], &enh_mp[1]);
 	mbe_initToneParms (&tone_mp[0]);
 	mbe_initToneParms (&tone_mp[1]);
-	sync_timer.reset();
 	sync_reset();
 }
 
@@ -201,17 +197,6 @@ rx_sync::~rx_sync()	// destructor
 {
 }
 
-void rx_sync::sync_timeout()
-{
-	if ((d_msgq_id < 0) || (d_msg_queue->full_p()))
-	return;
-
-	std::string m_buf;
-	gr::message::sptr msg = gr::message::make_from_string(m_buf, get_msg_type(PROTOCOL_DMR, M_DMR_TIMEOUT), (d_msgq_id << 1), logts.get_ts());
-	d_msg_queue->insert_tail(msg);
-
-	sync_timer.reset();
-}
 
 void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_type, int slot_id) {
 	static const int x=4;
@@ -228,32 +213,17 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 	bool do_fullrate = false;
 	bool do_silence = false;
 	bool do_tone = false;
-	packed_codeword p_cw;
 	voice_codeword fullrate_cw(voice_codeword_sz);
 
 	switch(codeword_type) {
 	case CODEWORD_DMR:
 		errs = interleaver.process_vcw(cw, b, U);
-		interleaver.pack_cw(p_cw, U);
-		if (d_debug >= 9) {
-			fprintf(stderr, "%s AMBE %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(d_msgq_id),
+		if (d_debug >= 10) {
+			packed_codeword p_cw;
+			interleaver.pack_cw(p_cw, U);
+			fprintf(stderr, "%s AMBE %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(),
 			       	p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5], p_cw[6], errs);
 		}
-		if (d_xor_mask) {
-			uint8_t skipped_bits = p_cw[1] & 0xf0;
-			for (int i = 0; i <= 6; i++)
-				p_cw[i]   ^= (d_xor_mask >> ((i + 1) % 2) * 8);
-			p_cw[1] = (p_cw[1] & 0x0f) + skipped_bits;
-			interleaver.unpack_cw(p_cw, U);
-			interleaver.unpack_b(b, U);
-			interleaver.pack_cw(p_cw, U);
-
-			if (d_debug >= 9) {
-				fprintf(stderr, "%s ambe %02x %02x %02x %02x %02x %02x %02x errs %lu\n", logts.get(d_msgq_id),
-			       		p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5], p_cw[6], errs);
-			}
-		}
-
 		if (mbe_dequantizeAmbeTone(&tone_mp[slot_id], U) == 0) {
 			do_tone = true;
 		} else if (b[0] < 120) { // TODO: handle Erasures/Frame Repeat
@@ -290,7 +260,7 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 			packed_codeword p_cw;
 			imbe_pack(p_cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
 			fprintf(stderr, "%s IMBE %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x errs %lu\n",
-					logts.get(d_msgq_id),
+					logts.get(),
 					p_cw[0], p_cw[1], p_cw[2], p_cw[3], p_cw[4], p_cw[5],
 				       	p_cw[6], p_cw[7], p_cw[8], p_cw[9], p_cw[10], errs);
 		}
@@ -335,10 +305,10 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 }
 
 void rx_sync::output(int16_t * samp_buf, const ssize_t slot_id) {
-	if (d_stereo) 
+	if (!d_stereo) {
 		d_audio.send_audio_channel(samp_buf, NSAMP_OUTPUT * sizeof(int16_t), slot_id);
-	else
-		d_audio.send_audio(samp_buf, NSAMP_OUTPUT * sizeof(int16_t));
+		return;
+	}
 }
 
 void rx_sync::rx_sym(const uint8_t sym)
@@ -350,9 +320,6 @@ void rx_sync::rx_sym(const uint8_t sym)
 	uint8_t tmpcw[144];
 	bool ysf_fullrate;
 
-        if (d_slot_mask & 0x4) // Setting bit 3 of slot mask disables framing for idle receiver 
-		return;
-
 	d_symbol_count ++;
 	d_sync_reg = (d_sync_reg << 2) | (sym & 3);
 	for (int i = 0; i < KNOWN_MAGICS; i++) {
@@ -362,12 +329,8 @@ void rx_sync::rx_sym(const uint8_t sym)
 		}
 	}
 	cbuf_insert(sym);
-	if (d_current_type == RX_TYPE_NONE && sync_detected == RX_TYPE_NONE) {
-		if (sync_timer.expired()) {
-			sync_timeout();
-		}
+	if (d_current_type == RX_TYPE_NONE && sync_detected == RX_TYPE_NONE)
 		return;
-        }
 	d_rx_count ++;
 	if (sync_detected != RX_TYPE_NONE) {
 		if (d_current_type != sync_detected) {
@@ -377,7 +340,7 @@ void rx_sync::rx_sym(const uint8_t sym)
 		}
 		if (d_rx_count != MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1)) {
 			if (d_debug >= 10)
-				fprintf(stderr, "%s resync at count %d for protocol %s (expected count %d)\n", logts.get(d_msgq_id), d_rx_count, MODE_DATA[d_current_type].type, (MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1)));
+				fprintf(stderr, "resync at count %d for protocol %s\n", d_rx_count, MODE_DATA[d_current_type].type);
 			sync_reset();
 			d_rx_count = MODE_DATA[d_current_type].sync_offset + (MODE_DATA[d_current_type].sync_len >> 1);
 		} else {
@@ -387,9 +350,8 @@ void rx_sync::rx_sym(const uint8_t sym)
 	}
 	if (d_symbol_count >= d_expires) {
 		if (d_debug >= 10)
-			fprintf(stderr, "%s %s: timeout, symbol %d\n", logts.get(d_msgq_id), MODE_DATA[d_current_type].type, d_symbol_count);
+			fprintf(stderr, "%s: timeout, symbol %d\n", MODE_DATA[d_current_type].type, d_symbol_count);
 		d_current_type = RX_TYPE_NONE;
-		sync_timeout();
 		return;
 	}
 	if (d_rx_count < MODE_DATA[d_current_type].fragment_len)
@@ -414,34 +376,15 @@ void rx_sync::rx_sym(const uint8_t sym)
 		}
 		break;
 	case RX_TYPE_DMR:
-		// frame with explicit sync resets expiration counter
-		if (dmr.load_frame(symbol_ptr, unmute))
-			d_expires = d_symbol_count + MODE_DATA[d_current_type].expiration;
-
-		// update audio timeout counters etc
-		if (unmute && ((dmr.chan() + 1) & d_slot_mask)) {
-			if (!d_unmute_until[dmr.chan()])
-				if (d_debug >= 10) {
-					fprintf(stderr, "%s unmute channel(%d)\n", logts.get(d_msgq_id), dmr.chan());
-				}
-			d_unmute_until[dmr.chan()] = d_symbol_count + MODE_DATA[d_current_type].expiration;
-		}
-		if (!unmute || (d_symbol_count >= d_unmute_until[dmr.chan()])) {
-			if (d_unmute_until[dmr.chan()]) {
-				d_unmute_until[dmr.chan()] = 0;
-				d_audio.send_audio_flag_channel(op25_audio::DRAIN, dmr.chan());
-				if (d_debug >= 10) {
-					fprintf(stderr, "%s mute channel(%d)\n", logts.get(d_msgq_id), dmr.chan());
-				}
-			}
+		dmr_sync(bit_ptr, current_slot, unmute);
+		dmr.load_frame(symbol_ptr);
+		if (!unmute)
 			break;
-		}
-
-		codeword(symbol_ptr+12, CODEWORD_DMR, dmr.chan());
+		codeword(symbol_ptr+12, CODEWORD_DMR, current_slot);
 		memcpy(tmpcw, symbol_ptr+48, 18);
 		memcpy(tmpcw+18, symbol_ptr+90, 18);
-		codeword(tmpcw, CODEWORD_DMR, dmr.chan());
-		codeword(symbol_ptr+108, CODEWORD_DMR, dmr.chan());
+		codeword(tmpcw, CODEWORD_DMR, current_slot);
+		codeword(symbol_ptr+108, CODEWORD_DMR, current_slot);
 		break;
 	case RX_TYPE_DSTAR:
 		codeword(bit_ptr, CODEWORD_DSTAR, 0);   // 72 bits = 72 symbols
