@@ -39,11 +39,13 @@ WORKDIR /src
 
 COPY . .
 
-RUN cmake . && make -j`nproc` && cp recorder /recorder
+RUN cmake . && make -j`nproc` && cp -i recorder /usr/local/bin
 
 #USER nobody
+
+WORKDIR /app
 
 # GNURadio requires a place to store some files, can only be set via $HOME env var.
 ENV HOME=/tmp
 
-CMD ["/recorder", "--config=/app/config.json"]
+CMD ["/usr/local/bin/recorder", "--config=/app/config.json"]
