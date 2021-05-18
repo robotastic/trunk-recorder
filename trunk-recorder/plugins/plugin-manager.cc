@@ -1,5 +1,6 @@
 #include "plugin-manager.h"
 #include "plugin-common.h"
+#include "../config.h"
 #include <stdlib.h>
 #include <vector>
 #include <boost/property_tree/json_parser.hpp>
@@ -10,29 +11,33 @@
 
 std::vector<plugin_t *> plugins;
 
-void setup_plugin(std::string plugin_lib, std::string plugin_name, boost::property_tree::ptree::value_type &node) {
+plugin_t* setup_plugin(std::string plugin_lib, std::string plugin_name) {
   plugin_t *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
-  if(plugin != NULL && plugin_parse_config(plugin, node) == 0) {
+  if(plugin != NULL) {
     plugins.push_back(plugin);
   }
+  return plugin;
 }
 
-void initialize_plugins(boost::property_tree::ptree &cfg) {
+void initialize_plugins(boost::property_tree::ptree &cfg, Config* config) {
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
         std::string plugin_lib = node.second.get<std::string>("library", "");
         std::string plugin_name = node.second.get<std::string>("name", "");
 
-        setup_plugin(plugin_lib, plugin_name, node);
+        plugin_t* plugin = setup_plugin(plugin_lib, plugin_name);
+        if(plugin != NULL) {
+          plugin_parse_config(plugin, node);
+        }
     }
 
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
-      plugin_init(plugin);
+      plugin_init(plugin, config);
     }
 }
 
-void initialize_internal_plugin(std::string name, boost::property_tree::ptree::value_type &node) {
-  setup_plugin("", name, node);
+void initialize_internal_plugin(std::string name) {
+  setup_plugin("", name);
 }
 
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems) {
@@ -84,6 +89,13 @@ void plugman_call_end(Call *call) {
     }
 }
 
+void plugman_calls_active(std::vector<Call *> calls) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+      plugin_t *plugin = *it;
+      plugin_calls_active(plugin, calls);
+    }
+}
+
 void plugman_setup_recorder(Recorder *recorder) {
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
@@ -109,5 +121,19 @@ void plugman_setup_sources(std::vector<Source *> sources) {
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_setup_sources(plugin, sources);
+    }
+}
+
+void plugman_setup_config(std::vector<Source *> sources, std::vector<System *> systems) {
+    for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+      plugin_t *plugin = *it;
+      plugin_setup_config(plugin, sources, systems);
+    }
+}
+
+void plugman_system_rates(std::vector<System *> systems, float timeDiff) {
+  for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+      plugin_t *plugin = *it;
+      plugin_system_rates(plugin, systems, timeDiff);
     }
 }

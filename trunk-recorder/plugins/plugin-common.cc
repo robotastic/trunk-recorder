@@ -40,11 +40,11 @@ plugin_t *plugin_new(const char * const plugin_file, char const * const plugin_n
     return plugin;
 }
 
-int plugin_init(plugin_t * const plugin) {
+int plugin_init(plugin_t * const plugin, Config* config) {
     assert(plugin != NULL);
     plugin_state_t new_state = PLUGIN_FAILED;
     errno = 0;
-    int ret = plugin->init(plugin);
+    int ret = plugin->init(plugin, config);
     if(ret < 0) {
         ret = -1;
     } else {
@@ -160,6 +160,19 @@ int plugin_call_end(plugin_t * const plugin, Call *call) {
     return err;
 }
 
+int plugin_calls_active(plugin_t * const plugin, std::vector<Call *> calls) {
+    assert(plugin != NULL);
+
+    int err = 0;
+    errno = 0;
+
+    if(plugin->state == PLUGIN_RUNNING && plugin->calls_active != NULL) {
+        err = plugin->calls_active(plugin, calls);
+    }
+
+    return err;
+}
+
 int plugin_setup_recorder(plugin_t * const plugin, Recorder *recorder) {
     assert(plugin != NULL);
 
@@ -207,6 +220,32 @@ int plugin_setup_sources(plugin_t * const plugin, std::vector<Source *> sources)
 
     if(plugin->state == PLUGIN_RUNNING && plugin->setup_sources != NULL) {
         err = plugin->setup_sources(plugin, sources);
+    }
+
+    return err;
+}
+
+int plugin_setup_config(plugin_t * const plugin, std::vector<Source *> sources, std::vector<System *> systems) {
+    assert(plugin != NULL);
+
+    int err = 0;
+    errno = 0;
+
+    if(plugin->state == PLUGIN_RUNNING && plugin->setup_config != NULL) {
+        err = plugin->setup_config(plugin, sources, systems);
+    }
+
+    return err;
+}
+
+int plugin_system_rates(plugin_t * const plugin, std::vector<System *> systems, float timeDiff) {
+    assert(plugin != NULL);
+
+    int err = 0;
+    errno = 0;
+
+    if(plugin->state == PLUGIN_RUNNING && plugin->system_rates != NULL) {
+        err = plugin->system_rates(plugin, systems, timeDiff);
     }
 
     return err;

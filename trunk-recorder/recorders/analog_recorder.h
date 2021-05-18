@@ -85,6 +85,7 @@ public:
   void process_message_queues(void);
   void decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal);
   void plugin_callback_handler(float *samples, int sampleCount);
+  double get_output_sample_rate();
 
 private:
   double center_freq, chan_freq;

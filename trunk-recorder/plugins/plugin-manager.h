@@ -8,8 +8,8 @@
 #include <vector>
 #include <stdlib.h>
 
-void initialize_plugins(boost::property_tree::ptree &cfg);
-void initialize_internal_plugin(std::string name, boost::property_tree::ptree::value_type &node); // For use by internal plugins, like the uploaders. Should be called before initialize_plugins
+void initialize_plugins(boost::property_tree::ptree &cfg, Config* config);
+void initialize_internal_plugin(std::string name); // For use by internal plugins, like the uploaders. Should be called before initialize_plugins
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems);
 void stop_plugins();
 
@@ -18,9 +18,12 @@ void plugman_audio_callback(Recorder *recorder, float *samples, int sampleCount)
 void plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 void plugman_call_start(Call *call);
 void plugman_call_end(Call *call);
+void plugman_calls_active(std::vector<Call *> calls);
 void plugman_setup_recorder(Recorder *recorder);
 void plugman_setup_system(System * system);
 void plugman_setup_systems(std::vector<System *> systems);
 void plugman_setup_sources(std::vector<Source *> sources);
+void plugman_setup_config(std::vector<Source *> sources, std::vector<System *> systems);
+void plugman_system_rates(std::vector<System *> systems, float timeDiff);
 
 #endif // PLUGIN_MANAGER_H

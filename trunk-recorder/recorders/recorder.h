@@ -83,6 +83,7 @@ public:
     Rx_Status rx_status = {0, 0, 0};
     return rx_status;
   }
+  virtual std::string get_type() { return type; }
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };
   virtual bool is_idle() { return true; };
@@ -91,8 +92,12 @@ public:
   int rec_num;
   static int rec_counter;
   virtual boost::property_tree::ptree get_stats();
+  virtual int get_recording_count() { return recording_count; }
+  virtual double get_recording_duration() { return recording_duration; }
 
   virtual void process_message_queues(void){};
+  virtual double get_output_sample_rate(){ return 0;}
+  virtual int get_output_channels() { return 1; }
 
 protected:
   int recording_count;

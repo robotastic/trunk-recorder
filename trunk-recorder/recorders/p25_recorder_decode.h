@@ -60,5 +60,6 @@ public:
   virtual ~p25_recorder_decode();
   double get_current_length();
   void plugin_callback_handler(float *samples, int sampleCount);
+  double get_output_sample_rate();
 };
 #endif
