@@ -209,7 +209,12 @@ int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_sta
   
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
 
-    if (d_first_work ) // drop output on the floor
+    // if we do not have a valid current_call, dropp everything on the floor.
+    if (d_current_call == NULL) {
+      return noutput_items;
+    }
+    
+    if (d_first_work ) 
     {
       if (d_fp) {
         BOOST_LOG_TRIVIAL(error) << "Weird - trying to open a file, but already have a FP";

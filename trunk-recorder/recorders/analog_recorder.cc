@@ -137,7 +137,7 @@ analog_recorder::analog_recorder(Source *src)
   squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
 
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
-  
+
   int d_max_dev = 5000;
   /* demodulator gain */
   quad_gain = system_channel_rate / (2.0 * M_PI * d_max_dev);
@@ -170,9 +170,14 @@ analog_recorder::analog_recorder(Source *src)
   decoder_sink = gr::blocks::decoder_wrapper_impl::make(wave_sample_rate, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
 
-  // Try and get rid of the FSK wobble
+  // Analog audio band pass from 300 to 3000 Hz
+  // can't use gnuradio.filter.firdes.band_pass since we have different transition widths
+  // 300 Hz high pass (275-325 Hz): removes CTCSS/DCS and Type II 150 bps Low Speed Data (LSD), or "FSK wobble"
   high_f_taps = gr::filter::firdes::high_pass(1, wave_sample_rate, 300, 50, gr::filter::firdes::WIN_HANN); // Configurable
   high_f = gr::filter::fir_filter_fff::make(1, high_f_taps);
+  // 3000 Hz low pass (3000-3500 Hz)
+  low_f_taps = gr::filter::firdes::low_pass(1, wave_sample_rate, 3250, 500, gr::filter::firdes::WIN_HANN);
+  low_f = gr::filter::fir_filter_fff::make(1, low_f_taps);
 
   // using squelch
   connect(self(), 0, valve, 0);
@@ -190,7 +195,8 @@ analog_recorder::analog_recorder(Source *src)
   connect(decim_audio, 0, high_f, 0);
   connect(decim_audio, 0, decoder_sink, 0);
   connect(decim_audio, 0, plugin_sink, 0);
-  connect(high_f, 0, squelch_two, 0);
+  connect(high_f, 0, low_f, 0);
+  connect(low_f, 0, squelch_two, 0);
   connect(squelch_two, 0, levels, 0);
   connect(levels, 0, wav_sink, 0);
 }
