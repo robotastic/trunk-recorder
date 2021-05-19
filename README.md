@@ -148,6 +148,7 @@ Here are the different arguments:
  - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
  - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
  - **controlWarnRate** - Log the control channel decode rate when it falls bellow this threshold. The default is *10*. The value of *-1* will always log the decode rate.
+ - **controlWarnUpdate** - How often (in seconds) the control channel decode rate should be logged when controlWarnRate is met. The default is *3*.
  - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *true*.
  - **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md)
  - **broadcastSignals** - *(Optional)* Broadcast decoded signals to the status server. The default is *false*.
