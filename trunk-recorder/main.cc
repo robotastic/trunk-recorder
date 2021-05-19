@@ -661,10 +661,6 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       //int total_recorders = get_total_recorders();
 
       if (recorder) {
-        /* if (message.meta.length()) {
-          BOOST_LOG_TRIVIAL(debug) << message.meta;
-        } */
-
         recorder->start(call);
         call->set_recorder(recorder);
         call->set_state(recording);
