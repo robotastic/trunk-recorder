@@ -439,9 +439,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
     bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
     bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-    // bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
-    // bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
-    // unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
     unsigned long ch = bitset_shift_mask(tsbk, 64, 0xffff);
     unsigned long f = channel_id_to_frequency(ch, sys_num);
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
