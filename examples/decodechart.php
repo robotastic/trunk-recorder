@@ -2,11 +2,27 @@
 //style from: Topnew CMS Chart v5.5.5 - Released on 2016.05.05
 // The MIT License (MIT) Copyright (c) 1998-2015, Topnew Geo, http://topnew.net/chart
 
-//SET THESE ("sys1" is shortName from config.json)
+//Can specifiy log files to get data from in URL, e.g. decodechart.php?05-*-2021
+//however each data point always takes up 1 px width (no adjustment based on amount)
+
+//SET THESE:
+//default amount of data points to include if no files specified
+//I set controlWarnUpdate/controlWarnRate in config.json so rates always output once/minute  
+$datapoints = 1440;
+
+$chartwidth = 1500;
+
+//shown at the top of the chart if no files specified
+$charttitle = "Last 24 hours";
+
+//can be used to identify which color is which system; can copy tspan if more than 1
+$chartdesc = '(<tspan style="fill: red;">System 1</tspan>)';
+
 $logsdir = "path/to/trunk-recorder/logs/";
+
+//set "sys1" to the shortName in config.json; can copy the line if more than 1 system
 $css = "<defs><style type=\"text/css\"><![CDATA[
 #sys1{stroke:red;}
-#sys1text{fill:red;}
 
 
 
@@ -39,7 +55,7 @@ function parsefile($filename) {
 if (isset($_SERVER['QUERY_STRING']) && (strlen($_SERVER['QUERY_STRING']) > 4)) {
   foreach (glob($logsdir.$_SERVER['QUERY_STRING']."*.log") as $filename)
     parsefile($filename);
-  $mytitle = $_SERVER['QUERY_STRING'];
+  $charttitle = $_SERVER['QUERY_STRING'];
 }
 
 //if no/little data, default to last 24 hours from yesterday's+today's logs
@@ -49,25 +65,23 @@ if (count($decode) < 5) {
   foreach (glob($logsdir.date("m-d-Y")."*.log") as $filename)
     parsefile($filename);
   $decode = array_slice($decode, -1440);
-  $mytitle = "Last 24 hours";
 }
 
 
 //start the SVG
-echo '<svg width="1500" height="450" viewBox="0 0 1500 450" class="chart" version="1.0" xmlns="http://www.w3.org/2000/svg">
+echo '<svg width="'.$chartwidth.'" height="450" viewBox="0 0 '.$chartwidth.' 450" class="chart" version="1.0" xmlns="http://www.w3.org/2000/svg">
 '.$css.'
-<rect width="1500" height="450" class="chart-bg" />
-<rect x="25" y="25" width="1450" height="400" class="chart-box" />
+<rect width="'.$chartwidth.'" height="450" class="chart-bg" />
+<rect x="25" y="25" width="'.($chartwidth-50).'" height="400" class="chart-box" />
 ';
 
 //draw the y axis
 for($i = 0; $i <= 9; $i++)
   echo '<text class="axisY" x="25" y="'.(($i*50)+25).'">'.(40-($i*5)).'</text>
-<line class="chart-tick" x1="25" x2="1475" y1="'.(($i*50)+25).'" y2="'.(($i*50)+25).'" />
+<line class="chart-tick" x1="25" x2="'.($chartwidth-25).'" y1="'.(($i*50)+25).'" y2="'.(($i*50)+25).'" />
 ';
-echo '<text y="15" x="750" text-anchor="middle">Last 24 hours control channel decoding rates 
-(<tspan id="mstext">Mount Scott</tspan>, <tspan id="cctext">Council Crest</tspan>, 
-<tspan id="lstext">Livingston</tspan>, <tspan id="osrppdxctext">OSRP</tspan>)</text>';
+echo '<text y="15" x="750" text-anchor="middle">'.$charttitle.' control channel decoding rates 
+'.$chartdesc.'</text>';
 
 //var_dump($decode);
 
