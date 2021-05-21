@@ -91,6 +91,9 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   message.sys_num = sys_num;
   message.talkgroup = 0;
   message.emergency = false;
+  message.duplex = false;
+  message.mode = false;
+  message.priority = 0;
   message.phase2_tdma = false;
   message.tdma_slot = 0;
   message.freq = 0;
@@ -101,6 +104,9 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     unsigned long sa = bitset_shift_mask(header, 48, 0xffffff);
     bool emergency = (bool)bitset_shift_mask(header, 24, 0x80);
     bool encrypted = (bool)bitset_shift_mask(header, 24, 0x40);
+    bool duplex = (bool)bitset_shift_mask(header, 24, 0x20);
+    bool mode = (bool)bitset_shift_mask(header, 24, 0x10);
+    unsigned long priority = bitset_shift_mask(header, 24, 0x07);
     unsigned long ch1 = bitset_shift_mask(mbt_data, 64, 0xffff);
     //unsigned long ch2 = bitset_shift_mask(mbt_data, 48, 0xffff);
     unsigned long ga = bitset_shift_mask(mbt_data, 32, 0xffff);
@@ -112,6 +118,9 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     message.source = sa;
     message.emergency = emergency;
     message.encrypted = encrypted;
+    message.duplex = duplex;
+    message.mode = mode;
+    message.priority = priority;
 
     if (get_tdma_slot(ch1, sys_num) >= 0) {
       message.phase2_tdma = true;
@@ -121,7 +130,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
       message.tdma_slot = 0;
     }
 
-    os << "mbt00\tChan Grant\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga << "\tTDMA " << get_tdma_slot(ch1, sys_num) << "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch1, sys_num);
+    os << "mbt00\tChan Grant\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tga " << std::setw(7) << ga << "\tTDMA " << get_tdma_slot(ch1, sys_num) << "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch1, sys_num);
     message.meta = os.str();
     BOOST_LOG_TRIVIAL(debug) << os.str();
   } else if (opcode == 0x3a) { // rfss status
@@ -134,9 +143,9 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     //unsigned long f2   = channel_id_to_frequency(ch2, sys_num);
     message.message_type = SYSID;
     message.sys_id = syid;
-    os << "mbt3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ")" << std::endl;
+    os << "mbt3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ")";
     message.meta = os.str();
-    //BOOST_LOG_TRIVIAL(trace) << os;
+    BOOST_LOG_TRIVIAL(trace) << os.str();
   } else if (opcode == 0x3b) { // network status
     unsigned long wacn = bitset_shift_mask(mbt_data, 76, 0xfffff);
     unsigned long syid = bitset_shift_mask(header, 48, 0xfff);
@@ -151,19 +160,22 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
       message.sys_id = syid;
       message.freq = f1;
     }
-    BOOST_LOG_TRIVIAL(debug) << "mbt3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
+    BOOST_LOG_TRIVIAL(trace) << "mbt3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
   } else if (opcode == 0x3c) { // adjacent status
     unsigned long syid = bitset_shift_mask(header, 48, 0xfff);
     unsigned long rfid = bitset_shift_mask(header, 24, 0xff);
     unsigned long stid = bitset_shift_mask(header, 16, 0xff);
     unsigned long ch1 = bitset_shift_mask(mbt_data, 80, 0xffff);
     unsigned long ch2 = bitset_shift_mask(mbt_data, 64, 0xffff);
-    BOOST_LOG_TRIVIAL(debug) << "mbt3c adjacent status "
+    BOOST_LOG_TRIVIAL(trace) << "mbt3c adjacent status "
                              << "syid " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << " ch2 " << ch2;
   } else if (opcode == 0x04) { //  Unit to Unit Voice Service Channel Grant -Extended (UU_V_CH_GRANT)
     //unsigned long mfrid = bitset_shift_mask(header, 80, 0xff);
     bool emergency = (bool)bitset_shift_mask(header, 24, 0x80);
     bool encrypted = (bool)bitset_shift_mask(header, 24, 0x40);
+    bool dup = (bool)bitset_shift_mask(header, 24, 0x20);
+    bool mod = (bool)bitset_shift_mask(header, 24, 0x10);
+    unsigned long pri = bitset_shift_mask(header, 24, 0x07);
     unsigned long ch = bitset_shift_mask(header, 16, 0xffff); /// ????
     unsigned long f = channel_id_to_frequency(ch, sys_num);
     unsigned long sa = bitset_shift_mask(header, 48, 0xffffff);
@@ -175,6 +187,9 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     message.source = sa;
     message.emergency = emergency;
     message.encrypted = encrypted;
+    message.duplex = dup;
+    message.mode = mod;
+    message.priority = pri;
     if (get_tdma_slot(ch, sys_num) >= 0) {
       message.phase2_tdma = true;
       message.tdma_slot = get_tdma_slot(ch, sys_num);
@@ -183,7 +198,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
       message.tdma_slot = 0;
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "mbt04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
+    BOOST_LOG_TRIVIAL(debug) << "mbt04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
   } else {
     BOOST_LOG_TRIVIAL(debug) << "mbt other: " << opcode;
     return messages;
@@ -219,9 +234,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
     bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
     bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-    // bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
-    // bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
-    // unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
     unsigned long ch = bitset_shift_mask(tsbk, 56, 0xffff);
     unsigned long ga = bitset_shift_mask(tsbk, 40, 0xffff);
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
@@ -231,7 +246,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long ga1 = bitset_shift_mask(tsbk, 48, 0xffff);
       unsigned long ga2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga3 = bitset_shift_mask(tsbk, 16, 0xffff);
-      BOOST_LOG_TRIVIAL(trace) << "tsbk00\tMoto Patch Add \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3;
+      BOOST_LOG_TRIVIAL(debug) << "tsbk00\tMoto Patch Add \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3;
     } else {
       unsigned long f1 = channel_id_to_frequency(ch, sys_num);
       message.message_type = GRANT;
@@ -240,6 +255,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.source = sa;
       message.emergency = emergency;
       message.encrypted = encrypted;
+      message.duplex = duplex;
+      message.mode = mode;
+      message.priority = priority;
 
       if (get_tdma_slot(ch, sys_num) >= 0) {
         message.phase2_tdma = true;
@@ -248,14 +266,17 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         message.phase2_tdma = false;
         message.tdma_slot = 0;
       }
-      os << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch, sys_num);
+      os << "tsbk00\tChan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f1) << "\tga " << std::setw(7) << ga << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa << "\tEncrypt " << encrypted << "\tBandwidth: " << get_bandwidth(ch, sys_num);
       message.meta = os.str();
-      //BOOST_LOG_TRIVIAL(trace) << os;
+      BOOST_LOG_TRIVIAL(debug) << os.str();
     }
   } else if (opcode == 0x02) { // group voice chan grant update
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
     bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
 
     if (mfrid == 0x90) {
       unsigned long ch = bitset_shift_mask(tsbk, 56, 0xffff);
@@ -269,6 +290,10 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.source = sa;
       message.emergency = emergency;
       message.encrypted = encrypted;
+      message.duplex = duplex;
+      message.mode = mode;
+      message.priority = priority;
+
 
       if (get_tdma_slot(ch, sys_num) >= 0) {
         message.phase2_tdma = true;
@@ -278,8 +303,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         message.tdma_slot = 0;
       }
 
-      os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tsg " << std::setw(7) << sg << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa;
+      os << "tsbk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tsg " << std::setw(7) << sg << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa;
       message.meta = os.str();
+      BOOST_LOG_TRIVIAL(debug) << os.str();
     } else {
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 48, 0xffff);
@@ -300,6 +326,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.talkgroup = ga1;
       message.emergency = emergency;
       message.encrypted = encrypted;
+      message.duplex = duplex;
+      message.mode = mode;
+      message.priority = priority;
 
       if (get_tdma_slot(ch1, sys_num) >= 0) {
         message.phase2_tdma = true;
@@ -325,16 +354,19 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << FormatFreq(f2) << "\tga " << std::setw(7) << ga2 << "\tTDMA " << get_tdma_slot(ch2, sys_num);
 
         message.meta = os.str();
-        //BOOST_LOG_TRIVIAL(trace) << os;
+        BOOST_LOG_TRIVIAL(trace) << os.str();
       }
-      os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1, sys_num);
+      os << "tsbk02\tGrant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1, sys_num);
       message.meta = os.str();
-      //BOOST_LOG_TRIVIAL(trace) << os;
+      BOOST_LOG_TRIVIAL(trace) << os.str();
     }
   } else if (opcode == 0x03) { //  Group Voice Channel Update-Explicit (GRP_V_CH_GRANT_UPDT_EXP)
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
     bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
 
     if (mfrid == 0x90) { // MOT_GRG_CN_GRANT_UPDT
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
@@ -350,6 +382,10 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.talkgroup = sg1;
       message.emergency = emergency;
       message.encrypted = encrypted;
+      message.duplex = duplex;
+      message.mode = mode;
+      message.priority = priority;
+
       if (get_tdma_slot(ch1, sys_num) >= 0) {
         message.phase2_tdma = true;
         message.tdma_slot = get_tdma_slot(ch1, sys_num);
@@ -362,8 +398,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         messages.push_back(message);
         message.freq = f2;
         message.talkgroup = sg2;
-        message.emergency = emergency;
-        message.encrypted = encrypted;
         if (get_tdma_slot(ch2, sys_num) >= 0) {
           message.phase2_tdma = true;
           message.tdma_slot = get_tdma_slot(ch2, sys_num);
@@ -373,14 +407,12 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         }
         os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch2 << "\tFreq: " << FormatFreq(f2) << "\tsg " << std::setw(7) << sg2 << "\tTDMA " << get_tdma_slot(ch2, sys_num);
         message.meta = os.str();
-        //BOOST_LOG_TRIVIAL(trace) << os;
+        BOOST_LOG_TRIVIAL(trace) << os.str();
       }
       os << "MOT_GRG_CN_GRANT_UPDT(0x03): \tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tsg " << std::setw(7) << sg1 << "\tTDMA " << get_tdma_slot(ch1, sys_num);
       message.meta = os.str();
-      //BOOST_LOG_TRIVIAL(trace) << os;
+      BOOST_LOG_TRIVIAL(trace) << os.str();
     } else {
-      bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
-      bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
       unsigned long ch1 = bitset_shift_mask(tsbk, 48, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 16, 0xffff);
       unsigned long f1 = channel_id_to_frequency(ch1, sys_num);
@@ -398,18 +430,18 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         message.tdma_slot = 0;
       }
 
-      os << "tsbk03\tExplicit Grant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << f1 / 1000000.0 << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1, sys_num);
+      os << "tsbk03\tExplicit Grant Update\tChannel ID: " << std::setw(5) << ch1 << "\tFreq: " << FormatFreq(f1) << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1, sys_num);
       message.meta = os.str();
-      //BOOST_LOG_TRIVIAL(trace) << os;
+      BOOST_LOG_TRIVIAL(trace) << os.str();
     }
   } else if (opcode == 0x04) { //  Unit to Unit Voice Service Channel Grant (UU_V_CH_GRANT)
                                //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
     bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
     bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-    // bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
-    // bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
-    // unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
     unsigned long ch = bitset_shift_mask(tsbk, 64, 0xffff);
     unsigned long f = channel_id_to_frequency(ch, sys_num);
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
@@ -421,6 +453,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.source = sa;
     message.emergency = emergency;
     message.encrypted = encrypted;
+    message.duplex = duplex;
+    message.mode = mode;
+    message.priority = priority;
     if (get_tdma_slot(ch, sys_num) >= 0) {
       message.phase2_tdma = true;
       message.tdma_slot = get_tdma_slot(ch, sys_num);
@@ -438,9 +473,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
     bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-    // bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
-    // bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
-    // unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long priority = bitset_shift_mask(tsbk,72,0x07);
     unsigned long ch = bitset_shift_mask(tsbk, 64, 0xffff);
     unsigned long f = channel_id_to_frequency(ch, sys_num);
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
@@ -459,7 +494,11 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     }
     message.emergency = emergency;
     message.encrypted = encrypted;
-    BOOST_LOG_TRIVIAL(trace) << "tsbk06\tUnit to Unit Chan Update\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << f / 1000000.0 << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
+    message.duplex = duplex;
+    message.mode = mode;
+    message.priority = priority;
+
+    BOOST_LOG_TRIVIAL(trace) << "tsbk06\tUnit to Unit Chan Update\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << FormatFreq(f) << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
   } else if (opcode == 0x08) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk08: Telephone Interconnect Voice Channel Grant";
   } else if (opcode == 0x09) {
@@ -488,7 +527,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long op = bitset_shift_mask(tsbk, 48, 0xff);
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
 
-    message.message_type = ACKRESP;
+    message.message_type = ACKNOWLEDGE;
     message.talkgroup = ga;
     message.source = sa;
 
@@ -533,13 +572,21 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     os << "tsbk29 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2, sys_num) << ") ";
 
     message.meta = os.str();
-    //BOOST_LOG_TRIVIAL(trace) << os;
+    BOOST_LOG_TRIVIAL(trace) << os.str();
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk29 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2, sys_num) << ") ";
   } else if (opcode == 0x2a) { // Group Affiliation Query
     BOOST_LOG_TRIVIAL(debug) << "tsbk2a Group Affiliation Query";
   } else if (opcode == 0x2b) { // Location Registration Response
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2b Location Registration Response";
+      // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
+    unsigned long ga = bitset_shift_mask(tsbk, 56, 0xffff);
+    unsigned long rv = bitset_shift_mask(tsbk, 72, 0x03);
+    unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+
+    message.message_type = LOCATION;
+    message.talkgroup = ga;
+    message.source = sa;
+
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2b\tLocation Registration Response\tga " << std::dec << ga  << "\tsa " << sa << "\tValue: " << rv;
   } else if (opcode == 0x2c) { // Unit Registration Response
     // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -549,11 +596,11 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.message_type = REGISTRATION;
     message.source = si;
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2c\tUnit Registration Response\tsa " << std::setw(7) << sa << " Source ID: " << si;
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2c\tUnit Registration COMMAND\tsa " << std::setw(7) << sa << " Source ID: " << si;
   } else if (opcode == 0x2d) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2d";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2d AUTHENTICATION COMMAND";
   } else if (opcode == 0x2e) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2e";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2e DE-REGISTRATION ACKNOWLEDGE";
   } else if (opcode == 0x2f) { // Unit DeRegistration Ack
     // unsigned long mfrid  = bitset_shift_mask(tsbk,80,0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -562,13 +609,13 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.message_type = DEREGISTRATION;
     message.source = si;
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si;
   } else if (opcode == 0x30) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk30";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
   } else if (opcode == 0x31) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk31";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk31 AUTHENTICATION DEMAND";
   } else if (opcode == 0x32) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk32";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk32 AUTHENTICATION RESPONSE";
   } else if (opcode == 0x33) { // iden_up_tdma
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
 
@@ -600,7 +647,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
           slots_per_carrier[channel_type], // tdma;
           6.25};
       add_channel(iden, temp_chan, sys_num);
-      BOOST_LOG_TRIVIAL(debug) << "tsbk33 iden up tdma id " << std::dec << iden << " f " << temp_chan.frequency << " offset " << temp_chan.offset << " spacing " << temp_chan.step << " slots/carrier " << temp_chan.slots_per_carrier;
+      BOOST_LOG_TRIVIAL(trace) << "tsbk33 iden up tdma id " << std::dec << iden << " f " << temp_chan.frequency << " offset " << temp_chan.offset << " spacing " << temp_chan.step << " slots/carrier " << temp_chan.slots_per_carrier;
     }
   } else if (opcode == 0x34) { // iden_up vhf uhf
     unsigned long iden = bitset_shift_mask(tsbk, 76, 0xf);
@@ -632,15 +679,15 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         bandwidth};
     add_channel(iden, temp_chan, sys_num);
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk34 iden vhf/uhf id " << std::dec << iden << " toff " << toff * spac * 0.125 * 1e-3 << " spac " << spac * 0.125 << " freq " << freq * 0.000005 << " [ " << txt[toff_sign] << "]";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk34 iden vhf/uhf id " << std::dec << iden << " toff " << toff * spac * 0.125 * 1e-3 << " spac " << spac * 0.125 << " freq " << freq * 0.000005 << " [ " << txt[toff_sign] << "]";
   } else if (opcode == 0x35) { // Time and Date Announcement
     BOOST_LOG_TRIVIAL(debug) << "tsbk35 Time and Date Announcement";
   } else if (opcode == 0x36) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk36";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk36 ROAMING ADDRESS COMMAND";
   } else if (opcode == 0x37) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk37";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk37 ROAMING ADDRESS UPDATE";
   } else if (opcode == 0x38) { //
-    BOOST_LOG_TRIVIAL(trace) << "tsbk38";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk38 SYSTEM SERVICE BROADCAST";
   } else if (opcode == 0x39) { // secondary cc
     unsigned long rfid = bitset_shift_mask(tsbk, 72, 0xff);
     unsigned long stid = bitset_shift_mask(tsbk, 64, 0xff);
@@ -662,7 +709,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     }
     os << "tsbk39 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2, sys_num) << ") ";
     message.meta = os.str();
-    //BOOST_LOG_TRIVIAL(trace) << os;
+    BOOST_LOG_TRIVIAL(trace) << os.str();
   } else if (opcode == 0x3a) { // rfss status
     unsigned long syid = bitset_shift_mask(tsbk, 56, 0xfff);
     unsigned long rfid = bitset_shift_mask(tsbk, 48, 0xff);
@@ -670,9 +717,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long chan = bitset_shift_mask(tsbk, 24, 0xffff);
     message.message_type = SYSID;
     message.sys_id = syid;
-    os << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan, sys_num) << ")" << std::endl;
+    os << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan, sys_num) << ")";
     message.meta = os.str();
-    //BOOST_LOG_TRIVIAL(trace) << os;
+    BOOST_LOG_TRIVIAL(trace) << os.str();
   } else if (opcode == 0x3b) { // network status
     unsigned long wacn = bitset_shift_mask(tsbk, 52, 0xfffff);
     unsigned long syid = bitset_shift_mask(tsbk, 40, 0xfff);
@@ -768,7 +815,6 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
     messages.push_back(message);
     return messages;
   } else if (type == -1) { //	# timeout
-    BOOST_LOG_TRIVIAL(debug) << "process_data_unit timeout";
 
     // self.update_state('timeout', curr_time)
     messages.push_back(message);
@@ -795,7 +841,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
   }
   s = s.substr(2);
 
-  BOOST_LOG_TRIVIAL(trace) << std::dec << "nac " << nac << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length() << std::endl;
+  BOOST_LOG_TRIVIAL(trace) << std::hex << "nac " << nac << std::dec << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length();
   // //" at %f state %d len %d" %(nac, type, time.time(), self.state, len(s))
   if ((type == 7) || (type == 12)) // and nac not in self.trunked_systems:
   {

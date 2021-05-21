@@ -428,7 +428,7 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
-      BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
+      BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<int>("silenceFrames", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder", 0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
@@ -541,7 +541,9 @@ bool load_config(string config_file) {
     config.log_dir = pt.get<std::string>("logDir", "logs");
     BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
-    BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
+    BOOST_LOG_TRIVIAL(info) << "Control channel decoding warnings (< messages/second): " << config.control_message_warn_rate;
+    config.control_message_warn_updates = pt.get<float>("controlWarnUpdate", 3.0);
+    BOOST_LOG_TRIVIAL(info) << "Control channel decoding updates (seconds): " << config.control_message_warn_updates;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
 
@@ -661,10 +663,6 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       //int total_recorders = get_total_recorders();
 
       if (recorder) {
-        if (message.meta.length()) {
-          BOOST_LOG_TRIVIAL(trace) << message.meta;
-        }
-
         recorder->start(call);
         call->set_recorder(recorder);
         call->set_state(recording);
@@ -909,10 +907,18 @@ void unit_deregistration(string unit_script, string shortName, long unit) {
   }
 }
 
-void unit_ack(string unit_script, string shortName, long unit) {
+void unit_acknowledge(string unit_script, string shortName, long unit) {
   if ((unit_script.length() != 0) && (unit != 0)) {
     char   shell_command[200];
     sprintf(shell_command, "%s %s %li ackresp &", unit_script.c_str(), shortName.c_str(), unit);
+    int rc = system(shell_command);
+  }
+}
+
+void unit_location_registration(string unit_script, string shortName, long unit, long talkgroup) {
+  if ((unit_script.length() != 0) && (unit != 0)) {
+    char   shell_command[200];
+    sprintf(shell_command, "%s %s %li locreg %li &", unit_script.c_str(), shortName.c_str(), unit, talkgroup);
     int rc = system(shell_command);
   }
 }
@@ -948,6 +954,10 @@ void handle_call(TrunkMessage message, System *sys) {
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
+
+    if ((call->get_talkgroup() == message.source) && (call->get_sys_num() == message.sys_num)) {
+      BOOST_LOG_TRIVIAL(error) << "WARNING: Old call found w/this message.source. Old TG: " << call->get_talkgroup_display() << "/" << call->get_talkgroup() << "New TG: " << message.talkgroup << " New src: " << message.source;
+    }
 
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
       call_found = true;
@@ -1076,8 +1086,12 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       current_system_status(message, sys);
       break;
 
-    case ACKRESP:
-      unit_ack(sys->get_unit_script(), sys->get_short_name(), message.source);
+    case ACKNOWLEDGE:
+      unit_acknowledge(sys->get_unit_script(), sys->get_short_name(), message.source);
+      break;
+
+    case LOCATION:
+      unit_location_registration(sys->get_unit_script(), sys->get_short_name(), message.source, message.talkgroup);
       break;
 
     case UNKNOWN:
@@ -1221,7 +1235,20 @@ void monitor_messages() {
   while (1) {
 
     if (exit_flag) { // my action when signal set it 1
-      printf("\n Signal caught!\n");
+      BOOST_LOG_TRIVIAL(info) << "Signal caught! Closing calls...";
+      for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+        Call *call = *it;
+        Recorder *recorder = call->get_recorder();
+        call->end_call();
+        stats.send_call_end(call);
+        if (recorder != NULL) {
+          stats.send_recorder(recorder);
+        }
+        it = calls.erase(it);
+        delete call;
+      }
+      stats.send_calls_active(calls);
+      BOOST_LOG_TRIVIAL(info) << "Exiting...";
       return;
     }
 
@@ -1259,6 +1286,10 @@ void monitor_messages() {
               }
        */
 
+      if (msg->type() == -1) {
+        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t process_data_unit timeout";
+      }
+
       msg.reset();
     } else {
       currentTime = time(NULL);
@@ -1275,7 +1306,7 @@ void monitor_messages() {
 
     float timeDiff = currentTime - lastMsgCountTime;
 
-    if (timeDiff >= 3.0) {
+    if (timeDiff >= config.control_message_warn_updates) {
       check_message_count(timeDiff);
       lastMsgCountTime = currentTime;
     }

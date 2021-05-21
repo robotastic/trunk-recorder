@@ -63,10 +63,10 @@ smartnet_trunking::DecimSettings smartnet_trunking::get_decim(long speed) {
       decim_settings.decim = q / 2;
       decim_settings.decim2 = 2;
     }
-    std::cout << "Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2 << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "SmartNet trunking Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2;
     return decim_settings;
   }
-  std::cout << "Nothing found" << std::endl;
+  BOOST_LOG_TRIVIAL(error) << "SmartNet trunking Decim: Nothing found";
   return decim_settings;
 }
 void smartnet_trunking::initialize_prefilter() {

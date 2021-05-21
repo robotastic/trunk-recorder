@@ -58,10 +58,10 @@ debug_recorder::DecimSettings debug_recorder::get_decim(long speed) {
       decim_settings.decim = q / 2;
       decim_settings.decim2 = 2;
     }
-    std::cout << "Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2 << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "debug recorder Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2;
     return decim_settings;
   }
-  std::cout << "Nothing found" << std::endl;
+  BOOST_LOG_TRIVIAL(error) << "debug recorder Decim: Nothing found";
   return decim_settings;
 }
 

@@ -160,9 +160,9 @@ analog_recorder::analog_recorder(Source *src)
 
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wave_sample_rate, 16, true); //  Configurable
 
-  BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
+  BOOST_LOG_TRIVIAL(info) << "Creating decoder sink...";
   decoder_sink = gr::blocks::decoder_wrapper_impl::make(wave_sample_rate, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
+  BOOST_LOG_TRIVIAL(info) << "Decoder sink created!";
 
   // Analog audio band pass from 300 to 3000 Hz
   // can't use gnuradio.filter.firdes.band_pass since we have different transition widths
