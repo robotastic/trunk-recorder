@@ -28,6 +28,7 @@ struct Config {
   bool log_file;
   int control_message_warn_rate;
   float control_message_warn_updates;
+  int max_duration;
   int control_retune_limit;
   bool broadcast_signals;
 };

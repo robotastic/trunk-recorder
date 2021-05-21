@@ -372,6 +372,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Hide Unknown Talkgroups: " << system->get_hideUnknown();
       system->set_min_duration(node.second.get<double>("minDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
+      system->set_max_duration(node.second.get<double>("maxDuration", 0));
+      BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (in seconds): " << system->get_max_duration();
 
       systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);
@@ -742,9 +744,18 @@ void stop_inactive_recorders() {
           call->reset_idle_count();
         }
 
-        // if no additional recording has happened in the past X periods, stop and open new file
+        // if no additional recording has happened in the past X periods, or the call has gone on for longer than max_duration, stop and open new file
         if (call->get_idle_count() > 5) {
-          Recorder *recorder = call->get_recorder();
+          Recorder * recorder = call->get_recorder();
+          call->end_call();
+          stats.send_call_end(call);
+          call->restart_call();
+          if (recorder != NULL) {
+            stats.send_recorder(recorder);
+          }
+        } else if (call->get_current_length() > call->get_system()->get_max_duration() && call->get_system()->get_max_duration() > 0) {
+          BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t Restarting this call as it has a duration more than maximum duration of " << call->get_system()->get_max_duration() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tCall Duration: " << call->get_current_length() << "s";
+          Recorder * recorder = call->get_recorder();
           call->end_call();
           stats.send_call_end(call);
           call->restart_call();
@@ -753,7 +764,7 @@ void stop_inactive_recorders() {
           }
         }
       } else if (!call->get_recorder()->is_active()) {
-              // P25 Conventional Recorders need a have the graph unlocked before they can start recording.  
+              // P25 Conventional Recorders need a have the graph unlocked before they can start recording.
               Recorder *recorder = call->get_recorder();
               recorder->start(call);
               call->set_state(recording);
@@ -762,6 +773,19 @@ void stop_inactive_recorders() {
       ++it;
     } else {
       if (call->since_last_update() > config.call_timeout) {
+        if (call->get_state() == recording) {
+          ended_recording = true;
+        }
+        Recorder *recorder = call->get_recorder();
+        call->end_call();
+        stats.send_call_end(call);
+        if (recorder != NULL) {
+          stats.send_recorder(recorder);
+        }
+        it = calls.erase(it);
+        delete call;
+      } else if (call->get_current_length() > call->get_system()->get_max_duration() && call->get_system()->get_max_duration() > 0) {
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t Restarting this call as it has a duration more than maximum duration of " << call->get_system()->get_max_duration() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tCall Duration: " << call->get_current_length() << "s";
         if (call->get_state() == recording) {
           ended_recording = true;
         }
@@ -1351,7 +1375,7 @@ bool monitor_system() {
               rec = source->create_digital_conventional_recorder(tb);
               call->set_recorder((Recorder *)rec.get());
               calls.push_back(call);
-              
+
             }
 
             // break out of the for loop
@@ -1442,7 +1466,7 @@ int main(int argc, char **argv) {
       logging::trivial::severity >= logging::trivial::info
 
   );
-  
+
   boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");
 
   boost::log::add_common_attributes();

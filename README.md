@@ -87,7 +87,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 }
 ```
 Here are the different arguments:
- - **ver** - the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. 
+ - **ver** - the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set.
  - **sources** - an array of JSON objects that define the different SDRs available. The following options are used to configure each Source:
    - **center** - the center frequency in Hz to tune the SDR to
    - **rate** - the sampling rate to set the SDR to, in samples / second
@@ -113,7 +113,7 @@ Here are the different arguments:
    - **analogLevels** - the amount of amplification that will be applied to the analog audio. The value should be between 1-32. The default value is 8.
    - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 1.
    - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
-   - **squelch** - Squelch in DB, this needs to be set for all convetional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. Defaults to 0, which is disabled. 
+   - **squelch** - Squelch in DB, this needs to be set for all convetional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. Defaults to 0, which is disabled.
    - **maxDev** - Allows you to set the maximum deviation for analog channels. The default is 4000. If you analog recordings sound good or if you have a completely digital system, then there is no need to tough this.
    - **channels** - *(For conventional systems)* an array of the channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used.
    - **alphatags** - *(Optional, For conventional systems)* an array of the alpha tags, these will be outputed to the logfiles *talkgroupDisplayFormat* is set to include tags. Alpha tags will be applied to the *channels* in the order the values appear in the array.
@@ -130,6 +130,7 @@ Here are the different arguments:
    - **audioArchive** - should the recorded audio files be kept after successfully uploading them. The options are *true* and *false* (without quotes). The default is *true*.
    - **callLog** - should a json file with the call details be kept after successful uploads. The options are *true* and *false* (without quotes). The default is *true*.
    - **minDuration** - the minimum call (transmission) duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. The default is *0* (no minimum duration).
+   - **maxDuration** - If a call is being recorded and the duration exceeds this value in seconds, the call will stop recording and a new call will pick up where the previous on left off. The default is *0* or "no timeout".
    - **bandplan** - [SmartNet only] this is the SmartNet bandplan that will be used. The options are *800_standard*, *800_reband*, *800_splinter*, and *400_custom*. *800_standard* is the default.
    - **bandplanBase** - [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz.
    - **bandplanHigh** - [SmartNet, 400_custom only] this is the highest channel in the system, specified in Hz.
