@@ -80,7 +80,7 @@ public:
   virtual long get_talkgroup() { return 0; };
   virtual State get_state() { return inactive; };
   virtual Rx_Status get_rx_status() {
-    Rx_Status rx_status = {0, 0, 0};
+    Rx_Status rx_status = {0, 0, 0, 0};
     return rx_status;
   }
   virtual bool is_active() { return false; };

@@ -73,6 +73,9 @@ Call::Call(long t, double f, System *s, Config c) {
   tdma_slot = 0;
   encrypted = false;
   emergency = false;
+  duplex = false;
+  mode = false;
+  priority = 0;
   set_freq(f);
   this->create_filename();
   this->update_talkgroup_display();
@@ -98,6 +101,9 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   tdma_slot = message.tdma_slot;
   encrypted = message.encrypted;
   emergency = message.emergency;
+  duplex = message.duplex;
+  mode = message.mode;
+  priority = message.priority;
   set_freq(message.freq);
   add_source(message.source);
   this->create_filename();
@@ -130,6 +136,8 @@ void Call::end_call() {
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
+      if (rx_status.last_update > 0)
+        stop_time = rx_status.last_update;
       freq_list[freq_count - 1].total_len = rx_status.total_len;
       freq_list[freq_count - 1].spike_count = rx_status.spike_count;
       freq_list[freq_count - 1].error_count = rx_status.error_count;
@@ -143,6 +151,9 @@ void Call::end_call() {
       myfile << "\"start_time\": " << this->get_start_time() << ",\n";
       myfile << "\"stop_time\": " << this->stop_time << ",\n";
       myfile << "\"emergency\": " << this->emergency << ",\n";
+      myfile << "\"duplex\": " << this->duplex << ",\n";
+      myfile << "\"mode\": " << this->mode << ",\n";
+      myfile << "\"priority\": " << this->priority << ",\n";
       myfile << "\"call_length\": " << this->final_length << ",\n";
       //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
       myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
@@ -174,7 +185,7 @@ void Call::end_call() {
     this->get_recorder()->stop();
     shell_command_string = shell_command.str();
     if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
-      if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
+      if (sys->get_api_key().length() != 0 || sys->get_bcfy_api_key().length() != 0) {
         send_call(this, sys, config);
       }
 
@@ -461,7 +472,15 @@ void Call::update(TrunkMessage message) {
 }
 
 int Call::since_last_update() {
-  return time(NULL) - last_update;
+  long last_rx;
+  if (get_recorder() && (last_rx = recorder->get_rx_status().last_update)) {
+    BOOST_LOG_TRIVIAL(trace) << "temp.last_update: " << last_rx << " diff: " << time(NULL) - last_rx;
+    return time(NULL) - last_rx;
+    //last_update = temp.last_update;
+  } else {
+    BOOST_LOG_TRIVIAL(trace) << "last_update: " << last_update << " diff: " << time(NULL) - last_update;
+    return time(NULL) - last_update;
+  }
 }
 
 long Call::elapsed() {

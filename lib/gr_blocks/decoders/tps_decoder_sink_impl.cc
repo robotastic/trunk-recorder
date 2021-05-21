@@ -232,13 +232,13 @@ namespace gr {
             int verbosity = 0;
             const char* wireshark_host = "127.0.0.1";
             bool do_imbe = 0;
-            bool idle_silence = 0;
+            int silence_frames = 0;
             bool do_output = 0;
             bool do_msgq = 1;
             bool do_audio_output = 0;
             bool do_tdma = 0;
             bool do_crypt = 0;
-            op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(d_src_num, idle_silence, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
+            op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(d_src_num, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
 
             connect(self(), 0, valve, 0);
             connect(valve, 0, slicer, 0);
