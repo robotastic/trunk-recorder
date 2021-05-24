@@ -9,7 +9,7 @@ include("live.config.php");
 <?php date_default_timezone_set('America/Los_Angeles');
 if (isset($_SERVER['QUERY_STRING']) && (strlen($_SERVER['QUERY_STRING']) < 35))
   $calls = explode("+",$_SERVER['QUERY_STRING']);
-if (end($calls) == "fewer") {
+if (isset($calls) && end($calls) == "fewer") {
 	$fewer = array_pop($calls);
 	echo '	var fewer = "+fewer";
 ';
@@ -18,13 +18,11 @@ if (end($calls) == "fewer") {
 	echo '	var fewer = "";
 ';
 }
-if (!isset($calls[0]))
-	$calls[0] = $default_system;
-if (!isset($calls[3]))
-	$calls[3] = date('Y-n-j');
-if (!isset($calls[1]) || ($calls[1] == "")) {
-	$calls[1] = "ALL";
-	echo '	var calls="ALL";
+if (!isset($calls[2]))
+	$calls[2] = date('Y-n-j');
+if (!isset($calls[0]) || ($calls[0] == "")) {
+	$calls[0] = $default_talkgoup;
+	echo '	var calls="'.$default_talkgoup.'";
 ';
 } else echo '	var calls = "'.$_SERVER['QUERY_STRING'].'";
 '; ?>
@@ -62,7 +60,7 @@ if (!isset($calls[1]) || ($calls[1] == "")) {
 	}
 
 	window.onload=init;
-	<?php if (!isset($calls[2]))
+	<?php if (!isset($calls[1]))
 		echo "	var loadcalls=setInterval(getcalls, 20000);"; ?>
 
 	function getcalls() {
@@ -184,18 +182,25 @@ function downloadUrl(url, callback) {
 <body style="font-family: Arial;" ><div id="player">
 <h1 id="curchan"><?php echo $pagetitle; ?></h1>
 <form action="" name="changecall">Channel(s): <select name="channels" id="channels">
-
-foreach ($tglist as $thistg => $thisvalue) {
+<?php foreach ($talkgroups as $thistg => $thisvalue) {
 	echo '<option value="'.$thistg.'"';
-	if ($calls[1] == $thistg) echo ' selected="selected"';
+	if ($calls[0] == $thistg) echo ' selected="selected"';
 	echo '>'.$thisvalue.'</option>
 ';
 }
+if (!isset($tglist[$calls[0]]))
+	echo '<option value="'.$calls[0].'" selected="selected">'.$calls[0].'</option>
+';
 unset($thistg); ?>
 </select><input type="button" value="Now" onclick="changecalls(false, true);"><input type="button" value="Today" onclick="changecalls(true, true);">
 <select name="m" id="m">
-<?php $themon = explode("-",$calls[3]);
-foreach (glob("2*/*", GLOB_ONLYDIR) as $mon) {
+<?php $themon = explode("-",$calls[2]);
+
+if (strpos($calls[0], "-") !== false)
+	$dir = $captureDir.substr($calls[0], 0, strpos($calls[0], "-"));
+else $dir = $captureDir.$default_system;
+
+foreach (glob($dir."2*/*", GLOB_ONLYDIR) as $mon) {
 	echo '<option value="'.str_replace("/","-",$mon).'"';
 	if ($mon == $themon[0]."/".$themon[1]) echo ' selected="selected"';
 	echo '>'.$mon.'</option>
