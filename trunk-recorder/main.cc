@@ -936,6 +936,11 @@ void unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
   plugman_unit_group_affiliation(sys, source_id, talkgroup_num);
 }
 
+void unit_data_grant(System *sys, long source_id) {
+  plugman_unit_data_grant(sys, source_id);
+}
+
+
 void handle_call(TrunkMessage message, System *sys) {
   bool call_found = false;
   bool call_retune = false;
@@ -1027,6 +1032,9 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
     case PATCH_DELETE:
       sys->delete_talkgroup_patch(message.patch_data);
+      break;
+    case DATA_GRANT:
+      unit_data_grant(sys, message.source);
       break;
     case UNKNOWN:
       break;
