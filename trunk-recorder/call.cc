@@ -176,8 +176,9 @@ void Call::end_call() {
     if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
       if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_call(this, sys, config);
-      }
 
+      }
+      conclude_call(this, sys, config);
       if (sys->get_upload_script().length() != 0) {
         BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command_string;
         signal(SIGCHLD, SIG_IGN);

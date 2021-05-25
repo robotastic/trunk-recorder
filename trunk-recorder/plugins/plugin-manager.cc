@@ -12,6 +12,7 @@
 std::vector<plugin_t *> plugins;
 
 plugin_t* setup_plugin(std::string plugin_lib, std::string plugin_name) {
+  BOOST_LOG_TRIVIAL(info) << "\tSetting up plugin - lib: " << plugin_lib << " name: " << plugin_name;
   plugin_t *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
   if(plugin != NULL) {
     plugins.push_back(plugin);
@@ -37,6 +38,7 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config* config) {
 }
 
 void initialize_internal_plugin(std::string name) {
+  //std::string lib = "plugins/" + name
   setup_plugin("", name);
 }
 

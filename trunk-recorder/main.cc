@@ -75,6 +75,7 @@ std::vector<System *> systems;
 std::map<long, long> unit_affiliations;
 
 std::vector<Call *> calls;
+
 gr::top_block_sptr tb;
 gr::msg_queue::sptr msg_queue;
 
@@ -544,8 +545,8 @@ bool load_config(string config_file) {
     set_logging_level(log_level);
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
-    initialize_internal_plugin("stat_socket");
-    initialize_plugins(pt, &config);
+    //initialize_internal_plugin("stat_socket");
+    //initialize_plugins(pt, &config);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
     return false;

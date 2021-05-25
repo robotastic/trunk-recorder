@@ -107,9 +107,10 @@ find_package(LibHackRF)
 find_package(UHD)
 find_package(OpenSSL REQUIRED)
 find_package(CURL REQUIRED)
-find_package(Protobuf REQUIRED)
-find_package(GRPC REQUIRED)
-
+if (STREAMER)
+    find_package(Protobuf REQUIRED)
+    find_package(GRPC REQUIRED)
+endif()
 
 ########################################################################
 # Setup boost
@@ -165,10 +166,11 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/include
     ${OPENSSL_INCLUDE_DIR}
     ${CURL_INCLUDE_DIR}
-    ${PROTOBUF_INCLUDE_DIR}
-    ${GRPC_INCLUDE_DIR}
     "lib"
 )
+#    ${PROTOBUF_INCLUDE_DIR}
+#    ${GRPC_INCLUDE_DIR}
+#)
 
 link_directories(
     ${Boost_LIBRARY_DIRS}
@@ -220,11 +222,12 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/plugins/plugin-common.cc
   trunk-recorder/plugins/plugin-manager.cc
   trunk-recorder/plugins/stat_socket/stat_socket.cc
-  trunk-recorder/plugins/streamer/StreamerClient.cc
-  trunk-recorder/plugins/streamer/streamer_proto_helper.cc
-  trunk-recorder/plugins/streamer/streamer.grpc.pb.cc
-  trunk-recorder/plugins/streamer/streamer.pb.cc
-  trunk-recorder/plugins/streamer/streamer_client_impl.cc
+  trunk-recorder/call_concluder/call_concluder.cc
+  #trunk-recorder/plugins/streamer/StreamerClient.cc
+  #trunk-recorder/plugins/streamer/streamer_proto_helper.cc
+  #trunk-recorder/plugins/streamer/streamer.grpc.pb.cc
+  #trunk-recorder/plugins/streamer/streamer.pb.cc
+  #trunk-recorder/plugins/streamer/streamer_client_impl.cc
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/lfsr/lfsr.cxx
   lib/gr_blocks/decoders/fsync_decode.cc
@@ -248,10 +251,18 @@ target_compile_options(
     gnuradio-op25_repeater PRIVATE
     "-w"
 )
-
+add_library(stat_socket 
+  MODULE
+    ${trunk_recorder_sources}
+    trunk-recorder/plugins/stat_socket/stat_socket.h
+    trunk-recorder/plugins/stat_socket/stat_socket.cc
+  )
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(recorder ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(stat_socket ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
+
+target_link_libraries(recorder ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
+
 message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
 if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
     target_link_libraries(recorder
@@ -261,4 +272,12 @@ if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
         gnuradio::gnuradio-filter
         gnuradio::gnuradio-pmt
     )
+
+    target_link_libraries(stat_socket
+    gnuradio::gnuradio-analog
+    gnuradio::gnuradio-blocks
+    gnuradio::gnuradio-digital
+    gnuradio::gnuradio-filter
+    gnuradio::gnuradio-pmt
+    )  
 endif()
