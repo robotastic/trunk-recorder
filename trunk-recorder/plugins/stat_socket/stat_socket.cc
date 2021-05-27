@@ -212,11 +212,11 @@ void stat_socket::send_call_start(Call *call) {
   send_object(call->get_stats(), "call", "call_start");
 }
 
-void stat_socket::send_call_end(Call *call) {
+void stat_socket::send_call_end(Call_Data call_info) {
   if (m_open == false)
     return;
 
-  send_object(call->get_stats(), "call", "call_end");
+  //send_object(call->get_stats(), "call", "call_end");
 }
 
 void stat_socket::send_recorder(Recorder *recorder) {
@@ -455,8 +455,8 @@ int call_start(plugin_t * const plugin, Call *call){
     stats.send_call_start(call);
     return 0;
 }
-int call_end(plugin_t * const plugin, Call *call){
-    stats.send_call_end(call);
+int call_end(plugin_t * const plugin, Call_Data call_info){
+    stats.send_call_end(call_info);
     return 0;
 }
 int calls_active(plugin_t * const plugin, std::vector<Call *> calls) {

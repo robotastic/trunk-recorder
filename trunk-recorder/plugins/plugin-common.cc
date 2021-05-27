@@ -147,14 +147,14 @@ int plugin_call_start(plugin_t * const plugin, Call *call) {
     return err;
 }
 
-int plugin_call_end(plugin_t * const plugin, Call *call) {
+int plugin_call_end(plugin_t * const plugin, Call_Data call_info) {
     assert(plugin != NULL);
 
     int err = 0;
     errno = 0;
 
     if(plugin->state == PLUGIN_RUNNING && plugin->call_end != NULL) {
-        err = plugin->call_end(plugin, call);
+        err = plugin->call_end(plugin, call_info);
     }
 
     return err;

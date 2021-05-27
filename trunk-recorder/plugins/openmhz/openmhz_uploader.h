@@ -1,5 +1,17 @@
-#ifndef STAT_SOCKET_H
-#define STAT_SOCKET_H
+#ifndef OPENMHZ_UPLOADER_H
+#define OPENMHZ_UPLOADER_H
+
+
+
+class Uploader;
+
+#include "../../uploaders/uploader.h"
+
+class OpenmhzUploader : public Uploader {
+public:
+  int upload(struct call_data_t *call);
+};
+
 
 #include <time.h>
 #include <vector>
@@ -7,9 +19,7 @@
 #include <websocketpp/config/asio_no_tls_client.hpp>
 
 #include <gr_blocks/decoder_wrapper.h>
-#include "../../config.h"
-#include "../../source.h"
-#include "../../systems/system.h"
+#include "../../call_concluder/call_concluder.h
 #include "../plugin-common.h"
 
 

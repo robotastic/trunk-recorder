@@ -1,72 +1,80 @@
 #include "call_concluder.h"
+#include "../plugins/plugin-manager.h"
 
+std::list<std::future<Call_Data>>  Call_Concluder::call_data_workers = {};
+std::list<Call_Data> Call_Concluder::call_list = {};
 
-static std::list<Call_Data> call_list;
-static std::list<std::future<Call_Data>> call_data_workers;
-
-
-Call_Data upload_call_worker(Call_Data call_info) {
-/*
+int convert_media(char *filename, char* converted) {
   char shell_command[400];
 
-  //int nchars = snprintf(shell_command, 400, "nice -n -10 ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm -cutoff 18000 -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
-  //int nchars = snprintf(shell_command, 400, "ffmpeg -y -i %s  -c:a libfdk_aac -b:a 32k -filter:a \"volume=15db\" -filter:a loudnorm  -hide_banner -loglevel panic %s ", call_info->filename, call_info->converted);
-  //int nchars = snprintf(shell_command, 400, "cd %s && fdkaac -S -b16 --raw-channels 1 --raw-rate 8000 %s", call_info->file_path, call_info->filename);
-  //hints from here https://github.com/nu774/fdkaac/issues/5 on how to pipe between the 2
-  int nchars = snprintf(shell_command, 400, "sox %s -t wav - --norm=-3 | fdkaac --silent --ignorelength -b 8000 -o %s -", call_info->filename, call_info->converted);
+  int nchars = snprintf(shell_command, 400, "sox %s -t wav - --norm=-3 | fdkaac --silent --ignorelength -b 8000 -o %s -", filename, converted); 
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: Command longer than 400 characters";
-    delete (call_info);
-    return NULL;
-  }
-
-  BOOST_LOG_TRIVIAL(trace) << "Converting: " << call_info->converted;
+    return -1;
+  } 
+    BOOST_LOG_TRIVIAL(trace) << "Converting: " << converted;
   BOOST_LOG_TRIVIAL(trace) << "Command: " << shell_command;
 
   int rc = system(shell_command);
 
   if (rc > 0) {
     BOOST_LOG_TRIVIAL(error) << "Failed to convert call recording, see above error. Make sure you have sox and fdkaac installed.";
-    delete (call_info);
-    return NULL;
+    return -1;
   } else {
     BOOST_LOG_TRIVIAL(trace) << "Finished converting call";
   }
+  return nchars;
+  
+}
+
+Call_Data upload_call_worker(Call_Data call_info) {
+
+  int result;
+  BOOST_LOG_TRIVIAL(error) << "Converting media";
+  // TR records files as .wav files. They need to be compressed before being upload to online services.
+  result = convert_media(call_info.filename, call_info.converted);
+  char shell_command[400];
+
+  if (result < 0 ){
+    call_info.status = failed;
+    return call_info;
+  }
 
   int error = 0;
-
-  if (call_info->bcfy_calls_server != "" && call_info->bcfy_api_key != "" && call_info->bcfy_system_id > 0) {
+/*
+  if (call_info.bcfy_calls_server != "" && call_info.bcfy_api_key != "" && call_info.bcfy_system_id > 0) {
     BroadcastifyUploader *bcfy = new BroadcastifyUploader;
     error += bcfy->upload(call_info);
   }
 
-  if (call_info->upload_server != "" && call_info->api_key != "") {
+  if (call_info.upload_server != "" && call_info.api_key != "") {
     OpenmhzUploader *openmhz = new OpenmhzUploader;
     error += openmhz->upload(call_info);
   }
-
-  if (!error) {
-    if (!call_info->audio_archive) {
-      remove(call_info->filename);
-      remove(call_info->converted);
-    }
-    if (!call_info->call_log) {
-      remove(call_info->status_filename);
-    }
-  } else {
-    return call_info;
-  }
 */
+  plugman_call_end(call_info);
+  BOOST_LOG_TRIVIAL(error) << "Status is: " << error;
+  if (!error) {
+    if (!call_info.audio_archive) {
+      remove(call_info.filename);
+      remove(call_info.converted);
+    }
+    if (!call_info.call_log) {
+      remove(call_info.status_filename);
+    }
+    call_info.status = success;
+  } else {
+    call_info.status = retry;
+  }
+
 
   return call_info;
-
-  // pthread_exit(NULL);
 }
 
 
 
-Call_Data create_call_data(Call *call, System *sys, Config config) {
+Call_Data Call_Concluder::create_call_data(Call *call, System *sys, Config config) {
   Call_Data call_info;
 
   strcpy(call_info.filename, call->get_filename());
@@ -91,7 +99,6 @@ Call_Data create_call_data(Call *call, System *sys, Config config) {
     //return;
   }
 
-  // std::cout << "Setting up thread\n";
   std::vector<Call_Source> source_list = call->get_source_list();
   Call_Freq *freq_list = call->get_freq_list();
   //Call_Error  *error_list  = call->get_error_list();
@@ -124,19 +131,19 @@ Call_Data create_call_data(Call *call, System *sys, Config config) {
   return call_info;
 }
 
-void conclude_call(Call *call, System *sys, Config config) {
+void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
   Call_Data call_info = create_call_data(call,sys,config);
   BOOST_LOG_TRIVIAL(info) << "Orig source list: " << call->get_source_list().size() << " Copied: " << call_info.source_list.size();
-  call_list.push_back(call_info);
-    BOOST_LOG_TRIVIAL(info) << "Worker list is: " << call_data_workers.size();
+  //call_list.push_back(call_info);
+  BOOST_LOG_TRIVIAL(info) << "Worker list is: " << call_data_workers.size();
   call_data_workers.push_back( std::async( std::launch::async, upload_call_worker, call_info));
   BOOST_LOG_TRIVIAL(info) << "Now Worker list is: " << call_data_workers.size();
   for (std::list<std::future<Call_Data>>::iterator it = call_data_workers.begin(); it != call_data_workers.end();){
 
-    if (it->wait_for(std::chrono::seconds(1)) == std::future_status::ready) {
+    if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
       Call_Data completed = it->get();
-      BOOST_LOG_TRIVIAL(info) << completed.talkgroup << " is all done " << completed.freq;
+      BOOST_LOG_TRIVIAL(info) << completed.talkgroup << " / " << completed.freq << " Status: " << completed.status;
       it = call_data_workers.erase(it);
     } else {
       it++;

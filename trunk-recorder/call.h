@@ -37,7 +37,6 @@ class Recorder;
 #include "systems/parser.h"
 #include "systems/system.h"
 #include "uploaders/call_uploader.h"
-#include "call_concluder/call_concluder.h"
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 
 class System;

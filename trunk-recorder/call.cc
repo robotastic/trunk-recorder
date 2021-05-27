@@ -2,6 +2,7 @@
 #include "formatter.h"
 #include "recorder_globals.h"
 #include "recorders/recorder.h"
+#include "call_concluder/call_concluder.h"
 #include "source.h"
 #include <boost/algorithm/string.hpp>
 #include <signal.h>
@@ -135,6 +136,8 @@ void Call::end_call() {
       freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
+
+    // Create the JSON status file
     std::ofstream myfile(status_filename);
 
     if (myfile.is_open()) {
@@ -168,24 +171,29 @@ void Call::end_call() {
       myfile.close();
     }
 
+    this->get_recorder()->stop();
+
+    // Handle the Upload Script, if set
     if (sys->get_upload_script().length() != 0) {
       shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
     }
-    this->get_recorder()->stop();
+
     shell_command_string = shell_command.str();
+    if (sys->get_upload_script().length() != 0) {
+      BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command_string;
+      signal(SIGCHLD, SIG_IGN);
+      //int rc = system(shell_command.str().c_str());
+      system(shell_command_string.c_str());
+    }
+    Call_Concluder::conclude_call(this, sys, config);
+
+
+/*
     if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
       if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
         send_call(this, sys, config);
 
       }
-      conclude_call(this, sys, config);
-      if (sys->get_upload_script().length() != 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command_string;
-        signal(SIGCHLD, SIG_IGN);
-        //int rc = system(shell_command.str().c_str());
-        system(shell_command_string.c_str());
-      }
-
       // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
       if (this->config.upload_server == "" && this->config.bcfy_calls_server == "") {
         if (!sys->get_audio_archive() && remove(filename) != 0) {
@@ -205,7 +213,7 @@ void Call::end_call() {
       if (!sys->get_call_log() && remove(status_filename) != 0) {
         BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
       }
-    }
+    }*/
   }
 
   if (this->get_sigmf_recording() == true) {

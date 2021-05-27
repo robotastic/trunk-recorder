@@ -4,6 +4,7 @@
 #include "../recorders/recorder.h"
 #include "../systems/system.h"
 #include "../source.h"
+#include "../call_concluder/call_concluder.h"
 #include <boost/property_tree/ptree.hpp>
 #include <vector>
 #include <stdlib.h>
@@ -17,7 +18,7 @@ void plugman_poll_one();
 void plugman_audio_callback(Recorder *recorder, float *samples, int sampleCount);
 void plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 void plugman_call_start(Call *call);
-void plugman_call_end(Call *call);
+void plugman_call_end(Call_Data call_info);
 void plugman_calls_active(std::vector<Call *> calls);
 void plugman_setup_recorder(Recorder *recorder);
 void plugman_setup_system(System * system);

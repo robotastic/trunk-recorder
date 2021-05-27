@@ -50,6 +50,8 @@
 #include "systems/smartnet_parser.h"
 #include "systems/smartnet_trunking.h"
 #include "systems/system.h"
+#include "call.h"
+#include "call_conventional.h"
 
 #include <osmosdr/source.h>
 
@@ -746,7 +748,7 @@ void stop_inactive_recorders() {
         if (call->get_idle_count() > 5) {
           Recorder *recorder = call->get_recorder();
           call->end_call();
-          plugman_call_end(call);
+          
           call->restart_call();
           if (recorder != NULL) {
             plugman_setup_recorder(recorder);
@@ -767,7 +769,6 @@ void stop_inactive_recorders() {
         }
         Recorder *recorder = call->get_recorder();
         call->end_call();
-        plugman_call_end(call);
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
         }
