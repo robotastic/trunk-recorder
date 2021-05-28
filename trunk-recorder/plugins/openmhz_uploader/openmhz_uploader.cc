@@ -1,12 +1,15 @@
 #include "openmhz_uploader.h"
 #include "../plugin-common.h"
 
-
+size_t OpenmhzUploader::write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+  ((std::string *)userp)->append((char *)contents, size * nmemb);
+  return size * nmemb;
+}
 int OpenmhzUploader::upload(Call_Data call_info) {
   std::ostringstream freq;
   std::string freq_string;
   freq << std::fixed << std::setprecision(0);
-  freq << call_infofreq;
+  freq << call_info.freq;
 
   std::ostringstream call_length;
   std::string call_length_string;
@@ -246,28 +249,30 @@ int OpenmhzUploader::upload(Call_Data call_info) {
   return 1;
 }
 
-int call_end(plugin_t * const plugin, Call_Data call_info){
-    stats.send_call_end(call_info);
-    return 0;
+int OpenmhzUploader::call_end(plugin_t * const plugin, Call_Data call_info){
+    return upload(call_info);
+
 }
 
-int init(plugin_t * const plugin, Config* config){
-    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
+int OpenmhzUploader::init(plugin_t * const plugin, Config* config) {
+/*    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
 
     stat_data->config = config;
 
     stats.initialize(config, &socket_connected, plugin);
+    return 0;*/
     return 0;
 }
 
-MODULE_EXPORT plugin_t *stat_socket_plugin_new() {
+
+MODULE_EXPORT plugin_t *openmhz_uploader_plugin_new() {
     //stat_data->config = NULL;
     //stat_data->sources = NULL;
     //stat_data->systems = NULL;
 
     plugin_t *plug_data = (plugin_t *)malloc(sizeof(plugin_t));
 
-    plug_data->init = init;
+    plug_data->init = OpenmhzUploader::init;
     plug_data->parse_config = NULL;
     plug_data->start = NULL;
     plug_data->stop = NULL;
@@ -275,7 +280,7 @@ MODULE_EXPORT plugin_t *stat_socket_plugin_new() {
     plug_data->signal = NULL;
     plug_data->audio_stream = NULL;
     plug_data->call_start = NULL;
-    plug_data->call_end = call_end;
+    plug_data->call_end = OpenmhzUploader::call_end;
     plug_data->calls_active = NULL;
     plug_data->setup_recorder = NULL;
     plug_data->setup_system = NULL;
@@ -284,7 +289,7 @@ MODULE_EXPORT plugin_t *stat_socket_plugin_new() {
     plug_data->setup_config = NULL;
     plug_data->system_rates = NULL;
 
-    plug_data->plugin_data = stat_data;
+    //plug_data->plugin_data = stat_data;
 
     return plug_data;
 }
