@@ -84,7 +84,7 @@ void plugman_call_start(Call *call) {
       plugin_call_start(plugin, call);
     }
 }
-void plugman_call_end(Call_Data call_info) {
+void plugman_call_end(Call_Data_t call_info) {
     for (std::vector<plugin_t *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
       plugin_t *plugin = *it;
       plugin_call_end(plugin, call_info);

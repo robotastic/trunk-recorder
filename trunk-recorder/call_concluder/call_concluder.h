@@ -19,7 +19,7 @@ class Uploader;
 #include "../uploaders/openmhz_uploader.h"*/
 
 enum Call_Data_Status { success, retry, failed };
-struct Call_Data {
+struct Call_Data_t {
   long talkgroup;
   double freq;
   long start_time;
@@ -50,15 +50,15 @@ struct Call_Data {
   Call_Data_Status status;
 };
 
-Call_Data upload_call_worker(Call_Data call_info);
+Call_Data_t upload_call_worker(Call_Data_t call_info);
 
 class Call_Concluder {
 
 public:
-static std::list<Call_Data> call_list;
-static std::list<std::future<Call_Data>> call_data_workers;
+static std::list<Call_Data_t> call_list;
+static std::list<std::future<Call_Data_t>> call_data_workers;
 
-static Call_Data create_call_data(Call *call, System *sys, Config config);
+static Call_Data_t create_call_data(Call *call, System *sys, Config config);
 
 static void conclude_call(Call *call, System *sys, Config config);
 

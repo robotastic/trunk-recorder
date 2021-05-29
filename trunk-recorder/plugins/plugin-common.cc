@@ -19,7 +19,7 @@ plugin_t *plugin_new(const char * const plugin_file, char const * const plugin_n
     char *fname = NULL;
     assert(asprintf(&fname, "%s_plugin_new", plugin_name) > 0);
     plugin_new_func_t fptr = NULL;
-
+    std::cout << "Load file: " << plugin_file << std::endl; 
 #if defined(_WIN32)
     HINSTANCE hplugin = LoadLibrary(plugin_file);
     assert(hplugin != NULL);
@@ -147,7 +147,7 @@ int plugin_call_start(plugin_t * const plugin, Call *call) {
     return err;
 }
 
-int plugin_call_end(plugin_t * const plugin, Call_Data call_info) {
+int plugin_call_end(plugin_t * const plugin, Call_Data_t call_info) {
     assert(plugin != NULL);
 
     int err = 0;

@@ -40,7 +40,7 @@ struct plugin_t {
     int (*signal)(plugin_t * const plugin, long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
     int (*audio_stream)(plugin_t * const plugin, Recorder *recorder, float *samples, int sampleCount);
     int (*call_start)(plugin_t * const plugin, Call *call);
-    int (*call_end)(plugin_t * const plugin, Call_Data call_info);
+    int (*call_end)(plugin_t * const plugin, Call_Data_t call_info);
     int (*calls_active)(plugin_t * const plugin, std::vector<Call *> calls);
     int (*setup_recorder)(plugin_t * const plugin, Recorder *recorder);
     int (*setup_system)(plugin_t * const plugin, System * system);
@@ -59,7 +59,7 @@ int plugin_poll_one(plugin_t * const plugin);
 int plugin_signal(plugin_t * const plugin, long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 int plugin_audio_stream(plugin_t * const plugin, Recorder *recorder, float *samples, int sampleCount);
 int plugin_call_start(plugin_t * const plugin, Call *call);
-int plugin_call_end(plugin_t * const plugin, Call_Data call_info);
+int plugin_call_end(plugin_t * const plugin, Call_Data_t call_info);
 int plugin_calls_active(plugin_t * const plugin, std::vector<Call *> calls);
 int plugin_setup_recorder(plugin_t * const plugin, Recorder *recorder);
 int plugin_setup_system(plugin_t * const plugin, System * system);

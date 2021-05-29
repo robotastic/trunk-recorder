@@ -212,7 +212,7 @@ void stat_socket::send_call_start(Call *call) {
   send_object(call->get_stats(), "call", "call_start");
 }
 
-void stat_socket::send_call_end(Call_Data call_info) {
+void stat_socket::send_call_end(Call_Data_t call_info) {
   if (m_open == false)
     return;
 
@@ -455,7 +455,7 @@ int call_start(plugin_t * const plugin, Call *call){
     stats.send_call_start(call);
     return 0;
 }
-int call_end(plugin_t * const plugin, Call_Data call_info){
+int call_end(plugin_t * const plugin, Call_Data_t call_info){
     stats.send_call_end(call_info);
     return 0;
 }

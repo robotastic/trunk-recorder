@@ -1,8 +1,8 @@
 #include "call_concluder.h"
 #include "../plugins/plugin-manager.h"
 
-std::list<std::future<Call_Data>>  Call_Concluder::call_data_workers = {};
-std::list<Call_Data> Call_Concluder::call_list = {};
+std::list<std::future<Call_Data_t>>  Call_Concluder::call_data_workers = {};
+std::list<Call_Data_t> Call_Concluder::call_list = {};
 
 int convert_media(char *filename, char* converted) {
   char shell_command[400];
@@ -28,7 +28,7 @@ int convert_media(char *filename, char* converted) {
   
 }
 
-Call_Data upload_call_worker(Call_Data call_info) {
+Call_Data_t upload_call_worker(Call_Data_t call_info) {
 
   int result;
   BOOST_LOG_TRIVIAL(error) << "Converting media";
@@ -74,8 +74,8 @@ Call_Data upload_call_worker(Call_Data call_info) {
 
 
 
-Call_Data Call_Concluder::create_call_data(Call *call, System *sys, Config config) {
-  Call_Data call_info;
+Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config config) {
+  Call_Data_t call_info;
 
   strcpy(call_info.filename, call->get_filename());
   strcpy(call_info.converted, call->get_converted_filename());
@@ -133,16 +133,16 @@ Call_Data Call_Concluder::create_call_data(Call *call, System *sys, Config confi
 
 void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
-  Call_Data call_info = create_call_data(call,sys,config);
+  Call_Data_t call_info = create_call_data(call,sys,config);
   BOOST_LOG_TRIVIAL(info) << "Orig source list: " << call->get_source_list().size() << " Copied: " << call_info.source_list.size();
   //call_list.push_back(call_info);
   BOOST_LOG_TRIVIAL(info) << "Worker list is: " << call_data_workers.size();
   call_data_workers.push_back( std::async( std::launch::async, upload_call_worker, call_info));
   BOOST_LOG_TRIVIAL(info) << "Now Worker list is: " << call_data_workers.size();
-  for (std::list<std::future<Call_Data>>::iterator it = call_data_workers.begin(); it != call_data_workers.end();){
+  for (std::list<std::future<Call_Data_t>>::iterator it = call_data_workers.begin(); it != call_data_workers.end();){
 
     if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-      Call_Data completed = it->get();
+      Call_Data_t completed = it->get();
       BOOST_LOG_TRIVIAL(info) << completed.talkgroup << " / " << completed.freq << " Status: " << completed.status;
       it = call_data_workers.erase(it);
     } else {

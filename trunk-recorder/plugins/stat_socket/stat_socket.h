@@ -39,7 +39,7 @@ public:
   void send_config(std::vector<Source *> sources, std::vector<System *> systems);
   void send_sys_rates(std::vector<System *> systems, float timeDiff);
   void send_call_start(Call *call);
-  void send_call_end(Call_Data call_info);
+  void send_call_end(Call_Data_t call_info);
   void send_recorder(Recorder *recorder);
   void initialize(Config *config, void (*callback)(void*), void* context);
   void send_recorders(std::vector<Recorder *> recorders);

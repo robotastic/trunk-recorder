@@ -1,11 +1,11 @@
 #include "openmhz_uploader.h"
 #include "../plugin-common.h"
 
-size_t OpenmhzUploader::write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+size_t Openmhz_Uploader::write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
   ((std::string *)userp)->append((char *)contents, size * nmemb);
   return size * nmemb;
 }
-int OpenmhzUploader::upload(Call_Data call_info) {
+int Openmhz_Uploader::upload(Call_Data_t call_info) {
   std::ostringstream freq;
   std::string freq_string;
   freq << std::fixed << std::setprecision(0);
@@ -249,20 +249,28 @@ int OpenmhzUploader::upload(Call_Data call_info) {
   return 1;
 }
 
-int OpenmhzUploader::call_end(plugin_t * const plugin, Call_Data call_info){
+
+
+
+int Openmhz_Uploader::call_end(plugin_t * const plugin, Call_Data_t call_info){
     return upload(call_info);
 
 }
-
-int OpenmhzUploader::init(plugin_t * const plugin, Config* config) {
-/*    stat_plugin_t *stat_data = (stat_plugin_t*)plugin->plugin_data;
-
-    stat_data->config = config;
-
-    stats.initialize(config, &socket_connected, plugin);
-    return 0;*/
+int Openmhz_Uploader::parse_config(plugin_t * const plugin, boost::property_tree::ptree::value_type &cfg) {
+    Openmhz_Uploader_Data* plug_data = (Openmhz_Uploader_Data*)plugin->plugin_data;
+    //BOOST_LOG_TRIVIAL(info) << cfg;
+    /*BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
+      Openmhz_System_Key key;
+      key.api_key = node.second.get<string>("apiKey", "");
+      key.short_name = node.second.get<string>("shortName", "");
+      plug_data->keys.push_back(key);
+    }
+    plug_data->openmhz_server = cfg.get<string>("openmhzServer", "");*/
+    
     return 0;
 }
+
+
 
 
 MODULE_EXPORT plugin_t *openmhz_uploader_plugin_new() {
@@ -270,17 +278,18 @@ MODULE_EXPORT plugin_t *openmhz_uploader_plugin_new() {
     //stat_data->sources = NULL;
     //stat_data->systems = NULL;
 
+    Openmhz_Uploader_Data * openmhz_data = new Openmhz_Uploader_Data;
     plugin_t *plug_data = (plugin_t *)malloc(sizeof(plugin_t));
 
-    plug_data->init = OpenmhzUploader::init;
-    plug_data->parse_config = NULL;
+    plug_data->init = NULL;
+    plug_data->parse_config = Openmhz_Uploader::parse_config;
     plug_data->start = NULL;
     plug_data->stop = NULL;
     plug_data->poll_one = NULL;
     plug_data->signal = NULL;
     plug_data->audio_stream = NULL;
     plug_data->call_start = NULL;
-    plug_data->call_end = OpenmhzUploader::call_end;
+    plug_data->call_end = Openmhz_Uploader::call_end;
     plug_data->calls_active = NULL;
     plug_data->setup_recorder = NULL;
     plug_data->setup_system = NULL;
@@ -289,7 +298,7 @@ MODULE_EXPORT plugin_t *openmhz_uploader_plugin_new() {
     plug_data->setup_config = NULL;
     plug_data->system_rates = NULL;
 
-    //plug_data->plugin_data = stat_data;
+    plug_data->plugin_data = openmhz_data;
 
     return plug_data;
 }
