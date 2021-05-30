@@ -1,5 +1,5 @@
-#include "openmhz_uploader.h"
 #include "uploader.h"
+#include "openmhz_uploader.h"
 
 int OpenmhzUploader::upload(struct call_data_t *call) {
   std::ostringstream freq;

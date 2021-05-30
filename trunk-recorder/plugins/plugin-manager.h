@@ -5,9 +5,21 @@
 #include "../systems/system.h"
 #include "../source.h"
 #include "../call_concluder/call_concluder.h"
+
+#include "plugin_api.h"
 #include <boost/property_tree/ptree.hpp>
 #include <vector>
 #include <stdlib.h>
+
+
+typedef boost::shared_ptr<Plugin_Api> (pluginapi_create_t)();
+
+struct Plugin {
+boost::function<pluginapi_create_t> creator;
+boost::shared_ptr<Plugin_Api> api;
+plugin_state_t state;
+};
+
 
 void initialize_plugins(boost::property_tree::ptree &cfg, Config* config);
 void initialize_internal_plugin(std::string name); // For use by internal plugins, like the uploaders. Should be called before initialize_plugins

@@ -3,12 +3,10 @@
 #include <errno.h>
 #include <string.h>
 
-#if defined(_WIN32)
-    #include <windows.h>
-#else
-    #include <dlfcn.h>
-    #include <sys/types.h>
-#endif
+#include <boost/dll/import.hpp> // for import_alias
+#include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS   
+#include <sys/types.h>
+
 
 using namespace std;
 
@@ -20,15 +18,11 @@ plugin_t *plugin_new(const char * const plugin_file, char const * const plugin_n
     assert(asprintf(&fname, "%s_plugin_new", plugin_name) > 0);
     plugin_new_func_t fptr = NULL;
     std::cout << "Load file: " << plugin_file << std::endl; 
-#if defined(_WIN32)
-    HINSTANCE hplugin = LoadLibrary(plugin_file);
-    assert(hplugin != NULL);
-    fptr = (plugin_new_func_t)GetProcAddress(hplugin, fname);
-#else
+
     void *dlhandle = dlopen(plugin_file, RTLD_NOW);
     assert(dlhandle != NULL);
     fptr = (plugin_new_func_t)dlsym(dlhandle, fname);
-#endif
+
 
     free(fname);
     if(fptr == NULL) {
@@ -51,7 +45,7 @@ int plugin_init(plugin_t * const plugin, Config* config) {
         new_state = PLUGIN_INITIALIZED;
         ret = 0;
     }
-    plugin->state = new_state;
+    plugin.state = new_state;
     return ret;
 }
 

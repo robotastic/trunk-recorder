@@ -219,7 +219,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/talkgroups.cc
   trunk-recorder/unit_tag.cc
   trunk-recorder/unit_tags.cc
-  trunk-recorder/plugins/plugin-common.cc
+  #trunk-recorder/plugins/plugin-common.cc
   trunk-recorder/plugins/plugin-manager.cc
   trunk-recorder/plugins/stat_socket/stat_socket.cc
   trunk-recorder/call_concluder/call_concluder.cc
@@ -251,23 +251,24 @@ target_compile_options(
     gnuradio-op25_repeater PRIVATE
     "-w"
 )
-add_library(stat_socket 
-  MODULE
-    ${trunk_recorder_sources}
-    trunk-recorder/plugins/stat_socket/stat_socket.h
-    trunk-recorder/plugins/stat_socket/stat_socket.cc
-  )
+
+#add_library(stat_socket 
+#  MODULE
+#    ${trunk_recorder_sources}
+#    trunk-recorder/plugins/stat_socket/stat_socket.h
+#    trunk-recorder/plugins/stat_socket/stat_socket.cc
+#  )
 
 add_library(openmhz_uploader
   MODULE
     ${trunk_recorder_sources}
-    trunk-recorder/plugins/openmhz_uploader/openmhz_uploader.h
+#    trunk-recorder/plugins/openmhz_uploader/openmhz_uploader.h
     trunk-recorder/plugins/openmhz_uploader/openmhz_uploader.cc
   )
 
 add_executable(recorder ${trunk_recorder_sources})
 
-target_link_libraries(stat_socket ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
+#target_link_libraries(stat_socket ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
 
 target_link_libraries(openmhz_uploader ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
 
@@ -283,13 +284,6 @@ if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
         gnuradio::gnuradio-pmt
     )
 
-    target_link_libraries(stat_socket
-    gnuradio::gnuradio-analog
-    gnuradio::gnuradio-blocks
-    gnuradio::gnuradio-digital
-    gnuradio::gnuradio-filter
-    gnuradio::gnuradio-pmt
-    )  
 
     target_link_libraries(openmhz_uploader
     gnuradio::gnuradio-analog
