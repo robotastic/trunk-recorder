@@ -1238,8 +1238,10 @@ void monitor_messages() {
 
       if ((currentTime - lastTalkgroupPurge) >= 1.0) {
         stop_inactive_recorders();
+        Call_Concluder::manage_call_data_workers();
         lastTalkgroupPurge = currentTime;
       }
+
       boost::this_thread::sleep(boost::posix_time::milliseconds(10));
       //usleep(1000 * 10);
     }

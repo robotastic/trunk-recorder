@@ -2,7 +2,7 @@
 #include "../plugins/plugin-manager.h"
 
 std::list<std::future<Call_Data_t>>  Call_Concluder::call_data_workers = {};
-std::list<Call_Data_t> Call_Concluder::call_list = {};
+std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
 
 int convert_media(char *filename, char* converted) {
   char shell_command[400];
@@ -29,31 +29,24 @@ int convert_media(char *filename, char* converted) {
 }
 
 Call_Data_t upload_call_worker(Call_Data_t call_info) {
-
   int result;
-  BOOST_LOG_TRIVIAL(error) << "Converting media";
+  double seconds;
+  time_t now = time(NULL);
+  time_t later = now + 10000;
+  seconds = difftime(now,later);
+
   // TR records files as .wav files. They need to be compressed before being upload to online services.
   result = convert_media(call_info.filename, call_info.converted);
   char shell_command[400];
 
   if (result < 0 ){
-    call_info.status = failed;
+    call_info.status = FAILED;
     return call_info;
   }
 
   int error = 0;
-/*
-  if (call_info.bcfy_calls_server != "" && call_info.bcfy_api_key != "" && call_info.bcfy_system_id > 0) {
-    BroadcastifyUploader *bcfy = new BroadcastifyUploader;
-    error += bcfy->upload(call_info);
-  }
 
-  if (call_info.upload_server != "" && call_info.api_key != "") {
-    OpenmhzUploader *openmhz = new OpenmhzUploader;
-    error += openmhz->upload(call_info);
-  }
-*/
-  plugman_call_end(call_info);
+  error = plugman_call_end(call_info);
   BOOST_LOG_TRIVIAL(error) << "Status is: " << error;
   if (!error) {
     if (!call_info.audio_archive) {
@@ -63,9 +56,10 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     if (!call_info.call_log) {
       remove(call_info.status_filename);
     }
-    call_info.status = success;
+    call_info.status = SUCCESS;
   } else {
-    call_info.status = retry;
+    call_info.status = RETRY;
+
   }
 
 
@@ -77,6 +71,9 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
 Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config config) {
   Call_Data_t call_info;
 
+  call_info.status = INITIAL;
+  call_info.process_call_time = time(0);
+  call_info.retry_attempt = 0;
   strcpy(call_info.filename, call->get_filename());
   strcpy(call_info.converted, call->get_converted_filename());
   strcpy(call_info.status_filename, call->get_status_filename());
@@ -134,20 +131,46 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
   Call_Data_t call_info = create_call_data(call,sys,config);
-  BOOST_LOG_TRIVIAL(info) << "Orig source list: " << call->get_source_list().size() << " Copied: " << call_info.source_list.size();
-
-  BOOST_LOG_TRIVIAL(info) << "Worker list is: " << call_data_workers.size();
   call_data_workers.push_back( std::async( std::launch::async, upload_call_worker, call_info));
-  BOOST_LOG_TRIVIAL(info) << "Now Worker list is: " << call_data_workers.size();
+
+}
+
+void Call_Concluder::manage_call_data_workers() {
   for (std::list<std::future<Call_Data_t>>::iterator it = call_data_workers.begin(); it != call_data_workers.end();){
 
     if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-      Call_Data_t completed = it->get();
-      BOOST_LOG_TRIVIAL(info) << completed.talkgroup << " / " << completed.freq << " Status: " << completed.status;
+      Call_Data_t call_info = it->get();
+      if (call_info.status==RETRY) {
+        call_info.retry_attempt++;
+          char formattedTalkgroup[62];
+          snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+          std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+          time_t start_time = call_info.start_time;
+        if (call_info.retry_attempt > Call_Concluder::MAX_RETRY) {
+
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "] Failed to conclude call - TG: " << talkgroup_display << "\t"<< std::put_time(std::localtime(&start_time), "%c %Z");
+
+        } else {
+          long jitter = rand() % 10;
+          long backoff = (2^call_info.retry_attempt * 60) + jitter;
+          call_info.process_call_time = time(0) + backoff;
+          retry_call_list.push_back(call_info);
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "] Will retry to conclude call - TG: " << talkgroup_display << "\t"<< std::put_time(std::localtime(&start_time), "%c %Z") << " in " << backoff << "s\t attempt: " << call_info.retry_attempt;
+        }
+
+      }
       it = call_data_workers.erase(it);
     } else {
       it++;
     }
   }
-    BOOST_LOG_TRIVIAL(info) << "Finally, Worker list is: " << call_data_workers.size();
+  for (std::list<Call_Data_t>::iterator it = retry_call_list.begin(); it != retry_call_list.end();){
+    Call_Data_t call_info = *it;
+    if (call_info.process_call_time <= time(0)) {
+            call_data_workers.push_back( std::async( std::launch::async, upload_call_worker, call_info));
+            it = retry_call_list.erase(it);
+    } else{
+      it++;
+    }
+  }
 }

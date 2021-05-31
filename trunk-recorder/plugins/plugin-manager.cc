@@ -140,38 +140,48 @@ void plugman_audio_callback(Recorder *recorder, float *samples, int sampleCount)
   }
 }
 
-void plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) {
+int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) {
+  int error=0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
       plugin->api->signal(unitId, signaling_type, sig_type, call, system, recorder);
     }
   }
+  return error;
 }
-void plugman_call_start(Call *call) {
+
+int plugman_call_start(Call *call) {
+  int error=0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
       plugin->api->call_start(call);
     }
   }
+  return error;
 }
-void plugman_call_end(Call_Data_t call_info) {
+
+int plugman_call_end(Call_Data_t call_info) {
+  int error=0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
-      plugin->api->call_end(call_info);
+      error = error + plugin->api->call_end(call_info);
     }
   }
+  return error;
 }
 
-void plugman_calls_active(std::vector<Call *> calls) {
+int plugman_calls_active(std::vector<Call *> calls) {
+  int error=0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
       plugin->api->calls_active(calls);
     }
   }
+  return error;
 }
 
 void plugman_setup_recorder(Recorder *recorder) {
