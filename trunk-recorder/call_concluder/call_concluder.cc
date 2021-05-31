@@ -135,7 +135,7 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
   Call_Data_t call_info = create_call_data(call,sys,config);
   BOOST_LOG_TRIVIAL(info) << "Orig source list: " << call->get_source_list().size() << " Copied: " << call_info.source_list.size();
-  //call_list.push_back(call_info);
+
   BOOST_LOG_TRIVIAL(info) << "Worker list is: " << call_data_workers.size();
   call_data_workers.push_back( std::async( std::launch::async, upload_call_worker, call_info));
   BOOST_LOG_TRIVIAL(info) << "Now Worker list is: " << call_data_workers.size();

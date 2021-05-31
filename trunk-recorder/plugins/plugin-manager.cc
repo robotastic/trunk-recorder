@@ -17,6 +17,7 @@ Plugin * setup_plugin(std::string plugin_lib, std::string plugin_name) {
   BOOST_LOG_TRIVIAL(info) << "\tSetting up plugin - lib: " << plugin_lib << " name: " << plugin_name;
   //Plugin *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
 
+  // Based on factory plugin method from Boost: https://www.boost.org/doc/libs/1_64_0/doc/html/boost_dll/tutorial.html#boost_dll.tutorial.factory_method_in_plugin
   boost::filesystem::path lib_path("./");
   Plugin *plugin = new Plugin();
   plugin->creator = boost::dll::import_alias<pluginapi_create_t>( // type of imported symbol must be explicitly specified
@@ -156,10 +157,8 @@ void plugman_call_start(Call *call) {
   }
 }
 void plugman_call_end(Call_Data_t call_info) {
-    BOOST_LOG_TRIVIAL(info) << "plugman_call_end";
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
-    BOOST_LOG_TRIVIAL(info) << plugin->state;
     if (plugin->state == PLUGIN_RUNNING) {
       plugin->api->call_end(call_info);
     }
