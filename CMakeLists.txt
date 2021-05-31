@@ -185,7 +185,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-decla
 
 SET(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden")
 
 add_subdirectory(lib/op25_repeater)
 
@@ -221,7 +221,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/unit_tags.cc
   #trunk-recorder/plugins/plugin-common.cc
   trunk-recorder/plugins/plugin-manager.cc
-  trunk-recorder/plugins/stat_socket/stat_socket.cc
+  #trunk-recorder/plugins/stat_socket/stat_socket.cc
   trunk-recorder/call_concluder/call_concluder.cc
   #trunk-recorder/plugins/streamer/StreamerClient.cc
   #trunk-recorder/plugins/streamer/streamer_proto_helper.cc
@@ -276,14 +276,21 @@ target_link_libraries(recorder ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} $
 
 message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
 if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
-    target_link_libraries(recorder
-        gnuradio::gnuradio-analog
-        gnuradio::gnuradio-blocks
-        gnuradio::gnuradio-digital
-        gnuradio::gnuradio-filter
-        gnuradio::gnuradio-pmt
-    )
+#    target_link_libraries(stat_socket
+#        gnuradio::gnuradio-analog
+#        gnuradio::gnuradio-blocks
+#        gnuradio::gnuradio-digital
+#        gnuradio::gnuradio-filter
+#        gnuradio::gnuradio-pmt
+#    )
 
+    target_link_libraries(recorder
+    gnuradio::gnuradio-analog
+    gnuradio::gnuradio-blocks
+    gnuradio::gnuradio-digital
+    gnuradio::gnuradio-filter
+    gnuradio::gnuradio-pmt
+    )  
 
     target_link_libraries(openmhz_uploader
     gnuradio::gnuradio-analog

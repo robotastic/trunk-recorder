@@ -297,6 +297,23 @@ int parse_config(boost::property_tree::ptree &cfg) {
     return 0;
 }
 
+
+/*
+ int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
+   int start() { return 0; }
+   int stop() { return 0; }
+   int poll_one() { return 0; }
+   int signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) { return 0; }
+   int audio_stream(Recorder *recorder, float *samples, int sampleCount) { return 0; }
+   int call_start(Call *call) { return 0; }
+   int calls_active(std::vector<Call *> calls) { return 0; }
+   int setup_recorder(Recorder *recorder) { return 0; }
+   int setup_system(System *system) { return 0; }
+   int setup_systems(std::vector<System *> systems) { return 0; }
+   int setup_sources(std::vector<Source *> sources) { return 0; }
+   int setup_config(std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
+   int system_rates(std::vector<System *> systems, float timeDiff) { return 0; }
+*/
     // Factory method
     static boost::shared_ptr<Openmhz_Uploader> create() {
       BOOST_LOG_TRIVIAL(info) << "OpenMHZ created!";
@@ -304,7 +321,6 @@ int parse_config(boost::property_tree::ptree &cfg) {
             new Openmhz_Uploader()
         );
     }
-
 
 
 };

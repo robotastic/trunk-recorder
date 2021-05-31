@@ -13,9 +13,9 @@
 
 std::vector<Plugin *> plugins;
 
-Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
+Plugin * setup_plugin(std::string plugin_lib, std::string plugin_name) {
   BOOST_LOG_TRIVIAL(info) << "\tSetting up plugin - lib: " << plugin_lib << " name: " << plugin_name;
-  //Plugin plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
+  //Plugin *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
 
   boost::filesystem::path lib_path("./");
   Plugin *plugin = new Plugin();
@@ -52,7 +52,7 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
 
 }
 
-void initialize_plugins(boost::property_tree::ptree &cfg, Config* config) {
+void initialize_plugins(boost::property_tree::ptree &cfg, Config* config, std::vector<Source *> sources, std::vector<System *> systems) {
 
   BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
     std::string plugin_lib = node.second.get<std::string>("library", "");
@@ -66,7 +66,7 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config* config) {
 
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
-    int ret = plugin->api->init(config);
+    int ret = plugin->api->init(config, sources, systems);
     if (ret < 0) {
       plugin->state = PLUGIN_FAILED;
     } else {
@@ -159,6 +159,7 @@ void plugman_call_end(Call_Data_t call_info) {
     BOOST_LOG_TRIVIAL(info) << "plugman_call_end";
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
+    BOOST_LOG_TRIVIAL(info) << plugin->state;
     if (plugin->state == PLUGIN_RUNNING) {
       plugin->api->call_end(call_info);
     }
