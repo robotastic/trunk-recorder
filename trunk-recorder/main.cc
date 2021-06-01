@@ -563,7 +563,7 @@ bool load_config(string config_file) {
     }
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
-
+  BOOST_LOG_TRIVIAL(info) << "\n\n";
   return true;
 }
 

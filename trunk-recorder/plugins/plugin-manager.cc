@@ -13,17 +13,17 @@
 
 std::vector<Plugin *> plugins;
 
-Plugin * setup_plugin(std::string plugin_lib, std::string plugin_name) {
-  BOOST_LOG_TRIVIAL(info) << "\tSetting up plugin - lib: " << plugin_lib << " name: " << plugin_name;
+Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
+  BOOST_LOG_TRIVIAL(info) << "Setting up plugin -  Name: " << plugin_name << "\t Library file: " << plugin_lib;
   //Plugin *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
 
   // Based on factory plugin method from Boost: https://www.boost.org/doc/libs/1_64_0/doc/html/boost_dll/tutorial.html#boost_dll.tutorial.factory_method_in_plugin
   boost::filesystem::path lib_path("./");
   Plugin *plugin = new Plugin();
   plugin->creator = boost::dll::import_alias<pluginapi_create_t>( // type of imported symbol must be explicitly specified
-      plugin_lib,                                    // path to library
-      "create_plugin",                                           // symbol to import
-      boost::dll::load_mode::append_decorations                  // do append extensions and prefixes
+      plugin_lib,                                                 // path to library
+      "create_plugin",                                            // symbol to import
+      boost::dll::load_mode::append_decorations                   // do append extensions and prefixes
   );
 
   plugin->api = plugin->creator();
@@ -47,23 +47,28 @@ Plugin * setup_plugin(std::string plugin_lib, std::string plugin_name) {
   assert(plugin->init != NULL);
   return plugin;*/
 
-    plugins.push_back(plugin);
-        BOOST_LOG_TRIVIAL(info) << "plugs: " << plugins.size();
-  return plugin;
+  plugins.push_back(plugin);
 
+  return plugin;
 }
 
-void initialize_plugins(boost::property_tree::ptree &cfg, Config* config, std::vector<Source *> sources, std::vector<System *> systems) {
+void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::vector<Source *> sources, std::vector<System *> systems) {
 
   BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
     std::string plugin_lib = node.second.get<std::string>("library", "");
     std::string plugin_name = node.second.get<std::string>("name", "");
 
     Plugin *plugin = setup_plugin(plugin_lib, plugin_name);
-    BOOST_LOG_TRIVIAL(info) << "plugman_config";
     plugin->api->parse_config(cfg);
   }
 
+  if (plugins.size() == 1) {
+    BOOST_LOG_TRIVIAL(info) << "Loaded " << plugins.size() << " Plugin";
+  }
+
+  if (plugins.size() > 1) {
+    BOOST_LOG_TRIVIAL(info) << "Loaded " << plugins.size() << " Plugins";
+  }
 
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
@@ -141,7 +146,7 @@ void plugman_audio_callback(Recorder *recorder, float *samples, int sampleCount)
 }
 
 int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) {
-  int error=0;
+  int error = 0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
@@ -152,7 +157,7 @@ int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalTy
 }
 
 int plugman_call_start(Call *call) {
-  int error=0;
+  int error = 0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
@@ -163,7 +168,7 @@ int plugman_call_start(Call *call) {
 }
 
 int plugman_call_end(Call_Data_t call_info) {
-  int error=0;
+  int error = 0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
@@ -174,7 +179,7 @@ int plugman_call_end(Call_Data_t call_info) {
 }
 
 int plugman_calls_active(std::vector<Call *> calls) {
-  int error=0;
+  int error = 0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {

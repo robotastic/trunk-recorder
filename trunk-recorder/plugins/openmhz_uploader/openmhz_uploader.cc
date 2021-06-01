@@ -1,21 +1,16 @@
+#include <curl/curl.h>
 #include <time.h>
 #include <vector>
-#include <curl/curl.h>
 
-#include <gr_blocks/decoder_wrapper.h>
 #include "../../call_concluder/call_concluder.h"
 #include "../plugin_api.h"
-#include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS   
-
-
-
-
+#include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
+#include <gr_blocks/decoder_wrapper.h>
 
 struct Openmhz_System_Key {
   std::string api_key;
   std::string short_name;
 };
-
 
 struct Openmhz_Uploader_Data {
   std::vector<Openmhz_System_Key> keys;
@@ -23,282 +18,283 @@ struct Openmhz_Uploader_Data {
 };
 
 class Openmhz_Uploader : public Plugin_Api {
-    //float aggr_;
-    //my_plugin_aggregator() : aggr_(0) {}
-    Openmhz_Uploader_Data data;
+  //float aggr_;
+  //my_plugin_aggregator() : aggr_(0) {}
+  Openmhz_Uploader_Data data;
 
 public:
-
-static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
-  ((std::string *)userp)->append((char *)contents, size * nmemb);
-  return size * nmemb;
-}
-int upload(Call_Data_t call_info) {
-  std::ostringstream freq;
-  std::string freq_string;
-  freq << std::fixed << std::setprecision(0);
-  freq << call_info.freq;
-
-  std::ostringstream call_length;
-  std::string call_length_string;
-  call_length << std::fixed << std::setprecision(0);
-  call_length << call_info.length;
-
-  std::ostringstream source_list;
-  std::string source_list_string;
-  source_list << std::fixed << std::setprecision(2);
-  source_list << "[";
-
-  if (call_info.source_count != 0) {
-    std::vector<Call_Source> call_source_list = call_info.source_list;
-
-    for (int i = 0; i < call_info.source_count; i++) {
-      source_list << "{ \"pos\": " << std::setprecision(2) << call_source_list[i].position << ", \"src\": " << std::setprecision(0) << call_source_list[i].source << " }";
-
-      if (i < (call_info.source_count - 1)) {
-        source_list << ", ";
-      } else {
-        source_list << "]";
-      }
-    }
-  } else {
-    source_list << "]";
+  static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+    ((std::string *)userp)->append((char *)contents, size * nmemb);
+    return size * nmemb;
   }
+  int upload(Call_Data_t call_info) {
+    std::ostringstream freq;
+    std::string freq_string;
+    freq << std::fixed << std::setprecision(0);
+    freq << call_info.freq;
 
-  std::ostringstream freq_list;
-  std::string freq_list_string;
-  freq_list << std::fixed << std::setprecision(2);
-  freq_list << "[";
+    std::ostringstream call_length;
+    std::string call_length_string;
+    call_length << std::fixed << std::setprecision(0);
+    call_length << call_info.length;
 
-  if (call_info.freq_count != 0) {
-    Call_Freq *call_freq_list = call_info.freq_list;
+    std::ostringstream source_list;
+    std::string source_list_string;
+    source_list << std::fixed << std::setprecision(2);
+    source_list << "[";
 
-    for (int i = 0; i < call_info.freq_count; i++) {
-      freq_list << "{ \"pos\": " << std::setprecision(2) << call_freq_list[i].position << ", \"freq\": " << std::setprecision(0) << call_info.freq_list[i].freq << ", \"len\": " << call_info.freq_list[i].total_len << ", \"errors\": " << call_freq_list[i].error_count << ", \"spikes\": " << call_freq_list[i].spike_count << " }";
+    char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+    time_t start_time = call_info.start_time;
 
-      if (i < (call_info.freq_count - 1)) {
-        freq_list << ", ";
-      } else {
-        freq_list << "]";
+    if (call_info.source_count != 0) {
+      std::vector<Call_Source> call_source_list = call_info.source_list;
+
+      for (int i = 0; i < call_info.source_count; i++) {
+        source_list << "{ \"pos\": " << std::setprecision(2) << call_source_list[i].position << ", \"src\": " << std::setprecision(0) << call_source_list[i].source << " }";
+
+        if (i < (call_info.source_count - 1)) {
+          source_list << ", ";
+        } else {
+          source_list << "]";
+        }
       }
+    } else {
+      source_list << "]";
     }
-  } else {
-    freq_list << "]";
-  }
 
-  CURL *curl;
-  CURLMcode res;
-  CURLM *multi_handle;
-  int still_running = 0;
-  std::string response_buffer;
-  freq_string = freq.str();
-  freq_list_string = freq_list.str();
-  source_list_string = source_list.str();
-  call_length_string = call_length.str();
+    std::ostringstream freq_list;
+    std::string freq_list_string;
+    freq_list << std::fixed << std::setprecision(2);
+    freq_list << "[";
 
-  struct curl_httppost *formpost = NULL;
-  struct curl_httppost *lastptr = NULL;
-  struct curl_slist *headerlist = NULL;
+    if (call_info.freq_count != 0) {
+      Call_Freq *call_freq_list = call_info.freq_list;
 
-  /* Fill in the file upload field. This makes libcurl load data from
+      for (int i = 0; i < call_info.freq_count; i++) {
+        freq_list << "{ \"pos\": " << std::setprecision(2) << call_freq_list[i].position << ", \"freq\": " << std::setprecision(0) << call_info.freq_list[i].freq << ", \"len\": " << call_info.freq_list[i].total_len << ", \"errors\": " << call_freq_list[i].error_count << ", \"spikes\": " << call_freq_list[i].spike_count << " }";
+
+        if (i < (call_info.freq_count - 1)) {
+          freq_list << ", ";
+        } else {
+          freq_list << "]";
+        }
+      }
+    } else {
+      freq_list << "]";
+    }
+
+    CURL *curl;
+    CURLMcode res;
+    CURLM *multi_handle;
+    int still_running = 0;
+    std::string response_buffer;
+    freq_string = freq.str();
+    freq_list_string = freq_list.str();
+    source_list_string = source_list.str();
+    call_length_string = call_length.str();
+
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    struct curl_slist *headerlist = NULL;
+
+    /* Fill in the file upload field. This makes libcurl load data from
      the given file name when curl_easy_perform() is called. */
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "call",
-               CURLFORM_FILE, call_info.converted,
-               CURLFORM_CONTENTTYPE, "application/octet-stream",
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "call",
+                 CURLFORM_FILE, call_info.converted,
+                 CURLFORM_CONTENTTYPE, "application/octet-stream",
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "freq",
-               CURLFORM_COPYCONTENTS, freq_string.c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "freq",
+                 CURLFORM_COPYCONTENTS, freq_string.c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "start_time",
-               CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.start_time).c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "start_time",
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.start_time).c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "stop_time",
-               CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.stop_time).c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "stop_time",
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.stop_time).c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "call_length",
-               CURLFORM_COPYCONTENTS, call_length_string.c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "call_length",
+                 CURLFORM_COPYCONTENTS, call_length_string.c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "talkgroup_num",
-               CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "talkgroup_num",
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "emergency",
-               CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.emergency).c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "emergency",
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.emergency).c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "api_key",
-               CURLFORM_COPYCONTENTS, call_info.api_key.c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "api_key",
+                 CURLFORM_COPYCONTENTS, call_info.api_key.c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "source_list",
-               CURLFORM_COPYCONTENTS, source_list_string.c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "source_list",
+                 CURLFORM_COPYCONTENTS, source_list_string.c_str(),
+                 CURLFORM_END);
 
-  curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "freq_list",
-               CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "freq_list",
+                 CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
+                 CURLFORM_END);
 
-  curl = curl_easy_init();
-  multi_handle = curl_multi_init();
+    curl = curl_easy_init();
+    multi_handle = curl_multi_init();
 
-  /* initialize custom header list (stating that Expect: 100-continue is not wanted */
-  headerlist = curl_slist_append(headerlist, "Expect:");
-  if (curl && multi_handle) {
-    std::string url = call_info.upload_server + "/" + call_info.short_name + "/upload";
+    /* initialize custom header list (stating that Expect: 100-continue is not wanted */
+    headerlist = curl_slist_append(headerlist, "Expect:");
+    if (curl && multi_handle) {
+      std::string url = call_info.upload_server + "/" + call_info.short_name + "/upload";
 
-    /* what URL that receives this POST */
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+      /* what URL that receives this POST */
+      curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+      curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+      curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
 
-    curl_multi_add_handle(multi_handle, curl);
+      curl_multi_add_handle(multi_handle, curl);
 
-    curl_multi_perform(multi_handle, &still_running);
+      curl_multi_perform(multi_handle, &still_running);
 
-    while (still_running) {
-      struct timeval timeout;
-      int rc;       /* select() return code */
-      CURLMcode mc; /* curl_multi_fdset() return code */
+      while (still_running) {
+        struct timeval timeout;
+        int rc;       /* select() return code */
+        CURLMcode mc; /* curl_multi_fdset() return code */
 
-      fd_set fdread;
-      fd_set fdwrite;
-      fd_set fdexcep;
-      int maxfd = -1;
+        fd_set fdread;
+        fd_set fdwrite;
+        fd_set fdexcep;
+        int maxfd = -1;
 
-      long curl_timeo = -1;
+        long curl_timeo = -1;
 
-      FD_ZERO(&fdread);
-      FD_ZERO(&fdwrite);
-      FD_ZERO(&fdexcep);
+        FD_ZERO(&fdread);
+        FD_ZERO(&fdwrite);
+        FD_ZERO(&fdexcep);
 
-      /* set a suitable timeout to play around with */
-      timeout.tv_sec = 1;
-      timeout.tv_usec = 0;
+        /* set a suitable timeout to play around with */
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
 
-      curl_multi_timeout(multi_handle, &curl_timeo);
-      if (curl_timeo >= 0) {
-        timeout.tv_sec = curl_timeo / 1000;
-        if (timeout.tv_sec > 1)
-          timeout.tv_sec = 1;
-        else
-          timeout.tv_usec = (curl_timeo % 1000) * 1000;
-      }
+        curl_multi_timeout(multi_handle, &curl_timeo);
+        if (curl_timeo >= 0) {
+          timeout.tv_sec = curl_timeo / 1000;
+          if (timeout.tv_sec > 1)
+            timeout.tv_sec = 1;
+          else
+            timeout.tv_usec = (curl_timeo % 1000) * 1000;
+        }
 
-      /* get file descriptors from the transfers */
-      mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+        /* get file descriptors from the transfers */
+        mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 
-      if (mc != CURLM_OK) {
-        fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
-        break;
-      }
+        if (mc != CURLM_OK) {
+          fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
+          break;
+        }
 
-      /* On success the value of maxfd is guaranteed to be >= -1. We call
+        /* On success the value of maxfd is guaranteed to be >= -1. We call
          select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
          no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
          to sleep 100ms, which is the minimum suggested value in the
          curl_multi_fdset() doc. */
 
-      if (maxfd == -1) {
-        /* Portable sleep for platforms other than Windows. */
-        struct timeval wait = {0, 100 * 1000}; /* 100ms */
-        rc = select(0, NULL, NULL, NULL, &wait);
-      } else {
-        /* Note that on some platforms 'timeout' may be modified by select().
+        if (maxfd == -1) {
+          /* Portable sleep for platforms other than Windows. */
+          struct timeval wait = {0, 100 * 1000}; /* 100ms */
+          rc = select(0, NULL, NULL, NULL, &wait);
+        } else {
+          /* Note that on some platforms 'timeout' may be modified by select().
            If you need access to the original value save a copy beforehand. */
-        rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+          rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+        }
+
+        switch (rc) {
+        case -1:
+          /* select error */
+          break;
+        case 0:
+        default:
+          /* timeout or readable/writable sockets */
+          curl_multi_perform(multi_handle, &still_running);
+          break;
+        }
       }
 
-      switch (rc) {
-      case -1:
-        /* select error */
-        break;
-      case 0:
-      default:
-        /* timeout or readable/writable sockets */
-        curl_multi_perform(multi_handle, &still_running);
-        break;
+      res = curl_multi_cleanup(multi_handle);
+
+      /* always cleanup */
+      curl_easy_cleanup(curl);
+
+      /* then cleanup the formpost chain */
+      curl_formfree(formpost);
+
+      /* free slist */
+      curl_slist_free_all(headerlist);
+
+      long response_code;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+
+      if (res == CURLM_OK && response_code == 200) {
+        struct stat file_info;
+        stat(call_info.converted, &file_info);
+
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload Success - file size: " << file_info.st_size;
+        ;
+        return 0;
       }
     }
-
-    res = curl_multi_cleanup(multi_handle);
-
-    /* always cleanup */
-    curl_easy_cleanup(curl);
-
-    /* then cleanup the formpost chain */
-    curl_formfree(formpost);
-
-    /* free slist */
-    curl_slist_free_all(headerlist);
-
-    long response_code;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-
-    if (res == CURLM_OK && response_code == 200) {
-      struct stat file_info;
-      stat(call_info.converted, &file_info);
-
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tOpenMHz Upload Success - file size: " << file_info.st_size;
-      ;
-      return 0;
-    }
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload Error: " << response_buffer;
+    return 1;
   }
-  BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tOpenMHz Upload Error: " << response_buffer;
-  return 1;
-}
 
-
-int call_end(Call_Data_t call_info){
-  BOOST_LOG_TRIVIAL(info) << "OpenMHZ call_end";
+  int call_end(Call_Data_t call_info) {
     return upload(call_info);
+  }
 
-}
-int parse_config(boost::property_tree::ptree &cfg) {
-    BOOST_LOG_TRIVIAL(info) << "OpenMHZ parse config";
+  int parse_config(boost::property_tree::ptree &cfg) {
 
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
       Openmhz_System_Key key;
       key.api_key = node.second.get<std::string>("apiKey", "");
       key.short_name = node.second.get<std::string>("shortName", "");
+      BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
       this->data.keys.push_back(key);
     }
     this->data.openmhz_server = cfg.get<std::string>("openmhzServer", "");
-    BOOST_LOG_TRIVIAL(info) << data.openmhz_server;
+    BOOST_LOG_TRIVIAL(info) << "OpenMHz Server: " << this->data.openmhz_server;
     return 0;
-}
+  }
 
-
-/*
+  /*
  int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
    int start() { return 0; }
    int stop() { return 0; }
@@ -314,29 +310,14 @@ int parse_config(boost::property_tree::ptree &cfg) {
    int setup_config(std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
    int system_rates(std::vector<System *> systems, float timeDiff) { return 0; }
 */
-    // Factory method
-    static boost::shared_ptr<Openmhz_Uploader> create() {
-      BOOST_LOG_TRIVIAL(info) << "OpenMHZ created!";
-        return boost::shared_ptr<Openmhz_Uploader>(
-            new Openmhz_Uploader()
-        );
-    }
-
-
+  // Factory method
+  static boost::shared_ptr<Openmhz_Uploader> create() {
+    return boost::shared_ptr<Openmhz_Uploader>(
+        new Openmhz_Uploader());
+  }
 };
-
 
 BOOST_DLL_ALIAS(
     Openmhz_Uploader::create, // <-- this function is exported with...
-    create_plugin                               // <-- ...this alias name
+    create_plugin             // <-- ...this alias name
 )
-
-
-
-
-
-
-
-
-
-

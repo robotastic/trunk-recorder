@@ -1,8 +1,8 @@
 #include "call.h"
+#include "call_concluder/call_concluder.h"
 #include "formatter.h"
 #include "recorder_globals.h"
 #include "recorders/recorder.h"
-#include "call_concluder/call_concluder.h"
 #include "source.h"
 #include <boost/algorithm/string.hpp>
 #include <signal.h>
@@ -112,10 +112,8 @@ Call::~Call() {
 void Call::restart_call() {
 }
 
-
 void Call::end_call() {
-  std::stringstream shell_command;
-  std::string shell_command_string;
+
   stop_time = time(NULL);
 
   if (state == recording) {
@@ -123,11 +121,8 @@ void Call::end_call() {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
-    
+
     final_length = recorder->get_current_length();
-
-
-    
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
@@ -136,93 +131,20 @@ void Call::end_call() {
       freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
-
-    // Create the JSON status file
-    std::ofstream myfile(status_filename);
-
-    if (myfile.is_open()) {
-      myfile << "{\n";
-      myfile << "\"freq\": " << this->curr_freq << ",\n";
-      myfile << "\"start_time\": " << this->get_start_time() << ",\n";
-      myfile << "\"stop_time\": " << this->stop_time << ",\n";
-      myfile << "\"emergency\": " << this->emergency << ",\n";
-      myfile << "\"call_length\": " << this->final_length << ",\n";
-      //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
-      myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
-      myfile << "\"srcList\": [ ";
-
-      for (std::size_t i = 0; i < src_list.size(); i++) {
-        if (i != 0) {
-          myfile << ", ";
-        }
-        myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
-      }
-      myfile << " ],\n";
-      myfile << "\"freqList\": [ ";
-
-      for (int i = 0; i < freq_count; i++) {
-        if (i != 0) {
-          myfile << ", ";
-        }
-        myfile << "{ \"freq\": " << std::fixed << freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
-      }
-      myfile << "]\n";
-      myfile << "}\n";
-      myfile.close();
-    }
-
     this->get_recorder()->stop();
 
-    // Handle the Upload Script, if set
-    if (sys->get_upload_script().length() != 0) {
-      shell_command << "./" << sys->get_upload_script() << " " << this->get_filename() << " &";
+    if (this->get_sigmf_recording() == true) {
+      this->get_sigmf_recorder()->stop();
     }
 
-    shell_command_string = shell_command.str();
-    if (sys->get_upload_script().length() != 0) {
-      BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command_string;
-      signal(SIGCHLD, SIG_IGN);
-      //int rc = system(shell_command.str().c_str());
-      system(shell_command_string.c_str());
+    if (this->get_debug_recording() == true) {
+      this->get_debug_recorder()->stop();
     }
+
     Call_Concluder::conclude_call(this, sys, config);
 
-
-/*
-    if (this->get_recorder()->get_current_length() > sys->get_min_duration()) {
-      if (this->config.upload_server != "" || this->config.bcfy_calls_server != "") {
-        send_call(this, sys, config);
-
-      }
-      // These files may have already been deleted by upload_call_thread() so only do deletion here if that wasn't called
-      if (this->config.upload_server == "" && this->config.bcfy_calls_server == "") {
-        if (!sys->get_audio_archive() && remove(filename) != 0) {
-          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
-        }
-        if (!sys->get_call_log() && remove(status_filename) != 0) {
-          BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
-        }
-      }
-    } else {
-      // Call too short, delete it (we are deleting it after since we can't easily prevent the file from saving)
-     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tDeleting this call as it has a duration less than minimum duration of " << sys->get_min_duration() << "\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tCall Duration: " << this->get_recorder()->get_current_length() << "s";
-
-      if (remove(filename) != 0) {
-        BOOST_LOG_TRIVIAL(error) << "Could not delete file " << filename;
-      }
-      if (!sys->get_call_log() && remove(status_filename) != 0) {
-        BOOST_LOG_TRIVIAL(error) << "Could not delete file " << status_filename;
-      }
-    }*/
   }
 
-  if (this->get_sigmf_recording() == true) {
-    this->get_sigmf_recorder()->stop();
-  }
-
-  if (this->get_debug_recording() == true) {
-    this->get_debug_recorder()->stop();
-  }
   this->set_state(inactive);
 }
 

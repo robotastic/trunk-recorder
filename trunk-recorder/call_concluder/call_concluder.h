@@ -39,6 +39,7 @@ struct Call_Data_t {
   std::string bcfy_calls_server;
   std::string api_key;
   std::string short_name;
+  std::string upload_script;
   int bcfy_system_id;
   int tdma_slot;
   double length;
