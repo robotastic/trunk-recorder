@@ -6,6 +6,20 @@
 #include <sys/time.h>
 #include <vector>
 
+
+struct Transmission {
+  long source;
+  long start_time;
+  long stop_time;
+  long sample_count;
+  double freq;
+  double length;
+  char filename[255];
+  char status_filename[255];
+  char converted_filename[255];
+};
+
+
 struct Call_Source {
   long source;
   long time;
@@ -49,7 +63,8 @@ public:
   virtual ~Call();
   virtual void restart_call();
   void end_call();
-
+void end_conversation();
+void end_transmissions();  
   void set_sigmf_recorder(Recorder *r);
   Recorder *get_sigmf_recorder();
   void set_debug_recorder(Recorder *r);
@@ -58,6 +73,7 @@ public:
   Recorder *get_recorder();
   double get_freq();
   char *get_status_filename();
+  char *get_transmission_filename();
   char *get_converted_filename();
   char *get_path();
   char *get_filename();
@@ -106,16 +122,19 @@ public:
   void set_talkgroup_display_format(std::string format);
   void set_talkgroup_tag(std::string tag);
   void clear_src_list();
+  void clear_transmission_list();
   boost::property_tree::ptree get_stats();
+  void add_transmission(Transmission t);
 
   bool add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal);
 
   std::string get_talkgroup_tag();
   std::string get_system_type();
   double get_final_length();
-
+  long get_current_source();
+  bool get_conversation_mode();
   System *get_system();
-
+std::vector<Transmission> transmission_list;
 protected:
   State state;
   long talkgroup;
@@ -125,6 +144,7 @@ protected:
   long curr_src_id;
   Call_Error error_list[50];
   std::vector<Call_Source> src_list;
+    
   Call_Freq freq_list[50];
   long error_list_count;
   long freq_count;
@@ -137,6 +157,7 @@ protected:
   bool encrypted;
   bool emergency;
   char filename[255];
+  char transmission_filename[255];
   char converted_filename[255];
   char status_filename[255];
   char debug_filename[255];

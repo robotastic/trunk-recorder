@@ -78,7 +78,7 @@ public:
 
   void tune_freq(double f);
   void tune_offset(double f);
-  void start(Call *call);
+  bool start(Call *call);
   void stop();
   double get_freq();
   int get_num();

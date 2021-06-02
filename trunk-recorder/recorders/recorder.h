@@ -69,7 +69,7 @@ public:
   Recorder(std::string type);
   virtual void tune_offset(double f){};
   virtual void tune_freq(double f){};
-  virtual void start(Call *call){};
+  virtual bool start(Call *call){ return false;};
   virtual void stop(){};
   virtual void set_tdma_slot(int slot){};
   virtual double get_freq() { return 0; };
@@ -77,6 +77,7 @@ public:
   virtual Call_Source *get_source_list() { return NULL; };
   virtual int get_num() { return -1; };
   virtual long get_source_count() { return 0; };
+  virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
   virtual State get_state() { return inactive; };
   virtual Rx_Status get_rx_status() {

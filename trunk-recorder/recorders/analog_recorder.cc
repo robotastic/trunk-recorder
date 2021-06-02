@@ -68,7 +68,7 @@ analog_recorder::analog_recorder(Source *src)
 
   //int samp_per_sym        = 10;
   system_channel_rate = 96000; //4800 * samp_per_sym;
-  wave_sample_rate = 16000;    // Must be an integer decimation of system_channel_rate
+  wav_sample_rate = 16000;    // Must be an integer decimation of system_channel_rate
                                /*  int decim               = floor(samp_rate / 384000);
 
   double pre_channel_rate = samp_rate / decim;*/
@@ -153,21 +153,21 @@ analog_recorder::analog_recorder(Source *src)
   calculate_iir_taps(d_tau);
   deemph = gr::filter::iir_filter_ffd::make(d_fftaps, d_fbtaps);
 
-  audio_resampler_taps = design_filter(1, (system_channel_rate / wave_sample_rate)); // Calculated to make sample rate changable -- must be an integer
+  audio_resampler_taps = design_filter(1, (system_channel_rate / wav_sample_rate)); // Calculated to make sample rate changable -- must be an integer
 
   // downsample from 48k to 8k
-  decim_audio = gr::filter::fir_filter_fff::make((system_channel_rate / wave_sample_rate), audio_resampler_taps); // Calculated to make sample rate changable
+  decim_audio = gr::filter::fir_filter_fff::make((system_channel_rate / wav_sample_rate), audio_resampler_taps); // Calculated to make sample rate changable
 
   //tm *ltm = localtime(&starttime);
 
-  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wave_sample_rate, 16, true); //  Configurable
+  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wav_sample_rate, 16, true); //  Configurable
 
   BOOST_LOG_TRIVIAL(info) << "Creating plugin sink..." << std::endl;
   plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&analog_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
   BOOST_LOG_TRIVIAL(info) << "Plugin sink created!" << std::endl;
 
   BOOST_LOG_TRIVIAL(info) << "Creating decoder sink..." << std::endl;
-  decoder_sink = gr::blocks::decoder_wrapper_impl::make(wave_sample_rate, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  decoder_sink = gr::blocks::decoder_wrapper_impl::make(wav_sample_rate, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   BOOST_LOG_TRIVIAL(info) << "Decoder sink created!" << std::endl;
 
   // Analog audio band pass from 300 to 3000 Hz
@@ -202,6 +202,9 @@ analog_recorder::analog_recorder(Source *src)
 }
 
 analog_recorder::~analog_recorder() {}
+
+
+long analog_recorder::get_wav_hz() { return wav_sample_rate; };
 
 State analog_recorder::get_state() {
   return state;
@@ -309,7 +312,7 @@ void analog_recorder::setup_decoders_for_system(System *system) {
   decoder_sink->set_tps_enabled(system->get_tps_enabled());
 }
 
-void analog_recorder::start(Call *call) {
+bool analog_recorder::start(Call *call) {
   starttime = time(NULL);
   System *system = call->get_system();
   this->call = call;
@@ -335,6 +338,7 @@ void analog_recorder::start(Call *call) {
 
   state = active;
   valve->set_enabled(true);
+  return true;
 }
 
 double analog_recorder::get_output_sample_rate() {

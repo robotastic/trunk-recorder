@@ -66,7 +66,7 @@ public:
   int max_dev;
   double filter_width;
   double min_call_duration;
-
+  bool conversation_mode;
   bool qpsk_mod;
   double squelch_db;
   double analog_levels;
@@ -105,7 +105,8 @@ public:
   void set_record_unknown(bool);
   bool get_call_log();
   void set_call_log(bool);
-
+  bool get_conversation_mode();
+  void set_conversation_mode(bool mode);
   void set_mdc_enabled(bool b);
   void set_fsync_enabled(bool b);
   void set_star_enabled(bool b);

@@ -82,15 +82,13 @@ p25_recorder::DecimSettings p25_recorder::get_decim(long speed) {
 }
 void p25_recorder::initialize_prefilter() {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  //double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
   long fa = 0;
   long fb = 0;
   if1 = 0;
   if2 = 0;
-  samples_per_symbol = phase1_samples_per_symbol;
-  symbol_rate = phase1_symbol_rate;
-  system_channel_rate = symbol_rate * samples_per_symbol;
+
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
@@ -119,9 +117,7 @@ void p25_recorder::initialize_prefilter() {
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
     decim = floor(input_rate / if_rate);
     resampled_rate = input_rate / decim;
-
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
-    resampled_rate = input_rate / decim;
   }
 
   // Cut-Off Filter
@@ -134,7 +130,7 @@ void p25_recorder::initialize_prefilter() {
   arb_rate = if_rate / resampled_rate;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate;
 
 
 
@@ -211,30 +207,27 @@ void p25_recorder::initialize(Source *src) {
 }
 
 void p25_recorder::switch_tdma(bool phase2) {
+  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  long if_rate = phase1_channel_rate;
   double omega;
   double fmax;
   const double pi = M_PI;
 
   if (phase2) {
     d_phase2_tdma = true;
-    symbol_rate = 6000;
-    samples_per_symbol = 4; //5;//4;
+    if_rate = phase2_channel_rate;
   } else {
     d_phase2_tdma = false;
-    symbol_rate = 4800;
-    samples_per_symbol = 5;
+    if_rate = phase1_channel_rate;
   }
 
-  system_channel_rate = symbol_rate * samples_per_symbol;
-  //decim = floor(initial_rate / system_channel_rate);
-  //resampled_rate = double(initial_rate) / double(decim);
-  arb_rate = (double(system_channel_rate) / resampled_rate);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder - Adjust Channel Resampled Rate: " << resampled_rate << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
-
+  arb_rate = if_rate / resampled_rate;
+  
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
-  //op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
+
   if (qpsk_mod) {
     qpsk_p25_decode->switch_tdma(phase2);
     qpsk_demod->switch_tdma(phase2);
@@ -403,9 +396,30 @@ void p25_recorder::set_tdma_slot(int slot) {
   tdma_slot = slot;
 }
 
-void p25_recorder::start(Call *call) {
+bool p25_recorder::start(Call *call) {
   if (state == inactive) {
-    System *system = call->get_system();
+        System *system = call->get_system();
+      qpsk_mod = system->get_qpsk_mod();
+  set_tdma(call->get_phase2_tdma());
+        if (call->get_phase2_tdma()) {
+      if (!qpsk_mod) {
+             BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";
+             return false;
+      }
+      set_tdma_slot(call->get_tdma_slot());
+
+      if (call->get_xor_mask()) {
+        qpsk_p25_decode->set_xor_mask(call->get_xor_mask());
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
+        return false;
+      }
+    } else {
+      set_tdma_slot(0);
+    }
+
+
+
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -417,31 +431,10 @@ void p25_recorder::start(Call *call) {
 
   squelch_db = system->get_squelch_db();
   squelch->set_threshold(squelch_db);
-  qpsk_mod = system->get_qpsk_mod();
-    set_tdma(call->get_phase2_tdma());
 
-    if (call->get_phase2_tdma()) {
-      if (!qpsk_mod) {
-             BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";
-      }
-      set_tdma_slot(call->get_tdma_slot());
 
-      if (call->get_xor_mask()) {
-        qpsk_p25_decode->set_xor_mask(call->get_xor_mask());
-      } else {
-        BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
-      }
-    } else {
-      set_tdma_slot(0);
-    }
 
-/*
-    if (d_delayopen) {
-      BOOST_LOG_TRIVIAL(info) << "\t- Listening P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
-    } else {
-      recording_started();
-    }
-*/
+
     
     BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
@@ -462,5 +455,7 @@ void p25_recorder::start(Call *call) {
     recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";
+    return false;
   }
+  return true;
 }

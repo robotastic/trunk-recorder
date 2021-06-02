@@ -81,7 +81,7 @@ public:
   void initialize_p25();
   void tune_offset(double f);
   void tune_freq(double f);
-  virtual void start(Call *call);
+  virtual bool start(Call *call);
   virtual void stop();
   void clear();
   double get_freq();

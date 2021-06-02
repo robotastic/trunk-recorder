@@ -24,6 +24,7 @@
 #define INCLUDED_GR_nonstop_wavfile_SINK_IMPL_H
 
 #include "nonstop_wavfile_sink.h"
+#include <sys/time.h>
 //#include "wavfile.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/wavfile.h>
@@ -44,10 +45,13 @@ private:
 	bool d_use_float;
 	bool d_conventional;
 	bool d_first_work;
+	bool d_termination_flag;
 	time_t d_start_time;
 	time_t d_stop_time;
 	long curr_src_id;
 	char current_filename[255];
+	char current_status_filename[255];
+	char current_converted_filename[255];
 	Call* d_current_call;
 
 protected:
@@ -76,8 +80,7 @@ protected:
 	 * assumes d_fp is a valid file pointer, should thus only be called by
 	 * other methods.
 	 */
-	void close_wav();
-
+	void close_wav(bool close_call);
 protected:
 	bool stop();
 	bool open_internal(const char *filename);
