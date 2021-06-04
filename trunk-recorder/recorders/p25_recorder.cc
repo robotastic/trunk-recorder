@@ -268,21 +268,47 @@ int p25_recorder::get_num() {
   return rec_num;
 }
 
-bool p25_recorder::is_active() {
-  if (state == active) {
-    return true;
+double p25_recorder::since_last_write() {
+  if (qpsk_mod) {
+    return  qpsk_p25_decode->since_last_write();
   } else {
-    return false;
+    return fsk4_p25_decode->since_last_write();
   }
 }
 
+State p25_recorder::get_state() {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->get_state();
+  } else {
+    return fsk4_p25_decode->get_state();
+  }
+}
+
+bool p25_recorder::is_active() {
+  if (qpsk_mod) {
+    if (qpsk_p25_decode->get_state() == active) {
+      return true;
+    }
+  } else {
+    if (fsk4_p25_decode->get_state() == active) {
+      return true;
+    }
+  }
+  return false;
+}
 
 
 bool p25_recorder::is_idle() {
-  if (state == active) {
-    return !squelch->unmuted();
+  if (qpsk_mod) {
+    if (qpsk_p25_decode->get_state() == idle) {
+      return true;
+    }
+  } else {
+    if (fsk4_p25_decode->get_state() == idle) {
+      return true;
+    }
   }
-  return true;
+  return false;
 }
 
 double p25_recorder::get_freq() {
@@ -343,9 +369,7 @@ void p25_recorder::tune_offset(double f) {
   }
 }
 
-State p25_recorder::get_state() {
-  return state;
-}
+
 
 Rx_Status p25_recorder::get_rx_status() {
   if (qpsk_mod) {

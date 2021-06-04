@@ -579,11 +579,7 @@ int get_total_recorders() {
   return total_recorders;
 }
 
-/**
- * Method name: start_recorder
- * Description: <#description#>
- * Parameters: TrunkMessage message
- */
+// This maybe needed by websocket_pp
 bool replace(std::string &str, const std::string &from, const std::string &to) {
   size_t start_pos = str.find(from);
 
@@ -716,6 +712,8 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   return false;
 }
 
+
+// This is to handle the messages that come off the Analog recorder.
 void process_message_queues() {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
@@ -727,13 +725,8 @@ void process_message_queues() {
   }
 }
 
-void stop_inactive_recorders() {
-  bool ended_recording = false;
-
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
-    Call *call = *it;
-
-    if (call->is_conventional() && call->get_recorder()) {
+void manage_conventional_call(Call *call) {
+ if (call->get_recorder()) {
       // if any recording has happened
       if (call->get_current_length() > 0) {
         BOOST_LOG_TRIVIAL(trace) << "Recorder: " << call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();
@@ -750,7 +743,7 @@ void stop_inactive_recorders() {
         // if no additional recording has happened in the past X periods, stop and open new file
         if (call->get_idle_count() > config.call_timeout) {
           Recorder *recorder = call->get_recorder();
-          call->end_call();
+          call->stop_call();
           
           call->restart_call();
           if (recorder != NULL) {
@@ -764,34 +757,78 @@ void stop_inactive_recorders() {
               call->set_state(recording);
               //plugman_setup_recorder((Recorder *)recorder->get());
       }
+ }
+}
+
+void manage_calls() {
+  bool ended_recording = false;
+
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+    Call *call = *it;
+    State state = call->get_state();
+    // Handle Conventional Calls
+    if (call->is_conventional()) {
+      manage_conventional_call(call); 
       ++it;
-    } else {
-      if (call->since_last_update() > config.call_timeout) {
-        if (call->get_state() == recording) {
+      continue;
+    } 
+
+
+    // Handle Trunked Calls
+    if ((call->since_last_update() > config.call_timeout) && ((state == recording) || (state == monitoring))) {
+        if (state == recording) {
           ended_recording = true;
+          call->stop_call();
+          ++it;
+          continue;
         }
+        // we do not need to stop Monitoring Calls, we can just delete them
+        if (state == monitoring) {
+          ended_recording = true;
+          it = calls.erase(it);
+          delete call;
+          continue;
+        }
+    } 
+    
+    // If a call's state has been set to completed, we can conclude the call and delete it
+    if (state == completed) {
+
+        call->conclude_call();
+
+        // The State of the Recorders has changed, so lets send an update
+        ended_recording = true;
         Recorder *recorder = call->get_recorder();
-        call->end_call();
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
         }
         it = calls.erase(it);
         delete call;
-      } else {
-        ++it;
-      } // if rx is active
-    }   // foreach loggers
-  }
+        continue;
+    } 
+
+    // We are checking to make sure a Call has gotten stuck. If it is in the inactive state
+    if (state == inactive) {
+        Recorder *recorder = call->get_recorder();
+        if (recorder != NULL) {
+          if (recorder->since_last_write() > 10) {
+            BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
+    
+          }
+        } else {
+          BOOST_LOG_TRIVIAL(error) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
+    
+        }
+    }
+
+    ++it;
+       // if rx is active
+  }   // foreach loggers
+  
 
   if (ended_recording) {
     plugman_calls_active(calls);
   }
-  /*     for (vector<Source *>::iterator it = sources.begin(); it !=
-     sources.end();
-           it++) {
-        Source *source = *it;
-        source->tune_digital_recorders();
-      }*/
 }
 
 void print_status() {
@@ -815,51 +852,53 @@ void print_status() {
   }
 }
 
-bool retune_recorder(TrunkMessage message, Call *call) {
-  Recorder *recorder = call->get_recorder();
-  Source *source = recorder->get_source();
-
-  if (call->get_phase2_tdma() != message.phase2_tdma) {
-    BOOST_LOG_TRIVIAL(info) << "\t - Retune failed, TDMA Mismatch! ";
-    BOOST_LOG_TRIVIAL(info) << "\t - Message - \tTMDA: " << message.phase2_tdma << " \tSlot: " << message.tdma_slot << "\tCall - \tTMDA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
-    BOOST_LOG_TRIVIAL(info) << "\t - Starting a new recording using a new recorder";
-    return false;
-  }
-
-  if (call->get_tdma_slot() != message.tdma_slot) {
-    BOOST_LOG_TRIVIAL(info) << "\t - Message - \tTMDA: " << message.phase2_tdma << " \tSlot: " << message.tdma_slot << "\tCall - \tTMDA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
-    recorder->set_tdma_slot(message.tdma_slot);
-    call->set_tdma_slot(message.tdma_slot);
-  }
-
-  if (message.freq != call->get_freq()) {
-    if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
-      recorder->tune_freq(message.freq);
-
-      // only set the call freq, if the recorder can be retuned.
-      // set the call to the new Freq / TDMA slot
-      call->set_freq(message.freq);
-      call->set_phase2_tdma(message.phase2_tdma);
-      call->set_tdma_slot(message.tdma_slot);
-
-      if (call->get_debug_recording() == true) {
-        call->get_debug_recorder()->tune_offset(message.freq);
-      }
-      return true;
-    } else {
-      // TODO: Find the source that has the frequency on it, update our recorder to use that source for the rest of the call
-      //Couldn't find a source that covers it
-      return false;
-    }
-  }
-  return true;
-}
 
 void current_system_status(TrunkMessage message, System *sys) {
   if (sys->update_status(message)) {
     plugman_setup_system(sys);
   }
 }
+
+
+void unit_check() {
+  std::map<long, long> talkgroup_totals;
+  std::map<long, long>::iterator it;
+  char shell_command[200];
+  time_t starttime = time(NULL);
+  tm *ltm = localtime(&starttime);
+  char unit_filename[160];
+
+  std::stringstream path_stream;
+
+  path_stream << boost::filesystem::current_path().string() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+
+  boost::filesystem::create_directories(path_stream.str());
+
+  for (it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
+    talkgroup_totals[it->second]++;
+  }
+
+  sprintf(unit_filename, "%s/radiolist.json", path_stream.str().c_str());
+
+  ofstream myfile(unit_filename);
+
+  if (myfile.is_open()) {
+    myfile << "{\n";
+    myfile << "\"talkgroups\": {\n";
+
+    for (it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
+      if (it != talkgroup_totals.begin()) {
+        myfile << ",\n";
+      }
+      myfile << "\"" << it->first << "\":" << it->second;
+    }
+    //sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
+    //int rc = system(shell_command);
+    myfile << "}";
+    myfile.close();
+  }
+}
+
 
 void unit_registration(string unit_script, string shortName, long unit) {
   unit_affiliations[unit] = 0;
@@ -909,7 +948,7 @@ void handle_call(TrunkMessage message, System *sys) {
   bool call_found = false;
   bool call_retune = false;
   bool recording_started = false;
-  bool retune_failed = false;
+
 
   /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
   that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
@@ -924,121 +963,33 @@ void handle_call(TrunkMessage message, System *sys) {
     int rc = system(shell_command);
   }
 
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();++it) {
     Call *call = *it;
 
-    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
-      call_found = true;
-      /*
-      if (call->get_state() == recording) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq())  << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s \t" << message.source << " " << call->get_current_source();;
-      }*/
-      // Check to make sure the Freq and TDMA info match up with what is being currenty recorded
-      if ((call->get_freq() != message.freq) || (call->get_tdma_slot() != message.tdma_slot) || (call->get_phase2_tdma() != message.phase2_tdma)) {
-        if (call->get_state() == recording) {
-          // see if we can retune the recorder, You may not be able to if the Freq is beyond what the current source can handle
-          /* int retuned = retune_recorder(message, call);
-
-          if (!retuned) {*/
-          // we want to keep this call recording and now start a recording of the new call on another recorder
-         //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tCould have retuned: - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
-            
-          call_found = false;
-          retune_failed = true;
-          ++it; // go on to the next call, remember there may be two calls
-          /*} else {
-            // if you did retune, update the call info
-            BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tUpdate Retuning - New Freq: " << FormatFreq(message.freq) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
-            call->update(message);
-            call_retune = true;
-            break;
-          }*/
-        } else {
-          // the Call is not being recorded, simply update and continue
-          call->set_freq(message.freq);
-          call->set_phase2_tdma(message.phase2_tdma);
-          call->set_tdma_slot(message.tdma_slot);
-          call->update(message);
-          break;
-        }
-      } else {
-        // gotta make sure we have the message.source in there because sometimes it is randomly 0 and we don't want to do anything in those scenarios.
-        /*if (!sys->get_conversation_mode() && (call->get_state() == recording) && message.source && (message.source != call->get_current_source())) {
-          BOOST_LOG_TRIVIAL(info) << "Source Switch [" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s" << message.source << " " << call->get_current_source();
-
-          Recorder *recorder = call->get_recorder();
-          call->end_call();*/
-          /*stats.send_call_end(call);
-             if (recorder != NULL) {
-               stats.send_recorder(recorder);
-             }*/
-       /*   it = calls.erase(it);
-          delete call;
-          break;
-        } else {*/
-          // everything about the current recording matches, simply update the info
-          call->update(message);
-          break;
-        //}
-      }
-    } else {
-      ++it;
-      // the talkgroup for the call being looked at doesn't match, look at the next one.
+    if ((call->get_state() == recording) || (call->get_state() == monitoring)) {
+      continue;
     }
+
+    
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
+      call_found = true;
+      call->update(message);
+      break;
+    }
+       
   }
 
   if (!call_found) {
-    if (retune_failed) {
-      BOOST_LOG_TRIVIAL(info) << "\t - Retune failed, starting a new recording using a new source";
-    }
     Call *call = new Call(message, sys, config);
     recording_started = start_recorder(call, message, sys);
     calls.push_back(call);
   }
 
-  if (call_retune || recording_started) {
+  if (recording_started) {
     plugman_calls_active(calls);
   }
 }
 
-void unit_check() {
-  std::map<long, long> talkgroup_totals;
-  std::map<long, long>::iterator it;
-  char shell_command[200];
-  time_t starttime = time(NULL);
-  tm *ltm = localtime(&starttime);
-  char unit_filename[160];
-
-  std::stringstream path_stream;
-
-  path_stream << boost::filesystem::current_path().string() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-
-  boost::filesystem::create_directories(path_stream.str());
-
-  for (it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
-    talkgroup_totals[it->second]++;
-  }
-
-  sprintf(unit_filename, "%s/radiolist.json", path_stream.str().c_str());
-
-  ofstream myfile(unit_filename);
-
-  if (myfile.is_open()) {
-    myfile << "{\n";
-    myfile << "\"talkgroups\": {\n";
-
-    for (it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
-      if (it != talkgroup_totals.begin()) {
-        myfile << ",\n";
-      }
-      myfile << "\"" << it->first << "\":" << it->second;
-    }
-    //sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-    //int rc = system(shell_command);
-    myfile << "}";
-    myfile.close();
-  }
-}
 
 void handle_message(std::vector<TrunkMessage> messages, System *sys) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
@@ -1211,8 +1162,8 @@ void monitor_messages() {
 
   time_t lastStatusTime = time(NULL);
   time_t lastMsgCountTime = time(NULL);
-  time_t lastTalkgroupPurge = time(NULL);
-  time_t currentTime = time(NULL);
+  time_t management_timestamp = time(NULL);
+  time_t current_time = time(NULL);
   std::vector<TrunkMessage> trunk_messages;
 
   while (1) {
@@ -1247,46 +1198,39 @@ void monitor_messages() {
         }
       }
 
-      /*
-              if ((currentTime - lastUnitCheckTime) >= 300.0) {
-                  unit_check();
-                  lastUnitCheckTime = currentTime;
-              }
-       */
-
       msg.reset();
     } else {
-      currentTime = time(NULL);
+      current_time = time(NULL);
 
-      if ((currentTime - lastTalkgroupPurge) >= 1.0) {
-        stop_inactive_recorders();
+      if ((current_time - management_timestamp) >= 1.0) {
+        manage_calls();
         Call_Concluder::manage_call_data_workers();
-        lastTalkgroupPurge = currentTime;
+        management_timestamp = current_time;
       }
 
       boost::this_thread::sleep(boost::posix_time::milliseconds(10));
       //usleep(1000 * 10);
     }
 
-    currentTime = time(NULL);
+    current_time = time(NULL);
 
-    float timeDiff = currentTime - lastMsgCountTime;
+    float timeDiff = current_time - lastMsgCountTime;
 
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
-      lastMsgCountTime = currentTime;
+      lastMsgCountTime = current_time;
     }
 
-    float statusTimeDiff = currentTime - lastStatusTime;
+    float statusTimeDiff = current_time - lastStatusTime;
 
     if (statusTimeDiff > 200) {
-      lastStatusTime = currentTime;
+      lastStatusTime = current_time;
       print_status();
     }
   }
 }
 
-bool monitor_system() {
+bool setup_systems() {
   bool system_added = false;
   Source *source = NULL;
 
@@ -1336,7 +1280,7 @@ bool monitor_system() {
             } else { // has to be "conventional P25"
               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
               // This has something to do with the way the Selector block works.
-              // the stop_inactive_recorders() function handles adding and starting the P25 Recorder
+              // the manage_calls() function handles adding and starting the P25 Recorder
               p25_recorder_sptr rec;
               rec = source->create_digital_conventional_recorder(tb);
               call->set_recorder((Recorder *)rec.get());
@@ -1473,7 +1417,7 @@ int main(int argc, char **argv) {
         keywords::auto_flush = true);
   }
 
-  if (monitor_system()) {
+  if (setup_systems()) {
     signal(SIGINT, exit_interupt);
     tb->unlock();
 

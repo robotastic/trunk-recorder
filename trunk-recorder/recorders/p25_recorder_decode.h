@@ -61,5 +61,6 @@ public:
   double get_current_length();
   void plugin_callback_handler(float *samples, int sampleCount);
   double get_output_sample_rate();
+    State get_state();
 };
 #endif

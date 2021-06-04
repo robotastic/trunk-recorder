@@ -84,6 +84,7 @@ protected:
 protected:
 	bool stop();
 	bool open_internal(const char *filename);
+	State state;
 public:
 
 	typedef boost::shared_ptr<nonstop_wavfile_sink_impl> sptr;
@@ -107,7 +108,7 @@ public:
 	char *get_filename();
 	virtual bool open(Call *call);
 	virtual void close();
-
+	bool end_transmission();
 	void set_sample_rate(unsigned int sample_rate);
 	void set_bits_per_sample(int bits_per_sample);
 
@@ -120,7 +121,7 @@ public:
 	virtual int work(int noutput_items,
 	gr_vector_const_void_star &input_items,
 	gr_vector_void_star &output_items);
-
+	State get_state();
 	time_t get_start_time();
 	time_t get_stop_time();
 

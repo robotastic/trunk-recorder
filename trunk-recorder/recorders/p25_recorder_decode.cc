@@ -41,6 +41,15 @@ double p25_recorder_decode::get_current_length() {
   return wav_sink->length_in_seconds();
 }
 
+State get_state() {
+  return wav_sink->get_state();
+}
+
+double p25_recorder_decode::since_last_write() {
+  time_t now = time(NULL);
+  return now - wav_sink->get_stop_time();
+}
+
 void p25_recorder_decode::switch_tdma(bool phase2_tdma) {
     op25_frame_assembler->set_phase2_tdma(phase2_tdma);
 }

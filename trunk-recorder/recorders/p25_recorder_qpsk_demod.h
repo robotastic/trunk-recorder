@@ -44,6 +44,7 @@ public:
   virtual ~p25_recorder_qpsk_demod();
   void switch_tdma(bool phase2);
   void reset();
+
 private:
   double system_channel_rate;
   double symbol_rate;

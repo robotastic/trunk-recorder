@@ -4,6 +4,8 @@
 enum State { monitoring = 0,
              recording = 1,
              inactive = 2,
-             active = 3 };
+             active = 3,
+             idle = 4,
+             completed = 5};
 
 #endif

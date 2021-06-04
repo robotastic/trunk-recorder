@@ -89,6 +89,7 @@ public:
   void set_tdma(bool phase2);
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);
+  double since_last_write(); 
   void generate_arb_taps();
   double get_current_length();
   bool is_active();

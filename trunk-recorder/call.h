@@ -62,7 +62,8 @@ public:
   Call(TrunkMessage message, System *s, Config c);
   virtual ~Call();
   virtual void restart_call();
-  void end_call();
+  void stop_call();
+  void conclude_call();
 void end_conversation();
 void end_transmissions();  
   void set_sigmf_recorder(Recorder *r);
@@ -124,7 +125,7 @@ void end_transmissions();
   void clear_src_list();
   void clear_transmission_list();
   boost::property_tree::ptree get_stats();
-  void add_transmission(Transmission t);
+  State add_transmission(Transmission t);
 
   bool add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal);
 

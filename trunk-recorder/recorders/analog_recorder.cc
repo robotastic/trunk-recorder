@@ -207,8 +207,14 @@ analog_recorder::~analog_recorder() {}
 long analog_recorder::get_wav_hz() { return wav_sample_rate; };
 
 State analog_recorder::get_state() {
-  return state;
+  return wav_sink->get_state();
 }
+
+double analog_recorder::since_last_write() {
+  time_t now = time(NULL);
+  return now - wav_sink->get_stop_time();
+}
+
 int analog_recorder::get_num() {
   return rec_num;
 }
