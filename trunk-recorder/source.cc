@@ -277,7 +277,7 @@ Recorder *Source::get_analog_recorder() {
        it != analog_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
 
-    if (rx->get_state() == inactive) {
+    if (rx->get_state() == INACTIVE) {
       return (Recorder *)rx.get();
 
       break;
@@ -317,7 +317,7 @@ Recorder *Source::get_debug_recorder() {
        it != debug_recorders.end(); it++) {
     debug_recorder_sptr rx = *it;
 
-    if (rx->get_state() == inactive) {
+    if (rx->get_state() == INACTIVE) {
       return (Recorder *)rx.get();
 
       break;
@@ -346,7 +346,7 @@ Recorder *Source::get_sigmf_recorder() {
        it != sigmf_recorders.end(); it++) {
     sigmf_recorder_sptr rx = *it;
 
-    if (rx->get_state() == inactive) {
+    if (rx->get_state() == INACTIVE) {
       return (Recorder *)rx.get();
 
       break;
@@ -377,7 +377,7 @@ void Source::tune_digital_recorders() {
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    if (rx->get_state() == active) {
+    if (rx->get_state() == ACTIVE) {
       rx->autotune();
     }
   }
@@ -410,7 +410,7 @@ int Source::get_num_available_digital_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    if (rx->get_state() == inactive) {
+    if (rx->get_state() == INACTIVE) {
       num_available_recorders++;
     }
   }
@@ -423,7 +423,7 @@ int Source::get_num_available_analog_recorders() {
   for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
 
-    if (rx->get_state() == inactive) {
+    if (rx->get_state() == INACTIVE) {
       num_available_recorders++;
     }
   }
@@ -447,7 +447,7 @@ Recorder *Source::get_digital_recorder() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    if (rx->get_state() == inactive) {
+    if (rx->get_state() == INACTIVE) {
       return (Recorder *)rx.get();
 
       break;

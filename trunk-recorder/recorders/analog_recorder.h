@@ -87,6 +87,7 @@ public:
   void decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal);
   void plugin_callback_handler(float *samples, int sampleCount);
   double get_output_sample_rate();
+  double since_last_write();
 
 private:
   double center_freq, chan_freq;

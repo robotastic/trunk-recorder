@@ -169,7 +169,7 @@ void p25_recorder::initialize(Source *src) {
   recording_count = 0;
   recording_duration = 0;
 
-  state = inactive;
+  state = INACTIVE;
 
   timestamp = time(NULL);
   starttime = time(NULL);
@@ -286,11 +286,11 @@ State p25_recorder::get_state() {
 
 bool p25_recorder::is_active() {
   if (qpsk_mod) {
-    if (qpsk_p25_decode->get_state() == active) {
+    if (qpsk_p25_decode->get_state() == ACTIVE) {
       return true;
     }
   } else {
-    if (fsk4_p25_decode->get_state() == active) {
+    if (fsk4_p25_decode->get_state() == ACTIVE) {
       return true;
     }
   }
@@ -300,11 +300,11 @@ bool p25_recorder::is_active() {
 
 bool p25_recorder::is_idle() {
   if (qpsk_mod) {
-    if (qpsk_p25_decode->get_state() == idle) {
+    if (qpsk_p25_decode->get_state() == IDLE) {
       return true;
     }
   } else {
-    if (fsk4_p25_decode->get_state() == idle) {
+    if (fsk4_p25_decode->get_state() == IDLE) {
       return true;
     }
   }
@@ -387,7 +387,7 @@ char *p25_recorder::get_filename() {
 }
 
 void p25_recorder::stop() {
-  if (state == active) {
+  if (state == ACTIVE) {
     if (qpsk_mod) {
       recording_duration += qpsk_p25_decode->get_current_length();
     } else {
@@ -396,7 +396,7 @@ void p25_recorder::stop() {
     clear();
     BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
-    state = inactive;
+    state = INACTIVE;
     valve->set_enabled(false);
     if (qpsk_mod) {
       qpsk_p25_decode->stop();
@@ -421,7 +421,7 @@ void p25_recorder::set_tdma_slot(int slot) {
 }
 
 bool p25_recorder::start(Call *call) {
-  if (state == inactive) {
+  if (state == INACTIVE) {
         System *system = call->get_system();
       qpsk_mod = system->get_qpsk_mod();
   set_tdma(call->get_phase2_tdma());
@@ -472,7 +472,7 @@ bool p25_recorder::start(Call *call) {
       modulation_selector->set_output_index(0);
       fsk4_p25_decode->start(call);
     }
-    state = active;
+    state = ACTIVE;
     valve->set_enabled(true);
     modulation_selector->set_enabled(true);
     

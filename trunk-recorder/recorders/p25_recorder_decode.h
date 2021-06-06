@@ -52,6 +52,7 @@ public:
   void set_xor_mask(const char *mask);
   void switch_tdma(bool phase2_tdma); 
   void start(Call *call);
+  double since_last_write();
   void reset_rx_status();
   Rx_Status get_rx_status();
   void stop();

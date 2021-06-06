@@ -225,7 +225,7 @@ public:
 
     for (std::vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
       Call *call = *it;
-      if (call->get_state() == recording) {
+      if (call->get_state() == RECORDING) {
         node.push_back(std::make_pair("", call->get_stats()));
       }
     }

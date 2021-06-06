@@ -59,7 +59,7 @@ analog_recorder::analog_recorder(Source *src)
   recording_duration = 0;
 
   rec_num = rec_counter++;
-  state = inactive;
+  state = INACTIVE;
 
   timestamp = time(NULL);
   starttime = time(NULL);
@@ -173,10 +173,10 @@ analog_recorder::analog_recorder(Source *src)
   // Analog audio band pass from 300 to 3000 Hz
   // can't use gnuradio.filter.firdes.band_pass since we have different transition widths
   // 300 Hz high pass (275-325 Hz): removes CTCSS/DCS and Type II 150 bps Low Speed Data (LSD), or "FSK wobble"
-  high_f_taps = gr::filter::firdes::high_pass(1, wave_sample_rate, 300, 50, gr::filter::firdes::WIN_HANN); // Configurable
+  high_f_taps = gr::filter::firdes::high_pass(1, wav_sample_rate, 300, 50, gr::filter::firdes::WIN_HANN); // Configurable
   high_f = gr::filter::fir_filter_fff::make(1, high_f_taps);
   // 3000 Hz low pass (3000-3500 Hz)
-  low_f_taps = gr::filter::firdes::low_pass(1, wave_sample_rate, 3250, 500, gr::filter::firdes::WIN_HANN);
+  low_f_taps = gr::filter::firdes::low_pass(1, wav_sample_rate, 3250, 500, gr::filter::firdes::WIN_HANN);
   low_f = gr::filter::fir_filter_fff::make(1, low_f_taps);
 
   // using squelch
@@ -220,9 +220,9 @@ int analog_recorder::get_num() {
 }
 
 void analog_recorder::stop() {
-  if (state == active) {
+  if (state == ACTIVE) {
     recording_duration += wav_sink->length_in_seconds();
-    state = inactive;
+    state = INACTIVE;
     valve->set_enabled(false);
     wav_sink->close();
   } else {
@@ -245,7 +245,7 @@ bool analog_recorder::is_analog() {
 }
 
 bool analog_recorder::is_active() {
-  if (state == active) {
+  if (state == ACTIVE) {
     return true;
   } else {
     return false;
@@ -253,11 +253,12 @@ bool analog_recorder::is_active() {
 }
 
 bool analog_recorder::is_idle() {
-  if (state == active) {
+  if (state == ACTIVE) {
     return !squelch->unmuted();
   }
   return true;
 }
+
 
 long analog_recorder::get_talkgroup() {
   return talkgroup;
@@ -342,11 +343,11 @@ bool analog_recorder::start(Call *call) {
 
   wav_sink->open(call);
 
-  state = active;
+  state = ACTIVE;
   valve->set_enabled(true);
   return true;
 }
 
 double analog_recorder::get_output_sample_rate() {
-  return wave_sample_rate;
+  return wav_sample_rate;
 }

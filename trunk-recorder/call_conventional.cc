@@ -18,7 +18,7 @@ void Call_conventional::restart_call() {
   start_time = time(NULL);
   stop_time = time(NULL);
   last_update = time(NULL);
-  state = recording;
+  state = RECORDING;
   debug_recording = false;
   phase2_tdma = false;
   tdma_slot = 0;

@@ -20,7 +20,7 @@ streamer::CallInfo* ToCallInfo(Call *call) {
     if(call == NULL) return NULL;
 
     streamer::CallInfo* ci;
-    ci->set_call_active(call->get_state() == inactive);
+    ci->set_call_active(call->get_state() == INACTIVE);
     ci->set_recorder_num(call->get_recorder()->get_num());
     ci->set_system_num(call->get_sys_num());
     ci->set_curr_freq(call->get_freq());

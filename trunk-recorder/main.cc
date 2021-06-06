@@ -44,14 +44,14 @@
 #include "recorders/p25_recorder.h"
 #include "recorders/recorder.h"
 
+#include "call.h"
+#include "call_conventional.h"
 #include "systems/p25_parser.h"
 #include "systems/p25_trunking.h"
 #include "systems/parser.h"
 #include "systems/smartnet_parser.h"
 #include "systems/smartnet_trunking.h"
 #include "systems/system.h"
-#include "call.h"
-#include "call_conventional.h"
 
 #include <osmosdr/source.h>
 
@@ -547,7 +547,7 @@ bool load_config(string config_file) {
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
     //initialize_internal_plugin("stat_socket");
-    initialize_plugins(pt, &config,sources, systems);
+    initialize_plugins(pt, &config, sources, systems);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
     return false;
@@ -572,7 +572,7 @@ int get_total_recorders() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
 
-    if (call->get_state() == recording) {
+    if (call->get_state() == RECORDING) {
       total_recorders++;
     }
   }
@@ -659,13 +659,13 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         }
 
         if (recorder->start(call)) {
-        call->set_recorder(recorder);
-        call->set_state(recording);
-        plugman_setup_recorder(recorder);
-        recorder_found = true;
+          call->set_recorder(recorder);
+          call->set_state(RECORDING);
+          plugman_setup_recorder(recorder);
+          recorder_found = true;
         } else {
-        recorder_found = false;
-        return false;
+          recorder_found = false;
+          return false;
         }
       } else {
         // not recording call either because the priority was too low or no
@@ -712,7 +712,6 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   return false;
 }
 
-
 // This is to handle the messages that come off the Analog recorder.
 void process_message_queues() {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
@@ -726,108 +725,37 @@ void process_message_queues() {
 }
 
 void manage_conventional_call(Call *call) {
- if (call->get_recorder()) {
-      // if any recording has happened
-      if (call->get_current_length() > 0) {
-        BOOST_LOG_TRIVIAL(trace) << "Recorder: " << call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();
+  if (call->get_recorder()) {
+    // if any recording has happened
+    if (call->get_current_length() > 0) {
+      BOOST_LOG_TRIVIAL(trace) << "Recorder: " << call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();
 
-        // means that the squelch is on and it has stopped recording
-        if (call->get_recorder()->is_idle()) {
-          // increase the number of periods it has not been recording for
-          call->increase_idle_count();
-        } else if (call->get_idle_count() > 0) {
-          // if it starts recording again, then reset the idle count
-          call->reset_idle_count();
-        }
-
-        // if no additional recording has happened in the past X periods, stop and open new file
-        if (call->get_idle_count() > config.call_timeout) {
-          Recorder *recorder = call->get_recorder();
-          call->stop_call();
-          
-          call->restart_call();
-          if (recorder != NULL) {
-            plugman_setup_recorder(recorder);
-          }
-        }
-      } else if (!call->get_recorder()->is_active()) {
-              // P25 Conventional Recorders need a have the graph unlocked before they can start recording.  
-              Recorder *recorder = call->get_recorder();
-              recorder->start(call);
-              call->set_state(recording);
-              //plugman_setup_recorder((Recorder *)recorder->get());
+      // means that the squelch is on and it has stopped recording
+      if (call->get_recorder()->is_idle()) {
+        // increase the number of periods it has not been recording for
+        call->increase_idle_count();
+      } else if (call->get_idle_count() > 0) {
+        // if it starts recording again, then reset the idle count
+        call->reset_idle_count();
       }
- }
-}
 
-void manage_calls() {
-  bool ended_recording = false;
-
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
-    Call *call = *it;
-    State state = call->get_state();
-    // Handle Conventional Calls
-    if (call->is_conventional()) {
-      manage_conventional_call(call); 
-      ++it;
-      continue;
-    } 
-
-
-    // Handle Trunked Calls
-    if ((call->since_last_update() > config.call_timeout) && ((state == recording) || (state == monitoring))) {
-        if (state == recording) {
-          ended_recording = true;
-          call->stop_call();
-          ++it;
-          continue;
-        }
-        // we do not need to stop Monitoring Calls, we can just delete them
-        if (state == monitoring) {
-          ended_recording = true;
-          it = calls.erase(it);
-          delete call;
-          continue;
-        }
-    } 
-    
-    // If a call's state has been set to completed, we can conclude the call and delete it
-    if (state == completed) {
-
-        call->conclude_call();
-
-        // The State of the Recorders has changed, so lets send an update
-        ended_recording = true;
+      // if no additional recording has happened in the past X periods, stop and open new file
+      if (call->get_idle_count() > config.call_timeout) {
         Recorder *recorder = call->get_recorder();
+        call->stop_call();
+
+        call->restart_call();
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
         }
-        it = calls.erase(it);
-        delete call;
-        continue;
-    } 
-
-    // We are checking to make sure a Call has gotten stuck. If it is in the inactive state
-    if (state == inactive) {
-        Recorder *recorder = call->get_recorder();
-        if (recorder != NULL) {
-          if (recorder->since_last_write() > 10) {
-            BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
-    
-          }
-        } else {
-          BOOST_LOG_TRIVIAL(error) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
-    
-        }
+      }
+    } else if (!call->get_recorder()->is_active()) {
+      // P25 Conventional Recorders need a have the graph unlocked before they can start recording.
+      Recorder *recorder = call->get_recorder();
+      recorder->start(call);
+      call->set_state(RECORDING);
+      //plugman_setup_recorder((Recorder *)recorder->get());
     }
-
-    ++it;
-       // if rx is active
-  }   // foreach loggers
-  
-
-  if (ended_recording) {
-    plugman_calls_active(calls);
   }
 }
 
@@ -852,13 +780,106 @@ void print_status() {
   }
 }
 
+void manage_calls() {
+  bool ended_recording = false;
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+    Call *call = *it;
+    State state = call->get_state();
+    // Handle Conventional Calls
+    if (call->is_conventional()) {
+      manage_conventional_call(call);
+      ++it;
+      continue;
+    }
+
+    // Handle Trunked Calls
+    if ((call->since_last_update() > config.call_timeout) && ((state == RECORDING) || (state == MONITORING))) {
+      if (state == RECORDING) {
+        ended_recording = true;
+        call->stop_call();
+        ++it;
+        continue;
+      }
+      // we do not need to stop Monitoring Calls, we can just delete them
+      if (state == MONITORING) {
+        ended_recording = true;
+        it = calls.erase(it);
+        delete call;
+        continue;
+      }
+    }
+
+    // If a call's state has been set to completed, we can conclude the call and delete it
+    if (state == COMPLETED) {
+
+      call->conclude_call();
+
+      // The State of the Recorders has changed, so lets send an update
+      ended_recording = true;
+      Recorder *recorder = call->get_recorder();
+      if (recorder != NULL) {
+        plugman_setup_recorder(recorder);
+      }
+      it = calls.erase(it);
+      delete call;
+      continue;
+    }
+
+    // We are checking to make sure a Call has gotten stuck. If it is in the INACTIVE state
+    if (state == INACTIVE) {
+      Recorder *recorder = call->get_recorder();
+      if (recorder != NULL) {
+        if (recorder->since_last_write() > 10) {
+          BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
+          BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
+          call->conclude_call();
+
+          // The State of the Recorders has changed, so lets send an update
+          ended_recording = true;
+          Recorder *recorder = call->get_recorder();
+          if (recorder != NULL) {
+            plugman_setup_recorder(recorder);
+          }
+          it = calls.erase(it);
+          delete call;
+          continue;
+        }
+
+        if ((recorder->get_state() == IDLE) || (recorder->get_state() == COMPLETED)) {
+          BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
+          BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Recorder completed or gone idle \u001b[0m";
+
+          call->conclude_call();
+
+          // The State of the Recorders has changed, so lets send an update
+          ended_recording = true;
+          Recorder *recorder = call->get_recorder();
+          if (recorder != NULL) {
+            plugman_setup_recorder(recorder);
+          }
+          it = calls.erase(it);
+          delete call;
+          continue;
+        }
+      } else {
+        BOOST_LOG_TRIVIAL(error) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
+      }
+    }
+
+    ++it;
+    // if rx is active
+  } // foreach loggers
+
+  if (ended_recording) {
+    plugman_calls_active(calls);
+  }
+}
 
 void current_system_status(TrunkMessage message, System *sys) {
   if (sys->update_status(message)) {
     plugman_setup_system(sys);
   }
 }
-
 
 void unit_check() {
   std::map<long, long> talkgroup_totals;
@@ -899,12 +920,11 @@ void unit_check() {
   }
 }
 
-
 void unit_registration(string unit_script, string shortName, long unit) {
   unit_affiliations[unit] = 0;
 
   if ((unit_script.length() != 0) && (unit != 0)) {
-    char   shell_command[200];
+    char shell_command[200];
     sprintf(shell_command, "%s %s %li on &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
   }
@@ -920,7 +940,7 @@ void unit_deregistration(string unit_script, string shortName, long unit) {
   unit_affiliations[unit] = -1;
 
   if ((unit_script.length() != 0) && (unit != 0)) {
-    char   shell_command[200];
+    char shell_command[200];
     sprintf(shell_command, "%s %s %li off &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
   }
@@ -928,7 +948,7 @@ void unit_deregistration(string unit_script, string shortName, long unit) {
 
 void unit_ack(string unit_script, string shortName, long unit) {
   if ((unit_script.length() != 0) && (unit != 0)) {
-    char   shell_command[200];
+    char shell_command[200];
     sprintf(shell_command, "%s %s %li ackresp &", unit_script.c_str(), shortName.c_str(), unit);
     int rc = system(shell_command);
   }
@@ -938,7 +958,7 @@ void group_affiliation(string unit_script, string shortName, long unit, long tal
   unit_affiliations[unit] = talkgroup;
 
   if ((unit_script.length() != 0) && (unit != 0)) {
-    char   shell_command[200];
+    char shell_command[200];
     sprintf(shell_command, "%s %s %li join %li &", unit_script.c_str(), shortName.c_str(), unit, talkgroup);
     int rc = system(shell_command);
   }
@@ -949,34 +969,24 @@ void handle_call(TrunkMessage message, System *sys) {
   bool call_retune = false;
   bool recording_started = false;
 
-
   /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
   that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
   recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
   of the original recorder gets flushed. */
 
-  unit_affiliations[message.source] = message.talkgroup;
-
-  if ((sys->get_unit_script().length() != 0) && (message.source != 0)) {
-    char   shell_command[200];
-    sprintf(shell_command, "%s %s %li call %li &", sys->get_unit_script().c_str(), sys->get_short_name().c_str(), message.source, message.talkgroup);
-    int rc = system(shell_command);
-  }
-
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();++it) {
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
     Call *call = *it;
 
-    if ((call->get_state() == recording) || (call->get_state() == monitoring)) {
+    if ((call->get_state() != RECORDING) && (call->get_state() != MONITORING)) {
       continue;
     }
 
-    
+    //BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
       call->update(message);
       break;
     }
-       
   }
 
   if (!call_found) {
@@ -989,7 +999,6 @@ void handle_call(TrunkMessage message, System *sys) {
     plugman_calls_active(calls);
   }
 }
-
 
 void handle_message(std::vector<TrunkMessage> messages, System *sys) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
@@ -1135,7 +1144,6 @@ void check_message_count(float timeDiff) {
           BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tThere is only one control channel defined";
         }
 
-
         // if it loses track of the control channel, quit after a while
         if (config.control_retune_limit > 0) {
           sys->retune_attempts++;
@@ -1273,7 +1281,7 @@ bool setup_systems() {
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
               call->set_recorder((Recorder *)rec.get());
-              call->set_state(recording);
+              call->set_state(RECORDING);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
               plugman_setup_recorder((Recorder *)rec.get());
@@ -1358,8 +1366,8 @@ int main(int argc, char **argv) {
       logging::trivial::severity >= logging::trivial::info
 
   );
-  
-  boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");
+
+  boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
 
   boost::log::add_common_attributes();
   boost::log::core::get()->add_global_attribute("Scope",

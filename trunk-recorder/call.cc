@@ -74,7 +74,7 @@ Call::Call(long t, double f, System *s, Config c) {
   start_time = time(NULL);
   stop_time = time(NULL);
   last_update = time(NULL);
-  state = monitoring;
+  state = MONITORING;
   debug_recording = false;
   sigmf_recording = false;
   recorder = NULL;
@@ -99,7 +99,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   start_time = time(NULL);
   stop_time = time(NULL);
   last_update = time(NULL);
-  state = monitoring;
+  state = MONITORING;
   debug_recording = false;
   sigmf_recording = false;
   recorder = NULL;
@@ -121,19 +121,24 @@ void Call::restart_call() {
 }
 
 void Call::stop_call() {
-  this->set_state(inactive);
+  
 
-  if ((state == recording) && (this->get_recorder()->get_state() == idle)) {
-    state = completed;
-  } 
+  BOOST_LOG_TRIVIAL(info) << "stop_call()";
+  if ((state == RECORDING) && (this->get_recorder()->get_state() == IDLE)) {
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
+    this->set_state(COMPLETED);
+  } else {
+    this->set_state(INACTIVE);
+  }
 
 }
 
 void Call::conclude_call() {
 
+  BOOST_LOG_TRIVIAL(info) << "conclude_call()";
   stop_time = time(NULL);
 
-  if (state == recording) {
+  if (state == COMPLETED) {
     final_length = recorder->get_current_length();
 
     if (freq_count > 0) {
@@ -145,7 +150,7 @@ void Call::conclude_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tConcluding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
     this->get_recorder()->stop();
 
@@ -158,6 +163,8 @@ void Call::conclude_call() {
     }
 
     Call_Concluder::conclude_call(this, sys, config);
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
   }
   
 }
@@ -166,8 +173,8 @@ void Call::conclude_call() {
 
 State Call::add_transmission(Transmission t) {
   transmission_list.push_back(t);
-  if (state == inactive) {
-    state = completed;
+  if (state == INACTIVE) {
+    state = COMPLETED;
   }
   return state;
 }
@@ -206,7 +213,7 @@ double Call::get_final_length() {
 }
 
 double Call::get_current_length() {
-  if ((state == recording) && recorder) {
+  if ((state == RECORDING) && recorder) {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::get_current_length() State is recording, but no recorder assigned!";
     }
@@ -282,8 +289,8 @@ long Call::get_freq_count() {
 }
 
 std::vector<Call_Source> Call::get_source_list() {
-  if ((state == recording) && !recorder) {
-    BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is recording, but no recorder assigned!";
+  if ((state == RECORDING) && !recorder) {
+    BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is RECORDING, but no recorder assigned!";
   }
   return src_list;
 }
@@ -300,7 +307,7 @@ void Call::clear_src_list() {
 }
 
 long Call::get_source_count() {
-  if ((state == recording) && !recorder) {
+  if ((state == RECORDING) && !recorder) {
     BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
   }
   return src_list.size();
@@ -422,7 +429,7 @@ bool Call::add_source(long src) {
 }
 
 void Call::update(TrunkMessage message) {
-  if ((state == inactive ) || (state == completed)) {
+  if ((state == INACTIVE ) || (state == COMPLETED)) {
         BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCall Update, but state is: " << state << " - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
   } else {
     last_update = time(NULL);
@@ -540,7 +547,7 @@ boost::property_tree::ptree Call::get_stats() {
   call_node.put("talkgroup", this->get_talkgroup());
   call_node.put("talkgrouptag", this->get_talkgroup_tag());
   call_node.put("elasped", this->elapsed());
-  if (get_state() == recording)
+  if (get_state() == RECORDING)
     call_node.put("length", this->get_current_length());
   else
     call_node.put("length", this->get_final_length());

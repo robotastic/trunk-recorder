@@ -78,6 +78,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   d_sample_count = 0;
   d_first_work = true;
   d_termination_flag = false;
+  state = INACTIVE;
 }
 
 char *nonstop_wavfile_sink_impl::get_filename() {
@@ -93,9 +94,9 @@ bool nonstop_wavfile_sink_impl::open(Call *call) {
   d_conventional = call->is_conventional();
   curr_src_id = d_current_call->get_current_source();
   d_sample_count = 0;
-
+  BOOST_LOG_TRIVIAL(info) << "Initial source id from call: " << curr_src_id;
   // when a wav_sink first gets associated with a call, set its lifecycle to idle;
-  state = idle;
+  state = IDLE;
   /* Should reset more variables here */
 
 
@@ -109,7 +110,7 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
   // we use the open system call to get access to the O_LARGEFILE flag.
   //  O_APPEND|
   int fd;
-  d_sample_count = 0;
+
   if ((fd = ::open(filename,
                    O_RDWR | O_CREAT | OUR_O_LARGEFILE | OUR_O_BINARY,
                    0664)) < 0) {
@@ -161,7 +162,9 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 }
 
 bool nonstop_wavfile_sink_impl::end_transmission() {
+  BOOST_LOG_TRIVIAL(info) << "Called end transmission";
     if (d_current_call && (d_sample_count > 0)) {
+      BOOST_LOG_TRIVIAL(info) << "Ending transmission";
       // if an Transmission has ended, send it to Call.
       Transmission transmission;
       transmission.source = curr_src_id; // Source ID for the Call
@@ -174,35 +177,34 @@ bool nonstop_wavfile_sink_impl::end_transmission() {
       strcpy(transmission.status_filename, current_status_filename);
       strcpy(transmission.converted_filename, current_converted_filename);
       State call_state = d_current_call->add_transmission(transmission);
-      if (call_state == completed) {
-        return false;
+      d_sample_count = 0;
+      BOOST_LOG_TRIVIAL(info) << "Call state is: " << call_state;
+      if ((call_state == COMPLETED) || (call_state == INACTIVE)) {
+        return true;
       }
     } else {
       BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but there is not current call" << std::endl;
-      return false;
+      return true;
     }
-    return true;
+    return false;
 }
 
 void nonstop_wavfile_sink_impl::close() {
   gr::thread::scoped_lock guard(d_mutex);
 
 
-  if (!d_fp) {
-    BOOST_LOG_TRIVIAL(error) << "wav error closing file - this is probably because no samples were received, so no file was opened." << std::endl;
-    return;
-  }
-
   // If conversations are not being used, then add the current transmission to the transmission list for the call. 
-  if (d_current_call ) {
+  if (d_current_call && (d_sample_count > 0)) {
     end_transmission();
   }
+      if (d_fp) {
+        close_wav(false);
+      }
 
-  close_wav(true);
   d_current_call = NULL;
   d_first_work = true;
   d_termination_flag = false;
-  state = inactive;
+  state = INACTIVE;
 }
 
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
@@ -223,8 +225,8 @@ bool nonstop_wavfile_sink_impl::stop() {
   return true;
 }
 
-State nonstop_wavfile_sink:get_state() {
-  return this.state;
+State nonstop_wavfile_sink_impl::get_state() {
+  return this->state;
 }
 
 void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char *system_type, bool emergency) {
@@ -248,17 +250,16 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     return noutput_items;
   }
 
-
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
-  if (state == inactive) {
+  if ((state == INACTIVE) || (state == COMPLETED))  {
+    if (noutput_items > 1) {
     time_t now = time(NULL);
     double its_been = difftime(now, d_stop_time);
-    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << " exptected: " << noutput_items << std::endl;
+
+    BOOST_LOG_TRIVIAL(info) << "WAV - state is: " <<  FormatState(this->state) << "\t Dropping samples: "<< noutput_items << " Since close: " << its_been << std::endl;
+    }
     return noutput_items;
   }
-
-
-
 
   std::vector<gr::tag_t> tags;
   pmt::pmt_t this_key(pmt::intern("src_id"));
@@ -276,9 +277,11 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
       // double   sec = (double)pos  / (double)d_sample_rate;
       //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ SRC TAG - SRC: " << src_id << " Call Src:  " << d_current_call->get_current_source() << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << "  ] " << std::endl;
-
-    
+      if (curr_src_id != src_id) {
+      BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
+      }
       if (src_id && (curr_src_id != src_id)) {
+
         log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
         curr_src_id = src_id;
       }
@@ -286,37 +289,12 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (pmt::eq(that_key, tags[i].key) || pmt::eq(squelch_key, tags[i].key)) {
       d_termination_flag = true;
       
-      //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
+      BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Total Samples: " << d_sample_count << " Frame samples: " << noutput_items << std::endl;
       //return noutput_items;
     }
   }
   tags.clear();
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
-
-
-
-// if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended... OR
-// The recording is just starting out...
-if (d_first_work) {
-      if (d_fp) {
-        // if we are already recording a file for this call, close it before starting a new one.
-        BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but d_first_work was true:  " << current_filename << std::endl;
-    
-        close_wav(false);
-      }
-        // create a new filename, based on the current time and source.
-        d_current_call->create_filename();
-        strcpy(current_status_filename,d_current_call->get_status_filename());
-        strcpy(current_converted_filename,d_current_call->get_converted_filename());
-        if (!open_internal(d_current_call->get_filename())) {
-            BOOST_LOG_TRIVIAL(error) << "can't open file";
-        }
-
-
-      curr_src_id = d_current_call->get_current_source();
-      d_start_time = time(NULL);
-      d_first_work = false;
-}
 
   int nwritten = dowork(noutput_items, input_items, output_items);
 
@@ -349,22 +327,48 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 */
 
 
-if ( d_current_call && d_termination_flag )  {
+if ( d_termination_flag )  {
 
+    if (d_current_call == NULL) {
+         BOOST_LOG_TRIVIAL(error) << "wav - no current call in temination loop";
+    }
     if   (d_sample_count > 0) {
       if (d_fp) {
-        // if we are already recording a file for this call, close it before starting a new one.
         close_wav(false);
       }
 
-      bool proceed = end_transmission();
+      bool call_completed = end_transmission();
     
-      if (!proceed) {
-        state = inactive;
-        d_termination_flag = false;
-        return noutput_items;
+      if (call_completed) {
+        BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
+        state = COMPLETED;
+      } else {
+        state = IDLE;
+        d_first_work = true;
       }
+      d_termination_flag = false;
+    } else {
+      // we are receiving a termination frame and our associated call is completed or inactive, time to stop
+      if ((d_current_call->get_state() == COMPLETED) || (d_current_call->get_state() == INACTIVE)){
+        state = COMPLETED;
+        BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - no samples";
+      }
+      // No samples have been written yet. This means there was a Termination Flag (d_termination_flag) set prior to anything being written. Lets clear the flag.
+      d_termination_flag = false;
+    }
+    return noutput_items;
+  }
 
+
+if (d_first_work) {
+      if (d_fp) {
+        // if we are already recording a file for this call, close it before starting a new one.
+        BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but d_first_work was true:  " << current_filename << std::endl;
+    
+        close_wav(false);
+      }
+      BOOST_LOG_TRIVIAL(info) << " Starting new file, output_items: " <<  noutput_items << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
+  
         // create a new filename, based on the current time and source.
         d_current_call->create_filename();
         strcpy(current_filename,d_current_call->get_transmission_filename());
@@ -373,24 +377,15 @@ if ( d_current_call && d_termination_flag )  {
         strcat(current_status_filename, ".json");
         strcpy(current_converted_filename,d_current_call->get_transmission_filename());
         strcat(current_converted_filename, ".m4a");
-        if (!open_internal(current_filename)) {
+        if (!open_internal(d_current_call->get_filename())) {
             BOOST_LOG_TRIVIAL(error) << "can't open file";
         }
 
 
       curr_src_id = d_current_call->get_current_source();
       d_start_time = time(NULL);
-      state = idle;
-      BOOST_LOG_TRIVIAL(info) << " Source Termination - starting new file" <<  noutput_items << " Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
-  
-      d_termination_flag = false;
-    } else {
-      // No samples have been written yet. This means there was a Termination Flag (d_termination_flag) set prior to anything being written. Lets clear the flag.
-      d_termination_flag = false;
-    }
-  }
-
-
+      d_first_work = false;
+}
 
   if (!d_fp) // drop output on the floor
   {
@@ -426,7 +421,7 @@ if ( d_current_call && d_termination_flag )  {
   }
 
   if (nwritten > 0) {
-    state = active;
+    state = ACTIVE;
   }
   // fflush (d_fp);  // this is added so unbuffered content is written.
   return nwritten;

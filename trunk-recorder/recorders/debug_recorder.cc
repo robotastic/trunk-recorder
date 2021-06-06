@@ -147,7 +147,7 @@ debug_recorder::debug_recorder(Source *src, std::string address, int port)
   talkgroup = 0;
   port = port;
 
-  state = inactive;
+  state = INACTIVE;
 
   timestamp = time(NULL);
   starttime = time(NULL);
@@ -176,7 +176,7 @@ int debug_recorder::get_num() {
 }
 
 bool debug_recorder::is_active() {
-  if (state == active) {
+  if (state == ACTIVE) {
     return true;
   } else {
     return false;
@@ -234,9 +234,9 @@ State debug_recorder::get_state() {
 }
 
 void debug_recorder::stop() {
-  if (state == active) {
+  if (state == ACTIVE) {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
-    state = inactive;
+    state = INACTIVE;
     valve->set_enabled(false);
   } else {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Trying to Stop an Inactive Logger!!!";
@@ -244,7 +244,7 @@ void debug_recorder::stop() {
 }
 
 bool debug_recorder::start(Call *call) {
-  if (state == inactive) {
+  if (state == INACTIVE) {
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -256,7 +256,7 @@ bool debug_recorder::start(Call *call) {
     int offset_amount = (center_freq - chan_freq);
     tune_offset(offset_amount);
 
-    state = active;
+    state = ACTIVE;
     valve->set_enabled(true);
   } else {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Trying to Start an already Active Logger!!!";

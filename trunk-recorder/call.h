@@ -54,7 +54,7 @@ class Recorder;
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 
 class System;
-//enum  CallState { monitoring=0, recording=1, stopping=2};
+//enum  CallState { MONITORING=0, recording=1, stopping=2};
 
 class Call {
 public:

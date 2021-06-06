@@ -19,14 +19,18 @@ boost::format FormatSamplingRate(float f) {
 
 std::string FormatState(State state) {
   if (statusAsString) {
-    if (state == monitoring)
+    if (state == MONITORING)
       return "monitoring";
-    else if (state == recording)
+    else if (state == RECORDING)
       return "recording";
-    else if (state == inactive)
+    else if (state == INACTIVE)
       return "inactive";
-    else if (state == active)
+    else if (state == ACTIVE)
       return "active";
+    else if (state == IDLE)
+      return "idle";
+    else if (state == COMPLETED)
+      return "completed";
     return "Unknown";
   }
   return boost::lexical_cast<std::string>(state);

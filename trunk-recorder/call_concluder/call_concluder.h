@@ -46,6 +46,7 @@ struct Call_Data_t {
   bool phase2_tdma;
   long source_count;
   std::vector<Call_Source> source_list;
+  std::vector<Transmission> transmission_list;
   long freq_count;
   Call_Freq freq_list[50];
   long error_list_count;
