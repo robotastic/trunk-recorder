@@ -50,8 +50,7 @@ private:
 	time_t d_stop_time;
 	long curr_src_id;
 	char current_filename[255];
-	char current_status_filename[255];
-	char current_converted_filename[255];
+	char current_base_filename[255];
 	Call* d_current_call;
 
 protected:

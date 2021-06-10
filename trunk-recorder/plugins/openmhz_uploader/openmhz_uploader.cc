@@ -23,6 +23,15 @@ class Openmhz_Uploader : public Plugin_Api {
   Openmhz_Uploader_Data data;
 
 public:
+  std::string get_api_key(std::string short_name) {
+    for (std::vector<Openmhz_System_Key>::iterator it = data.keys.begin(); it != data.keys.end(); ++it) {
+      Openmhz_System_Key key = *it;
+      if (key.short_name == short_name){
+        return key.api_key;
+      }
+    }
+    return "";
+  }
   static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
     ((std::string *)userp)->append((char *)contents, size * nmemb);
     return size * nmemb;
@@ -48,13 +57,19 @@ public:
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
     time_t start_time = call_info.start_time;
 
-    if (call_info.source_count != 0) {
-      std::vector<Call_Source> call_source_list = call_info.source_list;
+    std::string api_key = get_api_key(call_info.short_name);
+    if (api_key.size()==0){
+      BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
+      return 2;
+    }
 
-      for (int i = 0; i < call_info.source_count; i++) {
-        source_list << "{ \"pos\": " << std::setprecision(2) << call_source_list[i].position << ", \"src\": " << std::setprecision(0) << call_source_list[i].source << " }";
 
-        if (i < (call_info.source_count - 1)) {
+
+    if (call_info.call_source_list.size() != 0) {
+      for (int i = 0; i < call_info.call_source_list.size(); i++) {
+        source_list << "{ \"pos\": " << std::setprecision(2) << call_info.call_source_list[i].position << ", \"src\": " << std::setprecision(0) << call_info.call_source_list[i].source << " }";
+
+        if (i < (call_info.call_source_list.size() - 1)) {
           source_list << ", ";
         } else {
           source_list << "]";
@@ -64,40 +79,21 @@ public:
       source_list << "]";
     }
 
-    std::ostringstream freq_list;
-    std::string freq_list_string;
-    freq_list << std::fixed << std::setprecision(2);
-    freq_list << "[";
-
-    if (call_info.freq_count != 0) {
-      Call_Freq *call_freq_list = call_info.freq_list;
-
-      for (int i = 0; i < call_info.freq_count; i++) {
-        freq_list << "{ \"pos\": " << std::setprecision(2) << call_freq_list[i].position << ", \"freq\": " << std::setprecision(0) << call_info.freq_list[i].freq << ", \"len\": " << call_info.freq_list[i].total_len << ", \"errors\": " << call_freq_list[i].error_count << ", \"spikes\": " << call_freq_list[i].spike_count << " }";
-
-        if (i < (call_info.freq_count - 1)) {
-          freq_list << ", ";
-        } else {
-          freq_list << "]";
-        }
-      }
-    } else {
-      freq_list << "]";
-    }
-
+    BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
     CURL *curl;
     CURLMcode res;
     CURLM *multi_handle;
     int still_running = 0;
     std::string response_buffer;
     freq_string = freq.str();
-    freq_list_string = freq_list.str();
+
     source_list_string = source_list.str();
     call_length_string = call_length.str();
 
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
     struct curl_slist *headerlist = NULL;
+
 
     /* Fill in the file upload field. This makes libcurl load data from
      the given file name when curl_easy_perform() is called. */
@@ -147,7 +143,7 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "api_key",
-                 CURLFORM_COPYCONTENTS, call_info.api_key.c_str(),
+                 CURLFORM_COPYCONTENTS, data.openmhz_server.c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
@@ -156,19 +152,13 @@ public:
                  CURLFORM_COPYCONTENTS, source_list_string.c_str(),
                  CURLFORM_END);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "freq_list",
-                 CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
-                 CURLFORM_END);
-
     curl = curl_easy_init();
     multi_handle = curl_multi_init();
 
     /* initialize custom header list (stating that Expect: 100-continue is not wanted */
     headerlist = curl_slist_append(headerlist, "Expect:");
     if (curl && multi_handle) {
-      std::string url = call_info.upload_server + "/" + call_info.short_name + "/upload";
+      std::string url = data.openmhz_server + "/" + call_info.short_name + "/upload";
 
       /* what URL that receives this POST */
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -291,6 +281,16 @@ public:
     }
     this->data.openmhz_server = cfg.get<std::string>("openmhzServer", "");
     BOOST_LOG_TRIVIAL(info) << "OpenMHz Server: " << this->data.openmhz_server;
+
+  // from: http://www.zedwood.com/article/cpp-boost-url-regex
+  boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+  boost::cmatch what;
+
+    if (!regex_match(this->data.openmhz_server.c_str(), what, ex)) {
+      BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
+      return 1;
+    }
+
     return 0;
   }
 

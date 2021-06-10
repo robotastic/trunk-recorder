@@ -15,8 +15,7 @@ struct Transmission {
   double freq;
   double length;
   char filename[255];
-  char status_filename[255];
-  char converted_filename[255];
+  char base_filename[255];
 };
 
 
@@ -82,6 +81,7 @@ void end_transmissions();
   char *get_sigmf_filename();
   int get_sys_num();
   std::string get_short_name();
+  void create_filename(time_t work_start_time);
   void create_filename();
   void set_error(Rx_Status rx_status);
   void set_freq(double f);

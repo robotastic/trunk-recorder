@@ -9,7 +9,23 @@
 #include <stdio.h>
 
 //static int rec_counter=0;
+void Call::create_filename(time_t work_start_time) {
+  std::stringstream path_stream;
+  tm *ltm = localtime(&work_start_time);
+  // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
+  path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  std::string path_string = path_stream.str();
+  boost::filesystem::create_directories(path_string);
+  
+  int nchars;
 
+  nchars = snprintf(transmission_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), talkgroup, start_time, curr_freq);
+
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+  }
+
+}
 void Call::create_filename() {
   time_t now = time(NULL);
   tm *ltm = localtime(&start_time);
@@ -573,21 +589,6 @@ boost::property_tree::ptree Call::get_stats() {
   }
   call_node.add_child("sourceList", source_list_node);
 
-  Call_Freq *freq_list = this->get_freq_list();
-  int freq_count = this->get_freq_count();
-
-  for (int i = 0; i < freq_count; i++) {
-    boost::property_tree::ptree freq_node;
-
-    freq_node.put("freq", freq_list[i].freq);
-    freq_node.put("time", freq_list[i].time);
-    freq_node.put("spikes", freq_list[i].spike_count);
-    freq_node.put("errors", freq_list[i].error_count);
-    freq_node.put("position", freq_list[i].position);
-    freq_node.put("length", freq_list[i].total_len);
-    freq_list_node.push_back(std::make_pair("", freq_node));
-  }
-  call_node.add_child("freqList", freq_list_node);
 
   Recorder *recorder = this->get_recorder();
 

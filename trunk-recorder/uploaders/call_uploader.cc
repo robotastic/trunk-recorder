@@ -78,9 +78,7 @@ void send_transmission(Call *call, Transmission transmission, System *sys, Confi
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
 
-    strcpy(call_info->filename, transmission.filename);
-    strcpy(call_info->converted, transmission.converted_filename);
-    strcpy(call_info->status_filename, transmission.status_filename);
+
     strcpy(call_info->file_path, call->get_path());
 
     if (regex_match(config.upload_server.c_str(), what, ex)) {
@@ -148,8 +146,6 @@ void send_transmissions(Call *call, System *sys, Config config) {
     boost::cmatch what;
 
     strcpy(call_info->filename, call->transmission_list[i].filename);
-    strcpy(call_info->converted, call->transmission_list[i].converted_filename);
-    strcpy(call_info->status_filename, call->transmission_list[i].status_filename);
     strcpy(call_info->file_path, call->get_path());
 
     if (regex_match(config.upload_server.c_str(), what, ex)) {

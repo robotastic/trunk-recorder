@@ -171,11 +171,9 @@ bool nonstop_wavfile_sink_impl::end_transmission() {
       transmission.start_time =  d_start_time; // Start time of the Call
       transmission.stop_time = d_stop_time; // when the Call eneded
       transmission.sample_count =  d_sample_count;
-      transmission.freq =  d_current_call->get_freq(); // Freq for the recording
       transmission.length =  length_in_seconds(); // length in seconds
       strcpy(transmission.filename,current_filename);  // Copy the filename
-      strcpy(transmission.status_filename, current_status_filename);
-      strcpy(transmission.converted_filename, current_converted_filename);
+      strcpy(transmission.base_filename, current_base_filename);
       State call_state = d_current_call->add_transmission(transmission);
       d_sample_count = 0;
       BOOST_LOG_TRIVIAL(info) << "Call state is: " << call_state;
@@ -368,22 +366,19 @@ if (d_first_work) {
         close_wav(false);
       }
       BOOST_LOG_TRIVIAL(info) << " Starting new file, output_items: " <<  noutput_items << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
-  
+        d_start_time = time(NULL);
         // create a new filename, based on the current time and source.
-        d_current_call->create_filename();
+        d_current_call->create_filename(d_start_time);
         strcpy(current_filename,d_current_call->get_transmission_filename());
         strcat(current_filename, ".wav");
-        strcpy(current_status_filename,d_current_call->get_transmission_filename());
-        strcat(current_status_filename, ".json");
-        strcpy(current_converted_filename,d_current_call->get_transmission_filename());
-        strcat(current_converted_filename, ".m4a");
+        strcpy(current_base_filename,d_current_call->get_transmission_filename());
         if (!open_internal(d_current_call->get_filename())) {
             BOOST_LOG_TRIVIAL(error) << "can't open file";
         }
 
 
       curr_src_id = d_current_call->get_current_source();
-      d_start_time = time(NULL);
+      
       d_first_work = false;
 }
 
