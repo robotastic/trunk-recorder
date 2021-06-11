@@ -100,7 +100,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "] \t Transmission src: " << t.source;
+      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "] \t Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;

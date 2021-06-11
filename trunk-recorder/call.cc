@@ -19,7 +19,7 @@ void Call::create_filename(time_t work_start_time) {
   
   int nchars;
 
-  nchars = snprintf(transmission_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), talkgroup, start_time, curr_freq);
+  nchars = snprintf(transmission_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), talkgroup, work_start_time, curr_freq);
 
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";

@@ -372,8 +372,10 @@ if (d_first_work) {
         strcpy(current_filename,d_current_call->get_transmission_filename());
         strcat(current_filename, ".wav");
         strcpy(current_base_filename,d_current_call->get_transmission_filename());
-        if (!open_internal(d_current_call->get_filename())) {
+        if (!open_internal(current_filename)) {
             BOOST_LOG_TRIVIAL(error) << "can't open file";
+        } else {
+          BOOST_LOG_TRIVIAL(info) << "Opened file: " << current_filename;
         }
 
 
