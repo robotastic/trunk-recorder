@@ -305,8 +305,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
-      system->set_unit_script(node.second.get<std::string>("unitScript", ""));
-      BOOST_LOG_TRIVIAL(info) << "Unit Script: " << system->get_unit_script();
       system->set_call_log(node.second.get<bool>("callLog", true));
       BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
       system->set_audio_archive(node.second.get<bool>("audioArchive", true));
@@ -743,7 +741,7 @@ void manage_conventional_call(Call *call) {
       if (call->get_idle_count() > config.call_timeout) {
         Recorder *recorder = call->get_recorder();
         call->stop_call();
-
+        call->conclude_call();
         call->restart_call();
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
@@ -881,87 +879,20 @@ void current_system_status(TrunkMessage message, System *sys) {
   }
 }
 
-void unit_check() {
-  std::map<long, long> talkgroup_totals;
-  std::map<long, long>::iterator it;
-  char shell_command[200];
-  time_t starttime = time(NULL);
-  tm *ltm = localtime(&starttime);
-  char unit_filename[160];
-
-  std::stringstream path_stream;
-
-  path_stream << boost::filesystem::current_path().string() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-
-  boost::filesystem::create_directories(path_stream.str());
-
-  for (it = unit_affiliations.begin(); it != unit_affiliations.end(); ++it) {
-    talkgroup_totals[it->second]++;
-  }
-
-  sprintf(unit_filename, "%s/radiolist.json", path_stream.str().c_str());
-
-  ofstream myfile(unit_filename);
-
-  if (myfile.is_open()) {
-    myfile << "{\n";
-    myfile << "\"talkgroups\": {\n";
-
-    for (it = talkgroup_totals.begin(); it != talkgroup_totals.end(); ++it) {
-      if (it != talkgroup_totals.begin()) {
-        myfile << ",\n";
-      }
-      myfile << "\"" << it->first << "\":" << it->second;
-    }
-    //sprintf(shell_command, "./unit_check.sh %s > /dev/null 2>&1 &", unit_filename);
-    //int rc = system(shell_command);
-    myfile << "}";
-    myfile.close();
-  }
+void unit_registration(System *sys, long source_id) {
+  plugman_unit_registration(sys, source_id);
 }
 
-void unit_registration(string unit_script, string shortName, long unit) {
-  unit_affiliations[unit] = 0;
-
-  if ((unit_script.length() != 0) && (unit != 0)) {
-    char shell_command[200];
-    sprintf(shell_command, "%s %s %li on &", unit_script.c_str(), shortName.c_str(), unit);
-    int rc = system(shell_command);
-  }
+void unit_deregistration(System *sys, long source_id) {
+  plugman_unit_deregistration(sys, source_id);
 }
 
-void unit_deregistration(string unit_script, string shortName, long unit) {
-  /* std::map<long, long>::iterator it;
-
-  it = unit_affiliations.find(unit);
-  if (it != unit_affiliations.end()) {
-    unit_affiliations.erase(it); */
-
-  unit_affiliations[unit] = -1;
-
-  if ((unit_script.length() != 0) && (unit != 0)) {
-    char shell_command[200];
-    sprintf(shell_command, "%s %s %li off &", unit_script.c_str(), shortName.c_str(), unit);
-    int rc = system(shell_command);
-  }
+void unit_acknowledge_response(System *sys, long source_id) {
+  plugman_unit_acknowledge_response(sys, source_id);
 }
 
-void unit_ack(string unit_script, string shortName, long unit) {
-  if ((unit_script.length() != 0) && (unit != 0)) {
-    char shell_command[200];
-    sprintf(shell_command, "%s %s %li ackresp &", unit_script.c_str(), shortName.c_str(), unit);
-    int rc = system(shell_command);
-  }
-}
-
-void group_affiliation(string unit_script, string shortName, long unit, long talkgroup) {
-  unit_affiliations[unit] = talkgroup;
-
-  if ((unit_script.length() != 0) && (unit != 0)) {
-    char shell_command[200];
-    sprintf(shell_command, "%s %s %li join %li &", unit_script.c_str(), shortName.c_str(), unit, talkgroup);
-    int rc = system(shell_command);
-  }
+void unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
+  plugman_unit_group_affiliation(sys, source_id, talkgroup_num);
 }
 
 void handle_call(TrunkMessage message, System *sys) {
@@ -1015,15 +946,15 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case REGISTRATION:
-      unit_registration(sys->get_unit_script(), sys->get_short_name(), message.source);
+      unit_registration(sys, message.source);
       break;
 
     case DEREGISTRATION:
-      unit_deregistration(sys->get_unit_script(), sys->get_short_name(), message.source);
+      unit_deregistration( sys, message.source);
       break;
 
     case AFFILIATION:
-      group_affiliation(sys->get_unit_script(), sys->get_short_name(), message.source, message.talkgroup);
+      unit_group_affiliation( sys, message.source, message.talkgroup);
       break;
 
     case SYSID:
@@ -1034,7 +965,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case ACKRESP:
-      unit_ack(sys->get_unit_script(), sys->get_short_name(), message.source);
+      unit_acknowledge_response( sys, message.source);
       break;
 
     case UNKNOWN:
@@ -1185,7 +1116,7 @@ void monitor_messages() {
 
     plugman_poll_one();
 
-    // BOOST_LOG_TRIVIAL(info) << "Messages waiting: "  << msg_queue->count();
+
     msg = msg_queue->delete_head_nowait();
 
     if (msg != 0) {
@@ -1362,21 +1293,15 @@ void add_logs(const F &fmt) {
 int main(int argc, char **argv) {
   //BOOST_STATIC_ASSERT(true) __attribute__((unused));
 
-  logging::core::get()->set_filter(
-      logging::trivial::severity >= logging::trivial::info
-
-  );
+  logging::core::get()->set_filter(logging::trivial::severity >= logging::trivial::info);
 
   boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
 
   boost::log::add_common_attributes();
-  boost::log::core::get()->add_global_attribute("Scope",
-                                                boost::log::attributes::named_scope());
-  boost::log::core::get()->set_filter(
-      boost::log::trivial::severity >= boost::log::trivial::info);
+  boost::log::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
+  boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::info);
 
-  add_logs(
-      boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
+  add_logs(boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
 
   //boost::log::sinks->imbue(std::locale("C"));
   //std::locale::global(std::locale("C"));

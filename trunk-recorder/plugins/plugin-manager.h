@@ -8,6 +8,7 @@
 
 #include "plugin_api.h"
 #include <boost/property_tree/ptree.hpp>
+#include <boost/optional/optional.hpp>
 #include <vector>
 #include <stdlib.h>
 
@@ -38,5 +39,8 @@ void plugman_setup_systems(std::vector<System *> systems);
 void plugman_setup_sources(std::vector<Source *> sources);
 void plugman_setup_config(std::vector<Source *> sources, std::vector<System *> systems);
 void plugman_system_rates(std::vector<System *> systems, float timeDiff);
-
+void plugman_unit_registration(System * system, long source_id);
+void plugman_unit_deregistration(System * system, long source_id);
+void plugman_unit_acknowledge_response(System * system, long source_id);
+void plugman_unit_group_affiliation(System * system, long source_id, long talkgroup_num);
 #endif // PLUGIN_MANAGER_H

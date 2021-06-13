@@ -240,14 +240,6 @@ void System::set_unit_tags_file(std::string unit_tags_file) {
   this->unit_tags->load_unit_tags(unit_tags_file);
 }
 
-std::string System::get_unit_script() {
-  return this->unit_script;
-}
-
-void System::set_unit_script(std::string unit_script) {
-  this->unit_script = unit_script;
-}
-
 Source *System::get_source() {
   return this->source;
 }

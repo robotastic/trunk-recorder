@@ -54,6 +54,9 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
 
 void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::vector<Source *> sources, std::vector<System *> systems) {
 
+   boost::optional< boost::property_tree::ptree& > plugins_exists = cfg.get_child_optional( "plugins" );
+
+if (plugins_exists) {
   BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
     std::string plugin_lib = node.second.get<std::string>("library", "");
     std::string plugin_name = node.second.get<std::string>("name", "");
@@ -80,6 +83,9 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::v
       ret = 0;
     }
   }
+} else {
+  BOOST_LOG_TRIVIAL(info) << "No plugins configured";
+}
 }
 
 void initialize_internal_plugin(std::string name) {
@@ -239,6 +245,39 @@ void plugman_system_rates(std::vector<System *> systems, float timeDiff) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
       plugin->api->system_rates(systems, timeDiff);
+    }
+  }
+}
+
+void plugman_unit_registration(System * system, long source_id) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_registration(system, source_id);
+    }
+  }
+}
+void plugman_unit_deregistration(System * system, long source_id) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_deregistration(system, source_id);
+    }
+  }
+}
+void plugman_unit_acknowledge_response(System * system, long source_id) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_acknowledge_response(system, source_id);
+    }
+  }
+}
+void plugman_unit_group_affiliation(System * system, long source_id, long talkgroup_num) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_group_affiliation(system, source_id, talkgroup_num);
     }
   }
 }

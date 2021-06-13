@@ -81,6 +81,10 @@ void remove_call_files(Call_Data_t call_info) {
   if (!call_info.audio_archive) {
     remove(call_info.filename);
     remove(call_info.converted);
+    for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
+      Transmission t = *it;
+      remove(t.filename);
+    }
   }
   if (!call_info.call_log) {
     remove(call_info.status_filename);
