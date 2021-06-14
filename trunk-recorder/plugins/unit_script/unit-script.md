@@ -1,4 +1,4 @@
-unit-script.sh README:
+# unit-script.h
 
 Creates a list of radio IDs in a file named "radiolist.csv" located in the
 shortName directory along side the recordings, and logs radio activity to

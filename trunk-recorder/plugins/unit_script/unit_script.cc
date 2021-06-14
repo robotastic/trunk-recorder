@@ -1,6 +1,6 @@
 #include "../plugin_api.h"
 #include "../../systems/system.h"
-
+#include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 
 struct Unit_Script_System_Script {
   std::string script;
@@ -83,4 +83,13 @@ int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
     return 0;
   }
 
+  static boost::shared_ptr<Unit_Script> create() {
+    return boost::shared_ptr<Unit_Script>(
+        new Unit_Script());
+  }
 };
+
+BOOST_DLL_ALIAS(
+    Unit_Script::create, // <-- this function is exported with...
+    create_plugin             // <-- ...this alias name
+)
