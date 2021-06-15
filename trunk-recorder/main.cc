@@ -544,7 +544,7 @@ bool load_config(string config_file) {
     set_logging_level(log_level);
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
-    //initialize_internal_plugin("stat_socket");
+    add_internal_plugin("openmhz_uploader", "./libopenmhz_uploader.so", pt);
     initialize_plugins(pt, &config, sources, systems);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();

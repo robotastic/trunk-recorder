@@ -306,28 +306,33 @@ public:
   int parse_config(boost::property_tree::ptree &cfg) {
 
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
-      Broadcastify_System_Key key;
-      key.api_key = node.second.get<std::string>("apiKey", "");
-      key.system_id = node.second.get<std::string>("systemId", "");
-      key.short_name = node.second.get<std::string>("shortName", "");
-      BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
-      this->data.keys.push_back(key);
+      boost::optional<boost::property_tree::ptree &> broadcastify_exists = node.second.get_child_optional("broadcastifyApiKey");
+      if (broadcastify_exists) {
+        Broadcastify_System_Key key;
+        key.api_key = node.second.get<std::string>("broadcastifyApiKey", "");
+        key.system_id = node.second.get<std::string>("broadcastifySystemId", "");
+        key.short_name = node.second.get<std::string>("shortName", "");
+        BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
+        this->data.keys.push_back(key);
+      }
     }
-    this->data.bcfy_calls_server = cfg.get<std::string>("callsServer", "");
+    this->data.bcfy_calls_server = cfg.get<std::string>("broadcastifyCallsServer", "");
     BOOST_LOG_TRIVIAL(info) << "Broadcastify Server: " << this->data.bcfy_calls_server;
 
-  // from: http://www.zedwood.com/article/cpp-boost-url-regex
-  boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-  boost::cmatch what;
+    // from: http://www.zedwood.com/article/cpp-boost-url-regex
+    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    boost::cmatch what;
 
     if (!regex_match(this->data.bcfy_calls_server.c_str(), what, ex)) {
       BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
+      return 1;
+    } else if (this->data.keys.size() ==0){
+      BOOST_LOG_TRIVIAL(error) << "Broadcastify Server set, but no Systems are configured\n";
       return 1;
     }
 
     return 0;
   }
-
 
   /*
  int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { return 0; }

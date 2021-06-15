@@ -27,25 +27,6 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
   );
 
   plugin->api = plugin->creator();
-  /*
-  assert(plugin_name != NULL);
-  char *fname = NULL;
-  assert(asprintf(&fname, "%s_plugin_new", plugin_name) > 0);
-  plugin_new_func_t fptr = NULL;
-  std::cout << "Load file: " << plugin_file << std::endl;
-
-  void *dlhandle = dlopen(plugin_file, RTLD_NOW);
-  assert(dlhandle != NULL);
-  fptr = (plugin_new_func_t)dlsym(dlhandle, fname);
-
-  free(fname);
-  if (fptr == NULL) {
-    return NULL;
-  }
-
-  plugin_t *plugin = (*fptr)();
-  assert(plugin->init != NULL);
-  return plugin;*/
 
   plugins.push_back(plugin);
 
@@ -54,25 +35,28 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
 
 void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::vector<Source *> sources, std::vector<System *> systems) {
 
-   boost::optional< boost::property_tree::ptree& > plugins_exists = cfg.get_child_optional( "plugins" );
+  boost::optional<boost::property_tree::ptree &> plugins_exists = cfg.get_child_optional("plugins");
 
-if (plugins_exists) {
-  BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
-    std::string plugin_lib = node.second.get<std::string>("library", "");
-    std::string plugin_name = node.second.get<std::string>("name", "");
+  if (plugins_exists) {
+    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
+      std::string plugin_lib = node.second.get<std::string>("library", "");
+      std::string plugin_name = node.second.get<std::string>("name", "");
 
-    Plugin *plugin = setup_plugin(plugin_lib, plugin_name);
-    plugin->api->parse_config(cfg);
+      Plugin *plugin = setup_plugin(plugin_lib, plugin_name);
+      plugin->api->parse_config(node.second);
+    }
+
+    if (plugins.size() == 1) {
+      BOOST_LOG_TRIVIAL(info) << "Loaded " << plugins.size() << " Plugin";
+    }
+
+    if (plugins.size() > 1) {
+      BOOST_LOG_TRIVIAL(info) << "Loaded " << plugins.size() << " Plugins";
+    }
+  } else {
+    BOOST_LOG_TRIVIAL(info) << "No plugins configured";
   }
-
-  if (plugins.size() == 1) {
-    BOOST_LOG_TRIVIAL(info) << "Loaded " << plugins.size() << " Plugin";
-  }
-
-  if (plugins.size() > 1) {
-    BOOST_LOG_TRIVIAL(info) << "Loaded " << plugins.size() << " Plugins";
-  }
-
+  
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     int ret = plugin->api->init(config, sources, systems);
@@ -83,14 +67,14 @@ if (plugins_exists) {
       ret = 0;
     }
   }
-} else {
-  BOOST_LOG_TRIVIAL(info) << "No plugins configured";
-}
 }
 
-void initialize_internal_plugin(std::string name) {
-  //std::string lib = "plugins/" + name
-  setup_plugin("", name);
+void add_internal_plugin(std::string name, std::string library, boost::property_tree::ptree &cfg) {
+  boost::optional<boost::property_tree::ptree &> plugins_exists = cfg.get_child_optional("plugins");
+
+  Plugin *plugin = setup_plugin(library, name );
+  plugin->api->parse_config(cfg);
+
 }
 
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems) {
@@ -249,7 +233,7 @@ void plugman_system_rates(std::vector<System *> systems, float timeDiff) {
   }
 }
 
-void plugman_unit_registration(System * system, long source_id) {
+void plugman_unit_registration(System *system, long source_id) {
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
@@ -257,7 +241,7 @@ void plugman_unit_registration(System * system, long source_id) {
     }
   }
 }
-void plugman_unit_deregistration(System * system, long source_id) {
+void plugman_unit_deregistration(System *system, long source_id) {
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
@@ -265,7 +249,7 @@ void plugman_unit_deregistration(System * system, long source_id) {
     }
   }
 }
-void plugman_unit_acknowledge_response(System * system, long source_id) {
+void plugman_unit_acknowledge_response(System *system, long source_id) {
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
@@ -273,7 +257,7 @@ void plugman_unit_acknowledge_response(System * system, long source_id) {
     }
   }
 }
-void plugman_unit_group_affiliation(System * system, long source_id, long talkgroup_num) {
+void plugman_unit_group_affiliation(System *system, long source_id, long talkgroup_num) {
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {

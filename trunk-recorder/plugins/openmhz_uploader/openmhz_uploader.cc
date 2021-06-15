@@ -273,13 +273,16 @@ public:
   int parse_config(boost::property_tree::ptree &cfg) {
 
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
-      Openmhz_System_Key key;
-      key.api_key = node.second.get<std::string>("apiKey", "");
-      key.short_name = node.second.get<std::string>("shortName", "");
-      BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
-      this->data.keys.push_back(key);
+      boost::optional<boost::property_tree::ptree &> openmhz_exists = node.second.get_child_optional("apiKey");
+      if (openmhz_exists) {
+        Openmhz_System_Key key;
+        key.api_key = node.second.get<std::string>("apiKey", "");
+        key.short_name = node.second.get<std::string>("shortName", "");
+        BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
+        this->data.keys.push_back(key);
+      }
     }
-    this->data.openmhz_server = cfg.get<std::string>("openmhzServer", "");
+    this->data.openmhz_server = cfg.get<std::string>("uploadServer", "");
     BOOST_LOG_TRIVIAL(info) << "OpenMHz Server: " << this->data.openmhz_server;
 
   // from: http://www.zedwood.com/article/cpp-boost-url-regex
@@ -287,7 +290,10 @@ public:
   boost::cmatch what;
 
     if (!regex_match(this->data.openmhz_server.c_str(), what, ex)) {
-      BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
+      BOOST_LOG_TRIVIAL(error) << "Unable to parse Server URL\n";
+      return 1;
+    } else if (this->data.keys.size() ==0){
+      BOOST_LOG_TRIVIAL(error) << "OpenMHz Server set, but no Systems are configured\n";
       return 1;
     }
 

@@ -23,7 +23,7 @@ plugin_state_t state;
 
 
 void initialize_plugins(boost::property_tree::ptree &cfg, Config* config, std::vector<Source *> sources, std::vector<System *> systems);
-void initialize_internal_plugin(std::string name); // For use by internal plugins, like the uploaders. Should be called before initialize_plugins
+void add_internal_plugin(std::string name, std::string library, boost::property_tree::ptree &cfg);
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems);
 void stop_plugins();
 
