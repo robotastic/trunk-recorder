@@ -66,6 +66,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 
 ```json
 {
+    "ver": 2,
     "sources": [{
         "center": 857000000.0,
         "rate": 8000000.0,
