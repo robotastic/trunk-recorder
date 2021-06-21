@@ -29,6 +29,7 @@ struct Call_Data_t {
   bool encrypted;
   bool emergency;
   bool audio_archive;
+  bool transmission_archive;
   bool call_log;
   char filename[255];
   char status_filename[255];

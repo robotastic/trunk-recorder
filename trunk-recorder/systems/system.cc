@@ -204,6 +204,15 @@ void System::set_audio_archive(bool audio_archive) {
   this->audio_archive = audio_archive;
 }
 
+bool System::get_transmission_archive() {
+  return this->transmission_archive;
+}
+
+void System::set_transmission_archive(bool transmission_archive) {
+  this->transmission_archive = transmission_archive;
+}
+
+
 bool System::get_record_unknown() {
   return this->record_unknown;
 }

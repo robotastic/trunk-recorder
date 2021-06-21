@@ -58,12 +58,11 @@ public:
     time_t start_time = call_info.start_time;
 
     std::string api_key = get_api_key(call_info.short_name);
+    BOOST_LOG_TRIVIAL(info) << "using api key: " << api_key;
     if (api_key.size()==0){
       BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
       return 2;
     }
-
-
 
     if (call_info.call_source_list.size() != 0) {
       for (int i = 0; i < call_info.call_source_list.size(); i++) {
@@ -143,7 +142,7 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "api_key",
-                 CURLFORM_COPYCONTENTS, data.openmhz_server.c_str(),
+                 CURLFORM_COPYCONTENTS, api_key.c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
@@ -151,6 +150,11 @@ public:
                  CURLFORM_COPYNAME, "source_list",
                  CURLFORM_COPYCONTENTS, source_list_string.c_str(),
                  CURLFORM_END);
+      curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "freq_list",
+               CURLFORM_COPYCONTENTS, "[]",
+               CURLFORM_END);
 
     curl = curl_easy_init();
     multi_handle = curl_multi_init();

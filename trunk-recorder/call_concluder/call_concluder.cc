@@ -85,6 +85,11 @@ void remove_call_files(Call_Data_t call_info) {
       Transmission t = *it;
       remove(t.filename);
     }
+  } else if (!call_info.transmission_archive) {
+    for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
+      Transmission t = *it;
+      remove(t.filename);
+    }    
   }
   if (!call_info.call_log) {
     remove(call_info.status_filename);
@@ -189,6 +194,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.short_name = sys->get_short_name();
   call_info.upload_script = sys->get_upload_script();
   call_info.audio_archive = sys->get_audio_archive();
+  call_info.transmission_archive = sys->get_transmission_archive();
   call_info.call_log = sys->get_call_log();
 
 

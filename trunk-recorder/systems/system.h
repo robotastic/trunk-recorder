@@ -79,6 +79,7 @@ public:
   std::vector<analog_recorder_sptr> conventional_recorders;
   std::vector<p25_recorder_sptr> conventionalP25_recorders;
 
+  bool transmission_archive;
   bool audio_archive;
   bool record_unknown;
   bool call_log;
@@ -100,6 +101,8 @@ public:
   void set_min_duration(double duration);
   bool get_audio_archive();
   void set_audio_archive(bool);
+  bool get_transmission_archive();
+  void set_transmission_archive(bool);
   bool get_record_unknown();
   void set_record_unknown(bool);
   bool get_call_log();
