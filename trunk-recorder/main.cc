@@ -309,7 +309,7 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
       system->set_audio_archive(node.second.get<bool>("audioArchive", true));
       BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
-      system->set_transmission_archive(node.second.get<bool>("transmissionArchive", true));
+      system->set_transmission_archive(node.second.get<bool>("transmissionArchive", false));
       BOOST_LOG_TRIVIAL(info) << "Transmission Archive: " << system->get_transmission_archive();
       system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
