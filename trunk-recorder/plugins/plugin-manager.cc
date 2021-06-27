@@ -70,7 +70,6 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::v
 }
 
 void add_internal_plugin(std::string name, std::string library, boost::property_tree::ptree &cfg) {
-  boost::optional<boost::property_tree::ptree &> plugins_exists = cfg.get_child_optional("plugins");
 
   Plugin *plugin = setup_plugin(library, name );
   plugin->api->parse_config(cfg);
