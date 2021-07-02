@@ -49,13 +49,13 @@ public:
 	/*!
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.
 	 */
-	virtual bool open(Call* call) = 0;
+	virtual bool start_recording(Call* call) = 0;
 
 	/*!
 	 * \brief Closes the currently active file and completes the WAV
 	 * header. Thread-safe.
 	 */
-	virtual void close() = 0;
+	virtual void stop_recording() = 0;
 
 	/*!
 	 * \brief Set the sample rate. This will not affect the WAV file

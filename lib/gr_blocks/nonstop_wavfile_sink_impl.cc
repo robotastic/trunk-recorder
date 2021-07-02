@@ -78,17 +78,17 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   d_sample_count = 0;
   d_first_work = true;
   d_termination_flag = false;
-  state = COMPLETED;
+  state = STOPPED;
 }
 
 char *nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
 }
 
-bool nonstop_wavfile_sink_impl::open(Call *call) {
+bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   gr::thread::scoped_lock guard(d_mutex);
   if (d_current_call && d_fp) {
-    BOOST_LOG_TRIVIAL(trace) << "Open() - Current_Call & fp are not null! current_filename is: " << current_filename << " Length: " << d_sample_count << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "Start() - Current_Call & fp are not null! current_filename is: " << current_filename << " Length: " << d_sample_count << std::endl;
   }
   d_current_call = call;
 
@@ -176,6 +176,9 @@ bool nonstop_wavfile_sink_impl::end_transmission() {
     State call_state = d_current_call->add_transmission(transmission);
     d_sample_count = 0;
     if ((call_state == COMPLETED) || (call_state == INACTIVE)) {
+      if (call_state == COMPLETED) {
+        BOOST_LOG_TRIVIAL(error) << "Call state is already completed, but still trying to end_transmission()" << std::endl;
+      }
       return true;
     } 
   } else {
@@ -185,7 +188,7 @@ bool nonstop_wavfile_sink_impl::end_transmission() {
   return false;
 }
 
-void nonstop_wavfile_sink_impl::close() {
+void nonstop_wavfile_sink_impl::stop_recording() {
   gr::thread::scoped_lock guard(d_mutex);
 
   // if there is an open file, close it
@@ -196,12 +199,12 @@ void nonstop_wavfile_sink_impl::close() {
 
   if (d_current_call && (d_sample_count > 0)) {
     end_transmission();
-  }
+  } 
 
   d_current_call = NULL;
   d_first_work = true;
   d_termination_flag = false;
-  state = COMPLETED;
+  state = STOPPED;
 }
 
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
@@ -212,7 +215,7 @@ void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
 }
 
 nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl() {
-  close();
+  stop_recording();
 }
 
 bool nonstop_wavfile_sink_impl::stop() {
@@ -397,7 +400,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
       if (feof(d_fp) || ferror(d_fp)) {
         fprintf(stderr, "[%s] file i/o error\n", __FILE__);
-        close();
+        stop_recording();
         return nwritten;
       }
       d_sample_count++;
@@ -405,7 +408,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   }
 
   if (nwritten > 0) {
-    state = ACTIVE;
+    state = RECORDING;
   }
   // fflush (d_fp);  // this is added so unbuffered content is written.
   return nwritten;

@@ -58,7 +58,7 @@ public:
     time_t start_time = call_info.start_time;
 
     std::string api_key = get_api_key(call_info.short_name);
-    BOOST_LOG_TRIVIAL(info) << "using api key: " << api_key;
+    //BOOST_LOG_TRIVIAL(info) << "using api key: " << api_key;
     if (api_key.size()==0){
       BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
       return 2;
@@ -78,7 +78,7 @@ public:
       source_list << "]";
     }
 
-    BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
+    //BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
     CURL *curl;
     CURLMcode res;
     CURLM *multi_handle;

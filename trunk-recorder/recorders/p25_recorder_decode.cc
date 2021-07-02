@@ -21,12 +21,12 @@ p25_recorder_decode::~p25_recorder_decode(){
 }
 
 void p25_recorder_decode::stop() {
-        wav_sink->close();
+        wav_sink->stop_recording();
 }
 
 void p25_recorder_decode::start(Call *call) {
     levels->set_k(call->get_system()->get_digital_levels());
-    wav_sink->open(call);
+    wav_sink->start_recording(call);
 }
 void p25_recorder_decode::set_xor_mask(const char *mask) {
     op25_frame_assembler->set_xormask(mask);

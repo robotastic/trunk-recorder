@@ -797,7 +797,7 @@ void manage_calls() {
       if (state == RECORDING) {
         ended_recording = true;
         
-        // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to completed
+        // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to COMPLETED
         call->stop_call();
         
       }
@@ -810,7 +810,7 @@ void manage_calls() {
       }
     }
 
-    // If a call's state has been set to completed, we can conclude the call and delete it
+    // If a call's state has been set to COMPLETED, we can conclude the call and delete it
     // we need to check the Call State again because it could have been updated by the previous command.
     if (call->get_state() == COMPLETED) {
 
@@ -851,9 +851,9 @@ void manage_calls() {
 
         // In this case, the Call is inactive and was waiting for the recorder to finish. In this
         // case you can now conclude the call. 
-        if ((recorder->get_state() == IDLE) || (recorder->get_state() == COMPLETED)) {
+        if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
-          BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Recorder completed or gone idle \u001b[0m";
+          BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Recorder STOPPED or gone idle \u001b[0m";
 
           call->conclude_call();
 

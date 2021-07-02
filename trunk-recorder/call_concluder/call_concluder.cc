@@ -8,16 +8,17 @@ int combine_wav(std::string files, char *target_filename) {
   char shell_command[4000];
 
   int nchars = snprintf(shell_command, 4000, "sox %s %s", files.c_str(), target_filename);
-  BOOST_LOG_TRIVIAL(error) << "Combining: " << files.c_str() << " into: " << target_filename;
-  BOOST_LOG_TRIVIAL(error) << shell_command;
+
   if (nchars >= 4000) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: SOX Combine WAV Command longer than 4000 characters";
     return -1;
   }
   int rc = system(shell_command);
 
+  BOOST_LOG_TRIVIAL(info) << "Combining: " << files.c_str() << " into: " << target_filename;
+  BOOST_LOG_TRIVIAL(info) << shell_command;
+
   if (rc > 0) {
-    
     BOOST_LOG_TRIVIAL(error) << "Failed to combine recordings, see above error. Make sure you have sox and fdkaac installed.";
     return -1;
   } 
@@ -207,7 +208,15 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
   Call_Data_t call_info = create_call_data(call, sys, config);
-  call_data_workers.push_back(std::async(std::launch::async, upload_call_worker, call_info));
+  if (call_info.transmission_list.size()>0) {
+    call_data_workers.push_back(std::async(std::launch::async, upload_call_worker, call_info));
+  } else {
+    char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+    time_t start_time = call_info.start_time;
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "] No Transmission were recorded! Check Squelch settings - TG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << "\t Freq: " << call_info.freq;
+  }
 }
 
 void Call_Concluder::manage_call_data_workers() {

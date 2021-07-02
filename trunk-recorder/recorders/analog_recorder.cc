@@ -224,7 +224,7 @@ void analog_recorder::stop() {
     recording_duration += wav_sink->length_in_seconds();
     state = INACTIVE;
     valve->set_enabled(false);
-    wav_sink->close();
+    wav_sink->stop_recording();
   } else {
 
     BOOST_LOG_TRIVIAL(error) << "analog_recorder.cc: Stopping an inactive Logger \t[ " << rec_num << " ] - freq[ " << FormatFreq(chan_freq) << "] \t talkgroup[ " << talkgroup << " ]";
@@ -341,7 +341,7 @@ bool analog_recorder::start(Call *call) {
   demod->set_gain(quad_gain);
   prefilter->set_center_freq(chan_freq - center_freq);
 
-  wav_sink->open(call);
+  wav_sink->start_recording(call);
 
   state = ACTIVE;
   valve->set_enabled(true);

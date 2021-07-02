@@ -277,7 +277,7 @@ Recorder *Source::get_analog_recorder() {
        it != analog_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
 
-    if (rx->get_state() == COMPLETED) {
+    if (rx->get_state() == STOPPED) {
       return (Recorder *)rx.get();
 
       break;
@@ -410,7 +410,7 @@ int Source::get_num_available_digital_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    if (rx->get_state() == COMPLETED) {
+    if (rx->get_state() == STOPPED) {
       num_available_recorders++;
     }
   }
@@ -423,7 +423,7 @@ int Source::get_num_available_analog_recorders() {
   for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
 
-    if (rx->get_state() == COMPLETED) {
+    if (rx->get_state() == STOPPED) {
       num_available_recorders++;
     }
   }
@@ -447,7 +447,7 @@ Recorder *Source::get_digital_recorder() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    if (rx->get_state() == COMPLETED) {
+    if (rx->get_state() == STOPPED) {
       return (Recorder *)rx.get();
 
       break;

@@ -105,8 +105,8 @@ public:
 													bool use_float);
 	virtual ~nonstop_wavfile_sink_impl();
 	char *get_filename();
-	virtual bool open(Call *call);
-	virtual void close();
+	virtual bool start_recording(Call *call);
+	virtual void stop_recording();
 	bool end_transmission();
 	void set_sample_rate(unsigned int sample_rate);
 	void set_bits_per_sample(int bits_per_sample);
