@@ -98,7 +98,7 @@ bool nonstop_wavfile_sink_impl::open(Call *call) {
   d_sample_count = 0;
   BOOST_LOG_TRIVIAL(info) << "Initial source id from call: " << curr_src_id;
   // when a wav_sink first gets associated with a call, set its lifecycle to idle;
-  state = IDLE;
+  state = COMPLETED;
   /* Should reset more variables here */
 
   return true;
