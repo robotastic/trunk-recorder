@@ -8,7 +8,7 @@ int combine_wav(std::string files, char *target_filename) {
   char shell_command[4000];
 
   int nchars = snprintf(shell_command, 4000, "sox %s %s", files.c_str(), target_filename);
-  BOOST_LOG_TRIVIAL(error) << "Combining: " << files.c_str << " into: " << target_filename;
+  BOOST_LOG_TRIVIAL(error) << "Combining: " << files.c_str() << " into: " << target_filename;
   BOOST_LOG_TRIVIAL(error) << shell_command;
   if (nchars >= 4000) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: SOX Combine WAV Command longer than 4000 characters";
