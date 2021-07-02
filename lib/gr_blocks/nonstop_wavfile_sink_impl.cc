@@ -78,7 +78,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   d_sample_count = 0;
   d_first_work = true;
   d_termination_flag = false;
-  state = IDLE;
+  state = COMPLETED;
 }
 
 char *nonstop_wavfile_sink_impl::get_filename() {
@@ -98,7 +98,7 @@ bool nonstop_wavfile_sink_impl::open(Call *call) {
   d_sample_count = 0;
   BOOST_LOG_TRIVIAL(info) << "Initial source id from call: " << curr_src_id;
   // when a wav_sink first gets associated with a call, set its lifecycle to idle;
-  state = COMPLETED;
+  state = IDLE;
   /* Should reset more variables here */
 
   return true;
