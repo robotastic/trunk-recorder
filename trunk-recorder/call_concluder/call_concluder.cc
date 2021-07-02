@@ -156,7 +156,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
       shell_command_string = shell_command.str();
 
       BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "] \t Running upload script: " << shell_command_string;
-      signal(SIGCHLD, SIG_IGN);
+      //signal(SIGCHLD, SIG_IGN);
 
       result = system(shell_command_string.c_str());
     }
