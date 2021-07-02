@@ -16,6 +16,7 @@ int combine_wav(std::string files, char *target_filename) {
   int rc = system(shell_command);
 
   if (rc > 0) {
+    BOOST_LOG_TRIVIAL(error) << shell_command;
     BOOST_LOG_TRIVIAL(error) << "Failed to combine recordings, see above error. Make sure you have sox and fdkaac installed.";
     return -1;
   } 
