@@ -796,9 +796,10 @@ void manage_calls() {
     if ((call->since_last_update() > config.call_timeout) && ((state == RECORDING) || (state == MONITORING))) {
       if (state == RECORDING) {
         ended_recording = true;
+        
+        // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to completed
         call->stop_call();
-        ++it;
-        continue;
+        
       }
       // we do not need to stop Monitoring Calls, we can just delete them
       if (state == MONITORING) {
@@ -810,7 +811,8 @@ void manage_calls() {
     }
 
     // If a call's state has been set to completed, we can conclude the call and delete it
-    if (state == COMPLETED) {
+    // we need to check the Call State again because it could have been updated by the previous command.
+    if (call->get_state() == COMPLETED) {
 
       call->conclude_call();
 
@@ -829,6 +831,8 @@ void manage_calls() {
     if (state == INACTIVE) {
       Recorder *recorder = call->get_recorder();
       if (recorder != NULL) {
+
+        // if the recorder has simply been going for a while and a call is inactive, end things
         if (recorder->since_last_write() > 10) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
           BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
@@ -845,6 +849,8 @@ void manage_calls() {
           continue;
         }
 
+        // In this case, the Call is inactive and was waiting for the recorder to finish. In this
+        // case you can now conclude the call. 
         if ((recorder->get_state() == IDLE) || (recorder->get_state() == COMPLETED)) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
           BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Recorder completed or gone idle \u001b[0m";

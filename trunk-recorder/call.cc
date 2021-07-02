@@ -140,6 +140,9 @@ void Call::stop_call() {
   
 
   BOOST_LOG_TRIVIAL(info) << "stop_call() call state: " << FormatState(state) << " recorder state: " << this->get_recorder()->is_idle();
+  
+  // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
+  // doing anything and can be stopped.
   if ((state == RECORDING) && this->get_recorder()->is_idle()) {
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
     this->set_state(COMPLETED);

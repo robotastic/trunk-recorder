@@ -78,7 +78,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   d_sample_count = 0;
   d_first_work = true;
   d_termination_flag = false;
-  state = INACTIVE;
+  state = IDLE;
 }
 
 char *nonstop_wavfile_sink_impl::get_filename() {
@@ -177,9 +177,9 @@ bool nonstop_wavfile_sink_impl::end_transmission() {
     d_sample_count = 0;
     if ((call_state == COMPLETED) || (call_state == INACTIVE)) {
       return true;
-    }
+    } 
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but there is not current call" << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but there is not a current call" << std::endl;
     return true;
   }
   return false;
@@ -201,7 +201,7 @@ void nonstop_wavfile_sink_impl::close() {
   d_current_call = NULL;
   d_first_work = true;
   d_termination_flag = false;
-  state = INACTIVE;
+  state = COMPLETED;
 }
 
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
@@ -240,12 +240,12 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   if (!d_current_call) {
     time_t now = time(NULL);
     double its_been = difftime(now, d_stop_time);
-    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << " exptected: " << noutput_items << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << " exptected: " << noutput_items << " state: " << FormatState(this->state) <<  std::endl;
     return noutput_items;
   }
 
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
-  if ((state == INACTIVE) || (state == COMPLETED)) {
+  if (state == COMPLETED) {
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
@@ -265,14 +265,14 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   //long curr_src_id = 0;
 
   for (unsigned int i = 0; i < tags.size(); i++) {
-    BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
+    //BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
     if (pmt::eq(this_key, tags[i].key)) { //&& d_current_call->get_system_type() == "conventionalP25") {
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
       //double   sec = (double)pos  / (double)d_sample_rate;
       //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ SRC TAG - SRC: " << src_id << " Call Src:  " << d_current_call->get_current_source() << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << "  ] " << std::endl;
       if (curr_src_id != src_id) {
-        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
+        //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
       }
       if (src_id && (curr_src_id != src_id)) {
 
@@ -283,7 +283,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (pmt::eq(that_key, tags[i].key) || pmt::eq(squelch_key, tags[i].key)) {
       d_termination_flag = true;
 
-      BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Total Samples: " << d_sample_count << " Frame samples: " << noutput_items << std::endl;
+      //BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[  : TERMINATION Pos - " << d_sample_count << " Call Src:  " << d_current_call->get_current_source() << " Total Samples: " << d_sample_count << " Frame samples: " << noutput_items << std::endl;
       //return noutput_items;
     }
   }
@@ -316,6 +316,8 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
     if (d_current_call == NULL) {
       BOOST_LOG_TRIVIAL(error) << "wav - no current call in temination loop";
+      state = COMPLETED;
+      return noutput_items;
     }
     if (d_sample_count > 0) {
       if (d_fp) {
