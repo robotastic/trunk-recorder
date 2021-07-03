@@ -144,7 +144,7 @@ void Call::stop_call() {
   // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
   // doing anything and can be stopped.
   if ((state == RECORDING) && this->get_recorder()->is_idle()) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
     this->set_state(COMPLETED);
   } else {
     this->set_state(INACTIVE);
@@ -192,7 +192,11 @@ void Call::conclude_call() {
 
 State Call::add_transmission(Transmission t) {
   transmission_list.push_back(t);
+
+  // This should probably be removed, it is a weird place to shift
   if (state == INACTIVE) {
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tadd_transmission() - Call state is INACTIVE, changing to COMPLETED " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
+
     state = COMPLETED;
   }
   return state;

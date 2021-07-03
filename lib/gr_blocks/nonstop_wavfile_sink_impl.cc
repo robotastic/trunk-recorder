@@ -78,7 +78,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   d_sample_count = 0;
   d_first_work = true;
   d_termination_flag = false;
-  state = STOPPED;
+  state = AVAILABLE;
 }
 
 char *nonstop_wavfile_sink_impl::get_filename() {
@@ -177,7 +177,8 @@ bool nonstop_wavfile_sink_impl::end_transmission() {
     d_sample_count = 0;
     if ((call_state == COMPLETED) || (call_state == INACTIVE)) {
       if (call_state == COMPLETED) {
-        BOOST_LOG_TRIVIAL(error) << "Call state is already completed, but still trying to end_transmission()" << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is already completed, but still trying to end_transmission() file: " << current_filename;;
+    
       }
       return true;
     } 
@@ -201,10 +202,13 @@ void nonstop_wavfile_sink_impl::stop_recording() {
     end_transmission();
   } 
 
+  if (state != STOPPED) {
+    BOOST_LOG_TRIVIAL(error) << "stop_recording() - stopping but recorder state is: " << state << std::endl;
+  }
   d_current_call = NULL;
   d_first_work = true;
   d_termination_flag = false;
-  state = STOPPED;
+  state = AVAILABLE;
 }
 
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
@@ -248,7 +252,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   }
 
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
-  if (state == COMPLETED) {
+  if ((state == STOPPED) || (state == AVAILABLE)) {
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
@@ -319,7 +323,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
     if (d_current_call == NULL) {
       BOOST_LOG_TRIVIAL(error) << "wav - no current call in temination loop";
-      state = COMPLETED;
+      state = STOPPED;
       return noutput_items;
     }
     if (d_sample_count > 0) {
@@ -331,7 +335,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
       if (call_completed) {
         BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
-        state = COMPLETED;
+        state = STOPPED;
       } else {
         state = IDLE;
         d_first_work = true;
@@ -340,7 +344,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     } else {
       // we are receiving a termination frame and our associated call is completed or inactive, time to stop
       if ((d_current_call->get_state() == COMPLETED) || (d_current_call->get_state() == INACTIVE)) {
-        state = COMPLETED;
+        state = STOPPED;
         BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - no samples";
       }
       // No samples have been written yet. This means there was a Termination Flag (d_termination_flag) set prior to anything being written. Lets clear the flag.
