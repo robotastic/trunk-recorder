@@ -33,6 +33,8 @@ std::string FormatState(State state) {
       return "completed";
     else if (state == STOPPED)
       return "stopped";
+    else if (state == AVAILABLE)
+      return "available";
     return "Unknown";
   }
   return boost::lexical_cast<std::string>(state);

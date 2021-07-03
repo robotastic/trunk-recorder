@@ -300,11 +300,11 @@ bool p25_recorder::is_active() {
 
 bool p25_recorder::is_idle() {
   if (qpsk_mod) {
-    if (qpsk_p25_decode->get_state() == IDLE) {
+    if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)){
       return true;
     }
   } else {
-    if (fsk4_p25_decode->get_state() == IDLE) {
+    if ((fsk4_p25_decode->get_state() == IDLE) || (fsk4_p25_decode->get_state() == STOPPED)) {
       return true;
     }
   }

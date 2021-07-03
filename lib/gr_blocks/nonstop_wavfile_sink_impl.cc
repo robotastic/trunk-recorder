@@ -335,7 +335,9 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       bool call_completed = end_transmission();
 
       if (call_completed) {
-        BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
+        BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is:   " << FormatState(d_current_call->get_state()) << " setting recorder to STOPPED";
+    
+        //BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
         state = STOPPED;
       } else {
         state = IDLE;
