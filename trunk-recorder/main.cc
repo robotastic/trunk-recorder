@@ -852,7 +852,7 @@ void manage_calls() {
         // In this case, the Call is inactive and was waiting for the recorder to finish. In this
         // case you can now conclude the call. 
         if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
-          BOOST_LOG_TRIVIAL(info) << "Recorder state: " << FromatState(recorder->get_state());
+          BOOST_LOG_TRIVIAL(info) << "Recorder state: " << FormatState(recorder->get_state());
           BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t Call is INACTIVE and its recorder state is STOPPED or IDLE ";
           // since the Call state is INACTIVE and the Recorder has reached a state of IDLE or STOPPED, we can now
           // set the Call state to COMPLETED
