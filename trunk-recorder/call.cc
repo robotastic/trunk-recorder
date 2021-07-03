@@ -185,7 +185,7 @@ void Call::conclude_call() {
 
     Call_Concluder::conclude_call(this, sys, config);
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
+    BOOST_LOG_TRIVIAL(error) << "Concluding call, but call state is not COMPLETED!";
   }
   
 }

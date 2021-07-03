@@ -256,7 +256,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << " DROPPING WAV - state is: " << FormatState(this->state) << "\tCall state is: " << FormatState(d_current_call->get_freq()) << " file: " << current_filename;;
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << " DROPPING WAV - state is: " << FormatState(this->state) << "\tCall state is: " << FormatState(d_current_call->get_state()) << " file: " << current_filename;;
     
       //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << FormatState(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
