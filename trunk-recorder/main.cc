@@ -836,11 +836,11 @@ void manage_calls() {
         if (recorder->since_last_write() > 10) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
           BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
-          call->conclude_call();
 
+          call->conclude_call();
           // The State of the Recorders has changed, so lets send an update
           ended_recording = true;
-          Recorder *recorder = call->get_recorder();
+
           if (recorder != NULL) {
             plugman_setup_recorder(recorder);
           }
@@ -855,14 +855,14 @@ void manage_calls() {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
           BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Recorder STOPPED or gone idle \u001b[0m";
 
-          call->conclude_call();
 
-          // The State of the Recorders has changed, so lets send an update
-          ended_recording = true;
-          Recorder *recorder = call->get_recorder();
+          call->conclude_call();
           if (recorder != NULL) {
             plugman_setup_recorder(recorder);
           }
+          // The State of the Recorders has changed, so lets send an update
+          ended_recording = true;
+
           it = calls.erase(it);
           delete call;
           continue;
