@@ -32,6 +32,10 @@ void Call::create_filename() {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
 
+  if (sys->get_daily_log()) {
+    nchars = snprintf(dailylog_filename, 255, "%s/calllog.txt", path_string.c_str());
+  }
+
   nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a", path_string.c_str(), talkgroup, start_time, curr_freq);
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
@@ -143,40 +147,63 @@ void Call::end_call() {
       freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
-    std::ofstream myfile(status_filename);
+    std::ofstream jsonfile(status_filename);
 
-    if (myfile.is_open()) {
-      myfile << "{\n";
-      myfile << "\"freq\": " << this->curr_freq << ",\n";
-      myfile << "\"start_time\": " << this->get_start_time() << ",\n";
-      myfile << "\"stop_time\": " << this->stop_time << ",\n";
-      myfile << "\"emergency\": " << this->emergency << ",\n";
-      myfile << "\"duplex\": " << this->duplex << ",\n";
-      myfile << "\"mode\": " << this->mode << ",\n";
-      myfile << "\"priority\": " << this->priority << ",\n";
-      myfile << "\"call_length\": " << this->final_length << ",\n";
-      //myfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
-      myfile << "\"talkgroup\": " << this->talkgroup << ",\n";
-      myfile << "\"srcList\": [ ";
+    if (jsonfile.is_open()) {
+      jsonfile << "{\n";
+      jsonfile << "\"freq\": " << this->curr_freq << ",\n";
+      jsonfile << "\"start_time\": " << this->get_start_time() << ",\n";
+      jsonfile << "\"stop_time\": " << this->stop_time << ",\n";
+      jsonfile << "\"emergency\": " << this->emergency << ",\n";
+      jsonfile << "\"duplex\": " << this->duplex << ",\n";
+      jsonfile << "\"mode\": " << this->mode << ",\n";
+      jsonfile << "\"priority\": " << this->priority << ",\n";
+      jsonfile << "\"call_length\": " << this->final_length << ",\n";
+      //jsonfile << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
+      jsonfile << "\"talkgroup\": " << this->talkgroup << ",\n";
+      jsonfile << "\"srcList\": [ ";
 
       for (std::size_t i = 0; i < src_list.size(); i++) {
         if (i != 0) {
-          myfile << ", ";
+          jsonfile << ", ";
         }
-        myfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
+        jsonfile << "{\"src\": " << std::fixed << src_list[i].source << ", \"time\": " << src_list[i].time << ", \"pos\": " << src_list[i].position << ", \"emergency\": " << src_list[i].emergency << ", \"signal_system\": \"" << src_list[i].signal_system << "\", \"tag\": \"" << src_list[i].tag << "\"}";
       }
-      myfile << " ],\n";
-      myfile << "\"freqList\": [ ";
+      jsonfile << " ],\n";
+      jsonfile << "\"freqList\": [ ";
 
       for (int i = 0; i < freq_count; i++) {
         if (i != 0) {
-          myfile << ", ";
+          jsonfile << ", ";
         }
-        myfile << "{ \"freq\": " << std::fixed << freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
+        jsonfile << "{ \"freq\": " << std::fixed << freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
       }
-      myfile << "]\n";
-      myfile << "}\n";
-      myfile.close();
+      jsonfile << "]\n";
+      jsonfile << "}\n";
+      jsonfile.close();
+    }
+
+    if (sys->get_daily_log()) {
+      std::ofstream dailylog(dailylog_filename, std::ofstream::app);
+      if (dailylog.is_open()) {
+        dailylog << "\n" << this->get_start_time() << "," << (this->stop_time - this->get_start_time()) << "," << (int)(final_length + 0.5) << "," << this->talkgroup << "," << this->emergency << "," << this->priority << "," << this->duplex << "," << this->mode << ",";
+
+        for (int i = 0; i < src_list.size(); i++) {
+          dailylog << src_list[i].source;
+          if (i < (src_list.size()-1)) {
+            dailylog << "|";
+          }
+        }
+        //dailylog << this->get_recorder()->get_source()->get_device() << ",";
+
+        for (int i = 0; i < freq_count; i++) {
+          dailylog << "," << (int)freq_list[i].freq << "|" << freq_list[i].total_len << "|" << freq_list[i].error_count << "|" << freq_list[i].spike_count;
+          //would like to include phase2 slot here
+        }
+        dailylog.close();
+      } else {
+        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tCan't open daily log file for call: " << this->start_time << "," << (this->stop_time - this->start_time) << "," << (int)(final_length + 0.5) << "," << this->talkgroup << "," << this->emergency << "," << this->priority << "," << this->duplex << "," << this->mode  << "," << sys->get_short_name() << "," << (int)freq_list[0].freq << "|" << freq_list[0].total_len << "|" << freq_list[0].error_count << "|" << freq_list[0].spike_count;
+      }
     }
 
     if (sys->get_upload_script().length() != 0) {
