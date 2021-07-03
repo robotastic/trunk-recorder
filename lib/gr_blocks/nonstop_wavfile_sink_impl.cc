@@ -96,7 +96,7 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   d_conventional = call->is_conventional();
   curr_src_id = d_current_call->get_current_source();
   d_sample_count = 0;
-  BOOST_LOG_TRIVIAL(info) << "Initial source id from call: " << curr_src_id;
+  BOOST_LOG_TRIVIAL(info) << "\t- Initial source id from call: " << curr_src_id;
   // when a wav_sink first gets associated with a call, set its lifecycle to idle;
   state = IDLE;
   /* Should reset more variables here */
@@ -356,7 +356,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
       close_wav(false);
     }
-    BOOST_LOG_TRIVIAL(info) << " Starting new file, output_items: " << noutput_items << " Call Src:  " << d_current_call->get_current_source() << " Samples: " << d_sample_count << std::endl;
+    
     d_start_time = time(NULL);
     // create a new filename, based on the current time and source.
     d_current_call->create_filename(d_start_time);
@@ -365,10 +365,9 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     strcpy(current_base_filename, d_current_call->get_transmission_filename());
     if (!open_internal(current_filename)) {
       BOOST_LOG_TRIVIAL(error) << "can't open file";
-    } else {
-      BOOST_LOG_TRIVIAL(info) << "Opened file: " << current_filename;
-    }
-
+    } 
+    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tStarting new file, output_items: " << noutput_items << " Call Src:  " << d_current_call->get_current_source() << " Rec Src:  " << curr_src_id << " file: " << current_filename;;
+    
     curr_src_id = d_current_call->get_current_source();
 
     d_first_work = false;

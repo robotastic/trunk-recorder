@@ -15,10 +15,11 @@ int combine_wav(std::string files, char *target_filename) {
   }
   int rc = system(shell_command);
 
-  BOOST_LOG_TRIVIAL(info) << "Combining: " << files.c_str() << " into: " << target_filename;
-  BOOST_LOG_TRIVIAL(info) << shell_command;
+
 
   if (rc > 0) {
+    BOOST_LOG_TRIVIAL(info) << "Combining: " << files.c_str() << " into: " << target_filename;
+    BOOST_LOG_TRIVIAL(info) << shell_command;
     BOOST_LOG_TRIVIAL(error) << "Failed to combine recordings, see above error. Make sure you have sox and fdkaac installed.";
     return -1;
   } 
@@ -108,11 +109,15 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     std::string files;
     double total_length = 0;
 
+    char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+
     // loop through the transmission list, pull in things to fill in totals for call_info
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "] \t Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
+      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\tFreq: " << FormatFreq(call_info.freq) << "\t Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;

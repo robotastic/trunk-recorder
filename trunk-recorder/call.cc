@@ -139,7 +139,7 @@ void Call::restart_call() {
 void Call::stop_call() {
   
 
-  BOOST_LOG_TRIVIAL(info) << "stop_call() call state: " << FormatState(state) << " recorder state: " << this->get_recorder()->is_idle();
+  //BOOST_LOG_TRIVIAL(info) << "stop_call() call state: " << FormatState(state) << " recorder state: " << this->get_recorder()->is_idle();
   
   // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
   // doing anything and can be stopped.
@@ -154,7 +154,7 @@ void Call::stop_call() {
 
 void Call::conclude_call() {
 
-  BOOST_LOG_TRIVIAL(info) << "conclude_call()";
+  //BOOST_LOG_TRIVIAL(info) << "conclude_call()";
   stop_time = time(NULL);
 
   if (state == COMPLETED) {
