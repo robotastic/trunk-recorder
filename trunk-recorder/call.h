@@ -59,12 +59,13 @@ class Call {
 public:
   Call(long t, double f, System *s, Config c);
   Call(TrunkMessage message, System *s, Config c);
+  long get_call_num();
   virtual ~Call();
   virtual void restart_call();
   void stop_call();
   void conclude_call();
-void end_conversation();
-void end_transmissions();  
+  void end_conversation();
+  void end_transmissions();  
   void set_sigmf_recorder(Recorder *r);
   Recorder *get_sigmf_recorder();
   void set_debug_recorder(Recorder *r);
@@ -138,6 +139,8 @@ void end_transmissions();
 std::vector<Transmission> transmission_list;
 protected:
   State state;
+  static long call_counter;
+  long call_num;
   long talkgroup;
   double curr_freq;
   System *sys;

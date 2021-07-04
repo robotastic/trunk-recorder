@@ -129,9 +129,7 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 
   if (strlen(filename) >= 255) {
     BOOST_LOG_TRIVIAL(error) << "nonstop_wavfile_sink: Error! filename longer than 255";
-  } else {
-    strcpy(current_filename, filename);
-  }
+  } 
 
   if ((d_fp = fdopen(fd, "rb+")) == NULL) {
     perror(filename);
@@ -335,7 +333,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       bool call_completed = end_transmission();
 
       if (call_completed) {
-        BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is:   " << FormatState(d_current_call->get_state()) << " setting recorder to STOPPED";
+        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is:   " << FormatState(d_current_call->get_state()) << " setting recorder to STOPPED";
     
         //BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
         state = STOPPED;

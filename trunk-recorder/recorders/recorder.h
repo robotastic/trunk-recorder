@@ -75,7 +75,7 @@ public:
   virtual double get_freq() { return 0; };
   virtual Source *get_source() { return NULL; };
   virtual Call_Source *get_source_list() { return NULL; };
-  virtual int get_num() { return -1; };
+  int get_num() { return rec_num; };
   virtual long get_source_count() { return 0; };
   virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };

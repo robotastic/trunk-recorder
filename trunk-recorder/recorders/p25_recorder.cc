@@ -424,7 +424,7 @@ bool p25_recorder::start(Call *call) {
   if (state == INACTIVE) {
         System *system = call->get_system();
       qpsk_mod = system->get_qpsk_mod();
-  set_tdma(call->get_phase2_tdma());
+      set_tdma(call->get_phase2_tdma());
         if (call->get_phase2_tdma()) {
       if (!qpsk_mod) {
              BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";

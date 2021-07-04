@@ -23,6 +23,7 @@ class Uploader;
 enum Call_Data_Status { INITIAL, SUCCESS, RETRY, FAILED };
 struct Call_Data_t {
   long talkgroup;
+  long call_num;
   double freq;
   long start_time;
   long stop_time;

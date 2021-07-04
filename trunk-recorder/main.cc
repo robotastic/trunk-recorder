@@ -71,7 +71,7 @@ namespace keywords = boost::log::keywords;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
 int Recorder::rec_counter = 0;
-
+long Call::call_counter = 0;
 std::vector<Source *> sources;
 std::vector<System *> systems;
 std::map<long, long> unit_affiliations;
@@ -835,8 +835,11 @@ void manage_calls() {
         // if the recorder has simply been going for a while and a call is inactive, end things
         if (recorder->since_last_write() > 10) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
-          BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
+          BOOST_LOG_TRIVIAL(error) << "[ " << call->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
 
+          // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
+          // set the Call state to COMPLETED
+          call->set_state(COMPLETED);
           call->conclude_call();
           // The State of the Recorders has changed, so lets send an update
           ended_recording = true;
@@ -853,7 +856,7 @@ void manage_calls() {
         // case you can now conclude the call. 
         if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << FormatState(recorder->get_state());
-          BOOST_LOG_TRIVIAL(info) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t Call is INACTIVE and its recorder state is STOPPED or IDLE ";
+          BOOST_LOG_TRIVIAL(info) << "[ " << call->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t Call is INACTIVE and its recorder state is STOPPED or IDLE ";
           // since the Call state is INACTIVE and the Recorder has reached a state of IDLE or STOPPED, we can now
           // set the Call state to COMPLETED
           call->set_state(COMPLETED);
@@ -870,7 +873,7 @@ void manage_calls() {
           continue;
         }
       } else {
-        BOOST_LOG_TRIVIAL(error) << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
+        BOOST_LOG_TRIVIAL(error) << "[ " << call->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
       }
     }
 
