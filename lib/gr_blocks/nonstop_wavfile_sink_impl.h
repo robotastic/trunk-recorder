@@ -52,6 +52,7 @@ private:
 	char current_filename[255];
 	char current_base_filename[255];
 	Call* d_current_call;
+	long d_current_call_num;
 
 protected:
 	

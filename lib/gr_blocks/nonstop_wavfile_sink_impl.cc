@@ -91,7 +91,7 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
     BOOST_LOG_TRIVIAL(trace) << "Start() - Current_Call & fp are not null! current_filename is: " << current_filename << " Length: " << d_sample_count << std::endl;
   }
   d_current_call = call;
-
+  d_current_call_num = call->get_call_num();
   d_first_work = true;
   d_conventional = call->is_conventional();
   curr_src_id = d_current_call->get_current_source();
@@ -175,7 +175,7 @@ bool nonstop_wavfile_sink_impl::end_transmission() {
     d_sample_count = 0;
     if ((call_state == COMPLETED) || (call_state == INACTIVE)) {
       if (call_state == COMPLETED) {
-        BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is already completed, but still trying to end_transmission() file: " << current_filename;;
+        BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is already completed, but still trying to end_transmission() file: " << current_filename;;
     
       }
       return true;
@@ -254,7 +254,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << " DROPPING WAV - state is: " << FormatState(this->state) << "\tCall state is: " << FormatState(d_current_call->get_state()) << " file: " << current_filename;;
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call->get_short_name() <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << " DROPPING WAV - state is: " << FormatState(this->state) << "\tCall state is: " << FormatState(d_current_call->get_state()) << " file: " << current_filename;;
     
       //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << FormatState(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
@@ -333,7 +333,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       bool call_completed = end_transmission();
 
       if (call_completed) {
-        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is:   " << FormatState(d_current_call->get_state()) << " setting recorder to STOPPED";
+        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call->get_short_name() <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tCall state is:   " << FormatState(d_current_call->get_state()) << " setting recorder to STOPPED";
     
         //BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
         state = STOPPED;
@@ -371,7 +371,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     if (!open_internal(current_filename)) {
       BOOST_LOG_TRIVIAL(error) << "can't open file";
     } 
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call->get_short_name() << "]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tStarting new file, output_items: " << noutput_items << " Call Src:  " << d_current_call->get_current_source() << " Rec Src:  " << curr_src_id << " file: " << current_filename;;
+    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call->get_short_name() <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << d_current_call->get_freq() << "\tStarting new file, output_items: " << noutput_items << " Call Src:  " << d_current_call->get_current_source() << " Rec Src:  " << curr_src_id << " file: " << current_filename;;
     
     curr_src_id = d_current_call->get_current_source();
 
