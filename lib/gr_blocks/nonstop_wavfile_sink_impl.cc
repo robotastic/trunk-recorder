@@ -275,7 +275,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq() << " DROPPING WAV - state is: " << FormatState(this->state)  << "\t file: " << current_filename;;
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << " DROPPING WAV - state is: " << FormatState(this->state)  << "\t file: " << current_filename;;
     
       //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << FormatState(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
@@ -393,7 +393,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     if (!open_internal(current_filename)) {
       BOOST_LOG_TRIVIAL(error) << "can't open file";
     } 
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name() <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << "\tStarting new file, output_items: " << noutput_items << " Rec Src:  " << curr_src_id << " file: " << current_filename;
+    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << "\tStarting new file, output_items: " << noutput_items << " Rec Src:  " << curr_src_id << " file: " << current_filename;
     
     //curr_src_id = d_current_call->get_current_source_id();
 
