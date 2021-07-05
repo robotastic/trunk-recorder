@@ -219,6 +219,14 @@ int analog_recorder::get_num() {
   return rec_num;
 }
 
+std::vector<Transmission> analog_recorder::get_transmission_list() {
+  return wav_sink->get_transmission_list();
+}
+
+void analog_recorder::set_record_more_transmissions(bool more) {
+  wav_sink->set_record_more_transmissions(more);
+}
+
 void analog_recorder::stop() {
   if (state == ACTIVE) {
     recording_duration += wav_sink->length_in_seconds();

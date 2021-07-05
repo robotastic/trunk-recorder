@@ -369,6 +369,25 @@ void p25_recorder::tune_offset(double f) {
   }
 }
 
+void p25_recorder::set_record_more_transmissions(bool more) {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->set_record_more_transmissions(more);
+  } else {
+    return fsk4_p25_decode->set_record_more_transmissions(more);
+  }
+
+}
+
+std::vector<Transmission> p25_recorder::get_transmission_list() {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->get_transmission_list();
+  } else {
+    return fsk4_p25_decode->get_transmission_list();
+  }
+
+}
+
+
 
 
 Rx_Status p25_recorder::get_rx_status() {

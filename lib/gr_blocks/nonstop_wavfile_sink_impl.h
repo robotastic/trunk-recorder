@@ -53,7 +53,11 @@ private:
 	char current_base_filename[255];
 	Call* d_current_call;
 	long d_current_call_num;
-
+	std::string d_current_call_short_name;
+	std::string d_current_call_capture_dir;
+	double d_current_call_freq;
+	long d_current_call_talkgroup;
+	bool record_more_transmissions;
 protected:
 	
 	unsigned d_sample_count;
@@ -84,6 +88,7 @@ protected:
 protected:
 	bool stop();
 	bool open_internal(const char *filename);
+	std::vector<Transmission> transmission_list;
 	State state;
 public:
 
@@ -105,13 +110,17 @@ public:
 	                          int bits_per_sample,
 													bool use_float);
 	virtual ~nonstop_wavfile_sink_impl();
+	void create_base_filename();
 	char *get_filename();
 	virtual bool start_recording(Call *call);
 	virtual void stop_recording();
 	bool end_transmission();
 	void set_sample_rate(unsigned int sample_rate);
 	void set_bits_per_sample(int bits_per_sample);
-
+	void set_record_more_transmissions(bool more);
+	void clear_transmission_list();
+	std::vector<Transmission> get_transmission_list();
+	void add_transmission(Transmission t);
 	int bits_per_sample();
 	unsigned int sample_rate();
 

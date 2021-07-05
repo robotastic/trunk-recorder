@@ -8,7 +8,9 @@
 #include <signal.h>
 #include <stdio.h>
 
-//static int rec_counter=0;
+std::string Call::get_capture_dir() {
+  return this->config.capture_dir;
+}
 void Call::create_filename(time_t work_start_time) {
   std::stringstream path_stream;
   tm *ltm = localtime(&work_start_time);
@@ -141,17 +143,17 @@ void Call::restart_call() {
 void Call::stop_call() {
   
 
-  //BOOST_LOG_TRIVIAL(info) << "stop_call() call state: " << FormatState(state) << " recorder state: " << this->get_recorder()->is_idle();
-  
-  // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
-  // doing anything and can be stopped.
-  if ((state == RECORDING) && this->get_recorder()->is_idle()) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s";
-    this->set_state(COMPLETED);
-  } else {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";
-    
-    this->set_state(INACTIVE);
+  if (this->get_recorder() != NULL) {
+    // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
+    // doing anything and can be stopped.
+    if ((state == RECORDING) && this->get_recorder()->is_idle()) {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s";
+      this->set_state(COMPLETED);
+    } else {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";    
+      this->set_state(INACTIVE);
+    }
+    this->get_recorder()->set_record_more_transmissions(false);
   }
 
 }
@@ -178,7 +180,7 @@ void Call::conclude_call() {
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tConcluding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
     this->get_recorder()->stop();
-
+    transmission_list = this->get_recorder()->get_transmission_list();
     if (this->get_sigmf_recording() == true) {
       this->get_sigmf_recorder()->stop();
     }
@@ -194,19 +196,6 @@ void Call::conclude_call() {
   
 }
 
-
-
-State Call::add_transmission(Transmission t) {
-  transmission_list.push_back(t);
-
-  // This should probably be removed, it is a weird place to shift
-  /*if (state == INACTIVE) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tadd_transmission() - Call state is INACTIVE, changing to COMPLETED " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
-
-    state = COMPLETED;
-  }*/
-  return state;
-}
 
 void Call::set_sigmf_recorder(Recorder *r) {
   sigmf_recorder = r;
@@ -405,7 +394,7 @@ const char *Call::get_xor_mask() {
   return sys->get_xor_mask();
 }
 
-long Call::get_current_source() {
+long Call::get_current_source_id() {
      if (!src_list.empty()) {
      Call_Source last_source = src_list.back();
       return last_source.source;

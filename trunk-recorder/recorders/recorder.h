@@ -74,11 +74,13 @@ public:
   virtual void set_tdma_slot(int slot){};
   virtual double get_freq() { return 0; };
   virtual Source *get_source() { return NULL; };
+  virtual std::vector<Transmission> get_transmission_list() { return {}; };
   virtual Call_Source *get_source_list() { return NULL; };
   int get_num() { return rec_num; };
   virtual long get_source_count() { return 0; };
   virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
+  virtual void set_record_more_transmissions(bool more){};
   virtual State get_state() { return INACTIVE; };
   virtual Rx_Status get_rx_status() {
     Rx_Status rx_status = {0, 0, 0};

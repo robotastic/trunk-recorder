@@ -77,12 +77,13 @@ public:
   bool is_active();
   bool is_analog();
   bool is_idle();
+  std::vector<Transmission> get_transmission_list(); 
   State get_state();
   int get_num();
   int lastupdate();
   long elapsed();
   static bool logging;
-
+  void set_record_more_transmissions(bool more);
   void process_message_queues(void);
   void decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal);
   void plugin_callback_handler(float *samples, int sampleCount);

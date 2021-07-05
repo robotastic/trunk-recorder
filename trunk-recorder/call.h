@@ -64,8 +64,6 @@ public:
   virtual void restart_call();
   void stop_call();
   void conclude_call();
-  void end_conversation();
-  void end_transmissions();  
   void set_sigmf_recorder(Recorder *r);
   Recorder *get_sigmf_recorder();
   void set_debug_recorder(Recorder *r);
@@ -82,6 +80,7 @@ public:
   char *get_sigmf_filename();
   int get_sys_num();
   std::string get_short_name();
+  std::string get_capture_dir();
   void create_filename(time_t work_start_time);
   void create_filename();
   void set_error(Rx_Status rx_status);
@@ -133,7 +132,7 @@ public:
   std::string get_talkgroup_tag();
   std::string get_system_type();
   double get_final_length();
-  long get_current_source();
+  long get_current_source_id();
   bool get_conversation_mode();
   System *get_system();
 std::vector<Transmission> transmission_list;

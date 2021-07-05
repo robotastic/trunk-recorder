@@ -28,9 +28,18 @@ void p25_recorder_decode::start(Call *call) {
     levels->set_k(call->get_system()->get_digital_levels());
     wav_sink->start_recording(call);
 }
+
 void p25_recorder_decode::set_xor_mask(const char *mask) {
     op25_frame_assembler->set_xormask(mask);
 }
+void p25_recorder_decode::set_record_more_transmissions(bool more) {
+    wav_sink->set_record_more_transmissions(more);
+}
+
+std::vector<Transmission> p25_recorder_decode::get_transmission_list() {
+  return wav_sink->get_transmission_list();
+}
+
 void p25_recorder_decode::set_tdma_slot(int slot) {
 
 
