@@ -5,7 +5,7 @@
 #include <gr_blocks/nonstop_wavfile_sink_impl.h>
 #include "../formatter.h"
 #include "../recorder_globals.h"
-#include "../plugins/plugin-manager.h"
+#include "../plugin_manager/plugin_manager.h"
 
 using namespace std;
 

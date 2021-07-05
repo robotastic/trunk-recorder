@@ -1,4 +1,4 @@
-#include "plugin-manager.h"
+#include "plugin_manager.h"
 
 #include "../config.h"
 #include <boost/dll/import.hpp> // for import_alias

@@ -1,5 +1,5 @@
-#include "../plugin_api.h"
-#include "../../systems/system.h"
+#include "../../trunk-recorder/plugin_manager/plugin_api.h"
+#include "../../trunk-recorder/systems/system.h"
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 
 struct Unit_Script_System_Script {

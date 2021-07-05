@@ -63,7 +63,7 @@
 #include <gnuradio/top_block.h>
 #include <gnuradio/uhd/usrp_source.h>
 
-#include "plugins/plugin-manager.h"
+#include "plugin_manager/plugin_manager.h"
 
 using namespace std;
 namespace logging = boost::log;

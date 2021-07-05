@@ -1,4 +1,4 @@
-#include "../plugin-common.h"
+#include "../trunk-recorder/plugin_manager/plugin_common.h"
 #include "streamer_client_impl.h"
 #include "streamer_proto_helper.h"
 #include <grpcpp/grpcpp.h>

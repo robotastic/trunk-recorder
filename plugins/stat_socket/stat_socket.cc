@@ -3,10 +3,10 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
 
-#include "../../config.h"
-#include "../../source.h"
-#include "../../systems/system.h"
-#include "../plugin_api.h"
+#include "../../trunk-recorder/config.h"
+#include "../../trunk-recorder/source.h"
+#include "../../trunk-recorder/systems/system.h"
+#include "../../trunk-recorder/plugin_manager/plugin_api.h"
 #include <gr_blocks/decoder_wrapper.h>
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS   
 

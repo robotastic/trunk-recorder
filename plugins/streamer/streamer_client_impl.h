@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <string>
 #include <boost/property_tree/ptree.hpp>
-#include "../plugin-common.h"
+#include "../trunk-recorder/plugin_manager/plugin_common.h"
 #include "StreamerClient.h"
 
 typedef struct streamer_client_plugin_t streamer_client_plugin_t;

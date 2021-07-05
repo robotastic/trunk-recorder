@@ -1,4 +1,4 @@
-#include "plugin-common.h"
+#include "plugin_common.h"
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
