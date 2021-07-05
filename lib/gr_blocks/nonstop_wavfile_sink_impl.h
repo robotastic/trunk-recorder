@@ -53,6 +53,7 @@ private:
 	char current_base_filename[255];
 	Call* d_current_call;
 	long d_current_call_num;
+	long d_current_call_recorder_num;
 	std::string d_current_call_short_name;
 	std::string d_current_call_capture_dir;
 	double d_current_call_freq;

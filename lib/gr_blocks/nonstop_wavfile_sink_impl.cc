@@ -113,8 +113,10 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   }
   d_current_call = call;
   d_current_call_num = call->get_call_num();
+  d_current_call_recorder_num = call->get_recorder()->get_num();
   d_current_call_freq = call->get_freq();
   d_current_call_talkgroup = call->get_talkgroup();
+  d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
   record_more_transmissions = true;
 
@@ -275,7 +277,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << " DROPPING WAV - state is: " << FormatState(this->state)  << "\t file: " << current_filename;;
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t| " << d_current_call_recorder_num << "R\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << " DROPPING WAV - state is: " << FormatState(this->state)  << "\t file: " << current_filename;;
     
       //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << FormatState(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
