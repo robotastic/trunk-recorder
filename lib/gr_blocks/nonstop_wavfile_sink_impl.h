@@ -112,9 +112,9 @@ public:
 	virtual ~nonstop_wavfile_sink_impl();
 	void create_base_filename();
 	char *get_filename();
-	virtual bool start_recording(Call *call);
-	virtual void stop_recording();
-	bool end_transmission();
+	bool start_recording(Call *call);
+	void stop_recording();
+	void end_transmission();
 	void set_sample_rate(unsigned int sample_rate);
 	void set_bits_per_sample(int bits_per_sample);
 	void set_record_more_transmissions(bool more);
