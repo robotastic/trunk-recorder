@@ -76,7 +76,7 @@ int create_call_json(Call_Data_t call_info) {
     json_file.close();
     return 0;
   } else {
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "] \t Unable to create JSON file: " << call_info.status_filename;
+    BOOST_LOG_TRIVIAL(error) << << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] \t Unable to create JSON file: " << call_info.status_filename;
     return 1;
   }
 }
@@ -117,7 +117,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\tFreq: " << FormatFreq(call_info.freq) << "\t Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
+      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t]\tTG: " << talkgroup_display << "\tFreq: " << FormatFreq(call_info.freq) << "\t Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;
@@ -163,7 +163,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
       shell_command << "./" << call_info.upload_script << " " << call_info.filename << " " << call_info.status_filename;
       shell_command_string = shell_command.str();
 
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "] \t Running upload script: " << shell_command_string;
+      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] \t Running upload script: " << shell_command_string;
       //signal(SIGCHLD, SIG_IGN);
 
       result = system(shell_command_string.c_str());
@@ -221,7 +221,7 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
     time_t start_time = call_info.start_time;
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "] No Transmission were recorded! Check Squelch settings - TG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << "\t Freq: " << call_info.freq;
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] No Transmission were recorded! Check Squelch settings - TG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << "\t Freq: " << call_info.freq;
   }
 }
 
@@ -238,14 +238,14 @@ void Call_Concluder::manage_call_data_workers() {
         time_t start_time = call_info.start_time;
         if (call_info.retry_attempt > Call_Concluder::MAX_RETRY) {
           remove_call_files(call_info);
-          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "] Failed to conclude call - TG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z");
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] Failed to conclude call - TG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z");
 
         } else {
           long jitter = rand() % 10;
           long backoff = (2 ^ call_info.retry_attempt * 60) + jitter;
           call_info.process_call_time = time(0) + backoff;
           retry_call_list.push_back(call_info);
-          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "] \tTG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << " rety attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] \tTG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << " rety attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
         }
       }
       it = call_data_workers.erase(it);
