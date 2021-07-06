@@ -76,7 +76,7 @@ int create_call_json(Call_Data_t call_info) {
     json_file.close();
     return 0;
   } else {
-    BOOST_LOG_TRIVIAL(error) << << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] \t Unable to create JSON file: " << call_info.status_filename;
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] \t Unable to create JSON file: " << call_info.status_filename;
     return 1;
   }
 }
