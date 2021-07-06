@@ -362,14 +362,14 @@ void Source::print_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "[ D" << rx->get_num() << " ] State: " << FormatState(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "[ D" << rx->get_num() << " ] State: " << format_state(rx->get_state());
   }
 
   for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin();
        it != analog_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "[ A" << rx->get_num() << " ] State: " << FormatState(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "[ A" << rx->get_num() << " ] State: " << format_state(rx->get_state());
   }
 }
 
@@ -458,7 +458,7 @@ Recorder *Source::get_digital_recorder() {
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << FormatState(rx->get_state()) << " Freq: " << rx->get_freq();
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << format_state(rx->get_state()) << " Freq: " << rx->get_freq();
   }
   return NULL;
 }
@@ -541,7 +541,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     osmo_src->set_sample_rate(rate);
     actual_rate = osmo_src->get_sample_rate();
     BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
-    BOOST_LOG_TRIVIAL(info) << "Tuning to " << FormatFreq(center + error);
+    BOOST_LOG_TRIVIAL(info) << "Tuning to " << format_freq(center + error);
     osmo_src->set_center_freq(center + error, 0);
     gain_names = osmo_src->get_gain_names();
     std::string gain_list;
@@ -574,7 +574,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     usrp_src->set_samp_rate(rate);
     actual_rate = usrp_src->get_samp_rate();
     BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
-    BOOST_LOG_TRIVIAL(info) << "Tuning to " << FormatFreq(center + error);
+    BOOST_LOG_TRIVIAL(info) << "Tuning to " << format_freq(center + error);
     usrp_src->set_center_freq(center + error, 0);
 
     source_block = usrp_src;

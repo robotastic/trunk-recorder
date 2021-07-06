@@ -250,7 +250,7 @@ void p25_recorder::autotune() {
     msg = tune_queue->delete_head_nowait();
 
     if (msg != 0) {
-      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << FormatFreq(chan_freq) << "\t Tune: " << msg->arg1();
+      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << format_freq(chan_freq) << "\t Tune: " << msg->arg1();
 
       // tune_offset(freq + (msg->arg1()*100));
       tune_queue->flush();
@@ -413,7 +413,7 @@ void p25_recorder::stop() {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
     clear();
-    //BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "\t| " << this->call->get_call_num() << "C\t]\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    //BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "\t| " << this->call->get_call_num() << "C\t]\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
     state = INACTIVE;
     valve->set_enabled(false);
@@ -479,7 +479,7 @@ bool p25_recorder::start(Call *call) {
 
 
     
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << "\t Starting P25 Recorder Num [" << rec_num << "] \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t Starting P25 Recorder Num [" << rec_num << "] \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);
 

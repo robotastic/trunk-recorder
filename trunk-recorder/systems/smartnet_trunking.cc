@@ -155,7 +155,7 @@ smartnet_trunking::smartnet_trunking(float f,
   const double pi = boost::math::constants::pi<double>();
   BOOST_LOG_TRIVIAL(info) << "SmartNet Trunking - SysNum: " << sys_num;
 
-  BOOST_LOG_TRIVIAL(info) << "Control channel: " << FormatFreq(chan_freq);
+  BOOST_LOG_TRIVIAL(info) << "Control channel: " << format_freq(chan_freq);
 
   initialize_prefilter();
 
@@ -188,7 +188,7 @@ smartnet_trunking::smartnet_trunking(float f,
 }
 
 void smartnet_trunking::reset() {
-  BOOST_LOG_TRIVIAL(info) << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << FormatFreq(pll_demod->get_min_freq()) << " Max Freq: " << FormatFreq(pll_demod->get_max_freq());
+  BOOST_LOG_TRIVIAL(info) << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << format_freq(pll_demod->get_min_freq()) << " Max Freq: " << format_freq(pll_demod->get_max_freq());
   carriertrack->set_rolloff(0.6);
   pll_demod->update_gains();
   //pll_demod->frequency_limit();

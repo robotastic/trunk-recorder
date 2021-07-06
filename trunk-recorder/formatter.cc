@@ -4,7 +4,7 @@
 int frequencyFormat = 0;
 bool statusAsString = true;
 
-boost::format FormatFreq(double f) {
+boost::format format_freq(double f) {
   if (frequencyFormat == 1)
     return boost::format("%10.6f MHz") % (f / 1000000.0);
   else if (frequencyFormat == 2)
@@ -17,7 +17,7 @@ boost::format FormatSamplingRate(float f) {
   return boost::format("%.0f") % f;
 }
 
-std::string FormatState(State state) {
+std::string format_state(State state) {
   if (statusAsString) {
     if (state == MONITORING)
       return "monitoring";

@@ -267,7 +267,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   if (!d_current_call) {
     time_t now = time(NULL);
     double its_been = difftime(now, d_stop_time);
-    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << " exptected: " << noutput_items << " state: " << FormatState(this->state) <<  std::endl;
+    BOOST_LOG_TRIVIAL(info) << "WAV - Weird! current_call is null:  " << current_filename << " Length: " << d_sample_count << " Since close: " << its_been << " exptected: " << noutput_items << " state: " << format_state(this->state) <<  std::endl;
     return noutput_items;
   }
 
@@ -276,9 +276,9 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t| " << d_current_call_recorder_num << "R\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << " DROPPING WAV - state is: " << FormatState(this->state)  << "\t file: " << current_filename;;
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t| " << d_current_call_recorder_num << "R\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << " DROPPING WAV - state is: " << format_state(this->state)  << "\t file: " << current_filename;;
     
-      //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << FormatState(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
+      //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
     return noutput_items;
   }

@@ -117,7 +117,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t]\tTG: " << talkgroup_display << "\tFreq: " << FormatFreq(call_info.freq) << "\t Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
+      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t]\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;

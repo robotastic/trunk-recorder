@@ -259,13 +259,13 @@ public:
       curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 
       if (res != CURLM_OK || response_code != 200) {
-        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << response_buffer;
+        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << response_buffer;
         return 1;
       }
 
       std::size_t spacepos = response_buffer.find(' ');
       if (spacepos < 1) {
-        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << response_buffer;
+        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << response_buffer;
         return 1;
       }
 
@@ -273,26 +273,26 @@ public:
       std::string message = response_buffer.substr(spacepos + 1);
 
       if (code == "1" && message == "SKIPPED---ALREADY-RECEIVED-THIS-CALL") {
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tBroadcastify Upload Skipped: " << message;
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload Skipped: " << message;
         return 0;
       }
 
       if (code != "0") {
-        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << message;
+        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << message;
         return 1;
       }
 
       CURLcode audio_error = this->upload_audio_file(call_info.converted, message);
 
       if (audio_error) {
-        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tBroadcastify Audio Upload Error: " << curl_easy_strerror(audio_error);
+        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Audio Upload Error: " << curl_easy_strerror(audio_error);
         return 1;
       }
 
       struct stat file_info;
       stat(call_info.converted, &file_info);
 
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << FormatFreq(call_info.freq) << "\tBroadcastify Upload Success - file size: " << file_info.st_size;
+      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload Success - file size: " << file_info.st_size;
       return 0;
     } else {
       return 1;

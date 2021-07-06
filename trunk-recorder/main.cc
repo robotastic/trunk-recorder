@@ -209,7 +209,7 @@ bool load_config(string config_file) {
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
           double channel = sub_node.second.get<double>("", 0);
 
-          BOOST_LOG_TRIVIAL(info) << "  " << FormatFreq(channel);
+          BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
           system->add_channel(channel);
         }
 
@@ -229,7 +229,7 @@ bool load_config(string config_file) {
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
           double channel = sub_node.second.get<double>("", 0);
 
-          BOOST_LOG_TRIVIAL(info) << "  " << FormatFreq(channel);
+          BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
           system->add_channel(channel);
         }
 
@@ -252,7 +252,7 @@ bool load_config(string config_file) {
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels")) {
           double control_channel = sub_node.second.get<double>("", 0);
 
-          BOOST_LOG_TRIVIAL(info) << "  " << FormatFreq(control_channel);
+          BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channel);
           system->add_control_channel(control_channel);
         }
       } else {
@@ -407,7 +407,7 @@ bool load_config(string config_file) {
 
       std::string device = node.second.get<std::string>("device", "");
       BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver", "");
-      BOOST_LOG_TRIVIAL(info) << "Center: " << FormatFreq(node.second.get<double>("center", 0));
+      BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(node.second.get<double>("center", 0));
       BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(node.second.get<double>("rate", 0));
       BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
       BOOST_LOG_TRIVIAL(info) << "PPM Error: " << node.second.get<double>("ppm", 0);
@@ -433,8 +433,8 @@ bool load_config(string config_file) {
       }
 
       Source *source = new Source(center, rate, error, driver, device, &config);
-      BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << FormatFreq(source->get_max_hz());
-      BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << FormatFreq(source->get_min_hz());
+      BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
+      BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
 
       if (if_gain != 0) {
         gain_set = true;
@@ -558,7 +558,7 @@ bool load_config(string config_file) {
 
     for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
       Source *source = *it;
-      BOOST_LOG_TRIVIAL(info) << "  " << source->get_driver() << " - " << source->get_device() << " [ " << FormatFreq(source->get_center()) << " ]  Port: " << source->get_debug_recorder_port();
+      BOOST_LOG_TRIVIAL(info) << "  " << source->get_driver() << " - " << source->get_device() << " [ " << format_freq(source->get_center()) << " ]  Port: " << source->get_debug_recorder_port();
     }
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\n";
   }
@@ -604,7 +604,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (!talkgroup && (sys->get_record_unknown() == false)) {
     if (sys->get_hideUnknown() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
     }
     return false;
   }
@@ -617,7 +617,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode == 'E'))) {
     if (sys->get_hideEncrypted() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
     return false;
   }
@@ -636,7 +636,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
           recorder = source->get_digital_recorder(talkgroup);
         }
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\tTG not in Talkgroup File ";
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tTG not in Talkgroup File ";
 
         // A talkgroup was not found from the talkgroup file.
         // Use an analog recorder if this is a Type II trunk and defaultMode is analog.
@@ -702,7 +702,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (!source_found) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -761,10 +761,10 @@ void print_status() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t] TG: " << call->get_talkgroup_display() << " Freq: " << FormatFreq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << FormatState(call->get_state());
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t] TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << format_state(call->get_state());
 
     if (recorder) {
-      BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << FormatState(recorder->get_state());
+      BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
     }
   }
 
@@ -831,7 +831,7 @@ void manage_calls() {
         // if the recorder has simply been going for a while and a call is inactive, end things
         if (recorder->since_last_write() > 10) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
-          BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]  Rec Num: " << recorder->get_num() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
+          BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]  Rec Num: " << recorder->get_num() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
 
           // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
           // set the Call state to COMPLETED
@@ -851,8 +851,8 @@ void manage_calls() {
         // In this case, the Call is inactive and was waiting for the recorder to finish. In this
         // case you can now conclude the call. 
         if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
-          BOOST_LOG_TRIVIAL(info) << "Recorder state: " << FormatState(recorder->get_state());
-          BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) <<  "\t\u001b[36m  Completing Call, its state is INACTIVE and its recorder state is STOPPED or IDLE\u001b[0m";
+          BOOST_LOG_TRIVIAL(info) << "Recorder state: " << format_state(recorder->get_state());
+          BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) <<  "\t\u001b[36m  Completing Call, its state is INACTIVE and its recorder state is STOPPED or IDLE\u001b[0m";
           // since the Call state is INACTIVE and the Recorder has reached a state of IDLE or STOPPED, we can now
           // set the Call state to COMPLETED
           call->set_state(COMPLETED);
@@ -869,7 +869,7 @@ void manage_calls() {
           continue;
         }
       } else {
-        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t] Rec Num: " << recorder->get_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << FormatFreq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
+        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t] Rec Num: " << recorder->get_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
       }
     }
 
@@ -1006,12 +1006,12 @@ void retune_system(System *system) {
   Source *current_source = system->get_source();
   double control_channel_freq = system->get_next_control_channel();
 
-  BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << FormatFreq(control_channel_freq);
+  BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Retuning to Control Channel: " << format_freq(control_channel_freq);
 
   if ((current_source->get_min_hz() <= control_channel_freq) &&
       (current_source->get_max_hz() >= control_channel_freq)) {
     source_found = true;
-    BOOST_LOG_TRIVIAL(info) << "\t - System Source " << current_source->get_num() << " - Min Freq: " << FormatFreq(current_source->get_min_hz()) << " Max Freq: " << FormatFreq(current_source->get_max_hz());
+    BOOST_LOG_TRIVIAL(info) << "\t - System Source " << current_source->get_num() << " - Min Freq: " << format_freq(current_source->get_min_hz()) << " Max Freq: " << format_freq(current_source->get_max_hz());
     // The source can cover the System's control channel, break out of the
     // For Loop
     if (system->get_system_type() == "smartnet") {
@@ -1029,7 +1029,7 @@ void retune_system(System *system) {
       if ((source->get_min_hz() <= control_channel_freq) &&
           (source->get_max_hz() >= control_channel_freq)) {
         source_found = true;
-        BOOST_LOG_TRIVIAL(info) << "\t - System Source " << source->get_num() << " - Min Freq: " << FormatFreq(source->get_min_hz()) << " Max Freq: " << FormatFreq(source->get_max_hz());
+        BOOST_LOG_TRIVIAL(info) << "\t - System Source " << source->get_num() << " - Min Freq: " << format_freq(source->get_min_hz()) << " Max Freq: " << format_freq(source->get_max_hz());
 
         if (system->get_system_type() == "smartnet") {
           system->set_source(source);
@@ -1208,7 +1208,7 @@ bool setup_systems() {
             }
 
             // This source can be used for this channel (and a squelch is set)
-            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << FormatFreq(channel) << " Talkgroup: " << tg_iterate_index;
+            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << format_freq(channel) << " Talkgroup: " << tg_iterate_index;
             Call_conventional *call = new Call_conventional(tg_iterate_index, channel, system, config);
             Talkgroup *talkgroup = system->find_talkgroup(call->get_talkgroup());
 
@@ -1240,13 +1240,13 @@ bool setup_systems() {
           }
         }
         if (!channel_added) {
-          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << FormatFreq(channel) << " Talkgroup: " << tg_iterate_index;
+          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel) << " Talkgroup: " << tg_iterate_index;
         }
       }
     } else {
       // If it's not a conventional system, then it's a trunking system
       double control_channel_freq = system->get_current_control_channel();
-      BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tStarted with Control Channel: " << FormatFreq(control_channel_freq);
+      BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tStarted with Control Channel: " << format_freq(control_channel_freq);
 
       for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
         source = *src_it;
