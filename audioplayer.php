@@ -13,7 +13,17 @@ $CONFIG = (function (string $configFilePath = './config.json') {
     return json_decode(file_get_contents($configFilePath));
 })();
 
-$TGFile = function (string $tgFilePath): array {
+if (false === $CONFIG) {
+    $error = 'Config file does not exist';
+    goto html;
+}
+
+if (empty($CONFIG->systems)) {
+    $error = 'No systems found in config file';
+    goto html;
+}
+
+$TGFile = function (?string $tgFilePath): array {
     $return = [];
 
     if (!file_exists($tgFilePath)) {
@@ -28,18 +38,15 @@ $TGFile = function (string $tgFilePath): array {
     return $return;
 };
 
-
-foreach ($CONFIG->systems as $system) {
-    $SHORTNAME = "{$system->shortName}";
-    $TGS[$SHORTNAME] = [];
-    $TGS[$SHORTNAME] += $TGFile($system->talkgroupsFile);
+$TGS = [];
+foreach ($CONFIG->systems ?? [] as $system) {
+    $TGS[$system->shortName] = $TGFile($system->talkgroupsFile);
 }
 
 $files = [];
 try {
-    foreach ($CONFIG->systems as $system) {
-        $SHORTNAME = "{$system->shortName}";
-        foreach (new DirectoryIterator("{$CONFIG->captureDir}/$SHORTNAME/{$date->format('Y/n/j')}/") as $file) {
+    foreach ($CONFIG->systems ?? [] as $system) {
+        foreach (new DirectoryIterator("{$CONFIG->captureDir}/{$system->shortName}/{$date->format('Y/n/j')}/") as $file) {
             $EXT = '.' . $file->getExtension();
             if ($EXT != $FileType) {
                 continue;
@@ -56,7 +63,7 @@ try {
                 continue;
             }   # Filtered because they will produce an error when attempting playback.
 
-            $files[$TIME . $FREQ] = [$Basename, round($file->getSize() / 1024), $TGID, $TIME, $FREQ / 1000000, $SHORTNAME];
+            $files[$TIME . $FREQ] = [$Basename, round($file->getSize() / 1024), $TGID, $TIME, $FREQ / 1000000, $system->shortName];
         }
     }
     ksort($files);
@@ -64,6 +71,7 @@ try {
     $error = 'No directory found for that date.';
 }
 
+html:
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -97,12 +105,13 @@ try {
                             <label class="form-control-label" for="tg">Talk Group</label>
                             <select class="form-control" id="tg" name="tg">
                                 <option value="">All Calls</option>
-<?php       foreach ($CONFIG->systems as $system) {
-    $SHORTNAME = "{$system->shortName}";
-    foreach ($TGS[$SHORTNAME] as $TGID => $TGName): ?>
+<?php   foreach ($CONFIG->systems as $system):  ?>
+                                <optgroup value="<?=$system->shortName?>">
+<?php       foreach ($TGS[$system->shortName] as $TGID => $TGName): ?>
                                 <option value="<?=$TGID?>"<?=($tg == $TGID) ? ' selected="selected"' : ''?>><?=$TGName?></option>
-<?php       endforeach;
-} ?>
+<?php       endforeach; ?>
+                                </optgroup>
+<?php   endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group col-lg-4">
@@ -112,7 +121,7 @@ try {
                     </div>
                 </form>
                 <div class="row">
-                    <div class="form-group col-lg-12"><button class="btn btn-primary btn-block" onclick="window.scrollTo(0,document.body.scrollHeight);">Jump to bottom</button>Click on a row to begin sequential playback. Click file size to download. </div>
+                    <div class="form-group col-lg-12"><button class="btn btn-primary btn-block" onclick="window.scrollTo(0, document.body.scrollHeight);">Jump to bottom</button>Click on a row to begin sequential playback. Click file size to download.</div>
                 </div>
             </div>
             <table class="table">
@@ -126,11 +135,11 @@ try {
                 </thead>
                 <tbody>
 <?php   if (isset($error)): ?>
-                    <tr>
+                    <tr class="text-warning">
                         <th colspan="4"><?=$error?></th>
                     </tr>
 <?php   endif;  ?>
-<?php   foreach ($files as $FileTime => [$FileName, $FileSize, $TGID, $TIME, $FREQ, $SHORTNAME]):   ?>
+<?php   foreach ($files ?? [] as $FileTime => [$FileName, $FileSize, $TGID, $TIME, $FREQ, $SHORTNAME]):   ?>
                     <tr>
                         <td><?=date("H:i:s", $TIME)?></td>
                         <td><?=($TGS[$SHORTNAME][$TGID]) ?? $TGID?></td>
@@ -143,11 +152,11 @@ try {
             <br />
             <br />
             <br />
-        <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-primary">
-                        <audio preload="none" controls>
-                            Sorry, your browser does not support HTML5 audio.
-                        </audio>
-</nav>
+            <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-primary">
+                <audio preload="none" controls>
+                    Sorry, your browser does not support HTML5 audio.
+                </audio>
+            </nav>
         </div>
         <script>
             window.onload = _ => {
