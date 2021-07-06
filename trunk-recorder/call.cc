@@ -147,10 +147,10 @@ void Call::stop_call() {
     // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
     // doing anything and can be stopped.
     if ((state == RECORDING) && this->get_recorder()->is_idle()) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s";
       this->set_state(COMPLETED);
     } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t| " << recorder->get_num() << "R\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";    
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << this->get_call_num() << "C\t]\tTG: " << this->get_talkgroup_display() << "\tFreq: " << FormatFreq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";    
       this->set_state(INACTIVE);
     }
     this->get_recorder()->set_record_more_transmissions(false);

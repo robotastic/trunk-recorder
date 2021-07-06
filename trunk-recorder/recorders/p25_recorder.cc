@@ -413,7 +413,7 @@ void p25_recorder::stop() {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
     clear();
-    BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "\t| " << this->call->get_call_num() << "C\t]\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    //BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "\t| " << this->call->get_call_num() << "C\t]\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
     state = INACTIVE;
     valve->set_enabled(false);
