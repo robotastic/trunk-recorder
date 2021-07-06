@@ -479,7 +479,7 @@ bool p25_recorder::start(Call *call) {
 
 
     
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << "\t Starting P25 Recorder Num [" << rec_num << "] \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);
 
