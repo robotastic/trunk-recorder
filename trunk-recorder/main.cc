@@ -604,7 +604,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (!talkgroup && (sys->get_record_unknown() == false)) {
     if (sys->get_hideUnknown() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
     }
     return false;
   }
@@ -617,7 +617,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode == 'E'))) {
     if (sys->get_hideEncrypted() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
     return false;
   }
@@ -636,7 +636,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
           recorder = source->get_digital_recorder(talkgroup);
         }
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tTG not in Talkgroup File ";
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tTG not in Talkgroup File ";
 
         // A talkgroup was not found from the talkgroup file.
         // Use an analog recorder if this is a Type II trunk and defaultMode is analog.
@@ -702,7 +702,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (!source_found) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -724,7 +724,7 @@ void manage_conventional_call(Call *call) {
   if (call->get_recorder()) {
     // if any recording has happened
     if (call->get_current_length() > 0) {
-      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t] Recorder: " << call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();
+      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Recorder: " << call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();
 
       // means that the squelch is on and it has stopped recording
       if (call->get_recorder()->is_idle()) {
@@ -761,7 +761,7 @@ void print_status() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t] TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << format_state(call->get_state());
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << format_state(call->get_state());
 
     if (recorder) {
       BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
@@ -831,7 +831,7 @@ void manage_calls() {
         // if the recorder has simply been going for a while and a call is inactive, end things
         if (recorder->since_last_write() > 10) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
-          BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]  Rec Num: " << recorder->get_num() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
+          BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m  Rec Num: " << recorder->get_num() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
 
           // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
           // set the Call state to COMPLETED
@@ -852,7 +852,7 @@ void manage_calls() {
         // case you can now conclude the call. 
         if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << format_state(recorder->get_state());
-          BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t]\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) <<  "\t\u001b[36m  Completing Call, its state is INACTIVE and its recorder state is STOPPED or IDLE\u001b[0m";
+          BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) <<  "\t\u001b[36m  Completing Call, its state is INACTIVE and its recorder state is STOPPED or IDLE\u001b[0m";
           // since the Call state is INACTIVE and the Recorder has reached a state of IDLE or STOPPED, we can now
           // set the Call state to COMPLETED
           call->set_state(COMPLETED);
@@ -869,7 +869,7 @@ void manage_calls() {
           continue;
         }
       } else {
-        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "\t| " << call->get_call_num() << "C\t] Rec Num: " << recorder->get_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
+        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Rec Num: " << recorder->get_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
       }
     }
 
