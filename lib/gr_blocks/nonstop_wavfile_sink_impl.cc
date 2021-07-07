@@ -276,7 +276,10 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (noutput_items > 1) {
       time_t now = time(NULL);
       double its_been = difftime(now, d_stop_time);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t| " << d_current_call_recorder_num << "R\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << " DROPPING WAV - state is: " << format_state(this->state)  << "\t file: " << current_filename;;
+          char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t| " << d_current_call_recorder_num << "R\t]\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << " DROPPING WAV - state is: " << format_state(this->state)  << "\t file: " << current_filename;;
     
       //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
@@ -365,7 +368,10 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       end_transmission();
     }
       if (!record_more_transmissions) {
-        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << "\trecord_more_transmissions is false, setting recorder state to STOPPED";
+                  char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\trecord_more_transmissions is false, setting recorder state to STOPPED";
     
         //BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
         state = STOPPED;
@@ -394,7 +400,10 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     if (!open_internal(current_filename)) {
       BOOST_LOG_TRIVIAL(error) << "can't open file";
     } 
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << d_current_call_talkgroup << "\tFreq: " << d_current_call_freq << "\tStarting new file, output_items: " << noutput_items << " Rec Src:  " << curr_src_id << " file: " << current_filename;
+              char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name <<  "\t| " << d_current_call_num << "C\t]\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\tStarting new file, output_items: " << noutput_items << " Rec Src:  " << curr_src_id << " file: " << current_filename;
     
     //curr_src_id = d_current_call->get_current_source_id();
 
