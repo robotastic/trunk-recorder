@@ -221,7 +221,7 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
     time_t start_time = call_info.start_time;
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] No Transmission were recorded! Check Squelch settings - TG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << "\t Freq: " << call_info.freq;
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "\t| " << call_info.call_num << "C\t] TG: " << talkgroup_display  << "\t Freq: " << call_info.freq << " - No Transmission were recorded! Check Squelch settings";
   }
 }
 
