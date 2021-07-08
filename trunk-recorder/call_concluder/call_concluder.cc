@@ -117,7 +117,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tTransmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
+      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;
@@ -221,7 +221,7 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
     time_t start_time = call_info.start_time;
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display  << "\t Freq: " << call_info.freq << " - No Transmission were recorded! Check Squelch settings";
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display  << "\t Freq: " << call_info.freq << "\tNo Transmission were recorded!";
   }
 }
 
