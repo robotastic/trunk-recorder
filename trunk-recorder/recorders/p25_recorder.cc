@@ -89,7 +89,6 @@ void p25_recorder::initialize_prefilter() {
   if1 = 0;
   if2 = 0;
 
-
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
@@ -132,9 +131,6 @@ void p25_recorder::initialize_prefilter() {
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate;
 
-
-
-
   connect(self(), 0, valve, 0);
   if (double_decim) {
     connect(valve, 0, bandpass_filter, 0);
@@ -147,11 +143,7 @@ void p25_recorder::initialize_prefilter() {
   connect(mixer, 0, lowpass_filter, 0);
   connect(lowpass_filter, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
-
 }
-
-
-
 
 void p25_recorder::initialize(Source *src) {
   source = src;
@@ -162,7 +154,7 @@ void p25_recorder::initialize(Source *src) {
   qpsk_mod = true;
   silence_frames = source->get_silence_frames();
   squelch_db = 0;
-  
+
   talkgroup = 0;
   d_phase2_tdma = false;
   rec_num = rec_counter++;
@@ -177,11 +169,11 @@ void p25_recorder::initialize(Source *src) {
   initialize_prefilter();
   //initialize_p25();
 
-  modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
+  modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
-  qpsk_p25_decode = make_p25_recorder_decode( this, silence_frames );
+  qpsk_p25_decode = make_p25_recorder_decode(this, silence_frames);
   fsk4_demod = make_p25_recorder_fsk4_demod();
-  fsk4_p25_decode = make_p25_recorder_decode( this, silence_frames );
+  fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames);
 
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
@@ -189,21 +181,17 @@ void p25_recorder::initialize(Source *src) {
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-
-    // Non-blocking as we are using squelch_two as a gate.
-    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
-  
-
+  // Non-blocking as we are using squelch_two as a gate.
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
   modulation_selector->set_enabled(true);
 
   connect(cutoff_filter, 0, squelch, 0);
   connect(squelch, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
-  connect(fsk4_demod,0,fsk4_p25_decode,0);
+  connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
-  connect(qpsk_demod,0,qpsk_p25_decode,0);
-
+  connect(qpsk_demod, 0, qpsk_p25_decode, 0);
 }
 
 void p25_recorder::switch_tdma(bool phase2) {
@@ -223,7 +211,7 @@ void p25_recorder::switch_tdma(bool phase2) {
   }
 
   arb_rate = if_rate / resampled_rate;
-  
+
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
@@ -270,7 +258,7 @@ int p25_recorder::get_num() {
 
 double p25_recorder::since_last_write() {
   if (qpsk_mod) {
-    return  qpsk_p25_decode->since_last_write();
+    return qpsk_p25_decode->since_last_write();
   } else {
     return fsk4_p25_decode->since_last_write();
   }
@@ -297,10 +285,9 @@ bool p25_recorder::is_active() {
   return false;
 }
 
-
 bool p25_recorder::is_idle() {
   if (qpsk_mod) {
-    if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)){
+    if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)) {
       return true;
     }
   } else {
@@ -375,7 +362,6 @@ void p25_recorder::set_record_more_transmissions(bool more) {
   } else {
     return fsk4_p25_decode->set_record_more_transmissions(more);
   }
-
 }
 
 std::vector<Transmission> p25_recorder::get_transmission_list() {
@@ -384,11 +370,7 @@ std::vector<Transmission> p25_recorder::get_transmission_list() {
   } else {
     return fsk4_p25_decode->get_transmission_list();
   }
-
 }
-
-
-
 
 Rx_Status p25_recorder::get_rx_status() {
   if (qpsk_mod) {
@@ -429,7 +411,6 @@ void p25_recorder::stop() {
   }
 }
 
-
 void p25_recorder::set_tdma_slot(int slot) {
   if (qpsk_mod) {
     qpsk_p25_decode->set_tdma_slot(slot);
@@ -441,13 +422,13 @@ void p25_recorder::set_tdma_slot(int slot) {
 
 bool p25_recorder::start(Call *call) {
   if (state == INACTIVE) {
-        System *system = call->get_system();
-      qpsk_mod = system->get_qpsk_mod();
-      set_tdma(call->get_phase2_tdma());
-        if (call->get_phase2_tdma()) {
+    System *system = call->get_system();
+    qpsk_mod = system->get_qpsk_mod();
+    set_tdma(call->get_phase2_tdma());
+    if (call->get_phase2_tdma()) {
       if (!qpsk_mod) {
-             BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";
-             return false;
+        BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";
+        return false;
       }
       set_tdma_slot(call->get_tdma_slot());
 
@@ -461,8 +442,6 @@ bool p25_recorder::start(Call *call) {
       set_tdma_slot(0);
     }
 
-
-
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -471,14 +450,9 @@ bool p25_recorder::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
 
+    squelch_db = system->get_squelch_db();
+    squelch->set_threshold(squelch_db);
 
-  squelch_db = system->get_squelch_db();
-  squelch->set_threshold(squelch_db);
-
-
-
-
-    
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\tStarting P25 Recorder Num [" << rec_num << "] \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);
@@ -494,7 +468,7 @@ bool p25_recorder::start(Call *call) {
     state = ACTIVE;
     valve->set_enabled(true);
     modulation_selector->set_enabled(true);
-    
+
     recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";

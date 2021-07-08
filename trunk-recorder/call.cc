@@ -18,7 +18,7 @@ void Call::create_filename(time_t work_start_time) {
   path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
   std::string path_string = path_stream.str();
   boost::filesystem::create_directories(path_string);
-  
+
   int nchars;
 
   nchars = snprintf(transmission_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), talkgroup, work_start_time, curr_freq);
@@ -26,7 +26,6 @@ void Call::create_filename(time_t work_start_time) {
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
-
 }
 void Call::create_filename() {
   time_t now = time(NULL);
@@ -141,7 +140,6 @@ void Call::restart_call() {
 }
 
 void Call::stop_call() {
-  
 
   if (this->get_recorder() != NULL) {
     // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
@@ -150,12 +148,11 @@ void Call::stop_call() {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s";
       this->set_state(COMPLETED);
     } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";    
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";
       this->set_state(INACTIVE);
     }
     this->get_recorder()->set_record_more_transmissions(false);
   }
-
 }
 long Call::get_call_num() {
   return call_num;
@@ -193,9 +190,7 @@ void Call::conclude_call() {
   } else {
     BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "Concluding call, but call state is not COMPLETED!";
   }
-  
 }
-
 
 void Call::set_sigmf_recorder(Recorder *r) {
   sigmf_recorder = r;
@@ -215,7 +210,7 @@ Recorder *Call::get_debug_recorder() {
 
 void Call::set_recorder(Recorder *r) {
   recorder = r;
-  BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
+  //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
 }
 
 Recorder *Call::get_recorder() {
@@ -313,7 +308,6 @@ std::vector<Call_Source> Call::get_source_list() {
   return src_list;
 }
 
-
 void Call::clear_transmission_list() {
   transmission_list.clear();
   transmission_list.shrink_to_fit();
@@ -395,12 +389,12 @@ const char *Call::get_xor_mask() {
 }
 
 long Call::get_current_source_id() {
-     if (!src_list.empty()) {
-     Call_Source last_source = src_list.back();
-      return last_source.source;
-     }
-     return 0;
- }
+  if (!src_list.empty()) {
+    Call_Source last_source = src_list.back();
+    return last_source.source;
+  }
+  return 0;
+}
 
 bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal) {
   if (src == 0) {
@@ -447,8 +441,8 @@ bool Call::add_source(long src) {
 }
 
 void Call::update(TrunkMessage message) {
-  if ((state == INACTIVE ) || (state == COMPLETED)) {
-        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tCall Update, but state is: " << state << " - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+  if ((state == INACTIVE) || (state == COMPLETED)) {
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tCall Update, but state is: " << state << " - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
   } else {
     last_update = time(NULL);
     if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
@@ -495,7 +489,6 @@ char *Call::get_transmission_filename() {
   return transmission_filename;
 }
 
-
 char *Call::get_path() {
   return path;
 }
@@ -531,7 +524,7 @@ std::string Call::get_talkgroup_tag() {
 
 bool Call::get_conversation_mode() {
   if (!sys) {
-       BOOST_LOG_TRIVIAL(error) << "\tWEIRD! for some reason, call has no sys - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq();
+    BOOST_LOG_TRIVIAL(error) << "\tWEIRD! for some reason, call has no sys - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq();
     return false;
   }
   return sys->get_conversation_mode();
@@ -590,7 +583,6 @@ boost::property_tree::ptree Call::get_stats() {
     source_list_node.push_back(std::make_pair("", source_node));
   }
   call_node.add_child("sourceList", source_list_node);
-
 
   Recorder *recorder = this->get_recorder();
 
