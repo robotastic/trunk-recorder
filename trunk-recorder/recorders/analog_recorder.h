@@ -68,6 +68,7 @@ public:
   bool start(Call *call);
   void stop();
   double get_freq();
+  void set_source(long src);
   Source *get_source();
   long get_talkgroup();
   time_t get_start_time();

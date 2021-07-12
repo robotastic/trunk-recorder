@@ -75,6 +75,7 @@ public:
   virtual double get_freq() { return 0; };
   virtual Source *get_source() { return NULL; };
   virtual std::vector<Transmission> get_transmission_list() { return {}; };
+  virtual void set_source(long src) {};
   virtual Call_Source *get_source_list() { return NULL; };
   int get_num() { return rec_num; };
   virtual long get_source_count() { return 0; };

@@ -425,6 +425,14 @@ bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::S
 
   src_list.push_back(call_source);
 
+
+   if (state == RECORDING) {
+     Recorder *rec = this->get_recorder(); 
+    if (rec != NULL) {
+      rec->set_source(src);
+    }
+  }
+
   if (tag != "") {
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
   }

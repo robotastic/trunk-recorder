@@ -276,6 +276,10 @@ double analog_recorder::get_freq() {
   return chan_freq;
 }
 
+void analog_recorder::set_source(long src) {
+  wav_sink->set_source(src);
+}
+
 Source *analog_recorder::get_source() {
   return source;
 }
