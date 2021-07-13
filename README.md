@@ -1,4 +1,4 @@
-Trunk Recorder - v3.3
+Trunk Recorder - v4.0 BETA
 =======================
 *Note: v3.3 changes the format of the config.json file. Modulation type, Squelch and audio levels are now set in each System instead of under a Source. See sample config files in the /example folder. Config files are also now versioned, to help catch misconfigurations. After you have updated your config file, add "ver": 2, to the top. The processing of SmartNet talkgroup numbers as also been fixed. The decimal talkgroup numbers will now match what is in Radio Reference. Please update your talkgroup.csv, if needed.*
 
