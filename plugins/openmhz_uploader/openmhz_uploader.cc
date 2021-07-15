@@ -4,9 +4,9 @@
 
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
-#include <sys/stat.h>
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <gr_blocks/decoder_wrapper.h>
+#include <sys/stat.h>
 
 struct Openmhz_System_Key {
   std::string api_key;
@@ -27,7 +27,7 @@ public:
   std::string get_api_key(std::string short_name) {
     for (std::vector<Openmhz_System_Key>::iterator it = data.keys.begin(); it != data.keys.end(); ++it) {
       Openmhz_System_Key key = *it;
-      if (key.short_name == short_name){
+      if (key.short_name == short_name) {
         return key.api_key;
       }
     }
@@ -38,6 +38,13 @@ public:
     return size * nmemb;
   }
   int upload(Call_Data_t call_info) {
+
+    std::string api_key = get_api_key(call_info.short_name);
+    if (api_key.size() == 0) {
+      //BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
+      return 0;
+    }
+    
     std::ostringstream freq;
     std::string freq_string;
     freq << std::fixed << std::setprecision(0);
@@ -58,12 +65,7 @@ public:
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
     time_t start_time = call_info.start_time;
 
-    std::string api_key = get_api_key(call_info.short_name);
-    //BOOST_LOG_TRIVIAL(info) << "using api key: " << api_key;
-    if (api_key.size()==0){
-      BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
-      return 2;
-    }
+
 
     if (call_info.transmission_source_list.size() != 0) {
       for (int i = 0; i < call_info.transmission_source_list.size(); i++) {
@@ -93,7 +95,6 @@ public:
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
     struct curl_slist *headerlist = NULL;
-
 
     /* Fill in the file upload field. This makes libcurl load data from
      the given file name when curl_easy_perform() is called. */
@@ -151,11 +152,11 @@ public:
                  CURLFORM_COPYNAME, "source_list",
                  CURLFORM_COPYCONTENTS, source_list_string.c_str(),
                  CURLFORM_END);
-      curl_formadd(&formpost,
-               &lastptr,
-               CURLFORM_COPYNAME, "freq_list",
-               CURLFORM_COPYCONTENTS, "[]",
-               CURLFORM_END);
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "freq_list",
+                 CURLFORM_COPYCONTENTS, "[]",
+                 CURLFORM_END);
 
     curl = curl_easy_init();
     multi_handle = curl_multi_init();
@@ -267,7 +268,7 @@ public:
         return 0;
       }
     }
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << call_info.freq <<  "\tOpenMHz Upload Error: " << response_buffer;
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << call_info.freq << "\tOpenMHz Upload Error: " << response_buffer;
     return 1;
   }
 
@@ -277,6 +278,24 @@ public:
 
   int parse_config(boost::property_tree::ptree &cfg) {
 
+    // Tests to see if the uploadServer value exists in the config file
+    boost::optional<std::string> upload_server_exists = cfg.get_optional<std::string>("uploadServer");
+    if (!upload_server_exists) {
+      return 1;
+    }
+
+    this->data.openmhz_server = cfg.get<std::string>("uploadServer", "");
+    BOOST_LOG_TRIVIAL(info) << "OpenMHz Server: " << this->data.openmhz_server;
+
+    // from: http://www.zedwood.com/article/cpp-boost-url-regex
+    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    boost::cmatch what;
+
+    if (!regex_match(this->data.openmhz_server.c_str(), what, ex)) {
+      BOOST_LOG_TRIVIAL(error) << "Unable to parse Server URL\n";
+      return 1;
+    } 
+    // Gets the API key for each system, if defined
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
       boost::optional<boost::property_tree::ptree &> openmhz_exists = node.second.get_child_optional("apiKey");
       if (openmhz_exists) {
@@ -287,17 +306,8 @@ public:
         this->data.keys.push_back(key);
       }
     }
-    this->data.openmhz_server = cfg.get<std::string>("uploadServer", "");
-    BOOST_LOG_TRIVIAL(info) << "OpenMHz Server: " << this->data.openmhz_server;
 
-  // from: http://www.zedwood.com/article/cpp-boost-url-regex
-  boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-  boost::cmatch what;
-
-    if (!regex_match(this->data.openmhz_server.c_str(), what, ex)) {
-      BOOST_LOG_TRIVIAL(error) << "Unable to parse Server URL\n";
-      return 1;
-    } else if (this->data.keys.size() ==0){
+    if (this->data.keys.size() == 0) {
       BOOST_LOG_TRIVIAL(error) << "OpenMHz Server set, but no Systems are configured\n";
       return 1;
     }

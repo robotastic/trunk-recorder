@@ -4,6 +4,7 @@
 
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
+#include <sys/stat.h>
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <gr_blocks/decoder_wrapper.h>
 
@@ -120,6 +121,10 @@ public:
 
     std::string api_key = get_api_key(call_info.short_name);
     std::string system_id = get_system_id(call_info.short_name);
+
+    if ((api_key.size() ==0) || (system_id.size() ==0)) {
+      return 0;
+    }
 
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
@@ -305,6 +310,25 @@ public:
 
   int parse_config(boost::property_tree::ptree &cfg) {
 
+
+    // Tests to see if the uploadServer value exists in the config file
+    boost::optional<std::string> upload_server_exists = cfg.get_optional<std::string>("broadcastifyCallsServer");
+    if (!upload_server_exists) {
+      return 1;
+    }
+
+    this->data.bcfy_calls_server = cfg.get<std::string>("broadcastifyCallsServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Broadcastify Server: " << this->data.bcfy_calls_server;
+
+    // from: http://www.zedwood.com/article/cpp-boost-url-regex
+    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    boost::cmatch what;
+
+    if (!regex_match(this->data.bcfy_calls_server.c_str(), what, ex)) {
+      BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
+      return 1;
+    }
+
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
       boost::optional<boost::property_tree::ptree &> broadcastify_exists = node.second.get_child_optional("broadcastifyApiKey");
       if (broadcastify_exists) {
@@ -316,17 +340,8 @@ public:
         this->data.keys.push_back(key);
       }
     }
-    this->data.bcfy_calls_server = cfg.get<std::string>("broadcastifyCallsServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Broadcastify Server: " << this->data.bcfy_calls_server;
 
-    // from: http://www.zedwood.com/article/cpp-boost-url-regex
-    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-    boost::cmatch what;
-
-    if (!regex_match(this->data.bcfy_calls_server.c_str(), what, ex)) {
-      BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
-      return 1;
-    } else if (this->data.keys.size() ==0){
+    if (this->data.keys.size() ==0){
       BOOST_LOG_TRIVIAL(error) << "Broadcastify Server set, but no Systems are configured\n";
       return 1;
     }
