@@ -193,6 +193,11 @@ void nonstop_wavfile_sink_impl::set_source(long src) {
     if (state == RECORDING) {
 
       if (d_sample_count > 0) {
+        char formattedTalkgroup[62];
+        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\twavfile_sink src id: " << curr_src_id << " doesn't match control src id: " << src;
+
         end_transmission();
       }
 
@@ -329,8 +334,21 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
         curr_src_id = src_id;
       }
     }
-    if (pmt::eq(that_key, tags[i].key) || pmt::eq(squelch_key, tags[i].key)) {
+    if (pmt::eq(that_key, tags[i].key)) {
+      char formattedTalkgroup[62];
+      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\tTDU tag ";
+
       d_termination_flag = true;
+    }
+
+    if (pmt::eq(squelch_key, tags[i].key)) {
+      char formattedTalkgroup[62];
+      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\tSQUELCH tag ";
+
     }
   }
   tags.clear();
