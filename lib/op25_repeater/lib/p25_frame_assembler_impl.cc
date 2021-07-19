@@ -180,11 +180,11 @@ int p25_frame_assembler_impl::general_work(int noutput_items,
         }
       }
     }
+  } else {
+    if (p1fdma.get_call_terminated()) {
+      terminate_call = true;
+    }
   }
-  if (p1fdma.get_call_terminated()) {
-    terminate_call = true;
-  }
-  
 
   int amt_produce = 0;
 

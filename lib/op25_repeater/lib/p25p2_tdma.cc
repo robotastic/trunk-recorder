@@ -210,7 +210,7 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
 
         if (d_debug >= 10)
-                fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u, rs_errs=%d\n", logts.get(), colorcd, srcaddr, grpaddr, rs_errs);
+        	fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u, rs_errs=%d\n", logts.get(), colorcd, srcaddr, grpaddr, rs_errs);
 
         //std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
         //send_msg(s, -3);	// can cause data display issues if this message is processed after the DUID15
