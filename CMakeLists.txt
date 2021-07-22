@@ -247,6 +247,8 @@ STATIC
   ${trunk_recorder_sources}
 )
 
+include(GNUInstallDirs)
+
 add_subdirectory(plugins/openmhz_uploader)
 
 add_subdirectory(plugins/broadcastify_uploader)
@@ -270,3 +272,6 @@ if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
     gnuradio::gnuradio-pmt
     )  
 endif()
+
+
+install(TARGETS recorder RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

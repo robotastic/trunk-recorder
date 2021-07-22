@@ -17,3 +17,4 @@ if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
     
 endif()
 
+install(TARGETS broadcastify_uploader LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/trunk-recorder)
