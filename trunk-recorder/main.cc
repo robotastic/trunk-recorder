@@ -863,7 +863,7 @@ bool retune_recorder(TrunkMessage message, Call *call) {
       call->set_tdma_slot(message.tdma_slot);
 
       if (call->get_debug_recording() == true) {
-        call->get_debug_recorder()->tune_offset(message.freq);
+        call->get_debug_recorder()->tune_freq(message.freq);
       }
       return true;
     } else {
