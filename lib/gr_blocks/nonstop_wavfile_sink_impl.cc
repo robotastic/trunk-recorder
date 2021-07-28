@@ -453,7 +453,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
       wav_write_sample(d_fp, sample_buf_s, d_bytes_per_sample);
 
-      if (feof(d_fp) || ferror(d_fp)) {
+      if (ferror(d_fp)) {
         fprintf(stderr, "[%s] file i/o error\n", __FILE__);
         stop_recording();
         return nwritten;
