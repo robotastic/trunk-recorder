@@ -24,6 +24,7 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
       plugin_lib,                                                 // path to library
       "create_plugin",                                            // symbol to import
       boost::dll::load_mode::append_decorations                   // do append extensions and prefixes
+      | boost::dll::load_mode::search_system_folders
   );
 
   plugin->api = plugin->creator();

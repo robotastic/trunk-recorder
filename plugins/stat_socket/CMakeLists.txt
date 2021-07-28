@@ -17,4 +17,4 @@ add_library(stat_socket
 
 endif()
 
-install(TARGETS stat_socket LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/trunk-recorder)
+install(TARGETS stat_socket LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/trunk-recorder)

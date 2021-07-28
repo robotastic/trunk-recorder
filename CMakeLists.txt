@@ -41,9 +41,14 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT WIN32)
     #http://gcc.gnu.org/wiki/Visibility
     add_definitions(-fvisibility=hidden)
 endif()
+
 if(APPLE)
-    set(CMAKE_MACOSX_RPATH ON)
+   set(CMAKE_MACOSX_RPATH ON)
 endif()
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/trunk-recorder")
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+#SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 ########################################################################
 # Install directories
@@ -187,7 +192,7 @@ SET(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC")
 
-add_subdirectory(lib/op25_repeater)
+
 
 list(APPEND trunk_recorder_sources
   
@@ -216,7 +221,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/unit_tags.cc
   trunk-recorder/plugin_manager/plugin_manager.cc
   trunk-recorder/call_concluder/call_concluder.cc
-  
+
   lib/lfsr/lfsr.cxx
   lib/gr_blocks/freq_xlating_fft_filter.cc
   lib/gr_blocks/nonstop_wavfile_sink_impl.cc
@@ -232,6 +237,18 @@ list(APPEND trunk_recorder_sources
 
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
+
+
+add_library(trunk_recorder_library
+STATIC
+  ${trunk_recorder_sources}
+)
+
+include(GNUInstallDirs)
+
+add_subdirectory(lib/op25_repeater)
+
+
 target_compile_options(
     imbe_vocoder PRIVATE
     "-w"
@@ -242,12 +259,12 @@ target_compile_options(
     "-w"
 )
 
-add_library(trunk_recorder_library
-STATIC
-  ${trunk_recorder_sources}
+set_property(
+    TARGET gnuradio-op25_repeater
+    PROPERTY INSTALL_RPATH
+    "${CMAKE_INSTALL_LIBDIR}/trunk-recorder"
 )
 
-include(GNUInstallDirs)
 
 add_subdirectory(plugins/openmhz_uploader)
 

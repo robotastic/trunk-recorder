@@ -80,10 +80,6 @@ set_target_properties(gnuradio-op25_repeater PROPERTIES DEFINE_SYMBOL "gnuradio_
 ########################################################################
 # Install built library files
 ########################################################################
-#install(TARGETS gnuradio-op25_repeater
-#    LIBRARY DESTINATION lib${LIB_SUFFIX} # .so/.dylib file
-#    ARCHIVE DESTINATION lib${LIB_SUFFIX} # .lib file
-#    RUNTIME DESTINATION bin              # .dll file
-#)
+install(TARGETS gnuradio-op25_repeater LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/trunk-recorder)
 
 add_subdirectory(imbe_vocoder)
