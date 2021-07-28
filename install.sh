@@ -43,7 +43,9 @@ do_build() {
 }
 
 do_install() {
-    sudo cp -i build/recorder /usr/local/bin/trunk-recorder
+    cd build
+    sudo make install
+    cd ..
 }
 
 blacklist() {
