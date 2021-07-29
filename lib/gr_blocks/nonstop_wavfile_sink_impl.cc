@@ -370,7 +370,6 @@ std::vector<Transmission> nonstop_wavfile_sink_impl::get_transmission_list() {
 
 int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
   // block
-
   int n_in_chans = input_items.size();
   short int sample_buf_s;
   int nwritten;
@@ -418,6 +417,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     strcat(current_filename, ".wav");
     if (!open_internal(current_filename)) {
       BOOST_LOG_TRIVIAL(error) << "can't open file";
+      return noutput_items;
     }
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
@@ -453,11 +453,6 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
 
       wav_write_sample(d_fp, sample_buf_s, d_bytes_per_sample);
 
-      if (ferror(d_fp)) {
-        fprintf(stderr, "[%s] file i/o error\n", __FILE__);
-        stop_recording();
-        return nwritten;
-      }
       d_sample_count++;
     }
   }
