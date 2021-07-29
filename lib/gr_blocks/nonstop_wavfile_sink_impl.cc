@@ -189,6 +189,7 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 }
 
 void nonstop_wavfile_sink_impl::set_source(long src) {
+  gr::thread::scoped_lock guard(d_mutex);
   if (src != curr_src_id) {
     if (state == RECORDING) {
 
