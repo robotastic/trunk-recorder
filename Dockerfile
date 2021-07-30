@@ -36,11 +36,11 @@ RUN apt-get update && \
 #    apt-get update && \
 #    export DEBIAN_FRONTEND=noninteractive && apt-get install -y cmake && rm -rf /var/lib/apt/lists/*
 
-#WORKDIR /src
+WORKDIR /src
 
-#COPY . .
+COPY . .
 
-#RUN cmake . && make -j`nproc` && cp -i recorder /usr/local/bin
+RUN cmake . && make -j`nproc` && cp -i recorder /usr/local/bin
 
 #USER nobody
 
