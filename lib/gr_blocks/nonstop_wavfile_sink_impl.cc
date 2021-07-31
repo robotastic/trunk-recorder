@@ -190,7 +190,9 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 
 void nonstop_wavfile_sink_impl::set_source(long src) {
   gr::thread::scoped_lock guard(d_mutex);
-  if (src != curr_src_id) {
+  if (curr_src_id == 0) {
+    curr_src_id = src;
+  } else if (src != curr_src_id) {
     if (state == RECORDING) {
 
       if (d_sample_count > 0) {
@@ -411,7 +413,13 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       close_wav(false);
     }
 
-    d_start_time = time(NULL);
+    time_t current_time = time(NULL);
+    if (current_time == d_start_time) {
+      d_start_time = current_time + 1;
+    } else {
+      d_start_time = current_time;
+    }
+
     // create a new filename, based on the current time and source.
     create_base_filename();
     strcpy(current_filename, current_base_filename);
