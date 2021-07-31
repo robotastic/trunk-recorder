@@ -33,7 +33,7 @@ RUN apt-get update && \
 RUN curl https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main' && \
     apt-get update && \
-    export DEBIAN_FRONTEND=noninteractive && apt-get install -y cmake && rm -rf /var/lib/apt/lists/*
+    export DEBIAN_FRONTEND=noninteractive && apt-get install -y cmake-data=3.20.5-0kitware1ubuntu20.04.1 && apt-get install -y cmake && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 
