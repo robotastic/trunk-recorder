@@ -121,12 +121,9 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;
-        strcpy(call_info.filename, t.base_filename);
-        strcat(call_info.filename, "-call.wav");
-        strcpy(call_info.status_filename, t.base_filename);
-        strcat(call_info.status_filename, ".json");
-        strcpy(call_info.converted, t.base_filename);
-        strcat(call_info.converted, ".m4a");
+        snprintf(call_info.filename,255,"%s-call_%lu.wav",t.base_filename,call_info.call_num);
+        snprintf(call_info.status_filename,255,"%s-call_%lu.json",t.base_filename,call_info.call_num);
+        snprintf(call_info.converted,255,"%s-call_%lu.m4a",t.base_filename,call_info.call_num);
       } 
 
       if (std::next(it) == call_info.transmission_list.end()) {
@@ -160,7 +157,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     }
     // Handle the Upload Script, if set
     if (call_info.upload_script.length() != 0) {
-      shell_command << "./" << call_info.upload_script << " " << call_info.filename << " " << call_info.status_filename;
+      shell_command << "./" << call_info.upload_script << " " << call_info.filename << " " << call_info.status_filename << " " << call_info.converted;
       shell_command_string = shell_command.str();
 
       BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \t Running upload script: " << shell_command_string;
