@@ -108,6 +108,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     std::string shell_command_string;
     std::string files;
     double total_length = 0;
+    int filename_length;
 
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
@@ -121,9 +122,18 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;
-        snprintf(call_info.filename,255,"%s-call_%lu.wav",t.base_filename,call_info.call_num);
+        filename_length = snprintf(call_info.filename,255,"%s-call_%lu.wav",t.base_filename,call_info.call_num);
+        if (filename_length > 255) {
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << " Error, filename truncated, length: " << filename_length;
+        }
         snprintf(call_info.status_filename,255,"%s-call_%lu.json",t.base_filename,call_info.call_num);
+        if (filename_length > 255) {
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << " Error, status filename truncated, length: " << filename_length;
+        }
         snprintf(call_info.converted,255,"%s-call_%lu.m4a",t.base_filename,call_info.call_num);
+        if (filename_length > 255) {
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << " Error, convertedfilename truncated, length: " << filename_length;
+        }
       } 
 
       if (std::next(it) == call_info.transmission_list.end()) {
