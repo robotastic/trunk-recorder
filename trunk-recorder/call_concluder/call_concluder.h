@@ -32,9 +32,9 @@ struct Call_Data_t {
   bool audio_archive;
   bool transmission_archive;
   bool call_log;
-  char filename[255];
-  char status_filename[255];
-  char converted[255];
+  char filename[300];
+  char status_filename[300];
+  char converted[300];
 
 
   std::string short_name;
