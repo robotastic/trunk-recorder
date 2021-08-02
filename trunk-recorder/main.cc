@@ -742,7 +742,7 @@ void manage_conventional_call(Call *call) {
       // if no additional recording has happened in the past X periods, stop and open new file
       if (call->get_idle_count() > config.call_timeout) {
         Recorder *recorder = call->get_recorder();
-        call->stop_call();
+        call->set_state(COMPLETED);
         call->conclude_call();
         call->restart_call();
         if (recorder != NULL) {
@@ -750,7 +750,7 @@ void manage_conventional_call(Call *call) {
         }
       } else if ((call->get_current_length() > call->get_system()->get_max_duration()) && (call->get_system()->get_max_duration() > 0)) {
         Recorder *recorder = call->get_recorder();
-        call->stop_call();
+        call->set_state(COMPLETED);
         call->conclude_call();
         call->restart_call();
         if (recorder != NULL) {
