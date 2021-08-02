@@ -122,9 +122,9 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
       
       if (it == call_info.transmission_list.begin()) {
         call_info.start_time = t.start_time;
-        snprintf(call_info.filename,255,"%s-call_%lu.wav",t.base_filename,call_info.call_num);
-        snprintf(call_info.status_filename,255,"%s-call_%lu.json",t.base_filename,call_info.call_num);
-        snprintf(call_info.converted,255,"%s-call_%lu.m4a",t.base_filename,call_info.call_num);
+        snprintf(call_info.filename,300,"%s-call_%lu.wav",t.base_filename,call_info.call_num);
+        snprintf(call_info.status_filename,300,"%s-call_%lu.json",t.base_filename,call_info.call_num);
+        snprintf(call_info.converted,300,"%s-call_%lu.m4a",t.base_filename,call_info.call_num);
       } 
 
       if (std::next(it) == call_info.transmission_list.end()) {
