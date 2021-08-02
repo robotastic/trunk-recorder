@@ -48,6 +48,14 @@ void System::set_min_duration(double duration) {
   this->min_call_duration = duration;
 }
 
+double System::get_max_duration() {
+  return this->max_call_duration;
+}
+
+void System::set_max_duration(double duration) {
+  this->max_call_duration = duration;
+}
+
 System::System(int sys_num) {
   this->sys_num = sys_num;
   sys_id = 0;

@@ -65,6 +65,7 @@ public:
   int max_dev;
   double filter_width;
   double min_call_duration;
+  double max_call_duration;
   bool conversation_mode;
   bool qpsk_mod;
   double squelch_db;
@@ -99,6 +100,8 @@ public:
   void set_bcfy_system_id(int bcfy_system_id);
   double get_min_duration();
   void set_min_duration(double duration);
+  double get_max_duration();
+  void set_max_duration(double duration);
   bool get_audio_archive();
   void set_audio_archive(bool);
   bool get_transmission_archive();

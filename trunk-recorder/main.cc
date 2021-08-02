@@ -368,6 +368,9 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Hide Unknown Talkgroups: " << system->get_hideUnknown();
       system->set_min_duration(node.second.get<double>("minDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
+      system->set_max_duration(node.second.get<double>("maxDuration", 0));
+      BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (in seconds): " << system->get_max_duration();
+
 
       systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);
@@ -738,6 +741,14 @@ void manage_conventional_call(Call *call) {
 
       // if no additional recording has happened in the past X periods, stop and open new file
       if (call->get_idle_count() > config.call_timeout) {
+        Recorder *recorder = call->get_recorder();
+        call->stop_call();
+        call->conclude_call();
+        call->restart_call();
+        if (recorder != NULL) {
+          plugman_setup_recorder(recorder);
+        }
+      } else if ((call->get_current_length() > call->get_system()->get_max_duration()) && (call->get_system()->get_max_duration() > 0)) {
         Recorder *recorder = call->get_recorder();
         call->stop_call();
         call->conclude_call();

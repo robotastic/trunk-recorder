@@ -250,6 +250,8 @@ void nonstop_wavfile_sink_impl::stop_recording() {
   state = AVAILABLE;
 }
 
+
+
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
   unsigned int byte_count = d_sample_count * d_bytes_per_sample;
   wavheader_complete(d_fp, byte_count);
