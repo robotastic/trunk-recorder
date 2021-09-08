@@ -145,7 +145,7 @@ analog_recorder::analog_recorder(Source *src)
   valve->set_enabled(false);
 
   /* de-emphasis */
-  d_tau = 0.00075; // 750us
+  d_tau = 0.000075; // 75us
   d_fftaps.resize(2);
   d_fbtaps.resize(2);
   calculate_iir_taps(d_tau);
