@@ -1,6 +1,7 @@
 FROM ubuntu:20.04 AS base
 
 # Install everything except cmake
+# Install docker for passing the socket to allow for intercontainer exec
 RUN apt-get update && \
   apt-get -y upgrade &&\
   export DEBIAN_FRONTEND=noninteractive && \
@@ -10,6 +11,7 @@ RUN apt-get update && \
     ca-certificates \
     fdkaac \
     git \
+    docker \
     gnupg \
     gnuradio \
     gnuradio-dev \
