@@ -21,18 +21,27 @@
 # Project setup
 ########################################################################
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.2)
 project(Trunk-Recorder CXX C)
 
-
-#select the release build type by default to get optimization flags
+# Select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
    message(STATUS "Build type not specified: defaulting to release.")
 endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
+
+# Make sure our local CMake Modules path comes first
+list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
+
+# Set the version information here
+set(VERSION_MAJOR 4)
+set(VERSION_API   0)
+set(VERSION_ABI   0)
+set(VERSION_PATCH git)
+
+
 
 ########################################################################
 # Compiler specific setup
@@ -53,7 +62,31 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 ########################################################################
 # Install directories
 ########################################################################
-include(GrPlatform) #define LIB_SUFFIX
+include(FindPkgConfig)
+find_package(Gnuradio "3.8" REQUIRED)
+include(GrVersion)
+
+set(GR_REQUIRED_COMPONENTS RUNTIME ANALOG AUDIO BLOCKS DIGITAL FILTER FFT PMT)
+find_package(Gnuradio REQUIRED COMPONENTS runtime analog audio blocks digital filter fft)
+if(Gnuradio_VERSION VERSION_LESS "3.8")
+    find_package(Volk)
+endif()
+
+
+if(NOT CMAKE_MODULES_DIR)
+  set(CMAKE_MODULES_DIR lib${LIB_SUFFIX}/cmake)
+endif(NOT CMAKE_MODULES_DIR)
+
+
+if(Gnuradio_VERSION VERSION_LESS "3.8")
+    find_package(Volk)
+endif()
+
+if(NOT Gnuradio_FOUND)
+    message(FATAL_ERROR "GnuRadio Runtime required to compile gqrx")
+endif()
+
+
 set(GR_RUNTIME_DIR      bin)
 set(GR_LIBRARY_DIR      lib${LIB_SUFFIX})
 set(GR_INCLUDE_DIR      include/howto)
@@ -71,8 +104,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 ########################################################################
 # Find gnuradio build dependencies
 ########################################################################
-find_package(GnuradioRuntime)
-find_package(CppUnit)
+#find_package(GnuradioRuntime)
+#find_package(CppUnit)
 
 # To run a more advanced search for GNU Radio and it's components and
 # versions, use the following. Add any components required to the list
@@ -86,20 +119,9 @@ find_package(CppUnit)
 #    find_package(Gnuradio)
 #endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT FFT)
-find_package(Gnuradio REQUIRED COMPONENTS analog blocks digital filter pmt fft)
-find_package(GnuradioRuntime)
-find_package(CppUnit)
 
 math(EXPR GNURADIO_VERSION "(${Gnuradio_VERSION_MAJOR} / 10) << 20 | (${Gnuradio_VERSION_MAJOR} % 10) << 16 | (${Gnuradio_VERSION_MINOR} / 10) << 12 | (${Gnuradio_VERSION_MINOR} % 10) <<  8 | (${Gnuradio_VERSION_PATCH} / 10) <<  4 | (${Gnuradio_VERSION_PATCH} % 10) <<  0   ")
 message(STATUS "GnuRadio Version: " ${GNURADIO_VERSION})
-
-if(NOT GNURADIO_RUNTIME_FOUND)
-    message(FATAL_ERROR "GnuRadio Runtime required to compile Trunk Recorder")
-endif()
-if(NOT CPPUNIT_FOUND)
-    message(FATAL_ERROR "CppUnit required to compile Trunk Recorder")
-endif()
 
 
 
@@ -107,9 +129,9 @@ endif()
 # Find build dependencies
 ########################################################################
 find_package(GnuradioUHD)
-find_package(GrOsmoSDR)
+find_package(GnuradioOsmosdr)
 find_package(LibHackRF)
-find_package(UHD)
+find_package(LibUHD)
 find_package(OpenSSL REQUIRED)
 find_package(CURL REQUIRED)
 if (STREAMER)
