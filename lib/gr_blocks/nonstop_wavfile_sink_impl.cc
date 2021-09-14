@@ -242,7 +242,7 @@ void nonstop_wavfile_sink_impl::stop_recording() {
   }
 
   if (state == RECORDING) {
-    BOOST_LOG_TRIVIAL(error) << "stop_recording() - stopping but recorder state is: " << state << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "stop_recording() - stopping wavfile sink but recorder state is: " << state << std::endl;
   }
   d_current_call = NULL;
   d_first_work = true;
