@@ -24,6 +24,7 @@
 
 #include "nonstop_wavfile_sink.h"
 #include "nonstop_wavfile_sink_impl.h"
+#include "../../trunk-recorder/call.h"
 #include <boost/math/special_functions/round.hpp>
 #include <climits>
 #include <cmath>

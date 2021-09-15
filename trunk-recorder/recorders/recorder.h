@@ -1,7 +1,7 @@
 #ifndef RECORDER_H
 #define RECORDER_H
 
-#include "../call.h"
+
 
 #include <cstdio>
 #include <fstream>
@@ -52,6 +52,7 @@
 
 #include <gnuradio/blocks/file_sink.h>
 #include "../state.h"
+#include "../call.h"
 
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
