@@ -29,15 +29,8 @@ RUN apt-get update && \
     sox && \
   rm -rf /var/lib/apt/lists/*
 
-WORKDIR /src
 
-COPY . .
 
-RUN cmake . && make && cp -i recorder /usr/local/bin
-
-#USER nobody
-
-WORKDIR /app
 
 # GNURadio requires a place to store some files, can only be set via $HOME env var.
 ENV HOME=/tmp
