@@ -21,9 +21,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif // ifdef HAVE_CONFIG_H
+
 
 #include "signal_decoder_sink.h"
 #include "signal_decoder_sink_impl.h"

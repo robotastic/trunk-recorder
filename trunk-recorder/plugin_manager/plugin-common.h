@@ -9,7 +9,7 @@
 #include "../systems/system.h"
 #include "../call_concluder/call_concluder.h"
 #include "../source.h"
-#include "../config.h"
+#include "../global_structs.h"
 
 #ifndef __MINGW32__
 #define MODULE_EXPORT extern "C"

@@ -1,5 +1,8 @@
 #ifndef CALL_H
 #define CALL_H
+
+
+#include "./global_structs.h"
 #include "../lib/gr_blocks/decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
 #include <string>
@@ -7,51 +10,14 @@
 #include <vector>
 
 
-struct Transmission {
-  long source;
-  long start_time;
-  long stop_time;
-  long sample_count;
-  double freq;
-  double length;
-  char filename[255];
-  char base_filename[255];
-};
-
-
-struct Call_Source {
-  long source;
-  long time;
-  double position;
-  bool emergency;
-  std::string signal_system;
-  std::string tag;
-};
-
-struct Call_Freq {
-  double freq;
-  long time;
-  double position;
-  double total_len;
-  double error_count;
-  double spike_count;
-};
-
-struct Call_Error {
-  double freq;
-  double sample_count;
-  double error_count;
-  double spike_count;
-};
 
 class Recorder;
-#include "config.h"
+class System;
+
 #include "state.h"
 #include "systems/parser.h"
 #include "systems/system.h"
 #include <op25_repeater/include/op25_repeater/rx_status.h>
-
-class System;
 //enum  CallState { MONITORING=0, recording=1, stopping=2};
 
 class Call {

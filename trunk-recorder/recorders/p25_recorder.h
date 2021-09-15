@@ -50,7 +50,6 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-#include "../config.h"
 #include "recorder.h"
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"

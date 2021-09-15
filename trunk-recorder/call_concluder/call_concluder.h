@@ -9,7 +9,7 @@
 #include <ctime>
 
 #include "../call.h"
-#include "../config.h"
+#include "../global_structs.h"
 #include "../formatter.h"
 #include "../systems/system.h"
 /*

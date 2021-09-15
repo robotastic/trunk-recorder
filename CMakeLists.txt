@@ -21,18 +21,27 @@
 # Project setup
 ########################################################################
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.2)
 project(Trunk-Recorder CXX C)
 
-
-#select the release build type by default to get optimization flags
+# Select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
    message(STATUS "Build type not specified: defaulting to release.")
 endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
+
+# Make sure our local CMake Modules path comes first
+list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
+
+# Set the version information here
+set(VERSION_MAJOR 4)
+set(VERSION_API   0)
+set(VERSION_ABI   0)
+set(VERSION_PATCH git)
+
+
 
 ########################################################################
 # Compiler specific setup
@@ -53,7 +62,31 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 ########################################################################
 # Install directories
 ########################################################################
-include(GrPlatform) #define LIB_SUFFIX
+include(FindPkgConfig)
+find_package(Gnuradio "3.8" REQUIRED)
+include(GrVersion)
+
+set(GR_REQUIRED_COMPONENTS RUNTIME ANALOG BLOCKS DIGITAL FILTER FFT PMT)
+find_package(Gnuradio REQUIRED COMPONENTS runtime analog blocks digital filter fft)
+if(Gnuradio_VERSION VERSION_LESS "3.8")
+    find_package(Volk)
+endif()
+
+
+if(NOT CMAKE_MODULES_DIR)
+  set(CMAKE_MODULES_DIR lib${LIB_SUFFIX}/cmake)
+endif(NOT CMAKE_MODULES_DIR)
+
+
+if(Gnuradio_VERSION VERSION_LESS "3.8")
+    find_package(Volk)
+endif()
+
+if(NOT Gnuradio_FOUND)
+    message(FATAL_ERROR "GnuRadio Runtime required to compile gqrx")
+endif()
+
+
 set(GR_RUNTIME_DIR      bin)
 set(GR_LIBRARY_DIR      lib${LIB_SUFFIX})
 set(GR_INCLUDE_DIR      include/howto)
@@ -71,8 +104,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 ########################################################################
 # Find gnuradio build dependencies
 ########################################################################
-find_package(GnuradioRuntime)
-find_package(CppUnit)
+#find_package(GnuradioRuntime)
+#find_package(CppUnit)
 
 # To run a more advanced search for GNU Radio and it's components and
 # versions, use the following. Add any components required to the list
@@ -86,20 +119,9 @@ find_package(CppUnit)
 #    find_package(Gnuradio)
 #endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-set(GR_REQUIRED_COMPONENTS ANALOG DIGITAL RUNTIME BLOCKS FILTER PMT FFT)
-find_package(Gnuradio REQUIRED COMPONENTS analog blocks digital filter pmt fft)
-find_package(GnuradioRuntime)
-find_package(CppUnit)
 
 math(EXPR GNURADIO_VERSION "(${Gnuradio_VERSION_MAJOR} / 10) << 20 | (${Gnuradio_VERSION_MAJOR} % 10) << 16 | (${Gnuradio_VERSION_MINOR} / 10) << 12 | (${Gnuradio_VERSION_MINOR} % 10) <<  8 | (${Gnuradio_VERSION_PATCH} / 10) <<  4 | (${Gnuradio_VERSION_PATCH} % 10) <<  0   ")
 message(STATUS "GnuRadio Version: " ${GNURADIO_VERSION})
-
-if(NOT GNURADIO_RUNTIME_FOUND)
-    message(FATAL_ERROR "GnuRadio Runtime required to compile Trunk Recorder")
-endif()
-if(NOT CPPUNIT_FOUND)
-    message(FATAL_ERROR "CppUnit required to compile Trunk Recorder")
-endif()
 
 
 
@@ -107,9 +129,9 @@ endif()
 # Find build dependencies
 ########################################################################
 find_package(GnuradioUHD)
-find_package(GrOsmoSDR)
+find_package(GnuradioOsmoSDR)
 find_package(LibHackRF)
-find_package(UHD)
+find_package(LibUHD)
 find_package(OpenSSL REQUIRED)
 find_package(CURL REQUIRED)
 if (STREAMER)
@@ -164,7 +186,7 @@ add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${GNURADIO_RUNTIME_INCLUDE_DIRS}
-    ${GROSMOSDR_INCLUDE_DIR}
+    ${GNURADIO_OSMOSDR_INCLUDE_DIRS}
     ${CMAKE_BINARY_DIR}/lib
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/lib/op25_repeater/lib
@@ -195,18 +217,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hid
 
 
 list(APPEND trunk_recorder_sources
-  
+  trunk-recorder/recorders/recorder.cc
+  trunk-recorder/call.cc
   trunk-recorder/formatter.cc
   trunk-recorder/source.cc
   trunk-recorder/call_conventional.cc
-  trunk-recorder/call.cc
   trunk-recorder/systems/smartnet_trunking.cc
   trunk-recorder/systems/p25_trunking.cc
   trunk-recorder/systems/smartnet_parser.cc
   trunk-recorder/systems/p25_parser.cc
   trunk-recorder/systems/smartnet_decode.cc
   trunk-recorder/systems/system.cc
-  trunk-recorder/recorders/recorder.cc
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/sigmf_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
@@ -276,7 +297,7 @@ add_subdirectory(plugins/unit_script)
 
 add_executable(recorder trunk-recorder/main.cc ${trunk_recorder_sources})
 
-target_link_libraries(recorder ${CMAKE_DL_LIBS} ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} trunk_recorder_library ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GROSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(recorder ${CMAKE_DL_LIBS} ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} trunk_recorder_library ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GNURADIO_OSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
 
 message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
 if(NOT Gnuradio_VERSION VERSION_LESS "3.8")

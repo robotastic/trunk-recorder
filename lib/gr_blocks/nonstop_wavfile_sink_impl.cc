@@ -21,12 +21,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif // ifdef HAVE_CONFIG_H
 
 #include "nonstop_wavfile_sink.h"
 #include "nonstop_wavfile_sink_impl.h"
+#include "../../trunk-recorder/call.h"
 #include <boost/math/special_functions/round.hpp>
 #include <climits>
 #include <cmath>

@@ -56,7 +56,6 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-#include "../config.h"
 #include "recorder.h"
 #include <gr_blocks/freq_xlating_fft_filter.h>
 #include <gr_blocks/nonstop_wavfile_sink.h>

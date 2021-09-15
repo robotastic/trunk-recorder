@@ -42,7 +42,6 @@
 class Source;
 class analog_recorder;
 
-#include "../config.h"
 #include "../systems/system.h"
 #include "recorder.h"
 #include <gr_blocks/decoder_wrapper.h>

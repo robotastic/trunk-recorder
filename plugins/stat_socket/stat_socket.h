@@ -7,7 +7,7 @@
 #include <websocketpp/config/asio_no_tls_client.hpp>
 
 #include <gr_blocks/decoder_wrapper.h>
-#include "../../trunk-recorder/config.h"
+#include "../../trunk-recorder/global_structs.h"
 #include "../../trunk-recorder/source.h"
 #include "../../trunk-recorder/systems/system.h"
 #include "../../trunk-recorder/plugin_manager/plugin_common.h"
