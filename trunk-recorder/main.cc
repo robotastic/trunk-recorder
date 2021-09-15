@@ -36,7 +36,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "./config.h"
+#include "./global_structs.h"
 #include "recorder_globals.h"
 #include "source.h"
 
