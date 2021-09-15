@@ -129,7 +129,7 @@ message(STATUS "GnuRadio Version: " ${GNURADIO_VERSION})
 # Find build dependencies
 ########################################################################
 find_package(GnuradioUHD)
-find_package(GnuradioOsmoSDR)
+find_package(GnuradioOsmosdr)
 find_package(LibHackRF)
 find_package(LibUHD)
 find_package(OpenSSL REQUIRED)

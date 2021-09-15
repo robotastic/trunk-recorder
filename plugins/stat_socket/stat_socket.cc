@@ -3,7 +3,7 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
 
-#include "../../trunk-recorder/config.h"
+#include "../../trunk-recorder/global_structs.h"
 #include "../../trunk-recorder/source.h"
 #include "../../trunk-recorder/systems/system.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
