@@ -1,6 +1,6 @@
 #ifndef SOURCE_H
 #define SOURCE_H
-#include "config.h"
+#include "./config.h"
 #include <gnuradio/basic_block.h>
 #include <gnuradio/top_block.h>
 #include <gnuradio/uhd/usrp_source.h>

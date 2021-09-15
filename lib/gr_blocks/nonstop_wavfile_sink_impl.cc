@@ -21,9 +21,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif // ifdef HAVE_CONFIG_H
 
 #include "nonstop_wavfile_sink.h"
 #include "nonstop_wavfile_sink_impl.h"

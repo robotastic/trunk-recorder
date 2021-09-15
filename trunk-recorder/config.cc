@@ -1,4 +1,4 @@
-#include "config.h"
+#include "./config.h"
 #include "formatter.h"
 /**
  * Method name: load_config()

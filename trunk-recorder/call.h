@@ -1,5 +1,7 @@
 #ifndef CALL_H
 #define CALL_H
+
+#include "./config.h"
 #include "../lib/gr_blocks/decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
 #include <string>
@@ -17,6 +19,7 @@ struct Transmission {
   char filename[255];
   char base_filename[255];
 };
+
 
 
 struct Call_Source {
@@ -45,13 +48,12 @@ struct Call_Error {
 };
 
 class Recorder;
-#include "config.h"
+class System;
+
 #include "state.h"
 #include "systems/parser.h"
 #include "systems/system.h"
 #include <op25_repeater/include/op25_repeater/rx_status.h>
-
-class System;
 //enum  CallState { MONITORING=0, recording=1, stopping=2};
 
 class Call {

@@ -1,6 +1,8 @@
 #ifndef RECORDER_H
 #define RECORDER_H
 
+#include "../call.h"
+
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -49,11 +51,13 @@
 #include <gnuradio/blocks/head.h>
 
 #include <gnuradio/blocks/file_sink.h>
+#include "../state.h"
 
 #include <gr_blocks/nonstop_wavfile_sink.h>
+
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 
-#include "../state.h"
+
 
 unsigned GCD(unsigned u, unsigned v);
 std::vector<float> design_filter(double interpolation, double deci);

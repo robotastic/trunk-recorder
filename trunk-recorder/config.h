@@ -1,17 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-#include <stdlib.h>
 #include <string>
-
-/*
-#include "source.h"
-#include "systems/system.h"
-*/
 
 struct Config {
   std::string upload_script;
@@ -32,6 +22,5 @@ struct Config {
   bool broadcast_signals;
 };
 
-//Config load_config(std::string config_file, std::vector<Source *> &sources, std::vector<System *> &systems);
 
 #endif
