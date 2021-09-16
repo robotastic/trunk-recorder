@@ -1,6 +1,7 @@
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
 #include "../../trunk-recorder/systems/system.h"
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
+#include <boost/foreach.hpp>
 
 struct Unit_Script_System_Script {
   std::string script;

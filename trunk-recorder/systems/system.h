@@ -25,9 +25,21 @@
 
 class Source;
 class analog_recorder;
-typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#else
+  typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#endif
 class p25_recorder;
-typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+	#else
+  typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
+	#endif
+
 
 class System {
   int sys_num;

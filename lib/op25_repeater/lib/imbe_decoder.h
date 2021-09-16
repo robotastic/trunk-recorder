@@ -32,7 +32,12 @@
 typedef std::deque<float> audio_samples;
 typedef std::vector<bool> voice_codeword;
 
-typedef boost::shared_ptr<class imbe_decoder> imbe_decoder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+   typedef boost::shared_ptr<class imbe_decoder> imbe_decoder_sptr;
+	#else
+   typedef std::shared_ptr<class imbe_decoder> imbe_decoder_sptr;
+	#endif
 
 /**
  * imbe_decoder is the interface to the various mechanisms for

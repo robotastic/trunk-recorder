@@ -15,6 +15,8 @@
 
 typedef boost::shared_ptr<Plugin_Api> (pluginapi_create_t)();
 
+
+
 struct Plugin {
 boost::function<pluginapi_create_t> creator;
 boost::shared_ptr<Plugin_Api> api;

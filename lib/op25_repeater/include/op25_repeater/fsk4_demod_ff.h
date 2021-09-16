@@ -37,8 +37,12 @@ namespace gr {
     class OP25_REPEATER_API fsk4_demod_ff : virtual public gr::block
     {
      public:
+      
+      #if GNURADIO_VERSION < 0x030900
       typedef boost::shared_ptr<fsk4_demod_ff> sptr;
-
+      #else
+      typedef std::shared_ptr<fsk4_demod_ff> sptr;
+      #endif
       /*!
        * \brief Demodulate APCO P25 CF4M signals.
        *

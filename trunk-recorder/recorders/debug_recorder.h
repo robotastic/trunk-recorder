@@ -62,7 +62,13 @@
 
 class Source;
 class debug_recorder;
-typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
+	#else
+  typedef std::shared_ptr<debug_recorder> debug_recorder_sptr;
+	#endif
+
 debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port);
 #include "../source.h"
 

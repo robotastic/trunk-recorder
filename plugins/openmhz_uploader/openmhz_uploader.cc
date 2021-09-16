@@ -5,6 +5,7 @@
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
+#include <boost/foreach.hpp>
 #include <gr_blocks/decoder_wrapper.h>
 #include <sys/stat.h>
 

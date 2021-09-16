@@ -37,7 +37,11 @@
 #include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #include <gnuradio/filter/freq_xlating_fir_filter.h>
+#if GNURADIO_VERSION < 0x030900
 #include <gnuradio/filter/rational_resampler_base.h>
+#else
+#include <gnuradio/filter/rational_resampler.h>
+#endif
 #endif
 
 #include <gnuradio/analog/quadrature_demod_cf.h>

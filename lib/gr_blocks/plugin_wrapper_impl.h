@@ -41,7 +41,13 @@ namespace gr {
 
 		public:
 
-			typedef boost::shared_ptr <plugin_wrapper_impl> sptr;
+			
+	#if GNURADIO_VERSION < 0x030900
+	typedef boost::shared_ptr <plugin_wrapper_impl> sptr;
+	#else
+	typedef std::shared_ptr <plugin_wrapper_impl> sptr;
+	#endif
+
 
 			static sptr make(plugin_callback callback);
 

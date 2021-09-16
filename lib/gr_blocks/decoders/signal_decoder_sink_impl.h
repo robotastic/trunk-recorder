@@ -53,8 +53,12 @@ namespace gr {
 
 		public:
 
-			typedef boost::shared_ptr <signal_decoder_sink_impl> sptr;
-
+			
+			#if GNURADIO_VERSION < 0x030900
+				typedef boost::shared_ptr <signal_decoder_sink_impl> sptr;
+			#else
+				typedef std::shared_ptr <signal_decoder_sink_impl> sptr;
+			#endif
 			/*
 			 * \param sample_rate Sample rate [S/s]
 			 */

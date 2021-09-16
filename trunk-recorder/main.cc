@@ -105,6 +105,7 @@ std::vector<float> design_filter(double interpolation, double deci) {
   float trans_width = 0.5 - 0.4;
   float mid_transition_band = 0.5 - trans_width / 2;
 
+#if GNURADIO_VERSION < 0x030900
   std::vector<float> result = gr::filter::firdes::low_pass(
       interpolation,
       1,
@@ -112,7 +113,15 @@ std::vector<float> design_filter(double interpolation, double deci) {
       trans_width / interpolation,
       gr::filter::firdes::WIN_KAISER,
       beta);
-
+#else
+  std::vector<float> result = gr::filter::firdes::low_pass(
+      interpolation,
+      1,
+      mid_transition_band / interpolation,
+      trans_width / interpolation,
+      gr::fft::window::WIN_KAISER,
+      beta);
+#endif
   return result;
 }
 

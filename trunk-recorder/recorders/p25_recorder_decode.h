@@ -28,7 +28,14 @@
 #include "recorder.h"
 
 class p25_recorder_decode;
-typedef boost::shared_ptr<p25_recorder_decode> p25_recorder_decode_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<p25_recorder_decode> p25_recorder_decode_sptr;
+	#else
+  typedef std::shared_ptr<p25_recorder_decode> p25_recorder_decode_sptr;
+	#endif
+
+
 p25_recorder_decode_sptr make_p25_recorder_decode( Recorder* recorder, int silence_frames);
 
 class p25_recorder_decode : public gr::hier_block2 {

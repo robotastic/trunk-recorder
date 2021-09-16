@@ -28,7 +28,7 @@
 #include <sys/time.h>
 //#include "wavfile.h"
 #include <boost/log/trivial.hpp>
-#include <gnuradio/blocks/wavfile.h>
+#include <gr_blocks/wavfile_gr3.8.h>
 
 namespace gr {
 namespace blocks {
@@ -94,7 +94,13 @@ protected:
 	State state;
 public:
 
+	
+	#if GNURADIO_VERSION < 0x030900
 	typedef boost::shared_ptr<nonstop_wavfile_sink_impl> sptr;
+	#else
+	typedef std::shared_ptr<nonstop_wavfile_sink_impl> sptr;
+	#endif
+
 
 	/*
 	 * \param filename The .wav file to be opened

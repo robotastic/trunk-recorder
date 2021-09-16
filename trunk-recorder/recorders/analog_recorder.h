@@ -49,7 +49,12 @@ class analog_recorder;
 #include <gr_blocks/freq_xlating_fft_filter.h>
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
-typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#else
+  typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#endif
 
 #include "../source.h"
 

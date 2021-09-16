@@ -48,7 +48,13 @@ class BLOCKS_API nonstop_wavfile_sink : virtual public sync_block
 {
 public:
 	// gr::blocks::wavfile_sink::sptr
+	
+	#if GNURADIO_VERSION < 0x030900
 	typedef boost::shared_ptr<nonstop_wavfile_sink> sptr;
+	#else
+	typedef std::shared_ptr<nonstop_wavfile_sink> sptr;
+	#endif
+
 
 	/*!
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.
