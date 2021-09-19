@@ -63,7 +63,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Install directories
 ########################################################################
 include(FindPkgConfig)
-find_package(Gnuradio "3.8" REQUIRED)
+find_package(Gnuradio REQUIRED)
 include(GrVersion)
 
 set(GR_REQUIRED_COMPONENTS RUNTIME ANALOG BLOCKS DIGITAL FILTER FFT PMT)
