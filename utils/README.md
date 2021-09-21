@@ -12,7 +12,6 @@ From the root directory of trunk-recorder, run:
 
 `docker run -v ${PWD}:/src -it trunkrecorder:dev /bin/bash`  
 
-
 ## Setting a bare metal Raspberry Pi OS install
 
 ### Setup Raspbian
