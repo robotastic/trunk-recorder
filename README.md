@@ -1,10 +1,5 @@
 Trunk Recorder - v4.0 BETA
 =======================
-*Note: v3.3 changes the format of the config.json file. Modulation type, Squelch and audio levels are now set in each System instead of under a Source. See sample config files in the /example folder. Config files are also now versioned, to help catch misconfigurations. After you have updated your config file, add "ver": 2, to the top. The processing of SmartNet talkgroup numbers as also been fixed. The decimal talkgroup numbers will now match what is in Radio Reference. Please update your talkgroup.csv, if needed.*
-
-*Note: v3.1.1 changes from using `ffmpeg` to `fdkaac` and `sox` for compressing audio for OpenMHz. Both utilities can be easily installed using apt-get*
-
-*Note: v3.1.3 adds a dependency for `libcurl`, you can install it thru `apt-get` with `sudo apt-get install libcurl4-openssl-dev`.*
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful? Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation.**
@@ -13,18 +8,37 @@ Thank you: Vabrio, Blantonl, Olesza and others!
 ## Overview
 Need help? Got something working? Share it!
 
-[![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - [Google Groups](https://groups.google.com/d/forum/trunk-recorder) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
+[![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
 Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swatches of RF and then use software to process what was received. [GNURadio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
 
 Trunk Recorder currently supports the following:
  - Trunked P25 & SmartNet Systems
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
- - SDRs that use the OsmoSDR source (HackRF, RTL - TV Dongles, BladeRF, and more)
- - Ettus USRPs
  - P25 Phase 1, **P25 Phase 2** & Analog voice channels
 
-Trunk Recorder has been tested on Ubuntu (14.04, 16.04, 16.10, 17.04, 17.10, 18.04 & 20.04), Arch Linux (2017.03.01), Debian 9.x and macOS (10.10, 10.11, 10.12, 10.13, 10.14). It has been successfully used with several SDRs including the Ettus USRP B200, B210, B205, a bank of 3 RTL-SDR dongles, and the HackRF Jawbreaker.
+Trunk Recorder is known to work well on:
+- Ubuntu (18.04,  20.04, 21.04)
+- Raspberry Pi, using both Raspberry OS/Raspbian & Ubuntu 21.04
+- Arch Linux (2021.09.20)
+- Debian 9.x
+- macOS
+...and with these SDRs:
+- RTL-SDR dongles
+- HackRF
+- Ettus USRP B200, B210, B205
+- BladeRF
+- Airspy
+
+
+## Version Notes
+### V4.0
+- The executable generated has changed from `recorder` to `trunk-recorder` to help prevent differentiate it from other applications that maybe instaslled.
+- A new method is used to detect the end of call. Instead of waiting fora timeout after the last trunking message is recieved, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stop using a frequency.
+- The format for audio filenames has changed slightly. It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
+
+*[See past notes in the ChangeLog. If you upgrade and things are not working, check here](CHANGELOG.md)
+
 
 # Wiki Pages
 
@@ -52,7 +66,6 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 * [OpenMHz](https://github.com/robotastic/trunk-recorder/wiki/Uploading-to-OpenMHz) - This is my free hosted platform for sharing recordings
 * [Trunk Player](https://github.com/ScanOC/trunk-player) - A great Python based server, if you want to you want to run your own
 * [Rdio Scanner](https://github.com/chuot/rdio-scanner) - Provide a good looking, scanner style interface for listening to Trunk Recorder
-
 * [FAQ](https://github.com/robotastic/trunk-recorder/wiki/FAQ)
 
 ___
@@ -60,29 +73,30 @@ ___
 ## Configure
 Configuring Trunk Recorder and getting things setup can be rather complex. I am looking to make things simpler in the future.
 
-**config.json**
+### config.json
 
-This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. Trunk Recorder will look for a *config.json* file in the same directory as it is being run in. You can point it to a different config file by using the *--config* argument on the command line, for example: `./recorder --config=examples/config-wmata-rtl.json`. The following is an example for my local system in DC, using an Ettus B200:
+This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. Trunk Recorder will look for a *config.json* file in the same directory as it is being run in. You can point it to a different config file by using the *--config* argument on the command line, for example: `./trunk-recorder --config=examples/config-wmata-rtl.json`. The following is an example for my local system in DC, using an Ettus B200:
 
 ```json
 {
+    "ver": 2,
     "sources": [{
         "center": 857000000.0,
         "rate": 8000000.0,
-        "squelch": -50,
         "error": 0,
         "gain": 40,
         "antenna": "TX/RX",
         "digitalRecorders": 2,
         "driver": "usrp",
-        "device": "",
-        "modulation": "qpsk"
+        "device": ""
     }],
     "systems": [{
         "control_channels": [855462500],
         "type": "p25",
         "talkgroupsFile": "ChanList.csv",
-        "unitTagsFile": "UnitTags.csv"
+        "unitTagsFile": "UnitTags.csv",
+        "squelch": -50,
+        "modulation": "qpsk"
     }]
 }
 ```
@@ -127,6 +141,7 @@ Here are the different arguments:
    - **broadcastifyApiKey** - *(Optional)* System-specific API key for Broadcastify Calls
    - **broadcastifySystemId** - *(Optional)* System ID for Broadcastify Calls (this is an integer, and different from the RadioReference system ID)
    - **audioArchive** - should the recorded audio files be kept after successfully uploading them. The options are *true* and *false* (without quotes). The default is *true*.
+   - **transmissionArchive** - should each of the individual transmission be kept. These transmission are combined together with other recent ones to form a single call. The default is *true*. 
    - **callLog** - should a json file with the call details be kept after successful uploads. The options are *true* and *false* (without quotes). The default is *true*.
    - **minDuration** - the minimum call (transmission) duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. The default is *0* (no minimum duration).
    - **bandplan** - [SmartNet only] this is the SmartNet bandplan that will be used. The options are *800_standard*, *800_reband*, *800_splinter*, and *400_custom*. *800_standard* is the default.
@@ -161,7 +176,7 @@ Here are the different arguments:
    - **name** - the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin.
    - *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.*
 
-**talkgroupsFile**
+### talkgroupsFile
 
 This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. If you are not a Radio Reference member, try clicking on the "List All in one table" link, selecting everything in the table and copying it into Excel or a spreadsheet, and then exporting or saving as a CSV file.
 

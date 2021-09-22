@@ -1,7 +1,7 @@
 #!/bin/bash
 
-RECORDER490="./recorder --config=config-wmata-490.json"
-RECORDER496="./recorder --config=config-wmata-496.json"
+RECORDER490="./trunk-recorder --config=config-wmata-490.json"
+RECORDER496="./trunk-recorder --config=config-wmata-496.json"
 
 COUNTER=0
 until  1; do

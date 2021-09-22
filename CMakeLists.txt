@@ -296,14 +296,14 @@ add_subdirectory(plugins/unit_script)
 
 #add_subdirectory(plugins/stat_socket)
 
-add_executable(recorder trunk-recorder/main.cc ${trunk_recorder_sources})
+add_executable(trunk-recorder trunk-recorder/main.cc ${trunk_recorder_sources})
 
-target_link_libraries(recorder ${CMAKE_DL_LIBS} ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} trunk_recorder_library ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GNURADIO_OSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(trunk-recorder ${CMAKE_DL_LIBS} ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} trunk_recorder_library ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GNURADIO_OSMOSDR_LIBRARIES}  ${LIBOP25_REPEATER_LIBRARIES} gnuradio-op25_repeater imbe_vocoder) # gRPC::grpc++_reflection protobuf::libprotobuf)
 
 message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
 if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
 
-    target_link_libraries(recorder
+    target_link_libraries(trunk-recorder
     gnuradio::gnuradio-analog
     gnuradio::gnuradio-blocks
     gnuradio::gnuradio-digital
@@ -313,4 +313,4 @@ if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
 endif()
 
 
-install(TARGETS recorder RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS trunk-recorder RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
