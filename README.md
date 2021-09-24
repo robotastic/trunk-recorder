@@ -2,32 +2,51 @@ Trunk Recorder - v4.0 BETA
 =======================
 
 ## Sponsors
-**Do you find Trunk Recorder and OpenMHz useful? Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation.**
-Thank you: Vabrio, Blantonl, Olesza and others!
+**Do you find Trunk Recorder and OpenMHz useful?** 
+Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation!
+Thank you to everyone who has contributed!
 
 ## Overview
 Need help? Got something working? Share it!
 
 [![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
-Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swatches of RF and then use software to process what was received. [GNURadio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
+Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swathes of RF and then use software to process what was received. [GNURadio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
+
+
 
 Trunk Recorder currently supports the following:
+
  - Trunked P25 & SmartNet Systems
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
- - P25 Phase 1, **P25 Phase 2** & Analog voice channels
+ - P25 Phase 1, P25 Phase 2 & Analog voice channels
+
+
 
 Trunk Recorder is known to work well on:
+
 - Ubuntu (18.04,  20.04, 21.04)
+
 - Raspberry Pi, using both Raspberry OS/Raspbian & Ubuntu 21.04
+
 - Arch Linux (2021.09.20)
+
 - Debian 9.x
+
 - macOS
-...and with these SDRs:
+
+  
+
+  ...and with these SDRs:
+
 - RTL-SDR dongles
+
 - HackRF
+
 - Ettus USRP B200, B210, B205
+
 - BladeRF
+
 - Airspy
 
 
@@ -100,77 +119,110 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
     }]
 }
 ```
-Here are the different arguments:
- - **ver** - the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. 
- - **sources** - an array of JSON objects that define the different SDRs available. The following options are used to configure each Source:
-   - **center** - the center frequency in Hz to tune the SDR to
-   - **rate** - the sampling rate to set the SDR to, in samples / second
-   - **error** - the tuning error for the SDR in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz (when set to 0ppm)  to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much.
-   - **ppm** - the tuning error for the SDR in ppm (parts per million), as an alternative to `error` above. Use a program like GQRX to find an accurate value.
-   - **agc** - whether or not to enable the SDR's automatic gain control (if supported). This is false by default. It is not recommended to set this as it often yields worse performance compared to a manual gain setting.
-   - **gain** - the RF gain to set the SDR to. Use a program like GQRX to find a good value.
-   - **ifGain** - [AirSpy/hackrf only] sets the if gain.
-   - **bbGain** - [hackrf only] sets the bb gain.
-   - **mixGain** - [AirSpy only] sets the mix gain.
-   - **lnaGain** - [AirSpy/bladeRF only] sets the lna gain.
-   - **vga1Gain** - [bladeRF only] sets the vga1 gain.
-   - **vga2Gain** - [bladeRF only] sets the vga2 gain.
-   - **antenna** - [usrp] lets you select which antenna jack to user on devices that support it
-   - **digitalRecorders** - the number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number.
-   - **analogRecorders** - the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels.
-   - **debugRecorders** - the number of Debug Recorder to have attached to this source. Debug Recorders capture a raw sample that you can examine later using GNURadio Companion. This is helpful if you want to fine tune your the error and gain for this Source.
-   - **driver** - the GNURadio block you wish to use for the SDR. The options are *usrp* & *osmosdr*.
-   - **device** - osmosdr device name and possibly serial number or index of the device, see [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for each device and parameters. You only need to do this if there are more than one. (`bladerf=00001` for BladeRF with serial 00001 or `rtl=00923838` for RTL-SDR with serial 00923838, just airspy for an airspy) It seems that when you have 5 or more RTLSDRs on one system you need to decrease the buffer size. I think it has something to do with the driver. Try adding buflen: `"device": "rtl=serial_num,buflen=65536"`, there should be no space between buflen and the comma
- - **systems** - An array of JSON objects that define the trunking systems that will be recorded. The following options are used to configure each System.
-   - **control_channels** - *(For trunked systems)* an array of the control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel.
-   - **analogLevels** - the amount of amplification that will be applied to the analog audio. The value should be between 1-32. The default value is 8.
-   - **digitalLevels** - the amount of amplification that will be applied to the digital audio. The value should be between 1-16. The default value is 1.
-   - **modulation** - the type of modulation that the system uses. The options are *qpsk* & *fsk4*. It is possible to have a mix of sources using fsk4 and qpsk demodulation.
-   - **squelch** - Squelch in DB, this needs to be set for all convetional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. Defaults to 0, which is disabled. 
-   - **maxDev** - Allows you to set the maximum deviation for analog channels. The default is 4000. If you analog recordings sound good or if you have a completely digital system, then there is no need to tough this.
-   - **channels** - *(For conventional systems)* an array of the channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used.
-   - **alphatags** - *(Optional, For conventional systems)* an array of the alpha tags, these will be outputed to the logfiles *talkgroupDisplayFormat* is set to include tags. Alpha tags will be applied to the *channels* in the order the values appear in the array.
-   - **type** - the type of trunking system. The options are *smartnet*, *p25*,  *conventional* & *conventionalP25*.
-   - **talkgroupsFile** - this is a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable.
-   - **unitTagsFile** - this is a CSV files that provides information about the unit tags. It allows a Unit ID to be assigned a name. This file should be located in the same directory as the trunk-recorder executable. The format is 2 columns, the first being the decimal number of the Unit ID, the second is the Unit Name,
-   - **recordUnknown** - record talkgroups if they are not listed in the Talkgroups File. The options are *true* and *false* (without quotes). The default is *true*.
-   - **shortName** - this is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces.
-   - **uploadScript** - this script is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable.
-   - **unitScript** - *(Optional)* run a script when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on|join|off|ackresp|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`).
-   - **apiKey** - *(Optional, only if uploadServer set)* System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be.
-   - **broadcastifyApiKey** - *(Optional)* System-specific API key for Broadcastify Calls
-   - **broadcastifySystemId** - *(Optional)* System ID for Broadcastify Calls (this is an integer, and different from the RadioReference system ID)
-   - **audioArchive** - should the recorded audio files be kept after successfully uploading them. The options are *true* and *false* (without quotes). The default is *true*.
-   - **transmissionArchive** - should each of the individual transmission be kept. These transmission are combined together with other recent ones to form a single call. The default is *true*. 
-   - **callLog** - should a json file with the call details be kept after successful uploads. The options are *true* and *false* (without quotes). The default is *true*.
-   - **minDuration** - the minimum call (transmission) duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. The default is *0* (no minimum duration).
-   - **bandplan** - [SmartNet only] this is the SmartNet bandplan that will be used. The options are *800_standard*, *800_reband*, *800_splinter*, and *400_custom*. *800_standard* is the default.
-   - **bandplanBase** - [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz.
-   - **bandplanHigh** - [SmartNet, 400_custom only] this is the highest channel in the system, specified in Hz.
-   - **bandplanSpacing** - [SmartNet, 400_custom only] this is the channel spacing, specified in Hz. Typically this is *25000*.
-   - **bandplanOffset** - [SmartNet, 400_custom only] this is the offset used to calculate frequencies.
-   - **talkgroupDisplayFormat** - the display format for talkgroups in the console and log file. the options are *id*, *id_tag*, *tag_id*. The default is *id*. [*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified]
-   - **hideEncrypted** - hide encrypted talkgroups log entries, The options are *true* or *false*, without quotes. The default is *false*.
-   - **hideUnknownTalkgroups** - hide unknown talkgroups from log, The options are *true* or *false*, without quotes. The default is *false*.
-   - **decodeMDC** - *(Optional, For conventional systems)* enable the MDC-1200 signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
-   - **decodeFSync** - *(Optional, For conventional systems)* enable the Fleet Sync signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
-   - **decodeStar** - *(Optional, For conventional systems)* enable the Star signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
-   - **decodeTPS** - *(Optional, For conventional systems)* enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. The options are *true* or *false*, without quotes. The default is *false*.
- - **defaultMode** - Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects Type II `smartnet` trunking systems which can have both analog and digital talkpaths whereas `p25` trunking systems don't have analog talkpaths.
- - **captureDir** - the complete path to the directory where recordings should be saved.
- - **callTimeout** - a Call will stop recording and save if it has not received anything on the control channel, after this many seconds. The default is 3.
- - **logFile** - save the console output to a file. The options are *true* or *false*, without quotes. The default is *false*.
- - **frequencyFormat** - the display format for frequencies to display in the console and log file. The options are *exp*, *mhz* & *hz*. The default is *exp*.
- - **controlWarnRate** - Log the control channel decode rate when it falls bellow this threshold. The default is *10*. The value of *-1* will always log the decode rate.
- - **statusAsString** - Show status as strings instead of numeric values The options are *true* or *false*, without quotes. The default is *true*.
- - **statusServer** - The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md)
- - **broadcastSignals** - *(Optional)* Broadcast decoded signals to the status server. The default is *false*.
- - **uploadServer** - *(Optional)* The URL for uploading to OpenMHz. The default is an empty string. See the Config tab for your system in OpenMHz to find what the value should be.
- - **broadcastifyCallsServer** - *(Optional)* The URL for uploading to Broadcastify Calls. The default is an empty string. Refer to [Broadcastify's wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-API) for the upload URL.
- - **logLevel** - *(Optional)* the logging level to display in the console and log file. The options are *trace*, *debug*, *info*, *warning*, *error* & *fatal*. The default is *info*.
- - **debugRecorder** - Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion. The setting is either *true* or *false* and the default is *false*.
- - **debugRecorderPort** - The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. The default value is *1234*.
- - **debugRecorderAddress** - The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder.
+
+### Main Level
+
+| Key                     | Required | Default Value     | Type                                                        | Description                                                  |
+| ----------------------- | :------: | ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| ver                     |    ✓     |                   | number                                                      | the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. |
+| sources                 |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Source Objects](#-source-object) that define the different SDRs available. Source Objects are described below. |
+| systems                 |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [System Objects](#system-object) that define the trunking systems that will be recorded. System Objects are described below. |
+| plugins                 |          |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Plugin Objects](#plugin-object) that define the different plugins to use. Refer to the [Plugin System](notes/PLUGIN-SYSTEM.md) documentation for more details. |
+| defaultMode             |          | "digital"         | **"analog"** or **"digital"**                               | Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects `smartnet` trunking systems which can have both analog and digital talkpaths. |
+| captureDir              |          | current directory | string                                                      | The complete path to the directory where recordings should be saved. |
+| callTimeout             |          | 3                 | number                                                      | A Call will stop recording and save if it has not received anything on the control channel, after this many seconds. |
+| uploadServer            |          |                   | string                                                      | The URL for uploading to OpenMHz. The default is an empty string. See the Config tab for your system in OpenMHz to find what the value should be. |
+| broadcastifyCallsServer |          |                   | string                                                      | The URL for uploading to Broadcastify Calls. The default is an empty string. Refer to [Broadcastify's wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-API) for the upload URL. |
+| logFile                 |          | false             | **true** / **false**                                        | Save the console output to a file.                           |
+| frequencyFormat         |          | "exp"             | **"exp" "mhz"** or **"hz"**                                 | the display format for frequencies to display in the console and log file. |
+| controlWarnRate         |          | 10                | number                                                      | Log the control channel decode rate when it falls bellow this threshold. The value of *-1* will always log the decode rate. |
+| statusAsString          |          | true              | **true** / **false**                                        | Show status as strings instead of numeric values             |
+| statusServer            |          |                   | string                                                      | The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](STATUS-JSON.md) |
+| broadcastSignals        |          | true              | **true** / **false**                                        | Broadcast decoded signals to the status server.              |
+| logLevel                |          | "info"            | **"trace" "debug" "info" "warning" "error"** or **"fatal"** | the logging level to display in the console and log file. The options are *trace*, *debug*, *info*, *warning*, *error* & *fatal*. The default is *info*. |
+| debugRecorder           |          | true              | **true** / **false**                                        | Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion |
+| debugRecorderPort       |          | 1234              | number                                                      | The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. |
+| debugRecorderAddress    |          | "127.0.0.1"       | string                                                      | The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder. |
+
+
+
+### Source Object
+
+| Key              | Required | Default Value | Type                                                         | Description                                                  |
+| :--------------- | :------: | :-----------: | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| center           |    ✓     |               | number                                                       | the center frequency in Hz to tune the SDR to                |
+| rate             |    ✓     |               | number                                                       | the sampling rate to set the SDR to, in samples / second     |
+| error            |          |       0       | number                                                       | the tuning error for the SDR, in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz (when set to 0ppm)  to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much. |
+| gain             |    ✓     |               | number                                                       | The RF gain setting for the SDR. Use a program like GQRX to find a good value. |
+| digitalRecorders |          |               | number                                                       | The number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. |
+| analogRecorders  |          |               | number                                                       | the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels. |
+| driver           |    ✓     |               | **"usrp"** or **"osmosdr"**                                  | The GNURadio block you wish to use for the SDR.              |
+| device           |          |               | **string**<br /> See the [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for supported devices and parameters. | Osmosdr device name and possibly serial number or index of the device. <br /> You only need to do add this key if there are more than one osmosdr devices being used.<br /> Example: `bladerf=00001` for BladeRF with serial 00001 or `rtl=00923838` for RTL-SDR with serial 00923838, just `airspy` for an airspy.<br />It seems that when you have 5 or more RTLSDRs on one system you need to decrease the buffer size. I think it has something to do with the driver. Try adding buflen: `"device": "rtl=serial_num,buflen=65536"`, there should be no space between buflen and the comma |
+| ppm              |          |       0       | number                                                       | the tuning error for the SDR in ppm (parts per million), as an alternative to `error` above. Use a program like GQRX to find an accurate value. |
+| agc              |          |     false     | **true** / **false**                                         | whether or not to enable the SDR's automatic gain control (if supported). This is false by default. It is not recommended to set this as it often yields worse performance compared to a manual gain setting. |
+|                  |          |               |                                                              |                                                              |
+| ifGain           |          |               | number                                                       | [AirSpy/hackrf only] sets the **if** gain.                   |
+| bbGain           |          |               | number                                                       | [hackrf only] sets the **bb** gain.                          |
+| mixGain          |          |               | number                                                       | [AirSpy only] sets the **mix** gain.                         |
+| lnaGain          |          |               | number                                                       | [AirSpy/bladeRF only] sets the **lna** gain.                 |
+| vga1Gain         |          |               | number                                                       | [bladeRF only] sets the **vga1** gain.                       |
+| vga2Gain         |          |               | number                                                       | [bladeRF only] sets the **vga2** gain.                       |
+| antenna          |          |               | string, e.g.: **"TX/RX"**                                    | [usrp] selects which antenna jack to use                     |
+| debugRecorders   |          |               | number                                                       | the number of Debug Recorder to have attached to this source. Debug Recorders capture a raw sample that you can examine later using GNURadio Companion. This is helpful if you want to fine tune your the error and gain for this Source. |
+
+
+
+### System Objects
+
+| Key                    | Required | Default Value                  | Type                                                         | Description                                                  |
+| ---------------------- | :------: | ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| shortName              |    ✓     |                                | string                                                       | This is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces. |
+| type                   |    ✓     |                                | **"smartnet"  "p25"   "conventional"** or **"conventionalP25"** | The type of radio system.                                    |
+| control_channels       |    ✓     |                                | array of numbers;<br />[496537500, 496437500]                | **For trunked systems** The control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel. |
+| channels               |    ✓     |                                | array of numbers;<br />[166725000, 166925000, 167075000, 166850000] | **For conventional systems**  The channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used. |
+| modulation             |          | "qpsk"                         | **"qpsk"** or  **"fsk4"**                                    | The type of digital modulation that the system uses          |
+| squelch                |          | 0 <br />(which means disabled) | number                                                       | Squelch in DB, this needs to be set for all conventional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. |
+| talkgroupsFile         |          |                                | string                                                       | The filename for a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable. |
+| apiKey                 |          |                                | string                                                       | [*if uploadServer is set*] System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be. |
+| broadcastifyApiKey     |          |                                | string                                                       | [*if broadcastifyCallsServer is set*] System-specific API key for Broadcastify Calls |
+| broadcastifySystemId   |          |                                | number                                                       | [*if broadcastifyCallsServer is set*] System ID for Broadcastify Calls <br />(this is an integer, and different from the RadioReference system ID) |
+| uploadScript           |          |                                | string                                                       | This is the filename of a script that is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable. |
+| unitScript             |          |                                | string                                                       | This is the filename of a script that runs when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on|join|off|ackresp|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`). |
+| audioArchive           |          | true                           | **true** / **false**                                         | Should the recorded audio files be kept after successfully uploading them? |
+| transmissionArchive    |          | false                          | **true** / **false**                                         | Should each of the individual transmission be kept? These transmission are combined together with other recent ones to form a single call. |
+| callLog                |          | false                          | **true** / **false**                                         | Should a json file with the call details be kept after successful uploads? |
+| analogLevels           |          | 8                              | number (1-32)                                                | The amount of amplification that will be applied to the analog audio. |
+| maxDev                 |          | 4000                           | number                                                       | Allows you to set the maximum deviation for analog channels. If you analog recordings sound good or if you have a completely digital system, then there is no need to touch this. |
+| digitalLevels          |          | 1                              | number (1-16)                                                | The amount of amplification that will be applied to the digital audio. |
+| alphatags              |          |                                | array of strings<br />e.g.: ["police", "fire", "ems"]        | [*For conventional systems*] these tags will be displayed in the log files to show what each frequency is used for. They will be applied to the *channels* in the order the values appear in the array. |
+| unitTagsFile           |          |                                | string                                                       | This is the filename of a CSV files that provides information about the unit tags. It allows a Unit ID to be assigned a name. This file should be located in the same directory as the trunk-recorder executable. The format is 2 columns, the first being the decimal number of the Unit ID, the second is the Unit Name, |
+| recordUnknown          |          | true                           | **true** / **false**                                         | Record talkgroups if they are not listed in the Talkgroups File. |
+| hideEncrypted          |          | false                          | **true** / **false**                                         | Hide encrypted talkgroups log entries                        |
+| hideUnknownTalkgroups  |          | false                          | **true** / **false**                                         | Hide unknown talkgroups log entries                          |
+| minDuration            |          | 0<br />(which is disabled)     | number                                                       | The minimum call (transmission) duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
+| talkgroupDisplayFormat |          | "id"                           | **"id" "id_tag"** or **"tag_id"**                            | The display format for talkgroups in the console and log file. (*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified) |
+| bandplan               |          | "800_standard"                 | **"800_standard" "800_reband" "800_splinter"** or **"400_custom"** | [SmartNet only] this is the SmartNet bandplan that will be used. |
+| bandplanBase           |          |                                | number                                                       | [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz. |
+| bandplanHigh           |          |                                | number                                                       | [SmartNet, 400_custom only] this is the highest channel in the system, specified in Hz. |
+| bandplanSpacing        |          |                                | number                                                       | [SmartNet, 400_custom only] this is the channel spacing, specified in Hz. Typically this is *25000*. |
+| bandplanOffset         |          |                                | number                                                       | [SmartNet, 400_custom only] this is the offset used to calculate frequencies. |
+| decodeMDC              |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the MDC-1200 signaling decoder. |
+| decodeFSync            |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the Fleet Sync signaling decoder. |
+| decodeStar             |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the Star signaling decoder. |
+| decodeTPS              |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. |
+
+
+
+### Plugin Object
+
+| Key     | Required | Default Value | Type   | Description                                                  |
+| ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| library |    ✓     |               | string | the name of the library that contains the plugin.            |
+| name    |    ✓     |               | string | the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin. |
+|         |          |               |        | *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.* |
+
+
+
  - **plugins** - an array of JSON objects that define the different plugins to use. Refer to the [Plugin System](notes/PLUGIN-SYSTEM.md) documentation for more details. The following options are used to configure each Plugin:
    - **library** - the name of the library that contains the plugin. This can be left blank if the plugin is in the main trunk-recorder codebase.
    - **name** - the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin.
