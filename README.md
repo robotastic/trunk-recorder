@@ -54,7 +54,8 @@ Trunk Recorder is known to work well on:
 ### V4.0
 - The executable generated has changed from `recorder` to `trunk-recorder` to help prevent differentiate it from other applications that maybe instaslled.
 - A new method is used to detect the end of call. Instead of waiting fora timeout after the last trunking message is recieved, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stop using a frequency.
-- The format for audio filenames has changed slightly. It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
+- The format for audio filenames has changed slightly. 
+  It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
 
 *[See past notes in the ChangeLog. If you upgrade and things are not working, check here](CHANGELOG.md)
 
@@ -89,7 +90,7 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 
 ___
 
-## Configure
+## Configuring Trunk Recorder
 Configuring Trunk Recorder and getting things setup can be rather complex. I am looking to make things simpler in the future.
 
 ### config.json
@@ -120,12 +121,27 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 }
 ```
 
-### Main Level
+
+Here is a map of the different sections of the *config.json* file:
+
+```
+{
+	Global Configs
+	
+	"sources": [{ Source Object }],
+	"systems": [{ System Object }],
+	"plugins": [{ Plugin Object }]
+}
+```
+
+
+
+### Global Configs
 
 | Key                     | Required | Default Value     | Type                                                        | Description                                                  |
 | ----------------------- | :------: | ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
 | ver                     |    ✓     |                   | number                                                      | the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. |
-| sources                 |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Source Objects](#-source-object) that define the different SDRs available. Source Objects are described below. |
+| sources                 |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Source Objects](#source-object) that define the different SDRs available. Source Objects are described below. |
 | systems                 |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [System Objects](#system-object) that define the trunking systems that will be recorded. System Objects are described below. |
 | plugins                 |          |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Plugin Objects](#plugin-object) that define the different plugins to use. Refer to the [Plugin System](notes/PLUGIN-SYSTEM.md) documentation for more details. |
 | defaultMode             |          | "digital"         | **"analog"** or **"digital"**                               | Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects `smartnet` trunking systems which can have both analog and digital talkpaths. |
@@ -146,7 +162,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 
 
 
-### Source Object
+#### Source Object
 
 | Key              | Required | Default Value | Type                                                         | Description                                                  |
 | :--------------- | :------: | :-----------: | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -172,7 +188,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 
 
 
-### System Objects
+#### System Object
 
 | Key                    | Required | Default Value                  | Type                                                         | Description                                                  |
 | ---------------------- | :------: | ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -213,7 +229,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 
 
 
-### Plugin Object
+#### Plugin Object
 
 | Key     | Required | Default Value | Type   | Description                                                  |
 | ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
@@ -222,11 +238,6 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 |         |          |               |        | *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.* |
 
 
-
- - **plugins** - an array of JSON objects that define the different plugins to use. Refer to the [Plugin System](notes/PLUGIN-SYSTEM.md) documentation for more details. The following options are used to configure each Plugin:
-   - **library** - the name of the library that contains the plugin. This can be left blank if the plugin is in the main trunk-recorder codebase.
-   - **name** - the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin.
-   - *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.*
 
 ### talkgroupsFile
 
