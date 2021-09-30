@@ -1,14 +1,13 @@
 # Docker
 If you are not going to be modifying the source code, **a [Docker](https://www.docker.com/) based install is the easiest way to get started.** Images are published frequently to  [Docker Hub](https://hub.docker.com/r/robotastic/trunk-recorder). The images have GNURadio 3.8 and all other required dependencies built into it, so it should be ready to go and be a much faster solution than compiling. Images have been built for amd64 (amd64 is used by all modern Intel and AMD CPUs) and most popular flavors of ARM.
 
-To get started, create a directory and place your **config.json** file there and a **talkgroup.csv** file if you are using one. Update the command below with the path to that directory.
+To get started, create a directory and place your **config.json** file there and a **talkgroup.csv** file if you are using one. 
 
 ```bash
 docker run -it \
   --privileged -e TZ=$(cat /etc/timezone) --user "$(id -u):$(id -g)" \
-  -v /REPLACE/WITH/PATH/TO/DIR:/app \
-  -v /var/run/dbus:/var/run/dbus \
-  -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket \
+  -v $(pwd):/app \
+  -v /dev/bus/usb:/dev/bus/usb \
   robotastic/trunk-recorder:latest
 ```
 
@@ -23,15 +22,19 @@ services:
     restart: always
     privileged: true
     volumes:
-      - /var/run/dbus:/var/run/dbus 
-      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket 
+      - /dev/bus/usb:/dev/bus/usb
       - ./:/app
 ```
+
+## uploadScript
+
 If you want to run a python script for example with the uploadScript setting, make your shebang #!/usr/bin/python2 or #!/usr/bin/python3 as #!/usr/bin/python is not present.
 
 Also be aware that uploadScript function will pass your (outside of container) script an absolute path of inside the container, so you will need for example a symlink to connect this back to your recordings: ln -s /REPLACE/WITH/PATH/TO/DIR /app
 
 Also note that if you are using uploadScript to connect to for example liquidsoap sockets running outside the container you will need to share/mount them into the container at start by adding -v /var/run/liquidsoap/:/var/run/liquidsoap
+
+## Useful Docker Commands
 
 Once you have gotten your config and testing done you can set docker to run trunk recorder in the background at boot by replacing "-it" with "-d --restart always" and running that once, this will start the image in the background (-d) and start automatically and on failure. 
 

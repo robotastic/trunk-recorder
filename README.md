@@ -60,11 +60,21 @@ Trunk Recorder is known to work well on:
 *[See past notes in the ChangeLog. If you upgrade and things are not working, check here](CHANGELOG.md)
 
 
-# Wiki Pages
 
 ## Install
 
+
+
+|              |           Docker            |                    Ubuntu                    |         RaspberryOS         |         Arch Linux          |          Homebrew           |          MacPorts           |
+| ------------ | :-------------------------: | :------------------------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: |
+| Linux        | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-DOCKER.md#**Ubuntu-21.04**) |                             | [📄](docs/INSTALL-DOCKER.md) |                             |                             |
+| Raspberry Pi | [📄](docs/INSTALL-DOCKER.md) |         [📄](docs/INSTALL-DOCKER.md)          | [📄](docs/INSTALL-DOCKER.md) |                             |                             |                             |
+| MacOS        |                             |                                              |                             |                             | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-DOCKER.md) |
+
+
+
 ### Install Required Prequisites
+
 * [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
 * [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
 * [Ubuntu minimal](https://github.com/robotastic/trunk-recorder/wiki/MinimalInstall)

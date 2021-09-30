@@ -81,7 +81,7 @@ sudo pacman -S base-devel
 ```
 Install the packages required to build Trunk Recorder:
 ```bash
-sudo pacman -S cmake git boost gnuradio gnuradio-osmosdr libuhd
+sudo pacman -S cmake git boost gnuradio gnuradio-osmosdr libuhd fdkaac sox
 ```
 
 ## Building Trunk Recorder
