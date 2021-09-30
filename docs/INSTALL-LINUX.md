@@ -96,4 +96,5 @@ git clone https://github.com/robotastic/trunk-recorder.git
 cd trunk-build
 cmake ../trunk-recorder
 make
+sudo make install
 ```

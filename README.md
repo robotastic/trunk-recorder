@@ -65,15 +65,15 @@ Trunk Recorder is known to work well on:
 
 
 
-|              |           Docker            |                    Ubuntu                    |         RaspberryOS         |         Arch Linux          |          Homebrew           |          MacPorts           |
-| ------------ | :-------------------------: | :------------------------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: |
-| Linux        | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-DOCKER.md#**Ubuntu-21.04**) |                             | [📄](docs/INSTALL-DOCKER.md) |                             |                             |
-| Raspberry Pi | [📄](docs/INSTALL-DOCKER.md) |         [📄](docs/INSTALL-DOCKER.md)          | [📄](docs/INSTALL-DOCKER.md) |                             |                             |                             |
-| MacOS        |                             |                                              |                             |                             | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-DOCKER.md) |
+|              |           Docker            |                   Ubuntu                   |       RaspberryOS       |              Arch Linux               |                Homebrew                 |                MacPorts                 |
+| ------------ | :-------------------------: | :----------------------------------------: | :---------------------: | :-----------------------------------: | :-------------------------------------: | :-------------------------------------: |
+| Linux        | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-LINUX.md#**ubuntu-2104**) |                         | [📄](docs/INSTALL-LINUX.md#arch-linux) |                                         |                                         |
+| Raspberry Pi | [📄](docs/INSTALL-DOCKER.md) |          [📄](docs/INSTALL-PI.md)           | [📄](docs/INSTALL-PI.md) |                                       |                                         |                                         |
+| MacOS        |                             |                                            |                         |                                       | [📄](docs/INSTALL-MAC.md#using-homebrew) | [📄](docs/INSTALL-MAC.md#using-macports) |
 
 
 
-### Install Required Prequisites
+### Install Required Perquisites
 
 * [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
 * [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)

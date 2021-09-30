@@ -1,14 +1,10 @@
 # Raspberry Pi
 
-**Unless you need to modify source code, you probably want to use [Docker](#docker) instead**. Gathering all dependencies and compiling trunk-recorder for Raspberry Pi takes a very long time (almost 3 hours!). Docker takes less than 10 minutes to get up and running.
+Smaller radio systems can be covered using a Raspberry Pi. If you are interested in doing this, you should really get a Pi 4. It maybe possible to get things running on an older Pi, but you often get unexpect behavior and errors. A Pi 4 can handle 3-4 simulatanious recordings. Make sure you have a good power supply. Also pay attention to heat. If the Pi gets too hot, it will slow down. A good case or fan can help keep it going full tilt.
 
-## Prologue
-  * `this` is a command issued to the bash prompt. These can be entered at the console or via an SSH session.
-  * <kbd>this</kbd> is a command / combination from the keyboard.
-  * `apt` is used instead of `apt-get` for it's much more pleasant presentation to the end user.
-  * This is not the "end all, be all" guide, please don't treat it as such. It is written for myself, but shared in hopes that others will find it useful.
+## RaspberryOS (aka Raspbian)
 
-## Prerequisites
+### Prerequisites
 This page assumes the following.
   - You are using a Raspberry Pi 3B+ or 4, anything else probably can't keep up.
   - You have just downloaded the latest version of [Raspbian Buster](https://www.raspberrypi.org/downloads/raspbian/).
@@ -36,60 +32,54 @@ This page assumes the following.
       - Select **P2 SSH** and press <kbd>Enter</kbd>.
       - Select **Yes** to the question **Would you like the SSH server to be enabled?** and press <kbd>Enter</kbd>.
 
-## Setup
-(It takes about 15 - 30 minutes for this section.)
-  * This will get updated information for your system.
-  * Upgrade to the latest version of already installed components.
-  * Then install new components needed for the building and running of trunk-recorder.
+### Setup
+- Add the Debian Multimedia source and include non-free libraries, like **fdkaac**. Edit the sources.list file: `sudo nano /etc/apt/sources.list`
+- and add this line to the end:
+```
+deb http://www.deb-multimedia.org/ buster main non-free
+```
+- Download the keys for the apt source and install them:
+```bash
+wget https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
+sudo dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+```
+- Update the OS:
 ```
 sudo apt update
-sudo apt -y upgrade
-sudo apt -y install gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev git cmake build-essential libboost-all-dev libusb-1.0-0.dev libcppunit-dev liblog4cpp5-dev libssl-dev autoconf automake libass-dev libfreetype6-dev libsdl2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev libcurl4-openssl-dev sox
-git clone --depth 1 https://github.com/mstorsjo/fdk-aac ~/fdk-aac
-git clone https://github.com/nu774/fdkaac ~/fdk-aac-cli-enc
+sudo apt upgrade
+```
+- Add all of the libraries needed:
+```bash
+sudo apt -y install libssl-dev openssl curl fdkaac sox libcurl3-gnutls libcurl4 libcurl4-openssl-dev gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev 
+sudo apt -y install git cmake make build-essential libboost-all-dev libusb-1.0-0.dev 
+```
+- Get the latest version of Trunk Recorder
+```
 git clone https://github.com/robotastic/trunk-recorder.git ~/trunk-recorder/
-
 ```
-## Build
-(It takes about an hour and a half to do this with a Class 10 SD Card. But 20 minutes with a RPI4)
-```
-cd ~/fdk-aac
-autoreconf -fiv
-./configure
-make -j$(nproc)
-sudo make install
-
-cd ~/fdk-aac-cli-enc
-autoreconf -i
-./configure
-make
-sudo make install
-
-sudo ldconfig
-
-cd ~/trunk-recorder
-cmake .
+### Build
+```bash
+mkdir ~/trunk-build
+cd ~/trunk-build
+cmake ../trunk-recorder
 make -j `nproc`
+sudo make install
 ```
-Note:  If the Pi hangs during the final make -k 'nproc' command, try this instead (it may take longer but may also prevent locking up the Pi due to all processor cores being 100% in use):
-```
-cd ~/trunk-recorder
-cmake .
-make 
-```
-## Profile
+
+Note:  If the Pi hangs during the `make -j 'nproc'` command, try `make` instead (it may take longer but may also prevent locking up the Pi due to all processor cores being 100% in use)
+
+### Profile
 (It takes about 15 minutes for this section.)
 
 Run the command `volk_profile` to ensure that [VOLK (Vector-Optimized Library of Kernels)](https://wiki.gnuradio.org/index.php/Volk) uses the best [SIMD (Single instruction, multiple data)](https://en.wikipedia.org/wiki/SIMD) architecture for your processor.
+
 ## Configuration
 [Configure the system](https://github.com/robotastic/trunk-recorder#configure).
 ## Run
 `./recorder`
 
 ***
-# Raspberry PI 64
-
-**Unless you need to modify source code, you probably want to use [Docker](#docker) instead**. Gathering all dependencies and compiling trunk-recorder for Raspberry Pi takes a very long time (almost 3 hours!). Docker takes less than 10 minutes to get up and running.
+## Ubuntu 21.04 (64-bit support!)
 
 ## Prerequisites
 This page assumes the following.
