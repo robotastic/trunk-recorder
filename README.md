@@ -124,12 +124,12 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 
 Here is a map of the different sections of the *config.json* file:
 
-```
+```yaml
 {
 	Global Configs
 	
-	"sources": [{ Source Object }],
-	"systems": [{ System Object }],
+	"sources": [{ Source Object }, { Source Object }],
+	"systems": [{ System Object }, { System Object }],
 	"plugins": [{ Plugin Object }]
 }
 ```
