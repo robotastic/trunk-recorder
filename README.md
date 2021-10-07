@@ -21,8 +21,6 @@ Trunk Recorder currently supports the following:
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
  - P25 Phase 1, P25 Phase 2 & Analog voice channels
 
-
-
 Trunk Recorder is known to work well on:
 
 - Ubuntu (18.04,  20.04, 21.04)
@@ -63,8 +61,6 @@ Trunk Recorder is known to work well on:
 
 ## Install
 
-
-
 |              |           Docker            |                   Ubuntu                   |       RaspberryOS       |              Arch Linux               |                Homebrew                 |                MacPorts                 |
 | ------------ | :-------------------------: | :----------------------------------------: | :---------------------: | :-----------------------------------: | :-------------------------------------: | :-------------------------------------: |
 | Linux        | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-LINUX.md#**ubuntu-2104**) |                         | [📄](docs/INSTALL-LINUX.md#arch-linux) |                                         |                                         |
@@ -72,18 +68,6 @@ Trunk Recorder is known to work well on:
 | MacOS        |                             |                                            |                         |                                       | [📄](docs/INSTALL-MAC.md#using-homebrew) | [📄](docs/INSTALL-MAC.md#using-macports) |
 
 
-
-### Install Required Perquisites
-
-* [Docker](https://github.com/robotastic/trunk-recorder/wiki/Docker-Install)
-* [Ubuntu](https://github.com/robotastic/trunk-recorder/wiki/Ubuntu)
-* [Ubuntu minimal](https://github.com/robotastic/trunk-recorder/wiki/MinimalInstall)
-* [Arch Linux](https://github.com/robotastic/trunk-recorder/wiki/Arch-Linux)
-* [macOS](https://github.com/robotastic/trunk-recorder/wiki/macOS)
-* [Raspberry Pi Buster Install](https://github.com/robotastic/trunk-recorder/wiki/Raspberry-Pi-Buster-Install) (Also works for the ASUS Tinker Board [S])
-
-### Building
-* [Building Trunk Recorder](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder)
 
 ### Setup
 * [Configuring a system](https://github.com/robotastic/trunk-recorder/wiki/Configuring-a-System)
@@ -101,11 +85,8 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 ___
 
 ## Configuring Trunk Recorder
-Configuring Trunk Recorder and getting things setup can be rather complex. I am looking to make things simpler in the future.
 
-### config.json
-
-This file is used to configure how Trunk Recorder is setup. It defines the SDRs that are available and the trunk system that will be recorded. Trunk Recorder will look for a *config.json* file in the same directory as it is being run in. You can point it to a different config file by using the *--config* argument on the command line, for example: `./trunk-recorder --config=examples/config-wmata-rtl.json`. The following is an example for my local system in DC, using an Ettus B200:
+Trunk Recorder is configured using a JSON formatted file. It defines the SDRs that are available and the trunk system that will be recorded. Trunk Recorder will look for a *config.json* file in the same directory as it is being run in. You can point it to a different config file by using the *--config* argument on the command line, for example: `./trunk-recorder --config=examples/config-wmata-rtl.json`. The following is an example for my local system in DC, using an Ettus B200:
 
 ```json
 {
@@ -134,7 +115,7 @@ This file is used to configure how Trunk Recorder is setup. It defines the SDRs 
 
 Here is a map of the different sections of the *config.json* file:
 
-```yaml
+```json
 {
 	Global Configs
 	
