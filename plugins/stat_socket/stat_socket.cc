@@ -9,6 +9,7 @@
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
 #include <gr_blocks/decoder_wrapper.h>
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS   
+#include <boost/property_tree/json_parser.hpp>
 
 typedef struct stat_plugin_t stat_plugin_t;
 

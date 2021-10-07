@@ -294,7 +294,7 @@ add_subdirectory(plugins/broadcastify_uploader)
 
 add_subdirectory(plugins/unit_script)
 
-add_subdirectory(plugins/stat_socket)
+#add_subdirectory(plugins/stat_socket)
 
 add_executable(trunk-recorder trunk-recorder/main.cc ${trunk_recorder_sources})
 
