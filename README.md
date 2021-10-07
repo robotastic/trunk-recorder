@@ -50,8 +50,8 @@ Trunk Recorder is known to work well on:
 
 ## Version Notes
 ### V4.0
-- The executable generated has changed from `recorder` to `trunk-recorder` to help prevent differentiate it from other applications that maybe instaslled.
-- A new method is used to detect the end of call. Instead of waiting fora timeout after the last trunking message is recieved, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stop using a frequency.
+- The executable generated has changed from `recorder` to `trunk-recorder` to help differentiate it from other applications that maybe installed.
+- A new method is used to detect the end of call. Instead of waiting for a timeout after the last trunking message is recieved, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stops using a frequency.
 - The format for audio filenames has changed slightly. 
   It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
 
