@@ -128,8 +128,17 @@ Note:  If the Pi hangs during the `make -j 'nproc'` command, try `make` instead 
 
 Run the command `volk_profile` to ensure that [VOLK (Vector-Optimized Library of Kernels)](https://wiki.gnuradio.org/index.php/Volk) uses the best [SIMD (Single instruction, multiple data)](https://en.wikipedia.org/wiki/SIMD) architecture for your processor.
 
-## Configuration
-[Configure the system](https://github.com/robotastic/trunk-recorder#configure).
+## Configuring Trunk Recorder
 
-## Run
-`./recorder`
+The next step is to [configure Trunk Recorder](CONFIGURE.md) for the system you are trying to capture.
+
+## Running trunk recorder. 
+
+If all goes well you should now have the executable named `trunk-recorder`, and created the `config.json` configuration file as described in the [Wiki](https://github.com/robotastic/trunk-recorder/wiki/Configuring-a-System) and [README](https://github.com/robotastic/trunk-recorder/blob/master/README.md#configure).
+
+From your build directory (e.g. `trunk-build`) you can now run
+`./trunk-recorder`
+
+### Runtime options
+
+Trunk Recorder will look for a *config.json* file in the same directory as it is being run in. You can point it to a different config file by using the *--config* argument on the command line, for example: `./trunk-recorder --config=examples/config-wmata-rtl.json`.

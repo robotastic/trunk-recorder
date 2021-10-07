@@ -1,7 +1,7 @@
 # Docker
 If you are not going to be modifying the source code, **a [Docker](https://www.docker.com/) based install is the easiest way to get started.** Images are published frequently to  [Docker Hub](https://hub.docker.com/r/robotastic/trunk-recorder). The images have GNURadio 3.8 and all other required dependencies built into it, so it should be ready to go and be a much faster solution than compiling. Images have been built for amd64 (amd64 is used by all modern Intel and AMD CPUs) and most popular flavors of ARM.
 
-To get started, create a directory and place your **config.json** file there and a **talkgroup.csv** file if you are using one. 
+To get started, create a directory and place your **config.json** file there and a **talkgroup.csv** file if you are using one. Refer to [Configuring Trunk Recorder](CONFIGURE.md) for instructions on how to create these files.
 
 ```bash
 docker run -it \
@@ -47,3 +47,4 @@ Currently, Docker image builds are triggered by the following events:
 * After every push to the `master` branch the `edge` tag is built and pushed to Docker Hub.
 * Every day at 10 AM UTC the `nightly` tag is built and pushed to Docker Hub.
 * When a new [release](https://github.com/robotastic/trunk-recorder/releases) happens the `<version>` and `latest` tags are built and pushed to Docker Hub.
+
