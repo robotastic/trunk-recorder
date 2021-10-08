@@ -65,7 +65,6 @@
 
 
 unsigned GCD(unsigned u, unsigned v);
-std::vector<float> design_filter(double interpolation, double deci);
 
 class Recorder {
 

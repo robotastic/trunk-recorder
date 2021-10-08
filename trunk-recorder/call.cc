@@ -438,7 +438,8 @@ bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::S
   }
 
   if (signaling_type == NULL) {
-    process_signal(src, system.c_str(), signal, this, this->get_system(), NULL);
+    //plugman_signal(unitId, signaling_type, sig_type, call, system, recorder);
+    plugman_signal(src, system.c_str(), signal, this, this->get_system(), NULL);
   }
 
   return true;
@@ -607,3 +608,5 @@ boost::property_tree::ptree Call::get_stats() {
 
   return call_node;
 }
+
+long Call::call_counter = 0;

@@ -70,8 +70,6 @@ namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
-int Recorder::rec_counter = 0;
-long Call::call_counter = 0;
 std::vector<Source *> sources;
 std::vector<System *> systems;
 std::map<long, long> unit_affiliations;
@@ -100,30 +98,6 @@ unsigned GCD(unsigned u, unsigned v) {
   return u;
 }
 
-std::vector<float> design_filter(double interpolation, double deci) {
-  float beta = 5.0;
-  float trans_width = 0.5 - 0.4;
-  float mid_transition_band = 0.5 - trans_width / 2;
-
-#if GNURADIO_VERSION < 0x030900
-  std::vector<float> result = gr::filter::firdes::low_pass(
-      interpolation,
-      1,
-      mid_transition_band / interpolation,
-      trans_width / interpolation,
-      gr::filter::firdes::WIN_KAISER,
-      beta);
-#else
-  std::vector<float> result = gr::filter::firdes::low_pass(
-      interpolation,
-      1,
-      mid_transition_band / interpolation,
-      trans_width / interpolation,
-      gr::fft::window::WIN_KAISER,
-      beta);
-#endif
-  return result;
-}
 
 void set_logging_level(std::string log_level) {
   boost::log::trivial::severity_level sev_level = boost::log::trivial::info;
@@ -144,11 +118,6 @@ void set_logging_level(std::string log_level) {
     BOOST_LOG_TRIVIAL(error) << "set_logging_level: Unknown logging level: " << log_level;
     return;
   }
-
-  logging::core::get()->set_filter(
-      logging::trivial::severity >= sev_level
-
-  );
 
   boost::log::core::get()->set_filter(
       boost::log::trivial::severity >= sev_level);

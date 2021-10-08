@@ -1,4 +1,3 @@
-
 add_library(unit_script
 MODULE
   unit_script.cc
@@ -15,7 +14,6 @@ if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
     gnuradio::gnuradio-filter
     gnuradio::gnuradio-pmt
     ) 
-
 
 endif()
 

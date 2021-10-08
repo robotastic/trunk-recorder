@@ -88,8 +88,6 @@ If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on
 ___
 
 
-
-
 ### Multiple SDR
 Most trunk systems use a wide range of spectrum. Often a more powerful SDR is needed to have enough bandwidth to capture all of the potential channels that a system may broadcast on. However it is possible to use multiple SDRs working together to cover all of the channels. This means that you can use a bunch of cheap RTL-SDR to capture an entire system.
 

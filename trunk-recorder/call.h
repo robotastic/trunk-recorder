@@ -20,6 +20,8 @@ class System;
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 //enum  CallState { MONITORING=0, recording=1, stopping=2};
 
+
+
 class Call {
 public:
   Call(long t, double f, System *s, Config c);
@@ -144,5 +146,9 @@ protected:
   std::string talkgroup_tag;
   void update_talkgroup_display();
 };
+
+
+int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
+
 
 #endif

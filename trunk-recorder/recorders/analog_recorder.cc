@@ -12,6 +12,33 @@ using namespace std;
 bool analog_recorder::logging = false;
 //static int rec_counter = 0;
 
+
+
+std::vector<float> design_filter(double interpolation, double deci) {
+  float beta = 5.0;
+  float trans_width = 0.5 - 0.4;
+  float mid_transition_band = 0.5 - trans_width / 2;
+
+#if GNURADIO_VERSION < 0x030900
+  std::vector<float> result = gr::filter::firdes::low_pass(
+      interpolation,
+      1,
+      mid_transition_band / interpolation,
+      trans_width / interpolation,
+      gr::filter::firdes::WIN_KAISER,
+      beta);
+#else
+  std::vector<float> result = gr::filter::firdes::low_pass(
+      interpolation,
+      1,
+      mid_transition_band / interpolation,
+      trans_width / interpolation,
+      gr::fft::window::WIN_KAISER,
+      beta);
+#endif
+  return result;
+}
+
 analog_recorder_sptr make_analog_recorder(Source *src) {
   return gnuradio::get_initial_sptr(new analog_recorder(src));
 }
@@ -329,9 +356,9 @@ void analog_recorder::decoder_callback_handler(long unitId, const char *signalin
   if (call != NULL) {
     //call->add_signal_source(unitId, signaling_type, signal);
     wav_sink->set_source(unitId);
-    process_signal(unitId, signaling_type, signal, call, call->get_system(), this);
+    plugman_signal(unitId, signaling_type, signal, call, call->get_system(), this);
   } else {
-    process_signal(unitId, signaling_type, signal, NULL, NULL, this);
+    plugman_signal(unitId, signaling_type, signal, NULL, NULL, this);
   }
 }
 
@@ -380,3 +407,4 @@ bool analog_recorder::start(Call *call) {
 double analog_recorder::get_output_sample_rate() {
   return wav_sample_rate;
 }
+

@@ -480,3 +480,5 @@ bool p25_recorder::start(Call *call) {
   }
   return true;
 }
+
+int Recorder::rec_counter = 0;
