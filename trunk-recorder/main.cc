@@ -964,7 +964,8 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       current_system_status(message, sys);
       break;
 
-    case ACKRESP:
+    case LOCATION:        // currently not handling, TODO: expand plugin system to handle this
+    case ACKNOWLEDGE:
       unit_acknowledge_response( sys, message.source);
       break;
 

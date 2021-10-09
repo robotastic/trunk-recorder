@@ -57,7 +57,7 @@ namespace gr {
        * creating new instances.
        */
       virtual void clear() {};
-      virtual  void clear_silence_frame_count() {}
+      virtual  void clear_silence_frame_count() {};
       static sptr make(int sys_num, int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt);
       virtual void set_xormask(const char*p) {}
       virtual void set_slotid(int slotid) {}
