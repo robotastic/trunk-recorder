@@ -61,7 +61,6 @@ class analog_recorder;
 
 int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 
-
 analog_recorder_sptr make_analog_recorder(Source *src);
 
 class analog_recorder : public gr::hier_block2, public Recorder {
