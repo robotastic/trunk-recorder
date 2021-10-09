@@ -20,6 +20,7 @@
 ########################################################################
 # Setup library
 ########################################################################
+cmake_minimum_required(VERSION 3.2)
 include(GrPlatform) #define LIB_SUFFIX
 
 include_directories(${Boost_INCLUDE_DIR})
@@ -61,7 +62,7 @@ list(APPEND op25_repeater_sources
     dmr_cai.cc
     dmr_slot.cc
     op25_audio.cc
-    op25_timer
+    op25_timer.cc
     CCITTChecksumReverse.cpp
 )
 
@@ -74,16 +75,21 @@ else(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 set(GR_FILTER_LIBRARIES ${GR_FILTER_LIBRARY})
 set(GR_PMT_LIBRARIES ${GR_PMT_LIBRARY})
+
 target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_PMT_LIBRARIES} ${GR_FILTER_LIBRARIES} imbe_vocoder)
+if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
+    target_link_libraries(gnuradio-op25_repeater
+    gnuradio::gnuradio-runtime
+    gnuradio::gnuradio-filter
+    gnuradio::gnuradio-pmt
+    )  
+endif()
+
 set_target_properties(gnuradio-op25_repeater PROPERTIES DEFINE_SYMBOL "gnuradio_op25_repeater_EXPORTS")
 
 ########################################################################
 # Install built library files
 ########################################################################
-#install(TARGETS gnuradio-op25_repeater
-#    LIBRARY DESTINATION lib${LIB_SUFFIX} # .so/.dylib file
-#    ARCHIVE DESTINATION lib${LIB_SUFFIX} # .lib file
-#    RUNTIME DESTINATION bin              # .dll file
-#)
+install(TARGETS gnuradio-op25_repeater LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/trunk-recorder)
 
 add_subdirectory(imbe_vocoder)

@@ -26,7 +26,13 @@
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 
 class p25_recorder_fsk4_demod;
+
+	#if GNURADIO_VERSION < 0x030900
 typedef boost::shared_ptr<p25_recorder_fsk4_demod> p25_recorder_fsk4_demod_sptr;
+	#else
+typedef std::shared_ptr<p25_recorder_fsk4_demod> p25_recorder_fsk4_demod_sptr;
+	#endif
+
 p25_recorder_fsk4_demod_sptr make_p25_recorder_fsk4_demod();
 
 class p25_recorder_fsk4_demod : public gr::hier_block2 {
@@ -40,7 +46,6 @@ public:
   p25_recorder_fsk4_demod();
   virtual ~p25_recorder_fsk4_demod();
   void reset();
-
 private:
 
   const int phase1_samples_per_symbol = 5;

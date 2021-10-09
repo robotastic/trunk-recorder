@@ -32,7 +32,11 @@ void p25_recorder::generate_arb_taps() {
 
     // As we drop the bw factor, the optfir filter has a harder time converging;
     // using the firdes method here for better results.
+    #if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+    #else
+    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
+    #endif
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
@@ -82,15 +86,12 @@ p25_recorder::DecimSettings p25_recorder::get_decim(long speed) {
 }
 void p25_recorder::initialize_prefilter() {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  //double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
   long fa = 0;
   long fb = 0;
   if1 = 0;
   if2 = 0;
-  samples_per_symbol = phase1_samples_per_symbol;
-  symbol_rate = phase1_symbol_rate;
-  system_channel_rate = symbol_rate * samples_per_symbol;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
@@ -119,9 +120,7 @@ void p25_recorder::initialize_prefilter() {
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
     decim = floor(input_rate / if_rate);
     resampled_rate = input_rate / decim;
-
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
-    resampled_rate = input_rate / decim;
   }
 
   // Cut-Off Filter
@@ -134,10 +133,7 @@ void p25_recorder::initialize_prefilter() {
   arb_rate = if_rate / resampled_rate;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
-
-
-
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate;
 
   connect(self(), 0, valve, 0);
   if (double_decim) {
@@ -151,11 +147,7 @@ void p25_recorder::initialize_prefilter() {
   connect(mixer, 0, lowpass_filter, 0);
   connect(lowpass_filter, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
-
 }
-
-
-
 
 void p25_recorder::initialize(Source *src) {
   source = src;
@@ -166,14 +158,14 @@ void p25_recorder::initialize(Source *src) {
   qpsk_mod = true;
   silence_frames = source->get_silence_frames();
   squelch_db = 0;
-  
+
   talkgroup = 0;
   d_phase2_tdma = false;
   rec_num = rec_counter++;
   recording_count = 0;
   recording_duration = 0;
 
-  state = inactive;
+  state = INACTIVE;
 
   timestamp = time(NULL);
   starttime = time(NULL);
@@ -181,11 +173,11 @@ void p25_recorder::initialize(Source *src) {
   initialize_prefilter();
   //initialize_p25();
 
-  modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0 , 0);
+  modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
-  qpsk_p25_decode = make_p25_recorder_decode(silence_frames );
+  qpsk_p25_decode = make_p25_recorder_decode(this, silence_frames);
   fsk4_demod = make_p25_recorder_fsk4_demod();
-  fsk4_p25_decode = make_p25_recorder_decode(silence_frames );
+  fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames);
 
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
@@ -193,48 +185,41 @@ void p25_recorder::initialize(Source *src) {
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-
-    // Non-blocking as we are using squelch_two as a gate.
-    squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
-  
-
+  // Non-blocking as we are using squelch_two as a gate.
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
   modulation_selector->set_enabled(true);
 
   connect(cutoff_filter, 0, squelch, 0);
   connect(squelch, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
-  connect(fsk4_demod,0,fsk4_p25_decode,0);
+  connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
-  connect(qpsk_demod,0,qpsk_p25_decode,0);
-
+  connect(qpsk_demod, 0, qpsk_p25_decode, 0);
 }
 
 void p25_recorder::switch_tdma(bool phase2) {
+  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  long if_rate = phase1_channel_rate;
   double omega;
   double fmax;
   const double pi = M_PI;
 
   if (phase2) {
     d_phase2_tdma = true;
-    symbol_rate = 6000;
-    samples_per_symbol = 4; //5;//4;
+    if_rate = phase2_channel_rate;
   } else {
     d_phase2_tdma = false;
-    symbol_rate = 4800;
-    samples_per_symbol = 5;
+    if_rate = phase1_channel_rate;
   }
 
-  system_channel_rate = symbol_rate * samples_per_symbol;
-  //decim = floor(initial_rate / system_channel_rate);
-  //resampled_rate = double(initial_rate) / double(decim);
-  arb_rate = (double(system_channel_rate) / resampled_rate);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder - Adjust Channel Resampled Rate: " << resampled_rate << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
+  arb_rate = if_rate / resampled_rate;
 
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
-  //op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
+
   if (qpsk_mod) {
     qpsk_p25_decode->switch_tdma(phase2);
     qpsk_demod->switch_tdma(phase2);
@@ -257,7 +242,7 @@ void p25_recorder::autotune() {
     msg = tune_queue->delete_head_nowait();
 
     if (msg != 0) {
-      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << FormatFreq(chan_freq) << "\t Tune: " << msg->arg1();
+      BOOST_LOG_TRIVIAL(info) << "p25_recorder.cc: Freq:\t" << format_freq(chan_freq) << "\t Tune: " << msg->arg1();
 
       // tune_offset(freq + (msg->arg1()*100));
       tune_queue->flush();
@@ -275,21 +260,46 @@ int p25_recorder::get_num() {
   return rec_num;
 }
 
-bool p25_recorder::is_active() {
-  if (state == active) {
-    return true;
+double p25_recorder::since_last_write() {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->since_last_write();
   } else {
-    return false;
+    return fsk4_p25_decode->since_last_write();
   }
 }
 
+State p25_recorder::get_state() {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->get_state();
+  } else {
+    return fsk4_p25_decode->get_state();
+  }
+}
 
+bool p25_recorder::is_active() {
+  if (qpsk_mod) {
+    if (qpsk_p25_decode->get_state() == ACTIVE) {
+      return true;
+    }
+  } else {
+    if (fsk4_p25_decode->get_state() == ACTIVE) {
+      return true;
+    }
+  }
+  return false;
+}
 
 bool p25_recorder::is_idle() {
-  if (state == active) {
-    return !squelch->unmuted();
+  if (qpsk_mod) {
+    if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)) {
+      return true;
+    }
+  } else {
+    if ((fsk4_p25_decode->get_state() == IDLE) || (fsk4_p25_decode->get_state() == STOPPED)) {
+      return true;
+    }
   }
-  return true;
+  return false;
 }
 
 double p25_recorder::get_freq() {
@@ -350,8 +360,20 @@ void p25_recorder::tune_offset(double f) {
   }
 }
 
-State p25_recorder::get_state() {
-  return state;
+void p25_recorder::set_record_more_transmissions(bool more) {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->set_record_more_transmissions(more);
+  } else {
+    return fsk4_p25_decode->set_record_more_transmissions(more);
+  }
+}
+
+std::vector<Transmission> p25_recorder::get_transmission_list() {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->get_transmission_list();
+  } else {
+    return fsk4_p25_decode->get_transmission_list();
+  }
 }
 
 Rx_Status p25_recorder::get_rx_status() {
@@ -370,16 +392,16 @@ char *p25_recorder::get_filename() {
 }
 
 void p25_recorder::stop() {
-  if (state == active) {
+  if (state == ACTIVE) {
     if (qpsk_mod) {
       recording_duration += qpsk_p25_decode->get_current_length();
     } else {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
     clear();
-    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    //BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
-    state = inactive;
+    state = INACTIVE;
     valve->set_enabled(false);
     if (qpsk_mod) {
       qpsk_p25_decode->stop();
@@ -393,7 +415,6 @@ void p25_recorder::stop() {
   }
 }
 
-
 void p25_recorder::set_tdma_slot(int slot) {
   if (qpsk_mod) {
     qpsk_p25_decode->set_tdma_slot(slot);
@@ -403,9 +424,28 @@ void p25_recorder::set_tdma_slot(int slot) {
   tdma_slot = slot;
 }
 
-void p25_recorder::start(Call *call) {
-  if (state == inactive) {
+bool p25_recorder::start(Call *call) {
+  if (state == INACTIVE) {
     System *system = call->get_system();
+    qpsk_mod = system->get_qpsk_mod();
+    set_tdma(call->get_phase2_tdma());
+    if (call->get_phase2_tdma()) {
+      if (!qpsk_mod) {
+        BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";
+        return false;
+      }
+      set_tdma_slot(call->get_tdma_slot());
+
+      if (call->get_xor_mask()) {
+        qpsk_p25_decode->set_xor_mask(call->get_xor_mask());
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
+        return false;
+      }
+    } else {
+      set_tdma_slot(0);
+    }
+
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -414,36 +454,10 @@ void p25_recorder::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
 
+    squelch_db = system->get_squelch_db();
+    squelch->set_threshold(squelch_db);
 
-  squelch_db = system->get_squelch_db();
-  squelch->set_threshold(squelch_db);
-  qpsk_mod = system->get_qpsk_mod();
-    set_tdma(call->get_phase2_tdma());
-
-    if (call->get_phase2_tdma()) {
-      if (!qpsk_mod) {
-             BOOST_LOG_TRIVIAL(error) << "Error - Modulation is FSK4 but receiving Phase 2 call, this will not work";
-      }
-      set_tdma_slot(call->get_tdma_slot());
-
-      if (call->get_xor_mask()) {
-        qpsk_p25_decode->set_xor_mask(call->get_xor_mask());
-      } else {
-        BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
-      }
-    } else {
-      set_tdma_slot(0);
-    }
-
-/*
-    if (d_delayopen) {
-      BOOST_LOG_TRIVIAL(info) << "\t- Listening P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
-    } else {
-      recording_started();
-    }
-*/
-    
-    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << FormatFreq(chan_freq) << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);
 
@@ -455,12 +469,16 @@ void p25_recorder::start(Call *call) {
       modulation_selector->set_output_index(0);
       fsk4_p25_decode->start(call);
     }
-    state = active;
+    state = ACTIVE;
     valve->set_enabled(true);
     modulation_selector->set_enabled(true);
-    
+
     recording_count++;
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Start an already Active Logger!!!";
+    return false;
   }
+  return true;
 }
+
+int Recorder::rec_counter = 0;

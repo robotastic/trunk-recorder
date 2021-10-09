@@ -5,8 +5,8 @@ Description=Trunk Recorder Script
 User=luke
 Group=luke
 Environment="PATH=/home/luke/bin/:/usr/local/bin:/usr/bin"
-WorkingDirectory=/home/luke/trunk-recorder-build
-ExecStart=/home/luke/trunk-recorder-build/auto-restart.sh
+WorkingDirectory=/home/luke/trunk-build
+ExecStart=/home/luke/trunk-build/auto-restart.sh
 Restart=always
 
 [Install]

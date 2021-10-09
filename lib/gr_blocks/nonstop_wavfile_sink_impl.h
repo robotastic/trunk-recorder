@@ -24,9 +24,11 @@
 #define INCLUDED_GR_nonstop_wavfile_SINK_IMPL_H
 
 #include "nonstop_wavfile_sink.h"
+
+#include <sys/time.h>
 //#include "wavfile.h"
 #include <boost/log/trivial.hpp>
-#include <gnuradio/blocks/wavfile.h>
+#include <gr_blocks/wavfile_gr3.8.h>
 
 namespace gr {
 namespace blocks {
@@ -44,12 +46,20 @@ private:
 	bool d_use_float;
 	bool d_conventional;
 	bool d_first_work;
+	bool d_termination_flag;
 	time_t d_start_time;
 	time_t d_stop_time;
 	long curr_src_id;
 	char current_filename[255];
+	char current_base_filename[255];
 	Call* d_current_call;
-
+	long d_current_call_num;
+	long d_current_call_recorder_num;
+	std::string d_current_call_short_name;
+	std::string d_current_call_capture_dir;
+	double d_current_call_freq;
+	long d_current_call_talkgroup;
+	bool record_more_transmissions;
 protected:
 	
 	unsigned d_sample_count;
@@ -76,14 +86,21 @@ protected:
 	 * assumes d_fp is a valid file pointer, should thus only be called by
 	 * other methods.
 	 */
-	void close_wav();
-
+	void close_wav(bool close_call);
 protected:
 	bool stop();
 	bool open_internal(const char *filename);
+	std::vector<Transmission> transmission_list;
+	State state;
 public:
 
+	
+	#if GNURADIO_VERSION < 0x030900
 	typedef boost::shared_ptr<nonstop_wavfile_sink_impl> sptr;
+	#else
+	typedef std::shared_ptr<nonstop_wavfile_sink_impl> sptr;
+	#endif
+
 
 	/*
 	 * \param filename The .wav file to be opened
@@ -101,13 +118,18 @@ public:
 	                          int bits_per_sample,
 													bool use_float);
 	virtual ~nonstop_wavfile_sink_impl();
+	void create_base_filename();
 	char *get_filename();
-	virtual bool open(Call *call);
-	virtual void close();
-
+	bool start_recording(Call *call);
+	void stop_recording();
+	void end_transmission();
+	void set_source(long src);
 	void set_sample_rate(unsigned int sample_rate);
 	void set_bits_per_sample(int bits_per_sample);
-
+	void set_record_more_transmissions(bool more);
+	void clear_transmission_list();
+	std::vector<Transmission> get_transmission_list();
+	void add_transmission(Transmission t);
 	int bits_per_sample();
 	unsigned int sample_rate();
 
@@ -117,7 +139,7 @@ public:
 	virtual int work(int noutput_items,
 	gr_vector_const_void_star &input_items,
 	gr_vector_void_star &output_items);
-
+	State get_state();
 	time_t get_start_time();
 	time_t get_stop_time();
 

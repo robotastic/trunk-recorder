@@ -20,11 +20,11 @@
 ########################################################################
 # Install public header files
 ########################################################################
-install(FILES
-    api.h
-    vocoder.h
-    gardner_costas_cc.h
-    p25_frame_assembler.h
-    fsk4_demod_ff.h
-    fsk4_slicer_fb.h DESTINATION include/op25_repeater
-)
+#install(FILES
+#    api.h
+#    vocoder.h
+#    gardner_costas_cc.h
+#    p25_frame_assembler.h
+#    fsk4_demod_ff.h
+#    fsk4_slicer_fb.h DESTINATION include/op25_repeater
+#)

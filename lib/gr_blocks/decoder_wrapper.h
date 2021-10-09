@@ -47,8 +47,11 @@ namespace gr {
         {
         public:
             // gr::blocks::decoder_wrapper::sptr
+            #if GNURADIO_VERSION < 0x030900
             typedef boost::shared_ptr<decoder_wrapper> sptr;
-
+            #else
+            typedef std::shared_ptr<decoder_wrapper> sptr;
+            #endif
             virtual void set_mdc_enabled(bool b) {};
             virtual void set_fsync_enabled(bool b) {};
             virtual void set_star_enabled(bool b) {};

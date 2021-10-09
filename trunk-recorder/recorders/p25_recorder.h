@@ -50,7 +50,6 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-#include "../config.h"
 #include "recorder.h"
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"
@@ -60,7 +59,14 @@
 
 class Source;
 class p25_recorder;
-typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+	#else
+  typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
+	#endif
+
+
 p25_recorder_sptr make_p25_recorder(Source *src);
 #include "../source.h"
 
@@ -81,18 +87,21 @@ public:
   void initialize_p25();
   void tune_offset(double f);
   void tune_freq(double f);
-  virtual void start(Call *call);
-  virtual void stop();
+  bool start(Call *call);
+  void stop();
   void clear();
   double get_freq();
   int get_num();
   void set_tdma(bool phase2);
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);
+  void set_record_more_transmissions(bool more);
+  double since_last_write(); 
   void generate_arb_taps();
   double get_current_length();
   bool is_active();
   bool is_idle();
+  std::vector<Transmission> get_transmission_list(); 
   State get_state();
   Rx_Status get_rx_status();
   char *get_filename();

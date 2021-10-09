@@ -1,55 +1,36 @@
 #ifndef CALL_H
 #define CALL_H
+
+
+#include "./global_structs.h"
 #include "../lib/gr_blocks/decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
 #include <string>
 #include <sys/time.h>
 #include <vector>
 
-struct Call_Source {
-  long source;
-  long time;
-  double position;
-  bool emergency;
-  std::string signal_system;
-  std::string tag;
-};
 
-struct Call_Freq {
-  double freq;
-  long time;
-  double position;
-  double total_len;
-  double error_count;
-  double spike_count;
-};
-
-struct Call_Error {
-  double freq;
-  double sample_count;
-  double error_count;
-  double spike_count;
-};
 
 class Recorder;
-#include "config.h"
+class System;
+
 #include "state.h"
 #include "systems/parser.h"
 #include "systems/system.h"
-#include "uploaders/call_uploader.h"
 #include <op25_repeater/include/op25_repeater/rx_status.h>
+//enum  CallState { MONITORING=0, recording=1, stopping=2};
 
-class System;
-//enum  CallState { monitoring=0, recording=1, stopping=2};
+
 
 class Call {
 public:
   Call(long t, double f, System *s, Config c);
   Call(TrunkMessage message, System *s, Config c);
+  long get_call_num();
   virtual ~Call();
   virtual void restart_call();
-  void end_call();
-
+  void stop_call();
+  void conclude_call();
   void set_sigmf_recorder(Recorder *r);
   Recorder *get_sigmf_recorder();
   void set_debug_recorder(Recorder *r);
@@ -58,6 +39,7 @@ public:
   Recorder *get_recorder();
   double get_freq();
   char *get_status_filename();
+  char *get_transmission_filename();
   char *get_converted_filename();
   char *get_path();
   char *get_filename();
@@ -65,6 +47,8 @@ public:
   char *get_sigmf_filename();
   int get_sys_num();
   std::string get_short_name();
+  std::string get_capture_dir();
+  void create_filename(time_t work_start_time);
   void create_filename();
   void set_error(Rx_Status rx_status);
   void set_freq(double f);
@@ -106,18 +90,23 @@ public:
   void set_talkgroup_display_format(std::string format);
   void set_talkgroup_tag(std::string tag);
   void clear_src_list();
+  void clear_transmission_list();
   boost::property_tree::ptree get_stats();
+  State add_transmission(Transmission t);
 
   bool add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal);
 
   std::string get_talkgroup_tag();
   std::string get_system_type();
   double get_final_length();
-
+  long get_current_source_id();
+  bool get_conversation_mode();
   System *get_system();
-
+std::vector<Transmission> transmission_list;
 protected:
   State state;
+  static long call_counter;
+  long call_num;
   long talkgroup;
   double curr_freq;
   System *sys;
@@ -125,6 +114,7 @@ protected:
   long curr_src_id;
   Call_Error error_list[50];
   std::vector<Call_Source> src_list;
+    
   Call_Freq freq_list[50];
   long error_list_count;
   long freq_count;
@@ -140,6 +130,7 @@ protected:
   bool duplex;
   long priority;
   char filename[255];
+  char transmission_filename[255];
   char converted_filename[255];
   char status_filename[255];
   char debug_filename[255];
@@ -158,5 +149,9 @@ protected:
   std::string talkgroup_tag;
   void update_talkgroup_display();
 };
+
+
+int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
+
 
 #endif

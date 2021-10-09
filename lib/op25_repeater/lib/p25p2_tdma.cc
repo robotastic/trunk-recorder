@@ -107,6 +107,7 @@ p25p2_tdma::p25p2_tdma(const op25_audio& udp, int slotid, int debug, bool do_msg
         ess_keyid(0),
         mbe_err_cnt(0),
         tone_frame(false),
+		terminate_call(false),
 	p2framer()
 {
 	assert (slotid == 0 || slotid == 1);
@@ -117,6 +118,7 @@ p25p2_tdma::p25p2_tdma(const op25_audio& udp, int slotid, int debug, bool do_msg
 bool p25p2_tdma::rx_sym(uint8_t sym)
 {
 	symbols_received++;
+	terminate_call = false;
 	return p2framer.rx_sym(sym);
 }
 
@@ -124,6 +126,10 @@ void p25p2_tdma::set_slotid(int slotid)
 {
 	assert (slotid == 0 || slotid == 1);
 	d_slotid = slotid;
+}
+
+bool p25p2_tdma::get_call_terminated() {
+	return terminate_call;
 }
 
 p25p2_tdma::~p25p2_tdma()	// destructor
@@ -141,6 +147,7 @@ int p25p2_tdma::process_mac_pdu(const uint8_t byte_buf[], const unsigned int len
 {
 	unsigned int opcode = (byte_buf[0] >> 5) & 0x7;
 	unsigned int offset = (byte_buf[0] >> 2) & 0x7;
+
 
         switch (opcode)
         {
@@ -208,6 +215,7 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
         //std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
         //send_msg(s, -3);	// can cause data display issues if this message is processed after the DUID15
         op25audio.send_audio_flag(op25_audio::DRAIN);
+		terminate_call = true;
 }
 
 void p25p2_tdma::handle_mac_idle(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) 

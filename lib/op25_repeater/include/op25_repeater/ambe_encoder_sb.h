@@ -36,7 +36,13 @@ namespace gr {
     class OP25_REPEATER_API ambe_encoder_sb : virtual public gr::block
     {
      public:
+      
+      #if GNURADIO_VERSION < 0x030900
       typedef boost::shared_ptr<ambe_encoder_sb> sptr;
+      #else
+      typedef std::shared_ptr<ambe_encoder_sb> sptr;
+      #endif
+
 
       /*!
        * \brief Return a shared_ptr to a new instance of op25_repeater::ambe_encoder_sb.

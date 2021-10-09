@@ -42,17 +42,24 @@
 class Source;
 class analog_recorder;
 
-#include "../config.h"
-#include "../lib/gr_blocks/decoder_wrapper.h"
 #include "../systems/system.h"
 #include "recorder.h"
 #include <gr_blocks/decoder_wrapper.h>
+#include <gr_blocks/plugin_wrapper.h>
 #include <gr_blocks/freq_xlating_fft_filter.h>
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
-typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#else
+  typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#endif
 
 #include "../source.h"
+
+
+int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 
 analog_recorder_sptr make_analog_recorder(Source *src);
 
@@ -65,25 +72,31 @@ protected:
 public:
   ~analog_recorder();
   void tune_offset(double f);
-  void start(Call *call);
+  bool start(Call *call);
   void stop();
   double get_freq();
+  void set_source(long src);
   Source *get_source();
   long get_talkgroup();
   time_t get_start_time();
   char *get_filename();
   double get_current_length();
+  long get_wav_hz(); 
   bool is_active();
   bool is_analog();
   bool is_idle();
+  std::vector<Transmission> get_transmission_list(); 
   State get_state();
   int get_num();
   int lastupdate();
   long elapsed();
   static bool logging;
-
+  void set_record_more_transmissions(bool more);
   void process_message_queues(void);
   void decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal);
+  void plugin_callback_handler(float *samples, int sampleCount);
+  double get_output_sample_rate();
+  double since_last_write();
 
 private:
   double center_freq, chan_freq;
@@ -93,7 +106,7 @@ private:
   double system_channel_rate;
   double initial_rate;
   float quad_gain;
-  double wave_sample_rate;
+  double wav_sample_rate;
   double squelch_db;
   time_t timestamp;
   time_t starttime;
@@ -139,6 +152,7 @@ private:
   gr::blocks::copy::sptr valve;
 
   gr::blocks::decoder_wrapper::sptr decoder_sink;
+  gr::blocks::plugin_wrapper::sptr plugin_sink;
 
   void setup_decoders_for_system(System *system);
 };
