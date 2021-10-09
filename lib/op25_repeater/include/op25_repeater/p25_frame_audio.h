@@ -37,8 +37,12 @@ namespace gr {
     class OP25_REPEATER_API p25_frame_audio : virtual public gr::sync_interpolator
     {
      public:
-      typedef boost::shared_ptr<p25_frame_audio> sptr;
-
+      
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<p25_frame_audio> sptr;
+	#else
+  typedef std::shared_ptr<p25_frame_audio> sptr;
+	#endif
       /*!
        * \brief Return a shared_ptr to a new instance of op25_repeater::p25_frame_audio.
        *

@@ -1,6 +1,6 @@
 #ifndef SOURCE_H
 #define SOURCE_H
-#include "config.h"
+#include "./global_structs.h"
 #include <gnuradio/basic_block.h>
 #include <gnuradio/top_block.h>
 #include <gnuradio/uhd/usrp_source.h>
@@ -115,14 +115,22 @@ public:
   Recorder *get_debug_recorder();
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);
   Recorder *get_sigmf_recorder();
+
+    #if GNURADIO_VERSION < 0x030900
   inline osmosdr::source::sptr cast_to_osmo_sptr(gr::basic_block_sptr p) {
     return boost::dynamic_pointer_cast<osmosdr::source, gr::basic_block>(p);
   }
-
-  inline gr::uhd::usrp_source::sptr cast_to_usrp_sptr(gr::basic_block_sptr p) {
+    inline gr::uhd::usrp_source::sptr cast_to_usrp_sptr(gr::basic_block_sptr p) {
     return boost::dynamic_pointer_cast<gr::uhd::usrp_source, gr::basic_block>(p);
   }
-
+#else
+  inline osmosdr::source::sptr cast_to_osmo_sptr(gr::basic_block_sptr p) {
+    return std::dynamic_pointer_cast<osmosdr::source, gr::basic_block>(p);
+  }
+  inline gr::uhd::usrp_source::sptr cast_to_usrp_sptr(gr::basic_block_sptr p) {
+    return std::dynamic_pointer_cast<gr::uhd::usrp_source, gr::basic_block>(p);
+  }
+#endif
   std::vector<Recorder *> get_recorders();
 };
 #endif

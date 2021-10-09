@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 AS base
+FROM ubuntu:21.04 AS base
 
 # Install everything except cmake
 # Install docker for passing the socket to allow for intercontainer exec
@@ -27,21 +27,15 @@ RUN apt-get update && \
     libusb-dev \
     pkg-config \
     software-properties-common \
+    cmake \
     sox && \
   rm -rf /var/lib/apt/lists/*
-
-# Need to install newer cmake than what's in Ubuntu repo to build armv7 due to this:
-# https://gitlab.kitware.com/cmake/cmake/-/issues/20568
-RUN curl https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
-    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main' && \
-    apt-get update && \
-    export DEBIAN_FRONTEND=noninteractive && apt-get install -y cmake && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 
 COPY . .
 
-RUN cmake . && make -j`nproc` && cp -i recorder /usr/local/bin
+RUN cmake . && make && make install
 
 #USER nobody
 
@@ -50,4 +44,4 @@ WORKDIR /app
 # GNURadio requires a place to store some files, can only be set via $HOME env var.
 ENV HOME=/tmp
 
-CMD ["/usr/local/bin/recorder", "--config=/app/config.json"]
+CMD ["trunk-recorder", "--config=/app/config.json"]

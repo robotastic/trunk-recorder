@@ -25,9 +25,21 @@
 
 class Source;
 class analog_recorder;
-typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#else
+  typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
+	#endif
 class p25_recorder;
-typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+	#else
+  typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
+	#endif
+
 
 class System {
   int sys_num;
@@ -46,7 +58,6 @@ public:
   Source *source;
   std::string talkgroups_file;
   std::string unit_tags_file;
-  std::string unit_script;
   std::string short_name;
   std::string api_key;
   std::string bcfy_api_key;
@@ -67,7 +78,7 @@ public:
   double filter_width;
   double min_call_duration;
   double max_call_duration;
-
+  bool conversation_mode;
   bool qpsk_mod;
   double squelch_db;
   double analog_levels;
@@ -81,6 +92,7 @@ public:
   std::vector<analog_recorder_sptr> conventional_recorders;
   std::vector<p25_recorder_sptr> conventionalP25_recorders;
 
+  bool transmission_archive;
   bool audio_archive;
   bool record_unknown;
   bool call_log;
@@ -104,11 +116,14 @@ public:
   void set_max_duration(double duration);
   bool get_audio_archive();
   void set_audio_archive(bool);
+  bool get_transmission_archive();
+  void set_transmission_archive(bool);
   bool get_record_unknown();
   void set_record_unknown(bool);
   bool get_call_log();
   void set_call_log(bool);
-
+  bool get_conversation_mode();
+  void set_conversation_mode(bool mode);
   void set_mdc_enabled(bool b);
   void set_fsync_enabled(bool b);
   void set_star_enabled(bool b);
@@ -143,14 +158,12 @@ public:
   void set_system_type(std::string);
   std::string get_talkgroups_file();
   std::string get_unit_tags_file();
-  std::string get_unit_script();
   Source *get_source();
   void set_source(Source *);
   Talkgroup *find_talkgroup(long tg);
   UnitTag *find_unit_tag(long unitID);
   void set_talkgroups_file(std::string);
   void set_unit_tags_file(std::string);
-  void set_unit_script(std::string);
   int control_channel_count();
   void add_control_channel(double channel);
   double get_next_control_channel();

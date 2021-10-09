@@ -44,7 +44,11 @@
 #include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #include <gnuradio/filter/freq_xlating_fir_filter.h>
+#if GNURADIO_VERSION < 0x030900
 #include <gnuradio/filter/rational_resampler_base.h>
+#else
+#include <gnuradio/filter/rational_resampler.h>
+#endif
 #endif
 
 #include <gnuradio/blocks/file_sink.h>
@@ -68,14 +72,20 @@
 #include <op25_repeater/p25_frame_assembler.h>
 #include <op25_repeater/vocoder.h>
 
-#include "../config.h"
 #include "recorder.h"
 #include <gr_blocks/freq_xlating_fft_filter.h>
 #include <gr_blocks/nonstop_wavfile_sink.h>
 
 class Source;
 class sigmf_recorder;
-typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
+
+	#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
+	#else
+  typedef std::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
+	#endif
+
+
 sigmf_recorder_sptr make_sigmf_recorder(Source *src);
 #include "../source.h"
 
@@ -89,7 +99,7 @@ public:
   ~sigmf_recorder();
 
   void tune_offset(double f);
-  void start(Call *call);
+  bool start(Call *call);
   void stop();
   double get_freq();
   int get_num();
@@ -140,8 +150,13 @@ private:
   gr::blocks::file_sink::sptr fs;
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
+  #if GNURADIO_VERSION < 0x030900
   gr::filter::rational_resampler_base_ccf::sptr downsample_sig;
   gr::filter::rational_resampler_base_fff::sptr upsample_audio;
+  #else
+  gr::filter::rational_resampler_ccf::sptr downsample_sig;
+  gr::filter::rational_resampler_fff::sptr upsample_audio;
+  #endif
   gr::analog::quadrature_demod_cf::sptr fm_demod;
   gr::analog::feedforward_agc_cc::sptr agc;
   gr::analog::agc2_ff::sptr demod_agc;

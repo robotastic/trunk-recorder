@@ -1,9 +1,13 @@
 #ifndef STATE_H
 #define STATE_H
 
-enum State { monitoring = 0,
-             recording = 1,
-             inactive = 2,
-             active = 3 };
+enum State { MONITORING = 0,
+             RECORDING = 1,
+             INACTIVE = 2,
+             ACTIVE = 3,
+             IDLE = 4,
+             COMPLETED = 5,
+             STOPPED = 6,
+             AVAILABLE = 7 };
 
 #endif

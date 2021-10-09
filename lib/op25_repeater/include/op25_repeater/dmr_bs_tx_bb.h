@@ -37,8 +37,12 @@ namespace gr {
     class OP25_REPEATER_API dmr_bs_tx_bb : virtual public gr::block
     {
      public:
+      
+      #if GNURADIO_VERSION < 0x030900
       typedef boost::shared_ptr<dmr_bs_tx_bb> sptr;
-
+      #else
+      typedef std::shared_ptr<dmr_bs_tx_bb> sptr;
+      #endif
       /*!
        * \brief Return a shared_ptr to a new instance of op25_repeater::dmr_bs_tx_bb.
        *

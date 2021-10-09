@@ -40,9 +40,11 @@ namespace gr {
 			decoder_callback d_callback;
 
 		public:
-
+			#if GNURADIO_VERSION < 0x030900
 			typedef boost::shared_ptr <decoder_wrapper_impl> sptr;
-
+			#else
+			typedef std::shared_ptr <decoder_wrapper_impl> sptr;
+			#endif
 			/*
 			 * \param filename The .wav file to be opened
 			 * \param n_channels Number of channels (2 = stereo or I/Q output)

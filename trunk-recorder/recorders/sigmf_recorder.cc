@@ -24,7 +24,7 @@ sigmf_recorder::sigmf_recorder(Source *src)
 
   rec_num = rec_counter++;
 
-  state = inactive;
+  state = INACTIVE;
 
   //double symbol_rate         = 4800;
 
@@ -66,7 +66,7 @@ int sigmf_recorder::get_num() {
 }
 
 bool sigmf_recorder::is_active() {
-  if (state == active) {
+  if (state == ACTIVE) {
     return true;
   } else {
     return false;
@@ -100,10 +100,10 @@ State sigmf_recorder::get_state() {
 }
 
 void sigmf_recorder::stop() {
-  if (state == active) {
+  if (state == ACTIVE) {
     recording_duration += wav_sink->length_in_seconds();
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
-    state = inactive;
+    state = INACTIVE;
     valve->set_enabled(false);
     raw_sink->close();
   } else {
@@ -111,8 +111,8 @@ void sigmf_recorder::stop() {
   }
 }
 
-void sigmf_recorder::start(Call *call) {
-  if (state == inactive) {
+bool sigmf_recorder::start(Call *call) {
+  if (state == INACTIVE) {
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -122,9 +122,11 @@ void sigmf_recorder::start(Call *call) {
     BOOST_LOG_TRIVIAL(info) << "sigmf_recorder.cc: Starting Logger   \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
     raw_sink->open(call->get_sigmf_filename());
-    state = active;
+    state = ACTIVE;
     valve->set_enabled(true);
   } else {
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Trying to Start an already Active Logger!!!";
   }
+  return true;
 }
+
