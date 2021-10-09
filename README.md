@@ -14,39 +14,21 @@ Need help? Got something working? Share it!
 Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swathes of RF and then use software to process what was received. [GNURadio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
 
 
-
 Trunk Recorder currently supports the following:
 
  - Trunked P25 & SmartNet Systems
  - Conventional P25 & analog systems, where each group has a dedicated RF channel
  - P25 Phase 1, P25 Phase 2 & Analog voice channels
 
-Trunk Recorder is known to work well on:
+Supported platforms:
 
-- Ubuntu (18.04,  20.04, 21.04)
+**Ubuntu** (18.04,  20.04, 21.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
 
-- Raspberry Pi, using both Raspberry OS/Raspbian & Ubuntu 21.04
+...and SDRs:
 
-- Arch Linux (2021.09.20)
+RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy
 
-- Debian 9.x
-
-- macOS
-
-  
-
-  ...and with these SDRs:
-
-- RTL-SDR dongles
-
-- HackRF
-
-- Ettus USRP B200, B210, B205
-
-- BladeRF
-
-- Airspy
-
+---
 
 ## Version Notes
 ### V4.0
@@ -57,7 +39,7 @@ Trunk Recorder is known to work well on:
 
 *[See past notes in the ChangeLog. If you upgrade and things are not working, check here](CHANGELOG.md)
 
-
+---
 
 ## Install
 
@@ -86,14 +68,6 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on [![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
 ___
-
-
-### Multiple SDR
-Most trunk systems use a wide range of spectrum. Often a more powerful SDR is needed to have enough bandwidth to capture all of the potential channels that a system may broadcast on. However it is possible to use multiple SDRs working together to cover all of the channels. This means that you can use a bunch of cheap RTL-SDR to capture an entire system.
-
-In addition to being able to use a cheaper SDR, it also helps with performance. When a single SDR is used, each of the Recorders gets fed all of the sampled signal. Each Recorder needs to cut down the multi-megasamples per second into a small 12.5Khz sliver. When you use multiple SDRs, each SDR is capturing only partial slice of the system so the Recorders have to cut down a much smaller amount of sample to get to the sliver they are interested in. This menans that you can have a lot more recorders running!
-
-To use mutliple SDRs, simply define additional Sources in the Source array. The `confing-multi-rtl.json.sample` has an example of how to do this. In order to tell the different SDRs apart and make sure they get the right error correction value, give them a serial number using the `rtl_eeprom -s` command and then specifying that number in the `device` setting for that Source, `rtl=2`.
 
 ### How Trunking Works
 Here is a little background on trunking radio systems, for those not familiar. In a Trunking system, one of the radio channels is set aside for to manage the assignment of radio channels to talkgroups. When someone wants to talk, they send a message on the control channel. The system then assigns them a channel and sends a Channel Grant message on the control channel. This lets the talker know what channel to transmit on and anyone who is a member of the talkgroup know that they should listen to that channel.

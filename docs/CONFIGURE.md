@@ -56,6 +56,7 @@ When you use multiple SDRs, each SDR is capturing only a partial slice of the sy
 
 To use multiple SDRs, simply define additional Sources in the Source array. The config-multi-rtl.json.sample has an example of how to do this. In order to tell the different SDRs apart and make sure they get the right error correction value, give them a serial number using the `rtl_eeprom -s` command and then specifying that number in the device setting for that Source, `rtl=2`.
 
+---
 
 ## The config.json file
 
