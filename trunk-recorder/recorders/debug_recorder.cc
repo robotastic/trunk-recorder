@@ -30,11 +30,7 @@ void debug_recorder::generate_arb_taps() {
 
     // As we drop the bw factor, the optfir filter has a harder time converging;
     // using the firdes method here for better results.
-    #if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-    #else
-    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-    #endif
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
@@ -151,7 +147,7 @@ debug_recorder::debug_recorder(Source *src, std::string address, int port)
   talkgroup = 0;
   port = port;
 
-  state = INACTIVE;
+  state = inactive;
 
   timestamp = time(NULL);
   starttime = time(NULL);
@@ -180,7 +176,7 @@ int debug_recorder::get_num() {
 }
 
 bool debug_recorder::is_active() {
-  if (state == ACTIVE) {
+  if (state == active) {
     return true;
   } else {
     return false;
@@ -238,17 +234,17 @@ State debug_recorder::get_state() {
 }
 
 void debug_recorder::stop() {
-  if (state == ACTIVE) {
+  if (state == active) {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
-    state = INACTIVE;
+    state = inactive;
     valve->set_enabled(false);
   } else {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }
 }
 
-bool debug_recorder::start(Call *call) {
-  if (state == INACTIVE) {
+void debug_recorder::start(Call *call) {
+  if (state == inactive) {
     timestamp = time(NULL);
     starttime = time(NULL);
 
@@ -260,11 +256,9 @@ bool debug_recorder::start(Call *call) {
     int offset_amount = (center_freq - chan_freq);
     tune_offset(offset_amount);
 
-    state = ACTIVE;
+    state = active;
     valve->set_enabled(true);
   } else {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Trying to Start an already Active Logger!!!";
-    return false;
   }
-  return true;
 }

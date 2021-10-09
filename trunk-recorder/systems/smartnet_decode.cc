@@ -21,7 +21,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
-
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include "smartnet_decode.h"
 #include "smartnet_types.h"
 #include <boost/log/trivial.hpp>

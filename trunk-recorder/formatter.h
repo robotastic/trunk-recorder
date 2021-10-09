@@ -5,9 +5,9 @@
 #include <boost/format.hpp>
 #include <string>
 
-extern boost::format format_freq(double f);
+extern boost::format FormatFreq(double f);
 extern boost::format FormatSamplingRate(float f);
-extern std::string format_state(State state);
+extern std::string FormatState(State state);
 extern int frequencyFormat;
 extern bool statusAsString;
 

@@ -36,12 +36,8 @@ namespace gr {
     class OP25_REPEATER_API gardner_costas_cc : virtual public gr::block
     {
      public:
-      
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<gardner_costas_cc> sptr;
-	#else
-  typedef std::shared_ptr<gardner_costas_cc> sptr;
-	#endif
+      typedef boost::shared_ptr<gardner_costas_cc> sptr;
+
       /*!
        * \brief Return a shared_ptr to a new instance of op25_repeater::gardner_costas_cc.
        *

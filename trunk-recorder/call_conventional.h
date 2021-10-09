@@ -1,6 +1,6 @@
 #ifndef CALL_CONVENTIONAL_H
 #define CALL_CONVENTIONAL_H
-#include "global_structs.h"
+#include "config.h"
 class System;
 class Recorder;
 

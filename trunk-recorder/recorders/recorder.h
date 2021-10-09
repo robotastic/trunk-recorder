@@ -1,8 +1,6 @@
 #ifndef RECORDER_H
 #define RECORDER_H
 
-
-
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -37,11 +35,7 @@
 #include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #include <gnuradio/filter/freq_xlating_fir_filter.h>
-#if GNURADIO_VERSION < 0x030900
 #include <gnuradio/filter/rational_resampler_base.h>
-#else
-#include <gnuradio/filter/rational_resampler.h>
-#endif
 #endif
 
 #include <gnuradio/analog/quadrature_demod_cf.h>
@@ -55,16 +49,14 @@
 #include <gnuradio/blocks/head.h>
 
 #include <gnuradio/blocks/file_sink.h>
-#include "../state.h"
-#include "../call.h"
 
 #include <gr_blocks/nonstop_wavfile_sink.h>
-
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 
-
+#include "../state.h"
 
 unsigned GCD(unsigned u, unsigned v);
+std::vector<float> design_filter(double interpolation, double deci);
 
 class Recorder {
 
@@ -77,40 +69,30 @@ public:
   Recorder(std::string type);
   virtual void tune_offset(double f){};
   virtual void tune_freq(double f){};
-  virtual bool start(Call *call){ return false;};
+  virtual void start(Call *call){};
   virtual void stop(){};
   virtual void set_tdma_slot(int slot){};
   virtual double get_freq() { return 0; };
   virtual Source *get_source() { return NULL; };
-  virtual std::vector<Transmission> get_transmission_list() { return {}; };
-  virtual void set_source(long src) {};
   virtual Call_Source *get_source_list() { return NULL; };
-  int get_num() { return rec_num; };
+  virtual int get_num() { return -1; };
   virtual long get_source_count() { return 0; };
-  virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
-  virtual void set_record_more_transmissions(bool more){};
-  virtual State get_state() { return INACTIVE; };
+  virtual State get_state() { return inactive; };
   virtual Rx_Status get_rx_status() {
     Rx_Status rx_status = {0, 0, 0, 0};
     return rx_status;
   }
-  virtual std::string get_type() { return type; }
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };
   virtual bool is_idle() { return true; };
   virtual double get_current_length() { return 0; };
-  virtual double since_last_write() { return 0; };
   virtual void clear(){};
   int rec_num;
   static int rec_counter;
   virtual boost::property_tree::ptree get_stats();
-  virtual int get_recording_count() { return recording_count; }
-  virtual double get_recording_duration() { return recording_duration; }
 
   virtual void process_message_queues(void){};
-  virtual double get_output_sample_rate(){ return 0;}
-  virtual int get_output_channels() { return 1; }
 
 protected:
   int recording_count;

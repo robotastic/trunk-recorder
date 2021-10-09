@@ -205,7 +205,6 @@ p25p1_fdma::p25p1_fdma(int sys_num, const op25_audio& udp, int debug, bool do_im
         ess_algid(0),
         ess_keyid(0),
 	vf_tgid(0),
-	terminate_call(false),
 	p1voice_decode((debug > 0), udp, output_queue)
 {
   gettimeofday(&last_qtime, 0);
@@ -230,9 +229,6 @@ Rx_Status p25p1_fdma::get_rx_status() {
   return rx_status;
 }
 
-bool p25p1_fdma::get_call_terminated() {
-	return terminate_call;
-}
 
 long p25p1_fdma::get_curr_src_id() {
   return curr_src_id;
@@ -387,7 +383,6 @@ p25p1_fdma::process_TTDU()
 
 	if ((d_do_imbe || d_do_audio_output) && (framer->duid == 0x3 || framer->duid == 0xf)) {  // voice termination
 		op25audio.send_audio_flag(op25_audio::DRAIN);
-		terminate_call = true;
 	}
 }
 
@@ -747,7 +742,7 @@ p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms)
 		if (framer->nac == 0) {  // discard frame if NAC is invalid
 			return;
 		}
-		terminate_call = false;
+
 		// extract additional signalling information and voice codewords
 		switch(framer->duid) {
 			case 0x00:

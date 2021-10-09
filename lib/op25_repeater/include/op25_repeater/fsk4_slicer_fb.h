@@ -36,16 +36,8 @@ namespace gr {
     class OP25_REPEATER_API fsk4_slicer_fb : virtual public gr::sync_block
     {
      public:
-           #if GNURADIO_VERSION < 0x030900
       typedef boost::shared_ptr<fsk4_slicer_fb> sptr;
-      #else
-      typedef std::shared_ptr<fsk4_slicer_fb> sptr;
-      #endif
-	#if GNURADIO_VERSION < 0x030900
 
-	#else
-
-	#endif
       /*!
        * \brief Return a shared_ptr to a new instance of op25_repeater::fsk4_slicer_fb.
        *

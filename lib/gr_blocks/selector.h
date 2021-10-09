@@ -42,12 +42,7 @@ namespace blocks {
 class BLOCKS_API selector : virtual public block
 {
 public:
-    
-	#if GNURADIO_VERSION < 0x030900
     typedef boost::shared_ptr<selector> sptr;
-	#else
-    typedef std::shared_ptr<selector> sptr;
-	#endif
 
     static sptr
     make(size_t itemsize, unsigned int input_index, unsigned int output_index);

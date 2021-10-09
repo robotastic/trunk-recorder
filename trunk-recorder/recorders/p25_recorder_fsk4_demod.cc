@@ -40,12 +40,7 @@ double samples_per_symbol =  5;
   pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0);
 
   //FSK4: noise filter - can only be Phase 1, so locking at that rate.
-  	#if GNURADIO_VERSION < 0x030900
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
-  #else
-  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::fft::window::WIN_KAISER, 6.76);
-  
-  #endif
   noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
 
   //FSK4: Symbol Taps

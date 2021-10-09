@@ -21,111 +21,77 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif // ifdef HAVE_CONFIG_H
 
-#include "nonstop_wavfile_sink.h"
 #include "nonstop_wavfile_sink_impl.h"
-#include "../../trunk-recorder/call.h"
-#include <boost/math/special_functions/round.hpp>
-#include <climits>
-#include <cmath>
-#include <cstring>
-#include <fcntl.h>
+#include "nonstop_wavfile_sink.h"
 #include <gnuradio/io_signature.h>
-#include <gnuradio/thread/thread.h>
 #include <stdexcept>
+#include <climits>
+#include <cstring>
+#include <cmath>
+#include <fcntl.h>
+#include <gnuradio/thread/thread.h>
+#include <boost/math/special_functions/round.hpp>
 #include <stdio.h>
 
 // win32 (mingw/msvc) specific
 #ifdef HAVE_IO_H
-#include <io.h>
+# include <io.h>
 #endif // ifdef HAVE_IO_H
 #ifdef O_BINARY
-#define OUR_O_BINARY O_BINARY
+# define OUR_O_BINARY O_BINARY
 #else // ifdef O_BINARY
-#define OUR_O_BINARY 0
+# define OUR_O_BINARY 0
 #endif // ifdef O_BINARY
 
 // should be handled via configure
 #ifdef O_LARGEFILE
-#define OUR_O_LARGEFILE O_LARGEFILE
+# define OUR_O_LARGEFILE O_LARGEFILE
 #else // ifdef O_LARGEFILE
-#define OUR_O_LARGEFILE 0
+# define OUR_O_LARGEFILE 0
 #endif // ifdef O_LARGEFILE
 
 namespace gr {
 namespace blocks {
 nonstop_wavfile_sink_impl::sptr
-nonstop_wavfile_sink_impl::make(int n_channels, unsigned int sample_rate, int bits_per_sample, bool use_float) {
-  return gnuradio::get_initial_sptr(new nonstop_wavfile_sink_impl(n_channels, sample_rate, bits_per_sample, use_float));
+nonstop_wavfile_sink_impl::make(int          n_channels,  unsigned int sample_rate, int          bits_per_sample, bool         use_float)
+{
+  return gnuradio::get_initial_sptr(new nonstop_wavfile_sink_impl( n_channels, sample_rate, bits_per_sample, use_float));
 }
 
 nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
-    int n_channels,
-    unsigned int sample_rate,
-    int bits_per_sample,
-    bool use_float)
-    : sync_block("nonstop_wavfile_sink",
-                 io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
-                 io_signature::make(0, 0, 0)),
-      d_sample_rate(sample_rate), d_nchans(n_channels),
-      d_use_float(use_float), d_fp(0), d_current_call(NULL) {
+                                                     int          n_channels,
+                                                     unsigned int sample_rate,
+                                                     int          bits_per_sample,
+                                                     bool use_float)
+  : sync_block("nonstop_wavfile_sink",
+               io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
+               io_signature::make(0, 0, 0)),
+  d_sample_rate(sample_rate), d_nchans(n_channels),
+  d_use_float(use_float), d_fp(0), d_current_call(NULL)
+{
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
   d_bytes_per_sample = bits_per_sample / 8;
-  d_sample_count = 0;
   d_first_work = true;
-  d_termination_flag = false;
-  state = AVAILABLE;
+  d_sample_count = 0;
 }
 
-//static int rec_counter=0;
-void nonstop_wavfile_sink_impl::create_base_filename() {
-  time_t work_start_time = d_start_time;
-  std::stringstream path_stream;
-  tm *ltm = localtime(&work_start_time);
-  // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
-  path_stream << d_current_call_capture_dir << "/" << d_current_call_short_name << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-  std::string path_string = path_stream.str();
-  boost::filesystem::create_directories(path_string);
-
-  int nchars;
-
-  nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
-
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-}
-
-char *nonstop_wavfile_sink_impl::get_filename() {
+char * nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
 }
 
-bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
+bool nonstop_wavfile_sink_impl::open(Call *call) {
   gr::thread::scoped_lock guard(d_mutex);
-  if (d_current_call && d_fp) {
-    BOOST_LOG_TRIVIAL(trace) << "Start() - Current_Call & fp are not null! current_filename is: " << current_filename << " Length: " << d_sample_count << std::endl;
-  }
   d_current_call = call;
-  d_current_call_num = call->get_call_num();
-  d_current_call_recorder_num = 0; //call->get_recorder()->get_num();
-  d_current_call_freq = call->get_freq();
-  d_current_call_talkgroup = call->get_talkgroup();
-  d_current_call_short_name = call->get_short_name();
-  d_current_call_capture_dir = call->get_capture_dir();
-  record_more_transmissions = true;
-
-  this->clear_transmission_list();
   d_conventional = call->is_conventional();
-  curr_src_id = d_current_call->get_current_source_id();
-  d_sample_count = 0;
   d_first_work = true;
-
-  // when a wav_sink first gets associated with a call, set its lifecycle to idle;
-  state = IDLE;
-  /* Should reset more variables here */
-
+  d_sample_count = 0;
+  
   return true;
 }
 
@@ -154,6 +120,8 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 
   if (strlen(filename) >= 255) {
     BOOST_LOG_TRIVIAL(error) << "nonstop_wavfile_sink: Error! filename longer than 255";
+  } else {
+    strcpy(current_filename, filename);
   }
 
   if ((d_fp = fdopen(fd, "rb+")) == NULL) {
@@ -163,182 +131,104 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
     return false;
   }
 
-  d_sample_count = 0;
-  d_first_work = true;
+    d_sample_count = 0;
 
-  if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
-    fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
-    return false;
-  }
+    if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
+      fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
+      return false;
+    }
+  
 
   if (d_bytes_per_sample == 1) {
-    d_max_sample_val = UCHAR_MAX;
-    d_min_sample_val = 0;
-    d_normalize_fac = d_max_sample_val / 2;
+    d_max_sample_val  = UCHAR_MAX;
+    d_min_sample_val  = 0;
+    d_normalize_fac   = d_max_sample_val / 2;
     d_normalize_shift = 1;
-  } else if (d_bytes_per_sample == 2) {
-    d_max_sample_val = SHRT_MAX;
-    d_min_sample_val = SHRT_MIN;
-    d_normalize_fac = d_max_sample_val;
+  }
+  else if (d_bytes_per_sample == 2) {
+    d_max_sample_val  = SHRT_MAX;
+    d_min_sample_val  = SHRT_MIN;
+    d_normalize_fac   = d_max_sample_val;
     d_normalize_shift = 0;
   }
 
   return true;
 }
 
-void nonstop_wavfile_sink_impl::set_source(long src) {
-  gr::thread::scoped_lock guard(d_mutex);
-  if (curr_src_id == 0) {
-    curr_src_id = src;
-  } else if (src != curr_src_id) {
-    if (state == RECORDING) {
 
-      if (d_sample_count > 0) {
-        end_transmission();
-      }
-
-      if (!record_more_transmissions) {
-        state = STOPPED;
-      } else {
-        state = IDLE;
-        d_first_work = true;
-      }
-    }
-    curr_src_id = src;
-  }
-}
-
-void nonstop_wavfile_sink_impl::end_transmission() {
-  if (d_sample_count > 0) {
-    if (d_fp) {
-      close_wav(false);
-    } else {
-      BOOST_LOG_TRIVIAL(error) << "Ending transmission, sample_count is greater than 0 but d_fp is null" << std::endl;
-    }
-    // if an Transmission has ended, send it to Call.
-    Transmission transmission;
-    transmission.source = curr_src_id;      // Source ID for the Call
-    transmission.start_time = d_start_time; // Start time of the Call
-    transmission.stop_time = d_stop_time;   // when the Call eneded
-    transmission.sample_count = d_sample_count;
-    transmission.length = length_in_seconds();       // length in seconds
-    strcpy(transmission.filename, current_filename); // Copy the filename
-    strcpy(transmission.base_filename, current_base_filename);
-    this->add_transmission(transmission);
-    d_sample_count = 0;
-    d_first_work = true;
-  } else {
-    BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but the sample_count is 0" << std::endl;
-  }
-}
-
-void nonstop_wavfile_sink_impl::stop_recording() {
+void
+nonstop_wavfile_sink_impl::close()
+{
   gr::thread::scoped_lock guard(d_mutex);
 
-  if (d_sample_count > 0) {
-    end_transmission();
+  if (!d_fp) {
+    BOOST_LOG_TRIVIAL(error) << "wav error closing file" << std::endl;
+    return;
   }
 
-  if (state == RECORDING) {
-    BOOST_LOG_TRIVIAL(error) << "stop_recording() - stopping wavfile sink but recorder state is: " << state << std::endl;
-  }
+  close_wav();
   d_current_call = NULL;
-  d_first_work = true;
-  d_termination_flag = false;
-  state = AVAILABLE;
 }
 
-
-
-void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
+void
+nonstop_wavfile_sink_impl::close_wav()
+{
   unsigned int byte_count = d_sample_count * d_bytes_per_sample;
+
   wavheader_complete(d_fp, byte_count);
+
   fclose(d_fp);
   d_fp = NULL;
+
 }
 
-nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl() {
-  stop_recording();
+nonstop_wavfile_sink_impl::~nonstop_wavfile_sink_impl()
+{
+  close();
 }
 
-bool nonstop_wavfile_sink_impl::stop() {
+bool nonstop_wavfile_sink_impl::stop()
+{
   return true;
 }
 
-State nonstop_wavfile_sink_impl::get_state() {
-  return this->state;
-}
-
-void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char *system_type, bool emergency) {
+void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char* system_type, bool emergency)
+{
   if (d_current_call == NULL) {
     BOOST_LOG_TRIVIAL(debug) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
-  } else {
+  }
+  else {
     BOOST_LOG_TRIVIAL(debug) << "Logging " << system_type << " : " << unitId << " to current call.";
     d_current_call->add_signal_source(unitId, system_type, emergency ? SignalType::Emergency : SignalType::Normal);
   }
 }
 
-int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
+
+int nonstop_wavfile_sink_impl::work(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
+  
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
 
-  // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
-  if (!d_current_call) {
-    time_t now = time(NULL);
-    double its_been = difftime(now, d_stop_time);
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\tDropping samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
-
-    return noutput_items;
-  }
-
-  // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
-  if ((state == STOPPED) || (state == AVAILABLE)) {
-    if (noutput_items > 1) {
-      time_t now = time(NULL);
-      double its_been = difftime(now, d_stop_time);
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\tDropping samples - Recorder state is: " << format_state(this->state);
-
-      //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
+    // if we do not have a valid current_call, dropp everything on the floor.
+    if (d_current_call == NULL) {
+      return noutput_items;
     }
-    return noutput_items;
-  }
-
-  std::vector<gr::tag_t> tags;
-  pmt::pmt_t this_key(pmt::intern("src_id"));
-  pmt::pmt_t that_key(pmt::intern("terminate"));
-  pmt::pmt_t squelch_key(pmt::intern("squelch:eob"));
-  get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
-
-  unsigned pos = 0;
-  //long curr_src_id = 0;
-
-  for (unsigned int i = 0; i < tags.size(); i++) {
-    //BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
-    if (pmt::eq(this_key, tags[i].key)) {
-      long src_id = pmt::to_long(tags[i].value);
-      pos = d_sample_count + (tags[i].offset - nitems_read(0));
-      if (curr_src_id != src_id) {
-        //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
+    
+    if (d_first_work ) 
+    {
+      if (d_fp) {
+        BOOST_LOG_TRIVIAL(error) << "Weird - trying to open a file, but already have a FP";
+    
       }
-      if (src_id && (curr_src_id != src_id)) {
-        // I am not sure what this code really does
-        //log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
-        curr_src_id = src_id;
-      }
-    }
-    if (pmt::eq(that_key, tags[i].key) || pmt::eq(squelch_key, tags[i].key)) {
-      d_termination_flag = true;
-    }
-  }
-  tags.clear();
 
-  // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
+        d_current_call->create_filename();
+        if (!open_internal(d_current_call->get_filename())) {
+            BOOST_LOG_TRIVIAL(error) << "can't open file";
+        }
+      d_first_work = false;
+      d_start_time = time(NULL);
+    }
+
   int nwritten = dowork(noutput_items, input_items, output_items);
 
   d_stop_time = time(NULL);
@@ -347,102 +237,49 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
 }
 
 time_t nonstop_wavfile_sink_impl::get_start_time() {
-  return d_start_time;
+	return d_start_time;
 }
 
 time_t nonstop_wavfile_sink_impl::get_stop_time() {
-  return d_stop_time;
+	return d_stop_time;
 }
 
-void nonstop_wavfile_sink_impl::add_transmission(Transmission t) {
-  transmission_list.push_back(t);
-}
 
-void nonstop_wavfile_sink_impl::set_record_more_transmissions(bool more) {
-  record_more_transmissions = more;
-}
-
-void nonstop_wavfile_sink_impl::clear_transmission_list() {
-  transmission_list.clear();
-  transmission_list.shrink_to_fit();
-}
-
-std::vector<Transmission> nonstop_wavfile_sink_impl::get_transmission_list() {
-  return transmission_list;
-}
-
-int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
+int nonstop_wavfile_sink_impl::dowork(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items) {
   // block
+
   int n_in_chans = input_items.size();
+
   short int sample_buf_s;
+
   int nwritten;
-
-  if (d_termination_flag) {
-
-    if (d_current_call == NULL) {
-      BOOST_LOG_TRIVIAL(error) << "wav - no current call in temination loop";
-      state = STOPPED;
-      return noutput_items;
-    }
-
-    if (d_sample_count > 0) {
-      end_transmission();
-    }
-    if (!record_more_transmissions) {
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-      //BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\trecord_more_transmissions is false, setting recorder state to STOPPED";
-
-      //BOOST_LOG_TRIVIAL(info) << "Call completed - putting recorder into state Completed - we had samples";
-      state = STOPPED;
-    } else {
-      state = IDLE;
-      d_first_work = true;
-    }
-    d_termination_flag = false;
-
-    return noutput_items;
-  }
-
-  if (d_first_work) {
-    if (d_fp) {
-      // if we are already recording a file for this call, close it before starting a new one.
-      BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but d_first_work was true:  " << current_filename << std::endl;
-
-      close_wav(false);
-    }
-
-    time_t current_time = time(NULL);
-    if (current_time == d_start_time) {
-      d_start_time = current_time + 1;
-    } else {
-      d_start_time = current_time;
-    }
-
-    // create a new filename, based on the current time and source.
-    create_base_filename();
-    strcpy(current_filename, current_base_filename);
-    strcat(current_filename, ".wav");
-    if (!open_internal(current_filename)) {
-      BOOST_LOG_TRIVIAL(error) << "can't open file";
-      return noutput_items;
-    }
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
-
-    //curr_src_id = d_current_call->get_current_source_id();
-
-    d_first_work = false;
-  }
 
   if (!d_fp) // drop output on the floor
   {
-    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp or Current Call: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
+    BOOST_LOG_TRIVIAL(error) << "Wav - Dropping items, no fp: " << noutput_items << " Filename: " << current_filename << " Current sample count: " << d_sample_count << std::endl;
     return noutput_items;
   }
+  std::vector<gr::tag_t> tags;
+  pmt::pmt_t this_key(pmt::intern("src_id"));
+  get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
+
+  unsigned pos = 0;
+  //long curr_src_id = 0;
+
+  for (unsigned int i = 0; i < tags.size(); i++) {
+    if (pmt::eq(this_key, tags[i].key) && d_current_call->get_system_type() == "conventionalP25") {
+      long src_id  = pmt::to_long(tags[i].value);
+      pos = d_sample_count + (tags[i].offset - nitems_read(0));
+      // double   sec = (double)pos  / (double)d_sample_rate;
+      if (curr_src_id != src_id) {
+        log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
+        // BOOST_LOG_TRIVIAL(info) << " [" << i << "]-[ " << src_id << " : Pos - " << pos << " offset: " << tags[i].offset - nitems_read(0) << " : " << sec << " ] " << std::endl;
+        curr_src_id = src_id;
+      }
+    }
+  }
+
+  // std::cout << std::endl;
 
   for (nwritten = 0; nwritten < noutput_items; nwritten++) {
     for (int chan = 0; chan < d_nchans; chan++) {
@@ -450,43 +287,51 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       // but don't have any inputs here
       if (chan < n_in_chans) {
         if (d_use_float) {
-          float **in = (float **)&input_items[0];
+          float **in         = (float **)&input_items[0];
           sample_buf_s = convert_to_short(in[chan][nwritten]);
         } else {
-          int16_t **in = (int16_t **)&input_items[0];
-          sample_buf_s = in[chan][nwritten];
-        }
-      } else {
+          int16_t **in         = (int16_t **)&input_items[0];
+        sample_buf_s = in[chan][nwritten];
+      }
+      }
+      else {
         sample_buf_s = 0;
       }
 
       wav_write_sample(d_fp, sample_buf_s, d_bytes_per_sample);
 
+      if (feof(d_fp) || ferror(d_fp)) {
+        fprintf(stderr, "[%s] file i/o error\n", __FILE__);
+        close();
+        return nwritten;
+      }
       d_sample_count++;
     }
   }
 
-  if (nwritten > 0) {
-    state = RECORDING;
-  }
   // fflush (d_fp);  // this is added so unbuffered content is written.
+  tags.clear();
   return nwritten;
 }
 
-short int nonstop_wavfile_sink_impl::convert_to_short(float sample) {
+short int nonstop_wavfile_sink_impl::convert_to_short(float sample)
+{
   sample += d_normalize_shift;
   sample *= d_normalize_fac;
 
   if (sample > d_max_sample_val) {
     sample = d_max_sample_val;
-  } else if (sample < d_min_sample_val) {
+  }
+  else if (sample < d_min_sample_val) {
     sample = d_min_sample_val;
   }
 
   return (short int)boost::math::iround(sample);
 }
 
-void nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample) {
+void
+nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample)
+{
   gr::thread::scoped_lock guard(d_mutex);
 
   if ((bits_per_sample == 8) || (bits_per_sample == 16)) {
@@ -494,32 +339,40 @@ void nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample) {
   }
 }
 
-void nonstop_wavfile_sink_impl::set_sample_rate(unsigned int sample_rate) {
+void
+nonstop_wavfile_sink_impl::set_sample_rate(unsigned int sample_rate)
+{
   gr::thread::scoped_lock guard(d_mutex);
 
   d_sample_rate = sample_rate;
 }
 
-int nonstop_wavfile_sink_impl::bits_per_sample() {
+int
+nonstop_wavfile_sink_impl::bits_per_sample()
+{
   return d_bytes_per_sample * 8;
 }
 
 unsigned int
-nonstop_wavfile_sink_impl::sample_rate() {
+nonstop_wavfile_sink_impl::sample_rate()
+{
   return d_sample_rate;
 }
 
 double
-nonstop_wavfile_sink_impl::length_in_seconds() {
+nonstop_wavfile_sink_impl::length_in_seconds()
+{
   // std::cout << "Filename: "<< current_filename << "Sample #: " <<
   // d_sample_count << " rate: " << d_sample_rate << " bytes: " <<
   // d_bytes_per_sample << "\n";
-  return (double)d_sample_count / (double)d_sample_rate;
+  return (double)d_sample_count  / (double)d_sample_rate;
 
   // return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double)
   // d_sample_rate;
 }
 
-void nonstop_wavfile_sink_impl::do_update() {}
+void
+nonstop_wavfile_sink_impl::do_update()
+{}
 } /* namespace blocks */
 } /* namespace gr */

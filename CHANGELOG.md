@@ -1,16 +1,5 @@
 Trunk Recorder ChangeLog
 ========================
-### Version 4.0
-* The executable generated has changed from `recorder` to `trunk-recorder` to help prevent differentiate it from other applications that maybe instaslled.
-* A new method is used to detect the end of call. Instead of waiting fora timeout after the last trunking message is recieved, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stop using a frequency.
-* The format for audio filenames has changed slightly. It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
-
-
-### Version 3.3
-* Changes the format of the config.json file. Modulation type, Squelch and audio levels are now set in each System instead of under a Source. See sample config files in the /example folder. 
-* Config files are also now versioned, to help catch misconfigurations. After you have updated your config file, add "ver": 2, to the top. The processing of SmartNet talkgroup numbers as also been fixed. 
-* The decimal talkgroup numbers will now match what is in Radio Reference. Please update your talkgroup.csv, if needed.
-
 ### Version 3.2
 * Added support for GnuRadio 3.8
 

@@ -23,16 +23,12 @@
 #ifndef INCLUDED_GR_NONSTOP_WAVFILE_SINK_H
 #define INCLUDED_GR_NONSTOP_WAVFILE_SINK_H
 
-#include "../../trunk-recorder/global_structs.h"
-#include "../../trunk-recorder/formatter.h"
-
-//#include "../trunk-recorder/call_conventional.h"
+#include "../trunk-recorder/call.h"
+#include "../trunk-recorder/call_conventional.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
 
-class Call;
-struct Transmission;
 namespace gr {
 namespace blocks {
 
@@ -48,24 +44,18 @@ class BLOCKS_API nonstop_wavfile_sink : virtual public sync_block
 {
 public:
 	// gr::blocks::wavfile_sink::sptr
-	
-	#if GNURADIO_VERSION < 0x030900
 	typedef boost::shared_ptr<nonstop_wavfile_sink> sptr;
-	#else
-	typedef std::shared_ptr<nonstop_wavfile_sink> sptr;
-	#endif
-
 
 	/*!
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.
 	 */
-	virtual bool start_recording(Call* call) = 0;
+	virtual bool open(Call* call) = 0;
 
 	/*!
 	 * \brief Closes the currently active file and completes the WAV
 	 * header. Thread-safe.
 	 */
-	virtual void stop_recording() = 0;
+	virtual void close() = 0;
 
 	/*!
 	 * \brief Set the sample rate. This will not affect the WAV file
@@ -80,14 +70,9 @@ public:
 	 * neither 8 nor 16, the call is ignored and the current value
 	 * is kept.
 	 */
-
-	virtual void set_source(long src) {};
 	virtual void set_bits_per_sample(int bits_per_sample) = 0;
 	virtual double length_in_seconds() = 0;
-	virtual State get_state() = 0;
-	virtual std::vector<Transmission> get_transmission_list() = 0;
-	virtual time_t get_stop_time() = 0;
-	virtual void set_record_more_transmissions(bool more) = 0;
+
 
 };
 

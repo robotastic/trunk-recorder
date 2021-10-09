@@ -11,15 +11,7 @@
 
 
 class freq_xlating_fft_filter;
-
-
-#if GNURADIO_VERSION < 0x030900
 typedef boost::shared_ptr<freq_xlating_fft_filter> freq_xlating_fft_filter_sptr;
-#else
-typedef std::shared_ptr<freq_xlating_fft_filter> freq_xlating_fft_filter_sptr;
-#endif
-
-
 freq_xlating_fft_filter_sptr make_freq_xlating_fft_filter(int decimation,  std::vector< gr_complex > &taps, double center_freq, double samp_rate);
 
 class freq_xlating_fft_filter : public gr::hier_block2 {

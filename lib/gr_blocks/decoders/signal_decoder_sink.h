@@ -42,13 +42,7 @@ namespace gr {
         {
         public:
             // gr::blocks::wavfile_sink::sptr
-            
-            #if GNURADIO_VERSION < 0x030900
             typedef boost::shared_ptr<signal_decoder_sink> sptr;
-            #else
-            typedef std::shared_ptr<signal_decoder_sink> sptr;
-            #endif
-
 
             virtual void set_mdc_enabled(bool b) {};
             virtual void set_fsync_enabled(bool b) {};

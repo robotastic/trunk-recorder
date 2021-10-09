@@ -212,15 +212,6 @@ void System::set_audio_archive(bool audio_archive) {
   this->audio_archive = audio_archive;
 }
 
-bool System::get_transmission_archive() {
-  return this->transmission_archive;
-}
-
-void System::set_transmission_archive(bool transmission_archive) {
-  this->transmission_archive = transmission_archive;
-}
-
-
 bool System::get_record_unknown() {
   return this->record_unknown;
 }
@@ -255,6 +246,14 @@ void System::set_unit_tags_file(std::string unit_tags_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Unit Tags...";
   this->unit_tags_file = unit_tags_file;
   this->unit_tags->load_unit_tags(unit_tags_file);
+}
+
+std::string System::get_unit_script() {
+  return this->unit_script;
+}
+
+void System::set_unit_script(std::string unit_script) {
+  this->unit_script = unit_script;
 }
 
 Source *System::get_source() {
@@ -335,14 +334,6 @@ double System::get_next_control_channel() {
     current_control_channel = 0;
   }
   return this->control_channels[current_control_channel];
-}
-
-void System::set_conversation_mode(bool mode) {
-  this->conversation_mode = mode;
-}
-
- bool System::get_conversation_mode() {
-  return this->conversation_mode;
 }
 
 void System::set_bandplan(std::string bandplan) {

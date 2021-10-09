@@ -21,7 +21,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
-
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif // ifdef HAVE_CONFIG_H
 
 #include "decoder_wrapper.h"
 #include "decoder_wrapper_impl.h"

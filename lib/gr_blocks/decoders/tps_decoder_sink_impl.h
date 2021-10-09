@@ -65,14 +65,7 @@ namespace gr {
             std::string to_hex(const std::string& s, bool upper = false, bool spaced = true);
 		public:
 
-			
-            #if GNURADIO_VERSION < 0x030900
-            typedef boost::shared_ptr <tps_decoder_sink_impl> sptr;
-            #else
-            typedef std::shared_ptr <tps_decoder_sink_impl> sptr;
-            #endif
-
-
+			typedef boost::shared_ptr <tps_decoder_sink_impl> sptr;
             gr::msg_queue::sptr rx_queue;
 
 			static sptr make(unsigned int sample_rate, int src_num, decoder_callback callback);
