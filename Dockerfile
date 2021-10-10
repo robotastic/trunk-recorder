@@ -35,7 +35,9 @@ WORKDIR /src
 
 COPY . .
 
-RUN cmake . && make && make install
+WORKDIR /src/build
+
+RUN cmake .. && make && make install
 
 #USER nobody
 
