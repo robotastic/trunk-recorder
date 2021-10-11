@@ -530,6 +530,7 @@ bool load_config(string config_file) {
     add_internal_plugin("openmhz_uploader","libopenmhz_uploader.so",  pt);
     add_internal_plugin("broadcastify_uploader", "libbroadcastify_uploader.so", pt);
     add_internal_plugin("unit_script", "libunit_script.so", pt);
+    add_internal_plugin("stat_socket", "libstat_socket.so", pt);
     initialize_plugins(pt, &config, sources, systems);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
