@@ -8,6 +8,8 @@ docker run -it \
   --privileged -e TZ=$(cat /etc/timezone) --user "$(id -u):$(id -g)" \
   -v $(pwd):/app \
   -v /dev/bus/usb:/dev/bus/usb \
+  -v /var/run/dbus:/var/run/dbus \
+  -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket \
   robotastic/trunk-recorder:latest
 ```
 
@@ -23,6 +25,8 @@ services:
     privileged: true
     volumes:
       - /dev/bus/usb:/dev/bus/usb
+      - /var/run/dbus:/var/run/dbus 
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
       - ./:/app
 ```
 
