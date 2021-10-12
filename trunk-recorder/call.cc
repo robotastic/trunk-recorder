@@ -454,7 +454,26 @@ bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::S
 }
 
 bool Call::add_source(long src) {
-  return add_signal_source(src, NULL, gr::blocks::SignalType::Normal);
+  if (src == 0) {
+    return false;
+  }
+
+  if (src == curr_src_id) {
+    return false;
+  }
+
+  curr_src_id = src;
+
+  if (state == RECORDING) {
+     Recorder *rec = this->get_recorder(); 
+    if (rec != NULL) {
+      rec->set_source(src);
+    }
+  }
+
+  plugman_signal(src, NULL, gr::blocks::SignalType::Normal, this, this->get_system(), NULL);
+
+  return true ; //add_signal_source(src, NULL, gr::blocks::SignalType::Normal);
 }
 
 void Call::update(TrunkMessage message) {

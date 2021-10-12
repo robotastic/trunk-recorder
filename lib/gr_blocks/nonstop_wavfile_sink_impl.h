@@ -142,9 +142,6 @@ public:
 	State get_state();
 	time_t get_start_time();
 	time_t get_stop_time();
-
-	void log_p25_metadata(long unitId, const char* system_type, bool emergency);
-
 };
 
 } /* namespace blocks */

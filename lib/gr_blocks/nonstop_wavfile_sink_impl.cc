@@ -192,6 +192,10 @@ void nonstop_wavfile_sink_impl::set_source(long src) {
     curr_src_id = src;
   } else if (src != curr_src_id) {
     if (state == RECORDING) {
+      char formattedTalkgroup[62];
+      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << d_current_call_freq << "\tUnit ID externally set, ext: "<< src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
       if (d_sample_count > 0) {
         end_transmission();
@@ -269,14 +273,6 @@ State nonstop_wavfile_sink_impl::get_state() {
   return this->state;
 }
 
-void nonstop_wavfile_sink_impl::log_p25_metadata(long unitId, const char *system_type, bool emergency) {
-  if (d_current_call == NULL) {
-    BOOST_LOG_TRIVIAL(debug) << "Unable to log: " << system_type << " : " << unitId << ", no current call.";
-  } else {
-    BOOST_LOG_TRIVIAL(debug) << "Logging " << system_type << " : " << unitId << " to current call.";
-    d_current_call->add_signal_source(unitId, system_type, emergency ? SignalType::Emergency : SignalType::Normal);
-  }
-}
 
 int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
@@ -327,8 +323,6 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
         //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
       }
       if (src_id && (curr_src_id != src_id)) {
-        // I am not sure what this code really does
-        //log_p25_metadata(src_id, d_current_call->get_system_type().c_str(), false);
         curr_src_id = src_id;
       }
     }
