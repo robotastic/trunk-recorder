@@ -52,7 +52,7 @@ public:
   int system_rates(std::vector<System *> systems, float timeDiff) {
     this->systems = systems;
     if (m_open == false)
-      return 1;
+      return 0;
       
     boost::property_tree::ptree nodes;
 
@@ -202,7 +202,7 @@ public:
 
   int send_systems(std::vector<System *> systems) {
     if (m_open == false)
-      return 1;
+      return 0;
     boost::property_tree::ptree node;
 
     for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); it++) {
@@ -214,7 +214,7 @@ public:
 
   int send_system(System *system) {
     if (m_open == false)
-      return 1;
+      return 0;
 
     return send_object(system->get_stats(), "system", "system");
 
@@ -222,7 +222,7 @@ public:
 
   int calls_active(std::vector<Call *> calls) {
     if (m_open == false)
-      return 1;
+      return 0;
     boost::property_tree::ptree node;
 
     for (std::vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
@@ -238,7 +238,7 @@ public:
   int send_recorders(std::vector<Recorder *> recorders) {
 
     if (m_open == false)
-      return 1;
+      return 0;
     boost::property_tree::ptree node;
 
     for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
@@ -251,7 +251,7 @@ public:
 
   int call_start(Call *call) {
     if (m_open == false)
-      return 1;
+      return 0;
 
     return send_object(call->get_stats(), "call", "call_start");
 
@@ -259,21 +259,21 @@ public:
 
   int call_end(Call_Data_t call_info) {
     if (m_open == false)
-      return 1;
+      return 0;
     return 0;
     //send_object(call->get_stats(), "call", "call_end");
   }
 
   int send_recorder(Recorder *recorder) {
     if (m_open == false)
-      return 1;
+      return 0;
 
     return send_object(recorder->get_stats(), "recorder", "recorder");
   }
 
   int send_object(boost::property_tree::ptree data, std::string name, std::string type) {
     if (m_open == false)
-      return 1;
+      return 0;
     boost::property_tree::ptree root;
 
     root.add_child(name, data);

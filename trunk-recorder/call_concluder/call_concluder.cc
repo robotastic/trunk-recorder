@@ -132,13 +132,17 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
       return call_info;
     }
 
+    if (call_info.compress_wav) {
     // TR records files as .wav files. They need to be compressed before being upload to online services.
-    result = convert_media(call_info.filename, call_info.converted);
+      result = convert_media(call_info.filename, call_info.converted);
+      
+      if (result < 0) {
+        call_info.status = FAILED;
+        return call_info;
+      }
+    } 
 
-    if (result < 0) {
-      call_info.status = FAILED;
-      return call_info;
-    }
+
     // Handle the Upload Script, if set
     if (call_info.upload_script.length() != 0) {
       shell_command << "./" << call_info.upload_script << " " << call_info.filename << " " << call_info.status_filename << " " << call_info.converted;
@@ -186,6 +190,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.transmission_archive = sys->get_transmission_archive();
   call_info.call_log = sys->get_call_log();
   call_info.call_num = call->get_call_num();
+  call_info.compress_wav = sys->get_compress_wav();
 
 
 

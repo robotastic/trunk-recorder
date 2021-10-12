@@ -78,6 +78,7 @@ public:
   double filter_width;
   double min_call_duration;
   double max_call_duration;
+  bool compress_wav;
   bool conversation_mode;
   bool qpsk_mod;
   double squelch_db;
@@ -104,6 +105,8 @@ public:
   void set_short_name(std::string short_name);
   std::string get_upload_script();
   void set_upload_script(std::string script);
+  bool get_compress_wav();
+  void set_compress_wav(bool compress);
   std::string get_api_key();
   void set_api_key(std::string api_key);
   std::string get_bcfy_api_key();

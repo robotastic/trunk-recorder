@@ -282,7 +282,9 @@ bool load_config(string config_file) {
       system->set_bcfy_system_id(node.second.get<int>("broadcastifySystemId", 0));
       BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
-      BOOST_LOG_TRIVIAL(info) << "Upload Script: " << config.upload_script;
+      BOOST_LOG_TRIVIAL(info) << "Upload Script: " << system->get_upload_script();
+      system->set_compress_wav(node.second.get<bool>("compressWav", true));
+      BOOST_LOG_TRIVIAL(info) << "Compress .wav Files: " << system->get_compress_wav();
       system->set_call_log(node.second.get<bool>("callLog", true));
       BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
       system->set_audio_archive(node.second.get<bool>("audioArchive", true));
@@ -349,6 +351,13 @@ bool load_config(string config_file) {
       system->set_max_duration(node.second.get<double>("maxDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (in seconds): " << system->get_max_duration();
 
+
+      if (!system->get_compress_wav()) {
+        if ((system->get_api_key().length() > 0) || (system->get_bcfy_api_key().length() > 0)) {
+          BOOST_LOG_TRIVIAL(error) << "Compress WAV must be set to true if you are using OpenMHz or Broadcastify";
+          return false;
+        }
+      }
 
       systems.push_back(system);
       BOOST_LOG_TRIVIAL(info);

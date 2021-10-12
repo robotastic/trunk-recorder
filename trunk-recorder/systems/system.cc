@@ -40,6 +40,14 @@ void System::set_upload_script(std::string script) {
   this->upload_script = script;
 }
 
+bool System::get_compress_wav() {
+  return this->compress_wav;
+}
+
+void System::set_compress_wav(bool compress) {
+  this->compress_wav = compress;
+}
+
 double System::get_min_duration() {
   return this->min_call_duration;
 }

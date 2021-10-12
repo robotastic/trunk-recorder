@@ -28,7 +28,7 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
   );
 
   plugin->api = plugin->creator();
-
+  plugin->name = plugin_name;
   plugins.push_back(plugin);
 
   return plugin;
@@ -158,14 +158,18 @@ int plugman_call_start(Call *call) {
 }
 
 int plugman_call_end(Call_Data_t call_info) {
-  int error = 0;
+  int total_error = 0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
-      error = error + plugin->api->call_end(call_info);
+      int plugin_error = plugin->api->call_end(call_info);
+      if (plugin_error) {
+        BOOST_LOG_TRIVIAL(error) << "Plugin Manager: call_end -  " << plugin->name << " failed";
+      }
+      total_error = total_error + plugin_error;
     }
   }
-  return error;
+  return total_error;
 }
 
 int plugman_calls_active(std::vector<Call *> calls) {

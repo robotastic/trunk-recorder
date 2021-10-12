@@ -32,6 +32,7 @@ struct Call_Data_t {
   bool audio_archive;
   bool transmission_archive;
   bool call_log;
+  bool compress_wav;
   char filename[300];
   char status_filename[300];
   char converted[300];

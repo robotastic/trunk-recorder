@@ -21,6 +21,7 @@ struct Plugin {
 boost::function<pluginapi_create_t> creator;
 boost::shared_ptr<Plugin_Api> api;
 plugin_state_t state;
+std::string name;
 };
 
 
