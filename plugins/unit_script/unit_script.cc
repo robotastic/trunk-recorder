@@ -27,7 +27,7 @@ int unit_registration(System *sys, long source_id) {
   std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li on &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    sprintf(shell_command, "./%s %s %li on &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
     int rc =  system(shell_command);
     return 0;
   }
@@ -39,7 +39,7 @@ int unit_deregistration(System *sys, long source_id) {
   std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li off &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    sprintf(shell_command, "./%s %s %li off &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
     int rc =  system(shell_command);
     return 0;
   }
@@ -49,7 +49,7 @@ int unit_acknowledge_response(System *sys, long source_id) {
   std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li ackresp &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    sprintf(shell_command, "./%s %s %li ackresp &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
     int rc =  system(shell_command);
     return 0;
   }
@@ -63,7 +63,7 @@ int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
     std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li join %li &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup_num);
+    sprintf(shell_command, "./%s %s %li join %li &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup_num);
     int rc =  system(shell_command);
     return 0;
   }
@@ -75,10 +75,12 @@ int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
 
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
       Unit_Script_System_Script system_script;
-      system_script.script = node.second.get<std::string>("script", "");
+      system_script.script = node.second.get<std::string>("unitScript", "");
       system_script.short_name = node.second.get<std::string>("shortName", "");
-      BOOST_LOG_TRIVIAL(info) << "Unit Script for: " << system_script.short_name;
-      this->system_scripts.push_back(system_script);
+      if (system_script.script != "") {
+        BOOST_LOG_TRIVIAL(info) << "\t- [" << system_script.short_name << "]: " << system_script.script ;
+        this->system_scripts.push_back(system_script);
+      }
     }
 
     return 0;
