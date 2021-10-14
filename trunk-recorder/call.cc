@@ -309,28 +309,9 @@ long Call::get_freq_count() {
   return freq_count;
 }
 
-std::vector<Call_Source> Call::get_source_list() {
-  if ((state == RECORDING) && !recorder) {
-    BOOST_LOG_TRIVIAL(error) << "Call::get_source_list State is RECORDING, but no recorder assigned!";
-  }
-  return src_list;
-}
-
 void Call::clear_transmission_list() {
   transmission_list.clear();
   transmission_list.shrink_to_fit();
-}
-
-void Call::clear_src_list() {
-  src_list.clear();
-  src_list.shrink_to_fit();
-}
-
-long Call::get_source_count() {
-  if ((state == RECORDING) && !recorder) {
-    BOOST_LOG_TRIVIAL(error) << "Call::get_source_count State is recording, but no recorder assigned!";
-  }
-  return src_list.size();
 }
 
 void Call::set_debug_recording(bool m) {
@@ -397,60 +378,7 @@ const char *Call::get_xor_mask() {
 }
 
 long Call::get_current_source_id() {
-  if (!src_list.empty()) {
-    Call_Source last_source = src_list.back();
-    return last_source.source;
-  }
-  return 0;
-}
-
-bool Call::add_signal_source(long src, const char *signaling_type, gr::blocks::SignalType signal) {
-  if (src == 0) {
-    return false;
-  }
-
-  // Check to see if the Src is the current source in the list, if so, just exit
-  if (!src_list.empty()) {
-    Call_Source last_source = src_list.back();
-    if (last_source.source == src) {
-      return false;
-    }
-  }
-
-  double position = get_current_length();
-
-  if (signal == gr::blocks::SignalType::Emergency || signal == gr::blocks::SignalType::EmergencyPre) {
-    set_emergency(true);
-
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tEmergency flag set by " << src;
-  }
-
-  std::string system((signaling_type == NULL) ? strdup(this->get_system()->get_system_type().c_str()) : strdup(signaling_type));
-  UnitTag *unit_tag = sys->find_unit_tag(src);
-  std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
-
-  Call_Source call_source = {src, time(NULL), position, signal == gr::blocks::SignalType::Emergency, system, tag};
-
-  src_list.push_back(call_source);
-
-
-   if (state == RECORDING) {
-     Recorder *rec = this->get_recorder(); 
-    if (rec != NULL) {
-      rec->set_source(src);
-    }
-  }
-
-  if (tag != "") {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tAdded " << src << " to source list\tCalls: " << src_list.size() << "\tTag: " << tag;
-  }
-
-  if (signaling_type == NULL) {
-    //plugman_signal(unitId, signaling_type, sig_type, call, system, recorder);
-    plugman_signal(src, system.c_str(), signal, this, this->get_system(), NULL);
-  }
-
-  return true;
+  return curr_src_id;
 }
 
 bool Call::add_source(long src) {
@@ -613,20 +541,8 @@ boost::property_tree::ptree Call::get_stats() {
   call_node.put("emergency", this->get_emergency());
   call_node.put("startTime", this->get_start_time());
   call_node.put("stopTime", this->get_stop_time());
+  call_node.put("srcId", this->get_current_source_id());
 
-  std::vector<Call_Source> source_list = this->get_source_list();
-  for (std::size_t i = 0; i < source_list.size(); i++) {
-    boost::property_tree::ptree source_node;
-
-    source_node.put("source", source_list[i].source);
-    source_node.put("position", source_list[i].position);
-    source_node.put("time", source_list[i].time);
-    source_node.put("signal_system", source_list[i].signal_system);
-    source_node.put("emergency", source_list[i].emergency);
-    source_node.put("tag", source_list[i].tag);
-    source_list_node.push_back(std::make_pair("", source_node));
-  }
-  call_node.add_child("sourceList", source_list_node);
 
   Recorder *recorder = this->get_recorder();
 

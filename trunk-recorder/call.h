@@ -53,8 +53,6 @@ public:
   void set_error(Rx_Status rx_status);
   void set_freq(double f);
   long get_talkgroup();
-  long get_source_count();
-  std::vector<Call_Source> get_source_list();
   Call_Freq *get_freq_list();
   Call_Error *get_error_list();
   long get_error_list_count();
@@ -89,7 +87,6 @@ public:
   std::string get_talkgroup_display();
   void set_talkgroup_display_format(std::string format);
   void set_talkgroup_tag(std::string tag);
-  void clear_src_list();
   void clear_transmission_list();
   boost::property_tree::ptree get_stats();
   State add_transmission(Transmission t);
@@ -102,7 +99,7 @@ public:
   long get_current_source_id();
   bool get_conversation_mode();
   System *get_system();
-std::vector<Transmission> transmission_list;
+  std::vector<Transmission> transmission_list;
 protected:
   State state;
   static long call_counter;
@@ -113,7 +110,6 @@ protected:
   std::string short_name;
   long curr_src_id;
   Call_Error error_list[50];
-  std::vector<Call_Source> src_list;
     
   Call_Freq freq_list[50];
   long error_list_count;

@@ -53,7 +53,10 @@ This is a [good guide](https://www.raspberrypi.org/documentation/computers/remot
 
 The following steps setup all of the libraries needed to build Trunk Recorder.
 
-- Add the Debian Multimedia source and include non-free libraries, like **fdkaac**. Edit the sources.list file: `sudo nano /etc/apt/sources.list`
+- Add the Debian Multimedia source and include non-free libraries, like **fdkaac**. Edit the sources.list file: 
+```bash
+sudo nano /etc/apt/sources.list
+```
 - and add this line to the end:
 ```
 deb http://www.deb-multimedia.org/ buster main non-free
