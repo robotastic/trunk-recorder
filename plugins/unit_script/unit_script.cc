@@ -70,6 +70,19 @@ int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
     return 1;
 }
 
+int call_start(Call *call) {
+    long talkgroup_num = call->get_talkgroup();
+    long source_id = call->get_current_source_id();
+    std::string short_name = call->get_short_name();
+    std::string system_script = get_system_script(short_name);
+  if ((system_script != "") && (source_id != 0)) {
+    char shell_command[200];
+    sprintf(shell_command, "./%s %s %li call %li &", system_script.c_str(), short_name.c_str(), source_id, talkgroup_num);
+    int rc =  system(shell_command);
+    return 0;
+  }
+    return 1;
+}
 
   int parse_config(boost::property_tree::ptree &cfg) {
 
