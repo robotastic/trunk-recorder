@@ -66,6 +66,31 @@ list(APPEND op25_repeater_sources
     CCITTChecksumReverse.cpp
 )
 
+list(APPEND op25_repeater_sources
+    imbe_vocoder/aux_sub.cc
+    imbe_vocoder/basicop2.cc
+    imbe_vocoder/ch_decode.cc
+    imbe_vocoder/ch_encode.cc
+    imbe_vocoder/dc_rmv.cc
+    imbe_vocoder/decode.cc
+    imbe_vocoder/dsp_sub.cc
+    imbe_vocoder/encode.cc
+    imbe_vocoder/imbe_vocoder.cc
+    imbe_vocoder/math_sub.cc
+    imbe_vocoder/pe_lpf.cc
+    imbe_vocoder/pitch_est.cc
+    imbe_vocoder/pitch_ref.cc
+    imbe_vocoder/qnt_sub.cc
+    imbe_vocoder/rand_gen.cc
+    imbe_vocoder/sa_decode.cc
+    imbe_vocoder/sa_encode.cc
+    imbe_vocoder/sa_enh.cc
+    imbe_vocoder/tbls.cc
+    imbe_vocoder/uv_synt.cc
+    imbe_vocoder/v_synt.cc
+    imbe_vocoder/v_uv_det.cc
+)
+
 add_library(gnuradio-op25_repeater SHARED ${op25_repeater_sources})
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_library(GR_FILTER_LIBRARY libgnuradio-filter.dylib )
@@ -76,7 +101,7 @@ endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 set(GR_FILTER_LIBRARIES ${GR_FILTER_LIBRARY})
 set(GR_PMT_LIBRARIES ${GR_PMT_LIBRARY})
 
-target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_PMT_LIBRARIES} ${GR_FILTER_LIBRARIES} imbe_vocoder)
+target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_PMT_LIBRARIES} ${GR_FILTER_LIBRARIES} )
 if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
     target_link_libraries(gnuradio-op25_repeater
     gnuradio::gnuradio-runtime
@@ -92,4 +117,5 @@ set_target_properties(gnuradio-op25_repeater PROPERTIES DEFINE_SYMBOL "gnuradio_
 ########################################################################
 install(TARGETS gnuradio-op25_repeater LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/trunk-recorder)
 
-add_subdirectory(imbe_vocoder)
+
+

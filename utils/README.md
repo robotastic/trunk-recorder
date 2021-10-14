@@ -6,6 +6,10 @@ Docker makes it easier to test on different operating systems
 From the root directory of trunk-recorder, run:
 `docker build -t tr-arch -f utils/Dockerfile.arch-latest.dev .`
 
+
+`docker build -t tr-fedora -f utils/Dockerfile.fedora-35.dev .`
+
+
 *On an M1 based Mac:*
 `docker build -t tr-arch -f utils/Dockerfile.arch-latest.dev --platform=linux/amd64 .`
 
@@ -18,6 +22,8 @@ This maps in the current directory, so you can try building files from you local
 `docker run -v ${PWD}:/src -it tr-arch /bin/bash`  
 
 `docker run --privileged --ulimit core=-1 -v ${PWD}:/src -v /dev/bus/usb:/dev/bus/usb  -v /var/run/dbus:/var/run/dbus -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket -v /home/luke/trunk-recorder-docker:/app -it tr-arch-aur /bin/bash`
+
+`docker run --privileged --ulimit core=-1 -v ${PWD}:/src -v /dev/bus/usb:/dev/bus/usb  -v /var/run/dbus:/var/run/dbus -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket -v /home/luke/trunk-recorder-docker:/app -it tr-fedora /bin/bash`
 
 *On an M1 based Mac:*
 `docker run --platform=linux/amd64 -v ${PWD}:/src -it tr-arch  /bin/bash` 

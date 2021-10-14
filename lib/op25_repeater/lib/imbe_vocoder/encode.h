@@ -24,9 +24,9 @@
 #define _ENCODE
 
 #define PITCH_EST_BUF_SIZE  621
-#if 0
+//#if 0
 void encode_init(void);
 void encode(IMBE_PARAM *imbe_param, Word16 *frame_vector, Word16 *snd);
-#endif
+//#endif
 
 #endif
