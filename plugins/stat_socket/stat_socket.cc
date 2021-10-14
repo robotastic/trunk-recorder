@@ -227,9 +227,9 @@ public:
 
     for (std::vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
       Call *call = *it;
-      if (call->get_state() == RECORDING) {
+      //if (call->get_state() == RECORDING) {
         node.push_back(std::make_pair("", call->get_stats()));
-      }
+      //}
     }
 
     return send_object(node, "calls", "calls_active");
