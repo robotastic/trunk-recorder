@@ -57,7 +57,7 @@ public:
   Call_Error *get_error_list();
   long get_error_list_count();
   long get_freq_count();
-  void update(TrunkMessage message);
+  bool update(TrunkMessage message);
   int get_idle_count();
   void increase_idle_count();
   void reset_idle_count();

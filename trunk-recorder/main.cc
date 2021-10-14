@@ -688,7 +688,6 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
       if (recorder_found) {
         // recording successfully started.
-        plugman_call_start(call);
         return true;
       }
     }
@@ -778,7 +777,7 @@ void print_status() {
 }
 
 void manage_calls() {
-  bool ended_recording = false;
+  bool ended_call = false;
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
     State state = call->get_state();
@@ -792,7 +791,7 @@ void manage_calls() {
     // Handle Trunked Calls
     if ((call->since_last_update() > config.call_timeout) && ((state == RECORDING) || (state == MONITORING))) {
       if (state == RECORDING) {
-        ended_recording = true;
+        ended_call = true;
         
         // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to COMPLETED
         call->stop_call();
@@ -800,7 +799,7 @@ void manage_calls() {
       }
       // we do not need to stop Monitoring Calls, we can just delete them
       if (state == MONITORING) {
-        ended_recording = true;
+        ended_call = true;
         it = calls.erase(it);
         delete call;
         continue;
@@ -814,7 +813,7 @@ void manage_calls() {
       call->conclude_call();
 
       // The State of the Recorders has changed, so lets send an update
-      ended_recording = true;
+      ended_call = true;
       Recorder *recorder = call->get_recorder();
       if (recorder != NULL) {
         plugman_setup_recorder(recorder);
@@ -839,7 +838,7 @@ void manage_calls() {
           call->set_state(COMPLETED);
           call->conclude_call();
           // The State of the Recorders has changed, so lets send an update
-          ended_recording = true;
+          ended_call = true;
 
           if (recorder != NULL) {
             plugman_setup_recorder(recorder);
@@ -863,7 +862,7 @@ void manage_calls() {
             plugman_setup_recorder(recorder);
           }
           // The State of the Recorders has changed, so lets send an update
-          ended_recording = true;
+          ended_call = true;
 
           it = calls.erase(it);
           delete call;
@@ -878,7 +877,7 @@ void manage_calls() {
     // if rx is active
   } // foreach loggers
 
-  if (ended_recording) {
+  if (ended_call) {
     plugman_calls_active(calls);
   }
 }
@@ -925,7 +924,10 @@ void handle_call(TrunkMessage message, System *sys) {
     //BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
-      call->update(message);
+      bool source_updated = call->update(message);
+      if (source_updated) {
+        plugman_call_start(call);
+      }
       break;
     }
   }
@@ -934,11 +936,10 @@ void handle_call(TrunkMessage message, System *sys) {
     Call *call = new Call(message, sys, config);
     recording_started = start_recorder(call, message, sys);
     calls.push_back(call);
-  }
-
-  if (recording_started) {
+    plugman_call_start(call);
     plugman_calls_active(calls);
   }
+
 }
 
 void handle_message(std::vector<TrunkMessage> messages, System *sys) {

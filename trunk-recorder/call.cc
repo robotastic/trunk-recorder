@@ -404,7 +404,7 @@ bool Call::add_source(long src) {
   return true ; //add_signal_source(src, NULL, gr::blocks::SignalType::Normal);
 }
 
-void Call::update(TrunkMessage message) {
+bool Call::update(TrunkMessage message) {
   if ((state == INACTIVE) || (state == COMPLETED)) {
     BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tCall Update, but state is: " << state << " - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
   } else {
@@ -412,9 +412,10 @@ void Call::update(TrunkMessage message) {
     if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
       BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tCall Update, message mismatch - Call TG: " << get_talkgroup() << "\t Call Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
     } else {
-      add_source(message.source);
+      return add_source(message.source);
     }
   }
+  return false;
 }
 
 int Call::since_last_update() {
