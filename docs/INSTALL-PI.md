@@ -80,6 +80,13 @@ sudo apt -y install libssl-dev openssl curl fdkaac sox libcurl3-gnutls libcurl4 
 sudo apt -y install git cmake make build-essential libboost-all-dev libusb-1.0-0.dev 
 ```
 
+Configure RTL-SDRs to load correctly:
+
+```bash
+sudo wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules  /etc/udev/rules.d/20.rtlsdr.rules
+```
+
+
 
 Now go [Build](#build-trunk-recorder) Trunk Recorder!
 
