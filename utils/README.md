@@ -4,8 +4,10 @@ Docker makes it easier to test on different operating systems
 
 ## Build
 From the root directory of trunk-recorder, run:
+
 `docker build -t tr-arch -f utils/Dockerfile.arch-latest.dev .`
 
+`docker build -t tr-arch -f utils/Dockerfile.arch-latest-aur.dev .`
 
 `docker build -t tr-fedora -f utils/Dockerfile.fedora-35.dev .`
 
