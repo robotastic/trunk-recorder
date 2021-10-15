@@ -16,6 +16,7 @@ The first step is to put the Raspberry Pi OS onto a MicroSD card. You will need 
 OR
 - get the [Pi Imager](https://www.raspberrypi.org/software/) which can download and burn an image.
 
+
 #### Setup for headless boot
 
 After the OS has been written to MicroSD card, we need to change a few files so that the Pi can get on Wifi and also allow for SSH connections. See the [guide](https://desertbot.io/blog/headless-raspberry-pi-4-ssh-wifi-setup) for how to do it using Windows.
