@@ -13,7 +13,9 @@ The first step is to put the Raspberry Pi OS onto a MicroSD card. You will need 
 
 - Download the [Raspbery OS Desktop](https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit)
 - Use [Etcher](https://www.balena.io/etcher/) to burn it to a MicroSD card
+
 OR
+
 - get the [Pi Imager](https://www.raspberrypi.org/software/) which can download and burn an image.
 
 
