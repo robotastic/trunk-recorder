@@ -115,13 +115,30 @@ bool sigmf_recorder::start(Call *call) {
   if (state == INACTIVE) {
     timestamp = time(NULL);
     starttime = time(NULL);
+    int nchars;
+    time_t now = time(NULL);
+    tm *ltm = localtime(&starttime);
 
     talkgroup = call->get_talkgroup();
     freq = call->get_freq();
 
     BOOST_LOG_TRIVIAL(info) << "sigmf_recorder.cc: Starting Logger   \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
-    raw_sink->open(call->get_sigmf_filename());
+
+    std::stringstream path_stream;
+
+    // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
+    path_stream << call->get_capture_dir() << "/" << call->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+    std::string path_string = path_stream.str();
+    boost::filesystem::create_directories(path_string);
+
+
+    nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.raw", path_string.c_str(), talkgroup, starttime, call->get_freq());
+    if (nchars >= 255) {
+      BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+    }
+
+    raw_sink->open(filename);
     state = ACTIVE;
     valve->set_enabled(true);
   } else {

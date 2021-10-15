@@ -127,7 +127,7 @@ private:
 
   Config *config;
   Source *source;
-  char filename[160];
+  char filename[255];
   //int num;
   State state;
 

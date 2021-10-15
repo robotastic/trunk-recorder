@@ -384,12 +384,6 @@ Rx_Status p25_recorder::get_rx_status() {
   }
 }
 
-/* This is called by wav_sink_delayed_open to get a new filename when samples start to come in */
-
-char *p25_recorder::get_filename() {
-  this->call->create_filename();
-  return this->call->get_filename();
-}
 
 void p25_recorder::stop() {
   if (state == ACTIVE) {

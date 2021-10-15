@@ -79,7 +79,6 @@ public:
   Source *get_source();
   long get_talkgroup();
   time_t get_start_time();
-  char *get_filename();
   double get_current_length();
   long get_wav_hz(); 
   bool is_active();

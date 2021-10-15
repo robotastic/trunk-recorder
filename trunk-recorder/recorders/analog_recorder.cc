@@ -338,10 +338,6 @@ time_t analog_recorder::get_start_time() {
   return starttime;
 }
 
-char *analog_recorder::get_filename() {
-  return filename;
-}
-
 double analog_recorder::get_current_length() {
   return wav_sink->length_in_seconds();
 }

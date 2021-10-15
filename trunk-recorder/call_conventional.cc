@@ -24,7 +24,6 @@ void Call_conventional::restart_call() {
   tdma_slot = 0;
   encrypted = false;
   emergency = false;
-  this->create_filename();
   this->update_talkgroup_display();
   recorder->start(this);
 }

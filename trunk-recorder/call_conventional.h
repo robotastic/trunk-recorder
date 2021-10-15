@@ -15,7 +15,6 @@ public:
   virtual bool is_conventional() { return true; }
   void restart_call();
   void set_recorder(Recorder *r);
-  char *get_filename();
   void recording_started();
 };
 

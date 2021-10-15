@@ -38,18 +38,9 @@ public:
   virtual void set_recorder(Recorder *r);
   Recorder *get_recorder();
   double get_freq();
-  char *get_status_filename();
-  char *get_transmission_filename();
-  char *get_converted_filename();
-  char *get_path();
-  char *get_filename();
-  char *get_debug_filename();
-  char *get_sigmf_filename();
   int get_sys_num();
   std::string get_short_name();
   std::string get_capture_dir();
-  void create_filename(time_t work_start_time);
-  void create_filename();
   void set_error(Rx_Status rx_status);
   void set_freq(double f);
   long get_talkgroup();

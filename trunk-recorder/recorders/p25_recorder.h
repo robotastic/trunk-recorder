@@ -104,7 +104,6 @@ public:
   std::vector<Transmission> get_transmission_list(); 
   State get_state();
   Rx_Status get_rx_status();
-  char *get_filename();
   int lastupdate();
   long elapsed();
   Source *get_source();

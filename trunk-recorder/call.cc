@@ -11,73 +11,6 @@
 std::string Call::get_capture_dir() {
   return this->config.capture_dir;
 }
-void Call::create_filename(time_t work_start_time) {
-  std::stringstream path_stream;
-  tm *ltm = localtime(&work_start_time);
-  // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
-  path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-  std::string path_string = path_stream.str();
-  boost::filesystem::create_directories(path_string);
-
-  int nchars;
-
-  nchars = snprintf(transmission_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), talkgroup, work_start_time, curr_freq);
-
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-}
-void Call::create_filename() {
-  time_t now = time(NULL);
-  tm *ltm = localtime(&start_time);
-
-  std::stringstream path_stream;
-
-  // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
-  path_stream << this->config.capture_dir << "/" << sys->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-  std::string path_string = path_stream.str();
-  strcpy(path, path_string.c_str());
-  boost::filesystem::create_directories(path_string);
-
-  int nchars;
-
-  nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.wav", path_string.c_str(), talkgroup, start_time, curr_freq);
-
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-
-  nchars = snprintf(transmission_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), talkgroup, now, curr_freq);
-
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-  nchars = snprintf(status_filename, 255, "%s/%ld-%ld_%.0f.json", path_string.c_str(), talkgroup, start_time, curr_freq);
-
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-
-  nchars = snprintf(converted_filename, 255, "%s/%ld-%ld_%.0f.m4a", path_string.c_str(), talkgroup, start_time, curr_freq);
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-
-  nchars = snprintf(debug_filename, 255, "%s/%ld-%ld_%.0f.debug", path_string.c_str(), talkgroup, start_time, curr_freq);
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-
-  nchars = snprintf(sigmf_filename, 255, "%s/%ld-%ld_%.0f.raw", path_string.c_str(), talkgroup, start_time, curr_freq);
-  if (nchars >= 255) {
-    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
-  }
-
-  // sprintf(filename, "%s/%ld-%ld.wav",
-  // path_stream.str().c_str(),talkgroup,start_time);
-  // sprintf(status_filename, "%s/%ld-%ld.json",
-  // path_stream.str().c_str(),talkgroup,start_time);
-}
 
 Call::Call(long t, double f, System *s, Config c) {
   config = c;
@@ -104,7 +37,6 @@ Call::Call(long t, double f, System *s, Config c) {
   mode = false;
   priority = 0;
   set_freq(f);
-  this->create_filename();
   this->update_talkgroup_display();
 }
 
@@ -134,7 +66,6 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   priority = message.priority;
   set_freq(message.freq);
   add_source(message.source);
-  this->create_filename();
   this->update_talkgroup_display();
 }
 
@@ -450,34 +381,6 @@ long Call::get_stop_time() {
   return stop_time;
 }
 
-char *Call::get_converted_filename() {
-  return converted_filename;
-}
-
-char *Call::get_filename() {
-  return filename;
-}
-
-char *Call::get_transmission_filename() {
-  return transmission_filename;
-}
-
-char *Call::get_path() {
-  return path;
-}
-
-char *Call::get_status_filename() {
-  return status_filename;
-}
-
-char *Call::get_sigmf_filename() {
-  return sigmf_filename;
-}
-
-char *Call::get_debug_filename() {
-  return debug_filename;
-}
-
 std::string Call::get_system_type() {
   return sys->get_system_type().c_str();
 }
@@ -553,10 +456,7 @@ boost::property_tree::ptree Call::get_stats() {
     call_node.put("recState", recorder->get_state());
     call_node.put("analog", recorder->is_analog());
   }
-  call_node.put("sigmffilename", this->get_sigmf_filename());
-  call_node.put("debugfilename", this->get_debug_filename());
-  call_node.put("filename", this->get_filename());
-  call_node.put("statusfilename", this->get_status_filename());
+
 
   return call_node;
 }
