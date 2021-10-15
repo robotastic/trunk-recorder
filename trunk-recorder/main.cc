@@ -527,7 +527,7 @@ bool load_config(string config_file) {
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
 
-    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << frequencyFormat;
+    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
 
     statusAsString = pt.get<bool>("statusAsString", statusAsString);
     BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;

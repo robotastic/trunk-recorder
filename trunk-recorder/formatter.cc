@@ -13,6 +13,15 @@ boost::format format_freq(double f) {
     return boost::format("%e") % f;
 }
 
+std::string get_frequency_format() {
+    if (frequencyFormat == 1)
+    return "mhz";
+  else if (frequencyFormat == 2)
+    return "hz";
+  else
+    return "exp";
+}
+
 boost::format FormatSamplingRate(float f) {
   return boost::format("%.0f") % f;
 }
