@@ -55,7 +55,7 @@ int create_call_json(Call_Data_t call_info) {
 
   if (json_file.is_open()) {
     json_file << "{\n";
-    json_file << "\"freq\": " << call_info.freq << ",\n";
+    json_file << "\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ",\n";
     json_file << "\"start_time\": " << call_info.start_time << ",\n";
     json_file << "\"stop_time\": " << call_info.stop_time << ",\n";
     json_file << "\"emergency\": " << call_info.emergency << ",\n";
@@ -64,7 +64,7 @@ int create_call_json(Call_Data_t call_info) {
     //json_file << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
     json_file << "\"freqList\": [";
-    json_file << "{ \"freq\": " << call_info.freq << ", \"time\": " << call_info.start_time << ", \"pos\": 0.0, \"len\": " << call_info.length << ", \"error_count\": 0.0, \"spike_count\": 0.0}";
+    json_file << "{ \"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.start_time << ", \"pos\": 0.0, \"len\": " << call_info.length << ", \"error_count\": 0.0, \"spike_count\": 0.0}";
     json_file << "],\n";
     json_file << "\"srcList\": [ ";
 
