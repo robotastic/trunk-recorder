@@ -55,7 +55,7 @@ int create_call_json(Call_Data_t call_info) {
 
   if (json_file.is_open()) {
     json_file << "{\n";
-    json_file << "\"freq\": " << format_freq(call_info.freq) << ",\n";
+    json_file << "\"freq\": " << call_info.freq << ",\n";
     json_file << "\"start_time\": " << call_info.start_time << ",\n";
     json_file << "\"stop_time\": " << call_info.stop_time << ",\n";
     json_file << "\"emergency\": " << call_info.emergency << ",\n";
