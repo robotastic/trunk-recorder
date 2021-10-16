@@ -64,8 +64,8 @@ int create_call_json(Call_Data_t call_info) {
     //json_file << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
     json_file << "\"freqList\": [";
-    json_file << "{ \"freq\": " << std::fixed << freq_list[i].freq << ", \"time\": " << freq_list[i].time << ", \"pos\": " << freq_list[i].position << ", \"len\": " << freq_list[i].total_len << ", \"error_count\": " << freq_list[i].error_count << ", \"spike_count\": " << freq_list[i].spike_count << "}";
-    json_file << "]\n";
+    json_file << "{ \"freq\": " << call_info.freq << ", \"time\": " << call_info.start_time << ", \"pos\": 0.0, \"len\": " << call_info.length << ", \"error_count\": 0.0, \"spike_count\": 0.0}";
+    json_file << "],\n";
     json_file << "\"srcList\": [ ";
 
     for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
