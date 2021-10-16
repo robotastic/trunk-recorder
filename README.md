@@ -46,7 +46,7 @@ RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy
 |              |           Docker            |                   Ubuntu                   |       RaspberryOS       |              Arch Linux               |                Homebrew                 |                MacPorts                 |
 | ------------ | :-------------------------: | :----------------------------------------: | :---------------------: | :-----------------------------------: | :-------------------------------------: | :-------------------------------------: |
 | Linux        | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-LINUX.md#**ubuntu-2104**) |                         | [📄](docs/INSTALL-LINUX.md#arch-linux) |                                         |                                         |
-| Raspberry Pi | [📄](docs/INSTALL-DOCKER.md) |          [📄](docs/INSTALL-PI.md)           | [📄](docs/INSTALL-PI.md) |                                       |                                         |                                         |
+| Raspberry Pi | [📄](docs/INSTALL-DOCKER.md) |          [📄](docs/INSTALL-PI.md)           | [📄](docs/INSTALL-PI.md) [🎬](https://youtu.be/DizBtDZ6kE8) |                                       |                                         |                                         |
 | MacOS        |                             |                                            |                         |                                       | [📄](docs/INSTALL-MAC.md#using-homebrew) | [📄](docs/INSTALL-MAC.md#using-macports) |
 
 
