@@ -67,22 +67,45 @@ sudo apt install git cmake make build-essential libboost-all-dev libusb-1.0-0.de
 
 ### Arch Linux
 
-Make sure your package lists are up to date:
+#### Install from AUR
+Update and dependencies
 ```bash
-sudo pacman -Syy
+sudo pacman -Suy
+sudo pacman -S --needed base-devel git
 ```
+
+Clone the package
+```bash
+git clone https://aur.archlinux.org/trunk-recorder.git
+```
+
+Install trunk-recorder
+```bash
+cd trunk-recorder
+makepkg -si
+```
+
+Configure `/etc/trunk-recorder/config.json` and start with `systemctl start trunk-recorder.service`. The service runs as trunk-recorder so ensure needed devices(SDR) and files(Media/Talkgroups) are usable(Read or Read/Write) by the trunk-recorder user. 
+
+#### Install with AUR helper
+```bash
+yay -S trunk-recorder
+```
+Configure `/etc/trunk-recorder/config.json` and start with `systemctl start trunk-recorder.service`. The service runs as trunk-recorder so ensure needed devices(SDR) and files(Media/Talkgroups) are usable(Read or Read/Write) by the trunk-recorder user. 
+
+#### Install from source
+
 It is suggested to make sure your installed packages are up to date and to review the [Arch Linux documentation regarding upgrades](https://wiki.archlinux.org/index.php/System_maintenance#Upgrading_the_system):
 ```bash
-sudo pacman -Syu
+sudo pacman -Syyu
 ```
-Most systems will already have `base-devel` group installed, if yours does not:
-```bash
-sudo pacman -S base-devel
-```
+
 Install the packages required to build Trunk Recorder:
 ```bash
-sudo pacman -S cmake git boost gnuradio gnuradio-osmosdr libuhd fdkaac sox
+sudo pacman -S --needed base-devel git cmake boost gnuradio gnuradio-osmosdr libuhd fdkaac sox
 ```
+
+Continue with Building Trunk Recorder below
 
 ## Building Trunk Recorder
 
