@@ -444,8 +444,8 @@ public:
 
     boost::property_tree::ptree signal;
     signal.put("unit_id", unitId);
-    signal.put("signal_system_type", signaling_type);
-    signal.put("signal_type", sig_type);
+    //signal.put("signal_system_type", signaling_type);
+    //signal.put("signal_type", sig_type);
 
     if (call != NULL) {
       signal.add_child("call", call->get_stats());
