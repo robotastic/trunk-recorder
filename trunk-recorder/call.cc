@@ -350,15 +350,15 @@ bool Call::update(TrunkMessage message) {
 }
 
 int Call::since_last_update() {
-  long last_rx;
+  /*long last_rx;
   if (get_recorder() && (last_rx = recorder->get_rx_status().last_update)) {
     BOOST_LOG_TRIVIAL(trace) << "temp.last_update: " << last_rx << " diff: " << time(NULL) - last_rx;
     return time(NULL) - last_rx;
     //last_update = temp.last_update;
-  } else {
+  } else {*/
     BOOST_LOG_TRIVIAL(trace) << "last_update: " << last_update << " diff: " << time(NULL) - last_update;
     return time(NULL) - last_update;
-  }
+  //}
 }
 
 long Call::elapsed() {
