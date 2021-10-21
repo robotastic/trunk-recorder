@@ -233,17 +233,29 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 }
 
 void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
+  char formattedTalkgroup[62];
 
   Call_Data_t call_info = create_call_data(call, sys, config);
-  if (call_info.transmission_list.size()>0) {
-    call_data_workers.push_back(std::async(std::launch::async, upload_call_worker, call_info));
-  } else {
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    time_t start_time = call_info.start_time;
+
+  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+
+
+  if (call_info.transmission_list.size() == 0) {
     BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display  << "\t Freq: " << call_info.freq << "\tNo Transmission were recorded!";
+    return;
   }
+
+  if (call_info.length <= sys->get_min_duration()) {
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display  << "\t Freq: " << call_info.freq << "\t Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
+    return;
+  }
+
+  
+  
+  call_data_workers.push_back(std::async(std::launch::async, upload_call_worker, call_info));
+  
+  
 }
 
 void Call_Concluder::manage_call_data_workers() {
