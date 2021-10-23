@@ -186,7 +186,7 @@ void p25_recorder::initialize(Source *src) {
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
   // Non-blocking as we are using squelch_two as a gate.
-  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 0, true);
 
   modulation_selector->set_enabled(true);
 
