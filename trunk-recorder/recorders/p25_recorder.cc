@@ -185,8 +185,7 @@ void p25_recorder::initialize(Source *src) {
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-  // Non-blocking as we are using squelch_two as a gate.
-  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 0, true);
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
 
   modulation_selector->set_enabled(true);
 
@@ -277,16 +276,11 @@ State p25_recorder::get_state() {
 }
 
 bool p25_recorder::is_active() {
-  if (qpsk_mod) {
-    if (qpsk_p25_decode->get_state() == ACTIVE) {
-      return true;
-    }
+  if (state == ACTIVE) {
+    return true;
   } else {
-    if (fsk4_p25_decode->get_state() == ACTIVE) {
-      return true;
-    }
+    return false;
   }
-  return false;
 }
 
 bool p25_recorder::is_idle() {

@@ -171,7 +171,7 @@ double Call::get_current_length() {
     }
     return get_recorder()->get_current_length(); // This could SegFault
   } else {
-    return time(NULL) - start_time;
+    return 0; //time(NULL) - start_time;
   }
 }
 
@@ -192,7 +192,6 @@ System *Call::get_system() {
 
 void Call::set_freq(double f) {
   if (f != curr_freq) {
-    double position = get_current_length();
 
     // if there call is being recorded and it isn't the first time the freq is being set
     if (recorder && (freq_count > 0)) {
@@ -202,14 +201,6 @@ void Call::set_freq(double f) {
       freq_list[freq_count - 1].error_count = rx_status.error_count;
     }
 
-    Call_Freq call_freq = {f, time(NULL), position};
-
-    if (freq_count < 49) {
-      freq_list[freq_count] = call_freq;
-      freq_count++;
-    } else {
-      BOOST_LOG_TRIVIAL(error) << "Call: more than 50 Freq";
-    }
     curr_freq = f;
   }
 }
