@@ -716,7 +716,7 @@ void manage_conventional_call(Call *call) {
   if (call->get_recorder()) {
     // if any recording has happened
     if (call->get_current_length() > 0) {
-      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Recorder: " << call->get_current_length() << " Idle: " << call->get_recorder()->is_idle() << " Count: " << call->get_idle_count();
+      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Call Length: " << call->get_current_length() << "s\t Idle: " << call->get_recorder()->is_idle() << "\t Idle Count: " << call->get_idle_count();
 
       // means that the squelch is on and it has stopped recording
       if (call->get_recorder()->is_idle()) {
