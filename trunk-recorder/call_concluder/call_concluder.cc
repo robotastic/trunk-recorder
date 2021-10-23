@@ -1,5 +1,7 @@
 #include "call_concluder.h"
 #include "../plugin_manager/plugin_manager.h"
+#include <boost/filesystem.hpp>
+
 
 std::list<std::future<Call_Data_t>> Call_Concluder::call_data_workers = {};
 std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
@@ -84,22 +86,49 @@ int create_call_json(Call_Data_t call_info) {
   }
 }
 
+bool checkIfFile(std::string filePath)
+{
+    try {
+        // Create a Path object from given path string
+        boost::filesystem::path pathObj(filePath);
+        // Check if path exists and is of a regular file
+        if (boost::filesystem::exists(pathObj) && boost::filesystem::is_regular_file(pathObj))
+            return true;
+    }
+    catch (boost::filesystem::filesystem_error & e)
+    {
+        BOOST_LOG_TRIVIAL(error) << e.what() << std::endl;
+    }
+    return false;
+}
+
 void remove_call_files(Call_Data_t call_info) {
+
   if (!call_info.audio_archive) {
-    remove(call_info.filename);
+    if(checkIfFile(call_info.filename)) {
+      remove(call_info.filename);
+    }
+    if(checkIfFile(call_info.converted)) {
     remove(call_info.converted);
+    }
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
+      if(checkIfFile(t.filename)) {
       remove(t.filename);
+      }
     }
   } else if (!call_info.transmission_archive) {
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
+      if(checkIfFile(t.filename)) {
       remove(t.filename);
+      }
     }    
   }
   if (!call_info.call_log) {
+    if(checkIfFile(call_info.status_filename)) {
     remove(call_info.status_filename);
+    }
   }
 }
 
@@ -248,6 +277,7 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
   if (call_info.length <= sys->get_min_duration()) {
     BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display  << "\t Freq: " << call_info.freq << "\t Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
+    remove_call_files(call_info);
     return;
   }
 
