@@ -106,7 +106,7 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   gr::thread::scoped_lock guard(d_mutex);
   if (d_current_call && d_fp) {
     BOOST_LOG_TRIVIAL(trace) << "Start() - Current_Call & fp are not null! current_filename is: " << current_filename << " Length: " << d_sample_count << std::endl;
-  }
+  } 
   d_current_call = call;
   d_current_call_num = call->get_call_num();
   d_current_call_recorder_num = 0; //call->get_recorder()->get_num();
@@ -114,6 +114,7 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   d_current_call_talkgroup = call->get_talkgroup();
   d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
+  d_prior_transmission_length = 0;
   record_more_transmissions = true;
 
   this->clear_transmission_list();
@@ -125,6 +126,13 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   // when a wav_sink first gets associated with a call, set its lifecycle to idle;
   state = IDLE;
   /* Should reset more variables here */
+
+  char formattedTalkgroup[62];
+  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+  BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink ";
+
+
 
   return true;
 }
@@ -226,6 +234,7 @@ void nonstop_wavfile_sink_impl::end_transmission() {
     transmission.stop_time = d_stop_time;   // when the Call eneded
     transmission.sample_count = d_sample_count;
     transmission.length = length_in_seconds();       // length in seconds
+    d_prior_transmission_length = d_prior_transmission_length + transmission.length;
     strcpy(transmission.filename, current_filename); // Copy the filename
     strcpy(transmission.base_filename, current_base_filename);
     this->add_transmission(transmission);
@@ -277,7 +286,8 @@ State nonstop_wavfile_sink_impl::get_state() {
 int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
-
+ BOOST_LOG_TRIVIAL(trace) << "Wav Sink - output_queue: " << input_items.size() << " noutput_items: " <<  noutput_items;
+     
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if (!d_current_call) {
     time_t now = time(NULL);
@@ -332,9 +342,16 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   }
   tags.clear();
 
+  char formattedTalkgroup[62];
+  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+  BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tWriting: " << noutput_items << " samples \tTerm: " << d_termination_flag << "\tSource ID: " << curr_src_id;
+
+
+
+
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
   int nwritten = dowork(noutput_items, input_items, output_items);
-
   d_stop_time = time(NULL);
 
   return nwritten;
@@ -504,8 +521,11 @@ nonstop_wavfile_sink_impl::sample_rate() {
   return d_sample_rate;
 }
 
-double
-nonstop_wavfile_sink_impl::length_in_seconds() {
+double nonstop_wavfile_sink_impl::total_length_in_seconds() {
+  return this->length_in_seconds() + d_prior_transmission_length;
+}
+
+double nonstop_wavfile_sink_impl::length_in_seconds() {
   // std::cout << "Filename: "<< current_filename << "Sample #: " <<
   // d_sample_count << " rate: " << d_sample_rate << " bytes: " <<
   // d_bytes_per_sample << "\n";

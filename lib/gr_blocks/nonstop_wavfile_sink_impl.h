@@ -58,6 +58,7 @@ private:
 	std::string d_current_call_short_name;
 	std::string d_current_call_capture_dir;
 	double d_current_call_freq;
+	double d_prior_transmission_length;
 	long d_current_call_talkgroup;
 	bool record_more_transmissions;
 protected:
@@ -132,7 +133,7 @@ public:
 	void add_transmission(Transmission t);
 	int bits_per_sample();
 	unsigned int sample_rate();
-
+	double total_length_in_seconds();
 	double length_in_seconds();
 	Call_Source * get_source_list();
 	int get_source_count();
