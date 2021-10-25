@@ -1,5 +1,9 @@
 Trunk Recorder ChangeLog
 ========================
+
+### Version 4.0.3
+* Fixed support for P25 Conventional recorders. 
+
 ### Version 4.0
 * The executable generated has changed from `recorder` to `trunk-recorder` to help prevent differentiate it from other applications that maybe instaslled.
 * A new method is used to detect the end of call. Instead of waiting fora timeout after the last trunking message is recieved, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stop using a frequency.
