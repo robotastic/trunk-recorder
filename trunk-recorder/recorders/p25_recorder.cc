@@ -185,8 +185,7 @@ void p25_recorder::initialize(Source *src) {
   // the received audio is high-passed above the cutoff and then fed to a
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
-  // Non-blocking as we are using squelch_two as a gate.
-  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 0, true);
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
 
   modulation_selector->set_enabled(true);
 
@@ -277,16 +276,11 @@ State p25_recorder::get_state() {
 }
 
 bool p25_recorder::is_active() {
-  if (qpsk_mod) {
-    if (qpsk_p25_decode->get_state() == ACTIVE) {
-      return true;
-    }
+  if (state == ACTIVE) {
+    return true;
   } else {
-    if (fsk4_p25_decode->get_state() == ACTIVE) {
-      return true;
-    }
+    return false;
   }
-  return false;
 }
 
 bool p25_recorder::is_idle() {
@@ -451,7 +445,7 @@ bool p25_recorder::start(Call *call) {
     squelch_db = system->get_squelch_db();
     squelch->set_threshold(squelch_db);
 
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tMod: " << qpsk_mod;
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tQPSK: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);
 

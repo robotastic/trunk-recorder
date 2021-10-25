@@ -83,6 +83,7 @@ public:
 
 	virtual void set_source(long src) {};
 	virtual void set_bits_per_sample(int bits_per_sample) = 0;
+	virtual double total_length_in_seconds() = 0;
 	virtual double length_in_seconds() = 0;
 	virtual State get_state() = 0;
 	virtual std::vector<Transmission> get_transmission_list() = 0;

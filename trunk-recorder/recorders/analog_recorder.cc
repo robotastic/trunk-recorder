@@ -339,7 +339,7 @@ time_t analog_recorder::get_start_time() {
 }
 
 double analog_recorder::get_current_length() {
-  return wav_sink->length_in_seconds();
+  return wav_sink->total_length_in_seconds();
 }
 
 void analog_recorder::tune_offset(double f) {
