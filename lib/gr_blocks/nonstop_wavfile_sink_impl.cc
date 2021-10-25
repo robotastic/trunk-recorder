@@ -286,8 +286,7 @@ State nonstop_wavfile_sink_impl::get_state() {
 int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
- BOOST_LOG_TRIVIAL(trace) << "Wav Sink - output_queue: " << input_items.size() << " noutput_items: " <<  noutput_items;
-     
+
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if (!d_current_call) {
     time_t now = time(NULL);
@@ -341,14 +340,6 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     }
   }
   tags.clear();
-
-  char formattedTalkgroup[62];
-  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-  BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tWriting: " << noutput_items << " samples \tTerm: " << d_termination_flag << "\tSource ID: " << curr_src_id;
-
-
-
 
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
   int nwritten = dowork(noutput_items, input_items, output_items);
