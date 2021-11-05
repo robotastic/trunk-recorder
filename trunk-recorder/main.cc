@@ -429,7 +429,6 @@ bool load_config(string config_file) {
       BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node,
                      node.second.get_child("gain_settings")) {
 		source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
-		BOOST_LOG_TRIVIAL(info) << "GAIN : " << sub_node.first << sub_node.second.get<double>("", 0);;
 		gain_set = true;
       }
 
