@@ -200,6 +200,14 @@ void Source::set_gain(int r) {
   }
 }
 
+void Source::set_gain_by_name(std::string name, int new_gain) {
+  if (driver == "osmosdr") {
+    cast_to_osmo_sptr(source_block)->set_gain(new_gain, name);
+    BOOST_LOG_TRIVIAL(info) << name << " Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain(name);
+  }
+}
+
+
 int Source::get_gain() {
   return gain;
 }

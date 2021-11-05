@@ -75,6 +75,7 @@ public:
   void set_gain_mode(bool m);
   bool get_gain_mode();
   void set_gain(int r);
+  void set_gain_by_name(std::string name, int r);
   int get_gain();
 
   void set_silence_frames(int m);
