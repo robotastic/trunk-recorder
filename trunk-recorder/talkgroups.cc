@@ -35,6 +35,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
   int lines_read = 0;
   int lines_pushed = 0;
   int priority = 1;
+  bool radioreference_format = false;
 
   while (!safeGetline(in, line).eof()) // this works with \r, \n, or \r\n
   {
@@ -49,29 +50,59 @@ void Talkgroups::load_talkgroups(std::string filename) {
 
     t_tokenizer tok(line, sep);
 
-    // Talkgroup configuration columns:
-    //
-    // [0] - talkgroup number
-    // [1] - unused
-    // [2] - mode
-    // [3] - alpha_tag
-    // [4] - description
-    // [5] - tag
-    // [6] - group
-    // [7] - priority
-
     vec.assign(tok.begin(), tok.end());
-
-    if (!((vec.size() == 8) || (vec.size() == 7))) {
-      BOOST_LOG_TRIVIAL(error) << "Malformed talkgroup entry at line " << lines_read << ".";
+    BOOST_LOG_TRIVIAL(info) << vec[0].c_str();
+    if (strcmp(vec[0].c_str(), "Decimal") == 0)
+    {
+      radioreference_format = true;
+      BOOST_LOG_TRIVIAL(info) << "Found radioreference.com header, assuming direct csv download";
+      // don't warn later on about the header line not being a valid talk group
+      lines_pushed++;
       continue;
     }
-    // TODO(nkw): more sanity checking here.
-    priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
+    Talkgroup *tg = NULL;
+    if (radioreference_format)
+    {
+      // Talkgroup configuration columns:
+      //
+      // [0] - talkgroup number
+      // [1] - unused (talkgroup number in hex)
+      // [2] - alpha_tag
+      // [3] - mode
+      // [4] - description
+      // [5] - tag
+      // [6] - group
 
-    Talkgroup *tg =
-        new Talkgroup(atoi(vec[0].c_str()), vec[2].at(0), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
+      if (vec.size() != 7)
+      {
+        BOOST_LOG_TRIVIAL(error) << "Malformed radioreference talkgroup entry at line " << lines_read << ".";
+        continue;
+      }
 
+      tg = new Talkgroup(atoi(vec[0].c_str()), vec[3].at(0), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
+    }
+    else
+    {
+      // Talkgroup configuration columns:
+      //
+      // [0] - talkgroup number
+      // [1] - unused
+      // [2] - mode
+      // [3] - alpha_tag
+      // [4] - description
+      // [5] - tag
+      // [6] - group
+      // [7] - priority
+
+      if (!((vec.size() == 8) || (vec.size() == 7))) {
+        BOOST_LOG_TRIVIAL(error) << "Malformed talkgroup entry at line " << lines_read << ".";
+        continue;
+      }
+      // TODO(nkw): more sanity checking here.
+      priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
+
+      tg = new Talkgroup(atoi(vec[0].c_str()), vec[2].at(0), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
+    }
     talkgroups.push_back(tg);
     lines_pushed++;
   }
