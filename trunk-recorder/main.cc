@@ -425,6 +425,14 @@ bool load_config(string config_file) {
       Source *source = new Source(center, rate, error, driver, device, &config);
       BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
+      
+	source->set_gain_mode(agc);
+
+      BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node,
+                     node.second.get_child("gain_settings")) {
+		source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
+		gain_set = true;
+      }
 
       if (if_gain != 0) {
         gain_set = true;
@@ -475,7 +483,6 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
       }
 
-      source->set_gain_mode(agc);
       source->set_antenna(antenna);
       source->set_silence_frames(silence_frames);
 
@@ -608,7 +615,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     call->set_talkgroup_tag("-");
   }
 
-  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode == 'E'))) {
+  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode == 'E' || talkgroup->mode == 'TE'))) {
     if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
