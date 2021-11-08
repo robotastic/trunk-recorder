@@ -30,8 +30,21 @@ $TGFile = function (?string $tgFilePath): array {
         return $return;
     }
 
+    $radioreference_format = false;
     foreach (file($tgFilePath) as $line) {
-        [$DEC, $HEX, $Mode, $AlphaTag, $Description, $Tag, $Group, $Priority] = str_getcsv($line);
+        if (!$radioreference_format)
+        {
+            [$DEC, $HEX, $Mode, $AlphaTag, $Description, $Tag, $Group, $Priority] = str_getcsv($line);
+        }
+        else
+        {
+            [$DEC, $HEX, $AlphaTag, $Mode, $Description, $Tag, $Group] = str_getcsv($line);
+        }
+        if ($DEC == 'Decimal')
+        {
+            $radioreference_format = true;
+            continue;
+        }
         $return[$DEC] = $AlphaTag;
     }
 
