@@ -936,7 +936,7 @@ void handle_call(TrunkMessage message, System *sys) {
       
     if(call->get_encrypted() != message.encrypted)
     {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << " Call encryption flipped from " << call->get_encrypted() << " to " << message.encrypted << ".";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << " Call encryption flipped from " << call->get_encrypted() << " to " << message.encrypted << ".";
     }
 
       bool source_updated = call->update(message);
