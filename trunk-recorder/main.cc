@@ -610,7 +610,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   
   if (call->get_encrypted() == false && (talkgroup && (talkgroup->mode == 'E'))) {
     if (sys->get_hideEncrypted() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mRecording: Clear transmission on TG marked ENCRYPTED\u001b[0m ";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mClear transmission on TG marked ENCRYPTED\u001b[0m ";
     }
   }
   
