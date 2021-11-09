@@ -56,7 +56,7 @@ $TGFile = function (?string $tgFilePath): array {
             $radioreference_format = true;
             continue;
         }
-        $return[$DEC] = $AlphaTag;
+        $return[$DEC] = ['tag' => $AlphaTag, 'mode' => $Mode];
     }
 
     return $return;
@@ -111,10 +111,17 @@ if (isset($_REQUEST['since']))
                     $http_path = str_ireplace($base_directory_name, '', $http_path); 
                 }
 
+                if (isset($TGS[$system->shortName][$TGID]['mode']) && stripos($TGS[$system->shortName][$TGID]['mode'], 'E') !== false)
+                {
+                    // current version of trunk recorder has an issue where it still tries to record encrypted calls
+                    // filter out any talk group that's listed as permanently encrypted to avoid corrupted audio
+                    continue;
+                }
+
                 $files[$TIME.$FREQ] = [
                     'path'       => $http_path,
                     'size_kb'    => round($file->getSize() / 1024),
-                    'talkgroup'  => ($TGS[$system->shortName][$TGID]) ?? $TGID,
+                    'talkgroup'  => ($TGS[$system->shortName][$TGID]['tag']) ?? $TGID,
                     'unix_date'  => $TIME,
                     'date'       => strftime('%F %T', $TIME),
                     'frequency'  => ($FREQ / 1000000),
@@ -196,8 +203,8 @@ html:
                             <option value="">All Calls</option>
 <?php   foreach ($CONFIG->systems as $system):  ?>
                             <optgroup value="<?=$system->shortName?>">
-<?php       foreach ($TGS[$system->shortName] as $TGID => $TGName): ?>
-                            <option value="<?=$TGID?>"><?=$TGName?> (<?=$TGID?>)</option>
+<?php       foreach ($TGS[$system->shortName] as $TGID => $data): ?>
+                            <option value="<?=$TGID?>"><?=$data['tag']?> (<?=$TGID?>, <?=$data['mode']?>)</option>
 <?php       endforeach; ?>
                             </optgroup>
 <?php   endforeach; ?>
