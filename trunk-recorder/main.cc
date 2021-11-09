@@ -607,7 +607,13 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   } else {
     call->set_talkgroup_tag("-");
   }
-
+  
+  if (call->get_encrypted() == false && (talkgroup && (talkgroup->mode == 'E'))) {
+    if (sys->get_hideEncrypted() == false) {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mRecording: Clear transmission on channel marked ENCRYPTED\u001b[0m ";
+    }
+  }
+  
   if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode == 'E'))) {
     if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
@@ -950,7 +956,11 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
     TrunkMessage message = *it;
 
     switch (message.message_type) {
+        
     case GRANT:
+      handle_call(message, sys);
+      break;
+        
     case UPDATE:
       handle_call(message, sys);
       break;
@@ -978,7 +988,9 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       current_system_status(message, sys);
       break;
 
-    case LOCATION:        // currently not handling, TODO: expand plugin system to handle this
+    case LOCATION: // currently not handling, TODO: expand plugin system to handle this
+      break;
+        
     case ACKNOWLEDGE:
       unit_acknowledge_response( sys, message.source);
       break;
