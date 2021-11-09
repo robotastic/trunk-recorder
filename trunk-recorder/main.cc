@@ -933,6 +933,13 @@ void handle_call(TrunkMessage message, System *sys) {
     //BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
+      
+    if(call->get_encrypted() != message.encrypted)
+    {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup_display() << " Call encryption flipped from " call->get_encrypted() << " to " << message.encrypted << ".";
+    }
+
+      
       bool source_updated = call->update(message);
       if (source_updated) {
         plugman_call_start(call);
