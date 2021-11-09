@@ -272,10 +272,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     }
   } else if (opcode == 0x02)  { // Group Voice Channel Grant Update (GRP _V_CH_GRANT_UPDT) 
     BOOST_LOG_TRIVIAL(debug) << "tsbk02: Group Voice Channel Grant Update";
-  }
   } else if (opcode == 0x03) { //  Group Voice Channel Update-Explicit (GRP_V_CH_GRANT_UPDT_EXP)
     BOOST_LOG_TRIVIAL(debug) << "tsbk03: Group Voice Channel Update-Explicit";
-  }
   } else if (opcode == 0x04) { //  Unit to Unit Voice Service Channel Grant (UU_V_CH_GRANT)
                                //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
