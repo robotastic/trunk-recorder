@@ -98,6 +98,7 @@ public:
 
     for (std::vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
       Source *source = *it;
+      std::vector<Gain_Stage_t> gain_stages;
       boost::property_tree::ptree source_node;
       source_node.put("source_num", source->get_num());
       source_node.put("antenna", source->get_antenna());
@@ -111,14 +112,11 @@ public:
       source_node.put("driver", source->get_driver());
       source_node.put("device", source->get_device());
       source_node.put("error", source->get_error());
-      source_node.put("mix_gain", source->get_mix_gain());
-      source_node.put("lna_gain", source->get_lna_gain());
-      source_node.put("vga1_gain", source->get_vga1_gain());
-      source_node.put("vga2_gain", source->get_vga2_gain());
-      source_node.put("bb_gain", source->get_bb_gain());
       source_node.put("gain", source->get_gain());
-      source_node.put("if_gain", source->get_if_gain());
-
+      gain_stages = source->get_gain_stages();
+      for (std::vector<Gain_Stage_t>::iterator gain_it = gain_stages.begin(); gain_it != gain_stages.end(); gain_it++) {
+        source_node.put(gain_it->stage_name + "_gain", gain_it->value);
+      }
       source_node.put("antenna", source->get_antenna());
       source_node.put("analog_recorders", source->analog_recorder_count());
       source_node.put("digital_recorders", source->digital_recorder_count());
