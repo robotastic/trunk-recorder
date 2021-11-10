@@ -228,8 +228,8 @@ void p25_trunking::initialize_p25() {
   bool do_msgq = 1;
   bool do_audio_output = 0;
   bool do_tdma = 0;
-  bool do_crypt = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
+  bool do_nocrypt = 1;
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(sys_num, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
 
   connect(slicer, 0, op25_frame_assembler, 0);
 }
