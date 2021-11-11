@@ -13,6 +13,14 @@
 #include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 
+
+struct Gain_Stage_t {
+  std::string stage_name;
+  int value;
+};
+
+
+
 class Source {
 
   int src_num;
@@ -47,10 +55,12 @@ class Source {
   std::vector<debug_recorder_sptr> debug_recorders;
   std::vector<sigmf_recorder_sptr> sigmf_recorders;
   std::vector<analog_recorder_sptr> analog_recorders;
+  std::vector<Gain_Stage_t> gain_stages;
   std::string driver;
   std::string device;
   std::string antenna;
   gr::basic_block_sptr source_block;
+  void add_gain_stage(std::string stage_name, int value);
 
 public:
   int get_num_available_digital_recorders();
@@ -75,24 +85,21 @@ public:
   void set_gain_mode(bool m);
   bool get_gain_mode();
   void set_gain(int r);
+  std::vector<Gain_Stage_t> get_gain_stages(); 
+  int get_gain_by_name(std::string name);
+  void set_gain_by_name(std::string name, int r);
   int get_gain();
 
   void set_silence_frames(int m);
   int get_silence_frames();
 
-  void set_bb_gain(int b);
+
   int get_bb_gain();
-  void set_mix_gain(int b);
   int get_mix_gain();
-  void set_lna_gain(int b);
   int get_lna_gain();
-  void set_tia_gain(int b);
   int get_tia_gain();
-  void set_pga_gain(int b);
   int get_pga_gain();
-  void set_vga1_gain(int b);
   int get_vga1_gain();
-  void set_vga2_gain(int b);
   int get_vga2_gain();
   void set_freq_corr(double p);
   void print_recorders();

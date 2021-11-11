@@ -61,132 +61,6 @@ double Source::get_error() {
   return error;
 }
 
-void Source::set_mix_gain(int b) {
-  if (driver == "osmosdr") {
-    mix_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(mix_gain, "MIX", 0);
-    BOOST_LOG_TRIVIAL(info) << "MIX Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("MIX");
-  }
-}
-
-int Source::get_mix_gain() {
-  if (driver == "osmosdr") {
-    try {
-      mix_gain = cast_to_osmo_sptr(source_block)->get_gain("MIX", 0);
-    } catch (std::exception &e) {
-      BOOST_LOG_TRIVIAL(error) << "MIX Gain unsupported or other error: " << e.what();
-    }
-  }
-  return mix_gain;
-}
-
-void Source::set_lna_gain(int b) {
-  if (driver == "osmosdr") {
-    lna_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(lna_gain, "LNA", 0);
-    BOOST_LOG_TRIVIAL(info) << "LNA Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("LNA");
-  }
-}
-
-int Source::get_lna_gain() {
-  if (driver == "osmosdr") {
-    try {
-      lna_gain = cast_to_osmo_sptr(source_block)->get_gain("LNA", 0);
-    } catch (std::exception &e) {
-      BOOST_LOG_TRIVIAL(error) << "LNA Gain unsupported or other error: " << e.what();
-    }
-  }
-  return lna_gain;
-}
-
-void Source::set_tia_gain(int b) {
-  if (driver == "osmosdr") {
-    tia_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(tia_gain, "TIA", 0);
-    BOOST_LOG_TRIVIAL(info) << "TIA Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("TIA");
-  }
-}
-
-int Source::get_tia_gain() {
-  if (driver == "osmosdr") {
-    try {
-      tia_gain = cast_to_osmo_sptr(source_block)->get_gain("TIA", 0);
-    } catch (std::exception &e) {
-      BOOST_LOG_TRIVIAL(error) << "TIA Gain unsupported or other error: " << e.what();
-    }
-  }
-  return tia_gain;
-}
-
-void Source::set_pga_gain(int b) {
-  if (driver == "osmosdr") {
-    pga_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(pga_gain, "PGA", 0);
-    BOOST_LOG_TRIVIAL(info) << "PGA Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("PGA");
-  }
-}
-
-int Source::get_pga_gain() {
-  if (driver == "osmosdr") {
-    try {
-      pga_gain = cast_to_osmo_sptr(source_block)->get_gain("PGA", 0);
-    } catch (std::exception &e) {
-      BOOST_LOG_TRIVIAL(error) << "PGA Gain unsupported or other error: " << e.what();
-    }
-  }
-  return pga_gain;
-}
-
-void Source::set_vga1_gain(int b) {
-  if (driver == "osmosdr") {
-    vga1_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(vga1_gain, "VGA1", 0);
-    BOOST_LOG_TRIVIAL(info) << "VGA1 Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("VGA1");
-  }
-}
-
-int Source::get_vga1_gain() {
-  if (driver == "osmosdr") {
-    try {
-      vga1_gain = cast_to_osmo_sptr(source_block)->get_gain("VGA1", 0);
-    } catch (std::exception &e) {
-      BOOST_LOG_TRIVIAL(error) << "VGA1 Gain unsupported or other error: " << e.what();
-    }
-  }
-  return vga1_gain;
-}
-
-void Source::set_vga2_gain(int b) {
-  if (driver == "osmosdr") {
-    vga2_gain = b;
-    cast_to_osmo_sptr(source_block)->set_gain(vga2_gain, "VGA2", 0);
-    BOOST_LOG_TRIVIAL(info) << "VGA2 Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("VGA2");
-  }
-}
-
-int Source::get_vga2_gain() {
-  if (driver == "osmosdr") {
-    try {
-      vga2_gain = cast_to_osmo_sptr(source_block)->get_gain("VGA2", 0);
-    } catch (std::exception &e) {
-      BOOST_LOG_TRIVIAL(error) << "VGA2 Gain unsupported or other error: " << e.what();
-    }
-  }
-  return vga2_gain;
-}
-
-void Source::set_bb_gain(int b) {
-  if (driver == "osmosdr") {
-    bb_gain = b;
-    cast_to_osmo_sptr(source_block)->set_bb_gain(bb_gain);
-    BOOST_LOG_TRIVIAL(info) << "BB Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("BB");
-  }
-}
-
-int Source::get_bb_gain() {
-  return bb_gain;
-}
-
 void Source::set_gain(int r) {
   if (driver == "osmosdr") {
     gain = r;
@@ -198,6 +72,39 @@ void Source::set_gain(int r) {
     gain = r;
     cast_to_usrp_sptr(source_block)->set_gain(gain);
   }
+}
+
+void Source::add_gain_stage(std::string stage_name, int value) {
+  Gain_Stage_t stage = {stage_name, value};
+  gain_stages.push_back(stage);
+}
+
+std::vector<Gain_Stage_t> Source::get_gain_stages() {
+  return gain_stages;
+}
+
+void Source::set_gain_by_name(std::string name, int new_gain) {
+  if (driver == "osmosdr") {
+    cast_to_osmo_sptr(source_block)->set_gain(new_gain, name);
+    BOOST_LOG_TRIVIAL(info) << name << " Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain(name);
+    add_gain_stage(name, new_gain);
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Unable to set Gain by Name for SDR drive: " << driver;
+  }
+}
+
+int Source::get_gain_by_name(std::string name) {
+  if (driver == "osmosdr") {
+    try {
+      return cast_to_osmo_sptr(source_block)->get_gain(name, 0);
+    } catch (std::exception &e) {
+      BOOST_LOG_TRIVIAL(error) << name <<  " Gain unsupported or other error: " << e.what();
+    }
+  }  else {
+    BOOST_LOG_TRIVIAL(error) << "Unable to get Gain by Name for SDR drive: " << driver;
+  }
+  return -1;
+
 }
 
 int Source::get_gain() {
@@ -213,18 +120,6 @@ void Source::set_gain_mode(bool m) {
     } else {
       BOOST_LOG_TRIVIAL(info) << "Auto gain control is OFF";
     }
-  }
-}
-
-bool Source::get_gain_mode() {
-  return gain_mode;
-}
-
-void Source::set_if_gain(int i) {
-  if (driver == "osmosdr") {
-    if_gain = i;
-    cast_to_osmo_sptr(source_block)->set_if_gain(if_gain);
-    BOOST_LOG_TRIVIAL(info) << "IF Gain set to: " << cast_to_osmo_sptr(source_block)->get_gain("IF");
   }
 }
 

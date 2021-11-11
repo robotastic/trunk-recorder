@@ -425,45 +425,51 @@ bool load_config(string config_file) {
       Source *source = new Source(center, rate, error, driver, device, &config);
       BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
+      if (node.second.count("gainSettings") != 0) {
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("gainSettings")) {
+            source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
+            gain_set = true;
+        }
+      }
 
       if (if_gain != 0) {
         gain_set = true;
-        source->set_if_gain(if_gain);
+        source->set_gain_by_name("IF", if_gain);
       }
 
       if (bb_gain != 0) {
         gain_set = true;
-        source->set_bb_gain(bb_gain);
+        source->set_gain_by_name("BB", bb_gain);
       }
 
       if (mix_gain != 0) {
         gain_set = true;
-        source->set_mix_gain(mix_gain);
+        source->set_gain_by_name("MIX", mix_gain);
       }
 
       if (lna_gain != 0) {
         gain_set = true;
-        source->set_lna_gain(lna_gain);
+        source->set_gain_by_name("LNA", lna_gain);
       }
 
       if (tia_gain != 0) {
         gain_set = true;
-        source->set_tia_gain(tia_gain);
+        source->set_gain_by_name("TIA", tia_gain);
       }
 
       if (pga_gain != 0) {
         gain_set = true;
-        source->set_pga_gain(pga_gain);
+        source->set_gain_by_name("PGA", pga_gain);
       }
 
       if (vga1_gain != 0) {
         gain_set = true;
-        source->set_vga1_gain(vga1_gain);
+        source->set_gain_by_name("VGA1", vga1_gain);
       }
 
       if (vga2_gain != 0) {
         gain_set = true;
-        source->set_vga2_gain(vga2_gain);
+        source->set_gain_by_name("VGA2", vga2_gain);
       }
 
       if (gain != 0) {
