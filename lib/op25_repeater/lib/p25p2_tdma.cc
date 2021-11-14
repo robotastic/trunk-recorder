@@ -152,7 +152,7 @@ int p25p2_tdma::process_mac_pdu(const uint8_t byte_buf[], const unsigned int len
 	unsigned int offset = (byte_buf[0] >> 2) & 0x7;
 
 #if 0
-        if (d_debug >= 10) {
+        if (d_debug >= 0) {
                 fprintf(stderr, "%s process_mac_pdu: opcode %d len %d\n", logts.get(d_msgq_id), opcode, len);
         }
 #endif
@@ -250,7 +250,7 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
 
-        if (d_debug >= 10)
+        if (d_debug >= 0)
                 fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u, rs_errs=%d\n", logts.get(d_msgq_id), colorcd, srcaddr, grpaddr, rs_errs);
 
         //std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";

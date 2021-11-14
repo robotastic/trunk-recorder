@@ -824,8 +824,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
     messages.push_back(message);
     return messages;
   }
-  BOOST_LOG_TRIVIAL(info) << "message type " << type << " sys_num: " << sys_num;
-    BOOST_LOG_TRIVIAL(info) << "message " << msg->to_string();
+
   std::string s = msg->to_string();
 
   // # nac is always 1st two bytes

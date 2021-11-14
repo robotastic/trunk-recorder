@@ -264,6 +264,7 @@ namespace gr {
                 memcpy(&wbuf[p], buf, len);	// copy data
                 p += len;
             }
+            
             send_msg(std::string(wbuf, p), duid);
             qtimer.reset();
         }
