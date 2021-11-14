@@ -3,9 +3,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-int mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b);
-int mbe_dequantizeAmbe2400Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b);
-int mbe_dequantizeAmbeTone(mbe_tone * tone, const int *u);
+int mbe_dequantizeAmbe2250Parms (mbe_parms* cur_mp, mbe_parms* prev_mp, mbe_errs* errs, const int *b);
+int mbe_dequantizeAmbe2400Parms (mbe_parms* cur_mp, mbe_parms* prev_mp, mbe_errs* errs, const int *b);
+int mbe_dequantizeAmbeTone(mbe_tone* tone, mbe_errs* errs, const int *u);
 #ifdef __cplusplus
 }
 #endif

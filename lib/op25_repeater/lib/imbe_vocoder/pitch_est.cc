@@ -192,7 +192,7 @@ void imbe_vocoder::pitch_est(IMBE_PARAM *imbe_param, Word16 *frames_buf)
 	UWord16 tmp=0, p_fp;
 	UWord32 UL_tmp;
 	Word16 e_p_cur, pb, pf, ceb, s_tmp;
-	Word16 cef_est, cef, p0_est, p0, p1, p2, p1_max_index, p2_max_index, e1p1_e2p2_est, e1p1_e2p2; 
+	Word16 cef_est, cef, p0_est, p0, p1, p2, p1_max_index, p2_max_index, e1p1_e2p2_est; 
         Word16 e_p_arr2_min[203];
 
 	// Calculate E(p) function for current and two future frames
@@ -232,7 +232,6 @@ void imbe_vocoder::pitch_est(IMBE_PARAM *imbe_param, Word16 *frames_buf)
 
 	p0_est = p0 = 0;
 	cef_est = e_p_arr0[p0] + e_p_arr1[p0] + e_p_arr2[p0];
-	e1p1_e2p2 = 1;
 
             p1 = 0;
             while(p1 < 203)

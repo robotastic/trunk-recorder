@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 
-static const char* duid_strings[] = {
+/* static const char* duid_strings[] = {
 	"4v",
 	"?1",
 	"?2",
@@ -40,7 +40,7 @@ static const char* duid_strings[] = {
 	"?13",
 	"?14"
 	"facch w/o"
-};
+}; */
 
 class p25p2_duid;
 class p25p2_duid
