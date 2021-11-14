@@ -40,7 +40,7 @@ p25_framer::p25_framer(int debug, int msgq_id) :
     next_bit(0),
     nid_accum(0),
     frame_size_limit(0),
-    d_debug(11), //debug),
+    d_debug(debug),
     d_msgq_id(msgq_id),
     d_expected_nac(0),
     d_unexpected_nac(0),
@@ -146,7 +146,6 @@ bool p25_framer::rx_sym(uint8_t dibit) {
     // FIXME assert(dibit >= 0 && dibit <= 3)
     nid_accum <<= 2;
     nid_accum |= dibit;
-    fprintf(stderr, "nid_syms: %d \tnid_accum: %X \tdibit: %u\n", nid_syms, nid_accum, dibit);
     if (nid_syms == 12) {
         // ignore status dibit
         nid_accum >>= 2;
@@ -198,7 +197,6 @@ bool p25_framer::rx_sym(uint8_t dibit) {
     // dispose of received frame (if exists) and:
     // 1. complete frame is received, or
     // 2. flags is received
-    fprintf(stderr, "Next bit: %d nid_sym: %d \n", next_bit, nid_syms);
     if ((next_bit > 0) && (next_bit >= frame_size_limit || nid_syms > 0)) {
         if (nid_syms > 0)  // if this was triggered by FS
             next_bit -= 48;	// FS has been added to body - remove it

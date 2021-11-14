@@ -621,8 +621,6 @@ namespace gr {
         }
 
         void p25p1_fdma::process_voice(const bit_vector& A) {
-            fprintf(stderr, "We are here %d\n",op25audio.enabled() );
-            BOOST_LOG_TRIVIAL(info) << "here";
             if (d_do_imbe || d_do_audio_output) {
                 for(size_t i = 0; i < nof_voice_codewords; ++i) {
                     voice_codeword cw(voice_codeword_sz);
@@ -680,7 +678,6 @@ namespace gr {
 					// also, 32*9 = 288 byte pkts (for use via UDP)
 					sprintf(s, "%03x %03x %03x %03x %03x %03x %03x %03x\n", u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
 
-                    BOOST_LOG_TRIVIAL(info) << "op25audio enabled: " << op25audio.enabled();
                     if (d_do_audio_output) {
                         if (!d_do_nocrypt || !encrypted()) {
                             std::string encr = "{\"encrypted\": " + std::to_string(0) + ", \"algid\": " + std::to_string(ess_algid) + ", \"keyid\": " + std::to_string(ess_keyid) + "}";
@@ -695,11 +692,9 @@ namespace gr {
                                     snd[i] = 0;
                                 }
                             }
-                            
                             if (op25audio.enabled()) {      // decoded audio goes out via UDP (normal code path)
                                 op25audio.send_audio(snd, SND_FRAME * sizeof(int16_t));
                             } else {                        // decoded audio back to gnuradio (still supported?)
-                                
                                 for (int i = 0; i < SND_FRAME; i++) {
                                     output_queue.push_back(snd[i]);
                                 }
@@ -786,12 +781,9 @@ namespace gr {
 
         // Construct a frame one symbol at a time (used by rx.py)
         void p25p1_fdma::rx_sym (const uint8_t *syms, int nsyms) {
-            
             for (int i1 = 0; i1 < nsyms; i1++) {
-                fprintf(stderr, "Going to RX_SYM: %u Num of syms: %d i1: %d\n",syms[i1],nsyms,i1);
                 if(framer->rx_sym(syms[i1])) {   // complete frame was detected
                     if (framer->nac == 0) {  // discard frame if NAC is invalid
-                        BOOST_LOG_TRIVIAL(info) << "NAC Invalid";
                         continue;
                     }
 					rx_status.error_count += framer->bch_errors;

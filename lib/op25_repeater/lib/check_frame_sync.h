@@ -17,7 +17,6 @@ static inline bool check_frame_sync(uint64_t x, int err_threshold, int len) {
 	x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
 	x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
 	errs = (x * h01) >> 56;  //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ... 
-	//fprintf(stderr, "check frame sync errs: %d\tthreshold: %d \t x: %u\n", errs, err_threshold,x);
         if (errs <= err_threshold) return true;
         return false;
 }
