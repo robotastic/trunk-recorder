@@ -829,7 +829,8 @@ namespace gr {
                     }
 
                     qtimer.reset();
-                    gr::message::sptr msg = gr::message::make(get_msg_type(PROTOCOL_P25, M_P25_TIMEOUT), (d_msgq_id << 1), logts.get_ts());
+                    //gr::message::sptr msg = gr::message::make_from_string(msg_str, get_msg_type(PROTOCOL_P25, msg_type), d_sys_num, 0);
+                    gr::message::sptr msg = gr::message::make(get_msg_type(PROTOCOL_P25, M_P25_TIMEOUT), d_sys_num, 0);
                     d_msg_queue->insert_tail(msg);
                 }
             }
