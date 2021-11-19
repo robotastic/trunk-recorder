@@ -302,6 +302,10 @@ bool analog_recorder::is_active() {
   }
 }
 
+bool analog_recorder::is_squelched() {
+  return is_idle();
+}
+
 bool analog_recorder::is_idle() {
   if (state == ACTIVE) {
     return !squelch->unmuted();

@@ -283,6 +283,12 @@ bool p25_recorder::is_active() {
   }
 }
 
+bool p25_recorder::is_squelched() {
+  if (state == ACTIVE) {
+    return !squelch->unmuted();
+  }
+  return true;
+}
 bool p25_recorder::is_idle() {
   if (qpsk_mod) {
     if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)) {
