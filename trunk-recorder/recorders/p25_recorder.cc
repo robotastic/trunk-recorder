@@ -458,6 +458,7 @@ bool p25_recorder::start(Call *call) {
     tune_offset(offset_amount);
     if (qpsk_mod) {
       modulation_selector->set_output_index(1);
+      qpsk_demod->reset();
       qpsk_p25_decode->start(call);
     } else {
       modulation_selector->set_output_index(0);
