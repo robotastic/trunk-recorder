@@ -84,7 +84,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   std::ostringstream os;
 
   message.message_type = UNKNOWN;
-  message.source = 0;
+  message.source = -1;
   message.wacn = 0;
   message.nac = nac;
   message.sys_id = 0;
@@ -215,7 +215,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   std::ostringstream os;
 
   message.message_type = UNKNOWN;
-  message.source = 0;
+  message.source = -1;
   message.wacn = 0;
   message.nac = nac;
   message.sys_id = 0;
@@ -804,7 +804,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
   int sys_num = msg->arg1();
   TrunkMessage message;
   message.message_type = UNKNOWN;
-  message.source = 0;
+  message.source = -1;
   message.sys_num = sys_num;
   if (type == -2) { // # request from gui
     std::string cmd = msg->to_string();
