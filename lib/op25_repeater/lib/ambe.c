@@ -21,15 +21,14 @@
 #include "ambe3600x2400_const.h"
 
 static int
-mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, int dstar)
+mbe_dequantizeAmbeParms (mbe_parms* cur_mp, mbe_parms* prev_mp, mbe_errs* errs, const int *b, int dstar)
 {
 
-  int ji, i, j, k, l, L, L9, m, am, ak;
+  int ji, i, j, k, l, L, m, am, ak;
   int intkl[57];
   int b0, b1, b2, b3, b4, b5, b6, b7, b8;
   float f0, Cik[5][18], flokl[57], deltal[57];
   float Sum42, Sum43, Tl[57], Gm[9], Ri[9], sum, c1, c2;
-  char tmpstr[13];
   int silence;
   int Ji[5], jl;
   float deltaGamma, BigGamma;
@@ -54,12 +53,14 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   // copy repeat from prev_mp
   cur_mp->repeat = prev_mp->repeat;
 
-  if ((b0 >= 120) && (b0 <= 123))
+  if (((b0 >= 120) && (b0 <= 123)) || \
+       (errs->E0 >= 4) || \
+      ((errs->E0 >= 2) && ((errs->E0 + errs->E1) >= 6)))
     {
 #ifdef AMBE_DEBUG
       fprintf (stderr, "AMBE Erasure Frame\n");
 #endif
-      return (2);
+      return 1;
     }
   else if ((b0 == 124) || (b0 == 125))
     {
@@ -79,9 +80,10 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
   else if ((b0 == 126) || (b0 == 127))
     {
 #ifdef AMBE_DEBUG
+      // should never get here because tones need to be identified before voice
       fprintf (stderr, "AMBE Tone Frame\n");
 #endif
-      return (3);
+      return 3;
     }
 
   if (silence == 0)
@@ -90,7 +92,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
         f0 = powf(2, (-4.311767578125 - (2.1336e-2 * ((float)b0+0.5))));
       else
       // w0 from specification document
-      f0 = AmbeW0table[b0];
+        f0 = AmbeW0table[b0];
       cur_mp->w0 = f0 * (float) 2 *M_PI;
       // w0 from patent filings
       //f0 = powf (2, ((float) b0 + (float) 195.626) / -(float) 45.368);
@@ -109,12 +111,11 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
       if (dstar)
         L = AmbePlusLtable[b0];
       else
-      L = AmbeLtable[b0];
+        L = AmbeLtable[b0];
       // L formula form patent filings
       //L=(int)((float)0.4627 / f0);
       cur_mp->L = L;
     }
-  L9 = L - 9;
 
   // decode V/UV parameters
   for (l = 1; l <= L; l++)
@@ -129,21 +130,21 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           if (dstar)
             cur_mp->Vl[l] = AmbePlusVuv[b1][jl];
           else
-          cur_mp->Vl[l] = AmbeVuv[b1][jl];
+            cur_mp->Vl[l] = AmbeVuv[b1][jl];
         }
 #ifdef AMBE_DEBUG
       fprintf (stderr, "jl[%i]:%i Vl[%i]:%i\n", l, jl, l, cur_mp->Vl[l]);
 #endif
     }
 #ifdef AMBE_DEBUG
-  fprintf (atderr, "\nb0:%i w0:%f L:%i b1:%i\n", b0, cur_mp->w0, L, b1);
+  fprintf (stderr, "\nb0:%i w0:%f L:%i b1:%i\n", b0, cur_mp->w0, L, b1);
 #endif
   if (dstar) {
     deltaGamma = AmbePlusDg[b2];
     cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
   } else {
-  deltaGamma = AmbeDg[b2];
-  cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
+    deltaGamma = AmbeDg[b2];
+    cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
   }
 #ifdef AMBE_DEBUG
   fprintf (stderr, "b2: %i, deltaGamma: %f gamma: %f gamma-1: %f\n", b2, deltaGamma, cur_mp->gamma, prev_mp->gamma);
@@ -163,14 +164,14 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
     Gm[7] = AmbePlusPRBA58[b4][2];
     Gm[8] = AmbePlusPRBA58[b4][3];
   } else {
-  Gm[2] = AmbePRBA24[b3][0];
-  Gm[3] = AmbePRBA24[b3][1];
-  Gm[4] = AmbePRBA24[b3][2];
+    Gm[2] = AmbePRBA24[b3][0];
+    Gm[3] = AmbePRBA24[b3][1];
+    Gm[4] = AmbePRBA24[b3][2];
 
-  Gm[5] = AmbePRBA58[b4][0];
-  Gm[6] = AmbePRBA58[b4][1];
-  Gm[7] = AmbePRBA58[b4][2];
-  Gm[8] = AmbePRBA58[b4][3];
+    Gm[5] = AmbePRBA58[b4][0];
+    Gm[6] = AmbePRBA58[b4][1];
+    Gm[7] = AmbePRBA58[b4][2];
+    Gm[8] = AmbePRBA58[b4][3];
   }
 
 #ifdef AMBE_DEBUG
@@ -222,10 +223,10 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
     Ji[3] = AmbePlusLmprbl[L][2];
     Ji[4] = AmbePlusLmprbl[L][3];
   } else {
-  Ji[1] = AmbeLmprbl[L][0];
-  Ji[2] = AmbeLmprbl[L][1];
-  Ji[3] = AmbeLmprbl[L][2];
-  Ji[4] = AmbeLmprbl[L][3];
+    Ji[1] = AmbeLmprbl[L][0];
+    Ji[2] = AmbeLmprbl[L][1];
+    Ji[3] = AmbeLmprbl[L][2];
+    Ji[4] = AmbeLmprbl[L][3];
   }
 #ifdef AMBE_DEBUG
   fprintf (stderr, "Ji[1]: %i Ji[2]: %i Ji[3]: %i Ji[4]: %i\n", Ji[1], Ji[2], Ji[3], Ji[4]);
@@ -246,7 +247,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           if (dstar)
             Cik[1][k] = AmbePlusHOCb5[b5][k - 3];
           else
-          Cik[1][k] = AmbeHOCb5[b5][k - 3];
+            Cik[1][k] = AmbeHOCb5[b5][k - 3];
 #ifdef AMBE_DEBUG
           fprintf (stderr, "C1,%i: %f ", k, Cik[1][k]);
 #endif
@@ -263,7 +264,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           if (dstar)
             Cik[2][k] = AmbePlusHOCb6[b6][k - 3];
           else
-          Cik[2][k] = AmbeHOCb6[b6][k - 3];
+            Cik[2][k] = AmbeHOCb6[b6][k - 3];
 #ifdef AMBE_DEBUG
           fprintf (stderr, "C2,%i: %f ", k, Cik[2][k]);
 #endif
@@ -280,7 +281,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           if (dstar)
             Cik[3][k] = AmbePlusHOCb7[b7][k - 3];
           else
-          Cik[3][k] = AmbeHOCb7[b7][k - 3];
+            Cik[3][k] = AmbeHOCb7[b7][k - 3];
 #ifdef AMBE_DEBUG
           fprintf (stderr, "C3,%i: %f ", k, Cik[3][k]);
 #endif
@@ -297,7 +298,7 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
           if (dstar)
             Cik[4][k] = AmbePlusHOCb8[b8][k - 3];
           else
-          Cik[4][k] = AmbeHOCb8[b8][k - 3];
+            Cik[4][k] = AmbeHOCb8[b8][k - 3];
 #ifdef AMBE_DEBUG
           fprintf (stderr, "C4,%i: %f ", k, Cik[4][k]);
 #endif
@@ -414,45 +415,63 @@ mbe_dequantizeAmbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b, 
 }
 
 int
-mbe_dequantizeAmbeTone(mbe_tone * tone, const int *u)
+mbe_dequantizeAmbeTone(mbe_tone* tone, mbe_errs* errs, const int *u)
 {
 	int bitchk1, bitchk2;
-	int AD, ID1, ID2, ID3, ID4;
+	int AD, ID0, ID1, ID2, ID3, ID4;
 	bitchk1 = (u[0] >> 6) & 0x3f;
 	bitchk2 = (u[3] & 0xf);
 
+	// Check if tone frame
 	if ((bitchk1 != 63) || (bitchk2 != 0))
-		return -1; // Not a valid tone frame
+		return -1; // Not a tone
 
 	AD = ((u[0] & 0x3f) << 1) + ((u[3] >> 4) & 0x1);
+	ID0 = 0;
 	ID1 = ((u[1] & 0xfff) >> 4);
 	ID2 = ((u[1] & 0xf) << 4) + ((u[2] >> 7) & 0xf);
 	ID3 = ((u[2] & 0x7f) << 1) + ((u[3] >> 13) & 0x1);
 	ID4 = ((u[3] & 0x1fe0) >> 5);
 
-	if ((ID1 == ID2) && (ID1 == ID3) && (ID1 == ID4) &&
-	    (((ID1 >= 5) && (ID1 <= 122)) || ((ID1 >= 128) && (ID1 <= 163)) || (ID1 == 255))) {
-		if (tone->ID == ID1) {
+	// Check error thresholds
+	if ((errs->E0 >= 4) || ((errs->E0 >= 2) && ((errs->E0 + errs->E1) >= 6))) {
+		return 1; // Uncorrectable error threshold, treat as Erasure
+	}
+
+	// Theorectically ID1-4 should all be the same value.  Make sure at least 3 match
+	if (((ID1 == ID2) && (ID1 == ID3)) || \
+        ((ID1 == ID3) && (ID1 == ID4)) || \
+        ((ID1 == ID2) && (ID1 == ID4))) {
+		ID0 = ID1;
+	} else if ((ID2 == ID3) && (ID2 == ID4)) {
+		ID0 = ID2;
+	} else {
+		return 1; // Mismatched tone ids, treat as Erasure
+	}
+
+	if (((ID0 >= 5) && (ID0 <= 122)) || ((ID0 >= 128) && (ID0 <= 163)) || (ID0 == 255)) {
+		if (tone->ID == ID0) {
 			tone->AD = AD;
 		} else {
 			tone->n = 0;
-			tone->ID = ID1;
+			tone->ID = ID0;
 			tone->AD = AD;
 		}
 		return 0; // valid in-range tone frequency 
 	}
 
-	return -1;
+	// invalid tone, treat as Erasure
+	return 1;
 }
 
 int
-mbe_dequantizeAmbe2400Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b){
+mbe_dequantizeAmbe2400Parms (mbe_parms* cur_mp, mbe_parms* prev_mp, mbe_errs* errs, const int *b){
 	int dstar = 1;
-	return (mbe_dequantizeAmbeParms (cur_mp, prev_mp, b, dstar));
+	return (mbe_dequantizeAmbeParms (cur_mp, prev_mp, errs, b, dstar));
 }
 
 int
-mbe_dequantizeAmbe2250Parms (mbe_parms * cur_mp, mbe_parms * prev_mp, const int *b){
+mbe_dequantizeAmbe2250Parms (mbe_parms* cur_mp, mbe_parms* prev_mp, mbe_errs* errs, const int *b){
 	int dstar = 0;
-	return (mbe_dequantizeAmbeParms (cur_mp, prev_mp, b, dstar));
+	return (mbe_dequantizeAmbeParms (cur_mp, prev_mp, errs, b, dstar));
 }

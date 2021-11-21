@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/*
+/* 
  * Copyright 2013 <+YOU OR YOUR COMPANY+>.
- *
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -52,7 +52,8 @@ namespace gr {
        */
       static sptr make(float samples_per_symbol, float gain_mu, float gain_omega, float alpha, float beta, float max_freq, float min_freq);
       virtual void set_omega(float omega) {}
-      virtual float get_freq_error(void) { return 0;}
+      virtual float get_freq_error(void) { return 0; }
+      virtual int get_error_band(void) { return 0; }
       virtual void reset() {}
       virtual void update_omega (float samples_per_symbol)  {}
       virtual void update_fmax (float max_freq) {}

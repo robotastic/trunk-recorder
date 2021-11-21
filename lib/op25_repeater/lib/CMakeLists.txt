@@ -20,7 +20,17 @@
 ########################################################################
 # Setup library
 ########################################################################
-cmake_minimum_required(VERSION 3.2)
+option(AMBE_TONES "Enable AMBE tone synthesis" ON)
+if (AMBE_TONES)
+  message(STATUS "AMBE Tone Synthesis Enabled")
+else()
+  message(STATUS "AMBE Tone Synthesis Disabled")
+  add_definitions(-DDISABLE_AMBE_TONES)
+endif()
+unset(AMBE_TONES CACHE)
+
+add_definitions(-DEZPWD_NO_EXCEPTS)
+
 include(GrPlatform) #define LIB_SUFFIX
 
 include_directories(${Boost_INCLUDE_DIR})
@@ -33,8 +43,12 @@ list(APPEND op25_repeater_sources
     vocoder_impl.cc
     gardner_costas_cc_impl.cc
     p25_frame_assembler_impl.cc
-    fsk4_demod_ff_impl.cc
-    fsk4_slicer_fb_impl.cc )
+    frame_assembler_impl.cc
+    analog_udp_impl.cc
+    rmsagc_ff_impl.cc
+    fsk4_slicer_fb_impl.cc
+    iqfile_source_impl.cc 
+    fsk4_demod_ff_impl.cc )
 
 list(APPEND op25_repeater_sources
     bch.cc
@@ -55,6 +69,8 @@ list(APPEND op25_repeater_sources
     mbelib.c
     ambe_encoder.cc
     rx_sync.cc
+    rx_smartnet.cc
+    rx_subchannel.cc
     hamming.cc
     golay2087.cc
     bptc19696.cc
@@ -62,7 +78,7 @@ list(APPEND op25_repeater_sources
     dmr_cai.cc
     dmr_slot.cc
     op25_audio.cc
-    op25_timer.cc
+    op25_timer
     CCITTChecksumReverse.cpp
 )
 

@@ -216,7 +216,7 @@ static const uint16_t voice_codeword_bits[nof_voice_codewords][voice_codeword_sz
         1476, 1483, 1488, 1495, 1500, 1507, 1514, 1521, 1526, 1533, 1538, 1545,
         1403, 1408, 1415, 1420, 1427, 1432, 1441, 1446, 1453, 1458, 1465, 1470,
         1477, 1482, 1489, 1494, 1501, 1506, 1515, 1520, 1527, 1532, 1539, 1544 },
-
+      
       { 1578, 1587, 1592, 1599, 1604, 1611, 1616, 1623, 1628, 1635, 1640, 1647,
         1652, 1661, 1666, 1673, 1678, 1685, 1690, 1697, 1702, 1709, 1714, 1721,
         1579, 1586, 1593, 1598, 1605, 1610, 1617, 1622, 1629, 1634, 1641, 1646,
@@ -299,13 +299,11 @@ pngen23(uint32_t& Pr)
 static inline size_t
 imbe_header_decode(const voice_codeword& cw, uint32_t& u0, uint32_t& u1, uint32_t& u2, uint32_t& u3, uint32_t& u4, uint32_t& u5, uint32_t& u6, uint32_t& u7, uint32_t& E0, uint32_t& ET)
 {
-   ET = 0;
-
    size_t errs = 0;
    uint32_t v0 = extract(cw, 0, 23);
    errs = golay_23_decode(v0);
    u0 = v0;
-   E0 = ET;
+   E0 = errs;
 
    uint32_t pn = u0 << 4;
    uint32_t m1 = pngen23(pn);
@@ -340,6 +338,7 @@ imbe_header_decode(const voice_codeword& cw, uint32_t& u0, uint32_t& u1, uint32_
 
    u7 = extract(cw, 137, 144);
    u7 <<= 1; /* so that bit0 is free (see note about BOT bit */
+   ET = errs;
    return errs;
 }
 

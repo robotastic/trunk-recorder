@@ -2,17 +2,17 @@
  * Project 25 IMBE Encoder/Decoder Fixed-Point implementation
  * Developed by Pavel Yazev E-mail: pyazev@gmail.com
  * Version 1.0 (c) Copyright 2009
- *
+ * 
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- *
+ * 
  * The software is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this; see the file COPYING.  If not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Boston, MA
@@ -35,7 +35,7 @@ void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 	Word16 *b_ptr, *ba_ptr, index0;
 	Word32 L_tmp;
 
-	imbe_param->b_vec[0] = (shr(frame_vector[0], 4) & 0xFC) | (shr(frame_vector[7], 1) & 0x3);
+	imbe_param->b_vec[0] = (shr(frame_vector[0], 4) & 0xFC) | (shr(frame_vector[7], 1) & 0x3);	
 
 	if (imbe_param->b_vec[0] < 0 || imbe_param->b_vec[0] > 207)
 		return; // If we return here IMBE parameters from previous frame will be used (frame repeating)
@@ -49,7 +49,7 @@ void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 	tmp1  = tmp << shift;
 
 	tmp2 = div_s(0x4000, tmp1);
-	imbe_param->fund_freq = L_shr(L_deposit_h(tmp2), 11 - shift);
+	imbe_param->fund_freq = L_shr(L_deposit_h(tmp2), 11 - shift);    
 
 	L_tmp = L_sub(0x40000000, L_mult(tmp1, tmp2));
 	tmp2  = div_s(extract_l(L_shr(L_tmp, 2)), tmp1);
@@ -65,7 +65,7 @@ void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 		imbe_param->num_bands = extract_h((UWord32)(imbe_param->num_harms + 2) * CNST_0_33_Q0_16);   // fix((L+2)/3)
 	else
 		imbe_param->num_bands = NUM_BANDS_MAX;
-
+	
 	// Convert input vector (from b_3 to b_L+1) to bit stream
 	bit_stream[0] = (frame_vector[0] & 0x4)?1:0;
 	bit_stream[1] = (frame_vector[0] & 0x2)?1:0;
@@ -78,7 +78,7 @@ void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 
 	index0 = 3 + 3 * 12 - 1;
 	for(vec_num = 3; vec_num >= 1;  vec_num--)
-	{
+	{	
 		tmp = frame_vector[vec_num];
 		for(i = 0; i < 12; i++)
 		{
@@ -87,10 +87,10 @@ void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 			index0--;
 		}
 	}
-
+	
 	index0 = 3 + 3 * 12 + 3 * 11 - 1;
 	for(vec_num = 6; vec_num >= 4;  vec_num--)
-	{
+	{	
 		tmp = frame_vector[vec_num];
 		for(i = 0; i < 11; i++)
 		{
@@ -104,14 +104,14 @@ void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 	index0 = 3 + 3 * 12;
 	tmp = 0;
 	for(i = 0; i < imbe_param->num_bands; i++)
-		tmp = (tmp << 1) | bit_stream[index0++];
+		tmp = (tmp << 1) | bit_stream[index0++];		
 
 	imbe_param->b_vec[1] = tmp;
 
 	// Rebuild b2
 	tmp = 0;
-	tmp |= bit_stream[index0++] << 1;
-	tmp |= bit_stream[index0++];
+	tmp |= bit_stream[index0++] << 1;			
+	tmp |= bit_stream[index0++];				
 	imbe_param->b_vec[2] = (frame_vector[0] & 0x38) | (tmp << 1) | (shr(frame_vector[7], 3) & 0x01);
 
 	// Shift the rest of sequence
@@ -132,11 +132,11 @@ void decode_frame_vector(IMBE_PARAM *imbe_param, Word16 *frame_vector)
 	index0 = 0;
 	bit_thr = (imbe_param->num_harms == 0xb)?9:ba_ptr[0];
 
-	while (index0 < BIT_STREAM_LEN - imbe_param->num_bands - 2)
-	{
+	while(index0 < BIT_STREAM_LEN - imbe_param->num_bands - 2)
+	{	
 		for(i = 0; i < imbe_param->num_harms - 1; i++)
 			if(bit_thr && bit_thr <= ba_ptr[i])
-				b_ptr[i] = (b_ptr[i] << 1) | bit_stream[index0++];
+				b_ptr[i] = (b_ptr[i] << 1) | bit_stream[index0++];		
 		bit_thr--;
 		if (bit_thr < 0) {
 			std::cout << "Weird Error - imploder malfunction" << std::endl;
@@ -161,7 +161,7 @@ void v_uv_decode(IMBE_PARAM *imbe_param)
 
 	p_v_uv_dsn = imbe_param->v_uv_dsn;
 
-	mask = 1 << (num_bands - 1);
+	mask = 1 << (num_bands - 1); 
 
 	v_zap(p_v_uv_dsn, NUM_HARMS_MAX);
 

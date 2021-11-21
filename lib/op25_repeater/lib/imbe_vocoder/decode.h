@@ -22,9 +22,9 @@
 
 #ifndef _DECODE
 #define _DECODE
-//#if 0
+#if 0
 void decode_init(IMBE_PARAM *imbe_param);
 void decode(IMBE_PARAM *imbe_param, Word16 *frame_vector, Word16 *snd);
-//#endif
+#endif
 #endif
 

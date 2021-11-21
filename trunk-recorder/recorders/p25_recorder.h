@@ -101,6 +101,7 @@ public:
   double get_current_length();
   bool is_active();
   bool is_idle();
+  bool is_squelched();
   std::vector<Transmission> get_transmission_list(); 
   State get_state();
   Rx_Status get_rx_status();

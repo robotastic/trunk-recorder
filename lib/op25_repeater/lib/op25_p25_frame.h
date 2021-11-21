@@ -1,13 +1,11 @@
 #ifndef INCLUDED_OP25_P25_FRAME_H
 #define INCLUDED_OP25_P25_FRAME_H 1
 
+#include "frame_sync_magics.h"
+
 static const size_t P25_VOICE_FRAME_SIZE = 1728;
 static const size_t P25_HEADER_SYMBOLS = 24 + 32 + 1;
 static const size_t P25_HEADER_BITS = P25_HEADER_SYMBOLS * 2;
-
-static const uint64_t P25_FRAME_SYNC_MAGIC = 0x5575F5FF77FFLL;
-static const uint64_t P25_FRAME_SYNC_REV_P = 0x5575F5FF77FFLL ^ 0xAAAAAAAAAAAALL;
-static const uint64_t P25_FRAME_SYNC_MASK  = 0xFFFFFFFFFFFFLL;
 
 /* Given a 64-bit frame header word and a frame body which is to be initialized
  * 1. Place flags at beginning of frame body

@@ -155,7 +155,7 @@ static inline float make_f0(int b0) {
 	return (powf(2, (-4.311767578125 - (2.1336e-2 * ((float)b0+0.5)))));
 }
 
-static void encode_ambe(const IMBE_PARAM *imbe_param, int b[], mbe_parms*cur_mp, mbe_parms*prev_mp, bool dstar, float gain_adjust) {
+static void encode_ambe(const IMBE_PARAM *imbe_param, int b[], mbe_parms*cur_mp, mbe_parms*prev_mp, mbe_errs* errs_mp, bool dstar, float gain_adjust) {
 	static const float SQRT_2 = sqrtf(2.0);
 	static const int b0_lmax = sizeof(b0_lookup) / sizeof(b0_lookup[0]);
 	// int b[9];
@@ -482,11 +482,10 @@ static void encode_ambe(const IMBE_PARAM *imbe_param, int b[], mbe_parms*cur_mp,
 		b[4+ii] = error_index;
 	}
 	// fprintf (stderr, "B\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8]);
-	int rc;
 	if (dstar)
-		rc = mbe_dequantizeAmbe2400Parms (cur_mp, prev_mp, b);
+		mbe_dequantizeAmbe2400Parms (cur_mp, prev_mp, errs_mp, b);
 	else
-		rc = mbe_dequantizeAmbe2250Parms (cur_mp, prev_mp, b);
+		mbe_dequantizeAmbe2250Parms (cur_mp, prev_mp, errs_mp, b);
 	mbe_moveMbeParms (cur_mp, prev_mp);
 }
 
@@ -545,12 +544,13 @@ static void encode_49bit(uint8_t outp[49], const int b[9]) {
 ambe_encoder::ambe_encoder(void)
 	: d_49bit_mode(false),
 	d_dstar_mode(false),
-	d_alt_dstar_interleave(false),
-	d_gain_adjust(0)
+	d_gain_adjust(0),
+	d_alt_dstar_interleave(false)
 {
 	mbe_parms enh_mp;
 	mbe_initMbeParms (&cur_mp, &prev_mp, &enh_mp);
-	}
+	mbe_initErrParms (&errs_mp);
+}
 
 void ambe_encoder::set_dstar_mode(void)
 {
@@ -577,7 +577,7 @@ void ambe_encoder::encode(int16_t samples[], uint8_t codeword[])
 	vocoder.imbe_encode(frame_vector, samples);
 
 	// halfrate audio encoding - output rate is 2450 (49 bits)
-	encode_ambe(vocoder.param(), b, &cur_mp, &prev_mp, d_dstar_mode, d_gain_adjust);
+	encode_ambe(vocoder.param(), b, &cur_mp, &prev_mp, &errs_mp, d_dstar_mode, d_gain_adjust);
 
 	if (d_dstar_mode) {
 		interleaver.encode_dstar(codeword, b, d_alt_dstar_interleave);

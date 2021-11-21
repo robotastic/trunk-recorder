@@ -37,13 +37,13 @@
 #include "crc16.h"
 
 dmr_cai::dmr_cai(int debug, int msgq_id, gr::msg_queue::sptr queue) :
+	d_slot{dmr_slot(0, debug, msgq_id, queue), dmr_slot(1, debug, msgq_id, queue)},
+	d_slot_mask(3),
+	d_chan(0),
+	d_shift_reg(0),
 	d_debug(debug),
 	d_msgq_id(msgq_id),
-	d_msg_queue(queue),
-	d_shift_reg(0),
-	d_chan(0),
-	d_slot_mask(3),
-	d_slot{dmr_slot(0, debug, msgq_id, queue), dmr_slot(1, debug, msgq_id, queue)} 
+	d_msg_queue(queue)
 {
 	d_cach_sig.clear();
 	memset(d_frame, 0, sizeof(d_frame));
@@ -57,6 +57,13 @@ dmr_cai::set_slot_mask(int mask) {
 	d_slot_mask = mask;
 	d_slot[0].set_slot_mask(mask);
 	d_slot[1].set_slot_mask(mask);
+}
+
+void
+dmr_cai::set_debug(int debug) {
+    d_debug = debug;
+    d_slot[0].set_debug(debug);
+    d_slot[1].set_debug(debug);
 }
 
 void
@@ -77,7 +84,7 @@ dmr_cai::load_frame(const uint8_t fr_sym[], bool& unmute) {
 	// but the question is how many bit errors is too many...
 	bool sync_rxd = false;
 	uint64_t sl_sync = load_reg64(d_frame + SYNC_EMB + 24, 48);
-	for (int i = 0; i < DMR_SYNC_MAGICS_COUNT; i ++) {
+	for (unsigned int i = 0; i < DMR_SYNC_MAGICS_COUNT; i ++) {
 		if (__builtin_popcountll(sl_sync ^ DMR_SYNC_MAGICS[i]) <= DMR_SYNC_THRESHOLD) {
 			sl_sync = DMR_SYNC_MAGICS[i];
 			sync_rxd = true;
@@ -118,13 +125,12 @@ dmr_cai::load_frame(const uint8_t fr_sym[], bool& unmute) {
 
 void
 dmr_cai::extract_cach_fragment() {
-	int tact, tact_at, tact_tc, tact_lcss;
+	int tact, tact_tc, tact_lcss;
 	uint8_t tactbuf[sizeof(cach_tact_bits)];
 
 	for (size_t i=0; i<sizeof(cach_tact_bits); i++)
 		tactbuf[i] = d_frame[CACH + cach_tact_bits[i]];
 	tact = hamming_7_4_decode[load_i(tactbuf, 7)];
-	tact_at   = (tact>>3) & 1; // Access Type
 	tact_tc   = (tact>>2) & 1; // TDMA Channel
 	tact_lcss = tact & 3;      // Link Control Start/Stop
 	d_shift_reg = (d_shift_reg << 1) + tact_tc;
@@ -142,14 +148,13 @@ dmr_cai::extract_cach_fragment() {
 		case 2: // End Short_LC or CSBK
 			for (size_t i=0; i<sizeof(cach_payload_bits); i++)
 				d_cach_sig.push_back(d_frame[CACH + cach_payload_bits[i]]);
-				decode_shortLC();
+			decode_shortLC();
 			break;
 		case 3: // Continue Short_LC or CSBK
 			for (size_t i=0; i<sizeof(cach_payload_bits); i++)
 				d_cach_sig.push_back(d_frame[CACH + cach_payload_bits[i]]);
 			break;
 	}
-	
 }
 
 bool
@@ -195,25 +200,25 @@ dmr_cai::decode_shortLC()
 		return false;
 
 	// extract useful data
-		uint8_t slco, d0, d1, d2;
-		slco = 0; d0 = 0; d1 = 0; d2 = 0;
-		for (i = 0; i < 4; i++) {
-			slco <<= 1;
-			slco |= slc[i];
-		}
-		for (i = 0; i < 8; i++) {
-			d0 <<= 1;
-			d0 |= slc[i+4];
-		}
-		for (i = 0; i < 8; i++) {
-			d1 <<= 1;
-			d1 |= slc[i+12];
-		}
-		for (i = 0; i < 8; i++) {
-			d2 <<= 1;
-			d2 |= slc[i+20];
-		}
-		
+	uint8_t slco, d0, d1, d2;
+	slco = 0; d0 = 0; d1 = 0; d2 = 0;
+	for (i = 0; i < 4; i++) {
+		slco <<= 1;
+		slco |= slc[i];
+	}
+	for (i = 0; i < 8; i++) {
+		d0 <<= 1;
+		d0 |= slc[i+4];
+	}
+	for (i = 0; i < 8; i++) {
+		d1 <<= 1;
+		d1 |= slc[i+12];
+	}
+	for (i = 0; i < 8; i++) {
+		d2 <<= 1;
+		d2 |= slc[i+20];
+	}
+
 	// send up the stack for further processing
 	std::string slc_msg(4,0);
         slc_msg[0] = slco;
@@ -291,7 +296,7 @@ dmr_cai::decode_shortLC()
 		}
 
 		default: {
-		if (d_debug >= 10)
+			if (d_debug >= 10)
 				fprintf(stderr, "%s SLCO=0x%x, DATA=%02x %02x %02x\n", logts.get(d_msgq_id), slco, d0, d1, d2);
 		}
 	}

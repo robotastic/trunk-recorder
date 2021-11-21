@@ -41,7 +41,7 @@ private:
     int         d_debug;
     int         d_write_port;
     int         d_audio_port;
-    char        d_udp_host[64];
+    char        d_udp_host[128];
     int         d_write_sock;
     bool        d_file_enabled;
     struct      sockaddr_in d_sock_addr;
@@ -56,6 +56,7 @@ public:
     ~op25_audio();
 
     inline bool enabled() const { return d_udp_enabled; }
+    inline void set_debug(int debug) { d_debug = debug; }
 
     ssize_t send_to(const void *buf, size_t len) const;
 

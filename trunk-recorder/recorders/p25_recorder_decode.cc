@@ -84,7 +84,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
 
   int udp_port = 0;
   int verbosity = 0; // 10 = lots of debug messages
-  const char *wireshark_host = "127.0.0.1";
+  const char *udp_host = "";
   bool do_imbe = 1;
   bool do_output = 1;
   bool do_msgq = 0;
@@ -92,7 +92,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
   bool do_tdma = 0;
   bool do_nocrypt = 1;
 
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(1);
   plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&p25_recorder_decode::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));

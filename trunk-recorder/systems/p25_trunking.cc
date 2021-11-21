@@ -221,7 +221,7 @@ void p25_trunking::initialize_p25() {
 
   int udp_port = 0;
   int verbosity = 0;
-  const char *wireshark_host = "127.0.0.1";
+  const char *wireshark_host = "0";
   bool do_imbe = 0;
   int silence_frames = 0;
   bool do_output = 0;

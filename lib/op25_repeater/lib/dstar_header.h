@@ -120,7 +120,7 @@ static inline void make_dstar_header(
 	m_headerData[48U] = SLOW_DATA_TYPE_HEADER | 1U;
 	m_headerData[49U] = checkSum[1];
 
-	for (int i=0; i<SLOW_DATA_FULL_BLOCK_SIZE; i+=3) {
+	for (unsigned int i=0; i<SLOW_DATA_FULL_BLOCK_SIZE; i+=3) {
 		store_i(rev_byte(m_headerData[i] ^ 0x70), header_data_buf+i*8, 8);
 		store_i(rev_byte(m_headerData[i+1] ^ 0x4f), header_data_buf+((i+1)*8), 8);
 		store_i(rev_byte(m_headerData[i+2] ^ 0x93), header_data_buf+((i+2)*8), 8);

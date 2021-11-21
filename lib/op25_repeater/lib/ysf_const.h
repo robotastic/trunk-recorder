@@ -338,7 +338,7 @@ static const int gly_24_12[] = {
 
 static inline void ysf_scramble(uint8_t buf[], const int len)
 {	// buffer is (de)scrambled in place
-static const uint8_t scramble_code[180] = {
+    static const uint8_t scramble_code[180] = {
 	1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 
 	0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 
 	1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 
@@ -351,7 +351,7 @@ static const uint8_t scramble_code[180] = {
 	0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0
-};
+    };
 
 	assert(len <= (int)sizeof(scramble_code));
 	for (int i=0; i<len; i++) {

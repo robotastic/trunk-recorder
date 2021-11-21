@@ -565,13 +565,14 @@ static const uint32_t pr_n[4096] = {	\
 	11353390, 16168627, 16360768, 2121433, 6508214, 5936487, 1156824, 737033
 };
 
-	size_t p25p2_vf::process_vcw(const uint8_t vf[], int* b, int* U) {
+	size_t p25p2_vf::process_vcw(mbe_errs* errs_mp, const uint8_t vf[], int* b, int* U) {
 		size_t errs, err_cnt = 0;
 		int c0,c1,c2,c3;
 		int u[4];
 		extract_vcw(vf, c0, c1, c2, c3 );
 
 		u[0] = gly24128Dec(c0, &errs);
+		errs_mp->E0 = errs;
 		err_cnt += errs;
 		// TODO: use pr_n[] to lookup m1
 		int pr[24];
@@ -587,6 +588,7 @@ static const uint32_t pr_n[4096] = {	\
 			m1 = (m1 << 1) + _m1[i];
 	
 		u[1] = gly23127Dec(c1 ^ m1, &errs);
+		errs_mp->E1 = errs;
 		err_cnt += errs;
 		u[2] = c2;
 		u[3] = c3;
@@ -599,6 +601,9 @@ static const uint32_t pr_n[4096] = {	\
 			U[2] = u[2];
 			U[3] = u[3];
 		}
+
+		// Update running error rate estimate
+		errs_mp->ER = (0.95 * errs_mp->ER) + (0.001064 * (double)err_cnt);
 
 		return err_cnt;
 	}
@@ -722,7 +727,7 @@ static const uint32_t pr_n[4096] = {	\
 		vf[70] = c2[4];
 		vf[71] = c3[0];
 
-		for (int i=0; i<sizeof(vf)/2; i++) {
+		for (size_t i=0; i<sizeof(vf)/2; i++) {
 			_vf[i] = (vf[i*2] << 1) | vf[i*2+1];
 		}
 	}
@@ -734,7 +739,7 @@ static const uint32_t pr_n[4096] = {	\
 		uint8_t c2[11];
 		uint8_t c3[14];
 
-		for (int i=0; i<sizeof(vf)/2; i++) {
+		for (size_t i=0; i<sizeof(vf)/2; i++) {
 			vf[i*2]   = (_vf[i] >> 1) & 1;
 			vf[i*2+1] = _vf[i] & 1;
 		}
@@ -883,7 +888,7 @@ size_t p25p2_vf::decode_dstar(const uint8_t codeword[72], int b[9], bool alt_dst
 	for (int i=0; i < 9; i++) {
 		b[i] = load_reg(&tbuf[tbufp], b_lengths[i]);
 		tbufp += b_lengths[i];
-}
+	}
 
 	return err_cnt;
 }
