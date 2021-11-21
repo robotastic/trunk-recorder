@@ -21,7 +21,6 @@ p25_recorder_qpsk_demod::~p25_recorder_qpsk_demod() {
 }
 
 void p25_recorder_qpsk_demod::reset() {
-
     costas_clock->reset();
 }
 
