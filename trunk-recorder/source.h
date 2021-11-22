@@ -11,6 +11,7 @@
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
 #include "recorders/p25_recorder.h"
+#include "recorders/dmr_recorder.h"
 #include "recorders/sigmf_recorder.h"
 
 
@@ -116,6 +117,7 @@ public:
   Recorder *get_analog_recorder(Talkgroup *talkgroup);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
+  dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb); 
   Recorder *get_digital_recorder();
   Recorder *get_digital_recorder(Talkgroup *talkgroup);
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);

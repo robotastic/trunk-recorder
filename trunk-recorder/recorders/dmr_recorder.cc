@@ -80,10 +80,10 @@ dmr_recorder::DecimSettings dmr_recorder::get_decim(long speed) {
       decim_settings.decim = q / 2;
       decim_settings.decim2 = 2;
     }
-    BOOST_LOG_TRIVIAL(debug) << "P25 recorder Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2;
+    BOOST_LOG_TRIVIAL(debug) << "DMR recorder Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2;
     return decim_settings;
   }
-  BOOST_LOG_TRIVIAL(error) << "P25 recorder Decim: Nothing found";
+  BOOST_LOG_TRIVIAL(error) << "DMR recorder Decim: Nothing found";
   return decim_settings;
 }
 void dmr_recorder::initialize_prefilter() {
@@ -108,7 +108,7 @@ void dmr_recorder::initialize_prefilter() {
     if2 = if1 / decim_settings.decim2;
     fa = 6250;
     fb = if2 / 2;
-    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
+    BOOST_LOG_TRIVIAL(info) << "\t DMR Recorder two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa);
     bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
@@ -117,7 +117,7 @@ void dmr_recorder::initialize_prefilter() {
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   } else {
     double_decim = false;
-    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
+    BOOST_LOG_TRIVIAL(info) << "\t DMR Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
     decim = floor(input_rate / if_rate);
@@ -135,7 +135,7 @@ void dmr_recorder::initialize_prefilter() {
   arb_rate = if_rate / resampled_rate;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate;
+  BOOST_LOG_TRIVIAL(info) << "\t DMR Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate;
 
   connect(self(), 0, valve, 0);
   if (double_decim) {
@@ -157,12 +157,11 @@ void dmr_recorder::initialize(Source *src) {
   center_freq = source->get_center();
   config = source->get_config();
   input_rate = source->get_rate();
-  qpsk_mod = true;
   silence_frames = source->get_silence_frames();
   squelch_db = 0;
 
   talkgroup = 0;
-  d_phase2_tdma = false;
+  d_phase2_tdma = true;
   rec_num = rec_counter++;
   recording_count = 0;
   recording_duration = 0;
@@ -228,7 +227,7 @@ void dmr_recorder::initialize(Source *src) {
   bool do_output = 1;
   bool do_msgq = 0;
   bool do_audio_output = 1;
-  bool do_tdma = 0;
+  bool do_tdma = 1;
   bool do_nocrypt = 1;
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
@@ -276,11 +275,8 @@ void dmr_recorder::switch_tdma(bool phase2) {
 
   if (phase2) {
     d_phase2_tdma = true;
-    if_rate = phase2_channel_rate;
-  } else {
-    d_phase2_tdma = false;
     if_rate = phase1_channel_rate;
-  }
+  } 
 
   arb_rate = if_rate / resampled_rate;
 
@@ -430,16 +426,14 @@ void dmr_recorder::set_tdma_slot(int slot) {
 bool dmr_recorder::start(Call *call) {
   if (state == INACTIVE) {
     System *system = call->get_system();
-    qpsk_mod = system->get_qpsk_mod();
-    set_tdma(call->get_phase2_tdma());
-    set_tdma_slot(call->get_tdma_slot());
+    set_tdma_slot(1);
 
-    if (call->get_xor_mask()) {
+    /*if (call->get_xor_mask()) {
       op25_frame_assembler->set_xormask(call->get_xor_mask());
     } else {
       BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
       return false;
-    }
+    }*/
 
 
     timestamp = time(NULL);
@@ -453,7 +447,7 @@ bool dmr_recorder::start(Call *call) {
     squelch_db = system->get_squelch_db();
     squelch->set_threshold(squelch_db);
 
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tQPSK: " << qpsk_mod;
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
     int offset_amount = (center_freq - chan_freq);
 
