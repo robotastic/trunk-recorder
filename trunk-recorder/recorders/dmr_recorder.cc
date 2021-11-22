@@ -221,7 +221,7 @@ void dmr_recorder::initialize(Source *src) {
   rx_queue = gr::msg_queue::make(100);
 
   int udp_port = 0;
-  int verbosity = 0; // 10 = lots of debug messages
+  int verbosity = 11; // 10 = lots of debug messages
   const char *udp_host = "";
   bool do_imbe = 1;
   bool do_output = 1;
@@ -426,7 +426,7 @@ void dmr_recorder::set_tdma_slot(int slot) {
 bool dmr_recorder::start(Call *call) {
   if (state == INACTIVE) {
     System *system = call->get_system();
-    set_tdma_slot(1);
+    set_tdma_slot(0);
 
     /*if (call->get_xor_mask()) {
       op25_frame_assembler->set_xormask(call->get_xor_mask());
