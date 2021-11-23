@@ -43,6 +43,7 @@ namespace gr {
                 int d_debug;
                 int d_msgq_id;
                 gr::msg_queue::sptr d_msg_queue;
+                std::deque<int16_t> output_queue;
                 rx_base* d_sync;
 
                 // internal functions

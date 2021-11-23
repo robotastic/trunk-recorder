@@ -98,6 +98,7 @@ namespace gr {
                     gr::io_signature::make (0, 0, 0)),
             d_msgq_id(msgq_id),
             d_msg_queue(queue),
+            output_queue(),
             d_sync(NULL)
         {
             if (strcasecmp(options, "smartnet") == 0)
@@ -105,7 +106,7 @@ namespace gr {
             else if (strcasecmp(options, "subchannel") == 0)
                 d_sync = new rx_subchannel(options, debug, msgq_id, queue);
             else
-                d_sync = new rx_sync(sys_num, options, debug, msgq_id, queue);
+                d_sync = new rx_sync(sys_num, options, debug, msgq_id, queue, output_queue);
         }
 
         int 
