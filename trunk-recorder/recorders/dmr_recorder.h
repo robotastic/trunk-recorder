@@ -66,7 +66,7 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 #include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
+#include <op25_repeater/include/op25_repeater/frame_assembler.h>
 
 
 #include <gnuradio/blocks/file_sink.h>
@@ -214,6 +214,7 @@ private:
 
 
   /* P25 Decoder */
+   gr::op25_repeater::frame_assembler::sptr framer;
     gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;

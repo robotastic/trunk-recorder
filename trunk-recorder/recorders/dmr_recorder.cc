@@ -230,7 +230,8 @@ void dmr_recorder::initialize(Source *src) {
   bool do_tdma = 1;
   bool do_nocrypt = 1;
 
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
+  framer = gr::op25_repeater::frame_assembler::make(0,"file:///tmp/out1.raw", verbosity, 1, rx_queue);
+  //op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
   converter = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(1);
   plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
@@ -254,8 +255,8 @@ void dmr_recorder::initialize(Source *src) {
   connect(noise_filter, 0, sym_filter, 0);
   connect(sym_filter, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, slicer,0);
-  connect(slicer, 0, op25_frame_assembler, 0);
-  connect(op25_frame_assembler, 0, converter, 0);
+  connect(slicer, 0, framer, 0);
+  connect(framer, 0, converter, 0);
   connect(converter, 0, levels, 0);
   connect(converter, 0, plugin_sink, 0);
   connect(levels, 0, wav_sink, 0);
@@ -284,7 +285,7 @@ void dmr_recorder::switch_tdma(bool phase2) {
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
 
-  op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
+  //op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
 }
 
 void dmr_recorder::set_tdma(bool phase2) {
@@ -382,7 +383,7 @@ void dmr_recorder::tune_offset(double f) {
     lo->set_frequency(freq);
   }
 
-  op25_frame_assembler->reset_rx_status();
+  //op25_frame_assembler->reset_rx_status();
 }
 
 void dmr_recorder::set_record_more_transmissions(bool more) {
@@ -411,7 +412,7 @@ void dmr_recorder::stop() {
     valve->set_enabled(false);
 
       wav_sink->stop_recording();
-      op25_frame_assembler->reset_rx_status();
+      //op25_frame_assembler->reset_rx_status();
 
   } else {
     BOOST_LOG_TRIVIAL(error) << "dmr_recorder.cc: Trying to Stop an Inactive Logger!!!";
@@ -420,7 +421,7 @@ void dmr_recorder::stop() {
 
 void dmr_recorder::set_tdma_slot(int slot) {
   tdma_slot = slot;
-  op25_frame_assembler->set_slotid(tdma_slot);
+  //op25_frame_assembler->set_slotid(tdma_slot);
 }
 
 bool dmr_recorder::start(Call *call) {
