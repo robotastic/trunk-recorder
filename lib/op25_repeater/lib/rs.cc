@@ -158,26 +158,26 @@ static const uint32_t gly23127DecTbl[2048] = {
 	1048579, 69635, 141315, 16387, 1048578, 1048579, 1048579, 4456451, 69635, 69634, 524291, 69635, 1048579, 69635, 2113539, 163843 };
 
 uint32_t gly23127GetSyn (uint32_t pattern) {
-uint32_t aux = 0x400000;
+	uint32_t aux = 0x400000;
 
-while(pattern & 0xFFFFF800) {
-  while ((aux & pattern) == 0) {
-    aux = aux >> 1;
-  }
-  pattern = pattern ^ (aux / 0x800 * 0xC75) ;//generator is C75
-}
-return pattern;
+	while(pattern & 0xFFFFF800) {
+		while ((aux & pattern) == 0) {
+			aux = aux >> 1;
+		}
+		pattern = pattern ^ (aux / 0x800 * 0xC75) ;//generator is C75
+	}
+	return pattern;
 }
 
 uint32_t gly24128Dec (uint32_t n, size_t* errs) { //based on gly23127Dec
-uint32_t CW = n >> 1 ; //toss the parity bit
-uint32_t correction = gly23127DecTbl[gly23127GetSyn(CW)];
-CW = (CW ^ correction) >> 11;
+	uint32_t CW = n >> 1 ; //toss the parity bit
+	uint32_t correction = gly23127DecTbl[gly23127GetSyn(CW)];
+	CW = (CW ^ correction) >> 11;
 
 	if (errs != NULL)
 		*errs = __builtin_popcount(correction);
 
-return CW;
+	return CW;
 }
 uint32_t gly23127Dec (uint32_t CW, size_t* errs) {
 	uint32_t correction = gly23127DecTbl[gly23127GetSyn(CW)];

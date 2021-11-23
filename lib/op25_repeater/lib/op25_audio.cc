@@ -38,7 +38,6 @@
 // convert hostname to ip address
 static int hostname_to_ip(const char *hostname , char *ip)
 {
-    int sockfd;  
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_in *h;
     int rv;
@@ -112,19 +111,19 @@ op25_audio::op25_audio(const char* destination, int debug) :
 
     if (memcmp(destination, P_UDP, strlen(P_UDP)) == 0) {
         char ip[20];
-        char host[64];
+        char host[128];
         const char * p1 = destination+strlen(P_UDP);
-        strncpy(host, p1, sizeof(host));
+        strncpy(host, p1, sizeof(host)-1);
         char * pc = index(host, ':');
         if (pc) {
             sscanf(pc+1, "%d", &port);
             *pc = 0;
         }
         if (hostname_to_ip(host, ip) == 0) {
-            strncpy(d_udp_host, ip, sizeof(d_udp_host));
+            strncpy(d_udp_host, ip, sizeof(d_udp_host)-1);
             d_udp_host[sizeof(d_udp_host)-1] = 0;
-        d_write_port = d_audio_port = port;
-        open_socket();
+            d_write_port = d_audio_port = port;
+            open_socket();
         }
     } else if (memcmp(destination, P_FILE, strlen(P_FILE)) == 0) {
         const char * filename = destination+strlen(P_FILE);
@@ -238,7 +237,7 @@ ssize_t op25_audio::send_audio_flag_channel(const udpFlagEnumType udp_flag, ssiz
         // 16 bit little endian encoding
         audio_flag[0] = (udp_flag & 0x00ff);
         audio_flag[1] = ((udp_flag & 0xff00) >> 8);
-        return do_send(audio_flag, 2, d_audio_port+slot_id, true);
+        return do_send(audio_flag, 2, d_audio_port + slot_id*2, true);
 }
 
 ssize_t op25_audio::send_audio_flag(const op25_audio::udpFlagEnumType udp_flag) const

@@ -283,6 +283,12 @@ bool p25_recorder::is_active() {
   }
 }
 
+bool p25_recorder::is_squelched() {
+  if (state == ACTIVE) {
+    return !squelch->unmuted();
+  }
+  return true;
+}
 bool p25_recorder::is_idle() {
   if (qpsk_mod) {
     if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)) {
@@ -452,6 +458,7 @@ bool p25_recorder::start(Call *call) {
     tune_offset(offset_amount);
     if (qpsk_mod) {
       modulation_selector->set_output_index(1);
+      qpsk_demod->reset();
       qpsk_p25_decode->start(call);
     } else {
       modulation_selector->set_output_index(0);

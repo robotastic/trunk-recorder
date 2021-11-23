@@ -112,11 +112,11 @@ void System::set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned lon
     if (sys_id && wacn && nac) {
       lfsr = new p25p2_lfsr(nac, sys_id, wacn);
       xor_mask = lfsr->getXorChars(xor_mask_len);
-      /*
+      
       BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
       for (unsigned i=0; i<xor_mask_len; i++) {
         std::cout << (short)xor_mask[i] << ", ";
-      }*/
+      }
     }
   }
 }

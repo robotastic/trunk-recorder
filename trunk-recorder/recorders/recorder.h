@@ -99,6 +99,7 @@ public:
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };
   virtual bool is_idle() { return true; };
+  virtual bool is_squelched() { return true; };  
   virtual double get_current_length() { return 0; };
   virtual double since_last_write() { return 0; };
   virtual void clear(){};

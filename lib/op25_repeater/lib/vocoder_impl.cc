@@ -1,20 +1,20 @@
 /* -*- c++ -*- */
-/*
+/* 
  * GNU Radio interface for Pavel Yazev's Project 25 IMBE Encoder/Decoder
- *
+ * 
  * Copyright 2009 Pavel Yazev E-mail: pyazev@gmail.com
  * Copyright 2009, 2010, 2011, 2012, 2013, 2014 KA1RBI
- *
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -94,7 +94,7 @@ vocoder_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd
     * samples/s. That's a sampling rate of 5/3 or 1.66667.
     *
     * When decoding, the block consumes one line of text per voice codeword.
-    * Each line of text is exactly 32 bytes.  It outputs 160 samples for each
+    * Each line of text is exactly 32 bytes.  It outputs 160 samples for each 
     * codeword; the ratio is thus 32/160 = 0.2.
     *
     * Thanks to Matt Mills for catching a bug where this value wasn't set correctly
@@ -104,7 +104,7 @@ vocoder_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd
    std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
 }
 
-int
+int 
 vocoder_impl::general_work_decode (int noutput_items,
 			       gr_vector_int &ninput_items,
 			       gr_vector_const_void_star &input_items,
@@ -129,7 +129,7 @@ vocoder_impl::general_work_decode (int noutput_items,
   return n;
 }
 
-int
+int 
 vocoder_impl::general_work_encode (int noutput_items,
 			       gr_vector_int &ninput_items,
 			       gr_vector_const_void_star &input_items,
@@ -143,8 +143,8 @@ vocoder_impl::general_work_encode (int noutput_items,
   if (nsamples_consume > 0) {
     p1voice_encode.compress_samp(in, nsamples_consume);
 
-  // Tell runtime system how many input items we consumed on
-  // each input stream.
+    // Tell runtime system how many input items we consumed on
+    // each input stream.
 
     consume_each (nsamples_consume);
   }
@@ -162,7 +162,7 @@ vocoder_impl::general_work_encode (int noutput_items,
   return n;
 }
 
-int
+int 
 vocoder_impl::general_work (int noutput_items,
 			       gr_vector_int &ninput_items,
 			       gr_vector_const_void_star &input_items,

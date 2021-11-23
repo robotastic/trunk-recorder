@@ -32,14 +32,14 @@ static uint8_t crc7(const uint8_t bits[], unsigned int len) {
 		return 0;
 	}
 	memset (buf, 0, sizeof(buf));
-	for (int i=0; i<len; i++){
+	for (unsigned int i=0; i<len; i++){
 		buf[i] = bits[i];
 	}
-	for (int i=0; i<len; i++)
+	for (unsigned int i=0; i<len; i++)
 		if (buf[i])
-			for (int j=0; j<K+1; j++)
+			for (unsigned int j=0; j<K+1; j++)
 				buf[i+j] ^= poly[j];
-	for (int i=0; i<K; i++){
+	for (unsigned int i=0; i<K; i++){
 		crc = (crc << 1) + buf[len + i];
 	}
 	return crc;
@@ -56,14 +56,14 @@ static uint8_t crc8(const uint8_t bits[], unsigned int len) {
 		return 0;
 	}
 	memset (buf, 0, sizeof(buf));
-	for (int i=0; i<len; i++){
+	for (unsigned int i=0; i<len; i++){
 		buf[i] = bits[i];
 	}
-	for (int i=0; i<len; i++)
+	for (unsigned int i=0; i<len; i++)
 		if (buf[i])
-			for (int j=0; j<K+1; j++)
+			for (unsigned int j=0; j<K+1; j++)
 				buf[i+j] ^= poly[j];
-	for (int i=0; i<K; i++){
+	for (unsigned int i=0; i<K; i++){
 		crc = (crc << 1) + buf[len + i];
 	}
 	return crc;
@@ -71,7 +71,7 @@ static uint8_t crc8(const uint8_t bits[], unsigned int len) {
 
 static bool crc8_ok(const uint8_t bits[], unsigned int len) {
 	uint16_t crc = 0;
-	for (int i=0; i < 8; i++) {
+	for (unsigned int i=0; i < 8; i++) {
 		crc = (crc << 1) + bits[len+i];
 	}
 	return (crc == crc8(bits,len));
@@ -94,7 +94,7 @@ static inline uint32_t crc32(const uint8_t buf[], size_t len)
 {
     uint32_t poly = 0xedb88320;
     uint32_t crc  = 0;
-    int k;
+    unsigned int k;
 
     crc = ~crc;
     while (len--) {

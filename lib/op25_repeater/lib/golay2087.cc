@@ -288,7 +288,7 @@ unsigned int CGolay2087::decode(bit_vector& data)
 
 	unsigned int code = 0;
 	unsigned int parity_bit = data[19];			// save parity bit
-	for (int i = 0; i < 19; i++) {		// parity bit ignored for table lookup
+	for (int i = 0; i < 19; i++) {				// parity bit ignored for table lookup
 		code <<= 1;
 		code |= data[i] & 0x1;
 	}

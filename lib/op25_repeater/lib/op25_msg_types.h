@@ -22,31 +22,50 @@
 #define INCLUDED_OP25_MSG_TYPES_H
 
 // Protocols
-static const int16_t PROTOCOL_P25 = 0;
-static const int16_t PROTOCOL_DMR = 1;
+static const int16_t PROTOCOL_P25       =  0;
+static const int16_t PROTOCOL_DMR       =  1;
+static const int16_t PROTOCOL_SMARTNET  =  2;
 
 // Msg Types (protocol specific)
 
 // P25 Messages
 //   message types < 0 are special
 //   message types >= 0 are based on DUID (0 thru 15)
-static const int16_t M_P25_TIMEOUT   = -1;
-static const int16_t M_P25_UI_REQ    = -2;
-static const int16_t M_P25_JSON_DATA = -3;
+static const int16_t M_P25_TIMEOUT      = -1;
+static const int16_t M_P25_UI_REQ       = -2;
+static const int16_t M_P25_JSON_DATA    = -3;
+static const int16_t M_P25_SYNC_ESTAB   = -4;
+static const int16_t M_P25_RESERVED     = -5; // used in Osmocom' NXDN trunking
+static const int16_t M_P25_DUID_HDU     =  0;
+static const int16_t M_P25_DUID_TDU     =  3;
+static const int16_t M_P25_DUID_LDU1    =  5;
+static const int16_t M_P25_DUID_TSBK    =  7;
+static const int16_t M_P25_DUID_LDU2    = 10;
+static const int16_t M_P25_DUID_PDU     = 12;
+static const int16_t M_P25_DUID_TDULC   = 15;
+static const int16_t M_P25_MAC_PTT      = 16;
+static const int16_t M_P25_MAC_END_PTT  = 17;
+static const int16_t M_P25_MAC_PDU      = 18;
+static const int16_t M_P25_FDMA_LCW     = 19;
 
 // DMR Messages
-static const int16_t M_DMR_TIMEOUT   = -1;
+static const int16_t M_DMR_TIMEOUT      = -1;
 
-static const int16_t M_DMR_CACH_SLC  = 0;
-static const int16_t M_DMR_CACH_CSBK = 1;
-static const int16_t M_DMR_SLOT_PI   = 2;
-static const int16_t M_DMR_SLOT_VLC  = 3;
-static const int16_t M_DMR_SLOT_TLC  = 4;
-static const int16_t M_DMR_SLOT_CSBK = 5;
-static const int16_t M_DMR_SLOT_MBC  = 6;
-static const int16_t M_DMR_SLOT_ELC  = 7;
-static const int16_t M_DMR_SLOT_ERC  = 8;
-static const int16_t M_DMR_SLOT_ESB  = 9;
+static const int16_t M_DMR_CACH_SLC     =  0;
+static const int16_t M_DMR_CACH_CSBK    =  1;
+static const int16_t M_DMR_SLOT_PI      =  2;
+static const int16_t M_DMR_SLOT_VLC     =  3;
+static const int16_t M_DMR_SLOT_TLC     =  4;
+static const int16_t M_DMR_SLOT_CSBK    =  5;
+static const int16_t M_DMR_SLOT_MBC     =  6;
+static const int16_t M_DMR_SLOT_ELC     =  7;
+static const int16_t M_DMR_SLOT_ERC     =  8;
+static const int16_t M_DMR_SLOT_ESB     =  9;
+
+// SMARTNET Messages
+static const int16_t M_SMARTNET_TIMEOUT = -1;
+static const int16_t M_SMARTNET_OSW     =  0;
+static const int16_t M_SMARTNET_END_PTT = 15;
 
 inline long get_msg_type(const int16_t proto, const int16_t msg) { return ((uint32_t)proto << 16) | ((uint32_t)msg & 0xffff); }
 

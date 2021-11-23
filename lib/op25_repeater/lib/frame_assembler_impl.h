@@ -30,43 +30,46 @@
 #include <arpa/inet.h>
 #include <deque>
 
-#include "rx_sync.h"
+#include "rx_base.h"
 
 typedef std::deque<uint8_t> dibit_queue;
 
 namespace gr {
-  namespace op25_repeater {
+    namespace op25_repeater {
 
-    class frame_assembler_impl : public frame_assembler
-    {
-     private:
-        int d_debug;
-	int d_msgq_id;
-	gr::msg_queue::sptr d_msg_queue;
-        rx_sync d_sync;
+        class frame_assembler_impl : public frame_assembler
+        {
+            private:
+                int d_debug;
+                int d_msgq_id;
+                gr::msg_queue::sptr d_msg_queue;
+                rx_base* d_sync;
 
-  // internal functions
+                // internal functions
 
-    void queue_msg(int duid);
-    void set_xormask(const char*p) ;
-    void set_slotid(int slotid) ;
-    void set_slotkey(int key) ;
+                void queue_msg(int duid);
+                void set_xormask(const char* p);
+                void set_nac(int nac);
+                void set_slotid(int slotid);
+                void set_slotkey(int key);
+                void set_debug(int debug);
+                void sync_reset();
 
- public:
+            public:
 
-     public:
-      frame_assembler_impl(const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue);
-      ~frame_assembler_impl();
+            public:
+                frame_assembler_impl(int sys_num, const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue);
+                ~frame_assembler_impl();
 
-      // Where all the action really happens
+                // Where all the action really happens
 
-      int general_work(int noutput_items,
-		       gr_vector_int &ninput_items,
-		       gr_vector_const_void_star &input_items,
-		       gr_vector_void_star &output_items);
-    };
+                int general_work(int noutput_items,
+                        gr_vector_int &ninput_items,
+                        gr_vector_const_void_star &input_items,
+                        gr_vector_void_star &output_items);
+        };
 
-  } // namespace op25_repeater
+    } // namespace op25_repeater
 } // namespace gr
 
 #endif /* INCLUDED_OP25_REPEATER_FRAME_ASSEMBLER_IMPL_H */

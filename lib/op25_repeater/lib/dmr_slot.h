@@ -72,8 +72,8 @@ public:
 	inline void set_slot_mask(int mask) { d_slot_mask = mask; };
 
 private:
-	uint8_t d_slot[SLOT_SIZE];	// array of bits comprising the current slot
-	bit_vector d_slot_type;
+	uint8_t     d_slot[SLOT_SIZE];	// array of bits comprising the current slot
+	bit_vector  d_slot_type;
 	byte_vector d_emb;		// last received Embedded data
 	byte_vector d_mbc;		// last received MBC data
 	byte_vector d_dhdr;		// last received Data Header data
@@ -92,14 +92,14 @@ private:
 	bool        d_sb_valid;		// flag indicating if SB data is valid
 	bool        d_pi_valid;		// flag indicating if PI data is valid
 	bool        d_dhdr_valid;	// flag indicating if DHDR data is valid
-	uint64_t d_type;
+	uint64_t    d_type;
 	uint8_t     d_cc;
 	int         d_msgq_id;
-	int d_debug;
-	int d_chan;
+	int         d_debug;
+	int         d_chan;
 	int         d_slot_mask;
         log_ts      logts;
-	CBPTC19696 bptc;
+	CBPTC19696  bptc;
 	CDMRTrellis trellis;
 	ezpwd::RS<255,252> rs12;	// Reed-Solomon(12,9) object for Link Control decode
 	gr::msg_queue::sptr d_msg_queue;

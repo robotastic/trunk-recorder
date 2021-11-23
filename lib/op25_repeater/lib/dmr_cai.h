@@ -37,6 +37,7 @@ public:
 	dmr_cai(int debug, int msgq_id, gr::msg_queue::sptr queue);
 	~dmr_cai();
 	bool load_frame(const uint8_t fr_sym[], bool& unmute);
+    void set_debug(int debug);
 	inline int chan() { return d_chan; };
 	inline void set_slot_mask(int mask);
 

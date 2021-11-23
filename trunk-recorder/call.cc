@@ -19,7 +19,7 @@ Call::Call(long t, double f, System *s, Config c) {
   freq_count = 0;
   error_list_count = 0;
   curr_freq = 0;
-  curr_src_id = 0;
+  curr_src_id = -1;
   talkgroup = t;
   sys = s;
   start_time = time(NULL);
@@ -46,7 +46,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   idle_count = 0;
   freq_count = 0;
   error_list_count = 0;
-  curr_src_id = 0;
+  curr_src_id = -1;
   curr_freq = 0;
   talkgroup = message.talkgroup;
   sys = s;
@@ -304,7 +304,7 @@ long Call::get_current_source_id() {
 }
 
 bool Call::add_source(long src) {
-  if (src == 0) {
+  if (src == -1) {
     return false;
   }
 
