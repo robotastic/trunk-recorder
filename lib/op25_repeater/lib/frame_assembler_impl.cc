@@ -130,7 +130,6 @@ namespace gr {
         amt_produce = noutput_items;
         int16_t *out = (int16_t *)output_items[0];
 
-        BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
           
         if (amt_produce > (int)output_queue.size()) {
           amt_produce = output_queue.size();
@@ -144,12 +143,14 @@ namespace gr {
           }
           output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
         } 
-      
+
+        //BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
+        
         consume_each(ninput_items[0]);
         // Tell runtime system how many output items we produced.
         return amt_produce;
 
-            }
+        }
 
     } /* namespace op25_repeater */
 } /* namespace gr */
