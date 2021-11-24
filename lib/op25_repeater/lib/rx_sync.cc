@@ -428,7 +428,7 @@ void rx_sync::codeword(const uint8_t* cw, const enum codeword_types codeword_typ
 		samp_buf[i] = snd;
 		output_queue.push_back(snd);
 	}
-	output(samp_buf, slot_id);
+	//output(samp_buf, slot_id);
 }
 
 void rx_sync::output(int16_t * samp_buf, const ssize_t slot_id) {
