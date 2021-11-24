@@ -95,7 +95,8 @@ namespace gr {
         frame_assembler_impl::frame_assembler_impl(int sys_num, const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue)
             : gr::block("frame_assembler",
                     gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
-                    gr::io_signature::make (0, 0, 0)),
+	                gr::io_signature::make ( 1, 1, sizeof(int16_t))),
+	
             d_msgq_id(msgq_id),
             d_msg_queue(queue),
             output_queue(),
@@ -123,9 +124,31 @@ namespace gr {
                         d_sync->rx_sym(in[i]);
                     }
                 }
-                consume_each(ninput_items[0]);
-                // Tell runtime system how many output items we produced.
-                return 0;
+        
+        int amt_produce = 0;
+
+        amt_produce = noutput_items;
+        int16_t *out = (int16_t *)output_items[0];
+
+        BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
+          
+        if (amt_produce > (int)output_queue.size()) {
+          amt_produce = output_queue.size();
+        }
+
+        if (amt_produce > 0) {
+
+          for (int i = 0; i < amt_produce; i++) {
+              BOOST_LOG_TRIVIAL(info) << output_queue[i];
+            out[i] = output_queue[i];
+          }
+          output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
+        } 
+      
+        consume_each(ninput_items[0]);
+        // Tell runtime system how many output items we produced.
+        return amt_produce;
+
             }
 
     } /* namespace op25_repeater */

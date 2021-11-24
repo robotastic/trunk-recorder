@@ -410,8 +410,7 @@ void dmr_recorder::stop() {
 
     state = INACTIVE;
     valve->set_enabled(false);
-
-      wav_sink->stop_recording();
+    wav_sink->stop_recording();
       //op25_frame_assembler->reset_rx_status();
 
   } else {

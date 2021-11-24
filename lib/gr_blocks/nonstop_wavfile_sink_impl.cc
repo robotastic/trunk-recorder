@@ -132,8 +132,6 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
   BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink ";
 
-
-
   return true;
 }
 
@@ -261,8 +259,6 @@ void nonstop_wavfile_sink_impl::stop_recording() {
   state = AVAILABLE;
 }
 
-
-
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
   unsigned int byte_count = d_sample_count * d_bytes_per_sample;
   wavheader_complete(d_fp, byte_count);
@@ -281,7 +277,6 @@ bool nonstop_wavfile_sink_impl::stop() {
 State nonstop_wavfile_sink_impl::get_state() {
   return this->state;
 }
-
 
 int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
@@ -378,6 +373,8 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   int n_in_chans = input_items.size();
   short int sample_buf_s;
   int nwritten;
+
+  BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t got samples: " << noutput_items << std::endl;
 
   if (d_termination_flag) {
 
