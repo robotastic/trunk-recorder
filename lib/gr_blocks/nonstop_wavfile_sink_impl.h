@@ -40,6 +40,7 @@ private:
 	unsigned d_sample_rate;
 	int d_nchans;		
 	int d_max_sample_val;
+	int d_slot;
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
@@ -122,6 +123,7 @@ public:
 	void create_base_filename();
 	char *get_filename();
 	bool start_recording(Call *call);
+	bool start_recording(Call* call, int slot);
 	void stop_recording();
 	void end_transmission();
 	void set_source(long src);

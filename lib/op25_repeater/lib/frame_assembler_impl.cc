@@ -95,7 +95,7 @@ namespace gr {
         frame_assembler_impl::frame_assembler_impl(int sys_num, const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue)
             : gr::block("frame_assembler",
                     gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
-	                gr::io_signature::make ( 1, 1, sizeof(int16_t))),
+	                gr::io_signature::make ( 2, 2, sizeof(int16_t))),
 	
             d_msgq_id(msgq_id),
             d_msg_queue(queue),
@@ -127,28 +127,35 @@ namespace gr {
         
         int amt_produce = 0;
 
-        amt_produce = noutput_items;
-        int16_t *out = (int16_t *)output_items[0];
-
+        
+        
+/*
           
         if (amt_produce > (int)output_queue.size()) {
           amt_produce = output_queue.size();
         }
+*/  
+        produce(0, output_queue[0].size());
+        produce(1, output_queue[1].size());
 
-        if (amt_produce > 0) {
-
-          for (int i = 0; i < amt_produce; i++) {
-              BOOST_LOG_TRIVIAL(info) << output_queue[i];
-            out[i] = output_queue[i];
+                if ((output_queue[0].size() > 0) || ( output_queue[1].size() > 0)) {
+        BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_queue 0: " << output_queue[0].size() << " output_queue 1: " << output_queue[1].size() <<" noutput_items: " <<  noutput_items;
+        }
+        for (int slot_id = 0; slot_id < 2; slot_id++) {
+        int16_t *out = (int16_t *)output_items[slot_id];
+          for (int i = 0; i < output_queue[slot_id].size(); i++) {
+              //BOOST_LOG_TRIVIAL(info) << output_queue[slot_id][i];
+            out[i] = output_queue[slot_id][i];
           }
-          output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
-        } 
+          output_queue[slot_id].clear();
+          //output_queue[slot_id].erase(output_queue[slot_id].begin(), output_queue[slot_id].begin() + output_queue[slot_id].size());
+        }
 
-        //BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
+        //BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_items 0: " << len(output_items[0]) << " output_items 1: " << len(output_items[1]) <<" noutput_items: " <<  noutput_items;
         
         consume_each(ninput_items[0]);
         // Tell runtime system how many output items we produced.
-        return amt_produce;
+        return WORK_CALLED_PRODUCE;
 
         }
 

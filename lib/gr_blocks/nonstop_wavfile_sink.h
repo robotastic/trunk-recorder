@@ -60,7 +60,7 @@ public:
 	 * \brief Opens a new file and writes a WAV header. Thread-safe.
 	 */
 	virtual bool start_recording(Call* call) = 0;
-
+	virtual bool start_recording(Call* call, int slot) = 0;
 	/*!
 	 * \brief Closes the currently active file and completes the WAV
 	 * header. Thread-safe.

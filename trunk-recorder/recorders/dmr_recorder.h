@@ -219,9 +219,11 @@ private:
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
 
-  gr::blocks::short_to_float::sptr converter;
+  gr::blocks::short_to_float::sptr converter_slot0;
+  gr::blocks::short_to_float::sptr converter_slot1;
   gr::blocks::multiply_const_ff::sptr levels;
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  gr::blocks::nonstop_wavfile_sink::sptr wav_sink_slot0;
+  gr::blocks::nonstop_wavfile_sink::sptr wav_sink_slot1;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
 
 };

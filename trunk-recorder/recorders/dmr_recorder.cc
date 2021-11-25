@@ -213,7 +213,8 @@ void dmr_recorder::initialize(Source *src) {
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
-  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
+  wav_sink_slot0 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
+  wav_sink_slot1 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
   //recorder->initialize(src);
   
   //OP25 Frame Assembler
@@ -221,7 +222,7 @@ void dmr_recorder::initialize(Source *src) {
   rx_queue = gr::msg_queue::make(100);
 
   int udp_port = 0;
-  int verbosity = 11; // 10 = lots of debug messages
+  int verbosity = 0; // 10 = lots of debug messages
   const char *udp_host = "";
   bool do_imbe = 1;
   bool do_output = 1;
@@ -232,7 +233,8 @@ void dmr_recorder::initialize(Source *src) {
 
   framer = gr::op25_repeater::frame_assembler::make(0,"file:///tmp/out1.raw", verbosity, 1, rx_queue);
   //op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
-  converter = gr::blocks::short_to_float::make(1, 32768.0);
+  converter_slot0 = gr::blocks::short_to_float::make(1, 32768.0);
+  converter_slot1 = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(1);
   plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -256,10 +258,10 @@ void dmr_recorder::initialize(Source *src) {
   connect(sym_filter, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, slicer,0);
   connect(slicer, 0, framer, 0);
-  connect(framer, 0, converter, 0);
-  connect(converter, 0, levels, 0);
-  connect(converter, 0, plugin_sink, 0);
-  connect(levels, 0, wav_sink, 0);
+  connect(framer, 0, converter_slot0, 0);
+  connect(framer, 1, converter_slot1, 0);
+  connect(converter_slot0, 0, wav_sink_slot0, 0);
+  connect(converter_slot1, 0, wav_sink_slot1, 0);
 }
 
 void dmr_recorder::plugin_callback_handler(float *samples, int sampleCount) {
@@ -308,11 +310,11 @@ int dmr_recorder::get_num() {
 
 double dmr_recorder::since_last_write() {
   time_t now = time(NULL);
-  return now - wav_sink->get_stop_time();
+  return now - wav_sink_slot0->get_stop_time();
 }
 
 State dmr_recorder::get_state() {
-  return wav_sink->get_state();
+  return wav_sink_slot0->get_state();
 }
 
 bool dmr_recorder::is_active() {
@@ -331,7 +333,7 @@ bool dmr_recorder::is_squelched() {
 }
 bool dmr_recorder::is_idle() {
 
-    if ((wav_sink->get_state() == IDLE) || (wav_sink->get_state() == STOPPED)) {
+    if ((wav_sink_slot0->get_state() == IDLE) || (wav_sink_slot0->get_state() == STOPPED)) {
       return true;
     }
   
@@ -343,7 +345,7 @@ double dmr_recorder::get_freq() {
 }
 
 double dmr_recorder::get_current_length() {
-    return wav_sink->total_length_in_seconds();
+    return wav_sink_slot0->total_length_in_seconds();
 }
 
 int dmr_recorder::lastupdate() {
@@ -387,12 +389,22 @@ void dmr_recorder::tune_offset(double f) {
 }
 
 void dmr_recorder::set_record_more_transmissions(bool more) {
-    return wav_sink->set_record_more_transmissions(more);
+  
+    return wav_sink_slot0->set_record_more_transmissions(more);
 }
 
-std::vector<Transmission> dmr_recorder::get_transmission_list() {
 
-    return wav_sink->get_transmission_list();
+bool compareTransmissions(Transmission t1, Transmission t2)
+{
+    return (t1.start_time < t2.start_time);
+}
+ 
+
+std::vector<Transmission> dmr_recorder::get_transmission_list() {
+    std::vector<Transmission> return_list = wav_sink_slot0->get_transmission_list();
+    return_list.insert( return_list.end(), wav_sink_slot1->get_transmission_list().begin(), wav_sink_slot1->get_transmission_list().end() );
+    sort(return_list.begin(), return_list.end(), compareTransmissions);
+    return return_list;
 
 }
 
@@ -404,13 +416,14 @@ Rx_Status dmr_recorder::get_rx_status() {
 void dmr_recorder::stop() {
   if (state == ACTIVE) {
 
-      recording_duration += wav_sink->total_length_in_seconds();
+      recording_duration += wav_sink_slot0->total_length_in_seconds();
 
     //BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
     state = INACTIVE;
     valve->set_enabled(false);
-    wav_sink->stop_recording();
+    wav_sink_slot0->stop_recording();
+    wav_sink_slot1->stop_recording();
       //op25_frame_assembler->reset_rx_status();
 
   } else {
@@ -453,7 +466,8 @@ bool dmr_recorder::start(Call *call) {
 
     tune_offset(offset_amount);
     levels->set_k(call->get_system()->get_digital_levels());
-    wav_sink->start_recording(call);
+    wav_sink_slot0->start_recording(call, 0);
+    wav_sink_slot1->start_recording(call, 1);
     state = ACTIVE;
     valve->set_enabled(true);
 

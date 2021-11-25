@@ -74,6 +74,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   }
   d_bytes_per_sample = bits_per_sample / 8;
   d_sample_count = 0;
+  d_slot = -1;
   d_first_work = true;
   d_termination_flag = false;
   state = AVAILABLE;
@@ -91,8 +92,12 @@ void nonstop_wavfile_sink_impl::create_base_filename() {
 
   int nchars;
 
-  nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
-
+  if (d_slot == -1) {
+    nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
+  } else {
+    // this is for the case when it is a DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
+    nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f.%d", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq,d_slot);
+  }
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
@@ -100,6 +105,11 @@ void nonstop_wavfile_sink_impl::create_base_filename() {
 
 char *nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
+}
+
+bool nonstop_wavfile_sink_impl::start_recording(Call *call, int slot) {
+  this->d_slot = slot;
+  this->start_recording(call);
 }
 
 bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
@@ -374,8 +384,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   short int sample_buf_s;
   int nwritten;
 
-  BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t got samples: " << noutput_items << std::endl;
-
+  
   if (d_termination_flag) {
 
     if (d_current_call == NULL) {
