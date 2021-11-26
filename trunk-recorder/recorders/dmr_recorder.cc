@@ -403,7 +403,7 @@ bool compareTransmissions(Transmission t1, Transmission t2)
 std::vector<Transmission> dmr_recorder::get_transmission_list() {
     std::vector<Transmission> return_list = wav_sink_slot0->get_transmission_list();
     std::vector<Transmission> second_list = wav_sink_slot1->get_transmission_list();
-    BOOST_LOG_TRIVIAL(info) << "Slot 0: "  << return_list.size() << "Slot 1: "  << second_list.size();
+    BOOST_LOG_TRIVIAL(info) << "Slot 0: "  << return_list.size() << " Slot 1: "  << second_list.size();
     return_list.insert( return_list.end(), second_list.begin(), second_list.end() );
     BOOST_LOG_TRIVIAL(info) << "Combined: "  << return_list.size();
     sort(return_list.begin(), return_list.end(), compareTransmissions);

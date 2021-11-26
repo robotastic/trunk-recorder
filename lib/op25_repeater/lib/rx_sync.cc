@@ -439,6 +439,23 @@ void rx_sync::output(int16_t * samp_buf, const ssize_t slot_id) {
 		d_audio.send_audio(samp_buf, NSAMP_OUTPUT * sizeof(int16_t));
 }
 
+bool rx_sync::get_terminated(int slot) {
+	if ((slot == 0) || (slot == 1)) {
+		return dmr.get_terminated(slot);
+	}
+	fprintf(stderr, "Error, Slot given is not 0 or 1\n");
+	return false;
+}
+
+int rx_sync::get_src_id(int slot) {
+	if ((slot == 0) || (slot == 1)) {
+		return dmr.get_src_id(slot);
+	}
+	fprintf(stderr, "Error, Slot given is not 0 or 1\n");
+	return -1;
+}
+
+
 void rx_sync::rx_sym(const uint8_t sym)
 {
 	uint8_t bitbuf[864*2];
