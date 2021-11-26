@@ -91,6 +91,7 @@ public:
   void stop();
   void clear();
   double get_freq();
+  long get_talkgroup();
   int get_num();
   void set_tdma(bool phase2);
   void switch_tdma(bool phase2);
