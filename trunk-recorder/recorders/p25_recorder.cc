@@ -306,6 +306,10 @@ double p25_recorder::get_freq() {
   return chan_freq;
 }
 
+long p25_recorder::get_talkgroup(){
+  return this->call->get_talkgroup();
+}
+
 double p25_recorder::get_current_length() {
   if (qpsk_mod) {
     return qpsk_p25_decode->get_current_length();
