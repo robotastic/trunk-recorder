@@ -281,10 +281,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Broadcastify API Key: " << system->get_bcfy_api_key();
       system->set_bcfy_system_id(node.second.get<int>("broadcastifySystemId", 0));
       BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
-      system->set_rdioscanner_api_key(node.second.get<std::string>("rdioscannerApiKey", ""));
-      BOOST_LOG_TRIVIAL(info) << "Rdio Scanner API Key: " << system->get_rdioscanner_api_key();
-      system->set_rdioscanner_system_id(node.second.get<int>("rdioscannerSystemId", 0));
-      BOOST_LOG_TRIVIAL(info) << "Rdio Scanner System ID: " << system->get_rdioscanner_system_id();
       system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
       BOOST_LOG_TRIVIAL(info) << "Upload Script: " << system->get_upload_script();
       system->set_compress_wav(node.second.get<bool>("compressWav", true));
@@ -516,8 +512,6 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
     config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
     BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
-    config.rdioscanner_server = pt.get<std::string>("rdioscannerServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Rdio Scanner Server: " << config.rdioscanner_server;
     config.status_server = pt.get<std::string>("statusServer", "");
     BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
     config.instance_key = pt.get<std::string>("instanceKey", "");
@@ -550,7 +544,6 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
     add_internal_plugin("openmhz_uploader","libopenmhz_uploader.so",  pt);
     add_internal_plugin("broadcastify_uploader", "libbroadcastify_uploader.so", pt);
-    add_internal_plugin("rdioscanner_uploader","librdioscanner_uploader.so",  pt);
     add_internal_plugin("unit_script", "libunit_script.so", pt);
     add_internal_plugin("stat_socket", "libstat_socket.so", pt);
     initialize_plugins(pt, &config, sources, systems);

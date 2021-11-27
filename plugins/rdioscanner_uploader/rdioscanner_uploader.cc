@@ -57,14 +57,10 @@ public:
 
     if (sys) {
       api_key = sys->api_key;
-      compress_wav = sys->compress_wav;
+      compress_wav = call_info.compress_wav;
       system_id = sys->system_id;
-      tg = sys->talkgroups->find_talkgroup(call_info.talkgroup);
-
-      if (tg) {
-        tg_group = tg->group;
-        tg_tag = tg->tag;
-      }
+      tg_group = call_info.talkgroup;
+      tg_tag = call_info.talkgroup_tag;
     }
 
     if (api_key.size() == 0) {
@@ -329,13 +325,22 @@ public:
   }
 
   int parse_config(boost::property_tree::ptree &cfg) {
+    /*
+          system->set_rdioscanner_api_key(node.second.get<std::string>("rdioscannerApiKey", ""));
+      BOOST_LOG_TRIVIAL(info) << "Rdio Scanner API Key: " << system->get_rdioscanner_api_key();
+      system->set_rdioscanner_system_id(node.second.get<int>("rdioscannerSystemId", 0));
+      BOOST_LOG_TRIVIAL(info) << "Rdio Scanner System ID: " << system->get_rdioscanner_system_id();
+
+    config.rdioscanner_server = pt.get<std::string>("rdioscannerServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Rdio Scanner Server: " << config.rdioscanner_server;*/
+
     // Tests to see if the rdioscannerServer value exists in the config file
-    boost::optional<std::string> upload_server_exists = cfg.get_optional<std::string>("rdioscannerServer");
+    boost::optional<std::string> upload_server_exists = cfg.get_optional<std::string>("server");
     if (!upload_server_exists) {
       return 1;
     }
 
-    this->data.server = cfg.get<std::string>("rdioscannerServer", "");
+    this->data.server = cfg.get<std::string>("server", "");
     BOOST_LOG_TRIVIAL(info) << "Rdio Scanner Server: " << this->data.server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
@@ -347,30 +352,15 @@ public:
       return 1;
     } 
 
-    std::string frequencyFormatString = cfg.get<std::string>("frequencyFormat", "exp");
-
-    if (boost::iequals(frequencyFormatString, "mhz")) {
-      frequencyFormat = 1;
-    } else if (boost::iequals(frequencyFormatString, "hz")) {
-      frequencyFormat = 2;
-    } else {
-      frequencyFormat = 0;
-    }
-
     // Gets the API key for each system, if defined
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
-      boost::optional<boost::property_tree::ptree &> rdioscanner_exists = node.second.get_child_optional("rdioscannerApiKey");
+      boost::optional<boost::property_tree::ptree &> rdioscanner_exists = node.second.get_child_optional("apiKey");
       if (rdioscanner_exists) {
         Rdio_Scanner_System sys;
-        sys.compress_wav = node.second.get<bool>("compressWav", false);
-        sys.api_key = node.second.get<std::string>("rdioscannerApiKey", "");
-        sys.system_id = node.second.get<std::string>("rdioscannerSystemId", "");
+
+        sys.api_key = node.second.get<std::string>("apiKey", "");
+        sys.system_id = node.second.get<std::string>("systemId", "");
         sys.short_name = node.second.get<std::string>("shortName", "");
-        sys.talkgroupsFile = node.second.get<std::string>("talkgroupsFile", "");
-        sys.talkgroups = new Talkgroups();
-        if (sys.talkgroupsFile != "") {
-          sys.talkgroups->load_talkgroups(sys.talkgroupsFile);
-        }
         BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << sys.short_name;
         this->data.systems.push_back(sys);
       }
@@ -384,8 +374,16 @@ public:
     return 0;
   }
 
-  /*
- int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
+  
+ int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { 
+
+   /* you can use this section if you needed to pull information from the Config, Systems, or Sources and add 
+      that to internal data */
+   
+   return 0; 
+  }
+
+ /*
    int start() { return 0; }
    int stop() { return 0; }
    int poll_one() { return 0; }

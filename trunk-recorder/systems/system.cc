@@ -24,22 +24,6 @@ void System::set_bcfy_system_id(int bcfy_system_id) {
   this->bcfy_system_id = bcfy_system_id;
 }
 
-std::string System::get_rdioscanner_api_key() {
-  return this->rdioscanner_api_key;
-}
-
-void System::set_rdioscanner_api_key(std::string rdioscanner_api_key) {
-  this->rdioscanner_api_key = rdioscanner_api_key;
-}
-
-int System::get_rdioscanner_system_id() {
-  return this->rdioscanner_system_id;
-}
-
-void System::set_rdioscanner_system_id(int rdioscanner_system_id) {
-  this->rdioscanner_system_id = rdioscanner_system_id;
-}
-
 std::string System::get_short_name() {
   return this->short_name;
 }
