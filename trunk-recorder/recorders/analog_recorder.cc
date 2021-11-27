@@ -92,6 +92,7 @@ analog_recorder::analog_recorder(Source *src)
   starttime = time(NULL);
 
   float offset = 0;
+  bool use_streaming = source->get_enable_audio_streaming();
 
   //int samp_per_sym        = 10;
   system_channel_rate = 96000; //4800 * samp_per_sym;
@@ -197,7 +198,7 @@ analog_recorder::analog_recorder(Source *src)
 
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wav_sample_rate, 16, true); //  Configurable
 
-  if(source->get_enable_audio_streaming()) {
+  if(use_streaming) {
     BOOST_LOG_TRIVIAL(info) << "Creating plugin sink..." << std::endl;
     plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&analog_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
     BOOST_LOG_TRIVIAL(info) << "Plugin sink created!" << std::endl;
@@ -239,7 +240,7 @@ analog_recorder::analog_recorder(Source *src)
   connect(decim_audio, 0, high_f, 0);
   connect(decim_audio, 0, decoder_sink, 0);
 
-  if(source->get_enable_audio_streaming()) {
+  if(use_streaming) {
     connect(decim_audio, 0, plugin_sink, 0);
   }
   
