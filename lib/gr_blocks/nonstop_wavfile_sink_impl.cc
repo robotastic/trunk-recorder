@@ -110,6 +110,7 @@ char *nonstop_wavfile_sink_impl::get_filename() {
 bool nonstop_wavfile_sink_impl::start_recording(Call *call, int slot) {
   this->d_slot = slot;
   this->start_recording(call);
+  return true;
 }
 
 bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
@@ -333,10 +334,9 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (pmt::eq(this_key, tags[i].key)) {
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
-      if (curr_src_id != src_id) {
-        //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
-      }
-      if (src_id && (curr_src_id != src_id)) {
+
+      if ((src_id != -1) && (curr_src_id != src_id)) {
+        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
         curr_src_id = src_id;
       }
     }
