@@ -383,6 +383,7 @@ bool load_config(string config_file) {
       int tia_gain = node.second.get<double>("tiaGain", 0);
       int vga1_gain = node.second.get<double>("vga1Gain", 0);
       int vga2_gain = node.second.get<double>("vga2Gain", 0);
+      bool audio_streaming = node.second.get<bool>("audioStreaming", false);
 
       std::string antenna = node.second.get<string>("antenna", "");
       int digital_recorders = node.second.get<int>("digitalRecorders", 0);
@@ -416,6 +417,7 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder", 0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
+      BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << node.second.get<bool>("audioStreaming", false);
 
       if ((ppm != 0) && (error != 0)) {
         BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
@@ -481,6 +483,8 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
       }
 
+      source->set_enable_audio_streaming(audio_streaming);
+
       source->set_gain_mode(agc);
       source->set_antenna(antenna);
       source->set_silence_frames(silence_frames);
@@ -494,6 +498,7 @@ bool load_config(string config_file) {
       if (config.debug_recorder) {
         source->create_debug_recorder(tb, source_count);
       }
+      
       sources.push_back(source);
       source_count++;
       BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n\n";

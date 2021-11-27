@@ -61,6 +61,14 @@ double Source::get_error() {
   return error;
 }
 
+bool Source::get_enable_audio_streaming() {
+  return enable_audio_streaming;
+}
+
+void Source::set_enable_audio_streaming(bool b) {
+  enable_audio_streaming = b;
+}
+
 void Source::set_gain(int r) {
   if (driver == "osmosdr") {
     gain = r;
