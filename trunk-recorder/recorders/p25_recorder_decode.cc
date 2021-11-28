@@ -13,7 +13,7 @@ p25_recorder_decode::p25_recorder_decode(Recorder* recorder)
     : gr::hier_block2("p25_recorder_decode",
                       gr::io_signature::make(1, 1, sizeof(float)),
                       gr::io_signature::make(0, 0, sizeof(float))) {
-  _recorder = recorder;
+  d_recorder = recorder;
 }
 
 p25_recorder_decode::~p25_recorder_decode(){
@@ -78,9 +78,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
   wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
   //recorder->initialize(src);
 
-  bool use_streaming = false;
-  if(_recorder->get_source() != NULL)
-    use_streaming = _recorder->get_source()->get_enable_audio_streaming();
+  bool use_streaming = d_recorder->get_enable_audio_streaming();
   
   //OP25 Frame Assembler
   traffic_queue = gr::msg_queue::make(2);
@@ -117,7 +115,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
 }
 
 void p25_recorder_decode::plugin_callback_handler(float *samples, int sampleCount) {
-  plugman_audio_callback(_recorder, samples, sampleCount);
+  plugman_audio_callback(d_recorder, samples, sampleCount);
 }
 
 double p25_recorder_decode::get_output_sample_rate() {

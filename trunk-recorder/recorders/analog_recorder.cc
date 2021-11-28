@@ -92,7 +92,12 @@ analog_recorder::analog_recorder(Source *src)
   starttime = time(NULL);
 
   float offset = 0;
-  bool use_streaming = source->get_enable_audio_streaming();
+  bool use_streaming = false; 
+  
+  if (config != NULL ) {
+    use_streaming = config->enable_audio_streaming;
+  }
+
 
   //int samp_per_sym        = 10;
   system_channel_rate = 96000; //4800 * samp_per_sym;
