@@ -62,11 +62,10 @@ double Source::get_error() {
 }
 
 bool Source::get_enable_audio_streaming() {
-  return enable_audio_streaming;
-}
-
-void Source::set_enable_audio_streaming(bool b) {
-  enable_audio_streaming = b;
+  if(get_config() == NULL)
+    return false;
+  else
+    return get_config()->enable_audio_streaming;
 }
 
 void Source::set_gain(int r) {

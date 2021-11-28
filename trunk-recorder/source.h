@@ -47,7 +47,6 @@ class Source {
   int max_sigmf_recorders;
   int max_analog_recorders;
   int debug_recorder_port;
-  bool enable_audio_streaming;
 
   int silence_frames;
   Config *config;
@@ -94,7 +93,6 @@ public:
   void set_silence_frames(int m);
   int get_silence_frames();
 
-  void set_enable_audio_streaming(bool b);
   bool get_enable_audio_streaming();
 
   int get_bb_gain();
