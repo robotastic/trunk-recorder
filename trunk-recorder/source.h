@@ -92,8 +92,6 @@ public:
 
   void set_silence_frames(int m);
   int get_silence_frames();
-
-
   int get_bb_gain();
   int get_mix_gain();
   int get_lna_gain();

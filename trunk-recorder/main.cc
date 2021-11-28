@@ -494,6 +494,7 @@ bool load_config(string config_file) {
       if (config.debug_recorder) {
         source->create_debug_recorder(tb, source_count);
       }
+      
       sources.push_back(source);
       source_count++;
       BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n\n";
@@ -532,6 +533,8 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+    config.enable_audio_streaming = pt.get<bool>("audioStreaming", false);
+    BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
 
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
 
