@@ -37,7 +37,7 @@ namespace gr {
         class OP25_REPEATER_API frame_assembler : virtual public gr::block
         {
             public:
-                typedef boost::shared_ptr<frame_assembler> sptr;
+                typedef std::shared_ptr<frame_assembler> sptr;
 
                 /*!
                  * \brief Return a shared_ptr to a new instance of op25_repeater::frame_assembler.

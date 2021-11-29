@@ -37,7 +37,7 @@ namespace gr {
         class OP25_REPEATER_API analog_udp : virtual public gr::block
         {
             public:
-                typedef boost::shared_ptr<analog_udp> sptr;
+                typedef std::shared_ptr<analog_udp> sptr;
 
                 /*!
                  * \brief Return a shared_ptr to a new instance of op25_repeater::analog_udp.

@@ -37,7 +37,7 @@ class OP25_REPEATER_API iqfile_source : virtual public gr::sync_block
 {
 public:
     // gr::op25_repeater::iqfile_source::sptr
-    typedef boost::shared_ptr<iqfile_source> sptr;
+    typedef std::shared_ptr<iqfile_source> sptr;
 
     /*!
      * \brief Create a file source.

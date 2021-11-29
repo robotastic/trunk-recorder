@@ -39,7 +39,7 @@ namespace gr {
         {
             public:
                 // gr::blocks::rmsagc_ff::sptr
-                typedef boost::shared_ptr<rmsagc_ff> sptr;
+                typedef std::shared_ptr<rmsagc_ff> sptr;
 
                 /*!
                  * \brief Make an RMS calc. block.
