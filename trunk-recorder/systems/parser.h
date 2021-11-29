@@ -14,7 +14,15 @@ enum MessageType {
   SYSID = 7,
   ACKNOWLEDGE = 8,
   LOCATION = 9,
+  MOTO_PATCH_ADD = 10,
   UNKNOWN = 99
+};
+
+struct PatchData {
+  unsigned long sg;
+  unsigned long ga1;
+  unsigned long ga2;
+  unsigned long ga3;
 };
 
 struct TrunkMessage {
@@ -34,6 +42,7 @@ struct TrunkMessage {
   unsigned long sys_id;
   unsigned long nac;
   unsigned long wacn;
+  PatchData patch_data;
 };
 
 class TrunkParser {

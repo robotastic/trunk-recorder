@@ -40,7 +40,6 @@ class p25_recorder;
   typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
 	#endif
 
-
 class System {
   int sys_num;
   unsigned long sys_id;
@@ -100,6 +99,8 @@ public:
 
   smartnet_trunking_sptr smartnet_trunking;
   p25_trunking_sptr p25_trunking;
+  
+  std::vector<std::map<int,std::time_t>> talkgroup_patches;  //vector of active patches.  Each patch contains a map of TGID->last updated timestamp
 
   std::string get_short_name();
   void set_short_name(std::string short_name);
@@ -206,6 +207,9 @@ public:
 
   boost::property_tree::ptree get_stats();
   boost::property_tree::ptree get_stats_current(float timeDiff);
+  
+  std::vector<std::map<int,std::time_t>> get_talkgroup_patches();
+  void set_talkgroup_patches(std::vector<std::map<int,std::time_t>> updated_talkgroup_patches);
 
 private:
   TalkgroupDisplayFormat talkgroup_display_format;

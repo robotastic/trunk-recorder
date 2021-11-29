@@ -451,3 +451,12 @@ boost::property_tree::ptree System::get_stats_current(float timeDiff) {
 
   return system_node;
 }
+
+std::vector<std::map<int,std::time_t>> System::get_talkgroup_patches(){
+	return talkgroup_patches;
+}
+
+void System::set_talkgroup_patches(std::vector<std::map<int,std::time_t>> updated_talkgroup_patches){
+	talkgroup_patches = updated_talkgroup_patches;
+}
+

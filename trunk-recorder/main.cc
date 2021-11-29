@@ -954,6 +954,75 @@ void handle_call(TrunkMessage message, System *sys) {
 
 }
 
+void clear_stale_moto_patches(System *sys){
+  std::map<int,std::time_t> patch_map;
+  std::vector<std::map<int,std::time_t>> current_patches = sys->get_talkgroup_patches();
+  std::vector<std::map<int,std::time_t>> updated_patches;
+  //for each patch map in the vector:
+  BOOST_FOREACH (auto& patch, current_patches) {
+    //for each TGID/element in the patch map:
+    patch_map.clear();
+    BOOST_FOREACH(auto& patch_element, patch){
+      if (std::time(nullptr) - patch_element.second < 3){  //3 second hard coded timeout for now
+        //only add back into our active patch map if the timestamp associated with this TGID is less than three seconds old
+        patch_map[patch_element.first] = patch_element.second; 
+      }
+    }
+    if(!patch_map.empty()){
+      updated_patches.push_back(patch_map);
+    }
+  }
+  BOOST_LOG_TRIVIAL(info) << "Found " << updated_patches.size() << " active Moto patches";
+  BOOST_FOREACH (auto& patch, updated_patches) {
+    string printstring;
+    BOOST_FOREACH(auto& patch_element, patch){
+      printstring+=" ";
+      printstring+= std::to_string(patch_element.first);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Active Moto Patch of TGIDs" << printstring;
+  }
+  sys->set_talkgroup_patches(updated_patches);
+}
+
+void update_moto_patches(TrunkMessage message, System *sys){
+  std::map<int,std::time_t> patch_map;
+  std::time_t update_time = std::time(nullptr);
+  std::vector<std::map<int,std::time_t>> current_patches = sys->get_talkgroup_patches();
+  std::vector<std::map<int,std::time_t>> updated_patches;
+  bool new_flag = true;
+  //for each patch map in the vector:
+  BOOST_FOREACH (auto& patch, current_patches) {
+    //for each TGID/element in the patch map:
+    patch_map.clear();
+    BOOST_FOREACH(auto& patch_element, patch){
+      patch_map[patch_element.first] = patch_element.second; 
+      //if the TGID == one of the TGIDs from our Message:
+      if (patch_element.first == (int)message.patch_data.sg || patch_element.first == int(message.patch_data.ga1) || patch_element.first == int(message.patch_data.ga2) || patch_element.first == int(message.patch_data.ga3)){
+        new_flag = false;
+        //BOOST_LOG_TRIVIAL(debug) << "Found existing patch to update";
+        patch_map[(int)message.patch_data.sg] = update_time;
+        patch_map[(int)message.patch_data.ga1] = update_time;
+        patch_map[(int)message.patch_data.ga2] = update_time;
+        patch_map[(int)message.patch_data.ga3] = update_time;
+      }
+    }
+    if(!patch_map.empty()){
+      updated_patches.push_back(patch_map);
+    }
+  }
+  if (new_flag == true){
+    patch_map.clear();
+    //TGIDs from the Message were not found in an existing patch, so add them to a new one
+    //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
+    patch_map[(int)message.patch_data.sg] = update_time;
+    patch_map[(int)message.patch_data.ga1] = update_time;
+    patch_map[(int)message.patch_data.ga2] = update_time;
+    patch_map[(int)message.patch_data.ga3] = update_time;
+    updated_patches.push_back(patch_map);
+  }
+  sys->set_talkgroup_patches(updated_patches);
+}
+
 void handle_message(std::vector<TrunkMessage> messages, System *sys) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
     TrunkMessage message = *it;
@@ -992,6 +1061,9 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       unit_acknowledge_response( sys, message.source);
       break;
 
+    case MOTO_PATCH_ADD:
+      update_moto_patches(message, sys);
+      break;
     case UNKNOWN:
       break;
     }
@@ -1182,6 +1254,7 @@ void monitor_messages() {
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
       lastMsgCountTime = current_time;
+      clear_stale_moto_patches(sys);
     }
 
     float statusTimeDiff = current_time - lastStatusTime;
