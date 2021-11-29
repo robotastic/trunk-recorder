@@ -481,7 +481,7 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
       }
 
-      source->set_gain_mode(agc);
+	    source->set_gain_mode(agc);
       source->set_antenna(antenna);
       source->set_silence_frames(silence_frames);
 
@@ -617,7 +617,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     call->set_talkgroup_tag("-");
   }
 
-  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode == 'E'))) {
+  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode.compare("E") == 0 || talkgroup->mode.compare("TE") == 0  || talkgroup->mode.compare("DE") == 0 ))) {
     if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
@@ -632,7 +632,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       source_found = true;
 
       if (talkgroup) {
-        if (talkgroup->mode == 'A') {
+        if (talkgroup->mode.compare("A") == 0) {
           recorder = source->get_analog_recorder(talkgroup);
         } else {
           recorder = source->get_digital_recorder(talkgroup);

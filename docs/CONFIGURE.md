@@ -249,7 +249,7 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 
 This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. If you are not a Radio Reference member, try clicking on the "List All in one table" link, selecting everything in the table and copying it into Excel or a spreadsheet, and then exporting or saving as a CSV file.
 
-**Note** - Fields in preformatted CSV downloads from Radio Reference are now in a different order than Trunk Recorder expects. See below for the correct field order. Additionally, Radio Reference inserts a header line at the tope of the CSV file which should be removed.
+**Note** - You can use the direct CSV from Radio Reference for talk groups, but setting priority is not supported with this file format.  If you need to use the Priority field, you'll need to reorder the CSV to match the format described below.
 
 You may add an additional column that adds a priority for each talkgroup. The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed.
 
