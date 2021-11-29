@@ -76,7 +76,7 @@ sudo apt upgrade
 ```
 - Add all of the libraries needed:
 ```bash
-sudo apt -y install libssl-dev openssl curl fdkaac sox libcurl3-gnutls libcurl4 libcurl4-openssl-dev gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev cmake make build-essential libboost-all-dev libusb-1.0-0.dev 
+sudo apt -y install libssl-dev openssl curl git fdkaac sox libcurl3-gnutls libcurl4 libcurl4-openssl-dev gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev cmake make build-essential libboost-all-dev libusb-1.0-0.dev 
 ```
 
 Configure RTL-SDRs to load correctly:

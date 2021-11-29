@@ -425,45 +425,51 @@ bool load_config(string config_file) {
       Source *source = new Source(center, rate, error, driver, device, &config);
       BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
       BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
+      if (node.second.count("gainSettings") != 0) {
+        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("gainSettings")) {
+            source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
+            gain_set = true;
+        }
+      }
 
       if (if_gain != 0) {
         gain_set = true;
-        source->set_if_gain(if_gain);
+        source->set_gain_by_name("IF", if_gain);
       }
 
       if (bb_gain != 0) {
         gain_set = true;
-        source->set_bb_gain(bb_gain);
+        source->set_gain_by_name("BB", bb_gain);
       }
 
       if (mix_gain != 0) {
         gain_set = true;
-        source->set_mix_gain(mix_gain);
+        source->set_gain_by_name("MIX", mix_gain);
       }
 
       if (lna_gain != 0) {
         gain_set = true;
-        source->set_lna_gain(lna_gain);
+        source->set_gain_by_name("LNA", lna_gain);
       }
 
       if (tia_gain != 0) {
         gain_set = true;
-        source->set_tia_gain(tia_gain);
+        source->set_gain_by_name("TIA", tia_gain);
       }
 
       if (pga_gain != 0) {
         gain_set = true;
-        source->set_pga_gain(pga_gain);
+        source->set_gain_by_name("PGA", pga_gain);
       }
 
       if (vga1_gain != 0) {
         gain_set = true;
-        source->set_vga1_gain(vga1_gain);
+        source->set_gain_by_name("VGA1", vga1_gain);
       }
 
       if (vga2_gain != 0) {
         gain_set = true;
-        source->set_vga2_gain(vga2_gain);
+        source->set_gain_by_name("VGA2", vga2_gain);
       }
 
       if (gain != 0) {
@@ -488,6 +494,7 @@ bool load_config(string config_file) {
       if (config.debug_recorder) {
         source->create_debug_recorder(tb, source_count);
       }
+      
       sources.push_back(source);
       source_count++;
       BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n\n";
@@ -526,6 +533,8 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+    config.enable_audio_streaming = pt.get<bool>("audioStreaming", false);
+    BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
 
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
 
@@ -720,7 +729,7 @@ void manage_conventional_call(Call *call) {
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Call Length: " << call->get_current_length() << "s\t Idle: " << call->get_recorder()->is_idle() << "\t Idle Count: " << call->get_idle_count();
 
       // means that the squelch is on and it has stopped recording
-      if (call->get_recorder()->is_idle()) {
+      if (call->get_recorder()->is_squelched()) {
         // increase the number of periods it has not been recording for
         call->increase_idle_count();
       } else if (call->get_idle_count() > 0) {

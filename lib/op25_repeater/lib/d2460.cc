@@ -40,6 +40,7 @@ static p25p2_vf interleaver;
 static mbe_parms cur_mp;
 static mbe_parms prev_mp;
 static mbe_parms enh_mp;
+static mbe_errs errs_mp;
 
 static const Uns DV3K_START_BYTE = 0x61;
 enum
@@ -57,7 +58,7 @@ static const Uns DV3K_AMBE_FIELD_TONE     = 0x08;
 static const Uns DV3K_AUDIO_FIELD_SPEECHD = 0x00;
 static const Uns DV3K_AUDIO_FIELD_CMODE   = 0x02;
 
-#pragma DATA_ALIGN(dstar_state, 2)
+//#pragma DATA_ALIGN(dstar_state, 2)
 static Uns bitstream[72];
 
 static Uns get_byte(Uns offset, Uns *p)
@@ -123,7 +124,7 @@ static void pack(Uns bits, Uns offset, Uns *p, Uns *bitstream)
 static void unpack(Uns bits, Uns offset, Uns *bitstream, Uns *p)
 {
     Uns i;
-    Uns byte;
+    Uns byte = 0;
     for (i = 0; i < bits; ++i)
     {
         if ((i & 7) == 0)
@@ -144,8 +145,10 @@ static void vocoder_setup(void) {
 	encoder.set_gain_adjust(GAIN_ADJUST);
 	encoder.set_alt_dstar_interleave(true);
 	mbe_initMbeParms (&cur_mp, &prev_mp, &enh_mp);
+	mbe_initErrParms (&errs_mp);
 }
 
+#if 0
 static void dump(unsigned char *p, ssize_t n)
 {
     int i;
@@ -154,6 +157,7 @@ static void dump(unsigned char *p, ssize_t n)
     if (i % 16)
         printf("\n");
 }
+#endif
 
 static Uns pkt_process(Uns*pkt, Uns cnt)
 {
@@ -161,12 +165,9 @@ static Uns pkt_process(Uns*pkt, Uns cnt)
     Uns len = cnt << 1;
     Uns payload_length;
     Uns i;
-    Uns cmode = 0;
-    Uns tone = 0;
     uint8_t codeword[72];
     int b[9];
     int K;
-    int rc = -1;
 
     if (len < 4 || cnt > 256)
         goto fail;
@@ -228,12 +229,10 @@ static Uns pkt_process(Uns*pkt, Uns cnt)
         case 17:
             if (get_byte(18, pkt) != DV3K_AMBE_FIELD_TONE)
                 goto fail;
-            tone = get_word(19, pkt);
             /* FALLTHROUGH */
         case 14:
             if (get_byte(15, pkt) != DV3K_AMBE_FIELD_CMODE)
                 goto fail;
-            cmode = get_word(16, pkt);
             /* FALLTHROUGH */
         case 11:
             if (get_byte(4, pkt) != DV3K_AMBE_FIELD_CHAND)
@@ -254,7 +253,7 @@ static Uns pkt_process(Uns*pkt, Uns cnt)
             memset(6+(char*)pkt, 0, 320);   // silence
             // FIXME: add handling for tone case (b0=126)
         } else {
-            rc = mbe_dequantizeAmbe2400Parms(&cur_mp, &prev_mp, b);
+            mbe_dequantizeAmbe2400Parms(&cur_mp, &prev_mp, &errs_mp, b);
             printf("B\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8]);
             K = 12;
             if (cur_mp.L <= 36)
@@ -291,7 +290,6 @@ static Uns pkt_process(Uns*pkt, Uns cnt)
         {
             if (get_byte(326, pkt) != DV3K_AUDIO_FIELD_CMODE)
                 goto fail;
-            cmode = get_word(323, pkt);
         }
         int16_t samples[160];
         for (i=0; i < 160; i++) {
@@ -322,10 +320,9 @@ int main()
     int sockfd;
     const ssize_t size_max = 1024;
     ssize_t size_in, size_out;
-    char buf_in[size_max], buf_out[size_max];
+    char buf_in[size_max];
     socklen_t length = sizeof(struct sockaddr_in);
-    struct sockaddr_in sa = { 0 };
-    Uns rc;
+    struct sockaddr_in sa;
 
     vocoder_setup();
 
@@ -348,7 +345,7 @@ int main()
         if (size_in & 1)
             buf_in[size_in++] = 0;
 
-        rc = pkt_process((Uns*)buf_in, size_in >> 1);
+        pkt_process((Uns*)buf_in, size_in >> 1);
         if (response_len <= 0)
             exit(9);
 

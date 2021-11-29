@@ -11,7 +11,7 @@ RUN apt-get update && \
     ca-certificates \
     fdkaac \
     git \
-    docker \
+    docker.io \
     gnupg \
     gnuradio \
     gnuradio-dev \

@@ -18,7 +18,7 @@ typedef std::vector<uint8_t> byte_vector;
 
 static const int          FRAME_SIZE		   = 1728;
 static const int          SYNC_SIZE		   = 48;
-static const unsigned int SYNC_THRESHOLD	   = 4;
+static const int          SYNC_THRESHOLD	   = 4;
 
 bool test_sync(uint64_t cw, int &errs) {
 	int popcnt = 0;
@@ -105,7 +105,6 @@ int main (int argc, char* argv[]) {
 	size_t total_bit_count = 0;
 	double total_ber = 0;
 	size_t max_bit_errs = 0;
-	size_t max_bit_count = 0;
 	double max_ber = 0;
 
 	// run through received symbols chunk by chunk
@@ -155,7 +154,6 @@ int main (int argc, char* argv[]) {
 		total_bit_errs += chunk_bit_errs;
 		if (chunk_ber > max_ber) {
 			max_bit_errs = chunk_bit_errs;
-			max_bit_count = chunk_bit_count;
 			max_ber = chunk_ber;
 		}
 

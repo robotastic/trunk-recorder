@@ -105,11 +105,11 @@ void imbe_vocoder::v_uv_det(IMBE_PARAM *imbe_param, Cmplx16 *fft_buf)
 	Word16 i, j, index_a_save, tmp, index_wr;
 	Word32 fund_freq, fund_freq_2, fund_freq_acc_a, fund_freq_acc_b, fund_freq_acc, fund_fr_acc, L_tmp, amp_re_acc, amp_im_acc;
 	Word16 ha, hb, index_a, index_b, index_tbl[30], it_ind, re_tmp, im_tmp, re_tmp2, im_tmp2, sc_coef;
-	Word32 Sw_sum, M_num[NUM_HARMS_MAX], M_num_sum, M_den_sum, D_num, D_den, th_lf, th_hf, th0, fund_fr_step, M_fcn_num, M_fcn_den; 
+	Word32 M_num[NUM_HARMS_MAX], M_num_sum, M_den_sum, D_num, D_den, th_lf, th_hf, th0, fund_fr_step, M_fcn_num, M_fcn_den; 
 	Word16 sp_rec_re, sp_rec_im, M_fcn;
 	Word16 band_cnt, num_harms_cnt, uv_harms_cnt,  Dk;
 	Word16 num_harms, num_bands, dsn_thr=0;
-	Word16 thr[NUM_BANDS_MAX], M_den[NUM_HARMS_MAX], b1_vec;
+	Word16 M_den[NUM_HARMS_MAX], b1_vec;
 
 
 	fund_freq = imbe_param->fund_freq;
@@ -183,7 +183,6 @@ void imbe_vocoder::v_uv_det(IMBE_PARAM *imbe_param, Cmplx16 *fft_buf)
 	b1_vec          = 0;
 	band_cnt        = 0;
 	num_harms_cnt   = 0;
-	Sw_sum          = 0;	
 	D_num = D_den   = 0;
 
 	fund_fr_acc     = 0;
@@ -217,8 +216,6 @@ void imbe_vocoder::v_uv_det(IMBE_PARAM *imbe_param, Cmplx16 *fft_buf)
 				dsn_thr = mult(M_fcn, sub(CNST_0_45_Q1_15,   mult(CNST_0_1393_Q1_15, extract_h(fund_fr_acc))));
 
 			fund_fr_acc = L_add(fund_fr_acc, fund_fr_step);
-
-			thr[band_cnt] = dsn_thr;
 		}
 		// ====================================================
 

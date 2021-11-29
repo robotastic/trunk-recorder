@@ -51,7 +51,7 @@ op25_timer::expired()
 		diff_sec  -= 1;
 	}
 	diff_usec += diff_sec * 1000000;
-	if (diff_usec >= d_duration)
+	if ((uint64_t)diff_usec >= d_duration)
 		return true;
 
 	return false;

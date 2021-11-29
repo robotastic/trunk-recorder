@@ -170,6 +170,12 @@ void p25_recorder::initialize(Source *src) {
   timestamp = time(NULL);
   starttime = time(NULL);
 
+  if (config == NULL ) {
+    this->set_enable_audio_streaming(false);
+  } else {
+    this->set_enable_audio_streaming(config->enable_audio_streaming);
+  }
+
   initialize_prefilter();
   //initialize_p25();
 
@@ -283,6 +289,12 @@ bool p25_recorder::is_active() {
   }
 }
 
+bool p25_recorder::is_squelched() {
+  if (state == ACTIVE) {
+    return !squelch->unmuted();
+  }
+  return true;
+}
 bool p25_recorder::is_idle() {
   if (qpsk_mod) {
     if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)) {
@@ -452,6 +464,7 @@ bool p25_recorder::start(Call *call) {
     tune_offset(offset_amount);
     if (qpsk_mod) {
       modulation_selector->set_output_index(1);
+      qpsk_demod->reset();
       qpsk_p25_decode->start(call);
     } else {
       modulation_selector->set_output_index(0);

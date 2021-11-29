@@ -32,6 +32,7 @@ struct Config {
   int control_message_warn_rate;
   int control_retune_limit;
   bool broadcast_signals;
+  bool enable_audio_streaming;
 };
 
 

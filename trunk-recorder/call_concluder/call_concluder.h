@@ -37,7 +37,7 @@ struct Call_Data_t {
   char status_filename[300];
   char converted[300];
 
-
+  std::string talkgroup_tag;
   std::string short_name;
   std::string upload_script;
 

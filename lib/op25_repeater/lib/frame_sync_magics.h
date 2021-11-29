@@ -40,6 +40,10 @@ static const uint64_t P25_FRAME_SYNC_MAGIC     = 0x5575F5FF77FFLL;
 static const uint64_t P25_FRAME_SYNC_REV_P     = 0x5575F5FF77FFLL ^ 0xAAAAAAAAAAAALL;
 static const uint64_t P25_FRAME_SYNC_MASK      = 0xFFFFFFFFFFFFLL;
 
+static const uint64_t P25_FRAME_SYNC_N1200     = 0x001050551155LL;
+static const uint64_t P25_FRAME_SYNC_X2400     = 0xAA8A0A008800LL;
+static const uint64_t P25_FRAME_SYNC_P1200     = 0xFFEFAFAAEEAALL;
+
 static const uint64_t P25P2_FRAME_SYNC_MAGIC   = 0x575D57F7FFLL;   // 40 bits
 static const uint64_t P25P2_FRAME_SYNC_REV_P   = 0x575D57F7FFLL ^ 0xAAAAAAAAAALL;
 static const uint64_t P25P2_FRAME_SYNC_MASK    = 0xFFFFFFFFFFLL;
@@ -49,6 +53,10 @@ static const uint64_t DSTAR_FRAME_SYNC_MAGIC   = 0x444445101440LL;
 
 // YSF
 static const uint64_t YSF_FRAME_SYNC_MAGIC     = 0xd471c9634dLL;   // 40 bits
+
+// MOTO SMARTNET
+static const uint64_t SMARTNET_SYNC_MAGIC      = 0xACLL; // 8 bits
+static const uint64_t SUBCHANNEL_SYNC_MAGIC    = 0x08LL; // 5 bits
 
 
 #endif /* INCLUDED_FRAME_SYNC_MAGICS */

@@ -13,9 +13,9 @@
 
 #include "frame_sync_magics.h"
 
-static const int          SYNC_SIZE		   = 48; // 48 bits
-static const unsigned int SYNC_THRESHOLD	   = 6;  // up to 6 bit errorss
-static const unsigned int SYNC_MAGICS_COUNT    = 12;
+static const int          SYNC_SIZE            = 48; // 48 bits
+static const int          SYNC_THRESHOLD       = 6;  // up to 6 bit errorss
+static const int          SYNC_MAGICS_COUNT    = 12;
 static const uint64_t     SYNC_MAGICS[]        = {DMR_BS_VOICE_SYNC_MAGIC,
                                                   DMR_BS_DATA_SYNC_MAGIC,
                                                   DMR_MS_VOICE_SYNC_MAGIC,

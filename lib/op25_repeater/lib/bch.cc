@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <vector>
-#include "bch.h"
+#include <bch.h>
 /*
  * Copyright 2010, KA1RBI 
  */
@@ -30,7 +30,7 @@ int bchDec(bit_vector& Codeword)
 
    int elp[24][ 22], S[23];
    int D[23], L[24], uLu[24];
-   int root[11], locn[11], reg[12];
+   int locn[11], reg[12];
    int i,j,U,q,count;
    int SynError, CantDecode;
 
@@ -139,8 +139,8 @@ int bchDec(bit_vector& Codeword)
                   reg[j] =(reg[j] + j) % 63; q = q ^ bchGFexp[reg[j]];
                }
             }
-            if( q == 0) { //store root and error location number indices
-               root[count] = i; locn[count] = 63 - i; count = count + 1;
+            if( q == 0) { //store error location number indices
+               locn[count] = 63 - i; count = count + 1;
             }
          }
          if( count == L[U]) {

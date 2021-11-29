@@ -35,6 +35,7 @@ private:
 	p25p2_vf interleaver;
 	mbe_parms cur_mp;
 	mbe_parms prev_mp;
+	mbe_errs errs_mp;
 	bool d_49bit_mode;
 	bool d_dstar_mode;
 	float d_gain_adjust;

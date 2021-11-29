@@ -1,21 +1,21 @@
 /* -*- c++ -*- */
-/*
+/* 
  * Copyright 2005,2006,2007 Free Software Foundation, Inc.
  *
  * Gardner symbol recovery block for GR - Copyright 2010, 2011, 2012, 2013 KA1RBI
- *
+ * 
  * This file is part of OP25 and part of GNU Radio
- *
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -65,10 +65,11 @@ namespace gr {
 		       gr_vector_void_star &output_items);
   void set_verbose (bool verbose) { d_verbose = verbose; }
 
-  //! Sets value of omega and its min and max values
+  //! Sets value of omega and its min and max values 
   void set_omega (float omega);
   float get_freq_error(void);
-void reset();
+  int get_error_band(void);
+  void reset();
   void update_omega (float samples_per_symbol);
   void update_fmax (float max_freq);
 
@@ -103,6 +104,15 @@ protected:
   float				d_max_freq;
 
   uint64_t			nid_accum;
+
+  gr_complex			d_prev;
+  int				d_event_count;
+  char				d_event_type;
+  int				d_symbol_seq;
+  int				d_update_request;
+  float				d_fm;
+  float				d_fm_accum;
+  int				d_fm_count;
 
   float phase_error_detector_qpsk(gr_complex sample);
   void phase_error_tracking(gr_complex sample);

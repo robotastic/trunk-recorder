@@ -22,12 +22,13 @@
 
 #include <stdint.h>
 #include <vector>
+#include "mbelib.h"
 
 typedef std::vector<uint8_t> packed_codeword;
 
 class p25p2_vf {
 public:
-	size_t process_vcw(const uint8_t vf[], int* b, int* U = NULL);
+	size_t process_vcw(mbe_errs* errs_mp, const uint8_t vf[], int* b, int* U = NULL);
 	void encode_vcw(uint8_t vf[], const int* b);
 	void encode_dstar(uint8_t result[72], const int b[9], bool alt_dstar_interleave);
 	size_t decode_dstar(const uint8_t codeword[72], int b[9], bool alt_dstar_interleave);

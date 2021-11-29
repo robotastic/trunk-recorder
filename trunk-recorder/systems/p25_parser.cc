@@ -84,7 +84,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   std::ostringstream os;
 
   message.message_type = UNKNOWN;
-  message.source = 0;
+  message.source = -1;
   message.wacn = 0;
   message.nac = nac;
   message.sys_id = 0;
@@ -215,7 +215,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   std::ostringstream os;
 
   message.message_type = UNKNOWN;
-  message.source = 0;
+  message.source = -1;
   message.wacn = 0;
   message.nac = nac;
   message.sys_id = 0;
@@ -804,7 +804,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
   int sys_num = msg->arg1();
   TrunkMessage message;
   message.message_type = UNKNOWN;
-  message.source = 0;
+  message.source = -1;
   message.sys_num = sys_num;
   if (type == -2) { // # request from gui
     std::string cmd = msg->to_string();
@@ -824,6 +824,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
     messages.push_back(message);
     return messages;
   }
+
   std::string s = msg->to_string();
 
   // # nac is always 1st two bytes
@@ -832,6 +833,12 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
   uint8_t s1 = (int)s[1];
   int shift = s0 << 8;
   long nac = shift + s1;
+  
+  if (s.length() <= 2) {
+    BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " s0: " << s0 << " s1: " << s1 << " shift: " << shift << " nac: " << nac << " type: " << type;
+    messages.push_back(message);
+    return messages;
+  } 
 
   if (nac == 0xffff) {
     // # TDMA
