@@ -23,7 +23,6 @@ struct Channel {
 class P25Parser : public TrunkParser {
   std::map<int, std::map<int, Channel>> channels;
   std::map<int, Channel>::iterator it;
-  std::vector<std::vector<int>> patches;
 
 public:
   P25Parser();
