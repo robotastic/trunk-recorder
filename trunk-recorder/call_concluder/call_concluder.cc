@@ -66,6 +66,18 @@ int create_call_json(Call_Data_t call_info) {
     //json_file << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
     json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_tag << "\",\n";
+
+    if (call_info.patched_talkgroups.size()>1){
+      json_file << "\"patched_talkgroups\": [";
+      bool first = true;
+      BOOST_FOREACH (auto& TGID, call_info.patched_talkgroups) {
+        if (!first) { json_file << ","; }
+        first = false;
+        json_file << (int)TGID;
+      }
+      json_file << "],\n";
+    }
+
     json_file << "\"freqList\": [";
     json_file << "{ \"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.start_time << ", \"pos\": 0.0, \"len\": " << call_info.length << ", \"error_count\": 0.0, \"spike_count\": 0.0}";
     json_file << "],\n";
@@ -225,6 +237,19 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.call_log = sys->get_call_log();
   call_info.call_num = call->get_call_num();
   call_info.compress_wav = sys->get_compress_wav();
+  
+  std::vector<std::map<int,std::time_t>> current_patches = sys->get_talkgroup_patches();
+  //Loop through each patch patch list.  If our the talkgroup from this call is part
+  //of a patch, add the patch data to the call info
+  BOOST_FOREACH (auto& patch, current_patches) {
+    if (patch.find(call_info.talkgroup) != patch.end()) {
+      //current TG is part of this patch
+      //for each TGID/element in this patch:
+      BOOST_FOREACH(auto& patch_element, patch){
+        call_info.patched_talkgroups.push_back(patch_element.first);
+      }
+    }
+  }
 
 
 
