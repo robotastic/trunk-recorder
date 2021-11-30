@@ -37,8 +37,11 @@ namespace gr {
         class OP25_REPEATER_API analog_udp : virtual public gr::block
         {
             public:
+                #if GNURADIO_VERSION < 0x030900
+                typedef boost::shared_ptr<analog_udp> sptr;
+                #else
                 typedef std::shared_ptr<analog_udp> sptr;
-
+                #endif
                 /*!
                  * \brief Return a shared_ptr to a new instance of op25_repeater::analog_udp.
                  *

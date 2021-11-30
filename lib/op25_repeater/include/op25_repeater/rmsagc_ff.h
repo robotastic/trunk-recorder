@@ -39,8 +39,11 @@ namespace gr {
         {
             public:
                 // gr::blocks::rmsagc_ff::sptr
+                #if GNURADIO_VERSION < 0x030900
+                typedef boost::shared_ptr<rmsagc_ff> sptr;
+                #else
                 typedef std::shared_ptr<rmsagc_ff> sptr;
-
+                #endif
                 /*!
                  * \brief Make an RMS calc. block.
                  * \param alpha gain for running average filter.
