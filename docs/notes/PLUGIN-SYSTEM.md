@@ -29,7 +29,7 @@ Plugins can *optionally* implement the following methods, based on usage, or set
 * `call_start(plugin_t * const plugin, Call *call)`
   * Called when a new call is starting.
 
-* `call_end(plugin_t * const plugin, Call *call)`
+* `call_end(plugin_t * const plugin, Call_Data_t call_info)`
   * Called when a call has ended.
 
 * `setup_recorder(plugin_t * const plugin, Recorder *recorder)`
