@@ -205,13 +205,19 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 
 void nonstop_wavfile_sink_impl::set_source(long src) {
   gr::thread::scoped_lock guard(d_mutex);
+
+  char formattedTalkgroup[62];
+  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+
   if (curr_src_id == -1) {
+
+    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: "<< src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+
     curr_src_id = src;
   } else if (src != curr_src_id) {
     if (state == RECORDING) {
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+
       BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: "<< src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
       if (d_sample_count > 0) {
@@ -335,10 +341,29 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
 
-      if ((src_id != -1) && (curr_src_id != src_id)) {
-        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
+      if (curr_src_id == -1) {
+        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+        
+        curr_src_id = src_id;
+      } else if (src_id != curr_src_id) {
+        if (state == RECORDING) {
+
+          if (d_sample_count > 0) {
+            end_transmission();
+          }
+
+          if (!record_more_transmissions) {
+            state = STOPPED;
+          } else {
+            state = IDLE;
+            d_first_work = true;
+          }
+        }
+        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+        
         curr_src_id = src_id;
       }
+
     }
     if (pmt::eq(that_key, tags[i].key) || pmt::eq(squelch_key, tags[i].key)) {
       d_termination_flag = true;
