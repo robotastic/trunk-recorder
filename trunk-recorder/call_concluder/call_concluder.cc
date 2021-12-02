@@ -238,21 +238,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.call_num = call->get_call_num();
   call_info.compress_wav = sys->get_compress_wav();
   
-  std::vector<std::map<int,std::time_t>> current_patches = sys->get_talkgroup_patches();
-  //Loop through each patch patch list.  If our the talkgroup from this call is part
-  //of a patch, add the patch data to the call info
-  BOOST_FOREACH (auto& patch, current_patches) {
-    if (patch.find(call_info.talkgroup) != patch.end()) {
-      //current TG is part of this patch
-      //for each TGID/element in this patch:
-      BOOST_FOREACH(auto& patch_element, patch){
-        call_info.patched_talkgroups.push_back(patch_element.first);
-      }
-    }
-  }
-
-
-
+  call_info.patched_talkgroups = sys->get_talkgroup_patch(call_info.talkgroup);
+  
     // loop through the transmission list, pull in things to fill in totals for call_info
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {

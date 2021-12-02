@@ -954,9 +954,10 @@ void handle_call(TrunkMessage message, System *sys) {
 
 }
 
-void clear_stale_moto_patches(System *sys){
+/*
+void clear_stale_patches(System *sys){
   std::map<int,std::time_t> patch_map;
-  std::vector<std::map<int,std::time_t>> current_patches = sys->get_talkgroup_patches();
+  std::vector<std::map<int,std::time_t>> current_patches = sys->get_active_talkgroup_patches();
   std::vector<std::map<int,std::time_t>> updated_patches;
   //for each patch map in the vector:
   BOOST_FOREACH (auto& patch, current_patches) {
@@ -981,13 +982,15 @@ void clear_stale_moto_patches(System *sys){
     }
     BOOST_LOG_TRIVIAL(info) << "Active Moto Patch of TGIDs" << printstring;
   }
-  sys->set_talkgroup_patches(updated_patches);
+  sys->set_active_talkgroup_patches(updated_patches);
 }
+*/
 
-void update_moto_patches(TrunkMessage message, System *sys){
+/*
+void update_patches(TrunkMessage message, System *sys){
   std::map<int,std::time_t> patch_map;
   std::time_t update_time = std::time(nullptr);
-  std::vector<std::map<int,std::time_t>> current_patches = sys->get_talkgroup_patches();
+  std::vector<std::map<int,std::time_t>> current_patches = sys->get_active_talkgroup_patches();
   std::vector<std::map<int,std::time_t>> updated_patches;
   bool new_flag = true;
   //for each patch map in the vector:
@@ -996,15 +999,16 @@ void update_moto_patches(TrunkMessage message, System *sys){
     patch_map.clear();
     BOOST_FOREACH(auto& patch_element, patch){
       patch_map[patch_element.first] = patch_element.second; 
-      //if the TGID == one of the TGIDs from our Message:
-      if (patch_element.first == (int)message.patch_data.sg || patch_element.first == int(message.patch_data.ga1) || patch_element.first == int(message.patch_data.ga2) || patch_element.first == int(message.patch_data.ga3)){
+      //Motorola patch message case.  If the TGID == one of the TGIDs from our Message:
+      if (patch_element.first == (int)message.moto_patch_data.sg || patch_element.first == int(message.moto_patch_data.ga1) || patch_element.first == int(message.moto_patch_data.ga2) || patch_element.first == int(message.moto_patch_data.ga3)){
         new_flag = false;
         //BOOST_LOG_TRIVIAL(debug) << "Found existing patch to update";
-        patch_map[(int)message.patch_data.sg] = update_time;
-        patch_map[(int)message.patch_data.ga1] = update_time;
-        patch_map[(int)message.patch_data.ga2] = update_time;
-        patch_map[(int)message.patch_data.ga3] = update_time;
+        patch_map[(int)message.moto_patch_data.sg] = update_time;
+        patch_map[(int)message.moto_patch_data.ga1] = update_time;
+        patch_map[(int)message.moto_patch_data.ga2] = update_time;
+        patch_map[(int)message.moto_patch_data.ga3] = update_time;
       }
+      //Can add another If statement here to handle Harris patch message?
     }
     if(!patch_map.empty()){
       updated_patches.push_back(patch_map);
@@ -1014,15 +1018,15 @@ void update_moto_patches(TrunkMessage message, System *sys){
     patch_map.clear();
     //TGIDs from the Message were not found in an existing patch, so add them to a new one
     //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
-    patch_map[(int)message.patch_data.sg] = update_time;
-    patch_map[(int)message.patch_data.ga1] = update_time;
-    patch_map[(int)message.patch_data.ga2] = update_time;
-    patch_map[(int)message.patch_data.ga3] = update_time;
+    patch_map[(int)message.moto_patch_data.sg] = update_time;
+    patch_map[(int)message.moto_patch_data.ga1] = update_time;
+    patch_map[(int)message.moto_patch_data.ga2] = update_time;
+    patch_map[(int)message.moto_patch_data.ga3] = update_time;
     updated_patches.push_back(patch_map);
   }
-  sys->set_talkgroup_patches(updated_patches);
+  sys->set_active_talkgroup_patches(updated_patches);
 }
-
+*/
 void handle_message(std::vector<TrunkMessage> messages, System *sys) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
     TrunkMessage message = *it;
@@ -1062,7 +1066,8 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case MOTO_PATCH_ADD:
-      update_moto_patches(message, sys);
+      //update_patches(message, sys);
+      sys->update_active_talkgroup_patches(message);
       break;
     case UNKNOWN:
       break;
@@ -1254,7 +1259,7 @@ void monitor_messages() {
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
       lastMsgCountTime = current_time;
-      clear_stale_moto_patches(sys);
+      sys->clear_stale_talkgroup_patches();
     }
 
     float statusTimeDiff = current_time - lastStatusTime;

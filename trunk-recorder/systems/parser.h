@@ -18,7 +18,7 @@ enum MessageType {
   UNKNOWN = 99
 };
 
-struct PatchData {
+struct MotoPatchData {
   unsigned long sg;
   unsigned long ga1;
   unsigned long ga2;
@@ -42,7 +42,7 @@ struct TrunkMessage {
   unsigned long sys_id;
   unsigned long nac;
   unsigned long wacn;
-  PatchData patch_data;
+  MotoPatchData moto_patch_data;
 };
 
 class TrunkParser {
