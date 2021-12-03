@@ -132,7 +132,7 @@ static const int MAX_IN = 1;	// maximum number of input streams
         set_output_multiple(160);
     }
 
-#if 0
+
 void
 p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
 {
@@ -149,7 +149,7 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_inpu
    nof_samples_reqd = std::max(nof_samples_reqd, 256);
    std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
 }
-#endif
+
 
     void p25_frame_assembler_impl::reset_rx_status() {
       p1fdma.reset_rx_status();
