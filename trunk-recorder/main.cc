@@ -148,8 +148,44 @@ bool load_config(string config_file) {
     }
 
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
-    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
+  
+  
+  
+    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
 
+    config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
+    size_t pos = config.capture_dir.find_last_of("/");
+
+    if (pos == config.capture_dir.length() - 1) {
+      config.capture_dir.erase(config.capture_dir.length() - 1);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
+    config.upload_server = pt.get<std::string>("uploadServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
+    config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
+    config.status_server = pt.get<std::string>("statusServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
+    config.instance_key = pt.get<std::string>("instanceKey", "");
+    BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
+    config.instance_id = pt.get<std::string>("instanceId", "");
+    BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
+    config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
+    BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
+    default_mode = pt.get<std::string>("defaultMode", "digital");
+    BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
+    config.call_timeout = pt.get<int>("callTimeout", 3);
+    BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
+    config.log_file = pt.get<bool>("logFile", false);
+    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    config.log_dir = pt.get<std::string>("logDir", "logs");
+    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
+    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
+    BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
+    config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
+    BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+    config.enable_audio_streaming = pt.get<bool>("audioStreaming", false);
+    BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
     std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
 
     if (boost::iequals(frequencyFormatString, "mhz")) {
@@ -159,6 +195,17 @@ bool load_config(string config_file) {
     } else {
       frequencyFormat = 0;
     }
+
+    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
+
+    statusAsString = pt.get<bool>("statusAsString", statusAsString);
+    BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
+    std::string log_level = pt.get<std::string>("logLevel", "info");
+    BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
+    set_logging_level(log_level);
+  
+  
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
 
     config.debug_recorder = pt.get<bool>("debugRecorder", 0);
     config.debug_recorder_address = pt.get<std::string>("debugRecorderAddress", "127.0.0.1");
@@ -500,49 +547,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n\n";
     }
 
-    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
-
-    config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
-    size_t pos = config.capture_dir.find_last_of("/");
-
-    if (pos == config.capture_dir.length() - 1) {
-      config.capture_dir.erase(config.capture_dir.length() - 1);
-    }
-    BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config.upload_server = pt.get<std::string>("uploadServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
-    config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
-    config.status_server = pt.get<std::string>("statusServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
-    config.instance_key = pt.get<std::string>("instanceKey", "");
-    BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
-    config.instance_id = pt.get<std::string>("instanceId", "");
-    BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
-    config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
-    BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
-    default_mode = pt.get<std::string>("defaultMode", "digital");
-    BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
-    config.call_timeout = pt.get<int>("callTimeout", 3);
-    BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
-    config.log_file = pt.get<bool>("logFile", false);
-    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
-    config.log_dir = pt.get<std::string>("logDir", "logs");
-    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
-    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
-    BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
-    config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
-    BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
-    config.enable_audio_streaming = pt.get<bool>("audioStreaming", false);
-    BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
-
-    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
-
-    statusAsString = pt.get<bool>("statusAsString", statusAsString);
-    BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
-    std::string log_level = pt.get<std::string>("logLevel", "info");
-    BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
-    set_logging_level(log_level);
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
     add_internal_plugin("openmhz_uploader","libopenmhz_uploader.so",  pt);
