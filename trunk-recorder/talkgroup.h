@@ -18,6 +18,7 @@ public:
   Talkgroup(long num, std::string m, std::string a, std::string d, std::string t, std::string g, int p);
   bool is_active();
   int get_priority();
+  void set_priority(int new_priority);
   void set_active(bool a);
   std::string menu_string();
 
