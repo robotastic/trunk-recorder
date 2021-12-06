@@ -113,6 +113,10 @@ public:
   virtual int get_output_channels() { return 1; }
   virtual bool get_enable_audio_streaming() {return d_enable_audio_streaming; };
   virtual void set_enable_audio_streaming(bool enable_audio_streaming) { d_enable_audio_streaming = enable_audio_streaming; };
+  virtual void costas_reset(){};
+  virtual int get_costas_error_count(){ return 0;}
+  virtual void reset_costas_error_count(){};
+  virtual void increase_costas_error_count(){};
 
 protected:
   int recording_count;

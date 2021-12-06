@@ -170,6 +170,8 @@ void p25_recorder::initialize(Source *src) {
   timestamp = time(NULL);
   starttime = time(NULL);
 
+  costas_error_count = 0;
+
   if (config == NULL ) {
     this->set_enable_audio_streaming(false);
   } else {
@@ -287,6 +289,24 @@ bool p25_recorder::is_active() {
   } else {
     return false;
   }
+}
+
+void p25_recorder::costas_reset() {
+  if (qpsk_mod) {
+    qpsk_demod->reset();
+  }
+}
+
+int p25_recorder::get_costas_error_count() {
+  return costas_error_count;
+}
+
+void p25_recorder::reset_costas_error_count() {
+  costas_error_count = 0;
+}
+
+void p25_recorder::increase_costas_error_count() {
+  costas_error_count++;
 }
 
 bool p25_recorder::is_squelched() {

@@ -739,6 +739,9 @@ void manage_conventional_call(Call *call) {
       } else if (call->get_idle_count() > 0) {
         // if it starts recording again, then reset the idle count
         call->reset_idle_count();
+      } else if (call->get_recorder()->get_costas_error_count() > 0) {
+        // conventionalP25 recieving audio; no need to reset the demodulator if indicated
+        call->get_recorder()->reset_costas_error_count();
       }
 
       // if no additional recording has happened in the past X periods, stop and open new file
@@ -764,10 +767,29 @@ void manage_conventional_call(Call *call) {
       Recorder *recorder = call->get_recorder();
       recorder->start(call);
       call->set_state(RECORDING);
-      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Starting P25 Convetional Recorder ";
+      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Starting P25 Conventional Recorder ";
 
       //plugman_setup_recorder((Recorder *)recorder->get());
-    } 
+
+    } else if (!call->get_recorder()->is_analog()) {
+      // When the conventionalP25 costas clock is off, calls stop producing audio.
+      // Use get_current_length() = 0 and squelch to check if a reset may be needed.
+      Recorder *recorder = call->get_recorder();
+      
+      if (!recorder->is_squelched()) {
+        // Recorder is unsquelched and get_current_length() = 0
+        // Signal for a demodulator reset if the recorder is still not recieving P25 audio after squelch closes.
+        recorder->increase_costas_error_count();
+        BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tConventional P25 recorder not producing audio: "  << recorder->get_costas_error_count();
+
+      } else if (recorder->get_costas_error_count() > 0) {
+        // Recorder reset_costas_count > 0 after squelch closes and get_current_length() = 0
+        // Reset the demodulator after a transmission that generated no P25 audio.
+        recorder->costas_reset();
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tConventional P25 squelch open " << recorder->get_costas_error_count() << "s without decoded audio. Demodulator reset.";
+        recorder->reset_costas_error_count();
+      }
+    }
   }
 }
 

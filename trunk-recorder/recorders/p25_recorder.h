@@ -110,6 +110,10 @@ public:
   Source *get_source();
   void autotune();
   void reset();
+  void costas_reset();
+  int get_costas_error_count();
+  void reset_costas_error_count();
+  void increase_costas_error_count();
 
 protected:
   State state;
@@ -125,6 +129,7 @@ protected:
   bool qpsk_mod;
   bool conventional;
   double squelch_db;
+  int costas_error_count;
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::selector::sptr modulation_selector;
   gr::blocks::copy::sptr valve;
