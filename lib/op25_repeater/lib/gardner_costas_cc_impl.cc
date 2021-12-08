@@ -267,12 +267,22 @@ gardner_costas_cc_impl::general_work (int noutput_items,
 				   gr_vector_const_void_star &input_items,
 				   gr_vector_void_star &output_items)
 {
+  std::vector<gr::tag_t> tags;
+  pmt::pmt_t squelch_key(pmt::intern("squelch_sob"));
   const gr_complex *in = (const gr_complex *) input_items[0];
   gr_complex *out = (gr_complex *) output_items[0];
 
   int i=0, o=0;
   gr_complex symbol, sample, nco;
 
+  get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
+  for (unsigned int i = 0; i < tags.size(); i++) {
+    if (pmt::eq(squelch_key, tags[i].key)) {
+      fprintf(stderr, "Detected an UnSquelch, resetting the Costas Clock!");
+      reset();
+    }
+  }
+  tags.clear();
   while((o < noutput_items) && (i < ninput_items[0])) {
     while((d_mu > 1.0) && (i < ninput_items[0]))  {
 	d_mu --;
