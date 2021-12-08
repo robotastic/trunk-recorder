@@ -725,11 +725,9 @@ void process_message_queues() {
   }
 }
 
-void manage_conventional_call(Call *call) {
-  if (call->get_recorder()) {
-    // if any recording has happened
 
-    if (call->get_current_length() > 0) {
+
+void handle_conventional_call_recording(Call *call) {
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Call Length: " << call->get_current_length() << "s\t Idle: " << call->get_recorder()->is_idle() << "\t Idle Count: " << call->get_idle_count();
 
       // means that the squelch is on and it has stopped recording
@@ -762,6 +760,16 @@ void manage_conventional_call(Call *call) {
           plugman_setup_recorder(recorder);
         }
       }
+}
+
+void manage_conventional_call(Call *call) {
+
+  // make sure there is an associated recorder... there better be, since it is conventional
+  if (call->get_recorder()) {
+
+    // if any recording has happened
+    if (call->get_current_length() > 0) {
+      handle_conventional_call_recording(call);
     } else if (!call->get_recorder()->is_active()) {
       // P25 Conventional Recorders need a have the graph unlocked before they can start recording.
       Recorder *recorder = call->get_recorder();
