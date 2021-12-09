@@ -5,13 +5,6 @@
 #include <boost/asio.hpp>
 #include <map>
 
-
-/* TO DO
-- *add patch following support
-- *add option to prepend 2 byte TGID to audio data when sending
-- test sending multiple talkgroups to different ports
-- *test sending multiple talkgroups to the same port with prepended TGID info
-*/
 using namespace boost::asio;
 
 typedef struct plugin_t plugin_t;
