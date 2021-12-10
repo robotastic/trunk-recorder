@@ -17,6 +17,8 @@
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
 
+#include <gnuradio/blocks/float_to_short.h>
+
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
 #if GNURADIO_VERSION < 0x030800
@@ -94,7 +96,7 @@ public:
   void set_record_more_transmissions(bool more);
   void process_message_queues(void);
   void decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal);
-  void plugin_callback_handler(float *samples, int sampleCount);
+  void plugin_callback_handler(int16_t *samples, int sampleCount);
   double get_output_sample_rate();
   double since_last_write();
 

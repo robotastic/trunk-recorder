@@ -50,7 +50,7 @@ namespace gr {
 
         decoder_wrapper_impl::decoder_wrapper_impl(unsigned int sample_rate, int src_num, decoder_callback callback)
             : hier_block2("decoder_wrapper_impl",
-                io_signature::make(1, 1, sizeof(float)),
+                io_signature::make(1, 1, sizeof(int16_t)),
                 io_signature::make(0, 0, 0)),
             d_callback(callback)
         {

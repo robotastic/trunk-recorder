@@ -55,20 +55,19 @@
 namespace gr {
 namespace blocks {
 nonstop_wavfile_sink_impl::sptr
-nonstop_wavfile_sink_impl::make(int n_channels, unsigned int sample_rate, int bits_per_sample, bool use_float) {
-  return gnuradio::get_initial_sptr(new nonstop_wavfile_sink_impl(n_channels, sample_rate, bits_per_sample, use_float));
+nonstop_wavfile_sink_impl::make(int n_channels, unsigned int sample_rate, int bits_per_sample) {
+  return gnuradio::get_initial_sptr(new nonstop_wavfile_sink_impl(n_channels, sample_rate, bits_per_sample));
 }
 
 nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
     int n_channels,
     unsigned int sample_rate,
-    int bits_per_sample,
-    bool use_float)
+    int bits_per_sample)
     : sync_block("nonstop_wavfile_sink",
-                 io_signature::make(1, n_channels, (use_float) ? sizeof(float) : sizeof(int16_t)),
+                 io_signature::make(1, n_channels, sizeof(int16_t)),
                  io_signature::make(0, 0, 0)),
       d_sample_rate(sample_rate), d_nchans(n_channels),
-      d_use_float(use_float), d_fp(0), d_current_call(NULL) {
+      d_fp(0), d_current_call(NULL) {
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
@@ -452,13 +451,8 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
       // Write zeros to channels which are in the WAV file
       // but don't have any inputs here
       if (chan < n_in_chans) {
-        if (d_use_float) {
-          float **in = (float **)&input_items[0];
-          sample_buf_s = convert_to_short(in[chan][nwritten]);
-        } else {
           int16_t **in = (int16_t **)&input_items[0];
           sample_buf_s = in[chan][nwritten];
-        }
       } else {
         sample_buf_s = 0;
       }
@@ -474,19 +468,6 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   }
   // fflush (d_fp);  // this is added so unbuffered content is written.
   return nwritten;
-}
-
-short int nonstop_wavfile_sink_impl::convert_to_short(float sample) {
-  sample += d_normalize_shift;
-  sample *= d_normalize_fac;
-
-  if (sample > d_max_sample_val) {
-    sample = d_max_sample_val;
-  } else if (sample < d_min_sample_val) {
-    sample = d_min_sample_val;
-  }
-
-  return (short int)boost::math::iround(sample);
 }
 
 void nonstop_wavfile_sink_impl::set_bits_per_sample(int bits_per_sample) {

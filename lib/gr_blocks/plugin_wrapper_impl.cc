@@ -47,7 +47,7 @@ namespace gr {
 
         plugin_wrapper_impl::plugin_wrapper_impl(plugin_callback callback)
             : sync_block("plugin_wrapper_impl",
-                io_signature::make(1, 1, sizeof(float)),
+                io_signature::make(1, 1, sizeof(int16_t)),
                 io_signature::make(0, 0, 0)),
             d_callback(callback){}
 
@@ -61,7 +61,7 @@ namespace gr {
         int plugin_wrapper_impl::dowork(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items) {
 
             if(d_callback != NULL) {
-                d_callback((float *)input_items[0], noutput_items);
+                d_callback((int16_t *)input_items[0], noutput_items);
             }
             else {
                 BOOST_LOG_TRIVIAL(warning) << "plugin_wrapper_impl dropped, no callback setup!";
