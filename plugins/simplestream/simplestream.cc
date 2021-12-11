@@ -101,24 +101,24 @@ class Simple_Stream : public Plugin_Api {
     return 0;
   }
   
-  int audio_stream(Recorder *recorder, float *samples, int sampleCount){
+  int audio_stream(Recorder *recorder, int16_t *samples, int sampleCount){
     int recorder_id = recorder->get_num();
     BOOST_FOREACH (auto& stream, streams){
       BOOST_FOREACH (auto& TGID, TGID_map[recorder_id]){
         if (TGID==stream.TGID || stream.TGID==0){  //setting TGID to 0 in the config file will stream everything
           boost::system::error_code err;
-          BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*4<<" bytes";
+          BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes";
           if (stream.sendTGID==true){
             //prepend 4 byte long tgid to the audio data
             boost::array<mutable_buffer, 2> buf1 = {
               buffer(&TGID,4),
-              buffer(samples, sampleCount*4)
+              buffer(samples, sampleCount*2)
             };
             my_socket.send_to(buf1, stream.remote_endpoint, 0, err);
           }
           else{
             //just send the audio data
-            my_socket.send_to(buffer(samples, sampleCount*4), stream.remote_endpoint, 0, err);
+            my_socket.send_to(buffer(samples, sampleCount*2), stream.remote_endpoint, 0, err);
           }
         }
       }
