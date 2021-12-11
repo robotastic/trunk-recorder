@@ -246,7 +246,7 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 **Name:** simplestream
 **Library:** libsimplestream.so
 
-This plugin streams uncompressed audio (32 bit float, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups being recorded or only specified talkgroups.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups being recorded or only specified talkgroups.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.
 
 This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
 
