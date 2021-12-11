@@ -834,7 +834,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
   int shift = s0 << 8;
   long nac = shift + s1;
   
-  if (s.length() <= 2) {
+  if (s.length() < 2) {
     BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " s0: " << s0 << " s1: " << s1 << " shift: " << shift << " nac: " << nac << " type: " << type;
     messages.push_back(message);
     return messages;
