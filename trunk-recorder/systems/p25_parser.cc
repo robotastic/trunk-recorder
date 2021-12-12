@@ -247,6 +247,13 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long ga2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga3 = bitset_shift_mask(tsbk, 16, 0xffff);
       BOOST_LOG_TRIVIAL(debug) << "tsbk00\tMoto Patch Add \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3;
+      message.message_type = MOTO_PATCH_ADD;
+      MotoPatchData moto_patch_data;
+      moto_patch_data.sg = sg;
+      moto_patch_data.ga1 = ga1;
+      moto_patch_data.ga2 = ga2;
+      moto_patch_data.ga3 = ga3;
+      message.moto_patch_data = moto_patch_data;
     } else {
       unsigned long f1 = channel_id_to_frequency(ch, sys_num);
       message.message_type = GRANT;

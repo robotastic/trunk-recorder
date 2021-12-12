@@ -602,6 +602,12 @@ void process_signal(long unitId, const char *signaling_type, gr::blocks::SignalT
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
+  BOOST_FOREACH (auto& TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {
+    if (sys->find_talkgroup(TGID)->get_priority() < talkgroup->get_priority()){
+      talkgroup->set_priority(sys->find_talkgroup(TGID)->get_priority());
+      BOOST_LOG_TRIVIAL(info) << "Increased priority of talkgroup " << call->get_talkgroup() << " to " << sys->find_talkgroup(TGID)->get_priority() << " due to active patch with talkgroup " << TGID;
+    }
+  }
   bool source_found = false;
   bool recorder_found = false;
   Recorder *recorder;
@@ -996,6 +1002,10 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       unit_acknowledge_response( sys, message.source);
       break;
 
+    case MOTO_PATCH_ADD:
+      //update_patches(message, sys);
+      sys->update_active_talkgroup_patches(message);
+      break;
     case UNKNOWN:
       break;
     }
@@ -1186,6 +1196,7 @@ void monitor_messages() {
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
       lastMsgCountTime = current_time;
+      sys->clear_stale_talkgroup_patches();
     }
 
     float statusTimeDiff = current_time - lastStatusTime;
