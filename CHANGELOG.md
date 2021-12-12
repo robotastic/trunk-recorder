@@ -1,6 +1,23 @@
 Trunk Recorder ChangeLog
 ========================
 
+### Version 4.2.0
+* Added support for tracking System Patches
+* Simple Streaming Plugin
+* Switch from Floats to int16 for decoder->wav
+* Resets the garnder costas clock in convetional mode after each transmission
+
+### Version 4.1.1
+* Got the Wrong docker package by @MaxwellDPS in #555
+* Plugin rdioscanner by @chuot in #557
+* Plugin Audio Streaming CPU/Memory Usage Reduction by @JoeGilkey in #559
+* Significant improvements to audioplayer by @devicenull in #549
+* Read support for reading in direct CSV exports from Radio Reference by @devicenull in #547
+* Fix compile errors on Fedora 35 by @chuot in #560
+
+### Version 4.1.0
+* pulls in the latest version of OP25
+
 ### Version 4.0.3
 * Fixed support for P25 Conventional recorders. 
 
