@@ -241,8 +241,92 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
           }
 ```
 
+##### simplestream Plugin
 
+**Name:** simplestream
+**Library:** libsimplestream.so
 
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups being recorded or only specified talkgroups.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.
+
+This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
+
+| Key     | Required | Default Value | Type   | Description                                                  |
+| ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| streams |    ✓     |               | array  | This is an array of objects, where each is an audio stream that will be sent to a specific IP address and UDP port. More information about what should be in each object is in the following table. |
+
+*Audio Stream Object:*
+
+| Key       | Required | Default Value | Type   | Description                                                  |
+| --------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| address   |    ✓     |               | string | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
+| port      |    ✓     |               | number | UDP port that this stream will send audio to. |
+| TGID      |    ✓     |               | number | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
+| sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a UDP packet is sent. |
+
+###### Plugin Object Example #1:
+This example will stream audio from talkgroup 58914 and 58916 to the local machine on UDP port 9123.  
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58914,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":false}
+        }
+```
+
+###### Plugin Object Example #2:
+This example will stream audio from talkgroup 58914 to the local machine on UDP port 9123 and stream audio from talkgroup 58916 to the local machine on UDP port 9124.
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58914,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":false},
+           {"TGID":58916,
+            "address":"127.0.0.1",
+            "port":9124,
+            "sendTGID":false}
+          ]}
+        }
+```
+
+###### Plugin Object Example #3:
+This example will stream audio from talkgroups 58914 and 58916 to the local machine on the same UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can differentiate the two audio streams (the receiver may decide to only play one depending on priority, mix the two streams, play one left and one right, etc.)
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58914,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":true},
+           {"TGID":58916,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":true}
+          ]}
+        }
+```
+###### Plugin Object Example #4:
+This example will stream audio from all talkgroups being recorded to the local machine on UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can decide which ones to play or otherwise handle)
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":0,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":true}
+        }
+```
 
 
 ## talkgroupsFile
