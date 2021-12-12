@@ -116,7 +116,7 @@ int plugin_signal(plugin_t * const plugin, long unitId, const char *signaling_ty
     return err;
 }
 
-int plugin_audio_stream(plugin_t * const plugin, Recorder* recorder, float *samples, int sampleCount) {
+int plugin_audio_stream(plugin_t * const plugin, Recorder* recorder, int16_t *samples, int sampleCount) {
     assert(plugin != NULL);
 
     int err = 0;

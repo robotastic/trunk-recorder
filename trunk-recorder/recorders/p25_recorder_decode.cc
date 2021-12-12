@@ -75,7 +75,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
-  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
+  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16);
   //recorder->initialize(src);
 
   bool use_streaming = d_recorder->get_enable_audio_streaming();
@@ -95,8 +95,8 @@ void p25_recorder_decode::initialize(  int silence_frames) {
   bool do_nocrypt = 1;
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
-  converter = gr::blocks::short_to_float::make(1, 32768.0);
-  levels = gr::blocks::multiply_const_ff::make(1);
+
+  levels = gr::blocks::multiply_const_ss::make(1);
 
   if(use_streaming) {
     plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&p25_recorder_decode::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
@@ -104,17 +104,16 @@ void p25_recorder_decode::initialize(  int silence_frames) {
 
   connect( self(),0, slicer,0);
   connect(slicer, 0, op25_frame_assembler, 0);
-  connect(op25_frame_assembler, 0, converter, 0);
-  connect(converter, 0, levels, 0);
+  connect(op25_frame_assembler, 0, levels, 0);
 
   if(use_streaming) {
-    connect(converter, 0, plugin_sink, 0);
+    connect(levels, 0, plugin_sink, 0);
   }
 
   connect(levels, 0, wav_sink, 0);
 }
 
-void p25_recorder_decode::plugin_callback_handler(float *samples, int sampleCount) {
+void p25_recorder_decode::plugin_callback_handler(int16_t *samples, int sampleCount) {
   plugman_audio_callback(d_recorder, samples, sampleCount);
 }
 

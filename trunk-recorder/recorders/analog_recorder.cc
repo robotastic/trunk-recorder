@@ -184,6 +184,7 @@ analog_recorder::analog_recorder(Source *src)
   quad_gain = system_channel_rate / (2.0 * M_PI * d_max_dev);
   demod = gr::analog::quadrature_demod_cf::make(quad_gain);
   levels = gr::blocks::multiply_const_ff::make(1); // 33);
+  converter = gr::blocks::float_to_short::make(1, 32767);
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
@@ -201,7 +202,7 @@ analog_recorder::analog_recorder(Source *src)
 
   //tm *ltm = localtime(&starttime);
 
-  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wav_sample_rate, 16, true); //  Configurable
+  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wav_sample_rate, 16); //  Configurable
 
   if(use_streaming) {
     BOOST_LOG_TRIVIAL(info) << "Creating plugin sink..." << std::endl;
@@ -245,14 +246,17 @@ analog_recorder::analog_recorder(Source *src)
   connect(decim_audio, 0, high_f, 0);
   connect(decim_audio, 0, decoder_sink, 0);
 
-  if(use_streaming) {
-    connect(decim_audio, 0, plugin_sink, 0);
-  }
-  
+
   connect(high_f, 0, low_f, 0);
   connect(low_f, 0, squelch_two, 0);
   connect(squelch_two, 0, levels, 0);
-  connect(levels, 0, wav_sink, 0);
+  connect(levels, 0, converter, 0);
+  connect(converter, 0,  wav_sink, 0);
+
+  if(use_streaming) {
+    connect(converter, 0, plugin_sink, 0);
+  }
+  
 }
 
 analog_recorder::~analog_recorder() {}
@@ -374,7 +378,7 @@ void analog_recorder::decoder_callback_handler(long unitId, const char *signalin
   }
 }
 
-void analog_recorder::plugin_callback_handler(float *samples, int sampleCount) {
+void analog_recorder::plugin_callback_handler(int16_t *samples, int sampleCount) {
   plugman_audio_callback(this, samples, sampleCount);
 }
 

@@ -31,7 +31,7 @@
 namespace gr {
     namespace blocks {
 
-        typedef std::function<void(float *samples, int sampleCount)> plugin_callback;
+        typedef std::function<void(int16_t *samples, int sampleCount)> plugin_callback;
 
         /*!
          * \brief Wrapps the plugin functions into a single block.

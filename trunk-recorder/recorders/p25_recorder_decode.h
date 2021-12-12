@@ -17,7 +17,7 @@
 #include <op25_repeater/vocoder.h>
 
 #if GNURADIO_VERSION < 0x030800
-#include <gnuradio/blocks/multiply_const_ff.h>
+#include <gnuradio/blocks/multiply_const_ss.h>
 #else
 #include <gnuradio/blocks/multiply_const.h>
 #endif
@@ -50,7 +50,7 @@ protected:
   gr::msg_queue::sptr rx_queue;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
   gr::blocks::short_to_float::sptr converter;
-  gr::blocks::multiply_const_ff::sptr levels;
+  gr::blocks::multiply_const_ss::sptr levels;
   gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
 public:
@@ -69,7 +69,7 @@ public:
   bool delay_open;
   virtual ~p25_recorder_decode();
   double get_current_length();
-  void plugin_callback_handler(float *samples, int sampleCount);
+  void plugin_callback_handler(int16_t *samples, int sampleCount);
   double get_output_sample_rate();
     State get_state();
 };

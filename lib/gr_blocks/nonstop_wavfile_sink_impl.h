@@ -43,7 +43,6 @@ private:
 	int d_min_sample_val;
 	int d_normalize_shift;
 	int d_normalize_fac;
-	bool d_use_float;
 	bool d_conventional;
 	bool d_first_work;
 	bool d_termination_flag;
@@ -68,11 +67,6 @@ protected:
 	FILE *d_fp;
 	boost::mutex d_mutex;
 	virtual int dowork(int noutput_items,  gr_vector_const_void_star& input_items,  gr_vector_void_star& output_items);
-	/*!
-	 * \brief Convert a sample value within [-1;+1] to a corresponding
-	 *  short integer value
-	 */
-	short convert_to_short(float sample);
 
 	/*!
 	 * \brief If any file changes have occurred, update now. This is called
@@ -111,13 +105,11 @@ public:
 	 */
 	static sptr make(int n_channels,
 	                 unsigned int sample_rate,
-	                 int bits_per_sample = 16,
-								 		bool use_float=true);
+	                 int bits_per_sample = 16);
 
 	nonstop_wavfile_sink_impl(int n_channels,
 	                          unsigned int sample_rate,
-	                          int bits_per_sample,
-													bool use_float);
+	                          int bits_per_sample);
 	virtual ~nonstop_wavfile_sink_impl();
 	void create_base_filename();
 	char *get_filename();
