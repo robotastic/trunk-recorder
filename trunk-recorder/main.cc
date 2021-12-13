@@ -1196,7 +1196,9 @@ void monitor_messages() {
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
       lastMsgCountTime = current_time;
-      sys->clear_stale_talkgroup_patches();
+      if (sys->get_system_type()=="p25"){
+        sys->clear_stale_talkgroup_patches();
+      }
     }
 
     float statusTimeDiff = current_time - lastStatusTime;
