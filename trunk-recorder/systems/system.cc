@@ -76,6 +76,7 @@ System::System(int sys_num) {
   talkgroups = new Talkgroups();
   // Setup the unit tags from the CSV file
   unit_tags = new UnitTags();
+  talkgroup_patches = {};
   d_delaycreateoutput = false;
   d_hideEncrypted = false;
   d_hideUnknown = false;
