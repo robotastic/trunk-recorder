@@ -470,6 +470,7 @@ std::vector<long> System::get_talkgroup_patch(long talkgroup){
 void System::update_active_talkgroup_patches(TrunkMessage message){
   std::time_t update_time = std::time(nullptr);
   bool new_flag = true;
+
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
     if (patch.first == message.moto_patch_data.sg){
       new_flag = false;
@@ -494,6 +495,7 @@ void System::update_active_talkgroup_patches(TrunkMessage message){
 
 void System::clear_stale_talkgroup_patches(){
   std::vector<long> stale_patches;
+
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
     //patch.first (map key) is supergroup TGID, patch.second (map value) is the map of all TGIDs in this patch and associated timestamps
     std::vector<long> stale_talkgroups;

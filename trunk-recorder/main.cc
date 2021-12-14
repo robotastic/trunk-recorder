@@ -1196,8 +1196,9 @@ void monitor_messages() {
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
       lastMsgCountTime = current_time;
-      if (sys) {
-        sys->clear_stale_talkgroup_patches();
+      for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+        System *system = *sys_it;
+        system->clear_stale_talkgroup_patches();
       }
     }
 
