@@ -602,10 +602,11 @@ void process_signal(long unitId, const char *signaling_type, gr::blocks::SignalT
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
+  int priority = 100;
   BOOST_FOREACH (auto& TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {
     if (sys->find_talkgroup(TGID)->get_priority() < talkgroup->get_priority()){
-      talkgroup->set_priority(sys->find_talkgroup(TGID)->get_priority());
-      BOOST_LOG_TRIVIAL(info) << "Increased priority of talkgroup " << call->get_talkgroup() << " to " << sys->find_talkgroup(TGID)->get_priority() << " due to active patch with talkgroup " << TGID;
+      priority = sys->find_talkgroup(TGID)->get_priority();
+      BOOST_LOG_TRIVIAL(info) << "Temporarily increased priority of talkgroup " << call->get_talkgroup() << " to " << sys->find_talkgroup(TGID)->get_priority() << " due to active patch with talkgroup " << TGID;
     }
   }
   bool source_found = false;
@@ -645,7 +646,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         if (talkgroup->mode.compare("A") == 0) {
           recorder = source->get_analog_recorder(talkgroup);
         } else {
-          recorder = source->get_digital_recorder(talkgroup);
+          recorder = source->get_digital_recorder(talkgroup, priority);
         }
       } else {
         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tTG not in Talkgroup File ";
