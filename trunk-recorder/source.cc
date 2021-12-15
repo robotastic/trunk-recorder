@@ -325,12 +325,12 @@ int Source::get_num_available_analog_recorders() {
   return num_available_recorders;
 }
 
-Recorder *Source::get_digital_recorder(Talkgroup *talkgroup) {
+Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority) {
   int num_available_recorders = get_num_available_digital_recorders();
 
-  if (talkgroup && talkgroup->get_priority() > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
+  if (talkgroup && priority > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
     BOOST_LOG_TRIVIAL(info) << "\t\tNot recording talkgroup " << talkgroup->number << " (" << talkgroup->alpha_tag << ")" << ", priority is " <<
-      talkgroup->get_priority() << " but only " << num_available_recorders << " recorders available";
+      priority << " but only " << num_available_recorders << " recorders available";
     return NULL;
   }
 

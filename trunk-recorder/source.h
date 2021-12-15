@@ -115,7 +115,7 @@ public:
   void create_digital_recorders(gr::top_block_sptr tb, int r);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
   Recorder *get_digital_recorder();
-  Recorder *get_digital_recorder(Talkgroup *talkgroup);
+  Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority);
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   Recorder *get_debug_recorder();
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);
