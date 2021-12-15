@@ -644,6 +644,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       if (talkgroup) {
         if (talkgroup->mode.compare("A") == 0) {
           recorder = source->get_analog_recorder(talkgroup);
+          call->set_is_analog(true);
         } else {
           recorder = source->get_digital_recorder(talkgroup);
         }
@@ -1198,7 +1199,7 @@ void monitor_messages() {
       lastMsgCountTime = current_time;
       for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
         System *system = *sys_it;
-        if (system->get_system_type == "p25") {
+        if (system->get_system_type() == "p25") {
           system->clear_stale_talkgroup_patches();
         }
       }

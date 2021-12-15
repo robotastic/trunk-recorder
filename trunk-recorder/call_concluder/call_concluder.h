@@ -41,6 +41,7 @@ struct Call_Data_t {
   std::string talkgroup_tag;
   std::string short_name;
   std::string upload_script;
+  std::string audio_type;
 
   int tdma_slot;
   double length;

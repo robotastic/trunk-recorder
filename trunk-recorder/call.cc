@@ -35,6 +35,7 @@ Call::Call(long t, double f, System *s, Config c) {
   emergency = false;
   duplex = false;
   mode = false;
+  is_analog = false;
   priority = 0;
   set_freq(f);
   this->update_talkgroup_display();
@@ -63,6 +64,7 @@ Call::Call(TrunkMessage message, System *s, Config c) {
   emergency = message.emergency;
   duplex = message.duplex;
   mode = message.mode;
+  is_analog = false;
   priority = message.priority;
   set_freq(message.freq);
   add_source(message.source);
@@ -246,6 +248,14 @@ bool Call::get_debug_recording() {
 
 void Call::set_sigmf_recording(bool m) {
   sigmf_recording = m;
+}
+
+void Call::set_is_analog( bool a ){
+  is_analog = a;
+}
+
+bool Call::get_is_analog() {
+  return is_analog;
 }
 
 bool Call::get_sigmf_recording() {

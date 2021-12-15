@@ -66,7 +66,7 @@ int create_call_json(Call_Data_t call_info) {
     //json_file << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
     json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_tag << "\",\n";
-
+    json_file << "\"audio_type\": " << call_info.audio_type << ",\n";
     if (call_info.patched_talkgroups.size()>1){
       json_file << "\"patched_talkgroups\": [";
       bool first = true;
@@ -240,6 +240,14 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   
   call_info.patched_talkgroups = sys->get_talkgroup_patch(call_info.talkgroup);
   
+  if (call->get_is_analog()) {
+    call_info.audio_type = "analog";
+  } else if (call->get_phase2_tdma()) {
+    call_info.audio_type = "digital tdma";
+  } else {
+    call_info.audio_type = "digital";
+  }
+
     // loop through the transmission list, pull in things to fill in totals for call_info
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
