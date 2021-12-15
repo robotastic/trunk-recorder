@@ -501,7 +501,7 @@ void System::clear_stale_talkgroup_patches(){
     std::vector<long> stale_talkgroups;
     BOOST_FOREACH(auto& patch_element, patch.second){
       //patch_element.first (map key) is TGID, patch.second (map value) is the timestamp
-      if (std::time(nullptr) - patch_element.second >= 3){  //3 second hard coded timeout for now
+      if (std::time(nullptr) - patch_element.second >= 10){  //10 second hard coded timeout for now
         stale_talkgroups.push_back(patch_element.first);  //add this tgid to the list that we'll delete from this patch since it's expired
       }
     }
