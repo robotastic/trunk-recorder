@@ -66,7 +66,8 @@ int create_call_json(Call_Data_t call_info) {
     //json_file << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
     json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_tag << "\",\n";
-    json_file << "\"audio_type\": " << call_info.audio_type << ",\n";
+    json_file << "\"audio_type\": \"" << call_info.audio_type << "\",\n";
+    json_file << "\"short_name\": \"" << call_info.short_name << "\",\n";
     if (call_info.patched_talkgroups.size()>1){
       json_file << "\"patched_talkgroups\": [";
       bool first = true;
