@@ -3,6 +3,7 @@
 #include "../talkgroups.h"
 #include "../unit_tags.h"
 #include <boost/log/trivial.hpp>
+#include <boost/foreach.hpp>
 #include <stdio.h>
 //#include "../source.h"
 #include "p25_trunking.h"
