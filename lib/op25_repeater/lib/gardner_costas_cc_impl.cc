@@ -282,7 +282,6 @@ gardner_costas_cc_impl::general_work (int noutput_items,
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
   for (unsigned int i = 0; i < tags.size(); i++) {
     if ((pmt::eq(start_squelch_key, tags[i].key)) || (pmt::eq(end_squelch_key, tags[i].key))) {
-      fprintf(stderr, "Detected an UnSquelch, resetting the Costas Clock!");
       reset();
       break;
     }
