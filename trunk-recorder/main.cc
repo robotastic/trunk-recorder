@@ -602,13 +602,7 @@ void process_signal(long unitId, const char *signaling_type, gr::blocks::SignalT
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
-  int priority = talkgroup->get_priority();
-  BOOST_FOREACH (auto& TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {
-    if (sys->find_talkgroup(TGID)->get_priority() < priority){
-      priority = sys->find_talkgroup(TGID)->get_priority();
-      BOOST_LOG_TRIVIAL(info) << "Temporarily increased priority of talkgroup " << call->get_talkgroup() << " to " << sys->find_talkgroup(TGID)->get_priority() << " due to active patch with talkgroup " << TGID;
-    }
-  }
+
   bool source_found = false;
   bool recorder_found = false;
   Recorder *recorder;
@@ -643,6 +637,13 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       source_found = true;
 
       if (talkgroup) {
+        int priority = talkgroup->get_priority();
+        BOOST_FOREACH (auto& TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {
+          if (sys->find_talkgroup(TGID)->get_priority() < priority){
+            priority = sys->find_talkgroup(TGID)->get_priority();
+            BOOST_LOG_TRIVIAL(info) << "Temporarily increased priority of talkgroup " << call->get_talkgroup() << " to " << sys->find_talkgroup(TGID)->get_priority() << " due to active patch with talkgroup " << TGID;
+          }
+        }
         if (talkgroup->mode.compare("A") == 0) {
           recorder = source->get_analog_recorder(talkgroup);
           call->set_is_analog(true);
