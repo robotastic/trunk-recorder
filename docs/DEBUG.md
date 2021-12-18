@@ -1,4 +1,4 @@
-# How to Debuga Seg Fault
+# How to Debug a Seg Fault
 
 When Trunk Recorder crashes and give a Segmentation Fault error (a SegFault), there are some steps you can take to figure out what is causing it. Pulling this information makes it a lot easier to figure what is going wrong.
 
