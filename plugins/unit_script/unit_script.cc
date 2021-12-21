@@ -63,7 +63,7 @@ int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
     std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    std::vector<long> talkgroup_patches = sys->get_talkgroup_patch(talkgroup_num);
+    std::vector<unsigned long> talkgroup_patches = sys->get_talkgroup_patch(talkgroup_num);
     std::string patch_string;
     bool first = true;
     BOOST_FOREACH (auto& TGID, talkgroup_patches) {
@@ -85,7 +85,7 @@ int call_start(Call *call) {
     std::string system_script = get_system_script(short_name);
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    std::vector<long> talkgroup_patches = call->get_system()->get_talkgroup_patch(talkgroup_num);
+    std::vector<unsigned long> talkgroup_patches = call->get_system()->get_talkgroup_patch(talkgroup_num);
     std::string patch_string;
     bool first = true;
     BOOST_FOREACH (auto& TGID, talkgroup_patches) {
