@@ -9,7 +9,7 @@ using namespace boost::asio;
 
 typedef struct plugin_t plugin_t;
 typedef struct stream_t stream_t;
-std::map<unsigned long,std::vector<long>> TGID_map;
+std::map<unsigned long,std::vector<unsigned long>> TGID_map;
 std::vector<stream_t> streams;
 
 struct plugin_t {
