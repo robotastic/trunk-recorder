@@ -250,6 +250,8 @@ This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in
 
 This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
 
+**NOTE: In order for this plugin to work, the audioStreaming option in the Global Configs section (see above) must be set to true.**
+
 | Key     | Required | Default Value | Type   | Description                                                  |
 | ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
 | streams |    ✓     |               | array  | This is an array of objects, where each is an audio stream that will be sent to a specific IP address and UDP port. More information about what should be in each object is in the following table. |
@@ -264,7 +266,7 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a UDP packet is sent. |
 
 ###### Plugin Object Example #1:
-This example will stream audio from talkgroup 58914 and 58916 to the local machine on UDP port 9123.  
+This example will stream audio from talkgroup 58914 to the local machine on UDP port 9123.  
 ```yaml
         {
           "name":"simplestream",
