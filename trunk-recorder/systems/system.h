@@ -101,7 +101,7 @@ public:
   smartnet_trunking_sptr smartnet_trunking;
   p25_trunking_sptr p25_trunking;
   
-  std::map<long,std::map<long,std::time_t>> talkgroup_patches;
+  std::map<unsigned long,std::map<unsigned long,std::time_t>> talkgroup_patches;
 
   std::string get_short_name();
   void set_short_name(std::string short_name);
@@ -211,7 +211,7 @@ public:
   
   //std::vector<std::map<int,std::time_t>> get_active_talkgroup_patches();
   //void set_active_talkgroup_patches(std::vector<std::map<int,std::time_t>> updated_talkgroup_patches);
-  std::vector<long> get_talkgroup_patch(long talkgroup);
+  std::vector<unsigned long> get_talkgroup_patch(unsigned long talkgroup);
   void update_active_talkgroup_patches(TrunkMessage message);
   void clear_stale_talkgroup_patches();
 
