@@ -456,28 +456,28 @@ boost::property_tree::ptree System::get_stats_current(float timeDiff) {
 std::vector<long> System::get_talkgroup_patch(long talkgroup){
   //Given a single TGID, return a vector of TGIDs that are part of the same patch
   std::vector<long> patched_tgids;
-  BOOST_FOREACH (auto& patch, talkgroup_patches) {
+  BOOST_FOREACH (auto& patch, talkgroup_patches) {  //talkgroup_patches:  map<long sg,std::map<long tgid,std::time_t timestamp>>
     if (patch.second.find(talkgroup) != patch.second.end()) {
       //talkgroup passed in is part of this patch, so add all talkgroups from this patch to our output vector
-      BOOST_FOREACH(auto& patch_element, patch.second){
-        patched_tgids.push_back(patch_element.first);
+      BOOST_FOREACH(auto& patch_element, patch.second){  //patch.second:  std::map<long tgid,std::time_t timestamp>
+        patched_tgids.push_back(patch_element.first);    //patch_element.first: long tgid
       }
     }
   }
   return patched_tgids;
 }
 
-void System::update_active_talkgroup_patches(TrunkMessage message){
+void System::update_active_talkgroup_patches(MotoPatchData moto_patch_data){
   std::time_t update_time = std::time(nullptr);
   bool new_flag = true;
 
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
-    if (patch.first == message.moto_patch_data.sg){
+    if (patch.first == moto_patch_data.sg){
       new_flag = false;
-      patch.second[message.moto_patch_data.sg] = update_time;
-      patch.second[message.moto_patch_data.ga1] = update_time;
-      patch.second[message.moto_patch_data.ga2] = update_time;
-      patch.second[message.moto_patch_data.ga3] = update_time;
+      patch.second[moto_patch_data.sg] = update_time;
+      patch.second[moto_patch_data.ga1] = update_time;
+      patch.second[moto_patch_data.ga2] = update_time;
+      patch.second[moto_patch_data.ga3] = update_time;
     }
     //Can add another IF statement here to handle Harris patch messages
   }
@@ -485,11 +485,11 @@ void System::update_active_talkgroup_patches(TrunkMessage message){
     //TGIDs from the Message were not found in an existing patch, so add them to a new one
     //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
     std::map<long,std::time_t> new_patch;
-    new_patch[message.moto_patch_data.sg] = update_time;
-    new_patch[message.moto_patch_data.ga1] = update_time;
-    new_patch[message.moto_patch_data.ga2] = update_time;
-    new_patch[message.moto_patch_data.ga3] = update_time;
-    talkgroup_patches[message.moto_patch_data.sg] = new_patch;
+    new_patch[moto_patch_data.sg] = update_time;
+    new_patch[moto_patch_data.ga1] = update_time;
+    new_patch[moto_patch_data.ga2] = update_time;
+    new_patch[moto_patch_data.ga3] = update_time;
+    talkgroup_patches[moto_patch_data.sg] = new_patch;
   }
 }
 
@@ -506,7 +506,7 @@ void System::clear_stale_talkgroup_patches(){
       }
     }
     BOOST_FOREACH(auto& stale_talkgroup, stale_talkgroups){
-      BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch wigh sg id " << patch.first;
+      BOOST_LOG_TRIVIAL(info) << "Going to remove stale TGID " << stale_talkgroup << "from patch wigh sg id " << patch.first;
       patch.second.erase(stale_talkgroup);
     }
     if (patch.second.size() == 0){
@@ -514,18 +514,18 @@ void System::clear_stale_talkgroup_patches(){
     }
   }
   BOOST_FOREACH(auto& stale_patch, stale_patches){
-    BOOST_LOG_TRIVIAL(debug) << "Going to remove entire patch with sg id " << stale_patch;
+    BOOST_LOG_TRIVIAL(info) << "Going to remove entire patch with sg id " << stale_patch;
     talkgroup_patches.erase(stale_patch);
   }
   
   //Print out all active patches to the console
-  BOOST_LOG_TRIVIAL(debug) << "Found " << talkgroup_patches.size() << " active talkgroup patches:";
+  BOOST_LOG_TRIVIAL(info) << "Found " << talkgroup_patches.size() << " active talkgroup patches:";
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
     std::string printstring;
     BOOST_FOREACH(auto& patch_element, patch.second){
       printstring+=" ";
       printstring+= std::to_string(patch_element.first);
     }
-    BOOST_LOG_TRIVIAL(debug) << "Active Patch of TGIDs" << printstring;
+    BOOST_LOG_TRIVIAL(info) << "Active Patch of TGIDs" << printstring;
   }
 }

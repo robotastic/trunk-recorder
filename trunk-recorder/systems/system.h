@@ -212,7 +212,7 @@ public:
   //std::vector<std::map<int,std::time_t>> get_active_talkgroup_patches();
   //void set_active_talkgroup_patches(std::vector<std::map<int,std::time_t>> updated_talkgroup_patches);
   std::vector<long> get_talkgroup_patch(long talkgroup);
-  void update_active_talkgroup_patches(TrunkMessage message);
+  void update_active_talkgroup_patches(MotoPatchData moto_patch_data);
   void clear_stale_talkgroup_patches();
 
 private:

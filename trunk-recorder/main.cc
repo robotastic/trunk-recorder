@@ -1007,7 +1007,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
 
     case MOTO_PATCH_ADD:
       //update_patches(message, sys);
-      sys->update_active_talkgroup_patches(message);
+      sys->update_active_talkgroup_patches(message.moto_patch_data);
       break;
     case UNKNOWN:
       break;
