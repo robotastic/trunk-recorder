@@ -9,7 +9,7 @@ using namespace boost::asio;
 
 typedef struct plugin_t plugin_t;
 typedef struct stream_t stream_t;
-std::map<long,std::vector<long>> TGID_map;
+std::map<unsigned long,std::vector<unsigned long>> TGID_map;
 std::vector<stream_t> streams;
 
 struct plugin_t {
@@ -17,7 +17,7 @@ struct plugin_t {
 };
 
 struct stream_t {
-  long TGID;
+  unsigned long TGID;
   std::string address;
   long port;
   ip::udp::endpoint remote_endpoint;
@@ -39,8 +39,8 @@ class Simple_Stream : public Plugin_Api {
 	
 	int call_start(Call *call) {
 		//BOOST_LOG_TRIVIAL(debug) << "call_start called in simplestream plugin" ;
-		long talkgroup_num = call->get_talkgroup();
-		std::vector<long> patched_talkgroups = call->get_system()->get_talkgroup_patch(talkgroup_num);
+		unsigned long talkgroup_num = call->get_talkgroup();
+		std::vector<unsigned long> patched_talkgroups = call->get_system()->get_talkgroup_patch(talkgroup_num);
 		//BOOST_LOG_TRIVIAL(info) << "call_start called in simplestream plugin for TGID "<< talkgroup_num << " with patch size " << patched_talkgroups.size();
 		if (patched_talkgroups.size() == 0){
 			patched_talkgroups.push_back(talkgroup_num);
@@ -61,8 +61,8 @@ class Simple_Stream : public Plugin_Api {
 	
   int call_end(Call_Data_t call_info) {
 
-    long talkgroup_num = call_info.talkgroup;
-    std::vector<long> patched_talkgroups = call_info.patched_talkgroups;
+    unsigned long talkgroup_num = call_info.talkgroup;
+    std::vector<unsigned long> patched_talkgroups = call_info.patched_talkgroups;
     std::vector<long> recorders_to_erase;
     //BOOST_LOG_TRIVIAL(info) << "call_end called in simplestream plugin on TGID " << talkgroup_num << " with patch size " << patched_talkgroups.size() ;
     BOOST_FOREACH(auto& element, TGID_map){
@@ -90,7 +90,7 @@ class Simple_Stream : public Plugin_Api {
   int parse_config(boost::property_tree::ptree &cfg) {
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("streams")) {
       stream_t stream;
-      stream.TGID = node.second.get<long>("TGID");
+      stream.TGID = node.second.get<unsigned long>("TGID");
       stream.address = node.second.get<std::string>("address");
       stream.port = node.second.get<long>("port");
       stream.remote_endpoint = ip::udp::endpoint(ip::address::from_string(stream.address), stream.port);
