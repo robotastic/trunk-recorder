@@ -453,9 +453,9 @@ boost::property_tree::ptree System::get_stats_current(float timeDiff) {
   return system_node;
 }
 
-std::vector<long> System::get_talkgroup_patch(long talkgroup){
+std::vector<unsigned long> System::get_talkgroup_patch(unsigned long talkgroup){
   //Given a single TGID, return a vector of TGIDs that are part of the same patch
-  std::vector<long> patched_tgids;
+  std::vector<unsigned long> patched_tgids;
   BOOST_FOREACH (auto& patch, talkgroup_patches) {  //talkgroup_patches:  map<long sg,std::map<long tgid,std::time_t timestamp>>
     if (patch.second.find(talkgroup) != patch.second.end()) {
       //talkgroup passed in is part of this patch, so add all talkgroups from this patch to our output vector
@@ -484,7 +484,7 @@ void System::update_active_talkgroup_patches(MotoPatchData moto_patch_data){
   if (new_flag == true){
     //TGIDs from the Message were not found in an existing patch, so add them to a new one
     //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
-    std::map<long,std::time_t> new_patch;
+    std::map<unsigned long,std::time_t> new_patch;
     new_patch[moto_patch_data.sg] = update_time;
     new_patch[moto_patch_data.ga1] = update_time;
     new_patch[moto_patch_data.ga2] = update_time;
@@ -494,11 +494,11 @@ void System::update_active_talkgroup_patches(MotoPatchData moto_patch_data){
 }
 
 void System::clear_stale_talkgroup_patches(){
-  std::vector<long> stale_patches;
+  std::vector<unsigned long> stale_patches;
 
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
     //patch.first (map key) is supergroup TGID, patch.second (map value) is the map of all TGIDs in this patch and associated timestamps
-    std::vector<long> stale_talkgroups;
+    std::vector<unsigned long> stale_talkgroups;
     BOOST_FOREACH(auto& patch_element, patch.second){
       //patch_element.first (map key) is TGID, patch.second (map value) is the timestamp
       if (std::time(nullptr) - patch_element.second >= 10){  //10 second hard coded timeout for now
