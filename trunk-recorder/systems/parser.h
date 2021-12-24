@@ -19,10 +19,10 @@ enum MessageType {
 };
 
 struct MotoPatchData {
-  long sg;
-  long ga1;
-  long ga2;
-  long ga3;
+  unsigned long sg;
+  unsigned long ga1;
+  unsigned long ga2;
+  unsigned long ga3;
 };
 
 struct TrunkMessage {
