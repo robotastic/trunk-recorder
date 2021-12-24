@@ -3,6 +3,7 @@
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread/mutex.hpp>
 #include <map>
 
 using namespace boost::asio;
@@ -11,7 +12,7 @@ typedef struct plugin_t plugin_t;
 typedef struct stream_t stream_t;
 std::map<unsigned long,std::vector<unsigned long>> TGID_map;
 std::vector<stream_t> streams;
-std::mutex TGID_map_mutex;
+boost::mutex TGID_map_mutex;
 
 struct plugin_t {
   Config* config;
@@ -39,57 +40,53 @@ class Simple_Stream : public Plugin_Api {
   }
     
   int call_start(Call *call) {
-    BOOST_LOG_TRIVIAL(info) << "call_start called in simplestream plugin" ;
+    boost::mutex::scoped_lock lock(TGID_map_mutex);
+    BOOST_LOG_TRIVIAL(debug) << "call_start called in simplestream plugin" ;
     unsigned long talkgroup_num = call->get_talkgroup();
     std::vector<unsigned long> patched_talkgroups = call->get_system()->get_talkgroup_patch(talkgroup_num);
-    BOOST_LOG_TRIVIAL(info) << "call_start called in simplestream plugin for TGID "<< talkgroup_num << " with patch size " << patched_talkgroups.size();
+    BOOST_LOG_TRIVIAL(debug) << "call_start called in simplestream plugin for TGID "<< talkgroup_num << " with patch size " << patched_talkgroups.size();
     if (patched_talkgroups.size() == 0){
       patched_talkgroups.push_back(talkgroup_num);
     }
-    BOOST_LOG_TRIVIAL(info) << "TGID is "<<talkgroup_num ;
+    BOOST_LOG_TRIVIAL(debug) << "TGID is "<<talkgroup_num ;
     Recorder *recorder = call->get_recorder();
     if (recorder != NULL) {
       int recorder_id = recorder->get_num();
-      BOOST_LOG_TRIVIAL(info) << "Recorder num is "<<recorder_id ;
-      TGID_map_mutex.lock();
+      BOOST_LOG_TRIVIAL(debug) << "Recorder num is "<<recorder_id ;
+      //TGID_map_mutex.lock();
       TGID_map[recorder_id] = patched_talkgroups;
-      TGID_map_mutex.unlock();
+      //TGID_map_mutex.unlock();
     }
     else {
-      BOOST_LOG_TRIVIAL(info) << "No Recorder for this TGID...doing nothing! ";
+      BOOST_LOG_TRIVIAL(debug) << "No Recorder for this TGID...doing nothing! ";
     }
-    //BOOST_LOG_TRIVIAL(debug) << "made it to the end of call_start()" ;
     return 0;
   }
     
   int call_end(Call_Data_t call_info) {
-
+    boost::mutex::scoped_lock lock(TGID_map_mutex);
     unsigned long talkgroup_num = call_info.talkgroup;
     std::vector<unsigned long> patched_talkgroups = call_info.patched_talkgroups;
     std::vector<long> recorders_to_erase;
-    BOOST_LOG_TRIVIAL(info) << "call_end called in simplestream plugin on TGID " << talkgroup_num << " with patch size " << patched_talkgroups.size() ;
-    TGID_map_mutex.lock();  //Need to lock during this entire loop to prevent another thread from modifying TGID_map while we are iterating
+    BOOST_LOG_TRIVIAL(debug) << "call_end called in simplestream plugin on TGID " << talkgroup_num << " with patch size " << patched_talkgroups.size() ;
     BOOST_FOREACH(auto& element, TGID_map){
       BOOST_FOREACH(unsigned long mapped_TGID, element.second) {
-        BOOST_LOG_TRIVIAL(info) << "TGID_map[" << element.first << "] contains " << mapped_TGID;
+        BOOST_LOG_TRIVIAL(debug) << "TGID_map[" << element.first << "] contains " << mapped_TGID;
         if (mapped_TGID == talkgroup_num){
           recorders_to_erase.push_back(element.first);
-          BOOST_LOG_TRIVIAL(info) << "adding recorder " << element.first << " to erase list";
+          BOOST_LOG_TRIVIAL(debug) << "adding recorder " << element.first << " to erase list";
         }
         BOOST_FOREACH(unsigned long TGID, patched_talkgroups){
           if (mapped_TGID == TGID){
             recorders_to_erase.push_back(element.first);
-            BOOST_LOG_TRIVIAL(info) << "adding recorder " << element.first << " to erase list";
+            BOOST_LOG_TRIVIAL(debug) << "adding recorder " << element.first << " to erase list";
           }
         }
       }
     }
-    TGID_map_mutex.unlock();
     BOOST_FOREACH(long recorder_id, recorders_to_erase){
-      BOOST_LOG_TRIVIAL(info) << "erasing recorder " << recorder_id << " from TGID_Map";
-      TGID_map_mutex.lock();
+      BOOST_LOG_TRIVIAL(debug) << "erasing recorder " << recorder_id << " from TGID_Map";
       TGID_map.erase(recorder_id);
-      TGID_map_mutex.unlock();
     }
     return 0;
   }
