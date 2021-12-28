@@ -53,9 +53,7 @@ class Simple_Stream : public Plugin_Api {
     if (recorder != NULL) {
       int recorder_id = recorder->get_num();
       BOOST_LOG_TRIVIAL(debug) << "Recorder num is "<<recorder_id ;
-      //TGID_map_mutex.lock();
       TGID_map[recorder_id] = patched_talkgroups;
-      //TGID_map_mutex.unlock();
     }
     else {
       BOOST_LOG_TRIVIAL(debug) << "No Recorder for this TGID...doing nothing! ";
@@ -70,7 +68,7 @@ class Simple_Stream : public Plugin_Api {
     std::vector<long> recorders_to_erase;
     BOOST_LOG_TRIVIAL(debug) << "call_end called in simplestream plugin on TGID " << talkgroup_num << " with patch size " << patched_talkgroups.size() ;
     BOOST_FOREACH(auto& element, TGID_map){
-      BOOST_FOREACH(unsigned long mapped_TGID, element.second) {
+      BOOST_FOREACH(unsigned long mapped_TGID, element.second){
         BOOST_LOG_TRIVIAL(debug) << "TGID_map[" << element.first << "] contains " << mapped_TGID;
         if (mapped_TGID == talkgroup_num){
           recorders_to_erase.push_back(element.first);
@@ -108,21 +106,23 @@ class Simple_Stream : public Plugin_Api {
   int audio_stream(Recorder *recorder, int16_t *samples, int sampleCount){
     int recorder_id = recorder->get_num();
     BOOST_FOREACH (auto& stream, streams){
-      BOOST_FOREACH (auto& TGID, TGID_map[recorder_id]){
-        if (TGID==stream.TGID || stream.TGID==0){  //setting TGID to 0 in the config file will stream everything
-          boost::system::error_code err;
-          BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes";
-          if (stream.sendTGID==true){
-            //prepend 4 byte long tgid to the audio data
-            boost::array<mutable_buffer, 2> buf1 = {
-              buffer(&TGID,4),
-              buffer(samples, sampleCount*2)
-            };
-            my_socket.send_to(buf1, stream.remote_endpoint, 0, err);
-          }
-          else{
-            //just send the audio data
-            my_socket.send_to(buffer(samples, sampleCount*2), stream.remote_endpoint, 0, err);
+      if (TGID_map.find(recorder_id) != TGID_map.end()){
+        BOOST_FOREACH (auto& TGID, TGID_map[recorder_id]){
+          if (TGID==stream.TGID || stream.TGID==0){  //setting TGID to 0 in the config file will stream everything
+            boost::system::error_code err;
+            BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes";
+            if (stream.sendTGID==true){
+              //prepend 4 byte long tgid to the audio data
+              boost::array<mutable_buffer, 2> buf1 = {
+                buffer(&TGID,4),
+                buffer(samples, sampleCount*2)
+              };
+              my_socket.send_to(buf1, stream.remote_endpoint, 0, err);
+            }
+            else{
+              //just send the audio data
+              my_socket.send_to(buffer(samples, sampleCount*2), stream.remote_endpoint, 0, err);
+            }
           }
         }
       }
