@@ -66,29 +66,8 @@ jobs:
         sudo apt-get update && \
         sudo apt-get -y upgrade &&\
         sudo apt-get install -y \
-            apt-transport-https \
-            build-essential \
-            ca-certificates \
-            fdkaac \
-            git \
-            docker.io \
-            gnupg \
             gnuradio \
             gnuradio-dev \
-            gr-osmosdr \
-            libboost-all-dev \
-            libcurl4-openssl-dev \
-            libgmp-dev \
-            libhackrf-dev \
-            liborc-0.4-dev \
-            libpthread-stubs0-dev \
-            libssl-dev \
-            libuhd-dev \
-            libusb-dev \
-            pkg-config \
-            software-properties-common \
-            cmake \
-            sox && \
         sudo rm -rf /var/lib/apt/lists/*
 
     - name: Perform CodeQL Analysis
