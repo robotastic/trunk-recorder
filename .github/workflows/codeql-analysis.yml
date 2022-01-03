@@ -67,8 +67,7 @@ jobs:
         sudo apt-get -y upgrade &&\
         sudo apt-get install -y \
             gnuradio \
-            gnuradio-dev \
-        sudo rm -rf /var/lib/apt/lists/*
+            gnuradio-dev
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
