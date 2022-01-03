@@ -63,10 +63,10 @@ jobs:
     #    uses a compiled language
 
     - run: |
-         apt-get update && \
-          apt-get -y upgrade &&\
-          export DEBIAN_FRONTEND=noninteractive && \
-          apt-get install -y \
+        sudo apt-get update && \
+        sudo apt-get -y upgrade &&\
+        sudo export DEBIAN_FRONTEND=noninteractive && \
+        sudo apt-get install -y \
             apt-transport-https \
             build-essential \
             ca-certificates \
@@ -90,7 +90,7 @@ jobs:
             software-properties-common \
             cmake \
             sox && \
-          rm -rf /var/lib/apt/lists/*
+        sudo rm -rf /var/lib/apt/lists/*
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
