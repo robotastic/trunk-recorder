@@ -42,7 +42,9 @@ jobs:
     - name: Create compile_commands.json
       run: |
         cmake --version
-        cmake .. -DBUILD_SHARED_LIBS=ON \
+        pwd
+        ls -al
+        cmake ..  -DBUILD_SHARED_LIBS=ON \
                          -DBOUT_ENABLE_OPENMP=ON \
                          -DBOUT_USE_PETSC=ON \
                          -DBOUT_USE_SLEPC=ON \
@@ -51,6 +53,7 @@ jobs:
                          -DBOUT_BUILD_EXAMPLES=ON \
                          -DBOUT_BUILD_DOCS=OFF \
                          -DCMAKE_EXPORT_COMPILE_COMMANDS=On
+                       
                          
     - name: Run clang-tidy
       uses: ZedThree/clang-tidy-review@v0.6.1
