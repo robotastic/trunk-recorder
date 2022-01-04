@@ -1,0 +1,56 @@
+name: clang-tidy-review
+
+on: [pull_request]
+
+jobs:
+  review:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Install Prerequisites
+      run: |
+        sudo apt-get update && \
+        sudo apt-get -y upgrade &&\
+        sudo apt-get install -y \
+          apt-transport-https \
+          build-essential \
+          fdkaac \
+          gnupg \
+          gnuradio \
+          gnuradio-dev \
+          gr-osmosdr \
+          libboost-all-dev \
+          libcurl4-openssl-dev \
+          libgmp-dev \
+          libhackrf-dev \
+          liborc-0.4-dev \
+          libpthread-stubs0-dev \
+          libssl-dev \
+          libuhd-dev \
+          libusb-dev \
+          pkg-config \
+          software-properties-common
+
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Create compile_commands.json
+      run: |
+        cmake --version
+        cmake .. -DBUILD_SHARED_LIBS=ON \
+                         -DBOUT_ENABLE_OPENMP=ON \
+                         -DBOUT_USE_PETSC=ON \
+                         -DBOUT_USE_SLEPC=ON \
+                         -DBOUT_USE_HDF5=ON \
+                         -DBOUT_USE_SUNDIALS=ON \
+                         -DBOUT_BUILD_EXAMPLES=ON \
+                         -DBOUT_BUILD_DOCS=OFF \
+                         -DCMAKE_EXPORT_COMPILE_COMMANDS=On
+                         
+    - name: Run clang-tidy
+      uses: ZedThree/clang-tidy-review@v0.6.1
+      id: review
+      
+    - name: Passed C++ style guide checks
+      if: steps.static_analysis.outputs.total_comments > 0
+      run: exit 1
