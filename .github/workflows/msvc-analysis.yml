@@ -29,6 +29,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Install Prerequisites
+        run: |
+          sudo apt-get update && \
+          sudo apt-get -y upgrade &&\
+          sudo apt-get install -y \
+            apt-transport-https \
+            build-essential \
+            fdkaac \
+            gnupg \
+            gnuradio \
+            gnuradio-dev \
+            gr-osmosdr \
+            libboost-all-dev \
+            libcurl4-openssl-dev \
+            libgmp-dev \
+            libhackrf-dev \
+            liborc-0.4-dev \
+            libpthread-stubs0-dev \
+            libssl-dev \
+            libuhd-dev \
+            libusb-dev \
+            pkg-config \
+            software-properties-common
+
       - name: Configure CMake
         run: cmake -B ${{ env.build }}
 
