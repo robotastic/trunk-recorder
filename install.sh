@@ -65,7 +65,7 @@ rebuild_steps() {
 install_steps() {
     pre_reqs
     rebuild_steps
-    blacklist
+    blacklist 
 }
 
 case "$0" in
