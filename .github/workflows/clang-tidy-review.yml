@@ -44,7 +44,7 @@ jobs:
         cmake --version
         pwd
         ls -al
-        cmake ..  -DBUILD_SHARED_LIBS=ON \
+        cmake . -DBUILD_SHARED_LIBS=ON \
                          -DBOUT_ENABLE_OPENMP=ON \
                          -DBOUT_USE_PETSC=ON \
                          -DBOUT_USE_SLEPC=ON \
