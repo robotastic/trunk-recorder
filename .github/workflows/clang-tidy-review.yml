@@ -10,6 +10,8 @@ on:
 jobs:
   review:
     runs-on: ubuntu-20.04
+    env:
+      PR: 123456
     steps:
     - name: Install Prerequisites
       run: |
