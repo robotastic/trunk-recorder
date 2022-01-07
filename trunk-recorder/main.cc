@@ -428,6 +428,8 @@ bool load_config(string config_file) {
       int lna_gain = node.second.get<double>("lnaGain", 0);
       int pga_gain = node.second.get<double>("pgaGain", 0);
       int tia_gain = node.second.get<double>("tiaGain", 0);
+      int amp_gain = node.second.get<double>("ampGain", 0);
+      int vga_gain = node.second.get<double>("vgaGain", 0);
       int vga1_gain = node.second.get<double>("vga1Gain", 0);
       int vga2_gain = node.second.get<double>("vga2Gain", 0);
 
@@ -456,6 +458,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << node.second.get<double>("pgaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << node.second.get<double>("tiaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "AMP Gain: " << node.second.get<double>("ampGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << node.second.get<double>("vgaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
@@ -507,6 +511,16 @@ bool load_config(string config_file) {
       if (pga_gain != 0) {
         gain_set = true;
         source->set_gain_by_name("PGA", pga_gain);
+      }
+
+      if (amp_gain != 0) {
+        gain_set = true;
+        source->set_gain_by_name("AMP", amp_gain);
+      }
+
+      if (vga_gain != 0) {
+        gain_set = true;
+        source->set_gain_by_name("VGA", vga_gain);
       }
 
       if (vga1_gain != 0) {
