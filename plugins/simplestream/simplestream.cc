@@ -3,6 +3,7 @@
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread/mutex.hpp>
 #include <map>
 
 using namespace boost::asio;
@@ -11,6 +12,7 @@ typedef struct plugin_t plugin_t;
 typedef struct stream_t stream_t;
 std::map<unsigned long,std::vector<unsigned long>> TGID_map;
 std::vector<stream_t> streams;
+boost::mutex TGID_map_mutex;
 
 struct plugin_t {
   Config* config;
@@ -26,62 +28,62 @@ struct stream_t {
 
 
 class Simple_Stream : public Plugin_Api {
-	typedef boost::asio::io_service io_service;
+  typedef boost::asio::io_service io_service;
+  
+  io_service my_io_service;
+  ip::udp::endpoint remote_endpoint;
+  ip::udp::socket my_socket{my_io_service};
+  public:
+  
+  Simple_Stream(){
+      
+  }
     
-	io_service my_io_service;
-	ip::udp::endpoint remote_endpoint;
-	ip::udp::socket my_socket{my_io_service};
-	public:
-	
-	Simple_Stream(){
-		
-	}
-	
-	int call_start(Call *call) {
-		//BOOST_LOG_TRIVIAL(debug) << "call_start called in simplestream plugin" ;
-		unsigned long talkgroup_num = call->get_talkgroup();
-		std::vector<unsigned long> patched_talkgroups = call->get_system()->get_talkgroup_patch(talkgroup_num);
-		//BOOST_LOG_TRIVIAL(info) << "call_start called in simplestream plugin for TGID "<< talkgroup_num << " with patch size " << patched_talkgroups.size();
-		if (patched_talkgroups.size() == 0){
-			patched_talkgroups.push_back(talkgroup_num);
-		}
-		//BOOST_LOG_TRIVIAL(debug) << "TGID is "<<talkgroup_num ;
-		Recorder *recorder = call->get_recorder();
-		if (recorder != NULL) {
-			int recorder_id = recorder->get_num();
-			TGID_map[recorder_id] = patched_talkgroups;
-			//BOOST_LOG_TRIVIAL(debug) << "Recorder num is "<<recorder_id ;
-		}
-		else {
-			//BOOST_LOG_TRIVIAL(debug) << "No Recorder for this TGID...doing nothing! ";
-		}
-		//BOOST_LOG_TRIVIAL(debug) << "made it to the end of call_start()" ;
-		return 0;
-	}
-	
+  int call_start(Call *call) {
+    boost::mutex::scoped_lock lock(TGID_map_mutex);
+    BOOST_LOG_TRIVIAL(debug) << "call_start called in simplestream plugin" ;
+    unsigned long talkgroup_num = call->get_talkgroup();
+    std::vector<unsigned long> patched_talkgroups = call->get_system()->get_talkgroup_patch(talkgroup_num);
+    BOOST_LOG_TRIVIAL(debug) << "call_start called in simplestream plugin for TGID "<< talkgroup_num << " with patch size " << patched_talkgroups.size();
+    if (patched_talkgroups.size() == 0){
+      patched_talkgroups.push_back(talkgroup_num);
+    }
+    BOOST_LOG_TRIVIAL(debug) << "TGID is "<<talkgroup_num ;
+    Recorder *recorder = call->get_recorder();
+    if (recorder != NULL) {
+      int recorder_id = recorder->get_num();
+      BOOST_LOG_TRIVIAL(debug) << "Recorder num is "<<recorder_id ;
+      TGID_map[recorder_id] = patched_talkgroups;
+    }
+    else {
+      BOOST_LOG_TRIVIAL(debug) << "No Recorder for this TGID...doing nothing! ";
+    }
+    return 0;
+  }
+    
   int call_end(Call_Data_t call_info) {
-
+    boost::mutex::scoped_lock lock(TGID_map_mutex);
     unsigned long talkgroup_num = call_info.talkgroup;
     std::vector<unsigned long> patched_talkgroups = call_info.patched_talkgroups;
     std::vector<long> recorders_to_erase;
-    //BOOST_LOG_TRIVIAL(info) << "call_end called in simplestream plugin on TGID " << talkgroup_num << " with patch size " << patched_talkgroups.size() ;
+    BOOST_LOG_TRIVIAL(debug) << "call_end called in simplestream plugin on TGID " << talkgroup_num << " with patch size " << patched_talkgroups.size() ;
     BOOST_FOREACH(auto& element, TGID_map){
-      BOOST_FOREACH(auto& mapped_TGID, element.second) {
-        //BOOST_LOG_TRIVIAL(info) << "TGID_map[" << element.first << "] contains " << mapped_TGID;
+      BOOST_FOREACH(unsigned long mapped_TGID, element.second){
+        BOOST_LOG_TRIVIAL(debug) << "TGID_map[" << element.first << "] contains " << mapped_TGID;
         if (mapped_TGID == talkgroup_num){
           recorders_to_erase.push_back(element.first);
-          //BOOST_LOG_TRIVIAL(info) << "adding recorder " << element.first << " to erase list";
+          BOOST_LOG_TRIVIAL(debug) << "adding recorder " << element.first << " to erase list";
         }
-        BOOST_FOREACH(auto& TGID, patched_talkgroups){
+        BOOST_FOREACH(unsigned long TGID, patched_talkgroups){
           if (mapped_TGID == TGID){
             recorders_to_erase.push_back(element.first);
-            //BOOST_LOG_TRIVIAL(info) << "adding recorder " << element.first << " to erase list";
+            BOOST_LOG_TRIVIAL(debug) << "adding recorder " << element.first << " to erase list";
           }
         }
       }
     }
-    BOOST_FOREACH(auto& recorder_id, recorders_to_erase){
-      //BOOST_LOG_TRIVIAL(info) << "erasing recorder " << recorder_id << " from TGID_Map";
+    BOOST_FOREACH(long recorder_id, recorders_to_erase){
+      BOOST_LOG_TRIVIAL(debug) << "erasing recorder " << recorder_id << " from TGID_Map";
       TGID_map.erase(recorder_id);
     }
     return 0;
@@ -104,21 +106,23 @@ class Simple_Stream : public Plugin_Api {
   int audio_stream(Recorder *recorder, int16_t *samples, int sampleCount){
     int recorder_id = recorder->get_num();
     BOOST_FOREACH (auto& stream, streams){
-      BOOST_FOREACH (auto& TGID, TGID_map[recorder_id]){
-        if (TGID==stream.TGID || stream.TGID==0){  //setting TGID to 0 in the config file will stream everything
-          boost::system::error_code err;
-          BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes";
-          if (stream.sendTGID==true){
-            //prepend 4 byte long tgid to the audio data
-            boost::array<mutable_buffer, 2> buf1 = {
-              buffer(&TGID,4),
-              buffer(samples, sampleCount*2)
-            };
-            my_socket.send_to(buf1, stream.remote_endpoint, 0, err);
-          }
-          else{
-            //just send the audio data
-            my_socket.send_to(buffer(samples, sampleCount*2), stream.remote_endpoint, 0, err);
+      if (TGID_map.find(recorder_id) != TGID_map.end()){
+        BOOST_FOREACH (auto& TGID, TGID_map[recorder_id]){
+          if (TGID==stream.TGID || stream.TGID==0){  //setting TGID to 0 in the config file will stream everything
+            boost::system::error_code err;
+            BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes";
+            if (stream.sendTGID==true){
+              //prepend 4 byte long tgid to the audio data
+              boost::array<mutable_buffer, 2> buf1 = {
+                buffer(&TGID,4),
+                buffer(samples, sampleCount*2)
+              };
+              my_socket.send_to(buf1, stream.remote_endpoint, 0, err);
+            }
+            else{
+              //just send the audio data
+              my_socket.send_to(buffer(samples, sampleCount*2), stream.remote_endpoint, 0, err);
+            }
           }
         }
       }

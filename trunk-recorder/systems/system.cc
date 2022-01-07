@@ -467,17 +467,17 @@ std::vector<unsigned long> System::get_talkgroup_patch(unsigned long talkgroup){
   return patched_tgids;
 }
 
-void System::update_active_talkgroup_patches(TrunkMessage message){
+void System::update_active_talkgroup_patches(MotoPatchData moto_patch_data){
   std::time_t update_time = std::time(nullptr);
   bool new_flag = true;
 
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
-    if (patch.first == message.moto_patch_data.sg){
+    if (patch.first == moto_patch_data.sg){
       new_flag = false;
-      patch.second[message.moto_patch_data.sg] = update_time;
-      patch.second[message.moto_patch_data.ga1] = update_time;
-      patch.second[message.moto_patch_data.ga2] = update_time;
-      patch.second[message.moto_patch_data.ga3] = update_time;
+      patch.second[moto_patch_data.sg] = update_time;
+      patch.second[moto_patch_data.ga1] = update_time;
+      patch.second[moto_patch_data.ga2] = update_time;
+      patch.second[moto_patch_data.ga3] = update_time;
     }
     //Can add another IF statement here to handle Harris patch messages
   }
@@ -485,11 +485,11 @@ void System::update_active_talkgroup_patches(TrunkMessage message){
     //TGIDs from the Message were not found in an existing patch, so add them to a new one
     //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
     std::map<unsigned long,std::time_t> new_patch;
-    new_patch[message.moto_patch_data.sg] = update_time;
-    new_patch[message.moto_patch_data.ga1] = update_time;
-    new_patch[message.moto_patch_data.ga2] = update_time;
-    new_patch[message.moto_patch_data.ga3] = update_time;
-    talkgroup_patches[message.moto_patch_data.sg] = new_patch;
+    new_patch[moto_patch_data.sg] = update_time;
+    new_patch[moto_patch_data.ga1] = update_time;
+    new_patch[moto_patch_data.ga2] = update_time;
+    new_patch[moto_patch_data.ga3] = update_time;
+    talkgroup_patches[moto_patch_data.sg] = new_patch;
   }
 }
 
