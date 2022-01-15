@@ -82,6 +82,11 @@ public:
     source_list << std::fixed << std::setprecision(2);
     source_list << "[";
 
+    std::ostringstream patch_list;
+    std::string patch_list_string;
+    patch_list << std::fixed << std::setprecision(2);
+    patch_list << "[";
+
     boost::filesystem::path audioPath(call_info.filename);
     boost::filesystem::path audioName = audioPath.filename();
 
@@ -104,6 +109,19 @@ public:
       source_list << "]";
     }
 
+    if (call_info.patched_talkgroups.size()>1){
+      for (int i = 0; i < call_info.patched_talkgroups.size(); i++) {
+        if (i!=0) { 
+          patch_list << ",";
+        }
+        patch_list << (int)call_info.patched_talkgroups[i];
+      }
+      patch_list << "]";
+    }
+    else {
+      patch_list << "]";
+    }
+
     //BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
     CURL *curl;
     CURLMcode res;
@@ -114,6 +132,7 @@ public:
 
     source_list_string = source_list.str();
     call_length_string = call_length.str();
+    patch_list_string = patch_list.str();
 
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
@@ -162,6 +181,12 @@ public:
                  &lastptr,
                  CURLFORM_COPYNAME, "key",
                  CURLFORM_COPYCONTENTS, api_key.c_str(),
+                 CURLFORM_END);
+
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "patches",
+                 CURLFORM_COPYCONTENTS, patch_list_string.c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
