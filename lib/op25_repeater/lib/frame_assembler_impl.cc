@@ -95,9 +95,11 @@ namespace gr {
         frame_assembler_impl::frame_assembler_impl(int sys_num, const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue)
             : gr::block("frame_assembler",
                     gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
-                    gr::io_signature::make (0, 0, 0)),
+	                gr::io_signature::make ( 2, 2, sizeof(int16_t))),
+	
             d_msgq_id(msgq_id),
             d_msg_queue(queue),
+            output_queue(),
             d_sync(NULL)
         {
             if (strcasecmp(options, "smartnet") == 0)
@@ -105,7 +107,7 @@ namespace gr {
             else if (strcasecmp(options, "subchannel") == 0)
                 d_sync = new rx_subchannel(options, debug, msgq_id, queue);
             else
-                d_sync = new rx_sync(sys_num, options, debug, msgq_id, queue);
+                d_sync = new rx_sync(sys_num, options, debug, msgq_id, queue, output_queue);
         }
 
         int 
@@ -122,10 +124,50 @@ namespace gr {
                         d_sync->rx_sym(in[i]);
                     }
                 }
-                consume_each(ninput_items[0]);
-                // Tell runtime system how many output items we produced.
-                return 0;
-            }
+        
+        int amt_produce = 0;
+
+        
+        
+/*
+          
+        if (amt_produce > (int)output_queue.size()) {
+          amt_produce = output_queue.size();
+        }
+*/  
+        produce(0, output_queue[0].size());
+        produce(1, output_queue[1].size());
+
+                if ((output_queue[0].size() > 0) || ( output_queue[1].size() > 0)) {
+        //BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_queue 0: " << output_queue[0].size() << " output_queue 1: " << output_queue[1].size() <<" noutput_items: " <<  noutput_items;
+        }
+        for (int slot_id = 0; slot_id < 2; slot_id++) {
+        int16_t *out = (int16_t *)output_items[slot_id];
+        int src_id = d_sync->get_src_id(slot_id);
+        bool terminated = d_sync->get_terminated(slot_id);
+        if (src_id != -1) {
+            BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - sending src: " << src_id;
+            add_item_tag(0, nitems_written(0), pmt::intern("src_id"), pmt::from_long(src_id), pmt::intern(name()));
+          }
+          /*
+        if (terminated) {
+            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), pmt::intern(name()));
+        }*/
+          for (int i = 0; i < output_queue[slot_id].size(); i++) {
+              //BOOST_LOG_TRIVIAL(info) << output_queue[slot_id][i];
+            out[i] = output_queue[slot_id][i];
+          }
+          output_queue[slot_id].clear();
+          //output_queue[slot_id].erase(output_queue[slot_id].begin(), output_queue[slot_id].begin() + output_queue[slot_id].size());
+        }
+
+        //BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - Amt Prod: " << amt_produce << " output_items 0: " << len(output_items[0]) << " output_items 1: " << len(output_items[1]) <<" noutput_items: " <<  noutput_items;
+        
+        consume_each(ninput_items[0]);
+        // Tell runtime system how many output items we produced.
+        return WORK_CALLED_PRODUCE;
+
+        }
 
     } /* namespace op25_repeater */
 } /* namespace gr */

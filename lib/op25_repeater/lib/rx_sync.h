@@ -123,7 +123,9 @@ public:
 	void set_xormask(const char* p);
 	void set_nac(int nac);
 	void set_debug(int debug);
-	rx_sync(int sys_num, const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue);
+	int get_src_id(int slot);
+	bool get_terminated(int slot);
+	rx_sync(int sys_num, const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue, std::array<std::deque<int16_t>, 2> &output_queue);
 	~rx_sync();
 
 private:
@@ -163,11 +165,14 @@ private:
 	std::deque<int16_t> d_output_queue[2];
 	dmr_cai dmr;
 	int d_msgq_id;
+	int src_id[2];
 	gr::msg_queue::sptr d_msg_queue;
 	bool d_stereo;
 	int d_debug;
 	op25_audio d_audio;
 	log_ts logts;
+	std::array<std::deque<int16_t>, 2> &output_queue;
+	//std::deque<int16_t> &output_queue[];
 	int d_sys_num;
 };
 

@@ -66,6 +66,23 @@ dmr_cai::set_debug(int debug) {
     d_slot[1].set_debug(debug);
 }
 
+bool dmr_cai::get_terminated(int slot) {
+	if ((slot == 0) || (slot == 1)) {
+		return d_slot[slot].get_terminated();
+	}
+	fprintf(stderr, "Error, Slot given is not 0 or 1\n");
+	return false;
+}
+
+int dmr_cai::get_src_id(int slot) {
+	if ((slot == 0) || (slot == 1)) {
+		return d_slot[slot].get_src_id();
+	}
+	fprintf(stderr, "Error, Slot given is not 0 or 1\n");
+	return -1;
+}
+
+
 void
 dmr_cai::send_msg(const std::string& m_buf, const int m_type) {
 	if ((d_msgq_id < 0) || (d_msg_queue->full_p()))

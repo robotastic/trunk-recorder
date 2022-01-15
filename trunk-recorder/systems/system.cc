@@ -301,8 +301,16 @@ void System::add_conventionalP25_recorder(p25_recorder_sptr rec) {
   conventionalP25_recorders.push_back(rec);
 }
 
+void System::add_conventionalDMR_recorder(dmr_recorder_sptr rec) {
+  conventionalDMR_recorders.push_back(rec);
+}
+
 std::vector<p25_recorder_sptr> System::get_conventionalP25_recorders() {
   return conventionalP25_recorders;
+}
+
+std::vector<dmr_recorder_sptr> System::get_conventionalDMR_recorders() {
+  return conventionalDMR_recorders;
 }
 
 void System::add_channel(double channel) {

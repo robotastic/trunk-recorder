@@ -249,7 +249,7 @@ bool load_config(string config_file) {
           }
         }
 
-      } else if (system->get_system_type() == "conventionalP25") {
+      } else if ((system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR") ) {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
           double channel = sub_node.second.get<double>("", 0);
@@ -1121,7 +1121,7 @@ void check_message_count(float timeDiff) {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
-    if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
+    if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25") && (sys->system_type != "conventionalDMR")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
 
       if (msgs_decoded_per_second < 2) {
@@ -1240,7 +1240,7 @@ bool setup_systems() {
     System *system = *sys_it;
     //bool    source_found = false;
 
-    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25")) {
+    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
       std::vector<double> channels = system->get_channels();
       int tg_iterate_index = 0;
 
@@ -1279,7 +1279,16 @@ bool setup_systems() {
               system->add_conventional_recorder(rec);
               calls.push_back(call);
               plugman_setup_recorder((Recorder *)rec.get());
-            } else { // has to be "conventional P25"
+            } else if (system->get_system_type() == "conventionalDMR") {
+               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
+              // This has something to do with the way the Selector block works.
+              // the manage_calls() function handles adding and starting the P25 Recorder
+              dmr_recorder_sptr rec;
+              rec = source->create_dmr_conventional_recorder(tb);
+              call->set_recorder((Recorder *)rec.get());
+              system->add_conventionalDMR_recorder(rec);
+              calls.push_back(call);             
+            } else  { // has to be "conventional P25"
               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
               // This has something to do with the way the Selector block works.
               // the manage_calls() function handles adding and starting the P25 Recorder

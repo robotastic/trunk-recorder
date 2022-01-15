@@ -73,6 +73,7 @@ nonstop_wavfile_sink_impl::nonstop_wavfile_sink_impl(
   }
   d_bytes_per_sample = bits_per_sample / 8;
   d_sample_count = 0;
+  d_slot = -1;
   d_first_work = true;
   d_termination_flag = false;
   state = AVAILABLE;
@@ -90,8 +91,12 @@ void nonstop_wavfile_sink_impl::create_base_filename() {
 
   int nchars;
 
-  nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
-
+  if (d_slot == -1) {
+    nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
+  } else {
+    // this is for the case when it is a DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
+    nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f.%d", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq,d_slot);
+  }
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
   }
@@ -99,6 +104,12 @@ void nonstop_wavfile_sink_impl::create_base_filename() {
 
 char *nonstop_wavfile_sink_impl::get_filename() {
   return current_filename;
+}
+
+bool nonstop_wavfile_sink_impl::start_recording(Call *call, int slot) {
+  this->d_slot = slot;
+  this->start_recording(call);
+  return true;
 }
 
 bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
@@ -130,8 +141,6 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
   std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
   BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink ";
-
-
 
   return true;
 }
@@ -195,13 +204,19 @@ bool nonstop_wavfile_sink_impl::open_internal(const char *filename) {
 
 void nonstop_wavfile_sink_impl::set_source(long src) {
   gr::thread::scoped_lock guard(d_mutex);
+
+  char formattedTalkgroup[62];
+  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+
   if (curr_src_id == -1) {
+
+    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: "<< src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+
     curr_src_id = src;
   } else if (src != curr_src_id) {
     if (state == RECORDING) {
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+
       BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: "<< src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
       if (d_sample_count > 0) {
@@ -260,8 +275,6 @@ void nonstop_wavfile_sink_impl::stop_recording() {
   state = AVAILABLE;
 }
 
-
-
 void nonstop_wavfile_sink_impl::close_wav(bool close_call) {
   unsigned int byte_count = d_sample_count * d_bytes_per_sample;
   wavheader_complete(d_fp, byte_count);
@@ -280,7 +293,6 @@ bool nonstop_wavfile_sink_impl::stop() {
 State nonstop_wavfile_sink_impl::get_state() {
   return this->state;
 }
-
 
 int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
@@ -327,12 +339,30 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
     if (pmt::eq(this_key, tags[i].key)) {
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
-      if (curr_src_id != src_id) {
-        //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id;
-      }
-      if (src_id && (curr_src_id != src_id)) {
+
+      if (curr_src_id == -1) {
+        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+        
+        curr_src_id = src_id;
+      } else if (src_id != curr_src_id) {
+        if (state == RECORDING) {
+
+          if (d_sample_count > 0) {
+            end_transmission();
+          }
+
+          if (!record_more_transmissions) {
+            state = STOPPED;
+          } else {
+            state = IDLE;
+            d_first_work = true;
+          }
+        }
+        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+        
         curr_src_id = src_id;
       }
+
     }
     if (pmt::eq(that_key, tags[i].key) || pmt::eq(squelch_key, tags[i].key)) {
       d_termination_flag = true;
@@ -378,6 +408,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   short int sample_buf_s;
   int nwritten;
 
+  
   if (d_termination_flag) {
 
     if (d_current_call == NULL) {
