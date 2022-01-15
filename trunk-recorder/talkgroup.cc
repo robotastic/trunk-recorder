@@ -1,6 +1,6 @@
 #include "talkgroup.h"
 
-Talkgroup::Talkgroup(long num, char m, std::string a, std::string d, std::string t, std::string g, int p) {
+Talkgroup::Talkgroup(long num, std::string m, std::string a, std::string d, std::string t, std::string g, int p) {
   number = num;
   mode = m;
   alpha_tag = a;
@@ -27,6 +27,11 @@ std::string Talkgroup::menu_string() {
 
 int Talkgroup::get_priority() {
   return priority;
+}
+
+void Talkgroup::set_priority(int new_priority){
+  priority = new_priority;
+  return;
 }
 
 bool Talkgroup::is_active() {

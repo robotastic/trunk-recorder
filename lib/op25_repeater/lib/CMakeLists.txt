@@ -78,7 +78,7 @@ list(APPEND op25_repeater_sources
     dmr_cai.cc
     dmr_slot.cc
     op25_audio.cc
-    op25_timer
+    op25_timer.cc
     CCITTChecksumReverse.cpp
 )
 

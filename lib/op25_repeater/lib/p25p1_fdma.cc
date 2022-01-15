@@ -444,7 +444,7 @@ namespace gr {
             for (int i = 0; i < 9; i++) {
                 pdu[2+i] = lcw[i];
             }
-            send_msg(pdu, M_P25_FDMA_LCW);
+            //send_msg(pdu, M_P25_FDMA_LCW); // This messages is not being parsed, not sure what it is for
 
             int pb =   (lcw[0] >> 7);
             int sf =  ((lcw[0] & 0x40) >> 6);

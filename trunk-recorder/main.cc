@@ -148,8 +148,44 @@ bool load_config(string config_file) {
     }
 
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
-    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
+  
+  
+  
+    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
 
+    config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
+    size_t pos = config.capture_dir.find_last_of("/");
+
+    if (pos == config.capture_dir.length() - 1) {
+      config.capture_dir.erase(config.capture_dir.length() - 1);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
+    config.upload_server = pt.get<std::string>("uploadServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
+    config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
+    config.status_server = pt.get<std::string>("statusServer", "");
+    BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
+    config.instance_key = pt.get<std::string>("instanceKey", "");
+    BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
+    config.instance_id = pt.get<std::string>("instanceId", "");
+    BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
+    config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
+    BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
+    default_mode = pt.get<std::string>("defaultMode", "digital");
+    BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
+    config.call_timeout = pt.get<int>("callTimeout", 3);
+    BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
+    config.log_file = pt.get<bool>("logFile", false);
+    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    config.log_dir = pt.get<std::string>("logDir", "logs");
+    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
+    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
+    BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
+    config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
+    BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+    config.enable_audio_streaming = pt.get<bool>("audioStreaming", false);
+    BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
     std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
 
     if (boost::iequals(frequencyFormatString, "mhz")) {
@@ -159,6 +195,17 @@ bool load_config(string config_file) {
     } else {
       frequencyFormat = 0;
     }
+
+    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
+
+    statusAsString = pt.get<bool>("statusAsString", statusAsString);
+    BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
+    std::string log_level = pt.get<std::string>("logLevel", "info");
+    BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
+    set_logging_level(log_level);
+  
+  
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
 
     config.debug_recorder = pt.get<bool>("debugRecorder", 0);
     config.debug_recorder_address = pt.get<std::string>("debugRecorderAddress", "127.0.0.1");
@@ -381,6 +428,8 @@ bool load_config(string config_file) {
       int lna_gain = node.second.get<double>("lnaGain", 0);
       int pga_gain = node.second.get<double>("pgaGain", 0);
       int tia_gain = node.second.get<double>("tiaGain", 0);
+      int amp_gain = node.second.get<double>("ampGain", 0);
+      int vga_gain = node.second.get<double>("vgaGain", 0);
       int vga1_gain = node.second.get<double>("vga1Gain", 0);
       int vga2_gain = node.second.get<double>("vga2Gain", 0);
 
@@ -409,6 +458,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << node.second.get<double>("pgaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << node.second.get<double>("tiaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "AMP Gain: " << node.second.get<double>("ampGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << node.second.get<double>("vgaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
@@ -462,6 +513,16 @@ bool load_config(string config_file) {
         source->set_gain_by_name("PGA", pga_gain);
       }
 
+      if (amp_gain != 0) {
+        gain_set = true;
+        source->set_gain_by_name("AMP", amp_gain);
+      }
+
+      if (vga_gain != 0) {
+        gain_set = true;
+        source->set_gain_by_name("VGA", vga_gain);
+      }
+
       if (vga1_gain != 0) {
         gain_set = true;
         source->set_gain_by_name("VGA1", vga1_gain);
@@ -481,7 +542,7 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
       }
 
-      source->set_gain_mode(agc);
+	    source->set_gain_mode(agc);
       source->set_antenna(antenna);
       source->set_silence_frames(silence_frames);
 
@@ -494,52 +555,12 @@ bool load_config(string config_file) {
       if (config.debug_recorder) {
         source->create_debug_recorder(tb, source_count);
       }
+      
       sources.push_back(source);
       source_count++;
       BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n\n";
     }
 
-    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
-
-    config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
-    size_t pos = config.capture_dir.find_last_of("/");
-
-    if (pos == config.capture_dir.length() - 1) {
-      config.capture_dir.erase(config.capture_dir.length() - 1);
-    }
-    BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config.upload_server = pt.get<std::string>("uploadServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
-    config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
-    config.status_server = pt.get<std::string>("statusServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
-    config.instance_key = pt.get<std::string>("instanceKey", "");
-    BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
-    config.instance_id = pt.get<std::string>("instanceId", "");
-    BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
-    config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
-    BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
-    default_mode = pt.get<std::string>("defaultMode", "digital");
-    BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
-    config.call_timeout = pt.get<int>("callTimeout", 3);
-    BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
-    config.log_file = pt.get<bool>("logFile", false);
-    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
-    config.log_dir = pt.get<std::string>("logDir", "logs");
-    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
-    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
-    BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
-    config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
-    BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
-
-    BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
-
-    statusAsString = pt.get<bool>("statusAsString", statusAsString);
-    BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
-    std::string log_level = pt.get<std::string>("logLevel", "info");
-    BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
-    set_logging_level(log_level);
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
     add_internal_plugin("openmhz_uploader","libopenmhz_uploader.so",  pt);
@@ -595,6 +616,7 @@ void process_signal(long unitId, const char *signaling_type, gr::blocks::SignalT
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
+
   bool source_found = false;
   bool recorder_found = false;
   Recorder *recorder;
@@ -614,7 +636,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     call->set_talkgroup_tag("-");
   }
 
-  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode == 'E'))) {
+  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode.compare("E") == 0 || talkgroup->mode.compare("TE") == 0  || talkgroup->mode.compare("DE") == 0 ))) {
     if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
@@ -629,10 +651,20 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       source_found = true;
 
       if (talkgroup) {
-        if (talkgroup->mode == 'A') {
+        int priority = talkgroup->get_priority();
+        BOOST_FOREACH (auto& TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {
+          if (sys->find_talkgroup(TGID) != NULL){
+            if (sys->find_talkgroup(TGID)->get_priority() < priority){
+              priority = sys->find_talkgroup(TGID)->get_priority();
+              BOOST_LOG_TRIVIAL(info) << "Temporarily increased priority of talkgroup " << call->get_talkgroup() << " to " << sys->find_talkgroup(TGID)->get_priority() << " due to active patch with talkgroup " << TGID;
+            }
+          }
+        }
+        if (talkgroup->mode.compare("A") == 0) {
           recorder = source->get_analog_recorder(talkgroup);
+          call->set_is_analog(true);
         } else {
-          recorder = source->get_digital_recorder(talkgroup);
+          recorder = source->get_digital_recorder(talkgroup, priority);
         }
       } else {
         BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tTG not in Talkgroup File ";
@@ -878,7 +910,7 @@ void manage_calls() {
           continue;
         }
       } else {
-        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Rec Num: " << recorder->get_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
+        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
       }
     }
 
@@ -989,6 +1021,10 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       unit_acknowledge_response( sys, message.source);
       break;
 
+    case MOTO_PATCH_ADD:
+      //update_patches(message, sys);
+      sys->update_active_talkgroup_patches(message.moto_patch_data);
+      break;
     case UNKNOWN:
       break;
     }
@@ -1179,6 +1215,12 @@ void monitor_messages() {
     if (timeDiff >= 3.0) {
       check_message_count(timeDiff);
       lastMsgCountTime = current_time;
+      for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+        System *system = *sys_it;
+        if (system->get_system_type() == "p25") {
+          system->clear_stale_talkgroup_patches();
+        }
+      }
     }
 
     float statusTimeDiff = current_time - lastStatusTime;

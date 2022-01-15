@@ -108,13 +108,15 @@ public:
   virtual boost::property_tree::ptree get_stats();
   virtual int get_recording_count() { return recording_count; }
   virtual double get_recording_duration() { return recording_duration; }
-
   virtual void process_message_queues(void){};
   virtual double get_output_sample_rate(){ return 0;}
   virtual int get_output_channels() { return 1; }
+  virtual bool get_enable_audio_streaming() {return d_enable_audio_streaming; };
+  virtual void set_enable_audio_streaming(bool enable_audio_streaming) { d_enable_audio_streaming = enable_audio_streaming; };
 
 protected:
   int recording_count;
+  bool d_enable_audio_streaming;
   double recording_duration;
   std::string type;
 };

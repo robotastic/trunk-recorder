@@ -68,6 +68,8 @@ public:
   bool get_phase2_tdma();
   void set_tdma_slot(int s);
   int get_tdma_slot();
+  bool get_is_analog();
+  void set_is_analog( bool a );
   const char *get_xor_mask();
   virtual time_t get_start_time() {return start_time;}
   virtual bool is_conventional() { return false; }
@@ -115,6 +117,7 @@ protected:
   bool emergency;
   bool mode;
   bool duplex;
+  bool is_analog;
   long priority;
   char filename[255];
   char transmission_filename[255];

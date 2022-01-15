@@ -93,8 +93,6 @@ public:
 
   void set_silence_frames(int m);
   int get_silence_frames();
-
-
   int get_bb_gain();
   int get_mix_gain();
   int get_lna_gain();
@@ -119,7 +117,7 @@ public:
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb); 
   Recorder *get_digital_recorder();
-  Recorder *get_digital_recorder(Talkgroup *talkgroup);
+  Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority);
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   Recorder *get_debug_recorder();
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);

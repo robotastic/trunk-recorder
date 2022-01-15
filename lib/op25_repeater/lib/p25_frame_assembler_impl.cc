@@ -132,7 +132,7 @@ static const int MAX_IN = 1;	// maximum number of input streams
         set_output_multiple(160);
     }
 
-#if 0
+
 void
 p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
 {
@@ -149,7 +149,7 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_inpu
    nof_samples_reqd = std::max(nof_samples_reqd, 256);
    std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
 }
-#endif
+
 
     void p25_frame_assembler_impl::reset_rx_status() {
       p1fdma.reset_rx_status();
@@ -202,9 +202,9 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
         BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
           
-        if (amt_produce > (int)output_queue.size()) {
+        //if (amt_produce > (int)output_queue.size()) {
           amt_produce = output_queue.size();
-        }
+        //}
 
         if (amt_produce > 0) {
           long src_id = p1fdma.get_curr_src_id();

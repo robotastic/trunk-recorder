@@ -23,6 +23,7 @@ class Uploader;
 enum Call_Data_Status { INITIAL, SUCCESS, RETRY, FAILED };
 struct Call_Data_t {
   long talkgroup;
+  std::vector<unsigned long> patched_talkgroups;
   long call_num;
   double freq;
   long start_time;
@@ -40,6 +41,7 @@ struct Call_Data_t {
   std::string talkgroup_tag;
   std::string short_name;
   std::string upload_script;
+  std::string audio_type;
 
   int tdma_slot;
   double length;

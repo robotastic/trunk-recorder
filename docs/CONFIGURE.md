@@ -114,6 +114,7 @@ Here is a map of the different sections of the *config.json* file:
 | callTimeout             |          | 3                 | number                                                      | A Call will stop recording and save if it has not received anything on the control channel, after this many seconds. |
 | uploadServer            |          |                   | string                                                      | The URL for uploading to OpenMHz. The default is an empty string. See the Config tab for your system in OpenMHz to find what the value should be. |
 | broadcastifyCallsServer |          |                   | string                                                      | The URL for uploading to Broadcastify Calls. The default is an empty string. Refer to [Broadcastify's wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-API) for the upload URL. |
+|                         |          |                   |                                                             |                                                              |
 | logFile                 |          | false             | **true** / **false**                                        | Save the console output to a file.                           |
 | frequencyFormat         |          | "exp"             | **"exp" "mhz"** or **"hz"**                                 | the display format for frequencies to display in the console and log file. |
 | controlWarnRate         |          | 10                | number                                                      | Log the control channel decode rate when it falls bellow this threshold. The value of *-1* will always log the decode rate. |
@@ -124,6 +125,7 @@ Here is a map of the different sections of the *config.json* file:
 | debugRecorder           |          | true              | **true** / **false**                                        | Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion |
 | debugRecorderPort       |          | 1234              | number                                                      | The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. |
 | debugRecorderAddress    |          | "127.0.0.1"       | string                                                      | The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder. |
+| audioStreaming          |          |     false         | **true** / **false**                                        | whether or not to enable the audio streaming callbacks for plugins. |
 
 
 
@@ -135,8 +137,8 @@ Here is a map of the different sections of the *config.json* file:
 | rate             |    ✓     |               | number                                                       | the sampling rate to set the SDR to, in samples / second     |
 | error            |          |       0       | number                                                       | the tuning error for the SDR, in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz (when set to 0ppm)  to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much. |
 | gain             |    ✓     |               | number                                                       | The RF gain setting for the SDR. Use a program like GQRX to find a good value. |
-| digitalRecorders |          |               | number                                                       | The number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. |
-| analogRecorders  |          |               | number                                                       | the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels. |
+| digitalRecorders |          |               | number                                                       | The number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
+| analogRecorders  |          |               | number                                                       | the number of Analog Recorder to have attached to this source. This is the same as Digital Recorders except for Analog Voice channels. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
 | driver           |    ✓     |               | **"usrp"** or **"osmosdr"**                                  | The GNURadio block you wish to use for the SDR.              |
 | device           |          |               | **string**<br /> See the [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for supported devices and parameters. | Osmosdr device name and possibly serial number or index of the device. <br /> You only need to do add this key if there are more than one osmosdr devices being used.<br /> Example: `bladerf=00001` for BladeRF with serial 00001 or `rtl=00923838` for RTL-SDR with serial 00923838, just `airspy` for an airspy.<br />It seems that when you have 5 or more RTLSDRs on one system you need to decrease the buffer size. I think it has something to do with the driver. Try adding buflen: `"device": "rtl=serial_num,buflen=65536"`, there should be no space between buflen and the comma |
 | ppm              |          |       0       | number                                                       | the tuning error for the SDR in ppm (parts per million), as an alternative to `error` above. Use a program like GQRX to find an accurate value. |
@@ -161,15 +163,15 @@ Here is a map of the different sections of the *config.json* file:
 | type                   |    ✓     |                                | **"smartnet"  "p25"   "conventional, conventionalDMR"** or **"conventionalP25"** | The type of radio system.                                    |
 | control_channels       |    ✓     |                                | array of numbers;<br />[496537500, 496437500]                | **For trunked systems** The control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel. |
 | channels               |    ✓     |                                | array of numbers;<br />[166725000, 166925000, 167075000, 166850000] | **For conventional systems**  The channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used. |
-| modulation             |          | "qpsk"                         | **"qpsk"** or  **"fsk4"**                                    | The type of digital modulation that the system uses. You do not need to set this for **conventionalDMR** systems. |
-| squelch                |          | 0 <br />(which means disabled) | number                                                       | Squelch in DB, this needs to be set for all conventional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. |
+| modulation             |          | "qpsk"                         | **"qpsk"** or  **"fsk4"**                                    | The type of digital modulation that the system uses. You do not need to specify this with **conventionalDMR** systems.          |
+| squelch                |          | -160 | number                                                       | Squelch in DB, this needs to be set for all conventional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. The closer the squelch is to 0, the stronger the signal has to be to unmute it. |
 | talkgroupsFile         |          |                                | string                                                       | The filename for a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable. |
 | apiKey                 |          |                                | string                                                       | [*if uploadServer is set*] System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be. |
 | broadcastifyApiKey     |          |                                | string                                                       | [*if broadcastifyCallsServer is set*] System-specific API key for Broadcastify Calls |
 | broadcastifySystemId   |          |                                | number                                                       | [*if broadcastifyCallsServer is set*] System ID for Broadcastify Calls <br />(this is an integer, and different from the RadioReference system ID) |
 | uploadScript           |          |                                | string                                                       | This is the filename of a script that is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable. |
 | compressWav            |          | true                           | bool                                                         | Convert the recorded .wav file to an .m4a file. **This is required for both OpenMHz and Broadcastify!** The `sox` and `fdkaac` packages need to be installed for this command to work. |
-| unitScript             |          |                                | string                                                       | This is the filename of a script that runs when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on|join|off|ackresp|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`). |
+| unitScript             |          |                                | string                                                       | This is the filename of a script that runs when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on|join|off|ackresp|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter.  On joins and transmissions, `patchedTalkgroups`  (comma separated list of talkgroup IDs) is passed as a fifth parameter if the talkgroup is part of a patch on the system. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`). |
 | audioArchive           |          | true                           | **true** / **false**                                         | Should the recorded audio files be kept after successfully uploading them? |
 | transmissionArchive    |          | false                          | **true** / **false**                                         | Should each of the individual transmission be kept? These transmission are combined together with other recent ones to form a single call. |
 | callLog                |          | false                          | **true** / **false**                                         | Should a json file with the call details be kept after successful uploads? |
@@ -203,12 +205,137 @@ Here is a map of the different sections of the *config.json* file:
 | name    |    ✓     |               | string | the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin. |
 |         |          |               |        | *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.* |
 
+##### Rdio Scanner Plugin
+
+**Name:** rdioscanner_uploader
+**Library:** librdioscanner_uploader.so
+
+This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://github.com/chuot/rdio-scanner). It uploads recordings and the information about them. The following additional settings are required:
+
+| Key     | Required | Default Value | Type   | Description                                                  |
+| ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| server  |    ✓     |               | string | The URL for uploading to Rdio Scanner. The default is an empty string. It should be the same URL as the one you are using to access Rdio Scanner. |
+| systems |    ✓     |               | array  | This is an array of objects, where each is a system that should be passed to Rdio Scanner. More information about what should be in each object is in the following table. |
+
+*Rdio Scanner System Object:*
+
+| Key       | Required | Default Value | Type   | Description                                                  |
+| --------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| systemId  |    ✓     |               | number | System ID for Rdio Scanner.                                  |
+| apiKey    |    ✓     |               | string | System-specific API key for uploading calls to Rdio Scanner. See the ApiKey section in the Rdio Scanner administrative dashboard for the value it should be. |
+| shortName |    ✓     |               | string | This should match the shortName of a system that is defined in the main section of the config file. |
+
+
+
+##### Example Plugin Object:
+
+```yaml
+        {
+          "name": "rdioscanner_uploader",
+          "library": "librdioscanner_uploader.so",
+          "server": "http://127.0.0.1",
+          "systems": [{
+                  "shortName": "test",
+                  "apiKey": "fakekey",
+                  "systemId": 411
+          }
+```
+
+##### simplestream Plugin
+
+**Name:** simplestream
+**Library:** libsimplestream.so
+
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups being recorded or only specified talkgroups.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.
+
+This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
+
+**NOTE: In order for this plugin to work, the audioStreaming option in the Global Configs section (see above) must be set to true.**
+
+| Key     | Required | Default Value | Type   | Description                                                  |
+| ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| streams |    ✓     |               | array  | This is an array of objects, where each is an audio stream that will be sent to a specific IP address and UDP port. More information about what should be in each object is in the following table. |
+
+*Audio Stream Object:*
+
+| Key       | Required | Default Value | Type   | Description                                                  |
+| --------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| address   |    ✓     |               | string | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
+| port      |    ✓     |               | number | UDP port that this stream will send audio to. |
+| TGID      |    ✓     |               | number | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
+| sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a UDP packet is sent. |
+
+###### Plugin Object Example #1:
+This example will stream audio from talkgroup 58914 to the local machine on UDP port 9123.  
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58914,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":false}
+        }
+```
+
+###### Plugin Object Example #2:
+This example will stream audio from talkgroup 58914 to the local machine on UDP port 9123 and stream audio from talkgroup 58916 to the local machine on UDP port 9124.
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58914,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":false},
+           {"TGID":58916,
+            "address":"127.0.0.1",
+            "port":9124,
+            "sendTGID":false}
+          ]}
+        }
+```
+
+###### Plugin Object Example #3:
+This example will stream audio from talkgroups 58914 and 58916 to the local machine on the same UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can differentiate the two audio streams (the receiver may decide to only play one depending on priority, mix the two streams, play one left and one right, etc.)
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58914,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":true},
+           {"TGID":58916,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":true}
+          ]}
+        }
+```
+###### Plugin Object Example #4:
+This example will stream audio from all talkgroups being recorded to the local machine on UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can decide which ones to play or otherwise handle)
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":0,
+            "address":"127.0.0.1",
+            "port":9123,
+            "sendTGID":true}
+        }
+```
+
 
 ## talkgroupsFile
 
 This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. If you are not a Radio Reference member, try clicking on the "List All in one table" link, selecting everything in the table and copying it into Excel or a spreadsheet, and then exporting or saving as a CSV file.
 
-**Note** - Fields in preformatted CSV downloads from Radio Reference are now in a different order than Trunk Recorder expects. See below for the correct field order. Additionally, Radio Reference inserts a header line at the tope of the CSV file which should be removed.
+**Note** - You can use the direct CSV from Radio Reference for talk groups, but setting priority is not supported with this file format.  If you need to use the Priority field, you'll need to reorder the CSV to match the format described below.
 
 You may add an additional column that adds a priority for each talkgroup. The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed.
 

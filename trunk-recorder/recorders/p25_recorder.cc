@@ -170,6 +170,12 @@ void p25_recorder::initialize(Source *src) {
   timestamp = time(NULL);
   starttime = time(NULL);
 
+  if (config == NULL ) {
+    this->set_enable_audio_streaming(false);
+  } else {
+    this->set_enable_audio_streaming(config->enable_audio_streaming);
+  }
+
   initialize_prefilter();
   //initialize_p25();
 

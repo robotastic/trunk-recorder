@@ -37,8 +37,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 # Set the version information here
 set(VERSION_MAJOR 4)
-set(VERSION_API   0)
-set(VERSION_ABI   3)
+set(VERSION_API   2)
+set(VERSION_ABI   0)
 set(VERSION_PATCH git)
 
 
@@ -208,7 +208,7 @@ link_directories(
     ${OPENSSL_ROOT_DIR}/lib
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g3")
 
 SET(CMAKE_CXX_STANDARD 11)
 
@@ -295,6 +295,10 @@ add_subdirectory(plugins/stat_socket)
 add_subdirectory(plugins/broadcastify_uploader)
 
 add_subdirectory(plugins/unit_script)
+
+add_subdirectory(plugins/rdioscanner_uploader)
+
+add_subdirectory(plugins/simplestream)
 
 add_executable(trunk-recorder trunk-recorder/main.cc ${trunk_recorder_sources})
 

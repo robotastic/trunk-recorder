@@ -3,6 +3,7 @@
 #include "../talkgroups.h"
 #include "../unit_tags.h"
 #include <boost/log/trivial.hpp>
+#include <boost/foreach.hpp>
 #include <stdio.h>
 //#include "../source.h"
 #include "p25_trunking.h"
@@ -97,6 +98,8 @@ public:
 
   smartnet_trunking_sptr smartnet_trunking;
   p25_trunking_sptr p25_trunking;
+  
+  std::map<unsigned long,std::map<unsigned long,std::time_t>> talkgroup_patches;
 
   std::string get_short_name();
   void set_short_name(std::string short_name);
@@ -205,6 +208,13 @@ public:
 
   boost::property_tree::ptree get_stats();
   boost::property_tree::ptree get_stats_current(float timeDiff);
+  
+  //std::vector<std::map<int,std::time_t>> get_active_talkgroup_patches();
+  //void set_active_talkgroup_patches(std::vector<std::map<int,std::time_t>> updated_talkgroup_patches);
+
+  std::vector<unsigned long> get_talkgroup_patch(unsigned long talkgroup);
+  void update_active_talkgroup_patches(MotoPatchData moto_patch_data);
+  void clear_stale_talkgroup_patches();
 
 private:
   TalkgroupDisplayFormat talkgroup_display_format;
