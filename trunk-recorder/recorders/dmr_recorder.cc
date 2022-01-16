@@ -232,8 +232,6 @@ void dmr_recorder::initialize(Source *src) {
 
   framer = gr::op25_repeater::frame_assembler::make(0,"file:///tmp/out1.raw", verbosity, 1, rx_queue);
   //op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
-  converter_slot0 = gr::blocks::short_to_float::make(1, 32768.0);
-  converter_slot1 = gr::blocks::short_to_float::make(1, 32768.0);
   levels = gr::blocks::multiply_const_ff::make(1);
   plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -257,10 +255,8 @@ void dmr_recorder::initialize(Source *src) {
   connect(sym_filter, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, slicer,0);
   connect(slicer, 0, framer, 0);
-  connect(framer, 0, converter_slot0, 0);
-  connect(framer, 1, converter_slot1, 0);
-  connect(converter_slot0, 0, wav_sink_slot0, 0);
-  connect(converter_slot1, 0, wav_sink_slot1, 0);
+  connect(framer, 0,  wav_sink_slot0, 0);
+  connect(framer, 1, wav_sink_slot1, 0);
 }
 
 void dmr_recorder::plugin_callback_handler(int16_t *samples, int sampleCount) {
