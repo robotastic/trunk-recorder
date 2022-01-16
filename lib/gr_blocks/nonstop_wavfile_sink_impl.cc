@@ -328,7 +328,7 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
   std::vector<gr::tag_t> tags;
   pmt::pmt_t this_key(pmt::intern("src_id"));
   pmt::pmt_t that_key(pmt::intern("terminate"));
-  pmt::pmt_t squelch_key(pmt::intern("squelch_eob"));
+  pmt::pmt_t squelch_key(pmt::intern("squelch:eob"));
   get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
 
   unsigned pos = 0;
