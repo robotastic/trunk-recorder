@@ -130,7 +130,7 @@ public:
   long elapsed();
   Source *get_source();
 
-  void plugin_callback_handler(float *samples, int sampleCount);
+  void plugin_callback_handler(int16_t *samples, int sampleCount);
 
 protected:
   State state;

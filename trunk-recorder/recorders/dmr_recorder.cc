@@ -88,7 +88,6 @@ dmr_recorder::DecimSettings dmr_recorder::get_decim(long speed) {
 }
 void dmr_recorder::initialize_prefilter() {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
   long fa = 0;
   long fb = 0;
@@ -213,8 +212,8 @@ void dmr_recorder::initialize(Source *src) {
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
-  wav_sink_slot0 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
-  wav_sink_slot1 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, true);
+  wav_sink_slot0 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16);
+  wav_sink_slot1 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16);
   //recorder->initialize(src);
   
   //OP25 Frame Assembler
@@ -264,17 +263,13 @@ void dmr_recorder::initialize(Source *src) {
   connect(converter_slot1, 0, wav_sink_slot1, 0);
 }
 
-void dmr_recorder::plugin_callback_handler(float *samples, int sampleCount) {
+void dmr_recorder::plugin_callback_handler(int16_t *samples, int sampleCount) {
   //plugman_audio_callback(_recorder, samples, sampleCount);
 }
 
 void dmr_recorder::switch_tdma(bool phase2) {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
-  double omega;
-  double fmax;
-  const double pi = M_PI;
 
   if (phase2) {
     d_phase2_tdma = true;
