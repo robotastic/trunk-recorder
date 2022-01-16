@@ -35,8 +35,8 @@ class dmr_recorder;
   typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
 	#else
   typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
-  typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-  typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+  typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
+  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
 	#endif
 
 class System {
