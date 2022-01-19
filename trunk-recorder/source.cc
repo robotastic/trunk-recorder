@@ -199,6 +199,13 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
   return log;
 }
 
+dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb) {
+  // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
+  dmr_recorder_sptr log = make_dmr_recorder(this);
+  tb->connect(source_block, 0, log, 0);
+  return log;
+}
+
 void Source::create_debug_recorder(gr::top_block_sptr tb, int source_num) {
   max_debug_recorders = 1;
   debug_recorder_port = config->debug_recorder_port + source_num;

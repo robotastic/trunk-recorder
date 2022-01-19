@@ -246,6 +246,9 @@ public:
         }
       }
 
+      long response_code;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+
       res = curl_multi_cleanup(multi_handle);
 
       /* always cleanup */
@@ -256,9 +259,6 @@ public:
 
       /* free slist */
       curl_slist_free_all(headerlist);
-
-      long response_code;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 
       if (res == CURLM_OK && response_code == 200) {
         struct stat file_info;

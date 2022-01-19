@@ -87,6 +87,8 @@ dmr_slot::send_msg(const std::string& m_buf, const int m_type) {
 bool
 dmr_slot::load_slot(const uint8_t slot[], uint64_t sl_type) {
 	bool is_voice_frame = false;
+	d_src_id = -1;
+	d_terminated = false;
 	memcpy(d_slot, slot, sizeof(d_slot));
 
 	// Check if fresh Sync received
@@ -287,7 +289,7 @@ dmr_slot::decode_csbk(uint8_t* csbk) {
 			uint32_t grpAddr = extract(csbk, 40, 64);
 			uint8_t  lcn     = extract(csbk, 64, 68);
 			uint8_t  tslot   = csbk[68];
-			if (d_debug >= 10) {
+			if (d_debug >= 0) {
 				fprintf(stderr, "%s Slot(%d), CC(%x), CSBK LB(%d), PF(%d), CSBKO(%02x), FID(%02x), CONNECT PLUS GRANT srcAddr(%06x), grpAddr(%06x), LCN(%x), TS(%d)\n", logts.get(d_msgq_id), d_chan, get_slot_cc(), csbk_lb, csbk_pf, csbk_o, csbk_fid, srcAddr, grpAddr, lcn, tslot);
 			}
 			break;
@@ -565,7 +567,9 @@ dmr_slot::decode_vlch(uint8_t* vlch) {
 	}
 	send_msg(lc_msg, M_DMR_SLOT_VLC);
 
-	if (d_debug >= 10) {
+	d_src_id = get_lc_srcaddr();
+
+	if (d_debug >= 0) {
 		fprintf(stderr, "%s Slot(%d), CC(%x), VOICE LC PF(%d), FLCO(%02x), FID(%02x), SVCOPT(%02X), DSTADDR(%06x), SRCADDR(%06x), rs_errs=%d\n",  logts.get(d_msgq_id),	d_chan, get_slot_cc(), get_lc_pf(), get_lc_flco(), get_lc_fid(), get_lc_svcopt(), get_lc_dstaddr(), get_lc_srcaddr(), rs_errs);
 	}
 
@@ -713,8 +717,9 @@ dmr_slot::decode_emb() {
 			for (size_t i=0; i<32; i++)
 				d_emb.push_back(d_slot[SYNC_EMB + 8 + i]);
 			if (decode_embedded_lc()) {
-				if (d_debug >= 10) {
-					fprintf(stderr, "%s Slot(%d), CC(%x), EMB LC PF(%d), FLCO(%02x), FID(%02x), SVCOPT(%02X), DSTADDR(%06x), SRCADDR(%06x)\n",  logts.get(d_msgq_id), d_chan, emb_cc, get_lc_pf(), get_lc_flco(), get_lc_fid(), get_lc_svcopt(), get_lc_dstaddr(), get_lc_srcaddr());
+				d_terminated = true;
+				if (d_debug >= 0) {
+					fprintf(stderr, "%s END !! Slot(%d), CC(%x), EMB LC PF(%d), FLCO(%02x), FID(%02x), SVCOPT(%02X), DSTADDR(%06x), SRCADDR(%06x)\n",  logts.get(d_msgq_id), d_chan, emb_cc, get_lc_pf(), get_lc_flco(), get_lc_fid(), get_lc_svcopt(), get_lc_dstaddr(), get_lc_srcaddr());
 				}
 			}
 			break;
@@ -726,6 +731,14 @@ dmr_slot::decode_emb() {
 	}
 
 	return true;
+}
+
+bool dmr_slot::get_terminated() {
+	return d_terminated;
+}
+
+int dmr_slot::get_src_id() {
+	return d_src_id;
 }
 
 bool

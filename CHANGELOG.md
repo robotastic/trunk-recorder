@@ -1,5 +1,8 @@
 Trunk Recorder ChangeLog
 ========================
+### Version  4.3.0
+* Add support for DMR / MotoTRBO
+
 
 ### Version 4.2.0
 * Added support for tracking System Patches
