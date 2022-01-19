@@ -249,7 +249,7 @@ bool load_config(string config_file) {
           }
         }
 
-      } else if (system->get_system_type() == "conventionalP25") {
+      } else if ((system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR") ) {
         BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
           double channel = sub_node.second.get<double>("", 0);
@@ -428,6 +428,8 @@ bool load_config(string config_file) {
       int lna_gain = node.second.get<double>("lnaGain", 0);
       int pga_gain = node.second.get<double>("pgaGain", 0);
       int tia_gain = node.second.get<double>("tiaGain", 0);
+      int amp_gain = node.second.get<double>("ampGain", 0);
+      int vga_gain = node.second.get<double>("vgaGain", 0);
       int vga1_gain = node.second.get<double>("vga1Gain", 0);
       int vga2_gain = node.second.get<double>("vga2Gain", 0);
 
@@ -456,6 +458,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << node.second.get<double>("pgaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << node.second.get<double>("tiaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "AMP Gain: " << node.second.get<double>("ampGain", 0);
+      BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << node.second.get<double>("vgaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
@@ -507,6 +511,16 @@ bool load_config(string config_file) {
       if (pga_gain != 0) {
         gain_set = true;
         source->set_gain_by_name("PGA", pga_gain);
+      }
+
+      if (amp_gain != 0) {
+        gain_set = true;
+        source->set_gain_by_name("AMP", amp_gain);
+      }
+
+      if (vga_gain != 0) {
+        gain_set = true;
+        source->set_gain_by_name("VGA", vga_gain);
       }
 
       if (vga1_gain != 0) {
@@ -1107,7 +1121,7 @@ void check_message_count(float timeDiff) {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System *sys = (System *)*it;
 
-    if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25")) {
+    if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25") && (sys->system_type != "conventionalDMR")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
 
       if (msgs_decoded_per_second < 2) {
@@ -1226,7 +1240,7 @@ bool setup_systems() {
     System *system = *sys_it;
     //bool    source_found = false;
 
-    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25")) {
+    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
       std::vector<double> channels = system->get_channels();
       int tg_iterate_index = 0;
 
@@ -1265,7 +1279,16 @@ bool setup_systems() {
               system->add_conventional_recorder(rec);
               calls.push_back(call);
               plugman_setup_recorder((Recorder *)rec.get());
-            } else { // has to be "conventional P25"
+            } else if (system->get_system_type() == "conventionalDMR") {
+               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
+              // This has something to do with the way the Selector block works.
+              // the manage_calls() function handles adding and starting the P25 Recorder
+              dmr_recorder_sptr rec;
+              rec = source->create_dmr_conventional_recorder(tb);
+              call->set_recorder((Recorder *)rec.get());
+              system->add_conventionalDMR_recorder(rec);
+              calls.push_back(call);             
+            } else  { // has to be "conventional P25"
               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
               // This has something to do with the way the Selector block works.
               // the manage_calls() function handles adding and starting the P25 Recorder

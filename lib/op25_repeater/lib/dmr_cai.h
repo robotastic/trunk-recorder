@@ -40,6 +40,8 @@ public:
     void set_debug(int debug);
 	inline int chan() { return d_chan; };
 	inline void set_slot_mask(int mask);
+	int get_src_id(int slot);
+	bool get_terminated(int slot);
 
 private:
 	static const int FRAME_SIZE = 288; // frame length in bits

@@ -37,7 +37,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 # Set the version information here
 set(VERSION_MAJOR 4)
-set(VERSION_API   2)
+set(VERSION_API   3)
 set(VERSION_ABI   0)
 set(VERSION_PATCH git)
 
@@ -231,6 +231,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/sigmf_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
+  trunk-recorder/recorders/dmr_recorder.cc
   trunk-recorder/recorders/p25_recorder.cc
   trunk-recorder/recorders/p25_recorder_fsk4_demod.cc
   trunk-recorder/recorders/p25_recorder_qpsk_demod.cc

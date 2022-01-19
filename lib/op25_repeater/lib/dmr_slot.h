@@ -71,6 +71,10 @@ public:
 	bool load_slot(const uint8_t slot[], uint64_t sl_type);
 	inline void set_slot_mask(int mask) { d_slot_mask = mask; };
 
+	/* For getting Src and Terminator for DMR Recorder */
+	int get_src_id(); 
+	bool get_terminated();
+
 private:
 	uint8_t     d_slot[SLOT_SIZE];	// array of bits comprising the current slot
 	bit_vector  d_slot_type;
@@ -98,6 +102,8 @@ private:
 	int         d_debug;
 	int         d_chan;
 	int         d_slot_mask;
+	int			d_src_id;
+	bool		d_terminated;
         log_ts      logts;
 	CBPTC19696  bptc;
 	CDMRTrellis trellis;
