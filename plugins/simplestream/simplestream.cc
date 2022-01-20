@@ -120,8 +120,12 @@ class Simple_Stream : public Plugin_Api {
       if (TGID_map.find(recorder_id) != TGID_map.end()){
         call_info_t this_call_info = TGID_map[recorder_id];
         std::vector<unsigned long> patched_talkgroups = this_call_info.patched_talkgroups;
+        BOOST_LOG_TRIVIAL(debug) << "this_call_info.short_name is " <<this_call_info.short_name<<" and stream.short_name is "<<stream.short_name;
         if (0==stream.short_name.compare(this_call_info.short_name) || (0==stream.short_name.compare(""))){ //Check if shortName matches or is not specified
+          BOOST_LOG_TRIVIAL(debug) << "short_name match!  Now checking TGIDs ";
+          BOOST_LOG_TRIVIAL(debug) << "stream TGID is "<<stream.TGID;
           BOOST_FOREACH (auto& TGID, patched_talkgroups){
+            BOOST_LOG_TRIVIAL(debug) << "TGID associated with reocorder "<<recorder_id<<" is "<<TGID;
             if ((TGID==stream.TGID || stream.TGID==0)){  //setting TGID to 0 in the config file will stream everything
               boost::system::error_code err;
               BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes";
