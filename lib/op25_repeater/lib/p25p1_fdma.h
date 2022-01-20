@@ -37,6 +37,8 @@
 #include "p25p1_voice_decode.h"
 #include <boost/log/trivial.hpp>
 
+#include "imbe_vocoder/imbe_vocoder.h" // for the original full rate vocoder
+
 namespace gr {
     namespace op25_repeater {
 
@@ -106,6 +108,8 @@ namespace gr {
                 uint8_t ess_algid;
                 uint8_t  ess_mi[9] = {0};
                 uint16_t vf_tgid;
+
+                imbe_vocoder vocoder; // for original full rate vocoder
 
             public:
                 void set_debug(int debug);
