@@ -953,7 +953,10 @@ void handle_call(TrunkMessage message, System *sys) {
   /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
   that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
   recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
-  of the original recorder gets flushed. */
+  of the original recorder gets flushed. 
+  UPDATED: however if we have 2 different talkgroups on the same freq we should do a stop_call on the original call since it is being used by another TG now. This will let the recorder keep
+  going until it gets a termination flag.
+  */
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
     Call *call = *it;
@@ -969,8 +972,15 @@ void handle_call(TrunkMessage message, System *sys) {
       if (source_updated) {
         plugman_call_start(call);
       }
-      break;
     }
+
+    // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
+    // keep writing to the file until it hits a termination flag, so no packets should be dropped.
+    if ((call->get_state() == RECORDING) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
+      BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
+      call->stop_call();
+    }
+
   }
 
   if (!call_found) {
