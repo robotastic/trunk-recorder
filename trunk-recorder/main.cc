@@ -674,6 +674,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         // All other cases use a digital recorder.
         if ((default_mode == "analog") && (sys->get_system_type() == "smartnet")) {
           recorder = source->get_analog_recorder();
+          call->set_is_analog(true);
         } else {
           recorder = source->get_digital_recorder();
         }
