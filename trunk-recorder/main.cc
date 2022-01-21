@@ -775,6 +775,7 @@ void manage_conventional_call(Call *call) {
         call->restart_call();
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
+          plugman_call_start(call);
         }
       } else if ((call->get_current_length() > call->get_system()->get_max_duration()) && (call->get_system()->get_max_duration() > 0)) {
         Recorder *recorder = call->get_recorder();
@@ -783,6 +784,7 @@ void manage_conventional_call(Call *call) {
         call->restart_call();
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
+          plugman_call_start(call);
         }
       }
     } else if (!call->get_recorder()->is_active()) {
