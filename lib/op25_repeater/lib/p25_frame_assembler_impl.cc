@@ -202,9 +202,9 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
         BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
           
-        //if (amt_produce > (int)output_queue.size()) {
+        if (amt_produce > (int)output_queue.size()) {
           amt_produce = output_queue.size();
-        //}
+        }
 
         if (amt_produce > 0) {
           long src_id = p1fdma.get_curr_src_id();
