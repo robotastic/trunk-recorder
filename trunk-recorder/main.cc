@@ -786,10 +786,11 @@ void manage_conventional_call(Call *call) {
         }
       }
     } else if (!call->get_recorder()->is_active()) {
-      // P25 Conventional Recorders need a have the graph unlocked before they can start recording.
+      // P25 Conventional and DMR Recorders need a have the graph unlocked before they can start recording.
       Recorder *recorder = call->get_recorder();
       recorder->start(call);
       call->set_state(RECORDING);
+      plugman_call_start(call);
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Starting P25 Convetional Recorder ";
 
       //plugman_setup_recorder((Recorder *)recorder->get());
@@ -1280,19 +1281,20 @@ bool setup_systems() {
               system->add_conventional_recorder(rec);
               calls.push_back(call);
               plugman_setup_recorder((Recorder *)rec.get());
+              plugman_call_start(call);
             } else if (system->get_system_type() == "conventionalDMR") {
                // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
               // This has something to do with the way the Selector block works.
-              // the manage_calls() function handles adding and starting the P25 Recorder
+              // the manage_conventional_calls() function handles adding and starting the P25 Recorder
               dmr_recorder_sptr rec;
               rec = source->create_dmr_conventional_recorder(tb);
               call->set_recorder((Recorder *)rec.get());
               system->add_conventionalDMR_recorder(rec);
-              calls.push_back(call);             
+              calls.push_back(call);           
             } else  { // has to be "conventional P25"
               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
               // This has something to do with the way the Selector block works.
-              // the manage_calls() function handles adding and starting the P25 Recorder
+              // the manage_conventional_calls() function handles adding and starting the P25 Recorder
               p25_recorder_sptr rec;
               rec = source->create_digital_conventional_recorder(tb);
               call->set_recorder((Recorder *)rec.get());
