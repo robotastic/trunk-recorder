@@ -87,7 +87,7 @@ public:
     patch_list << std::fixed << std::setprecision(2);
     patch_list << "[";
 
-    boost::filesystem::path audioPath(call_info.filename);
+    boost::filesystem::path audioPath(compress_wav ? call_info.converted : call_info.filename);
     boost::filesystem::path audioName = audioPath.filename();
 
     char formattedTalkgroup[62];
