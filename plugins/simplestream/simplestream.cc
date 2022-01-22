@@ -22,6 +22,7 @@ struct plugin_t {
 struct call_info_t {
   std::vector<unsigned long> patched_talkgroups;
   std::string short_name;
+  std::string system_type;
 };
 
 struct stream_t {
@@ -61,6 +62,7 @@ class Simple_Stream : public Plugin_Api {
       call_info_t this_call_info;
       this_call_info.patched_talkgroups = patched_talkgroups;
       this_call_info.short_name = call->get_short_name();
+      this_call_info.system_type = call->get_system_type();
       TGID_map[recorder_id] = this_call_info;
       BOOST_LOG_TRIVIAL(debug) << "Recorder num is "<<recorder_id << " on system " << this_call_info.short_name;
     }
@@ -78,16 +80,21 @@ class Simple_Stream : public Plugin_Api {
     std::vector<long> recorders_to_erase;
     BOOST_LOG_TRIVIAL(debug) << "call_end called in simplestream plugin on TGID " << talkgroup_num << " with patch size " << patched_talkgroups.size() ;
     BOOST_FOREACH(auto& element, TGID_map){
-      BOOST_FOREACH(unsigned long mapped_TGID, element.second.patched_talkgroups){
-        BOOST_LOG_TRIVIAL(debug) << "TGID_map[" << element.first << "] contains " << mapped_TGID;
-        if (mapped_TGID == talkgroup_num){
-          recorders_to_erase.push_back(element.first);
-          BOOST_LOG_TRIVIAL(debug) << "adding recorder " << element.first << " to erase list";
-        }
-        BOOST_FOREACH(unsigned long TGID, patched_talkgroups){
-          if (mapped_TGID == TGID){
+      if (element.second.system_type.compare("conventional") || element.second.system_type.compare("conventionalDMR") || element.second.system_type.compare("conventionalP25")){
+        BOOST_LOG_TRIVIAL(debug) << "conventional recorder - not removing!";
+      }
+      else{
+        BOOST_FOREACH(unsigned long mapped_TGID, element.second.patched_talkgroups){
+          BOOST_LOG_TRIVIAL(debug) << "TGID_map[" << element.first << "] contains " << mapped_TGID;
+          if (mapped_TGID == talkgroup_num){
             recorders_to_erase.push_back(element.first);
             BOOST_LOG_TRIVIAL(debug) << "adding recorder " << element.first << " to erase list";
+          }
+          BOOST_FOREACH(unsigned long TGID, patched_talkgroups){
+            if (mapped_TGID == TGID){
+              recorders_to_erase.push_back(element.first);
+              BOOST_LOG_TRIVIAL(debug) << "adding recorder " << element.first << " to erase list";
+            }
           }
         }
       }
@@ -120,15 +127,15 @@ class Simple_Stream : public Plugin_Api {
       if (TGID_map.find(recorder_id) != TGID_map.end()){
         call_info_t this_call_info = TGID_map[recorder_id];
         std::vector<unsigned long> patched_talkgroups = this_call_info.patched_talkgroups;
-        BOOST_LOG_TRIVIAL(debug) << "this_call_info.short_name is " <<this_call_info.short_name<<" and stream.short_name is "<<stream.short_name;
+        //BOOST_LOG_TRIVIAL(debug) << "this_call_info.short_name is " <<this_call_info.short_name<<" and stream.short_name is "<<stream.short_name;
         if (0==stream.short_name.compare(this_call_info.short_name) || (0==stream.short_name.compare(""))){ //Check if shortName matches or is not specified
-          BOOST_LOG_TRIVIAL(debug) << "short_name match!  Now checking TGIDs ";
-          BOOST_LOG_TRIVIAL(debug) << "stream TGID is "<<stream.TGID;
+          //BOOST_LOG_TRIVIAL(debug) << "short_name match!  Now checking TGIDs ";
+          //BOOST_LOG_TRIVIAL(debug) << "stream TGID is "<<stream.TGID;
           BOOST_FOREACH (auto& TGID, patched_talkgroups){
-            BOOST_LOG_TRIVIAL(debug) << "TGID associated with reocorder "<<recorder_id<<" is "<<TGID;
+            BOOST_LOG_TRIVIAL(debug) << "TGID associated with recorder "<<recorder_id<<" is "<<TGID;
             if ((TGID==stream.TGID || stream.TGID==0)){  //setting TGID to 0 in the config file will stream everything
               boost::system::error_code err;
-              BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes";
+              BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes from recorder "<<recorder_id<<" for TGID "<<TGID;
               if (stream.sendTGID==true){
                 //prepend 4 byte long tgid to the audio data
                 boost::array<mutable_buffer, 2> buf1 = {
