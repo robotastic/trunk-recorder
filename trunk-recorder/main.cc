@@ -1310,7 +1310,7 @@ bool setup_systems() {
         }
         if (!channel_added) {
           BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel) << " Talkgroup: " << tg_iterate_index;
-          return false;
+          //return false;
         }
       }
     } else {
