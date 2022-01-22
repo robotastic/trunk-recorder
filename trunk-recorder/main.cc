@@ -775,6 +775,7 @@ void manage_conventional_call(Call *call) {
         call->restart_call();
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
+          plugman_call_start(call);
         }
       } else if ((call->get_current_length() > call->get_system()->get_max_duration()) && (call->get_system()->get_max_duration() > 0)) {
         Recorder *recorder = call->get_recorder();
@@ -783,6 +784,7 @@ void manage_conventional_call(Call *call) {
         call->restart_call();
         if (recorder != NULL) {
           plugman_setup_recorder(recorder);
+          plugman_call_start(call);
         }
       }
     } else if (!call->get_recorder()->is_active()) {
@@ -1235,13 +1237,13 @@ void monitor_messages() {
 }
 
 bool setup_systems() {
-  bool system_added = false;
+
   Source *source = NULL;
 
   for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
     System *system = *sys_it;
     //bool    source_found = false;
-
+    bool system_added = false;
     if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
       std::vector<double> channels = system->get_channels();
       int tg_iterate_index = 0;
@@ -1309,6 +1311,7 @@ bool setup_systems() {
         }
         if (!channel_added) {
           BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel) << " Talkgroup: " << tg_iterate_index;
+          return false;
         }
       }
     } else {
@@ -1352,9 +1355,13 @@ bool setup_systems() {
           break;
         }
       }
+      if (!system_added) {
+          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Control Channel Freq: " << format_freq(control_channel_freq);
+          return false;
+      }
     }
   }
-  return system_added;
+  return true;
 }
 
 template <class F>
