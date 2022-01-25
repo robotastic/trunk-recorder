@@ -1280,7 +1280,6 @@ bool setup_systems() {
               rec->start(call);
               call->set_recorder((Recorder *)rec.get());
               call->set_state(RECORDING);
-              plugman_call_start(call);
               system->add_conventional_recorder(rec);
               calls.push_back(call);
               plugman_setup_recorder((Recorder *)rec.get());
