@@ -171,7 +171,7 @@ Here is a map of the different sections of the *config.json* file:
 | broadcastifySystemId   |          |                                | number                                                       | [*if broadcastifyCallsServer is set*] System ID for Broadcastify Calls <br />(this is an integer, and different from the RadioReference system ID) |
 | uploadScript           |          |                                | string                                                       | This is the filename of a script that is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable. |
 | compressWav            |          | true                           | bool                                                         | Convert the recorded .wav file to an .m4a file. **This is required for both OpenMHz and Broadcastify!** The `sox` and `fdkaac` packages need to be installed for this command to work. |
-| unitScript             |          |                                | string                                                       | This is the filename of a script that runs when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on|join|off|ackresp|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter.  On joins and transmissions, `patchedTalkgroups`  (comma separated list of talkgroup IDs) is passed as a fifth parameter if the talkgroup is part of a patch on the system. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`). |
+| unitScript             |          |                                | string                                                       | This is the filename of a script that runs when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on\|join\|off\|ackresp\|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter.  On joins and transmissions, `patchedTalkgroups`  (comma separated list of talkgroup IDs) is passed as a fifth parameter if the talkgroup is part of a patch on the system. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`). |
 | audioArchive           |          | true                           | **true** / **false**                                         | Should the recorded audio files be kept after successfully uploading them? |
 | transmissionArchive    |          | false                          | **true** / **false**                                         | Should each of the individual transmission be kept? These transmission are combined together with other recent ones to form a single call. |
 | callLog                |          | false                          | **true** / **false**                                         | Should a json file with the call details be kept after successful uploads? |
@@ -246,11 +246,13 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 **Name:** simplestream
 **Library:** libsimplestream.so
 
-This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups being recorded or only specified talkgroups.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.  
 
 This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
 
-**NOTE: In order for this plugin to work, the audioStreaming option in the Global Configs section (see above) must be set to true.**
+**NOTE 1: In order for this plugin to work, the audioStreaming option in the Global Configs section (see above) must be set to true.**
+
+**NOTE 2: trunk-recorder passes analog audio to this plugin at 16 kHz sample rate and digital audio at 8 kHz sample rate.  Since the audio data being streamed doesn't contain the sample rate, analog and digital audio should be configured to be sent to different ports to receivers that are matched to the same sample rate.**
 
 | Key     | Required | Default Value | Type   | Description                                                  |
 | ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
@@ -264,9 +266,10 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | port      |    ✓     |               | number | UDP port that this stream will send audio to. |
 | TGID      |    ✓     |               | number | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
 | sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a UDP packet is sent. |
+| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different UDP port to prevent interleaved audio for talkgroups from different Systems with the same TGID.  
 
 ###### Plugin Object Example #1:
-This example will stream audio from talkgroup 58914 to the local machine on UDP port 9123.  
+This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.  
 ```yaml
         {
           "name":"simplestream",
@@ -275,12 +278,13 @@ This example will stream audio from talkgroup 58914 to the local machine on UDP 
             "TGID":58914,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":false}
+            "sendTGID":false,
+	    "shortName":"CountyTrunked"}
         }
 ```
 
 ###### Plugin Object Example #2:
-This example will stream audio from talkgroup 58914 to the local machine on UDP port 9123 and stream audio from talkgroup 58916 to the local machine on UDP port 9124.
+This example will stream audio from talkgroup 58914 from System CountyTrunked to the local machine on UDP port 9123 and stream audio from talkgroup 58916 from System "StateTrunked" to the local machine on UDP port 9124.
 ```yaml
         {
           "name":"simplestream",
@@ -289,17 +293,19 @@ This example will stream audio from talkgroup 58914 to the local machine on UDP 
             "TGID":58914,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":false},
+            "sendTGID":false,
+	    "shortName":"CountyTrunked"},
            {"TGID":58916,
             "address":"127.0.0.1",
             "port":9124,
-            "sendTGID":false}
+            "sendTGID":false,
+	    "shortName":"StateTrunked"}
           ]}
         }
 ```
 
 ###### Plugin Object Example #3:
-This example will stream audio from talkgroups 58914 and 58916 to the local machine on the same UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can differentiate the two audio streams (the receiver may decide to only play one depending on priority, mix the two streams, play one left and one right, etc.)
+This example will stream audio from talkgroups 58914 and 58916 from all Systems to the local machine on the same UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can differentiate the two audio streams (the receiver may decide to only play one depending on priority, mix the two streams, play one left and one right, etc.)
 ```yaml
         {
           "name":"simplestream",
@@ -317,7 +323,7 @@ This example will stream audio from talkgroups 58914 and 58916 to the local mach
         }
 ```
 ###### Plugin Object Example #4:
-This example will stream audio from all talkgroups being recorded to the local machine on UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can decide which ones to play or otherwise handle)
+This example will stream audio from all talkgroups being recorded on System CountyTrunked to the local machine on UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can decide which ones to play or otherwise handle)
 ```yaml
         {
           "name":"simplestream",
@@ -326,7 +332,8 @@ This example will stream audio from all talkgroups being recorded to the local m
             "TGID":0,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":true}
+            "sendTGID":true,
+	    "shortName":"CountyTrunked"}
         }
 ```
 
