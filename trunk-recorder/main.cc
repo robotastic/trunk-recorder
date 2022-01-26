@@ -1278,6 +1278,7 @@ bool setup_systems() {
               analog_recorder_sptr rec;
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
+	      call->set_is_analog(true);
               call->set_recorder((Recorder *)rec.get());
               call->set_state(RECORDING);
               system->add_conventional_recorder(rec);
