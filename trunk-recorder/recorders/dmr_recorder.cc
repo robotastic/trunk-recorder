@@ -160,6 +160,7 @@ void dmr_recorder::initialize(Source *src) {
   squelch_db = 0;
 
   talkgroup = 0;
+  short_name = "";
   d_phase2_tdma = true;
   rec_num = rec_counter++;
   recording_count = 0;
@@ -333,6 +334,14 @@ bool dmr_recorder::is_idle() {
 
 double dmr_recorder::get_freq() {
   return chan_freq;
+}
+
+long dmr_recorder::get_talkgroup() {
+  return talkgroup;
+}
+
+std::string dmr_recorder::get_short_name(){
+  return short_name;
 }
 
 double dmr_recorder::get_current_length() {

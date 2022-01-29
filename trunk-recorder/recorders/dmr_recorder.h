@@ -112,6 +112,8 @@ public:
   bool start(Call *call);
   void stop();
   double get_freq();
+  long get_talkgroup();
+  std::string get_short_name();
   int get_num();
   void set_tdma(bool phase2);
   void switch_tdma(bool phase2);

@@ -80,6 +80,7 @@ public:
   void set_source(long src);
   Source *get_source();
   long get_talkgroup();
+  std::string get_short_name();
   time_t get_start_time();
   double get_current_length();
   long get_wav_hz(); 
@@ -104,7 +105,7 @@ private:
   double center_freq, chan_freq;
   long talkgroup;
   long samp_rate;
-
+  std::string short_name;
   double system_channel_rate;
   double initial_rate;
   float quad_gain;
