@@ -89,6 +89,7 @@ public:
   virtual long get_source_count() { return 0; };
   virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
+  std::string get_short_name() { return ""; };
   virtual void set_record_more_transmissions(bool more){};
   virtual State get_state() { return INACTIVE; };
   virtual Rx_Status get_rx_status() {

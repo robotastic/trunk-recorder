@@ -160,6 +160,7 @@ void p25_recorder::initialize(Source *src) {
   squelch_db = 0;
 
   talkgroup = 0;
+  short_name = "";
   d_phase2_tdma = false;
   rec_num = rec_counter++;
   recording_count = 0;
@@ -310,6 +311,14 @@ bool p25_recorder::is_idle() {
 
 double p25_recorder::get_freq() {
   return chan_freq;
+}
+
+long p25_recorder::get_talkgroup() {
+  return talkgroup;
+}
+
+std::string p25_recorder::get_short_name(){
+  return short_name;
 }
 
 double p25_recorder::get_current_length() {
