@@ -38,6 +38,7 @@
 #include "p25_frame.h"
 #include "p25_framer.h"
 #include "rs.h"
+#include "imbe_vocoder/imbe_vocoder.h"
 
 namespace gr {
     namespace op25_repeater {
@@ -683,7 +684,7 @@ namespace gr {
                         if (!d_do_nocrypt || !encrypted()) {
                             std::string encr = "{\"encrypted\": " + std::to_string(0) + ", \"algid\": " + std::to_string(ess_algid) + ", \"keyid\": " + std::to_string(ess_keyid) + "}";
                             send_msg(encr, M_P25_JSON_DATA);
-                            software_decoder.decode_fullrate(u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+                            /*software_decoder.decode_fullrate(u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
                             audio_samples *samples = software_decoder.audio();
                             for (int i=0; i < SND_FRAME; i++) {
                            	    if (samples->size() > 0) {
@@ -692,7 +693,23 @@ namespace gr {
                                 } else {
                                     snd[i] = 0;
                                 }
+                            }*/
+
+                            uint32_t u[8], E0, ET;
+                            int16_t frame_vector[8];
+                            imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+
+                            for (int i=0; i < 8; i++) { // Ugh. For compatibility convert imbe params from uint32_t to int16_t
+                                frame_vector[i] = u[i];
                             }
+                            frame_vector[7] >>= 1;
+                            vocoder.imbe_decode(frame_vector, snd);
+
+
+
+
+
+
                             if (op25audio.enabled()) {      // decoded audio goes out via UDP (normal code path)
                                 op25audio.send_audio(snd, SND_FRAME * sizeof(int16_t));
                             } else {                        // decoded audio back to gnuradio (still supported?)

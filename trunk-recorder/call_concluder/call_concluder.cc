@@ -9,7 +9,7 @@ std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
 int combine_wav(std::string files, char *target_filename) {
   char shell_command[4000];
 
-  int nchars = snprintf(shell_command, 4000, "sox %s %s", files.c_str(), target_filename);
+  int nchars = snprintf(shell_command, 4000, "sox %s %s --norm=-.01", files.c_str(), target_filename);
 
   if (nchars >= 4000) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: SOX Combine WAV Command longer than 4000 characters";
@@ -31,7 +31,7 @@ int combine_wav(std::string files, char *target_filename) {
 int convert_media(char *filename, char *converted) {
   char shell_command[400];
 
-  int nchars = snprintf(shell_command, 400, "sox %s -t wav - --norm=-3 | fdkaac --silent  -p 2 --ignorelength -b 8000 -o %s -", filename, converted);
+  int nchars = snprintf(shell_command, 400, "sox %s -t wav - | fdkaac --silent  -p 2 --ignorelength -b 8000 -o %s -", filename, converted);
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: Command longer than 400 characters";
