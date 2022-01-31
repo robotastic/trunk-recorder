@@ -145,7 +145,7 @@ namespace gr {
         int16_t *out = (int16_t *)output_items[slot_id];
         int src_id = d_sync->get_src_id(slot_id);
         bool terminated = d_sync->get_terminated(slot_id);
-        if (src_id != -1) {
+        if ((src_id != -1) && (src_id != 0)) {
             BOOST_LOG_TRIVIAL(info) << "DMR Frame Assembler - sending src: " << src_id;
             add_item_tag(0, nitems_written(0), pmt::intern("src_id"), pmt::from_long(src_id), pmt::intern(name()));
           }

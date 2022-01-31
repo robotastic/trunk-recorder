@@ -1,0 +1,23 @@
+{
+        "ver":2,
+        "sources":[
+                {
+                        "center":464337000.0,
+                        "rate":1300000,
+                        "gain":36,
+                        "digitalRecorders":1,
+                        "driver":"osmosdr"
+                }
+        ],
+        "systems":[
+                {
+                        "channels":[464775000],
+                        "type":"conventionalDMR",
+                        "squelch": -60,
+                        "shortName":"trbo"
+                }
+        ],
+        "frequencyFormat":"mhz",
+        "logLevel":"info",
+"logFile":true
+}
