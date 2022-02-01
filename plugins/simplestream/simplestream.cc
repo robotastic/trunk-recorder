@@ -120,7 +120,7 @@ class Simple_Stream : public Plugin_Api {
     return 0;
   }
   
-  int audio_stream(Recorder *recorder, int16_t *samples, int sampleCount){
+  int audio_stream(Call *call, Recorder *recorder, int16_t *samples, int sampleCount){
     int recorder_id = recorder->get_num();
     BOOST_FOREACH (auto& stream, streams){
       if (TGID_map.find(recorder_id) != TGID_map.end()){

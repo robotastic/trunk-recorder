@@ -379,7 +379,7 @@ void analog_recorder::decoder_callback_handler(long unitId, const char *signalin
 }
 
 void analog_recorder::plugin_callback_handler(int16_t *samples, int sampleCount) {
-  plugman_audio_callback(this, samples, sampleCount);
+  plugman_audio_callback(call, this, samples, sampleCount);
 }
 
 void analog_recorder::setup_decoders_for_system(System *system) {

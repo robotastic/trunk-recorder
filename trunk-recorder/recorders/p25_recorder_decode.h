@@ -45,6 +45,7 @@ protected:
 
   virtual void initialize(  int silence_frames);
   Recorder* d_recorder;
+  Call* d_call;
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;

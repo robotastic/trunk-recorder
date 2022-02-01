@@ -27,6 +27,7 @@ void p25_recorder_decode::stop() {
 void p25_recorder_decode::start(Call *call) {
     levels->set_k(call->get_system()->get_digital_levels());
     wav_sink->start_recording(call);
+    d_call = call;
 }
 
 void p25_recorder_decode::set_xor_mask(const char *mask) {
@@ -114,7 +115,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
 }
 
 void p25_recorder_decode::plugin_callback_handler(int16_t *samples, int sampleCount) {
-  plugman_audio_callback(d_recorder, samples, sampleCount);
+  plugman_audio_callback(d_call, d_recorder, samples, sampleCount);
 }
 
 double p25_recorder_decode::get_output_sample_rate() {

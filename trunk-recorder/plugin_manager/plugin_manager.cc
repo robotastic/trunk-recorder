@@ -126,11 +126,11 @@ void plugman_poll_one() {
   }
 }
 
-void plugman_audio_callback(Recorder *recorder, int16_t *samples, int sampleCount) {
+void plugman_audio_callback(Call *call, Recorder *recorder, int16_t *samples, int sampleCount) {
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
-      plugin->api->audio_stream(recorder, samples, sampleCount);
+      plugin->api->audio_stream(call, recorder, samples, sampleCount);
     }
   }
 }
