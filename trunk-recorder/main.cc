@@ -237,9 +237,10 @@ bool load_config(string config_file) {
           BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
           system->add_channel(channel);
         }
-
+      
+        //Only process conventional alpha tags if no talkgroup file is specified
         BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
-        if (node.second.count("alphatags") != 0) {
+        if ((node.second.count("alphatags") != 0) && (node.second.count("talkgroupsFile") == 0)) {
           int alphaIndex = 1;
           BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("alphatags")) {
             std::string alphaTag = sub_node.second.get<std::string>("", "");
@@ -247,6 +248,8 @@ bool load_config(string config_file) {
             system->talkgroups->add(alphaIndex, alphaTag);
             alphaIndex++;
           }
+        } else if (node.second.count("talkgroupsFile") == 1) {
+          BOOST_LOG_TRIVIAL(info) << "  using csv file for TG and Alpha Tags";
         }
 
       } else if ((system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR") ) {
@@ -258,8 +261,9 @@ bool load_config(string config_file) {
           system->add_channel(channel);
         }
 
+        //Only process conventional alpha tags if no talkgroup file is specified
         BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
-        if (node.second.count("alphatags") != 0) {
+        if ((node.second.count("alphatags") != 0) && (node.second.count("talkgroupsFile") == 0)) {
           int alphaIndex = 1;
           BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("alphatags")) {
             std::string alphaTag = sub_node.second.get<std::string>("", "");
@@ -267,6 +271,8 @@ bool load_config(string config_file) {
             system->talkgroups->add(alphaIndex, alphaTag);
             alphaIndex++;
           }
+        } else if (node.second.count("talkgroupsFile") == 1) {
+          BOOST_LOG_TRIVIAL(info) << "  using csv file for TG and Alpha Tags";
         }
 
         system->set_delaycreateoutput(node.second.get<bool>("delayCreateOutput", false));
@@ -1276,9 +1282,21 @@ bool setup_systems() {
             }
 
             // This source can be used for this channel (and a squelch is set)
-            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << format_freq(channel) << " Talkgroup: " << tg_iterate_index;
-            Call_conventional *call = new Call_conventional(tg_iterate_index, channel, system, config);
-            Talkgroup *talkgroup = system->find_talkgroup(call->get_talkgroup());
+            int conv_tg_number = tg_iterate_index;
+            Talkgroup *talkgroup = system->find_talkgroup(tg_iterate_index);
+
+            if (!system->get_talkgroups_file().empty()) {
+              // Use channel freq to lookup TG number and Alpha Tags in talkgroup csv file
+              talkgroup = system->find_conv_talkgroup(channel);
+              if (talkgroup) {
+                conv_tg_number=talkgroup->number;
+               } else {
+                BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t"<< std::fixed << std::setprecision(0) << channel << " not found in talkgroup file: " << system->get_talkgroups_file(); 
+              }
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << format_freq(channel) << " Talkgroup: " << conv_tg_number;
+            Call_conventional *call = new Call_conventional(conv_tg_number, channel, system, config);     
 
             if (talkgroup) {
               call->set_talkgroup_tag(talkgroup->alpha_tag);
@@ -1288,7 +1306,7 @@ bool setup_systems() {
               analog_recorder_sptr rec;
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
-	      call->set_is_analog(true);
+	            call->set_is_analog(true);
               call->set_recorder((Recorder *)rec.get());
               call->set_state(RECORDING);
               system->add_conventional_recorder(rec);
