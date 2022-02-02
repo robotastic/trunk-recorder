@@ -65,7 +65,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
       // Talkgroup configuration columns:
       //
       // [0] - talkgroup number
-      // [1] - unused (talkgroup number in hex)
+      // [1] - unused (talkgroup number in hex) / conventional frequency
       // [2] - alpha_tag
       // [3] - mode
       // [4] - description
@@ -78,14 +78,14 @@ void Talkgroups::load_talkgroups(std::string filename) {
         continue;
       }
 
-      tg = new Talkgroup(atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
+      tg = new Talkgroup(atoi(vec[0].c_str()), vec[1].c_str(), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
     }
     else
     {
       // Talkgroup configuration columns:
       //
       // [0] - talkgroup number
-      // [1] - unused
+      // [1] - unused in trunked / conventional frequency
       // [2] - mode
       // [3] - alpha_tag
       // [4] - description
@@ -100,7 +100,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
       // TODO(nkw): more sanity checking here.
       priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
 
-      tg = new Talkgroup(atoi(vec[0].c_str()), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
+      tg = new Talkgroup(atoi(vec[0].c_str()), vec[1].c_str(), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
     }
     talkgroups.push_back(tg);
     lines_pushed++;
@@ -130,7 +130,21 @@ Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
   return tg_match;
 }
 
+Talkgroup *Talkgroups::find_conv_talkgroup(long conventional_freq) {
+  Talkgroup *tg_match = NULL;
+
+  for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
+    Talkgroup *tg = (Talkgroup *)*it;
+
+    if (stoi(tg->hex) == conventional_freq) {
+      tg_match = tg;
+      break;
+    }
+  }
+  return tg_match;
+}
+
 void Talkgroups::add(long num, std::string alphaTag) {
-  Talkgroup *tg = new Talkgroup(num, "X", alphaTag, "", "", "", 0);
+  Talkgroup *tg = new Talkgroup(num, "", "X", alphaTag, "", "", "", 0);
   talkgroups.push_back(tg);
 }

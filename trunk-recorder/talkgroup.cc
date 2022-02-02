@@ -1,7 +1,8 @@
 #include "talkgroup.h"
 
-Talkgroup::Talkgroup(long num, std::string m, std::string a, std::string d, std::string t, std::string g, int p) {
+Talkgroup::Talkgroup(long num, std::string h, std::string m, std::string a, std::string d, std::string t, std::string g, int p) {
   number = num;
+  hex = h;
   mode = m;
   alpha_tag = a;
   description = d;

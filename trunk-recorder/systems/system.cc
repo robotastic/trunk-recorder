@@ -278,6 +278,10 @@ Talkgroup *System::find_talkgroup(long tg_number) {
   return talkgroups->find_talkgroup(tg_number);
 }
 
+Talkgroup *System::find_conv_talkgroup(long channel) {
+  return talkgroups->find_conv_talkgroup(channel);
+}
+
 UnitTag *System::find_unit_tag(long unitID) {
   return unit_tags->find_unit_tag(unitID);
 }
