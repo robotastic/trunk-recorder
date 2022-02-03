@@ -237,7 +237,7 @@ bool load_config(string config_file) {
           BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
           system->add_channel(channel);
         }
-      
+
         //Only process conventional alpha tags if no talkgroup file is specified
         BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
         if ((node.second.count("alphatags") != 0) && (node.second.count("talkgroupsFile") == 0)) {
@@ -1306,7 +1306,7 @@ bool setup_systems() {
               analog_recorder_sptr rec;
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
-	            call->set_is_analog(true);
+              call->set_is_analog(true);
               call->set_recorder((Recorder *)rec.get());
               call->set_state(RECORDING);
               system->add_conventional_recorder(rec);
