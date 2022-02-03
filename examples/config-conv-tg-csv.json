@@ -1,0 +1,54 @@
+{
+    "ver": 2,
+    "__COMMENT0__":       "-----------------------------------------------------------", 
+    "__COMMENT1__":       " Example of a mixed system [test] that has conventional,   ",
+    "__COMMENT2__":       " p25conv, and DMR channels. Two FRS channels are monitored ",
+    "__COMMENT3__":       " seperately in [frs]. Conventional channels recieve their  ",
+    "__COMMENT4__":       " talkgroup and AlphaText assignments by looking up the     ",
+    "__COMMENT5__":       " frequency in a talkgroup .csv file.                       ",
+    "__COMMENT6__":       "-----------------------------------------------------------", 
+    "captureDir":         ".",
+    "logFile":            "false",
+    "frequencyFormat":    "mhz",
+    "logLevel":           "info",
+    "sources": [{
+        "center":         462640000,
+        "rate":           2400000,
+        "gain":           0,
+        "driver":         "osmosdr"
+    }],
+    "systems": [{
+        "__COMMENT__":    "Three conventional P25 channels in [test] system",
+        "type":           "conventionalP25",
+        "channels":       [462200000, 462325000, 462800000],
+        "shortName":      "test",
+        "talkgroupsFile": "conv-tg.csv",
+        "squelch":        -60,
+        "modulation":     "qpsk",
+        "talkgroupDisplayFormat": "id_tag"
+    },{
+        "__COMMENT__":    "Three conventional channels also part of [test] system, third intentionally not in .csv",
+        "type":           "conventional",
+        "channels":       [462275000, 462400000, 462425000],
+        "shortName":      "test",
+        "talkgroupsFile": "conv-tg.csv",
+        "squelch":        -60,
+        "talkgroupDisplayFormat": "id_tag"
+    },{
+        "__COMMENT__":    "Two conventional channels in [frs] system, using a different .csv",
+        "type":           "conventional",
+        "channels":       [462637500, 462650000],
+        "shortName":      "frs",
+        "talkgroupsFile": "frs.csv",
+        "squelch":        -60,
+        "talkgroupDisplayFormat": "id_tag"
+    },{
+        "__COMMENT__":    "One more DMR channel in [test] system",
+        "type":           "conventionalDMR",
+        "channels":       [462815000],
+        "shortName":      "test",
+        "talkgroupsFile": "conv-tg.csv",
+        "squelch":        -60,
+        "talkgroupDisplayFormat": "id_tag"
+    }]
+}
