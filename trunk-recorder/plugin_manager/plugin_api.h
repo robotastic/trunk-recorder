@@ -2,7 +2,7 @@
 #define PLUGIN_API_H
 
 #include "../call_concluder/call_concluder.h"
-
+#include "../formatter.h"
 typedef enum {
   PLUGIN_UNKNOWN,
   PLUGIN_INITIALIZED,
@@ -34,7 +34,7 @@ public:
   virtual int unit_deregistration(System *sys, long source_id) { return 0; };
   virtual int unit_acknowledge_response(System *sys, long source_id) { return 0; };
   virtual int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) { return 0; };
-
+  void set_frequency_format(int f) { frequencyFormat = f;}
   virtual ~Plugin_Api(){};
 };
 

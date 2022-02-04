@@ -31,6 +31,7 @@ plugin_t *plugin_new(const char * const plugin_file, char const * const plugin_n
 
     plugin_t *plugin = (*fptr)();
     assert(plugin->init != NULL);
+    plugin->set_frequency_format(frequencyFormat);
     return plugin;
 }
 
