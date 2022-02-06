@@ -47,6 +47,6 @@ Plugins can *optionally* implement the following methods, based on usage, or set
 * `signal(plugin_t * const plugin, long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder)`
   * Called when a decoded signal (i.e. MDC-1200) has been detected.
 
-* `audio_stream(plugin_t * const plugin, Recorder *recorder, float *samples, int sampleCount)`
+* `audio_stream(plugin_t * const plugin, Call *call, Recorder *recorder, float *samples, int sampleCount)`
   * Called when a set of audio samples that would be written out to the wav file writer is available.
   * Useful to implement live audio streaming.
