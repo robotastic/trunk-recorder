@@ -31,6 +31,7 @@ plugin_t *plugin_new(const char * const plugin_file, char const * const plugin_n
 
     plugin_t *plugin = (*fptr)();
     assert(plugin->init != NULL);
+    plugin->set_frequency_format(frequencyFormat);
     return plugin;
 }
 
@@ -116,14 +117,14 @@ int plugin_signal(plugin_t * const plugin, long unitId, const char *signaling_ty
     return err;
 }
 
-int plugin_audio_stream(plugin_t * const plugin, Recorder* recorder, int16_t *samples, int sampleCount) {
+int plugin_audio_stream(plugin_t * const plugin, Call *call, Recorder* recorder, int16_t *samples, int sampleCount) {
     assert(plugin != NULL);
 
     int err = 0;
     errno = 0;
 
     if(plugin->state == PLUGIN_RUNNING && plugin->audio_stream != NULL) {
-        err = plugin->audio_stream(plugin, recorder, samples, sampleCount);
+        err = plugin->audio_stream(plugin, call, recorder, samples, sampleCount);
     }
     return err;
 }

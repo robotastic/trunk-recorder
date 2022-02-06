@@ -2,7 +2,7 @@
 #define PLUGIN_API_H
 
 #include "../call_concluder/call_concluder.h"
-
+#include "../formatter.h"
 typedef enum {
   PLUGIN_UNKNOWN,
   PLUGIN_INITIALIZED,
@@ -20,7 +20,7 @@ public:
   virtual int stop() { return 0; };
   virtual int poll_one() { return 0; };
   virtual int signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) { return 0; };
-  virtual int audio_stream(Recorder *recorder, int16_t *samples, int sampleCount) { return 0; };
+  virtual int audio_stream(Call *call, Recorder *recorder, int16_t *samples, int sampleCount) { return 0; };
   virtual int call_start(Call *call) { return 0; };
   virtual int call_end(Call_Data_t call_info) { return 0; }; //= 0; //{ BOOST_LOG_TRIVIAL(info) << "plugin_api call_end"; return 0; };
   virtual int calls_active(std::vector<Call *> calls) { return 0; };
@@ -34,7 +34,7 @@ public:
   virtual int unit_deregistration(System *sys, long source_id) { return 0; };
   virtual int unit_acknowledge_response(System *sys, long source_id) { return 0; };
   virtual int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) { return 0; };
-
+  void set_frequency_format(int f) { frequencyFormat = f;}
   virtual ~Plugin_Api(){};
 };
 
