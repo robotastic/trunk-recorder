@@ -43,6 +43,8 @@ struct Call_Data_t {
   std::string upload_script;
   std::string audio_type;
 
+  Talkgroup *tg_info;
+
   int tdma_slot;
   double length;
   bool phase2_tdma;
