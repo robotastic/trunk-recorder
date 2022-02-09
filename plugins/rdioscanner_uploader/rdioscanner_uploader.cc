@@ -45,8 +45,6 @@ public:
   int upload(Call_Data_t call_info) {
     std::string api_key;
     std::string system_id;
-    std::string tg_group;
-    std::string tg_tag;
     bool compress_wav = false;
     Talkgroup *tg;
     Rdio_Scanner_System *sys = get_system(call_info.short_name);
@@ -59,14 +57,43 @@ public:
       api_key = sys->api_key;
       compress_wav = call_info.compress_wav;
       system_id = sys->system_id;
-      tg_group = call_info.talkgroup;
-      tg_tag = call_info.talkgroup_tag;
     }
 
     if (api_key.size() == 0) {
       return 0;
     }
     
+    // Find talkgroup info ahead of the curl request
+    std::string tg_num;
+    std::string tg_alphatext;
+    std::string tg_description;
+    std::string tg_group;
+    std::string tg_tag;
+
+    if (call_info.tg_info) {
+      // Lookup TG info if available
+      tg_num =  boost::lexical_cast<std::string>(call_info.tg_info->number);
+      tg_alphatext = call_info.tg_info->alpha_tag;
+      tg_description = call_info.tg_info->description;
+      tg_group = call_info.tg_info->group;
+      tg_tag = call_info.tg_info->tag;
+    } else {
+      // Use default values for TG.
+      // If "-" is the TG text/description, rdio scanner will use the TG number
+      // If "" is the  TG group/tag, rdio scanner will use Unknown/Untagged
+      tg_num = boost::lexical_cast<std::string>(call_info.talkgroup);
+      tg_alphatext = call_info.talkgroup_tag;
+      tg_description = "";
+      tg_group = "";
+      tg_tag = "";
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << "Rdio Scanner TG:       " << tg_num;
+    BOOST_LOG_TRIVIAL(debug) << "Rdio Scanner TG Text:  " << tg_alphatext;
+    BOOST_LOG_TRIVIAL(debug) << "Rdio Scanner TG Desc:  " << tg_description;
+    BOOST_LOG_TRIVIAL(debug) << "Rdio Scanner TG Group: " << tg_group;
+    BOOST_LOG_TRIVIAL(debug) << "Rdio Scanner TG Tag:   " << tg_tag;
+
     std::ostringstream freq;
     std::string freq_string;
     freq << std::fixed << std::setprecision(0);
@@ -192,19 +219,25 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroup",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(),
+                 CURLFORM_COPYCONTENTS, tg_num.c_str(),
+                 CURLFORM_END);
+
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "talkgroupLabel",
+                 CURLFORM_COPYCONTENTS, tg_alphatext.c_str(),
+                 CURLFORM_END);
+
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "talkgroupName",
+                 CURLFORM_COPYCONTENTS, tg_description.c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroupGroup",
                  CURLFORM_COPYCONTENTS, tg_group.c_str(),
-                 CURLFORM_END);
-
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "talkgroupLabel",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_tag).c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
