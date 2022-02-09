@@ -225,6 +225,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 
   call_info.talkgroup = call->get_talkgroup();
   call_info.talkgroup_tag = call->get_talkgroup_tag();
+  call_info.tg_info = sys->find_talkgroup(call_info.talkgroup);
+
   call_info.freq = call->get_freq();
   call_info.encrypted = call->get_encrypted();
   call_info.emergency = call->get_emergency();
