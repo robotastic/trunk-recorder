@@ -617,8 +617,39 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.source = si;
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si;
-  } else if (opcode == 0x30) { //
-    BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
+  } else if (opcode == 0x30) {
+      unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+      if (mfrid == 0xA4) { // GRG_EXENC_CMD - M/A-COM patch 
+        unsigned long grg_t = bitset_shift_mask(tsbk, 79, 0x1);
+        unsigned long grg_g = bitset_shift_mask(tsbk, 28, 0x1);
+        unsigned long grg_a = bitset_shift_mask(tsbk, 77, 0x01);
+        unsigned long grg_ssn = bitset_shift_mask(tsbk, 72, 0x1f);  //TODO: SSN should be stored and checked
+        unsigned long sg = bitset_shift_mask(tsbk, 56, 0xffff);
+        unsigned long keyid = bitset_shift_mask(tsbk, 40, 0xffff);
+        unsigned long rta = bitset_shift_mask(tsbk, 16, 0xffffff);
+        unsigned long algid = (rta >> 16) & 0xff; 
+        unsigned long ga =  rta & 0xffff;  
+        if (grg_a == 1){ // Activate
+          if (grg_g == 1){ // Group request
+            message.message_type = MOTO_PATCH_ADD;
+            MotoPatchData moto_patch_data;
+            moto_patch_data.sg = sg;
+            moto_patch_data.ga1 = ga;
+            moto_patch_data.ga2 = ga;
+            moto_patch_data.ga3 = ga;
+            message.moto_patch_data = moto_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
+          }
+          else{} // Unit request (currently unhandled)
+        }
+        else{ // Deactivate
+          if (grg_g == 1){ // Group request
+            //self.del_patch(sg, [sg])
+          }
+          else{} // Unit request (currently unhandled)
+        }
+      }
+      BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
   } else if (opcode == 0x31) { //
     BOOST_LOG_TRIVIAL(debug) << "tsbk31 AUTHENTICATION DEMAND";
   } else if (opcode == 0x32) { //

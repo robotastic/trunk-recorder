@@ -491,7 +491,7 @@ void System::update_active_talkgroup_patches(MotoPatchData moto_patch_data){
   }
   if (new_flag == true){
     //TGIDs from the Message were not found in an existing patch, so add them to a new one
-    //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
+    BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
     std::map<unsigned long,std::time_t> new_patch;
     new_patch[moto_patch_data.sg] = update_time;
     new_patch[moto_patch_data.ga1] = update_time;
@@ -514,7 +514,7 @@ void System::clear_stale_talkgroup_patches(){
       }
     }
     BOOST_FOREACH(auto& stale_talkgroup, stale_talkgroups){
-      BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch wigh sg id " << patch.first;
+      BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch with sg id " << patch.first;
       patch.second.erase(stale_talkgroup);
     }
     if (patch.second.size() == 0){
