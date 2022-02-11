@@ -661,8 +661,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         }
       }
       else{
-        BOOST_LOG_TRIVIAL(debug) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
-        BOOST_LOG_TRIVIAL(debug) << tsbk;
+        BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
       }
   } else if (opcode == 0x31) { //
     BOOST_LOG_TRIVIAL(debug) << "tsbk31 AUTHENTICATION DEMAND";
