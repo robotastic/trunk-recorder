@@ -977,9 +977,6 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
     // self.trunked_systems[nac].decode_mbt_data(opcode, header << 16, mbt_data
     // << 32)
   }
-  else if (type == 18){
-    BOOST_LOG_TRIVIAL(debug)<<"MESSAGE TYPE 18 - is there patch data in here?";
-  }
   messages.push_back(message);
   return messages;
 }
