@@ -247,18 +247,14 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long ga2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga3 = bitset_shift_mask(tsbk, 16, 0xffff);
       BOOST_LOG_TRIVIAL(debug) << "tsbk00\tMoto Patch Add \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3;
-      message.message_type = MOTO_PATCH_ADD;
-      MotoPatchData moto_patch_data;
+      message.message_type = PATCH_ADD;
+      PatchData moto_patch_data;
       moto_patch_data.sg = sg;
       moto_patch_data.ga1 = ga1;
       moto_patch_data.ga2 = ga2;
       moto_patch_data.ga3 = ga3;
-      message.moto_patch_data = moto_patch_data;
+      message.patch_data = moto_patch_data;
     } 
-    else if (mfrid == 0xA4){
-      BOOST_LOG_TRIVIAL(debug) << "tsbk00 with MFRID 0xA4";
-      BOOST_LOG_TRIVIAL(debug) << tsbk;
-    }
     else {
       unsigned long f1 = channel_id_to_frequency(ch, sys_num);
       message.message_type = GRANT;
@@ -319,10 +315,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
     } 
-    else if (mfrid == 0xA4){
-      BOOST_LOG_TRIVIAL(debug) << "tsbk02 with MFRID 0xA4";
-      BOOST_LOG_TRIVIAL(debug) << tsbk;
-    }
     else {
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 48, 0xffff);
@@ -641,20 +633,27 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         unsigned long ga =  rta & 0xffff;  
         if (grg_a == 1){ // Activate
           if (grg_g == 1){ // Group request
-            message.message_type = MOTO_PATCH_ADD;
-            MotoPatchData moto_patch_data;
-            moto_patch_data.sg = sg;
-            moto_patch_data.ga1 = ga;
-            moto_patch_data.ga2 = ga;
-            moto_patch_data.ga3 = ga;
-            message.moto_patch_data = moto_patch_data;
-            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH sg TGID is "<<sg<<" patched with TGID "<<ga<<" keyid: "<<keyid<<" rta: "<<rta<<" SSN: "<<grg_ssn;
+            message.message_type = PATCH_ADD;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
           }
           else{} // Unit request (currently unhandled)
         }
         else{ // Deactivate
           if (grg_g == 1){ // Group request
             //self.del_patch(sg, [sg])
+            message.message_type = PATCH_DELETE;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
             BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
           }
           else{} // Unit request (currently unhandled)

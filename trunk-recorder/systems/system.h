@@ -208,12 +208,10 @@ public:
 
   boost::property_tree::ptree get_stats();
   boost::property_tree::ptree get_stats_current(float timeDiff);
-  
-  //std::vector<std::map<int,std::time_t>> get_active_talkgroup_patches();
-  //void set_active_talkgroup_patches(std::vector<std::map<int,std::time_t>> updated_talkgroup_patches);
 
   std::vector<unsigned long> get_talkgroup_patch(unsigned long talkgroup);
-  void update_active_talkgroup_patches(MotoPatchData moto_patch_data);
+  void update_active_talkgroup_patches(PatchData f_data);
+  void delete_talkgroup_patch(PatchData f_data);
   void clear_stale_talkgroup_patches();
 
 private:
