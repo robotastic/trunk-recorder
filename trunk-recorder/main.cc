@@ -625,7 +625,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (!talkgroup && (sys->get_record_unknown() == false)) {
     if (sys->get_hideUnknown() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
+      //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
     }
     return false;
   }
@@ -638,7 +638,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode.compare("E") == 0 || talkgroup->mode.compare("TE") == 0  || talkgroup->mode.compare("DE") == 0 ))) {
     if (sys->get_hideEncrypted() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
+      //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
     return false;
   }
@@ -733,7 +733,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (!source_found) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -834,7 +834,7 @@ void manage_calls() {
     }
 
     // Handle Trunked Calls
-    if ((call->since_last_update() > config.call_timeout) && ((state == RECORDING) || (state == MONITORING))) {
+    if ((call->since_last_update() > 1.0/*config.call_timeout*/) && ((state == RECORDING) || (state == MONITORING))) {
       if (state == RECORDING) {
         ended_call = true;
         
@@ -850,6 +850,8 @@ void manage_calls() {
         continue;
       }
     }
+
+
 
     // If a call's state has been set to COMPLETED, we can conclude the call and delete it
     // we need to check the Call State again because it could have been updated by the previous command.
@@ -868,7 +870,7 @@ void manage_calls() {
       continue;
     }
 
-    // We are checking to make sure a Call has gotten stuck. If it is in the INACTIVE state
+    // We are checking to make sure a Call hasn't gotten stuck. If it is in the INACTIVE state
     if (state == INACTIVE) {
       Recorder *recorder = call->get_recorder();
       if (recorder != NULL) {
@@ -949,7 +951,8 @@ void unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
   plugman_unit_group_affiliation(sys, source_id, talkgroup_num);
 }
 
-void handle_call(TrunkMessage message, System *sys) {
+
+void handle_call_grant(TrunkMessage message, System *sys) {
   bool call_found = false;
   bool call_retune = false;
   bool recording_started = false;
@@ -962,16 +965,27 @@ void handle_call(TrunkMessage message, System *sys) {
   going until it gets a termination flag.
   */
 
+  BOOST_LOG_TRIVIAL(info) << "TG: "  << message.talkgroup << " sys num: "<< message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
+
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
     Call *call = *it;
 
-    if ((call->get_state() != RECORDING) && (call->get_state() != MONITORING)) {
+    /* This will skip all calls that are not currently acitve */
+    if (call->get_state() == COMPLETED) {
       continue;
     }
 
     //BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
+
+      if (call->get_state() == RECORDING) {
+        call->set_record_more_transmissions(true);
+      }
+      if (call->get_state() == INACTIVE) {
+        call->set_record_more_transmissions(true);
+        call->set_state(RECORDING);
+      }
       bool source_updated = call->update(message);
       if (source_updated) {
         plugman_call_start(call);
@@ -981,6 +995,15 @@ void handle_call(TrunkMessage message, System *sys) {
     // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == RECORDING) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
+      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping RECORDING call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
+      call->stop_call();
+    }
+
+        // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
+    // keep writing to the file until it hits a termination flag, so no packets should be dropped.
+    if ((call->get_state() == INACTIVE) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
+      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping INACTIVE call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
       BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
       call->stop_call();
     }
@@ -997,14 +1020,64 @@ void handle_call(TrunkMessage message, System *sys) {
 
 }
 
+
+void handle_call_update(TrunkMessage message, System *sys) {
+  bool call_found = false;
+  bool call_retune = false;
+  bool recording_started = false;
+
+  /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
+  that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
+  recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
+  of the original recorder gets flushed. 
+  UPDATED: however if we have 2 different talkgroups on the same freq we should do a stop_call on the original call since it is being used by another TG now. This will let the recorder keep
+  going until it gets a termination flag.
+  */
+
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
+    Call *call = *it;
+
+    /* This will skip all calls that are not currently acitve */
+    if (call->get_state() == COMPLETED) {
+      continue;
+    }
+
+    //BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
+      call_found = true;
+
+      if (call->get_state() == INACTIVE) {
+       // Only a RECORDING call can be set to INACTIVE
+       // We should be safe to set it to RECORDING if it starts to get UPDATE messages 
+       call->set_state(RECORDING) 
+       BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Werid - update for an INACTIVE Call \u001b[0m";
+      }
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
+     
+      bool source_updated = call->update(message);
+      if (source_updated) {
+        plugman_call_start(call);
+      }
+    }
+  }
+
+  if (!call_found) {
+    //BOOST_LOG_TRIVIAL(error) << "Weird - call not found for UPDATE\tFreq: " << format_freq(message.freq) << "\tTG:" << message.freq;
+  }
+
+}
+
 void handle_message(std::vector<TrunkMessage> messages, System *sys) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
     TrunkMessage message = *it;
 
     switch (message.message_type) {
     case GRANT:
+      handle_call_grant(message, sys);
+      break;
+
     case UPDATE:
-      handle_call(message, sys);
+      handle_call_update(message, sys);
       break;
 
     case CONTROL_CHANNEL:

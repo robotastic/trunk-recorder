@@ -140,7 +140,7 @@ bool nonstop_wavfile_sink_impl::start_recording(Call *call) {
   char formattedTalkgroup[62];
   snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
   std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-  BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink ";
+  BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink SRC ID: " << curr_src_id;
 
   return true;
 }
@@ -219,16 +219,17 @@ void nonstop_wavfile_sink_impl::set_source(long src) {
 
       BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: "<< src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
-      if (d_sample_count > 0) {
+      /*if (d_sample_count > 0) {
         end_transmission();
-      }
-
-      if (!record_more_transmissions) {
+      }*/
+      BOOST_LOG_TRIVIAL(info) << "ENDING TRANSMISSION Voice Channel mismatch source id - current: "<< curr_src_id << " new: " << src;
+        //state = STOPPED;
+      /*if (!record_more_transmissions) {
         state = STOPPED;
       } else {
         state = IDLE;
         d_first_work = true;
-      }
+      }*/
     }
     curr_src_id = src;
   }
@@ -254,6 +255,7 @@ void nonstop_wavfile_sink_impl::end_transmission() {
     this->add_transmission(transmission);
     d_sample_count = 0;
     d_first_work = true;
+    curr_src_id = -1;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but the sample_count is 0" << std::endl;
   }
@@ -347,25 +349,29 @@ int nonstop_wavfile_sink_impl::work(int noutput_items, gr_vector_const_void_star
       } else if (src_id != curr_src_id) {
         if (state == RECORDING) {
 
-          if (d_sample_count > 0) {
+
+          BOOST_LOG_TRIVIAL(info) << "ENDING TRANSMISSION from TAGS Voice Channel mismatch source id - current: "<< curr_src_id << " new: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+          /*if (d_sample_count > 0) {
             end_transmission();
           }
-
-          if (!record_more_transmissions) {
+          state = STOPPED;*/
+          /*if (!record_more_transmissions) {
             state = STOPPED;
           } else {
             state = IDLE;
             d_first_work = true;
-          }
+          }*/
+          curr_src_id = src_id;
         }
-        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+        //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
         
-        curr_src_id = src_id;
+
       }
 
     }
     if (pmt::eq(that_key, tags[i].key)) {
       d_termination_flag = true;
+      BOOST_LOG_TRIVIAL(info) << "TEMINATOR!!";
     }
   }
   tags.clear();
@@ -390,6 +396,13 @@ void nonstop_wavfile_sink_impl::add_transmission(Transmission t) {
 }
 
 void nonstop_wavfile_sink_impl::set_record_more_transmissions(bool more) {
+  // If a Recorder is STOPPED and record_more is false, prep it so it is ready to go.
+  if ((record_more_transmissions == false) && (more == true) && (state == STOPPED)) {
+    BOOST_LOG_TRIVIAL(info) << "wav - setting record_more to true, sample count: " << d_sample_count;
+    d_sample_count = 0;
+    d_first_work = true;
+    state = IDLE;
+  }
   record_more_transmissions = more;
 }
 
@@ -420,13 +433,15 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
     if (d_sample_count > 0) {
       end_transmission();
     }
-    if (!record_more_transmissions) {
+
+    // Another GRANT message has not arrived.
+    if (record_more_transmissions == false) {
       char formattedTalkgroup[62];
       snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
       std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
       
-      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\trecord_more_transmissions is false, setting recorder state to STOPPED";
-      BOOST_LOG_TRIVIAL(trace) << "Call completed - putting recorder into state Completed - we had samples";
+      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\trecord_more_transmissions is false, setting recorder state to STOPPED";
+      //BOOST_LOG_TRIVIAL(trace) << "Call completed - putting recorder into state Completed - we had samples";
       
       state = STOPPED;
     } else {
@@ -495,6 +510,7 @@ int nonstop_wavfile_sink_impl::dowork(int noutput_items, gr_vector_const_void_st
   }
 
   if (nwritten > 0) {
+    record_more_transmissions = false;
     state = RECORDING;
   }
   // fflush (d_fp);  // this is added so unbuffered content is written.
