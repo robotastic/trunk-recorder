@@ -350,16 +350,19 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
 
           BOOST_LOG_TRIVIAL(info) << "ENDING TRANSMISSION from TAGS Voice Channel mismatch source id - current: "<< curr_src_id << " new: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
-          /*if (d_sample_count > 0) {
-            end_transmission();
-          }
-          state = STOPPED;*/
-          /*if (!record_more_transmissions) {
+        /*
+            if (d_conventional && (d_sample_count > 0)) {
+                end_transmission();
+                state = IDLE;
+            }
+          state = STOPPED;
+          if (!record_more_transmissions) {
             state = STOPPED;
           } else {
             state = IDLE;
             d_first_work = true;
           }*/
+          
           curr_src_id = src_id;
         }
         //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
@@ -434,7 +437,10 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     }
 
     // Another GRANT message has not arrived.
-    if (record_more_transmissions == false) {
+    if (is_conventional || (record_more_transmissions == true)) {
+      state = IDLE;
+      d_first_work = true;
+    } else {
       char formattedTalkgroup[62];
       snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
       std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
@@ -443,10 +449,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       //BOOST_LOG_TRIVIAL(trace) << "Call completed - putting recorder into state Completed - we had samples";
       
       state = STOPPED;
-    } else {
-      state = IDLE;
-      d_first_work = true;
-    }
+    } 
     d_termination_flag = false;
 
     return noutput_items;
