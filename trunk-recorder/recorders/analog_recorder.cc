@@ -2,7 +2,7 @@
 #include "analog_recorder.h"
 #include <gr_blocks/decoder_wrapper_impl.h>
 #include <gr_blocks/plugin_wrapper_impl.h>
-#include <gr_blocks/nonstop_wavfile_sink_impl.h>
+#include <gr_blocks/transmission_sink.h>
 #include "../formatter.h"
 #include "../recorder_globals.h"
 #include "../plugin_manager/plugin_manager.h"
@@ -202,7 +202,7 @@ analog_recorder::analog_recorder(Source *src)
 
   //tm *ltm = localtime(&starttime);
 
-  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, wav_sample_rate, 16); //  Configurable
+  wav_sink = gr::blocks::transmission_sink::make(1, wav_sample_rate, 16); //  Configurable
 
   if(use_streaming) {
     BOOST_LOG_TRIVIAL(info) << "Creating plugin sink..." << std::endl;

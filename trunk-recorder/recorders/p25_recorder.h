@@ -54,7 +54,7 @@
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"
 #include "p25_recorder_qpsk_demod.h"
-#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/transmission_sink.h>
 #include <gr_blocks/selector.h>
 
 class Source;

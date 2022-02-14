@@ -76,7 +76,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
-  wav_sink = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16);
+  wav_sink = gr::blocks::transmission_sink::make(1, 8000, 16);
   //recorder->initialize(src);
 
   bool use_streaming = d_recorder->get_enable_audio_streaming();

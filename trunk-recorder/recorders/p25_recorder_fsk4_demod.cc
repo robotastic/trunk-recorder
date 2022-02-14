@@ -2,7 +2,7 @@
 
 p25_recorder_fsk4_demod_sptr make_p25_recorder_fsk4_demod() {
   p25_recorder_fsk4_demod *recorder = new p25_recorder_fsk4_demod();
-  //recorder->initialize(src, gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16, false));
+
   recorder->initialize();
   return gnuradio::get_initial_sptr(recorder);
 }

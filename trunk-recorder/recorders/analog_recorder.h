@@ -49,7 +49,7 @@ class analog_recorder;
 #include <gr_blocks/decoder_wrapper.h>
 #include <gr_blocks/plugin_wrapper.h>
 #include <gr_blocks/freq_xlating_fft_filter.h>
-#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/transmission_sink.h>
 
 
 	#if GNURADIO_VERSION < 0x030900
@@ -150,7 +150,7 @@ private:
   gr::analog::quadrature_demod_cf::sptr demod;
   gr::blocks::float_to_short::sptr converter;
 
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  gr::blocks::transmission_sink::sptr wav_sink;
   gr::blocks::copy::sptr valve;
 
   gr::blocks::decoder_wrapper::sptr decoder_sink;

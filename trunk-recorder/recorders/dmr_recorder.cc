@@ -212,8 +212,8 @@ void dmr_recorder::initialize(Source *src) {
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
-  wav_sink_slot0 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16);
-  wav_sink_slot1 = gr::blocks::nonstop_wavfile_sink_impl::make(1, 8000, 16);
+  wav_sink_slot0 = gr::blocks::transmission_sink::make(1, 8000, 16);
+  wav_sink_slot1 = gr::blocks::transmission_sink::make(1, 8000, 16);
   //recorder->initialize(src);
   
   //OP25 Frame Assembler
