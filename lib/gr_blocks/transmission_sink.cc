@@ -437,7 +437,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     }
 
     // Another GRANT message has not arrived.
-    if (is_conventional || (record_more_transmissions == true)) {
+    if (d_conventional || (record_more_transmissions == true)) {
       state = IDLE;
       d_first_work = true;
     } else {
