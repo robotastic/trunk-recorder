@@ -491,7 +491,7 @@ void System::update_active_talkgroup_patches(PatchData patch_data){
       if (0 != patch_data.ga2){
         patch.second[patch_data.ga2] = update_time;
       }
-      if (0 != patch_data.ga2){
+      if (0 != patch_data.ga3){
         patch.second[patch_data.ga3] = update_time;
       }
     }
