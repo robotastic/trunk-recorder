@@ -1035,9 +1035,11 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       unit_acknowledge_response( sys, message.source);
       break;
 
-    case MOTO_PATCH_ADD:
-      //update_patches(message, sys);
-      sys->update_active_talkgroup_patches(message.moto_patch_data);
+    case PATCH_ADD:
+      sys->update_active_talkgroup_patches(message.patch_data);
+      break;
+    case PATCH_DELETE:
+      sys->delete_talkgroup_patch(message.patch_data);
       break;
     case UNKNOWN:
       break;
