@@ -330,8 +330,8 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   pmt::pmt_t this_key(pmt::intern("src_id"));
   pmt::pmt_t that_key(pmt::intern("terminate"));
   //pmt::pmt_t squelch_key(pmt::intern("squelch_eob"));
-  get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
-
+  //get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
+  get_tags_in_window(tags, 0, 0, noutput_items);
   unsigned pos = 0;
   //long curr_src_id = 0;
 
@@ -462,6 +462,8 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
         state = STOPPED;
       } 
     }
+
+
     d_termination_flag = false;
 
     return noutput_items;
