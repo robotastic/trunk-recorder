@@ -837,7 +837,7 @@ void manage_calls() {
     if ((call->since_last_update() > 1.0/*config.call_timeout*/) && ((state == RECORDING) || (state == MONITORING))) {
       if (state == RECORDING) {
         ended_call = true;
-        
+        call->set_record_more_transmissions(false);
         // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to COMPLETED
         call->stop_call();
         
@@ -876,7 +876,7 @@ void manage_calls() {
       if (recorder != NULL) {
 
         // if the recorder has simply been going for a while and a call is inactive, end things
-        if (recorder->since_last_write() > 10) {
+        if (recorder->since_last_write() > 5) {
           BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
           BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m  Rec Num: " << recorder->get_num() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
 
@@ -1055,6 +1055,9 @@ void handle_call_update(TrunkMessage message, System *sys) {
       }
         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
      
+
+        call->set_record_more_transmissions(true);
+
       bool source_updated = call->update(message);
       if (source_updated) {
         plugman_call_start(call);
