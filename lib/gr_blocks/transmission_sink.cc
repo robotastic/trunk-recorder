@@ -349,7 +349,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
         if (state == RECORDING) {
 
 
-          BOOST_LOG_TRIVIAL(info) << "ENDING TRANSMISSION from TAGS Voice Channel mismatch source id - current: "<< curr_src_id << " new: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+          //BOOST_LOG_TRIVIAL(info) << "ENDING TRANSMISSION from TAGS Voice Channel mismatch source id - current: "<< curr_src_id << " new: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
         /*
             if (d_conventional && (d_sample_count > 0)) {
                 end_transmission();
@@ -423,7 +423,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   short int sample_buf_s;
   int nwritten;
 
-  
+  // A Termination Tag was receive
   if (d_termination_flag) {
 
     if (d_current_call == NULL) {
@@ -436,20 +436,24 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       end_transmission();
     }
 
-    // Another GRANT message has not arrived.
-    if (d_conventional || (record_more_transmissions == true)) {
-      state = IDLE;
-      d_first_work = true;
-    } else {
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-      
-      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\trecord_more_transmissions is false, setting recorder state to STOPPED";
-      //BOOST_LOG_TRIVIAL(trace) << "Call completed - putting recorder into state Completed - we had samples";
-      
-      state = STOPPED;
-    } 
+    // Check to see if we have started a Transmission yet
+    // A Terminator with any Transmission started shouldn't do anything... right?
+    if (d_first_work) {
+      // Another GRANT message has arrived.
+      if (d_conventional || (record_more_transmissions == true)) {
+        state = IDLE;
+        d_first_work = true;
+      } else {
+        char formattedTalkgroup[62];
+        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+        
+        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder state to STOPPED";
+        //BOOST_LOG_TRIVIAL(trace) << "Call completed - putting recorder into state Completed - we had samples";
+        
+        state = STOPPED;
+      } 
+    }
     d_termination_flag = false;
 
     return noutput_items;
