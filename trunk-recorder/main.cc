@@ -965,7 +965,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
   going until it gets a termination flag.
   */
 
-  BOOST_LOG_TRIVIAL(info) << "TG: "  << message.talkgroup << " sys num: "<< message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
+  //BOOST_LOG_TRIVIAL(info) << "TG: "  << message.talkgroup << " sys num: "<< message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
     Call *call = *it;

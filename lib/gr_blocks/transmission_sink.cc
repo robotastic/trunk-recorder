@@ -373,7 +373,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     }
     if (pmt::eq(that_key, tags[i].key)) {
       d_termination_flag = true;
-      BOOST_LOG_TRIVIAL(info) << "TEMINATOR!!";
+      //BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
     }
   }
   tags.clear();
@@ -427,7 +427,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   if (d_termination_flag) {
 
     if (d_current_call == NULL) {
-      BOOST_LOG_TRIVIAL(error) << "wav - no current call in temination loop";
+      BOOST_LOG_TRIVIAL(error) << "wav - no current call, but in temination loop";
       state = STOPPED;
       return noutput_items;
     }
@@ -484,7 +484,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
 
     //curr_src_id = d_current_call->get_current_source_id();
-
+    record_more_transmissions = false;
     d_first_work = false;
   }
 
@@ -512,7 +512,6 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   }
 
   if (nwritten > 0) {
-    record_more_transmissions = false;
     state = RECORDING;
   }
   // fflush (d_fp);  // this is added so unbuffered content is written.
