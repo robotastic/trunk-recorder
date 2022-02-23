@@ -446,7 +446,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
 
     // Check to see if we have started a Transmission yet
     // A Terminator with any Transmission started shouldn't do anything... right?
-    if (d_first_work) {
+    if (d_first_work == false) {
       // Another GRANT message has arrived.
       if (d_conventional || (record_more_transmissions == true)) {
         state = IDLE;
