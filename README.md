@@ -65,7 +65,7 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 
 ### Troubleshooting
 
-If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on [![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on the [Discord Server](Https://discord.gg/trunk-recorder) 
 
 ___
 
