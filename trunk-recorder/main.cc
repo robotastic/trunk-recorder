@@ -881,9 +881,9 @@ void manage_calls() {
       if (recorder != NULL) {
 
         // if the recorder has simply been going for a while and a call is inactive, end things
-        if (recorder->since_last_write() > 5) {
-          BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
-          BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m  Rec Num: " << recorder->get_num() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call with stuck recorder \u001b[0m";
+        if (call->since_last_update() > 5) {
+          //BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
+          BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m  Rec Num: " << recorder->get_num() << "\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call that has been inactive for more than 5 Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << recorder->get_state();
 
           // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
           // set the Call state to COMPLETED
@@ -921,7 +921,7 @@ void manage_calls() {
           continue;
         }*/
       } else {
-        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
+        BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
       }
     }
 
@@ -983,7 +983,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
 
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m GRANT Message for existing Call\u001b[0m";
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m GRANT Message for existing Call\u001b[0m";
       
       if (call->get_state() == RECORDING) {
         call->set_record_more_transmissions(true);
@@ -1001,7 +1001,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == RECORDING) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping RECORDING call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping RECORDING call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
       BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
       call->stop_call();
     }
@@ -1009,7 +1009,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
         // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == INACTIVE) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping INACTIVE call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping INACTIVE call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
       BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
       call->stop_call();
     }
@@ -1056,9 +1056,9 @@ void handle_call_update(TrunkMessage message, System *sys) {
        // Only a RECORDING call can be set to INACTIVE
        // We should be safe to set it to RECORDING if it starts to get UPDATE messages 
        call->set_state(RECORDING); 
-       BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Werid - update for an INACTIVE Call \u001b[0m";
+       BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Werid - update for an INACTIVE Call \u001b[0m";
       }
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
      
 
         call->set_record_more_transmissions(true);
