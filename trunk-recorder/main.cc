@@ -838,8 +838,13 @@ void manage_calls() {
       if (state == RECORDING) {
         ended_call = true;
         call->set_record_more_transmissions(false);
+        call->set_state(INACTIVE);
+        // set the call state to inactive
+
+
+
         // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to COMPLETED
-        call->stop_call();
+        //call->stop_call();
         
       }
       // we do not need to stop Monitoring Calls, we can just delete them
@@ -897,7 +902,7 @@ void manage_calls() {
 
         // In this case, the Call is inactive and was waiting for the recorder to finish. In this
         // case you can now conclude the call. 
-        if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
+        /*if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
           //BOOST_LOG_TRIVIAL(info) << "Recorder state: " << format_state(recorder->get_state());
           //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) <<  "\t\u001b[36mCompleting Call, its state is INACTIVE and its recorder state is STOPPED or IDLE\u001b[0m";
           // since the Call state is INACTIVE and the Recorder has reached a state of IDLE or STOPPED, we can now
@@ -914,7 +919,7 @@ void manage_calls() {
           it = calls.erase(it);
           delete call;
           continue;
-        }
+        }*/
       } else {
         BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "\tTTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Call set to Inactive, but has no recorder\u001b[0m";
       }
