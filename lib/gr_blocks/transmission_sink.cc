@@ -342,7 +342,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
 
       if (curr_src_id == -1) {
-        BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
+        //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
         
         curr_src_id = src_id;
       } else if (src_id != curr_src_id) {
@@ -408,7 +408,7 @@ void transmission_sink::add_transmission(Transmission t) {
 void transmission_sink::set_record_more_transmissions(bool more) {
   // If a Recorder is STOPPED and record_more is false, prep it so it is ready to go.
   if ((record_more_transmissions == false) && (more == true) && (state == STOPPED)) {
-    BOOST_LOG_TRIVIAL(info) << "wav - setting record_more to true, sample count: " << d_sample_count;
+    //BOOST_LOG_TRIVIAL(info) << "wav - setting record_more to true, sample count: " << d_sample_count;
     d_sample_count = 0;
     d_first_work = true;
     state = IDLE;
