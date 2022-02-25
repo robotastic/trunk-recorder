@@ -972,11 +972,12 @@ void handle_call_grant(TrunkMessage message, System *sys) {
 
   //BOOST_LOG_TRIVIAL(info) << "TG: "  << message.talkgroup << " sys num: "<< message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
 
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
     /* This will skip all calls that are not currently acitve */
     if (call->get_state() == COMPLETED) {
+      ++it;
       continue;
     }
 
@@ -1006,6 +1007,9 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       //call->stop_call();
       call->set_state(COMPLETED);
       call->conclude_call();
+      it = calls.erase(it);
+      delete call;
+      continue;
     }
 
         // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
@@ -1016,6 +1020,9 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       //call->stop_call();
       call->set_state(COMPLETED);
       call->conclude_call();
+      it = calls.erase(it);
+      delete call;
+      continue;
     }
 
   }
@@ -1027,7 +1034,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     plugman_call_start(call);
     plugman_calls_active(calls);
   }
-
+  it++;
 }
 
 
