@@ -1024,7 +1024,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       delete call;
       continue;
     }
-
+    it++;
   }
 
   if (!call_found) {
@@ -1034,7 +1034,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     plugman_call_start(call);
     plugman_calls_active(calls);
   }
-  it++;
+  
 }
 
 
