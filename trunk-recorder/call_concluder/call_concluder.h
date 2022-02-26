@@ -24,6 +24,10 @@ enum Call_Data_Status { INITIAL, SUCCESS, RETRY, FAILED };
 struct Call_Data_t {
   long talkgroup;
   std::vector<unsigned long> patched_talkgroups;
+  std::string talkgroup_tag;
+  std::string talkgroup_alpha_tag;
+  std::string talkgroup_description;
+  std::string talkgroup_group;
   long call_num;
   double freq;
   long start_time;
@@ -38,7 +42,8 @@ struct Call_Data_t {
   char status_filename[300];
   char converted[300];
 
-  std::string talkgroup_tag;
+
+
   std::string short_name;
   std::string upload_script;
   std::string audio_type;

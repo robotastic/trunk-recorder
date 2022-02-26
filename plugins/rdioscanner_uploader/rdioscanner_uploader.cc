@@ -45,8 +45,10 @@ public:
   int upload(Call_Data_t call_info) {
     std::string api_key;
     std::string system_id;
-    std::string tg_group;
-    std::string tg_tag;
+    std::string talkgroup_group = call_info.talkgroup_group;
+    std::string talkgroup_tag = call_info.talkgroup_tag;
+    std::string talkgroup_alpha_tag = call_info.talkgroup_alpha_tag;
+    std::string talkgroup_description = call_info.talkgroup_description;
     bool compress_wav = false;
     Talkgroup *tg;
     Rdio_Scanner_System *sys = get_system(call_info.short_name);
@@ -59,8 +61,6 @@ public:
       api_key = sys->api_key;
       compress_wav = call_info.compress_wav;
       system_id = sys->system_id;
-      tg_group = call_info.talkgroup;
-      tg_tag = call_info.talkgroup_tag;
     }
 
     if (api_key.size() == 0) {
@@ -198,20 +198,26 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroupGroup",
-                 CURLFORM_COPYCONTENTS, tg_group.c_str(),
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_group).c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroupLabel",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_tag).c_str(),
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_alpha_tag).c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroupTag",
-                 CURLFORM_COPYCONTENTS, tg_tag.c_str(),
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_tag).c_str(),
                  CURLFORM_END);
+
+    curl_formadd(&formpost,
+                  &lastptr,
+                  CURLFORM_COPYNAME, "talkgroupName",
+                  CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_description).c_str(),
+                  CURLFORM_END);
 
     curl_formadd(&formpost,
                  &lastptr,
