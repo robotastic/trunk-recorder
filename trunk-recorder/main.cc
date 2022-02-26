@@ -1002,7 +1002,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == RECORDING) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping RECORDING call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping RECORDING call, RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
       BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
       //call->stop_call();
       call->set_state(COMPLETED);
@@ -1015,7 +1015,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
         // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == INACTIVE) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping INACTIVE call, RX overlapping TG message Freq " << message.talkgroup << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping INACTIVE call, RX overlapping TG message Freq TG:" << message.talkgroup << "\u001b[0m";
       BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
       //call->stop_call();
       call->set_state(COMPLETED);
