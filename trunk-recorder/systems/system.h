@@ -197,9 +197,6 @@ public:
   void set_talkgroup_display_format(TalkgroupDisplayFormat format);
   TalkgroupDisplayFormat get_talkgroup_display_format();
 
-  bool get_delaycreateoutput();
-  void set_delaycreateoutput(bool delaycreateoutput);
-
   bool get_hideEncrypted();
   void set_hideEncrypted(bool hideEncrypted);
 
@@ -216,7 +213,6 @@ public:
 
 private:
   TalkgroupDisplayFormat talkgroup_display_format;
-  bool d_delaycreateoutput;
   bool d_hideEncrypted;
   bool d_hideUnknown;
 

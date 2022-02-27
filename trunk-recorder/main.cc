@@ -229,49 +229,42 @@ bool load_config(string config_file) {
       system->set_system_type(node.second.get<std::string>("type"));
       BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
-      if (system->get_system_type() == "conventional") {
-        BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
-        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
-          double channel = sub_node.second.get<double>("", 0);
+      // If it is a conventional System
+      if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
+        
+        boost::optional<std::string> channel_file_exist = node.second.get_optional<std::string>("channelFile");
+        boost::optional<boost::property_tree::ptree &> channels_exist = node.second.get_child_optional("channels");
 
-          BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
-          system->add_channel(channel);
+        if (channel_file_exist && channels_exist) {
+          BOOST_LOG_TRIVIAL(error) << "Both \"channels\" and \"channelFile\" cannot be defined for a system!";
+          return false;
         }
 
-        BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
-        if (node.second.count("alphatags") != 0) {
-          int alphaIndex = 1;
-          BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("alphatags")) {
-            std::string alphaTag = sub_node.second.get<std::string>("", "");
-            BOOST_LOG_TRIVIAL(info) << "  " << alphaTag;
-            system->talkgroups->add(alphaIndex, alphaTag);
-            alphaIndex++;
+        if (channels_exist) {
+          BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
+          BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
+            double channel = sub_node.second.get<double>("", 0);
+
+            BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
+            system->add_channel(channel);
           }
-        }
 
-      } else if ((system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR") ) {
-        BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
-        BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
-          double channel = sub_node.second.get<double>("", 0);
-
-          BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
-          system->add_channel(channel);
-        }
-
-        BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
-        if (node.second.count("alphatags") != 0) {
-          int alphaIndex = 1;
-          BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("alphatags")) {
-            std::string alphaTag = sub_node.second.get<std::string>("", "");
-            BOOST_LOG_TRIVIAL(info) << "  " << alphaTag;
-            system->talkgroups->add(alphaIndex, alphaTag);
-            alphaIndex++;
+          BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
+          if (node.second.count("alphatags") != 0) {
+            int alphaIndex = 1;
+            BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("alphatags")) {
+              std::string alphaTag = sub_node.second.get<std::string>("", "");
+              BOOST_LOG_TRIVIAL(info) << "  " << alphaTag;
+              system->talkgroups->add(alphaIndex, alphaTag);
+              alphaIndex++;
+            }
           }
+        } else if (channel_file_exist) {
+
+        } else {
+
         }
-
-        system->set_delaycreateoutput(node.second.get<bool>("delayCreateOutput", false));
-        BOOST_LOG_TRIVIAL(info) << "delayCreateOutput: " << system->get_delaycreateoutput();
-
+        // If it is a Trunked System
       } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels")) {
@@ -282,7 +275,7 @@ bool load_config(string config_file) {
         }
       } else {
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
-        exit(1);
+        return false;
       }
 
       bool qpsk_mod = true;

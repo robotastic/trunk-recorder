@@ -77,7 +77,6 @@ System::System(int sys_num) {
   // Setup the unit tags from the CSV file
   unit_tags = new UnitTags();
   talkgroup_patches = {};
-  d_delaycreateoutput = false;
   d_hideEncrypted = false;
   d_hideUnknown = false;
   d_mdc_enabled = false;
@@ -416,14 +415,6 @@ void System::set_talkgroup_display_format(TalkgroupDisplayFormat format) {
 
 System::TalkgroupDisplayFormat System::get_talkgroup_display_format() {
   return talkgroup_display_format;
-}
-
-bool System::get_delaycreateoutput() {
-  return d_delaycreateoutput;
-}
-
-void System::set_delaycreateoutput(bool delaycreateoutput) {
-  d_delaycreateoutput = delaycreateoutput;
 }
 
 bool System::get_hideEncrypted() {
