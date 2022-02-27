@@ -977,6 +977,29 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg) {
     // self.trunked_systems[nac].decode_mbt_data(opcode, header << 16, mbt_data
     // << 32)
   }
+  else if (type == 18){
+    uint8_t opcode = (uint8_t)s[0];
+    uint8_t mfrid = (uint8_t)s[1];
+    BOOST_LOG_TRIVIAL(debug) <<"FOUND A TYPE 18 TDMA PDU MESSAGE WITH OPCODE " << opcode <<" AND MFRID "<< mfrid;
+    BOOST_LOG_TRIVIAL(debug) << s;
+    boost::dynamic_bitset<> b((s.length() + 2) * 8);
+    for (unsigned int i = 0; i < s.length(); ++i) {
+      unsigned char c = (unsigned char)s[i];
+      b <<= 8;
+
+      for (int j = 0; j < 8; j++) {
+        if (c & 0x1) {
+          b[j] = 1;
+        } else {
+          b[j] = 0;
+        }
+        c >>= 1;
+      }
+    }
+    b <<= 16; // for missing crc
+    BOOST_LOG_TRIVIAL(debug) << b;
+    //return decode_tdma(b, nac, sys_num);
+  }
   messages.push_back(message);
   return messages;
 }
