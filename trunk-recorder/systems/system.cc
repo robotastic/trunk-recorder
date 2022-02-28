@@ -253,6 +253,13 @@ std::string System::get_unit_tags_file() {
   return this->unit_tags_file;
 }
 
+void System::set_channel_file(std::string channel_file) {
+  BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
+  this->channel_file = channel_file;
+  this->talkgroups->load_talkgroups(channel_file);
+}
+
+
 void System::set_talkgroups_file(std::string talkgroups_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;

@@ -260,7 +260,8 @@ bool load_config(string config_file) {
             }
           }
         } else if (channel_file_exist) {
-
+          std::string channel_file = node.second.get<std::string>("channelFile");
+          BOOST_LOG_TRIVIAL(info) << "Channel File: " << channel_file;
         } else {
 
         }
@@ -272,6 +273,8 @@ bool load_config(string config_file) {
 
           BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channel);
           system->add_control_channel(control_channel);
+          system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
+          BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
         }
       } else {
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
@@ -331,8 +334,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
       system->set_transmission_archive(node.second.get<bool>("transmissionArchive", false));
       BOOST_LOG_TRIVIAL(info) << "Transmission Archive: " << system->get_transmission_archive();
-      system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
-      BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       system->set_unit_tags_file(node.second.get<std::string>("unitTagsFile", ""));
       BOOST_LOG_TRIVIAL(info) << "Unit Tags File: " << system->get_unit_tags_file();
       system->set_record_unknown(node.second.get<bool>("recordUnknown", true));

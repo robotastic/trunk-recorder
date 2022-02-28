@@ -55,6 +55,7 @@ public:
   p25p2_lfsr *lfsr;
   Source *source;
   std::string talkgroups_file;
+  std::string channel_file;
   std::string unit_tags_file;
   std::string short_name;
   std::string api_key;
@@ -166,6 +167,7 @@ public:
   Talkgroup *find_talkgroup(long tg);
   UnitTag *find_unit_tag(long unitID);
   void set_talkgroups_file(std::string);
+  void set_channel_file(std::string channel_file); 
   void set_unit_tags_file(std::string);
   int control_channel_count();
   void add_control_channel(double channel);
