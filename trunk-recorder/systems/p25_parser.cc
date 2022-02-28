@@ -621,6 +621,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si;
   } else if (opcode == 0x30) {
       unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+      BOOST_LOG_TRIVIAL(debug) << "Opcode 0x30 with mfrid " << mfrid;
       if (mfrid == 0xA4) { // GRG_EXENC_CMD (M/A-COM patch)
         unsigned long grg_t = bitset_shift_mask(tsbk, 79, 0x1);
         unsigned long grg_g = bitset_shift_mask(tsbk, 28, 0x1);
