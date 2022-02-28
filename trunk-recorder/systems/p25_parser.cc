@@ -632,6 +632,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         unsigned long rta = bitset_shift_mask(tsbk, 16, 0xffffff);
         unsigned long algid = (rta >> 16) & 0xff; 
         unsigned long ga =  rta & 0xffff;  
+        BOOST_LOG_TRIVIAL(debug)<<"grg_t: " << grg_t << " grg_g: " << grg_g << " grg_a: " << grg_a << " sg: " << sg << " ga: " << ga;
         if (grg_a == 1){ // Activate
           if (grg_g == 1){ // Group request
             message.message_type = PATCH_ADD;
