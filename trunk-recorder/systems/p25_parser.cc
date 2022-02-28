@@ -640,13 +640,21 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
             harris_patch_data.ga2 = ga;
             harris_patch_data.ga3 = ga;
             message.patch_data = harris_patch_data;
-            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM GROUP REQUEST PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
           }
-          else{} // Unit request (currently unhandled)
+          else{
+            message.message_type = PATCH_ADD;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM UNIT REQUEST PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
+          }
         }
         else{ // Deactivate
           if (grg_g == 1){ // Group request
-            //self.del_patch(sg, [sg])
             message.message_type = PATCH_DELETE;
             PatchData harris_patch_data;
             harris_patch_data.sg = sg;
@@ -654,9 +662,18 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
             harris_patch_data.ga2 = ga;
             harris_patch_data.ga3 = ga;
             message.patch_data = harris_patch_data;
-            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM GROUP REQUEST PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
           }
-          else{} // Unit request (currently unhandled)
+          else{
+            message.message_type = PATCH_DELETE;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM UNIT REQUEST PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
+          }
         }
       }
       else{
