@@ -621,7 +621,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si;
   } else if (opcode == 0x30) {
       unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
-      BOOST_LOG_TRIVIAL(debug) << "Opcode 0x30 with mfrid " << mfrid;
       if (mfrid == 0xA4) { // GRG_EXENC_CMD (M/A-COM patch)
         unsigned long grg_t = bitset_shift_mask(tsbk, 79, 0x1);
         unsigned long grg_g = bitset_shift_mask(tsbk, 28, 0x1);
@@ -632,7 +631,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         unsigned long rta = bitset_shift_mask(tsbk, 16, 0xffffff);
         unsigned long algid = (rta >> 16) & 0xff; 
         unsigned long ga =  rta & 0xffff;  
-        BOOST_LOG_TRIVIAL(debug)<<"grg_t: " << grg_t << " grg_g: " << grg_g << " grg_a: " << grg_a << " sg: " << sg << " ga: " << ga;
         if (grg_a == 1){ // Activate
           if (grg_g == 1){ // Group request
             message.message_type = PATCH_ADD;
@@ -642,13 +640,21 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
             harris_patch_data.ga2 = ga;
             harris_patch_data.ga3 = ga;
             message.patch_data = harris_patch_data;
-            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM GROUP REQUEST PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
           }
-          else{} // Unit request (currently unhandled)
+          else{
+            message.message_type = PATCH_ADD;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM UNIT REQUEST PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
+          }
         }
         else{ // Deactivate
           if (grg_g == 1){ // Group request
-            //self.del_patch(sg, [sg])
             message.message_type = PATCH_DELETE;
             PatchData harris_patch_data;
             harris_patch_data.sg = sg;
@@ -656,9 +662,18 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
             harris_patch_data.ga2 = ga;
             harris_patch_data.ga3 = ga;
             message.patch_data = harris_patch_data;
-            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM GROUP REQUEST PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
           }
-          else{} // Unit request (currently unhandled)
+          else{
+            message.message_type = PATCH_DELETE;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM UNIT REQUEST PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
+          }
         }
       }
       else{
