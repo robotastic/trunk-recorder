@@ -14,6 +14,7 @@ public:
   void load_talkgroups(std::string filename);
   void load_channels(std::string filename);
   Talkgroup *find_talkgroup(long tg);
-  void add(long num, std::string alphaTag);
+  Talkgroup *find_talkgroup_by_freq(double freq);
+  std::vector<Talkgroup *> get_talkgroups();
 };
 #endif // TALKGROUPS_H

@@ -160,11 +160,10 @@ void Talkgroups::load_channels(std::string filename) {
     // [0] - talkgroup number
     // [1] - channel freq
     // [2] - tone
-    // [3] - mode
-    // [4] - alpha_tag
-    // [5] - description
-    // [6] - tag
-    // [7] - group
+    // [3] - alpha_tag
+    // [4] - description
+    // [5] - tag
+    // [6] - group
 
     if (!((vec.size() == 8) || (vec.size() == 7))) {
       BOOST_LOG_TRIVIAL(error) << "Malformed channel entry at line " << lines_read << ".";
@@ -172,8 +171,8 @@ void Talkgroups::load_channels(std::string filename) {
     }
     // TODO(nkw): more sanity checking here.
 
-//Talkgroup(long num, double channel, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
-    tg = new Talkgroup(atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(),vec[7].c_str());
+//Talkgroup(long num, double freq, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+    tg = new Talkgroup(atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str());
   
     talkgroups.push_back(tg);
     lines_pushed++;
@@ -203,7 +202,21 @@ Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
   return tg_match;
 }
 
-void Talkgroups::add(long num, std::string alphaTag) {
-  Talkgroup *tg = new Talkgroup(num, "X", alphaTag, "", "", "", 0);
-  talkgroups.push_back(tg);
+Talkgroup *Talkgroups::find_talkgroup_by_freq(double freq) {
+  Talkgroup *tg_match = NULL;
+
+  for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
+    Talkgroup *tg = (Talkgroup *)*it;
+
+    if (tg->freq == freq) {
+      tg_match = tg;
+      break;
+    }
+  }
+  return tg_match;
 }
+
+std::vector<Talkgroup *> Talkgroups::get_talkgroups() {
+  return talkgroups;
+}
+

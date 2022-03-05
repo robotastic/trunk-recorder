@@ -17,12 +17,13 @@ public:
   int priority;
 
   // For Conventional
-  double channel;
+  double freq;
   double tone;
 
-  Talkgroup(long num, double channel, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group);
 
-  Talkgroup(long num, std::string m, std::string a, std::string d, std::string t, std::string g, int p);
+  Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority);
+  Talkgroup(long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group);
+ 
   bool is_active();
   int get_priority();
   void set_priority(int new_priority);

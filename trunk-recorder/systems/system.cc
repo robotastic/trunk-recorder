@@ -259,6 +259,13 @@ void System::set_channel_file(std::string channel_file) {
   this->talkgroups->load_talkgroups(channel_file);
 }
 
+bool System::has_channel_file() {
+  if (this->channel_file.length() > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 void System::set_talkgroups_file(std::string talkgroups_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
@@ -284,6 +291,9 @@ Talkgroup *System::find_talkgroup(long tg_number) {
   return talkgroups->find_talkgroup(tg_number);
 }
 
+Talkgroup *System::find_talkgroup_by_freq(double freq) {
+  return talkgroups->find_talkgroup_by_freq(freq);
+}
 UnitTag *System::find_unit_tag(long unitID) {
   return unit_tags->find_unit_tag(unitID);
 }
@@ -292,6 +302,9 @@ std::vector<double> System::get_channels() {
   return channels;
 }
 
+std::vector<Talkgroup *> System::get_talkgroups() {
+  return talkgroups->get_talkgroups();
+}
 int System::channel_count() {
   return channels.size();
 }

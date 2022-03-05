@@ -9,20 +9,21 @@ Talkgroup::Talkgroup(long num, std::string mode, std::string alpha_tag, std::str
   this->group = group;
   this->priority = priority;
   this->active = false;
-  this->channel = 0;
+  this->freq = 0;
   this->tone = 0;
 }
 
-Talkgroup::Talkgroup(long num, double channel, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+Talkgroup::Talkgroup(long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group) {
   this->number = num;
-  this->mode = mode;
+  this->mode = "Z";
   this->alpha_tag = alpha_tag;
   this->description = description;
   this->tag = tag;
   this->group = group;
   this->active = false;
-  this->channel = channel;
+  this->freq = freq;
   this->tone = tone;
+  this->priority = 0;
 }
 
 std::string Talkgroup::menu_string() {

@@ -248,22 +248,13 @@ bool load_config(string config_file) {
             BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
             system->add_channel(channel);
           }
-
-          BOOST_LOG_TRIVIAL(info) << "Alpha Tags: ";
-          if (node.second.count("alphatags") != 0) {
-            int alphaIndex = 1;
-            BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("alphatags")) {
-              std::string alphaTag = sub_node.second.get<std::string>("", "");
-              BOOST_LOG_TRIVIAL(info) << "  " << alphaTag;
-              system->talkgroups->add(alphaIndex, alphaTag);
-              alphaIndex++;
-            }
-          }
         } else if (channel_file_exist) {
           std::string channel_file = node.second.get<std::string>("channelFile");
           BOOST_LOG_TRIVIAL(info) << "Channel File: " << channel_file;
+          system->set_channel_file(channel_file);
         } else {
-
+          BOOST_LOG_TRIVIAL(error) << "Either \"channels\" or \"channelFile\" need to be defined for a conventional system!";
+          return false;
         }
         // If it is a Trunked System
       } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
@@ -1242,49 +1233,37 @@ void monitor_messages() {
   }
 }
 
-bool setup_systems() {
-
-  Source *source = NULL;
-
-  for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
-    System *system = *sys_it;
-    //bool    source_found = false;
-    bool system_added = false;
-    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
-      std::vector<double> channels = system->get_channels();
-      int tg_iterate_index = 0;
-
-      for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
-        double channel = *chan_it;
-        ++tg_iterate_index;
-        bool channel_added = false;
-
+bool setup_convetional_channel(System *system, double frequency, long channel_index) {
+  bool channel_added = false;
+      Source *source = NULL;
         for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
           source = *src_it;
 
-          if ((source->get_min_hz() <= channel) && (source->get_max_hz() >= channel)) {
+          if ((source->get_min_hz() <= frequency) && (source->get_max_hz() >= frequency)) {
             channel_added = true;
             if (system->get_squelch_db() == -160) {
               BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
-              system_added = false;
+              return false;
             } else {
-              system_added = true;
+              channel_added = true;
             }
 
-            // This source can be used for this channel (and a squelch is set)
-            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << format_freq(channel) << " Talkgroup: " << tg_iterate_index;
-            Call_conventional *call = new Call_conventional(tg_iterate_index, channel, system, config);
-            Talkgroup *talkgroup = system->find_talkgroup(call->get_talkgroup());
-
-            if (talkgroup) {
-              call->set_talkgroup_tag(talkgroup->alpha_tag);
+            
+            
+            Call_conventional *call = NULL;
+            if (system->has_channel_file()) {
+              Talkgroup *tg = system->find_talkgroup_by_freq(frequency);
+              call = new Call_conventional(tg->number, tg->freq, system, config);
+            } else {
+              call = new Call_conventional(channel_index, frequency, system, config);
+              BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
+            
             }
-
             if (system->get_system_type() == "conventional") {
               analog_recorder_sptr rec;
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
-	      call->set_is_analog(true);
+	            call->set_is_analog(true);
               call->set_recorder((Recorder *)rec.get());
               call->set_state(RECORDING);
               system->add_conventional_recorder(rec);
@@ -1315,11 +1294,56 @@ bool setup_systems() {
             break;
           }
         }
-        if (!channel_added) {
-          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel) << " Talkgroup: " << tg_iterate_index;
-          //return false;
-        }
+        return channel_added;
+}
+
+
+bool setup_conventional_system(System *system) {
+    bool system_added = false;
+    
+    if (system->has_channel_file()) {
+     std::vector<Talkgroup *> talkgroups = system->get_talkgroups(); 
+    for (vector<Talkgroup *>::iterator tg_it = talkgroups.begin(); tg_it != talkgroups.end(); tg_it++) {
+      Talkgroup *tg = *tg_it;
+      
+      bool channel_added = setup_convetional_channel(system, tg->freq, tg->number);
+
+      if (!channel_added) {
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(tg->freq) << " Talkgroup: " << tg->number;
+        //return false;
+      } else {
+        system_added = true;
       }
+    }
+    } else {
+      std::vector<double> channels = system->get_channels();
+      int channel_index = 0;
+     for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
+      double channel = *chan_it;
+      ++channel_index;
+      bool channel_added = setup_convetional_channel(system, channel, channel_index);
+
+      if (!channel_added) {
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel) << " Talkgroup: " << channel_index;
+        //return false;
+      } else {
+        system_added = true;
+      }
+    }
+    }
+  return system_added;
+}
+
+bool setup_systems() {
+
+  Source *source = NULL;
+
+  for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+    System *system = *sys_it;
+    //bool    source_found = false;
+    bool system_added = false;
+    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
+      system_added = setup_conventional_system(system);
     } else {
       // If it's not a conventional system, then it's a trunking system
       double control_channel_freq = system->get_current_control_channel();
