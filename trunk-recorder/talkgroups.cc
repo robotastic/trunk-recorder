@@ -165,8 +165,8 @@ void Talkgroups::load_channels(std::string filename) {
     // [5] - tag
     // [6] - group
 
-    if (!((vec.size() == 8) || (vec.size() == 7))) {
-      BOOST_LOG_TRIVIAL(error) << "Malformed channel entry at line " << lines_read << ".";
+    if (vec.size() != 7) {
+      BOOST_LOG_TRIVIAL(error) << "Malformed channel entry at line " << lines_read << ". Found: " << vec.size() << " Expected 7";
       continue;
     }
     // TODO(nkw): more sanity checking here.

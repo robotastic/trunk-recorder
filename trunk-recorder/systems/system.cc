@@ -256,7 +256,7 @@ std::string System::get_unit_tags_file() {
 void System::set_channel_file(std::string channel_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->channel_file = channel_file;
-  this->talkgroups->load_talkgroups(channel_file);
+  this->talkgroups->load_channels(channel_file);
 }
 
 bool System::has_channel_file() {

@@ -1,0 +1,25 @@
+{
+    "ver": 2,
+    "sources": [{
+    "center": 462500000,
+    "rate": 2048000,
+    "error": 0,
+    "gain": 36,
+    "debugRecorders": 0,
+    "digitalRecoders": 5,
+    "driver": "osmosdr"
+    }
+    ],
+    "systems": [
+    {
+    "type": "conventional",
+    "channels": [462562500	],
+    "callLog": true,
+    "digitalLevels": 14,
+    "squelch": -20
+    }
+    ],
+    "controlWarnRate": 5,
+    "callTimeout": 0.75
+    
+    }
