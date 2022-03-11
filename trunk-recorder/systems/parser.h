@@ -15,6 +15,8 @@ enum MessageType {
   ACKNOWLEDGE = 8,
   LOCATION = 9,
   MOTO_PATCH_ADD = 10,
+  UU_V_GRANT = 11,
+  UU_V_UPDATE = 12,
   UNKNOWN = 99
 };
 
