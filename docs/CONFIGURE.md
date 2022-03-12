@@ -359,10 +359,14 @@ Here are the column headers and some sample data:
 
 ## channelFile
 
-*Currently Tone base squelch is not supported.*
+This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A *Conventional* system would have Analog Recorders, while a *ConventionalP25* or *ConventionalDMR* would have digital recorders. 
 
-| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Group  |
-| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ |
-| 300       | 462275000 | 94.8 PL  | Town A Police | Town A Police Dispatch | Police | Town A |
-| 325       | 462275000 | 151.4 PL | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B |
+*Tone based squelch is currently not supported.*
+
+The **Enable** Column is optional and defaults to *True*. It only needs to be added to rows that you do not want to have recorded. For those rows, set **Enable** to *False*.
+
+| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Group  | Enable (*optional*) |
+| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
+| 300       | 462275000 | 94.8 PL  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
+| 325       | 462275000 | 151.4 PL | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
 

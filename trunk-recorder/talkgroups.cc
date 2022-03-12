@@ -128,7 +128,8 @@ void Talkgroups::load_channels(std::string filename) {
     return;
   }
 
-  boost::char_separator<char> sep(",\t");
+
+  boost::char_separator<char> sep(",", "\t", boost::keep_empty_tokens);
   typedef boost::tokenizer<boost::char_separator<char>> t_tokenizer;
 
   std::vector<std::string> vec;
@@ -164,18 +165,29 @@ void Talkgroups::load_channels(std::string filename) {
     // [4] - description
     // [5] - tag
     // [6] - group
+    // [7] - enable (Optional, default is True)
 
-    if (vec.size() != 7) {
-      BOOST_LOG_TRIVIAL(error) << "Malformed channel entry at line " << lines_read << ". Found: " << vec.size() << " Expected 7";
+    if ((vec.size() != 7) && (vec.size() != 8)) {
+      BOOST_LOG_TRIVIAL(error) << "Malformed channel entry at line " << lines_read << ". Found: " << vec.size() << " Expected 7 or 8";
       continue;
     }
     // TODO(nkw): more sanity checking here.
+    bool enable = true;
+    if (vec.size() == 8 ) {
+      boost::trim(vec[7]);
+      if (boost::iequals(vec[7], "false")) {
+        enable = false;
+      } 
+    }
 
 //Talkgroup(long num, double freq, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+   if (enable) {
     tg = new Talkgroup(atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str());
   
     talkgroups.push_back(tg);
+   }
     lines_pushed++;
+   
   }
 
   if (lines_pushed != lines_read) {

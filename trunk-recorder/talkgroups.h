@@ -2,7 +2,7 @@
 #define TALKGROUPS_H
 
 #include "talkgroup.h"
-
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <vector>
 
