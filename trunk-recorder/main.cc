@@ -462,7 +462,7 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << node.second.get<double>("vgaGain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
-      BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("idleSilence", 0);
+      BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("silenceFrame", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder", 0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
