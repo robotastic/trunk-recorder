@@ -51,21 +51,23 @@ sudo port install sox
 ```
 
 Download and make [libfdk-aac](https://github.com/mstorsjo/fdk-aac).
+extract the source, and cd to the source directory
+
 ```bash
-1) extract the source, and cd to the source directory
-2) autoreconf -i
-3) ./configure
-4) make
-5) sudo make install
+
+autoreconf -i
+./configure
+make
+sudo make install
 ```
 
 Download and make the command line [**fdkaac** program](https://github.com/nu774/fdkaac).
+extract the source, and cd to the source directory
 ```bash
-1) extract the source, and cd to the source directory
-2) autoreconf -i
-3) ./configure
-4) make
-5) sudo make install
+autoreconf -i
+./configure
+make
+sudo make install
 ```
 
 ## Configuring Trunk Recorder
