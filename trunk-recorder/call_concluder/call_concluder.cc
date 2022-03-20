@@ -65,7 +65,10 @@ int create_call_json(Call_Data_t call_info) {
     json_file << "\"call_length\": " << call_info.length << ",\n";
     //json_file << "\"source\": \"" << this->get_recorder()->get_source()->get_device() << "\",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
-    json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_tag << "\",\n";
+    json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_alpha_tag << "\",\n";
+    json_file << "\"talkgroup_description\": \"" << call_info.talkgroup_description << "\",\n";
+    json_file << "\"talkgroup_group_tag\": \"" << call_info.talkgroup_tag << "\",\n";
+    json_file << "\"talkgroup_group\": \"" << call_info.talkgroup_group << "\",\n";
     json_file << "\"audio_type\": \"" << call_info.audio_type << "\",\n";
     json_file << "\"short_name\": \"" << call_info.short_name << "\",\n";
     if (call_info.patched_talkgroups.size()>1){
@@ -223,8 +226,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.process_call_time = time(0);
   call_info.retry_attempt = 0;
 
-  call_info.talkgroup = call->get_talkgroup();
-  call_info.talkgroup_tag = call->get_talkgroup_tag();
+  
+
   call_info.freq = call->get_freq();
   call_info.encrypted = call->get_encrypted();
   call_info.emergency = call->get_emergency();
@@ -239,8 +242,23 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.call_num = call->get_call_num();
   call_info.compress_wav = sys->get_compress_wav();
   
+  call_info.talkgroup = call->get_talkgroup();
   call_info.patched_talkgroups = sys->get_talkgroup_patch(call_info.talkgroup);
   
+  Talkgroup *tg = sys->find_talkgroup(call->get_talkgroup());
+  if (tg!=NULL) {
+    call_info.talkgroup_tag = tg->tag;
+    call_info.talkgroup_alpha_tag = tg->alpha_tag;
+    call_info.talkgroup_description = tg->description;
+    call_info.talkgroup_group = tg->group;
+  } else {
+    call_info.talkgroup_tag = "";
+    call_info.talkgroup_alpha_tag = "";
+    call_info.talkgroup_description = "";
+    call_info.talkgroup_group = "";
+  }
+
+
   if (call->get_is_analog()) {
     call_info.audio_type = "analog";
   } else if (call->get_phase2_tdma()) {

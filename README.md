@@ -1,4 +1,4 @@
-Trunk Recorder - v4.3.0
+Trunk Recorder - v4.3.2
 =======================
 
 ## Sponsors
@@ -9,7 +9,7 @@ Thank you to everyone who has contributed!
 ## Overview
 Need help? Got something working? Share it!
 
-[![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
+[Discord Server](Https://discord.gg/trunk-recorder) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
 Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swathes of RF and then use software to process what was received. [GNURadio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
 
@@ -65,7 +65,7 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 
 ### Troubleshooting
 
-If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on [![Chat](https://img.shields.io/gitter/room/trunk-recorder/Lobby.svg)](https://gitter.im/trunk-recorder/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on the [Discord Server](Https://discord.gg/trunk-recorder) 
 
 ___
 

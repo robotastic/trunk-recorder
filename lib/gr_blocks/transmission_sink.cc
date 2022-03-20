@@ -428,7 +428,7 @@ std::vector<Transmission> transmission_sink::get_transmission_list() {
 int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
   // block
   int n_in_chans = input_items.size();
-  short int sample_buf_s;
+  int16_t sample_buf_s;
   int nwritten;
 
   // A Termination Tag was receive

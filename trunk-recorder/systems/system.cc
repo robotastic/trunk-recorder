@@ -475,29 +475,54 @@ std::vector<unsigned long> System::get_talkgroup_patch(unsigned long talkgroup){
   return patched_tgids;
 }
 
-void System::update_active_talkgroup_patches(MotoPatchData moto_patch_data){
+void System::update_active_talkgroup_patches(PatchData patch_data){
   std::time_t update_time = std::time(nullptr);
   bool new_flag = true;
 
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
-    if (patch.first == moto_patch_data.sg){
+    if (patch.first == patch_data.sg){
       new_flag = false;
-      patch.second[moto_patch_data.sg] = update_time;
-      patch.second[moto_patch_data.ga1] = update_time;
-      patch.second[moto_patch_data.ga2] = update_time;
-      patch.second[moto_patch_data.ga3] = update_time;
+      if (0 != patch_data.sg){
+        patch.second[patch_data.sg] = update_time;
+      }
+      if (0 != patch_data.ga1){
+        patch.second[patch_data.ga1] = update_time;
+      }
+      if (0 != patch_data.ga2){
+        patch.second[patch_data.ga2] = update_time;
+      }
+      if (0 != patch_data.ga3){
+        patch.second[patch_data.ga3] = update_time;
+      }
     }
-    //Can add another IF statement here to handle Harris patch messages
   }
   if (new_flag == true){
     //TGIDs from the Message were not found in an existing patch, so add them to a new one
     //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
     std::map<unsigned long,std::time_t> new_patch;
-    new_patch[moto_patch_data.sg] = update_time;
-    new_patch[moto_patch_data.ga1] = update_time;
-    new_patch[moto_patch_data.ga2] = update_time;
-    new_patch[moto_patch_data.ga3] = update_time;
-    talkgroup_patches[moto_patch_data.sg] = new_patch;
+    if (0 != patch_data.sg){
+      new_patch[patch_data.sg] = update_time;
+    }
+    if (0 != patch_data.ga1){
+      new_patch[patch_data.ga1] = update_time;
+    }
+    if (0 != patch_data.ga2){
+      new_patch[patch_data.ga2] = update_time;
+    }
+    if (0 != patch_data.ga3){
+      new_patch[patch_data.ga3] = update_time;
+    }
+    talkgroup_patches[patch_data.sg] = new_patch;
+  }
+}
+
+void System::delete_talkgroup_patch(PatchData patch_data){
+  BOOST_FOREACH (auto& patch, talkgroup_patches) {
+    if (patch.first == patch_data.sg){
+      patch.second.erase(patch_data.ga1);
+      patch.second.erase(patch_data.ga2);
+      patch.second.erase(patch_data.ga3);
+    }
   }
 }
 
@@ -514,7 +539,7 @@ void System::clear_stale_talkgroup_patches(){
       }
     }
     BOOST_FOREACH(auto& stale_talkgroup, stale_talkgroups){
-      BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch wigh sg id " << patch.first;
+      BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch with sg id " << patch.first;
       patch.second.erase(stale_talkgroup);
     }
     if (patch.second.size() == 0){
