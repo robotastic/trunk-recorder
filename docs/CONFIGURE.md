@@ -246,7 +246,7 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 **Name:** simplestream
 **Library:** libsimplestream.so
 
-This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.  
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.  
 
 This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
 
@@ -263,10 +263,11 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | Key       | Required | Default Value | Type   | Description                                                  |
 | --------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
 | address   |    ✓     |               | string | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
-| port      |    ✓     |               | number | UDP port that this stream will send audio to. |
+| port      |    ✓     |               | number | UDP or TCP port that this stream will send audio to. |
 | TGID      |    ✓     |               | number | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
-| sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a UDP packet is sent. |
-| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different UDP port to prevent interleaved audio for talkgroups from different Systems with the same TGID.  
+| sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
+| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.  
+|  useTCP   |        |   false     |boolean | When set to true, TCP will be used instead of UDP.
 
 ###### Plugin Object Example #1:
 This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.  
@@ -336,7 +337,31 @@ This example will stream audio from all talkgroups being recorded on System Coun
 	    "shortName":"CountyTrunked"}
         }
 ```
+##### Example - Sending Audio to pulseaudio
+pulseaudio is the default sound system on many Linux computers, including the Raspberry Pi.  If configured to do so, pulseaudio can accept raw audio via TCP connection using the module-simple-protocol-tcp module.  Each TCP connection will show up as a different "application" in the pavucontrol volume mixer.
 
+An example command to set up pulseaudio to receive 8 kHz audio (digital audio) from simplestream on TCP port 9125:
+```
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16be rate=8000 channels=1 
+```
+An example command to set up pulseaudio to receive 16 kHz audio (analog audio) from simplestream on TCP port 9125:
+```
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16be rate=16000 channels=1 
+```
+The matching simplestream config to send audio from talkgroup 58918 to TCP port 9125 would then be something like this:
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58918,
+            "address":"127.0.0.1",
+            "port":9125,
+            "sendTGID":true,
+	    "shortName":"CountyTrunked",
+	    "useTCP":true}
+        }
+```
 
 ## talkgroupsFile
 
