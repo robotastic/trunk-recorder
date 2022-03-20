@@ -348,7 +348,7 @@ You may add an additional column that adds a priority for each talkgroup. The pr
 
 The Trunk Record program really only uses the priority information and the Dec Talkgroup ID. The Website uses the same file though to help display information about each talkgroup.
 
-Here are the column headers and some sample data:
+Here are the column headers and some sample data: NOTE: If you are adding the Priority to a RR csv, as well as changing order you must use a heading for the first column other than "Decimal" eg DEC for TR to detect you are supplying this layout.
 
 | DEC |	HEX |	Mode |	Alpha Tag	| Description	| Tag |	Group | Priority |
 |-----|-----|------|-----------|-------------|-----|-------|----------|
