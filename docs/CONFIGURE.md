@@ -163,6 +163,7 @@ Here is a map of the different sections of the *config.json* file:
 | type                   |    ✓     |                                | **"smartnet"  "p25"   "conventional, conventionalDMR"** or **"conventionalP25"** | The type of radio system.                                    |
 | control_channels       |    ✓     |                                | array of numbers;<br />[496537500, 496437500]                | **For trunked systems** The control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel. |
 | channels               |    ✓     |                                | array of numbers;<br />[166725000, 166925000, 167075000, 166850000] | **For conventional systems**  The channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used. |
+| channelFile | ✓ | | string | **For conventional systems** The filename for a CSV file that provides information about the conventional channels. The format for the file is described below. Squelch levels need to be specified for the Source(s) being used. *Use channels or channelFile, not both*. |
 | modulation             |          | "qpsk"                         | **"qpsk"** or  **"fsk4"**                                    | The type of digital modulation that the system uses. You do not need to specify this with **conventionalDMR** systems.          |
 | squelch                |          | -160 | number                                                       | Squelch in DB, this needs to be set for all conventional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. The closer the squelch is to 0, the stronger the signal has to be to unmute it. |
 | talkgroupsFile         |          |                                | string                                                       | The filename for a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable. |
@@ -178,7 +179,6 @@ Here is a map of the different sections of the *config.json* file:
 | analogLevels           |          | 8                              | number (1-32)                                                | The amount of amplification that will be applied to the analog audio. |
 | maxDev                 |          | 4000                           | number                                                       | Allows you to set the maximum deviation for analog channels. If you analog recordings sound good or if you have a completely digital system, then there is no need to touch this. |
 | digitalLevels          |          | 1                              | number (1-16)                                                | The amount of amplification that will be applied to the digital audio. |
-| alphatags              |          |                                | array of strings<br />e.g.: ["police", "fire", "ems"]        | [*For conventional systems*] these tags will be displayed in the log files to show what each frequency is used for. They will be applied to the *channels* in the order the values appear in the array. |
 | unitTagsFile           |          |                                | string                                                       | This is the filename of a CSV files that provides information about the unit tags. It allows a Unit ID to be assigned a name. This file should be located in the same directory as the trunk-recorder executable. The format is 2 columns, the first being the decimal number of the Unit ID, the second is the Unit Name, |
 | recordUnknown          |          | true                           | **true** / **false**                                         | Record talkgroups if they are not listed in the Talkgroups File. |
 | hideEncrypted          |          | false                          | **true** / **false**                                         | Hide encrypted talkgroups log entries                        |
@@ -354,4 +354,19 @@ Here are the column headers and some sample data:
 |-----|-----|------|-----------|-------------|-----|-------|----------|
 |101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 |
 |2227 |	8b3	| D	| DC StcarYard	| Streetcar Yard |	Transportation |	Services | 3 |
+
+
+
+## channelFile
+
+This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A *Conventional* system would have Analog Recorders, while a *ConventionalP25* or *ConventionalDMR* would have digital recorders. 
+
+*Tone based squelch is currently not supported.*
+
+The **Enable** Column is optional and defaults to *True*. It only needs to be added to rows that you do not want to have recorded. For those rows, set **Enable** to *False*.
+
+| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Group  | Enable (*optional*) |
+| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
+| 300       | 462275000 | 94.8 PL  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
+| 325       | 462275000 | 151.4 PL | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
 
