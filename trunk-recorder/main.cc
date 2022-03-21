@@ -1067,7 +1067,7 @@ void handle_call_update(TrunkMessage message, System *sys) {
        // Only a RECORDING call can be set to INACTIVE
        // We should be safe to set it to RECORDING if it starts to get UPDATE messages 
        call->set_state(RECORDING); 
-       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Reactivating an INACTIVE Call \u001b[0m";
+       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Reactivating an INACTIVE Call \u001b[0m";
       }
         //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
      
