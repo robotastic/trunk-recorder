@@ -248,10 +248,20 @@ void nonstop_wavfile_sink_impl::end_transmission() {
     transmission.stop_time = d_stop_time;   // when the Call eneded
     transmission.sample_count = d_sample_count;
     transmission.length = length_in_seconds();       // length in seconds
-    d_prior_transmission_length = d_prior_transmission_length + transmission.length;
-    strcpy(transmission.filename, current_filename); // Copy the filename
-    strcpy(transmission.base_filename, current_base_filename);
-    this->add_transmission(transmission);
+    if(transmission.length > d_current_call->get_system()->get_min_tx_duration())
+    {
+      d_prior_transmission_length = d_prior_transmission_length + transmission.length;
+      strcpy(transmission.filename, current_filename); // Copy the filename
+      strcpy(transmission.base_filename, current_base_filename);
+      this->add_transmission(transmission);
+    }
+    else
+    {
+      char formattedTalkgroup[62];
+      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tRemoving transmission less than " << d_current_call->get_system()->get_min_tx_duration() <<" seconds. Actual length: " << transmission.length << "." << std::endl;
+    }
     d_sample_count = 0;
     d_first_work = true;
   } else {
