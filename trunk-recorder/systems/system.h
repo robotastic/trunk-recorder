@@ -77,6 +77,7 @@ public:
   double filter_width;
   double min_call_duration;
   double max_call_duration;
+  double min_transmission_duration;
   bool compress_wav;
   bool conversation_mode;
   bool qpsk_mod;
@@ -118,6 +119,8 @@ public:
   void set_min_duration(double duration);
   double get_max_duration();
   void set_max_duration(double duration);
+  double get_min_tx_duration();
+  void set_min_tx_duration(double duration);
   bool get_audio_archive();
   void set_audio_archive(bool);
   bool get_transmission_archive();

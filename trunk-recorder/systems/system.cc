@@ -64,6 +64,14 @@ void System::set_max_duration(double duration) {
   this->max_call_duration = duration;
 }
 
+double System::get_min_tx_duration() {
+  return this->min_transmission_duration;
+}
+
+void System::set_min_tx_duration(double duration) {
+  this->min_transmission_duration = duration;
+}
+
 System::System(int sys_num) {
   this->sys_num = sys_num;
   sys_id = 0;

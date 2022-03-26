@@ -252,6 +252,7 @@ void nonstop_wavfile_sink_impl::end_transmission() {
     strcpy(transmission.filename, current_filename); // Copy the filename
     strcpy(transmission.base_filename, current_base_filename);
     this->add_transmission(transmission);
+
     d_sample_count = 0;
     d_first_work = true;
   } else {
