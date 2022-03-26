@@ -32,7 +32,7 @@ int combine_wav(std::string files, char *target_filename) {
 int convert_media(char *filename, char *converted) {
   char shell_command[400];
 
-  int nchars = snprintf(shell_command, 400, "sox %s --norm -t wav - | fdkaac --silent  -p 2 --ignorelength -b 8000 -o %s -", filename, converted);
+  int nchars = snprintf(shell_command, 400, "sox %s --norm=-.01 -t wav - | fdkaac --silent  -p 2 --ignorelength -b 8000 -o %s -", filename, converted);
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: Command longer than 400 characters";
