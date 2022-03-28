@@ -1477,7 +1477,7 @@ int main(int argc, char **argv) {
     logging::add_file_log(
         keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
         keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
-        keywords::rotation_size = 10 * 1024 * 1024,
+        keywords::rotation_size = 100 * 1024 * 1024,
         keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
         keywords::auto_flush = true);
   }
