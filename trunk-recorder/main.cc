@@ -1178,7 +1178,10 @@ void monitor_messages() {
          delete call;
        }
 
-       BOOST_LOG_TRIVIAL(info) << "Exiting...";
+       BOOST_LOG_TRIVIAL(info) << "Cleaning up & Exiting...";
+
+       // Sleep for 5 seconds to allow for all of the Call Concluder threads to finish.
+       boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
       return;
     }
 
