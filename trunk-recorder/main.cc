@@ -1169,6 +1169,16 @@ void monitor_messages() {
 
     if (exit_flag) { // my action when signal set it 1
       printf("\n Signal caught!\n");
+        for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+         Call *call = *it;
+                  
+        call->set_state(COMPLETED);
+        call->conclude_call();
+         it = calls.erase(it);
+         delete call;
+       }
+
+       BOOST_LOG_TRIVIAL(info) << "Exiting...";
       return;
     }
 
