@@ -1168,12 +1168,15 @@ void monitor_messages() {
   while (1) {
 
     if (exit_flag) { // my action when signal set it 1
-      printf("\n Signal caught!\n");
+        BOOST_LOG_TRIVIAL(info) << "Caught Exit Signal...";
         for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
          Call *call = *it;
                   
-        call->set_state(COMPLETED);
-        call->conclude_call();
+        if (call->get_state() != MONITORING) {
+          call->set_state(COMPLETED);
+          call->conclude_call();
+        }
+
          it = calls.erase(it);
          delete call;
        }
