@@ -55,6 +55,7 @@ public:
   p25p2_lfsr *lfsr;
   Source *source;
   std::string talkgroups_file;
+  std::string channel_file;
   std::string unit_tags_file;
   std::string short_name;
   std::string api_key;
@@ -76,6 +77,7 @@ public:
   double filter_width;
   double min_call_duration;
   double max_call_duration;
+  double min_transmission_duration;
   bool compress_wav;
   bool conversation_mode;
   bool qpsk_mod;
@@ -117,6 +119,8 @@ public:
   void set_min_duration(double duration);
   double get_max_duration();
   void set_max_duration(double duration);
+  double get_min_tx_duration();
+  void set_min_tx_duration(double duration);
   bool get_audio_archive();
   void set_audio_archive(bool);
   bool get_transmission_archive();
@@ -164,8 +168,11 @@ public:
   Source *get_source();
   void set_source(Source *);
   Talkgroup *find_talkgroup(long tg);
+  Talkgroup *find_talkgroup_by_freq(double freq);
   UnitTag *find_unit_tag(long unitID);
   void set_talkgroups_file(std::string);
+  void set_channel_file(std::string channel_file); 
+  bool has_channel_file();
   void set_unit_tags_file(std::string);
   int control_channel_count();
   void add_control_channel(double channel);
@@ -181,6 +188,7 @@ public:
   std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders();
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();
+  std::vector<Talkgroup *> get_talkgroups();
   System(int sys_id);
   void set_bandplan(std::string);
   std::string get_bandplan();
@@ -196,9 +204,6 @@ public:
   int get_bandplan_offset();
   void set_talkgroup_display_format(TalkgroupDisplayFormat format);
   TalkgroupDisplayFormat get_talkgroup_display_format();
-
-  bool get_delaycreateoutput();
-  void set_delaycreateoutput(bool delaycreateoutput);
 
   bool get_hideEncrypted();
   void set_hideEncrypted(bool hideEncrypted);
@@ -216,7 +221,6 @@ public:
 
 private:
   TalkgroupDisplayFormat talkgroup_display_format;
-  bool d_delaycreateoutput;
   bool d_hideEncrypted;
   bool d_hideUnknown;
 

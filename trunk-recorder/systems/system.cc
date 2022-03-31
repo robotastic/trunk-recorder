@@ -64,6 +64,14 @@ void System::set_max_duration(double duration) {
   this->max_call_duration = duration;
 }
 
+double System::get_min_tx_duration() {
+  return this->min_transmission_duration;
+}
+
+void System::set_min_tx_duration(double duration) {
+  this->min_transmission_duration = duration;
+}
+
 System::System(int sys_num) {
   this->sys_num = sys_num;
   sys_id = 0;
@@ -77,7 +85,6 @@ System::System(int sys_num) {
   // Setup the unit tags from the CSV file
   unit_tags = new UnitTags();
   talkgroup_patches = {};
-  d_delaycreateoutput = false;
   d_hideEncrypted = false;
   d_hideUnknown = false;
   d_mdc_enabled = false;
@@ -254,6 +261,20 @@ std::string System::get_unit_tags_file() {
   return this->unit_tags_file;
 }
 
+void System::set_channel_file(std::string channel_file) {
+  BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
+  this->channel_file = channel_file;
+  this->talkgroups->load_channels(channel_file);
+}
+
+bool System::has_channel_file() {
+  if (this->channel_file.length() > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void System::set_talkgroups_file(std::string talkgroups_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;
@@ -278,6 +299,9 @@ Talkgroup *System::find_talkgroup(long tg_number) {
   return talkgroups->find_talkgroup(tg_number);
 }
 
+Talkgroup *System::find_talkgroup_by_freq(double freq) {
+  return talkgroups->find_talkgroup_by_freq(freq);
+}
 UnitTag *System::find_unit_tag(long unitID) {
   return unit_tags->find_unit_tag(unitID);
 }
@@ -286,6 +310,9 @@ std::vector<double> System::get_channels() {
   return channels;
 }
 
+std::vector<Talkgroup *> System::get_talkgroups() {
+  return talkgroups->get_talkgroups();
+}
 int System::channel_count() {
   return channels.size();
 }
@@ -416,14 +443,6 @@ void System::set_talkgroup_display_format(TalkgroupDisplayFormat format) {
 
 System::TalkgroupDisplayFormat System::get_talkgroup_display_format() {
   return talkgroup_display_format;
-}
-
-bool System::get_delaycreateoutput() {
-  return d_delaycreateoutput;
-}
-
-void System::set_delaycreateoutput(bool delaycreateoutput) {
-  d_delaycreateoutput = delaycreateoutput;
 }
 
 bool System::get_hideEncrypted() {

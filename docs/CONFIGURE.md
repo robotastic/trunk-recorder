@@ -163,6 +163,7 @@ Here is a map of the different sections of the *config.json* file:
 | type                   |    ✓     |                                | **"smartnet"  "p25"   "conventional, conventionalDMR"** or **"conventionalP25"** | The type of radio system.                                    |
 | control_channels       |    ✓     |                                | array of numbers;<br />[496537500, 496437500]                | **For trunked systems** The control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel. |
 | channels               |    ✓     |                                | array of numbers;<br />[166725000, 166925000, 167075000, 166850000] | **For conventional systems**  The channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used. |
+| channelFile | ✓ | | string | **For conventional systems** The filename for a CSV file that provides information about the conventional channels. The format for the file is described below. Squelch levels need to be specified for the Source(s) being used. *Use channels or channelFile, not both*. |
 | modulation             |          | "qpsk"                         | **"qpsk"** or  **"fsk4"**                                    | The type of digital modulation that the system uses. You do not need to specify this with **conventionalDMR** systems.          |
 | squelch                |          | -160 | number                                                       | Squelch in DB, this needs to be set for all conventional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. The closer the squelch is to 0, the stronger the signal has to be to unmute it. |
 | talkgroupsFile         |          |                                | string                                                       | The filename for a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable. |
@@ -178,12 +179,12 @@ Here is a map of the different sections of the *config.json* file:
 | analogLevels           |          | 8                              | number (1-32)                                                | The amount of amplification that will be applied to the analog audio. |
 | maxDev                 |          | 4000                           | number                                                       | Allows you to set the maximum deviation for analog channels. If you analog recordings sound good or if you have a completely digital system, then there is no need to touch this. |
 | digitalLevels          |          | 1                              | number (1-16)                                                | The amount of amplification that will be applied to the digital audio. |
-| alphatags              |          |                                | array of strings<br />e.g.: ["police", "fire", "ems"]        | [*For conventional systems*] these tags will be displayed in the log files to show what each frequency is used for. They will be applied to the *channels* in the order the values appear in the array. |
 | unitTagsFile           |          |                                | string                                                       | This is the filename of a CSV files that provides information about the unit tags. It allows a Unit ID to be assigned a name. This file should be located in the same directory as the trunk-recorder executable. The format is 2 columns, the first being the decimal number of the Unit ID, the second is the Unit Name, |
 | recordUnknown          |          | true                           | **true** / **false**                                         | Record talkgroups if they are not listed in the Talkgroups File. |
 | hideEncrypted          |          | false                          | **true** / **false**                                         | Hide encrypted talkgroups log entries                        |
 | hideUnknownTalkgroups  |          | false                          | **true** / **false**                                         | Hide unknown talkgroups log entries                          |
-| minDuration            |          | 0<br />(which is disabled)     | number                                                       | The minimum call (transmission) duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
+| minDuration            |          | 0<br />(which is disabled)     | number                                                       | The minimum call duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
+| minTransmissionDuration|          | 0<br />(which is disabled)     | number                                                       | The minimum transmission duration in seconds (decimals allowed), transmissions below this number will not be added to their corresponding call. |
 | talkgroupDisplayFormat |          | "id"                           | **"id" "id_tag"** or **"tag_id"**                            | The display format for talkgroups in the console and log file. (*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified) |
 | bandplan               |          | "800_standard"                 | **"800_standard" "800_reband" "800_splinter"** or **"400_custom"** | [SmartNet only] this is the SmartNet bandplan that will be used. |
 | bandplanBase           |          |                                | number                                                       | [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz. |
@@ -246,7 +247,7 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 **Name:** simplestream
 **Library:** libsimplestream.so
 
-This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.  
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.  
 
 This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
 
@@ -263,10 +264,11 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | Key       | Required | Default Value | Type   | Description                                                  |
 | --------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
 | address   |    ✓     |               | string | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
-| port      |    ✓     |               | number | UDP port that this stream will send audio to. |
+| port      |    ✓     |               | number | UDP or TCP port that this stream will send audio to. |
 | TGID      |    ✓     |               | number | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
-| sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a UDP packet is sent. |
-| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different UDP port to prevent interleaved audio for talkgroups from different Systems with the same TGID.  
+| sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
+| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.  
+|  useTCP   |        |   false     |boolean | When set to true, TCP will be used instead of UDP.
 
 ###### Plugin Object Example #1:
 This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.  
@@ -336,7 +338,31 @@ This example will stream audio from all talkgroups being recorded on System Coun
 	    "shortName":"CountyTrunked"}
         }
 ```
+##### Example - Sending Audio to pulseaudio
+pulseaudio is the default sound system on many Linux computers, including the Raspberry Pi.  If configured to do so, pulseaudio can accept raw audio via TCP connection using the module-simple-protocol-tcp module.  Each TCP connection will show up as a different "application" in the pavucontrol volume mixer.
 
+An example command to set up pulseaudio to receive 8 kHz audio (digital audio) from simplestream on TCP port 9125:
+```
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16be rate=8000 channels=1 
+```
+An example command to set up pulseaudio to receive 16 kHz audio (analog audio) from simplestream on TCP port 9125:
+```
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16be rate=16000 channels=1 
+```
+The matching simplestream config to send audio from talkgroup 58918 to TCP port 9125 would then be something like this:
+```yaml
+        {
+          "name":"simplestream",
+          "library":"libsimplestream.so",
+          "streams":[{
+            "TGID":58918,
+            "address":"127.0.0.1",
+            "port":9125,
+            "sendTGID":true,
+	    "shortName":"CountyTrunked",
+	    "useTCP":true}
+        }
+```
 
 ## talkgroupsFile
 
@@ -348,10 +374,25 @@ You may add an additional column that adds a priority for each talkgroup. The pr
 
 The Trunk Record program really only uses the priority information and the Dec Talkgroup ID. The Website uses the same file though to help display information about each talkgroup.
 
-Here are the column headers and some sample data:
+Here are the column headers and some sample data: NOTE: If you are adding the Priority to a RR csv, as well as changing order you must use a heading for the first column other than "Decimal" eg DEC for TR to detect you are supplying this layout.
 
 | DEC |	HEX |	Mode |	Alpha Tag	| Description	| Tag |	Group | Priority |
 |-----|-----|------|-----------|-------------|-----|-------|----------|
 |101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 |
 |2227 |	8b3	| D	| DC StcarYard	| Streetcar Yard |	Transportation |	Services | 3 |
+
+
+
+## channelFile
+
+This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A *Conventional* system would have Analog Recorders, while a *ConventionalP25* or *ConventionalDMR* would have digital recorders. 
+
+*Tone based squelch is currently not supported.*
+
+The **Enable** Column is optional and defaults to *True*. It only needs to be added to rows that you do not want to have recorded. For those rows, set **Enable** to *False*.
+
+| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Group  | Enable (*optional*) |
+| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
+| 300       | 462275000 | 94.8 PL  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
+| 325       | 462275000 | 151.4 PL | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
 

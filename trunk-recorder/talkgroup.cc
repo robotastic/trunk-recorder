@@ -1,14 +1,29 @@
 #include "talkgroup.h"
 
-Talkgroup::Talkgroup(long num, std::string m, std::string a, std::string d, std::string t, std::string g, int p) {
-  number = num;
-  mode = m;
-  alpha_tag = a;
-  description = d;
-  tag = t;
-  group = g;
-  priority = p;
-  active = false;
+Talkgroup::Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority) {
+  this->number = num;
+  this->mode = mode;
+  this->alpha_tag = alpha_tag;
+  this->description = description;
+  this->tag = tag;
+  this->group = group;
+  this->priority = priority;
+  this->active = false;
+  this->freq = 0;
+  this->tone = 0;
+}
+
+Talkgroup::Talkgroup(long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+  this->number = num;
+  this->mode = "Z";
+  this->alpha_tag = alpha_tag;
+  this->description = description;
+  this->tag = tag;
+  this->group = group;
+  this->active = false;
+  this->freq = freq;
+  this->tone = tone;
+  this->priority = 0;
 }
 
 std::string Talkgroup::menu_string() {

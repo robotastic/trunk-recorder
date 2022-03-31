@@ -252,6 +252,7 @@ void nonstop_wavfile_sink_impl::end_transmission() {
     strcpy(transmission.filename, current_filename); // Copy the filename
     strcpy(transmission.base_filename, current_base_filename);
     this->add_transmission(transmission);
+
     d_sample_count = 0;
     d_first_work = true;
   } else {
@@ -267,7 +268,7 @@ void nonstop_wavfile_sink_impl::stop_recording() {
   }
 
   if (state == RECORDING) {
-    BOOST_LOG_TRIVIAL(error) << "stop_recording() - stopping wavfile sink but recorder state is: " << state << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "stop_recording() - stopping wavfile sink but recorder state is: " << state << std::endl;
   }
   d_current_call = NULL;
   d_first_work = true;

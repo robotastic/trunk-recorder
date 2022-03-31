@@ -9,7 +9,8 @@ std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
 int combine_wav(std::string files, char *target_filename) {
   char shell_command[4000];
 
-  int nchars = snprintf(shell_command, 4000, "sox %s %s --norm=-.01", files.c_str(), target_filename);
+
+  int nchars = snprintf(shell_command, 4000, "sox %s %s ", files.c_str(), target_filename);
 
   if (nchars >= 4000) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: SOX Combine WAV Command longer than 4000 characters";
@@ -31,7 +32,7 @@ int combine_wav(std::string files, char *target_filename) {
 int convert_media(char *filename, char *converted) {
   char shell_command[400];
 
-  int nchars = snprintf(shell_command, 400, "sox %s -t wav - | fdkaac --silent  -p 2 --ignorelength -b 8000 -o %s -", filename, converted);
+  int nchars = snprintf(shell_command, 400, "sox %s --norm=-.01 -t wav - | fdkaac --silent  -p 2 --ignorelength -b 8000 -o %s -", filename, converted);
 
   if (nchars >= 400) {
     BOOST_LOG_TRIVIAL(error) << "Call uploader: Command longer than 400 characters";
@@ -194,7 +195,7 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
 
     // Handle the Upload Script, if set
     if (call_info.upload_script.length() != 0) {
-      shell_command << "./" << call_info.upload_script << " " << call_info.filename << " " << call_info.status_filename << " " << call_info.converted;
+      shell_command << call_info.upload_script << " " << call_info.filename << " " << call_info.status_filename << " " << call_info.converted;
       shell_command_string = shell_command.str();
 
       BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \t Running upload script: " << shell_command_string;
@@ -272,6 +273,21 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
       char formattedTalkgroup[62];
+
+      if(t.length < sys->get_min_tx_duration())
+      {
+        if (!call_info.transmission_archive) {
+          
+          snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+          std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+          BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num<< "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() <<" seconds. Actual length: " << t.length << "." << std::endl;
+      
+          if (checkIfFile(t.filename)) {
+            remove(t.filename);
+          }
+        }
+        continue;
+      } 
       snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
       std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
       BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;

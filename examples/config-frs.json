@@ -1,0 +1,22 @@
+{
+    "ver": 2,
+    "sources": [
+        {
+            "center": 462500000,
+            "rate": 2048000,
+            "error": 0,
+            "gain": 36,
+            "debugRecorders": 0,
+            "digitalRecoders": 0,
+            "driver": "osmosdr"
+        }
+    ],
+    "systems": [
+        {
+            "type": "conventional",
+            "channelFile": "channel.csv",
+            "callLog": true,
+            "squelch": -20
+        }
+    ]
+}

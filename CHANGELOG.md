@@ -1,6 +1,11 @@
 Trunk Recorder ChangeLog
 ========================
-### Version  4.3.0
+
+### Version 4.4.0
+* Add support for using a .csv file for adding for conventional channels
+* Removed alphaTags support from config.json, use the channel.csv instead
+
+### Version 4.3.0
 * Add support for DMR / MotoTRBO
 
 
