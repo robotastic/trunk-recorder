@@ -125,7 +125,6 @@ public:
   bool is_squelched();
   std::vector<Transmission> get_transmission_list(); 
   State get_state();
-  Rx_Status get_rx_status();
   int lastupdate();
   long elapsed();
   Source *get_source();

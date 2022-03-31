@@ -376,7 +376,6 @@ void dmr_recorder::tune_offset(double f) {
     lo->set_frequency(freq);
   }
 
-  //op25_frame_assembler->reset_rx_status();
 }
 
 void dmr_recorder::set_record_more_transmissions(bool more) {
@@ -403,9 +402,6 @@ std::vector<Transmission> dmr_recorder::get_transmission_list() {
 
 }
 
-Rx_Status dmr_recorder::get_rx_status() {
-    return op25_frame_assembler->get_rx_status();
-}
 
 
 void dmr_recorder::stop() {
@@ -419,8 +415,6 @@ void dmr_recorder::stop() {
     valve->set_enabled(false);
     wav_sink_slot0->stop_recording();
     wav_sink_slot1->stop_recording();
-      //op25_frame_assembler->reset_rx_status();
-
   } else {
     BOOST_LOG_TRIVIAL(error) << "dmr_recorder.cc: Trying to Stop an Inactive Logger!!!";
   }

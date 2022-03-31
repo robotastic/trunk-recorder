@@ -60,8 +60,6 @@ namespace gr {
       virtual void set_debug(int debug) {}
       virtual void reset_timer() {}
       virtual void set_phase2_tdma(bool p) {}
-      virtual void reset_rx_status() {}
-      virtual Rx_Status get_rx_status() {Rx_Status rx_status; return rx_status; }
       virtual void clear() {};
       virtual  void clear_silence_frame_count() {};
     };

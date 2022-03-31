@@ -150,15 +150,6 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_inpu
    std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
 }
 
-
-    void p25_frame_assembler_impl::reset_rx_status() {
-      p1fdma.reset_rx_status();
-    }
-
-    Rx_Status p25_frame_assembler_impl::get_rx_status() {
-      return p1fdma.get_rx_status();
-    }
-
     void p25_frame_assembler_impl::clear() {
       p1fdma.clear();
     }

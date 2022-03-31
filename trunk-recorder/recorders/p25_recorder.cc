@@ -359,10 +359,8 @@ void p25_recorder::tune_offset(double f) {
 
   if (!qpsk_mod) {
     fsk4_demod->reset();
-    fsk4_p25_decode->reset_rx_status();
   } else {
     qpsk_demod->reset();
-    qpsk_p25_decode->reset_rx_status();
   }
 }
 
@@ -382,15 +380,6 @@ std::vector<Transmission> p25_recorder::get_transmission_list() {
   }
 }
 
-Rx_Status p25_recorder::get_rx_status() {
-  if (qpsk_mod) {
-    return qpsk_p25_decode->get_rx_status();
-  } else {
-    return fsk4_p25_decode->get_rx_status();
-  }
-}
-
-
 void p25_recorder::stop() {
   if (state == ACTIVE) {
     if (qpsk_mod) {
@@ -405,10 +394,8 @@ void p25_recorder::stop() {
     valve->set_enabled(false);
     if (qpsk_mod) {
       qpsk_p25_decode->stop();
-      qpsk_p25_decode->reset_rx_status();
     } else {
       fsk4_p25_decode->stop();
-      fsk4_p25_decode->reset_rx_status();
     }
   } else {
     BOOST_LOG_TRIVIAL(error) << "p25_recorder.cc: Trying to Stop an Inactive Logger!!!";
