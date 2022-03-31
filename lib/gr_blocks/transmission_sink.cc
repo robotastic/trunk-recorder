@@ -124,6 +124,8 @@ bool transmission_sink::start_recording(Call *call) {
   d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
   d_prior_transmission_length = 0;
+  d_error_count = 0;
+  d_spike_count = 0;
   record_more_transmissions = true;
 
   this->clear_transmission_list();
@@ -247,12 +249,16 @@ void transmission_sink::end_transmission() {
     transmission.start_time = d_start_time; // Start time of the Call
     transmission.stop_time = d_stop_time;   // when the Call eneded
     transmission.sample_count = d_sample_count;
+    transmission.spike_count = d_spike_count;
+    transmission.error_count = d_error_count;
     transmission.length = length_in_seconds();       // length in seconds
     d_prior_transmission_length = d_prior_transmission_length + transmission.length;
     strcpy(transmission.filename, current_filename); // Copy the filename
     strcpy(transmission.base_filename, current_base_filename);
     this->add_transmission(transmission);
     d_sample_count = 0;
+    d_error_count = 0;
+    d_spike_count = 0;
     d_first_work = true;
     curr_src_id = -1;
   } else {
@@ -327,8 +333,10 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   }
 
   std::vector<gr::tag_t> tags;
-  pmt::pmt_t this_key(pmt::intern("src_id"));
-  pmt::pmt_t that_key(pmt::intern("terminate"));
+  pmt::pmt_t src_id_key(pmt::intern("src_id"));
+  pmt::pmt_t terminate_key(pmt::intern("terminate"));
+  pmt::pmt_t spike_count_key(pmt::intern("spike_count"));
+  pmt::pmt_t error_count_key(pmt::intern("error_count"));
   //pmt::pmt_t squelch_key(pmt::intern("squelch_eob"));
   //get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
   get_tags_in_window(tags, 0, 0, noutput_items);
@@ -337,7 +345,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
   for (unsigned int i = 0; i < tags.size(); i++) {
     //BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
-    if (pmt::eq(this_key, tags[i].key)) {
+    if (pmt::eq(src_id_key, tags[i].key)) {
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
 
@@ -367,11 +375,10 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
         }
         //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
         
-
       }
 
     }
-    if (pmt::eq(that_key, tags[i].key)) {
+    if (pmt::eq(terminate_key, tags[i].key)) {
       d_termination_flag = true;
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
       char formattedTalkgroup[62];
@@ -382,6 +389,14 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
         
         
       //BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
+    }
+    if (pmt::eq(spike_count_key, tags[i].key)) {
+      d_spike_count = pmt::to_long(tags[i].value);
+      BOOST_LOG_TRIVIAL(info) << "Spike Count: " << d_spike_count;
+    }
+    if (pmt::eq(error_count_key, tags[i].key)) {
+      d_error_count = pmt::to_long(tags[i].value);
+      BOOST_LOG_TRIVIAL(info) << "Error Count: " << d_error_count;
     }
   }
   tags.clear();
@@ -456,7 +471,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
         snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
         std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
         
-        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder state to STOPPED - count: " << d_sample_count;
+        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder state to STOPPED - count: " << d_sample_count;
         //BOOST_LOG_TRIVIAL(trace) << "Call completed - putting recorder into state Completed - we had samples";
         
         state = STOPPED;

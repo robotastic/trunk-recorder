@@ -61,12 +61,6 @@ public:
     source_list << std::fixed << std::setprecision(2);
     source_list << "[";
 
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    time_t start_time = call_info.start_time;
-
-
 
     if (call_info.transmission_source_list.size() != 0) {
       for (int i = 0; i < call_info.transmission_source_list.size(); i++) {
@@ -82,6 +76,35 @@ public:
       source_list << "]";
     }
 
+
+    std::ostringstream freq_list;
+    std::string freq_list_string;
+    freq_list << std::fixed << std::setprecision(2);
+    freq_list << "[";
+
+    if (call_info.transmission_error_list.size() != 0) {
+      for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
+          freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"error_count\": \"" << std::setprecision(0) <<call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}"; 
+  
+        if (i < (call_info.transmission_error_list.size() - 1)) {
+          freq_list << ", ";
+        } else {
+          freq_list << "]";
+        }
+      }
+    }else {
+      freq_list << "]";
+    }
+
+
+
+    char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+    time_t start_time = call_info.start_time;
+
+
+
     //BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
     CURL *curl;
     CURLMcode res;
@@ -91,6 +114,7 @@ public:
     freq_string = freq.str();
 
     source_list_string = source_list.str();
+    freq_list_string = freq_list.str();
     call_length_string = call_length.str();
 
     struct curl_httppost *formpost = NULL;
@@ -156,7 +180,7 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "freq_list",
-                 CURLFORM_COPYCONTENTS, "[]",
+                 CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
                  CURLFORM_END);
 
     curl = curl_easy_init();

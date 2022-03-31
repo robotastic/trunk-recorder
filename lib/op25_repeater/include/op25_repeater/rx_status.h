@@ -4,8 +4,8 @@
 #include <time.h>
 struct Rx_Status{
   double total_len;
-  double error_count;
-  double spike_count;
+  long error_count;
+  long spike_count;
   time_t last_update;
 };
 #endif

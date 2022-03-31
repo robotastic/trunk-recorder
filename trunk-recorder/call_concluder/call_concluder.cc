@@ -82,17 +82,21 @@ int create_call_json(Call_Data_t call_info) {
       }
       json_file << "],\n";
     }
-
-    json_file << "\"freqList\": [";
-    json_file << "{ \"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.start_time << ", \"pos\": 0.0, \"len\": " << call_info.length << ", \"error_count\": 0.0, \"spike_count\": 0.0}";
-    json_file << "],\n";
+    json_file << "\"freqList\": [ ";
+    for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
+      if (i != 0) {
+        json_file << ", ";
+      }
+      json_file << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"error_count\": \"" << std::fixed << std::setprecision(0) << call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}"; 
+    }
+    json_file << " ],\n";
     json_file << "\"srcList\": [ ";
 
     for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
       if (i != 0) {
         json_file << ", ";
       }
-      json_file << "{\"src\": " << std::fixed << call_info.transmission_source_list[i].source << ", \"time\": " << call_info.transmission_source_list[i].time << ", \"pos\": " << call_info.transmission_source_list[i].position << ", \"emergency\": " << call_info.transmission_source_list[i].emergency << ", \"signal_system\": \"" << call_info.transmission_source_list[i].signal_system << "\", \"tag\": \"" << call_info.transmission_source_list[i].tag << "\"}"; 
+      json_file << "{\"src\": " << std::fixed << call_info.transmission_source_list[i].source << ", \"time\": " << call_info.transmission_source_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"emergency\": " << call_info.transmission_source_list[i].emergency << ", \"signal_system\": \"" << call_info.transmission_source_list[i].signal_system << "\", \"tag\": \"" << call_info.transmission_source_list[i].tag << "\"}"; 
     }
     json_file << " ]\n";
     json_file << "}\n";
@@ -291,8 +295,9 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
       UnitTag *unit_tag = sys->find_unit_tag(t.source);
       std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
       Call_Source call_source = {t.source, t.start_time, total_length, false, "", tag};
-
+      Call_Error call_error = {t.start_time,total_length,t.length, t.error_count, t.spike_count};
       call_info.transmission_source_list.push_back(call_source);
+      call_info.transmission_error_list.push_back(call_error);
 
       total_length = total_length + t.length;
     }

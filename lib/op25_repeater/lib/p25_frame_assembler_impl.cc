@@ -230,9 +230,19 @@ p25_frame_assembler_impl::general_work (int noutput_items,
         } else {
 
           if (terminate_call) {
-            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src);
+            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
+            
+            Rx_Status status = p1fdma.get_rx_status();
+            
+            // If something was recorded, send the number of Errors and Spikes that were counted during that period
+            if (status.total_len > 0 ) {
+              add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
+              add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
+              p1fdma.reset_rx_status();
+            }
             std::fill(out, out + 1, 0);
             amt_produce = 1;
+
             //BOOST_LOG_TRIVIAL(info) << "Call Terminated, NO amount produced: " << amt_produce << " SRC: " << p1fdma.get_curr_src_id() << " n written " << nitems_written(0);
           }
           if (silence_frame_count > 0) {
