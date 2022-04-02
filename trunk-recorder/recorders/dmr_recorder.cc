@@ -222,7 +222,7 @@ void dmr_recorder::initialize(Source *src) {
 
   int udp_port = 0;
   int verbosity = 0; // 10 = lots of debug messages
-  const char *udp_host = "";
+  const char *udp_host = "127.0.0.1";
   bool do_imbe = 1;
   bool do_output = 1;
   bool do_msgq = 0;
