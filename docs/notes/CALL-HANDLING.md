@@ -31,3 +31,14 @@ flowchart TD
     
 
 ```
+```mermaid
+flowchart TD
+A[Control Channel] -->|UPDATE| B["handle_call_update()"]
+B -.-> C[Find Call]
+C -.-> D{"call->state"}
+D -.->|COMPLETED| E[Do Nothing]
+D -.->|INACTIVE| F["call->state==RECORDING"]
+F -.-> G["call->update()"]
+D -.->|RECORDING| G
+
+```
