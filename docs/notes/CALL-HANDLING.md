@@ -23,7 +23,10 @@ flowchart TD
     H1 -.-> I1{"record_more_transmissions"}
     I1 -.->|False| J1["state = STOPPED"]
     I1 -.->|True| K1["state = IDLE"]
-    L1["set_record_more_transmissions()"] -.-> M1["record_mode_transmissions = True"]
+    L1["set_record_more_transmissions()"] -.-> N1{state == STOPPED}
+    N1 -.->|True| O1["state == IDLE"]
+    N1 -.->|False| P1["record_mode_transmissions = True"]
+    O1 -.-> P1
     end
     
 
