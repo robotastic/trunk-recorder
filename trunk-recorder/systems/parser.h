@@ -17,6 +17,7 @@ enum MessageType {
   PATCH_ADD = 10,
   PATCH_DELETE = 11,
   DATA_GRANT = 12,
+  UU_ANS_REQ = 13,
   UNKNOWN = 99
 };
 

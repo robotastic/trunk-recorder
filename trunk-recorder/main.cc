@@ -939,7 +939,9 @@ void unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
 void unit_data_grant(System *sys, long source_id) {
   plugman_unit_data_grant(sys, source_id);
 }
-
+void unit_answer_request(System *sys, long source_id) {
+  plugman_unit_answer_request(sys, source_id);
+}
 
 void handle_call(TrunkMessage message, System *sys) {
   bool call_found = false;
@@ -1035,6 +1037,9 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
     case DATA_GRANT:
       unit_data_grant(sys, message.source);
+      break;
+    case UU_ANS_REQ:
+      unit_answer_request(sys, message.source);
       break;
     case UNKNOWN:
       break;

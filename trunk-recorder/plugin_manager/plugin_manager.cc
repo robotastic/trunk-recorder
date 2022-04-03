@@ -277,3 +277,11 @@ void plugman_unit_data_grant(System *system, long source_id) {
     }
   }
 }
+void plugman_unit_answer_request(System *system, long source_id) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_data_grant(system, source_id);
+    }
+  }
+}
