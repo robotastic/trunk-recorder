@@ -987,9 +987,13 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == RECORDING) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mStopping RECORDING call, RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
-      BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
-      //call->stop_call();
+      Recorder *recorder = call->get_recorder();
+      string recorder_state = "UNKNOWN";
+      if (recorder != NULL) {
+        recorder_state = format_state(recorder->get_state());
+      }
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mStopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
+
       call->set_state(COMPLETED);
       call->conclude_call();
       it = calls.erase(it);
@@ -1000,9 +1004,13 @@ void handle_call_grant(TrunkMessage message, System *sys) {
         // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == INACTIVE) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mStopping INACTIVE call, RX overlapping TG message Freq TG:" << message.talkgroup << "\u001b[0m";
-      BOOST_LOG_TRIVIAL(info) << "\t - Stopping call because of overlapping Freq";
-      //call->stop_call();
+      Recorder *recorder = call->get_recorder();
+      string recorder_state = "UNKNOWN";
+      if (recorder != NULL) {
+        recorder_state = format_state(recorder->get_state());
+      }      
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mStopping INACTIVE call, Recorder State: " << recorder_state << " RX overlapping TG message Freq TG:" << message.talkgroup << "\u001b[0m";
+
       call->set_state(COMPLETED);
       call->conclude_call();
       it = calls.erase(it);
@@ -1057,6 +1065,9 @@ void handle_call_update(TrunkMessage message, System *sys) {
         //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
      
 
+        // It is helpful to have both GRANT and UPDATE messages allow for new calls to be started
+        // This is because GRANT message can be sometimes dropped if the control channel is not perfect
+        // In either event, when a  Call times out and goes INACTIVE, then record_more_transmissions gets set to false
         call->set_record_more_transmissions(true);
 
       bool source_updated = call->update(message);

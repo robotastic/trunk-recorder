@@ -245,7 +245,10 @@ namespace gr {
 		}
 
 		long p25p1_fdma::get_curr_src_id() {
-			return curr_src_id;
+            long addr = curr_src_id;
+            curr_src_id = -1;
+            // This makes it easy to tell when a new Src Address has been received, all other times it will be -1
+			return addr;
 		}
 		void p25p1_fdma::clear() {
 			p1voice_decode.clear();
