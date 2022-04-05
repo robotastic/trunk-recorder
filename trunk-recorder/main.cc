@@ -1358,16 +1358,16 @@ bool setup_convetional_channel(System *system, double frequency, long channel_in
             if (system->has_channel_file()) {
               Talkgroup *tg = system->find_talkgroup_by_freq(frequency);
               call = new Call_conventional(tg->number, tg->freq, system, config);
+              call->set_talkgroup_tag(tg->alpha_tag);
             } else {
               call = new Call_conventional(channel_index, frequency, system, config);
-              BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring Conventional Channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
-            
             }
+            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
             if (system->get_system_type() == "conventional") {
               analog_recorder_sptr rec;
               rec = source->create_conventional_recorder(tb);
               rec->start(call);
-	            call->set_is_analog(true);
+              call->set_is_analog(true);
               call->set_recorder((Recorder *)rec.get());
               call->set_state(RECORDING);
               system->add_conventional_recorder(rec);
