@@ -261,12 +261,11 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels")) {
           double control_channel = sub_node.second.get<double>("", 0);
-
           BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channel);
-          system->add_control_channel(control_channel);
-          system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
-          BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
+          system->add_control_channel(control_channel); 
         }
+        system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
+        BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       } else {
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
         return false;
