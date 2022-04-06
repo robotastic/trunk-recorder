@@ -935,6 +935,18 @@ void unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
   plugman_unit_group_affiliation(sys, source_id, talkgroup_num);
 }
 
+void unit_data_grant(System *sys, long source_id) {
+  plugman_unit_data_grant(sys, source_id);
+}
+
+void unit_answer_request(System *sys, long source_id) {
+  plugman_unit_answer_request(sys, source_id);
+}
+
+void unit_location(System *sys, long source_id, long talkgroup_num) {
+  plugman_unit_location(sys, source_id, talkgroup_num);
+}
+
 void handle_call(TrunkMessage message, System *sys) {
   bool call_found = false;
   bool call_retune = false;
@@ -1016,7 +1028,10 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       current_system_status(message, sys);
       break;
 
-    case LOCATION:        // currently not handling, TODO: expand plugin system to handle this
+    case LOCATION:
+      unit_location( sys, message.source, message.talkgroup);
+      break;
+    
     case ACKNOWLEDGE:
       unit_acknowledge_response( sys, message.source);
       break;
@@ -1027,6 +1042,15 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
     case PATCH_DELETE:
       sys->delete_talkgroup_patch(message.patch_data);
       break;
+
+    case DATA_GRANT:
+      unit_data_grant(sys, message.source);
+      break;
+
+    case UU_ANS_REQ:
+      unit_answer_request(sys, message.source);
+      break;
+
     case UNKNOWN:
       break;
     }
@@ -1476,7 +1500,7 @@ int main(int argc, char **argv) {
     logging::add_file_log(
         keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
         keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
-        keywords::rotation_size = 10 * 1024 * 1024,
+        keywords::rotation_size = 100 * 1024 * 1024,
         keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
         keywords::auto_flush = true);
   }

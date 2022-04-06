@@ -269,3 +269,27 @@ void plugman_unit_group_affiliation(System *system, long source_id, long talkgro
     }
   }
 }
+void plugman_unit_data_grant(System *system, long source_id) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_data_grant(system, source_id);
+    }
+  }
+}
+void plugman_unit_answer_request(System *system, long source_id) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_data_grant(system, source_id);
+    }
+  }
+}
+void plugman_unit_location(System *system, long source_id, long talkgroup_num) {
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->unit_location(system, source_id, talkgroup_num);
+    }
+  }
+}

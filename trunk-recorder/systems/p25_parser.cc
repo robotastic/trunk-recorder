@@ -475,7 +475,23 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << format_freq(f) << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
   } else if (opcode == 0x05) { // Unit To Unit Answer Request
-    BOOST_LOG_TRIVIAL(debug) << "tsbk05: Unit To Unit Answer Request";
+    bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+    bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+    bool duplex = (bool) bitset_shift_mask(tsbk, 72, 0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk, 72, 0x10);
+    unsigned long priority = bitset_shift_mask(tsbk, 72, 0x07);
+    unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+    unsigned long si = bitset_shift_mask(tsbk, 40, 0xffffff);
+
+    message.message_type = UU_ANS_REQ;
+    message.emergency = emergency;
+    message.encrypted = encrypted;
+    message.duplex = duplex;
+    message.mode = mode;
+    message.priority = priority;
+    message.source = sa;
+
+    BOOST_LOG_TRIVIAL(debug) << "tsbk05\tUnit To Unit Answer Request\tsa " << sa << "\tSource ID: " << si;
   } else if (opcode == 0x06) { //  Unit to Unit Voice Channel Grant Update (UU_V_CH_GRANT_UPDT)
     //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -515,7 +531,26 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x0a) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk0a: Telephone Interconnect Answer Request";
   } else if (opcode == 0x14) {
-    BOOST_LOG_TRIVIAL(debug) << "tsbk14: SNDCP Data Channel Grant";
+    bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+    bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long nsapi = bitset_shift_mask(tsbk, 72, 0xf);
+    unsigned long chT = bitset_shift_mask(tsbk, 56, 0xffff);
+    unsigned long chR = bitset_shift_mask(tsbk, 40, 0xffff);
+    unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+    unsigned long fT = channel_id_to_frequency(chT, sys_num);
+    unsigned long fR = channel_id_to_frequency(chR, sys_num);
+
+    message.message_type = DATA_GRANT;
+    message.emergency = emergency;
+    message.encrypted = encrypted;
+    message.duplex = duplex;
+    message.mode = mode;
+    message.source = sa;
+    message.freq = fT;
+
+    BOOST_LOG_TRIVIAL(debug) << "tsbk14\tSNDCP Data Channel Grant\tsa " << sa << "\tChannels: " << chT << "/" << chR << " Freqs: " << format_freq(fT) << "/" << format_freq(fR) << " NSAPI: " << nsapi;
   } else if (opcode == 0x15) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk15: SNDCP Data Page Request";
   } else if (opcode == 0x16) {
