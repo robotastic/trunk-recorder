@@ -35,7 +35,7 @@ public:
   virtual int unit_acknowledge_response(System *sys, long source_id) { return 0; };
   virtual int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) { return 0; };
   virtual int unit_data_grant(System *sys, long source_id) { return 0; };
-  virtual int unit_answer_request(System *sys, long source_id) { return 0; };
+  virtual int unit_answer_request(System *sys, long source_id, long talkgroup) { return 0; };
   virtual int unit_location(System *sys, long source_id, long talkgroup_num) { return 0; };
   void set_frequency_format(int f) { frequencyFormat = f;}
   virtual ~Plugin_Api(){};
