@@ -42,3 +42,31 @@ F -.-> G["call->update()"]
 D -.->|RECORDING| G
 
 ```
+
+
+```mermaid
+flowchart TD
+A[For Each Call] -->|Call| B{state}
+
+
+ 
+B -.->|RECORDING| C{"last_update > 1.0"}  
+C -.->|True| E["call->set_record_more_transmissions(false)\nstate = INACTIVE"]
+C -.->|False| D[Next]
+E -.-> D
+B -.->|MONITORING| F{"last_update > 1.0"}  
+F -.->|True| G["Delete Call"]
+G -.-> D
+F -.->|False| D
+B -.->|COMPLETED| H["Conclude Call"]
+H -.-> Z["Delete Call"]
+Z -.-> D
+B -.->|INACTIVE| I{"since last_update > 5.0"}
+I -.->|True| J[state = COMPLETED]
+J -.-> K[Conclude Call]
+K -.-> L[Delete Call]
+I -.->|False| D
+L -.-> D
+
+
+```
