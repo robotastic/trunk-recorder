@@ -954,7 +954,7 @@ void unit_location(System *sys, long source_id, long talkgroup_num) {
   plugman_unit_location(sys, source_id, talkgroup_num);
 }
 
-void handle_call(TrunkMessage message, System *sys) {
+void handle_call_grant(TrunkMessage message, System *sys) {
   bool call_found = false;
   bool call_retune = false;
   bool recording_started = false;
