@@ -87,11 +87,11 @@ int unit_data_grant(System *sys, long source_id) {
     return 1;
 }
 
-int unit_answer_request(System *sys, long source_id) {
+int unit_answer_request(System *sys, long source_id, long talkgroup) {
     std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li ans_req &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    sprintf(shell_command, "%s %s %li ans_req %li &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup);
     int rc =  system(shell_command);
     return 0;
   }

@@ -939,8 +939,8 @@ void unit_data_grant(System *sys, long source_id) {
   plugman_unit_data_grant(sys, source_id);
 }
 
-void unit_answer_request(System *sys, long source_id) {
-  plugman_unit_answer_request(sys, source_id);
+void unit_answer_request(System *sys, long source_id, long talkgroup) {
+  plugman_unit_answer_request(sys, source_id, talkgroup);
 }
 
 void unit_location(System *sys, long source_id, long talkgroup_num) {
@@ -1048,7 +1048,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UU_ANS_REQ:
-      unit_answer_request(sys, message.source);
+      unit_answer_request(sys, message.source, message.talkgroup);
       break;
 
     case UNKNOWN:
@@ -1234,6 +1234,10 @@ void monitor_messages() {
           trunk_messages = p25_parser->parse_message(msg);
           handle_message(trunk_messages, sys);
         }
+      }
+
+      if (msg->type() == -1) {
+        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t process_data_unit timeout";
       }
 
       msg.reset();

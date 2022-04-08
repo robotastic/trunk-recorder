@@ -47,6 +47,6 @@ void plugman_unit_deregistration(System * system, long source_id);
 void plugman_unit_acknowledge_response(System * system, long source_id);
 void plugman_unit_group_affiliation(System * system, long source_id, long talkgroup_num);
 void plugman_unit_data_grant(System * system, long source_id);
-void plugman_unit_answer_request(System * system, long source_id);
+void plugman_unit_answer_request(System * system, long source_id, long talkgroup);
 void plugman_unit_location(System * system, long source_id, long talkgroup_num);
 #endif // PLUGIN_MANAGER_H
