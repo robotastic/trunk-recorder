@@ -246,7 +246,7 @@ list(APPEND trunk_recorder_sources
 
   lib/lfsr/lfsr.cxx
   lib/gr_blocks/freq_xlating_fft_filter.cc
-  lib/gr_blocks/nonstop_wavfile_sink_impl.cc
+  lib/gr_blocks/transmission_sink.cc
   lib/gr_blocks/decoders/fsync_decode.cc
   lib/gr_blocks/decoders/mdc_decode.cc
   lib/gr_blocks/decoders/star_decode.cc

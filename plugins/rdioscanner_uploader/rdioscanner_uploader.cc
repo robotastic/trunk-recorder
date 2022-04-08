@@ -122,6 +122,28 @@ public:
       patch_list << "]";
     }
 
+
+    std::ostringstream freq_list;
+    std::string freq_list_string;
+    freq_list << std::fixed << std::setprecision(2);
+    freq_list << "[";
+
+    if (call_info.transmission_error_list.size() != 0) {
+      for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
+          freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"errorCount\": " << std::setprecision(0) <<call_info.transmission_error_list[i].error_count << ", \"spikeCount\": " << call_info.transmission_error_list[i].spike_count << "}"; 
+  
+        if (i < (call_info.transmission_error_list.size() - 1)) {
+          freq_list << ", ";
+        } else {
+          freq_list << "]";
+        }
+      }
+    }else {
+      freq_list << "]";
+    }
+
+
+
     //BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
     CURL *curl;
     CURLMcode res;
@@ -131,6 +153,7 @@ public:
     freq_string = freq.str();
 
     source_list_string = source_list.str();
+    freq_list_string = freq_list.str();
     call_length_string = call_length.str();
     patch_list_string = patch_list.str();
 
@@ -168,7 +191,7 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "frequencies",
-                 CURLFORM_COPYCONTENTS, "[]",
+                 CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,

@@ -15,11 +15,5 @@ boost::property_tree::ptree Recorder::get_stats() {
   node.put("count", recording_count);
   node.put("duration", recording_duration);
   node.put("state", get_state());
-
-  Rx_Status status = get_rx_status();
-  node.put("status_len", status.total_len);
-  node.put("status_error", status.error_count);
-  node.put("status_spike", status.spike_count);
-
   return node;
 }

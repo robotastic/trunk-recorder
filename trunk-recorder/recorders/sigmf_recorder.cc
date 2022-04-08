@@ -54,7 +54,7 @@ long sigmf_recorder::get_source_count() {
 }
 
 Call_Source *sigmf_recorder::get_source_list() {
-  return NULL; //wav_sink->get_source_list();
+  return NULL; 
 }
 
 Source *sigmf_recorder::get_source() {
@@ -78,7 +78,7 @@ double sigmf_recorder::get_freq() {
 }
 
 double sigmf_recorder::get_current_length() {
-  return 0; //wav_sink->length_in_seconds();
+  return 0; 
 }
 
 int sigmf_recorder::lastupdate() {
@@ -101,7 +101,6 @@ State sigmf_recorder::get_state() {
 
 void sigmf_recorder::stop() {
   if (state == ACTIVE) {
-    recording_duration += wav_sink->length_in_seconds();
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = INACTIVE;
     valve->set_enabled(false);

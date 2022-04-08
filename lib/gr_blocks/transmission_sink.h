@@ -20,20 +20,28 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_GR_nonstop_wavfile_SINK_IMPL_H
-#define INCLUDED_GR_nonstop_wavfile_SINK_IMPL_H
+#ifndef INCLUDED_TRANSMISSION_SINK_H
+#define INCLUDED_TRANSMISSION_SINK_H
 
-#include "nonstop_wavfile_sink.h"
+
 
 #include <sys/time.h>
-//#include "wavfile.h"
-#include <boost/log/trivial.hpp>
 #include <gr_blocks/wavfile_gr3.8.h>
 
+#include "../../trunk-recorder/global_structs.h"
+#include "../../trunk-recorder/formatter.h"
+
+#include <boost/log/trivial.hpp>
+#include <gnuradio/blocks/api.h>
+#include <gnuradio/sync_block.h>
+
+class Call;
+struct Transmission;
 namespace gr {
 namespace blocks {
 
-class nonstop_wavfile_sink_impl : public nonstop_wavfile_sink
+
+class BLOCKS_API transmission_sink : virtual public sync_block
 {
 private:
 
@@ -49,6 +57,8 @@ private:
 	bool d_termination_flag;
 	time_t d_start_time;
 	time_t d_stop_time;
+	long d_spike_count;
+	long d_error_count;
 	long curr_src_id;
 	char current_filename[255];
 	char current_base_filename[255];
@@ -92,9 +102,9 @@ public:
 
 	
 	#if GNURADIO_VERSION < 0x030900
-	typedef boost::shared_ptr<nonstop_wavfile_sink_impl> sptr;
+	typedef boost::shared_ptr<transmission_sink> sptr;
 	#else
-	typedef std::shared_ptr<nonstop_wavfile_sink_impl> sptr;
+	typedef std::shared_ptr<transmission_sink> sptr;
 	#endif
 
 
@@ -108,10 +118,10 @@ public:
 	                 unsigned int sample_rate,
 	                 int bits_per_sample = 16);
 
-	nonstop_wavfile_sink_impl(int n_channels,
+	transmission_sink(int n_channels,
 	                          unsigned int sample_rate,
 	                          int bits_per_sample);
-	virtual ~nonstop_wavfile_sink_impl();
+	virtual ~transmission_sink();
 	void create_base_filename();
 	char *get_filename();
 	bool start_recording(Call *call);
@@ -142,4 +152,5 @@ public:
 } /* namespace blocks */
 } /* namespace gr */
 
-#endif /* INCLUDED_GR_nonstop_wavfile_SINK_IMPL_H */
+#endif 
+

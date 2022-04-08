@@ -29,6 +29,8 @@ public:
   long get_call_num();
   virtual ~Call();
   virtual void restart_call();
+  void set_record_more_transmissions(bool more);
+  void inactive_call();
   void stop_call();
   void conclude_call();
   void set_sigmf_recorder(Recorder *r);

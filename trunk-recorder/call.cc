@@ -78,6 +78,24 @@ Call::~Call() {
 void Call::restart_call() {
 }
 
+void Call::set_record_more_transmissions(bool more) {
+  if (this->get_recorder() != NULL) {
+    this->get_recorder()->set_record_more_transmissions(more);
+  }
+}
+
+void Call::inactive_call() {
+  if (this->get_recorder() != NULL) {
+    // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
+    // doing anything and can be stopped.
+    if ((state == RECORDING) && this->get_recorder()->is_idle()) {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";
+      this->set_state(INACTIVE);
+    }
+    this->get_recorder()->set_record_more_transmissions(false);
+  }
+}
+
 void Call::stop_call() {
 
   if (this->get_recorder() != NULL) {
@@ -87,10 +105,9 @@ void Call::stop_call() {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s";
       this->set_state(COMPLETED);
     } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tTrying to COMPLETE, Recorder still active, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";
       this->set_state(INACTIVE);
     }
-    this->get_recorder()->set_record_more_transmissions(false);
   }
 }
 long Call::get_call_num() {
@@ -104,14 +121,6 @@ void Call::conclude_call() {
   if (state == COMPLETED) {
     final_length = recorder->get_current_length();
 
-    if (freq_count > 0) {
-      Rx_Status rx_status = recorder->get_rx_status();
-      if (rx_status.last_update > 0)
-        stop_time = rx_status.last_update;
-      freq_list[freq_count - 1].total_len = rx_status.total_len;
-      freq_list[freq_count - 1].spike_count = rx_status.spike_count;
-      freq_list[freq_count - 1].error_count = rx_status.error_count;
-    }
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
@@ -194,15 +203,6 @@ System *Call::get_system() {
 
 void Call::set_freq(double f) {
   if (f != curr_freq) {
-
-    // if there call is being recorded and it isn't the first time the freq is being set
-    if (recorder && (freq_count > 0)) {
-      Rx_Status rx_status = recorder->get_rx_status();
-      freq_list[freq_count - 1].total_len = rx_status.total_len;
-      freq_list[freq_count - 1].spike_count = rx_status.spike_count;
-      freq_list[freq_count - 1].error_count = rx_status.error_count;
-    }
-
     curr_freq = f;
   }
 }
@@ -351,15 +351,8 @@ bool Call::update(TrunkMessage message) {
 }
 
 int Call::since_last_update() {
-  /*long last_rx;
-  if (get_recorder() && (last_rx = recorder->get_rx_status().last_update)) {
-    BOOST_LOG_TRIVIAL(trace) << "temp.last_update: " << last_rx << " diff: " << time(NULL) - last_rx;
-    return time(NULL) - last_rx;
-    //last_update = temp.last_update;
-  } else {*/
     BOOST_LOG_TRIVIAL(trace) << "last_update: " << last_update << " diff: " << time(NULL) - last_update;
     return time(NULL) - last_update;
-  //}
 }
 
 long Call::elapsed() {

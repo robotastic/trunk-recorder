@@ -7,6 +7,8 @@ struct Transmission {
   long start_time;
   long stop_time;
   long sample_count;
+  long spike_count;
+  long error_count;
   double freq;
   double length;
   char filename[255];
@@ -56,8 +58,9 @@ struct Call_Freq {
 };
 
 struct Call_Error {
-  double freq;
-  double sample_count;
+  long time;
+  double position;
+  double total_len;
   double error_count;
   double spike_count;
 };

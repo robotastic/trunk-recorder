@@ -22,8 +22,7 @@
 #include <gnuradio/blocks/multiply_const.h>
 #endif
 
-#include <gr_blocks/nonstop_wavfile_sink.h>
-#include <gr_blocks/nonstop_wavfile_sink_impl.h>
+#include <gr_blocks/transmission_sink.h>
 #include <gr_blocks/plugin_wrapper.h>
 #include "recorder.h"
 
@@ -52,7 +51,7 @@ protected:
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
   gr::blocks::short_to_float::sptr converter;
   gr::blocks::multiply_const_ss::sptr levels;
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink;
+  gr::blocks::transmission_sink::sptr wav_sink;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
 public:
   p25_recorder_decode(Recorder* recorder);
@@ -63,8 +62,6 @@ public:
   void switch_tdma(bool phase2_tdma); 
   void start(Call *call);
   double since_last_write();
-  void reset_rx_status();
-  Rx_Status get_rx_status();
   void stop();
   int tdma_slot;
   bool delay_open;

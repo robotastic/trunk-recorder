@@ -76,7 +76,7 @@
 
 #include "recorder.h"
 #include <gr_blocks/plugin_wrapper_impl.h>
-#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/transmission_sink.h>
 #include <gr_blocks/selector.h>
 
 class Source;
@@ -125,7 +125,6 @@ public:
   bool is_squelched();
   std::vector<Transmission> get_transmission_list(); 
   State get_state();
-  Rx_Status get_rx_status();
   int lastupdate();
   long elapsed();
   Source *get_source();
@@ -222,8 +221,8 @@ private:
   gr::blocks::short_to_float::sptr converter_slot0;
   gr::blocks::short_to_float::sptr converter_slot1;
   gr::blocks::multiply_const_ff::sptr levels;
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink_slot0;
-  gr::blocks::nonstop_wavfile_sink::sptr wav_sink_slot1;
+  gr::blocks::transmission_sink::sptr wav_sink_slot0;
+  gr::blocks::transmission_sink::sptr wav_sink_slot1;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
 
 };

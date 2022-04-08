@@ -58,7 +58,7 @@
 #include "../state.h"
 #include "../call.h"
 
-#include <gr_blocks/nonstop_wavfile_sink.h>
+#include <gr_blocks/transmission_sink.h>
 
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 
@@ -91,10 +91,6 @@ public:
   virtual long get_talkgroup() { return 0; };
   virtual void set_record_more_transmissions(bool more){};
   virtual State get_state() { return INACTIVE; };
-  virtual Rx_Status get_rx_status() {
-    Rx_Status rx_status = {0, 0, 0, 0};
-    return rx_status;
-  }
   virtual std::string get_type() { return type; }
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };

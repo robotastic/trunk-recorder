@@ -58,7 +58,7 @@
 
 #include "recorder.h"
 #include <gr_blocks/freq_xlating_fft_filter.h>
-#include <gr_blocks/nonstop_wavfile_sink.h>
+
 
 class Source;
 class debug_recorder;

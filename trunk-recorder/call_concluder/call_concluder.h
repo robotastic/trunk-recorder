@@ -32,6 +32,8 @@ struct Call_Data_t {
   double freq;
   long start_time;
   long stop_time;
+  long error_count;
+  long spike_count;
   bool encrypted;
   bool emergency;
   bool audio_archive;
@@ -53,6 +55,7 @@ struct Call_Data_t {
   bool phase2_tdma;
 
   std::vector<Call_Source> transmission_source_list;
+  std::vector<Call_Error> transmission_error_list;
   std::vector<Transmission> transmission_list;
 
   Call_Data_Status status;
