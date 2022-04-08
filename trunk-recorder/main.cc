@@ -261,12 +261,11 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels")) {
           double control_channel = sub_node.second.get<double>("", 0);
-
           BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channel);
-          system->add_control_channel(control_channel);
-          system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
-          BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
+          system->add_control_channel(control_channel); 
         }
+        system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
+        BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       } else {
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
         return false;
@@ -382,6 +381,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
       system->set_max_duration(node.second.get<double>("maxDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (in seconds): " << system->get_max_duration();
+      system->set_min_tx_duration(node.second.get<double>("minTransmissionDuration", 0));
+      BOOST_LOG_TRIVIAL(info) << "Minimum Transmission Duration (in seconds): " << system->get_min_tx_duration();
 
 
       if (!system->get_compress_wav()) {
@@ -941,8 +942,19 @@ void unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
   plugman_unit_group_affiliation(sys, source_id, talkgroup_num);
 }
 
+void unit_data_grant(System *sys, long source_id) {
+  plugman_unit_data_grant(sys, source_id);
+}
 
-void handle_call_grant(TrunkMessage message, System *sys) {
+void unit_answer_request(System *sys, long source_id, long talkgroup) {
+  plugman_unit_answer_request(sys, source_id, talkgroup);
+}
+
+void unit_location(System *sys, long source_id, long talkgroup_num) {
+  plugman_unit_location(sys, source_id, talkgroup_num);
+}
+
+void handle_call(TrunkMessage message, System *sys) {
   bool call_found = false;
   bool call_retune = false;
   bool recording_started = false;
@@ -1119,7 +1131,10 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       current_system_status(message, sys);
       break;
 
-    case LOCATION:        // currently not handling, TODO: expand plugin system to handle this
+    case LOCATION:
+      unit_location( sys, message.source, message.talkgroup);
+      break;
+    
     case ACKNOWLEDGE:
       unit_acknowledge_response( sys, message.source);
       break;
@@ -1130,6 +1145,15 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
     case PATCH_DELETE:
       sys->delete_talkgroup_patch(message.patch_data);
       break;
+
+    case DATA_GRANT:
+      unit_data_grant(sys, message.source);
+      break;
+
+    case UU_ANS_REQ:
+      unit_answer_request(sys, message.source, message.talkgroup);
+      break;
+
     case UNKNOWN:
       break;
     }
@@ -1270,7 +1294,23 @@ void monitor_messages() {
   while (1) {
 
     if (exit_flag) { // my action when signal set it 1
-      printf("\n Signal caught!\n");
+        BOOST_LOG_TRIVIAL(info) << "Caught Exit Signal...";
+        for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+         Call *call = *it;
+                  
+        if (call->get_state() != MONITORING) {
+          call->set_state(COMPLETED);
+          call->conclude_call();
+        }
+
+         it = calls.erase(it);
+         delete call;
+       }
+
+       BOOST_LOG_TRIVIAL(info) << "Cleaning up & Exiting...";
+
+       // Sleep for 5 seconds to allow for all of the Call Concluder threads to finish.
+       boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
       return;
     }
 
@@ -1297,6 +1337,10 @@ void monitor_messages() {
           trunk_messages = p25_parser->parse_message(msg);
           handle_message(trunk_messages, sys);
         }
+      }
+
+      if (msg->type() == -1) {
+        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t process_data_unit timeout";
       }
 
       msg.reset();
@@ -1563,7 +1607,7 @@ int main(int argc, char **argv) {
     logging::add_file_log(
         keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
         keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
-        keywords::rotation_size = 10 * 1024 * 1024,
+        keywords::rotation_size = 100 * 1024 * 1024,
         keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
         keywords::auto_flush = true);
   }

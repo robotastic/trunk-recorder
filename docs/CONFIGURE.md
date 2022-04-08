@@ -172,7 +172,7 @@ Here is a map of the different sections of the *config.json* file:
 | broadcastifySystemId   |          |                                | number                                                       | [*if broadcastifyCallsServer is set*] System ID for Broadcastify Calls <br />(this is an integer, and different from the RadioReference system ID) |
 | uploadScript           |          |                                | string                                                       | This is the filename of a script that is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. The script should be located in the same directory as the trunk-recorder executable. |
 | compressWav            |          | true                           | bool                                                         | Convert the recorded .wav file to an .m4a file. **This is required for both OpenMHz and Broadcastify!** The `sox` and `fdkaac` packages need to be installed for this command to work. |
-| unitScript             |          |                                | string                                                       | This is the filename of a script that runs when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), sends an acknowledgment response or transmits. Passed as parameters:  `shortName radioID on\|join\|off\|ackresp\|call`. On joins and transmissions, `talkgroup` is passed as a fourth parameter.  On joins and transmissions, `patchedTalkgroups`  (comma separated list of talkgroup IDs) is passed as a fifth parameter if the talkgroup is part of a patch on the system. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`). |
+| unitScript             |          |                                | string                                                       | This is the filename of a script that runs when a radio (unit) registers (is turned on), affiliates (joins a talk group), deregisters (is turned off), gets an acknowledgment response, transmits, gets a data channel grant, a unit-unit answer request or a Location Registration Response. Passed as parameters:  `shortName radioID on\|join\|off\|ackresp\|call\|data\|ans_req\|location`. On joins and transmissions, `talkgroup` is passed as a fourth parameter; on answer requests, the `source` is.  On joins and transmissions, `patchedTalkgroups`  (comma separated list of talkgroup IDs) is passed as a fifth parameter if the talkgroup is part of a patch on the system. See *examples/unit-script.sh* for a logging example. Note that for paths relative to recorder, this should start with `./`( or `../`). |
 | audioArchive           |          | true                           | **true** / **false**                                         | Should the recorded audio files be kept after successfully uploading them? |
 | transmissionArchive    |          | false                          | **true** / **false**                                         | Should each of the individual transmission be kept? These transmission are combined together with other recent ones to form a single call. |
 | callLog                |          | false                          | **true** / **false**                                         | Should a json file with the call details be kept after successful uploads? |
@@ -183,7 +183,8 @@ Here is a map of the different sections of the *config.json* file:
 | recordUnknown          |          | true                           | **true** / **false**                                         | Record talkgroups if they are not listed in the Talkgroups File. |
 | hideEncrypted          |          | false                          | **true** / **false**                                         | Hide encrypted talkgroups log entries                        |
 | hideUnknownTalkgroups  |          | false                          | **true** / **false**                                         | Hide unknown talkgroups log entries                          |
-| minDuration            |          | 0<br />(which is disabled)     | number                                                       | The minimum call (transmission) duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
+| minDuration            |          | 0<br />(which is disabled)     | number                                                       | The minimum call duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
+| minTransmissionDuration|          | 0<br />(which is disabled)     | number                                                       | The minimum transmission duration in seconds (decimals allowed), transmissions below this number will not be added to their corresponding call. |
 | talkgroupDisplayFormat |          | "id"                           | **"id" "id_tag"** or **"tag_id"**                            | The display format for talkgroups in the console and log file. (*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified) |
 | bandplan               |          | "800_standard"                 | **"800_standard" "800_reband" "800_splinter"** or **"400_custom"** | [SmartNet only] this is the SmartNet bandplan that will be used. |
 | bandplanBase           |          |                                | number                                                       | [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz. |
@@ -280,7 +281,7 @@ This example will stream audio from talkgroup 58914 on system "CountyTrunked" to
             "address":"127.0.0.1",
             "port":9123,
             "sendTGID":false,
-	    "shortName":"CountyTrunked"}
+            "shortName":"CountyTrunked"}
         }
 ```
 
@@ -295,12 +296,12 @@ This example will stream audio from talkgroup 58914 from System CountyTrunked to
             "address":"127.0.0.1",
             "port":9123,
             "sendTGID":false,
-	    "shortName":"CountyTrunked"},
+            "shortName":"CountyTrunked"},
            {"TGID":58916,
             "address":"127.0.0.1",
             "port":9124,
             "sendTGID":false,
-	    "shortName":"StateTrunked"}
+            "shortName":"StateTrunked"}
           ]}
         }
 ```
@@ -334,7 +335,7 @@ This example will stream audio from all talkgroups being recorded on System Coun
             "address":"127.0.0.1",
             "port":9123,
             "sendTGID":true,
-	    "shortName":"CountyTrunked"}
+            "shortName":"CountyTrunked"}
         }
 ```
 ##### Example - Sending Audio to pulseaudio
@@ -358,8 +359,8 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
             "address":"127.0.0.1",
             "port":9125,
             "sendTGID":true,
-	    "shortName":"CountyTrunked",
-	    "useTCP":true}
+            "shortName":"CountyTrunked",
+            "useTCP":true}
         }
 ```
 
