@@ -281,7 +281,7 @@ void plugman_unit_answer_request(System *system, long source_id, long talkgroup)
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     if (plugin->state == PLUGIN_RUNNING) {
-      plugin->api->unit_data_grant(system, source_id), talkgroup;
+      plugin->api->unit_answer_request(system, source_id, talkgroup);
     }
   }
 }

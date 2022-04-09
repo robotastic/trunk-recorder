@@ -149,7 +149,6 @@ debug_recorder::debug_recorder(Source *src, std::string address, int port)
   config = source->get_config();
   input_rate = source->get_rate();
   talkgroup = 0;
-  port = port;
 
   state = INACTIVE;
 

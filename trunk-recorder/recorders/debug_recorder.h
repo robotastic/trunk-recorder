@@ -103,16 +103,13 @@ public:
 private:
   double chan_freq;
   double center_freq;
-  bool qpsk_mod;
-  int silence_frames;
   long talkgroup;
-  int port;
   time_t timestamp;
   time_t starttime;
 
   Config *config;
   Source *source;
-  char filename[160];
+
   //int num;
   State state;
 
@@ -120,7 +117,7 @@ private:
   double arb_rate;
   double samples_per_symbol;
   double symbol_rate;
-  double initial_rate;
+
   long decim;
   double resampled_rate;
   bool double_decim;
@@ -128,9 +125,7 @@ private:
   long if2;
   long input_rate;
   const int phase1_samples_per_symbol = 5;
-  const int phase2_samples_per_symbol = 4;
   const double phase1_symbol_rate = 4800;
-  const double phase2_symbol_rate = 6000;
 
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;

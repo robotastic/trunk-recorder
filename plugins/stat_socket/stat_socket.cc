@@ -510,7 +510,6 @@ public:
 
  int parse_config(boost::property_tree::ptree &cfg ){ return 0; }
    int stop() { return 0; }
-   int audio_stream(Recorder *recorder, float *samples, int sampleCount) { return 0; }
    int setup_sources(std::vector<Source *> sources) { return 0; }
 
 };

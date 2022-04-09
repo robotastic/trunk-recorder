@@ -162,8 +162,6 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     std::string shell_command_string;
     std::string files;
 
-    int filename_length;
-
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);

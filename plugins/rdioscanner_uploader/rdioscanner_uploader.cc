@@ -50,7 +50,6 @@ public:
     std::string talkgroup_alpha_tag = call_info.talkgroup_alpha_tag;
     std::string talkgroup_description = call_info.talkgroup_description;
     bool compress_wav = false;
-    Talkgroup *tg;
     Rdio_Scanner_System *sys = get_system(call_info.short_name);
 
     if (call_info.encrypted) {
@@ -93,7 +92,6 @@ public:
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    time_t start_time = call_info.start_time;
 
     if (call_info.transmission_source_list.size() != 0) {
       for (int i = 0; i < call_info.transmission_source_list.size(); i++) {

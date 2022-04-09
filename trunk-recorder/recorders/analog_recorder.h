@@ -112,7 +112,6 @@ private:
   double squelch_db;
   time_t timestamp;
   time_t starttime;
-  char filename[160];
 
   State state;
   std::vector<float> inital_lpf_taps;

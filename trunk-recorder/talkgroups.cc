@@ -137,7 +137,6 @@ void Talkgroups::load_channels(std::string filename) {
 
   int lines_read = 0;
   int lines_pushed = 0;
-  int priority = 1;
 
   while (!safeGetline(in, line).eof()) // this works with \r, \n, or \r\n
   {

@@ -145,9 +145,6 @@ bool transmission_sink::start_recording(Call *call) {
 }
 
 bool transmission_sink::open_internal(const char *filename) {
-  int d_first_sample_pos;
-  unsigned d_samples_per_chan;
-
   // we use the open system call to get access to the O_LARGEFILE flag.
   //  O_APPEND|
   int fd;
@@ -315,8 +312,6 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if ((state == STOPPED) || (state == AVAILABLE)) {
     if (noutput_items > 1) {
-      time_t now = time(NULL);
-      double its_been = difftime(now, d_stop_time);
       char formattedTalkgroup[62];
       snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
       std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);

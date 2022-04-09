@@ -209,7 +209,6 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
 
 std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac, int sys_num) {
   // self.stats['tsbks'] += 1
-  long updated = 0;
   std::vector<TrunkMessage> messages;
   TrunkMessage message;
   std::ostringstream os;
@@ -323,13 +322,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long f1 = channel_id_to_frequency(ch1, sys_num);
       unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
 
-      if (f1) {
-        updated += 1;
-      }
-
-      if (f2) {
-        updated += 1;
-      }
       message.message_type = UPDATE;
       message.freq = f1;
       message.talkgroup = ga1;
@@ -658,14 +650,14 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x30) {
       unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
       if (mfrid == 0xA4) { // GRG_EXENC_CMD (M/A-COM patch)
-        unsigned long grg_t = bitset_shift_mask(tsbk, 79, 0x1);
+        //unsigned long grg_t = bitset_shift_mask(tsbk, 79, 0x1);
         unsigned long grg_g = bitset_shift_mask(tsbk, 28, 0x1);
         unsigned long grg_a = bitset_shift_mask(tsbk, 77, 0x01);
-        unsigned long grg_ssn = bitset_shift_mask(tsbk, 72, 0x1f);  //TODO: SSN should be stored and checked
+        //unsigned long grg_ssn = bitset_shift_mask(tsbk, 72, 0x1f);  //TODO: SSN should be stored and checked
         unsigned long sg = bitset_shift_mask(tsbk, 56, 0xffff);
-        unsigned long keyid = bitset_shift_mask(tsbk, 40, 0xffff);
+        //unsigned long keyid = bitset_shift_mask(tsbk, 40, 0xffff);
         unsigned long rta = bitset_shift_mask(tsbk, 16, 0xffffff);
-        unsigned long algid = (rta >> 16) & 0xff; 
+        //unsigned long algid = (rta >> 16) & 0xff; 
         unsigned long ga =  rta & 0xffff;  
         if (grg_a == 1){ // Activate
           if (grg_g == 1){ // Group request

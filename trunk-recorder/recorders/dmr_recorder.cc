@@ -219,22 +219,12 @@ void dmr_recorder::initialize(Source *src) {
   //OP25 Frame Assembler
   traffic_queue = gr::msg_queue::make(2);
   rx_queue = gr::msg_queue::make(100);
-
-  int udp_port = 0;
   int verbosity = 0; // 10 = lots of debug messages
-  const char *udp_host = "127.0.0.1";
-  bool do_imbe = 1;
-  bool do_output = 1;
-  bool do_msgq = 0;
-  bool do_audio_output = 1;
-  bool do_tdma = 1;
-  bool do_nocrypt = 1;
 
   framer = gr::op25_repeater::frame_assembler::make(0,"file:///tmp/out1.raw", verbosity, 1, rx_queue);
   //op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
   levels = gr::blocks::multiply_const_ff::make(1);
   plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
-
 
 
   // Squelch DB
@@ -244,8 +234,6 @@ void dmr_recorder::initialize(Source *src) {
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
-
-
 
   connect(cutoff_filter, 0, squelch, 0);
   connect(squelch, 0, pll_freq_lock, 0);

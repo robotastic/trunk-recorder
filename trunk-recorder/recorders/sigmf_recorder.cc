@@ -115,7 +115,6 @@ bool sigmf_recorder::start(Call *call) {
     timestamp = time(NULL);
     starttime = time(NULL);
     int nchars;
-    time_t now = time(NULL);
     tm *ltm = localtime(&starttime);
 
     talkgroup = call->get_talkgroup();

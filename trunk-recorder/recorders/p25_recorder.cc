@@ -86,7 +86,6 @@ p25_recorder::DecimSettings p25_recorder::get_decim(long speed) {
 }
 void p25_recorder::initialize_prefilter() {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
   long fa = 0;
   long fb = 0;
@@ -158,7 +157,6 @@ void p25_recorder::initialize(Source *src) {
   qpsk_mod = true;
   silence_frames = source->get_silence_frames();
   squelch_db = 0;
-
   talkgroup = 0;
   d_phase2_tdma = false;
   rec_num = rec_counter++;
@@ -207,9 +205,6 @@ void p25_recorder::switch_tdma(bool phase2) {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
-  double omega;
-  double fmax;
-  const double pi = M_PI;
 
   if (phase2) {
     d_phase2_tdma = true;
