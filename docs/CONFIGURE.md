@@ -26,31 +26,31 @@ The amount of tuning error is -14500Hz, so that would go under **error:** for th
 
 **NOTE:** In some instances, an alternative is to use `ppm` correction rather than the `error` configuration option.
 
-Alternatively, you can use this tool here: http://garvas.org/trunk-recorder/ to obtain RTL-SDR dongle/array configurations.
+Alternatively, you can use this tool here: http://garvas.org/trunk-recorder/ to obtain RTL-SDR dongle/array configurations. 
 
 ### Gain
 
-After you have figured out the amount of tuning error, you now need to find the optimal amount of receiver gain to use.
+After you have figured out the amount of tuning error, you now need to find the optimal amount of receiver gain to use. 
 
-Gain is a measure of how much amplification is required for the received signal, and on some SDRs, there are multiple places along the receive path where a signal can be amplified.
+Gain is a measure of how much amplification is required for the received signal, and on some SDRs, there are multiple places along the receive path where a signal can be amplified. 
 
-If there is not enough gain, the signal will not be strong enough to decode, and Trunk-Recorder will fail to lock to the control channel. If there is too much gain, it can distort the signal, there is also the chance you might be causing harm to your SDR reception device. Setting the gain too high will result in amplification of the background RF and create noise.
+If there is not enough gain, the signal will not be strong enough to decode, and Trunk-Recorder will fail to lock to the control channel. If there is too much gain, it can distort the signal, there is also the chance you might be causing harm to your SDR reception device. Setting the gain too high will result in amplification of the background RF and create noise. 
 
-Generally, you can mess around with the gain slider in GQRX until the signal looks well defined and there isn't too much noise. If it is impossible to get a well-defined signal, it could be a sign that you have one or more issues: a better antenna that is tuned to the needed frequency range, moving the antenna to a new location, or using a different SDR device. There could also be some strong interference nearby, which can introduce a lot of background noise making it tough to distinguish the signal. Various computer hardware, poorly grounded hardware, and cheaply made USB hubs can be notorious for producing RF noise across the entire spectrum.
+Generally, you can mess around with the gain slider in GQRX until the signal looks well defined and there isn't too much noise. If it is impossible to get a well-defined signal, it could be a sign that you have one or more issues: a better antenna that is tuned to the needed frequency range, moving the antenna to a new location, or using a different SDR device. There could also be some strong interference nearby, which can introduce a lot of background noise making it tough to distinguish the signal. Various computer hardware, poorly grounded hardware, and cheaply made USB hubs can be notorious for producing RF noise across the entire spectrum. 
 
 Once you find the correct gain settings, use them for this source in the `config.json` file.
 
 ### Center Frequency
-When you set the center frequency for a source, **you are picking the frequency that will be in the _middle_ of the block of spectrum that you are recording**. Half of the bandwidth for the device will be above that frequency and the other half below.
+When you set the center frequency for a source, **you are picking the frequency that will be in the _middle_ of the block of spectrum that you are recording**. Half of the bandwidth for the device will be above that frequency and the other half below. 
 
-For example, if you are using a HackRF, with 8MHz of bandwidth, and you tune the center frequency to 854MHz, it would cover from 850.0MHz to 858.0MHz.
+For example, if you are using a HackRF, with 8MHz of bandwidth, and you tune the center frequency to 854MHz, it would cover from 850.0MHz to 858.0MHz. 
 
 To find your ideal center frequency, look at what the lowest frequency you want to cover is and what the highest is. You need to need to be able cover slightly beyond the frequncy of a channel. This is because the frequency is for the center of the channel and the actual channel is wider and a bit of filtering is done to receive it. The sample rate should be higher than the difference between the low and high frequency. Most SDRs do not perform as well right at the beginnging and end of the frequency range they are set to. It is best to set a slightly higher sample rate than needed, to avoid those spots. Also, some SDRs have some artifacts right at there center frequency, so ensure that center frequency doesn't land on the frequency of a channel you are trying to record.
 
 ### Multiple Sources
-If the low frequency and high frequency of the system you are trying to capture is greater than the amount of bandwidth your SDR can capture, you need to use multiple SDRs.
+If the low frequency and high frequency of the system you are trying to capture is greater than the amount of bandwidth your SDR can capture, you need to use multiple SDRs. 
 
-In addition to being able to use a cheaper SDR, it also helps with general performance of the devices. When a single SDR is used, each of the Recorders gets fed all of the sampled signals. Each Recorder needs to cut down the multi-mega samples per second into a small 12.5Khz or even 6.25Khz(!) slivers.
+In addition to being able to use a cheaper SDR, it also helps with general performance of the devices. When a single SDR is used, each of the Recorders gets fed all of the sampled signals. Each Recorder needs to cut down the multi-mega samples per second into a small 12.5Khz or even 6.25Khz(!) slivers. 
 
 When you use multiple SDRs, each SDR is capturing only a partial slice of the system so the recorders have to cut down a much smaller amount of sample to get to the sliver they are interested in. This ultimately denotes that you can have a lot more recorders running!
 
@@ -91,11 +91,11 @@ Here is a map of the different sections of the *config.json* file:
 
 ```json
 {
-  Global Configs
-
-  "sources": [{ Source Object }, { Source Object }],
-  "systems": [{ System Object }, { System Object }],
-  "plugins": [{ Plugin Object }]
+	Global Configs
+	
+	"sources": [{ Source Object }, { Source Object }],
+	"systems": [{ System Object }, { System Object }],
+	"plugins": [{ Plugin Object }]
 }
 ```
 
@@ -103,30 +103,30 @@ Here is a map of the different sections of the *config.json* file:
 
 ### Global Configs
 
-| Key                          | Required | Default Value     | Type                                                        | Description                                                  |
+| Key                     | Required | Default Value     | Type                                                        | Description                                                  |
 | ---------------------------- | :------: | ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
-| ver                          |    ✓     |                   | number                                                      | the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. |
-| sources                      |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Source Objects](#source-object) that define the different SDRs available. Source Objects are described below. |
-| systems                      |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [System Objects](#system-object) that define the trunking systems that will be recorded. System Objects are described below. |
-| plugins                      |          |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Plugin Objects](#plugin-object) that define the different plugins to use. Refer to the [Plugin System](notes/PLUGIN-SYSTEM.md) documentation for more details. |
-| defaultMode                  |          | "digital"         | **"analog"** or **"digital"**                               | Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects `smartnet` trunking systems which can have both analog and digital talkpaths. |
-| captureDir                   |          | current directory | string                                                      | The complete path to the directory where recordings should be saved. |
-| callTimeout                  |          | 3                 | number                                                      | A Call will stop recording and save if it has not received anything on the control channel, after this many seconds. |
-| uploadServer                 |          |                   | string                                                      | The URL for uploading to OpenMHz. The default is an empty string. See the Config tab for your system in OpenMHz to find what the value should be. |
-| broadcastifyCallsServer      |          |                   | string                                                      | The URL for uploading to Broadcastify Calls. The default is an empty string. Refer to [Broadcastify's wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-API) for the upload URL. |
+| ver                     |    ✓     |                   | number                                                      | the version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. |
+| sources                 |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Source Objects](#source-object) that define the different SDRs available. Source Objects are described below. |
+| systems                 |    ✓     |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [System Objects](#system-object) that define the trunking systems that will be recorded. System Objects are described below. |
+| plugins                 |          |                   | array of JSON objects<br />[{}]                             | An array of JSON formatted [Plugin Objects](#plugin-object) that define the different plugins to use. Refer to the [Plugin System](notes/PLUGIN-SYSTEM.md) documentation for more details. |
+| defaultMode             |          | "digital"         | **"analog"** or **"digital"**                               | Default mode to use when a talkgroups is not listed in the **talkgroupsFile**. The options are *digital* or *analog*. The default is *digital*. This argument is global and not system-specific, and only affects `smartnet` trunking systems which can have both analog and digital talkpaths. |
+| captureDir              |          | current directory | string                                                      | The complete path to the directory where recordings should be saved. |
+| callTimeout             |          | 3                 | number                                                      | A Call will stop recording and save if it has not received anything on the control channel, after this many seconds. |
+| uploadServer            |          |                   | string                                                      | The URL for uploading to OpenMHz. The default is an empty string. See the Config tab for your system in OpenMHz to find what the value should be. |
+| broadcastifyCallsServer |          |                   | string                                                      | The URL for uploading to Broadcastify Calls. The default is an empty string. Refer to [Broadcastify's wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-API) for the upload URL. |
 | broadcastifySslVerifyDisable |          | false             | **true** / **false**                                        | Optionally disable SSL verification for Broadcastify uploads, given their apparent habit of letting their SSL certificate expire |
-|                              |          |                   |                                                             |                                                              |
-| logFile                      |          | false             | **true** / **false**                                        | Save the console output to a file.                           |
-| frequencyFormat              |          | "exp"             | **"exp" "mhz"** or **"hz"**                                 | the display format for frequencies to display in the console and log file. |
-| controlWarnRate              |          | 10                | number                                                      | Log the control channel decode rate when it falls bellow this threshold. The value of *-1* will always log the decode rate. |
-| statusAsString               |          | true              | **true** / **false**                                        | Show status as strings instead of numeric values             |
-| statusServer                 |          |                   | string                                                      | The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](./notes/STATUS-JSON.md) |
-| broadcastSignals             |          | true              | **true** / **false**                                        | Broadcast decoded signals to the status server.              |
-| logLevel                     |          | "info"            | **"trace" "debug" "info" "warning" "error"** or **"fatal"** | the logging level to display in the console and log file. The options are *trace*, *debug*, *info*, *warning*, *error* & *fatal*. The default is *info*. |
-| debugRecorder                |          | true              | **true** / **false**                                        | Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion |
-| debugRecorderPort            |          | 1234              | number                                                      | The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. |
-| debugRecorderAddress         |          | "127.0.0.1"       | string                                                      | The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder. |
-| audioStreaming               |          |     false         | **true** / **false**                                        | whether or not to enable the audio streaming callbacks for plugins. |
+| logFile                 |          | false             | **true** / **false**                                        | Save the console output to a file.                           |
+| logDir                  |          | logs/             | string                                                      | Where the console output logs should be put                  |
+| frequencyFormat         |          | "exp"             | **"exp" "mhz"** or **"hz"**                                 | the display format for frequencies to display in the console and log file. |
+| controlWarnRate         |          | 10                | number                                                      | Log the control channel decode rate when it falls bellow this threshold. The value of *-1* will always log the decode rate. |
+| statusAsString          |          | true              | **true** / **false**                                        | Show status as strings instead of numeric values             |
+| statusServer            |          |                   | string                                                      | The URL for a WebSocket connect. Trunk Recorder will send JSON formatted update message to this address. HTTPS is currently not supported, but will be in the future. OpenMHz does not support this currently. [JSON format of messages](./notes/STATUS-JSON.md) |
+| broadcastSignals        |          | true              | **true** / **false**                                        | Broadcast decoded signals to the status server.              |
+| logLevel                |          | "info"            | **"trace" "debug" "info" "warning" "error"** or **"fatal"** | the logging level to display in the console and log file. The options are *trace*, *debug*, *info*, *warning*, *error* & *fatal*. The default is *info*. |
+| debugRecorder           |          | true              | **true** / **false**                                        | Will attach a debug recorder to each Source. The debug recorder will allow you to examine the channel of a call be recorded. There is a single Recorder per Source. It will monitor a recording and when it is done, it will monitor the next recording started. The information is sent over a network connection and can be viewed using the `udp-debug.grc` graph in GnuRadio Companion |
+| debugRecorderPort       |          | 1234              | number                                                      | The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. |
+| debugRecorderAddress    |          | "127.0.0.1"       | string                                                      | The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder. |
+| audioStreaming          |          |     false         | **true** / **false**                                        | whether or not to enable the audio streaming callbacks for plugins. |
 
 
 
@@ -259,9 +259,9 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 **Name:** simplestream
 **Library:** libsimplestream.so
 
-This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.  
 
-This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.
+This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
 
 **NOTE 1: In order for this plugin to work, the audioStreaming option in the Global Configs section (see above) must be set to true.**
 
@@ -279,11 +279,11 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | port      |    ✓     |               | number | UDP or TCP port that this stream will send audio to. |
 | TGID      |    ✓     |               | number | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
 | sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
-| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.
+| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.  
 |  useTCP   |        |   false     |boolean | When set to true, TCP will be used instead of UDP.
 
 ###### Plugin Object Example #1:
-This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.
+This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.  
 ```yaml
         {
           "name":"simplestream",
@@ -399,7 +399,7 @@ Here are the column headers and some sample data: NOTE: If you are adding the Pr
 
 ## channelFile
 
-This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A *Conventional* system would have Analog Recorders, while a *ConventionalP25* or *ConventionalDMR* would have digital recorders.
+This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A *Conventional* system would have Analog Recorders, while a *ConventionalP25* or *ConventionalDMR* would have digital recorders. 
 
 *Tone based squelch is currently not supported.*
 
