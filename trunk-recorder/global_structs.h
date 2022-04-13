@@ -35,6 +35,7 @@ struct Config {
   int control_retune_limit;
   bool broadcast_signals;
   bool enable_audio_streaming;
+  bool record_uu_v_calls;
 };
 
 

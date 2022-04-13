@@ -181,7 +181,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     unsigned long sa = bitset_shift_mask(header, 48, 0xffffff);
     unsigned long ta = bitset_shift_mask(mbt_data, 24, 0xffffff);
 
-    message.message_type = GRANT;
+    message.message_type = UU_V_GRANT;
     message.freq = f;
     message.talkgroup = ta;
     message.source = sa;
@@ -448,7 +448,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
     unsigned long ta = bitset_shift_mask(tsbk, 40, 0xffffff);
 
-    message.message_type = GRANT;
+    message.message_type = UU_V_GRANT;
     message.freq = f;
     message.talkgroup = ta;
     message.source = sa;
@@ -499,7 +499,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
     unsigned long ta = bitset_shift_mask(tsbk, 40, 0xffffff);
 
-    message.message_type = UPDATE;
+    message.message_type = UU_V_UPDATE;
     message.freq = f;
     message.talkgroup = ta;
     message.source = sa;
