@@ -118,7 +118,6 @@ public:
 
 private:
   double center, freq;
-  bool qpsk_mod;
   int silence_frames;
   long talkgroup;
   time_t timestamp;

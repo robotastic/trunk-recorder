@@ -66,14 +66,13 @@ transmission_sink::transmission_sink(
                  io_signature::make(1, n_channels, sizeof(int16_t)),
                  io_signature::make(0, 0, 0)),
       d_sample_rate(sample_rate), d_nchans(n_channels),
-      d_fp(0), d_current_call(NULL) {
+      d_current_call(NULL), d_fp(0) {
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
   d_bytes_per_sample = bits_per_sample / 8;
   d_sample_count = 0;
   d_slot = -1;
-  d_first_work = true;
   d_termination_flag = false;
   state = AVAILABLE;
 }
@@ -124,13 +123,14 @@ bool transmission_sink::start_recording(Call *call) {
   d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
   d_prior_transmission_length = 0;
+  d_error_count = 0;
+  d_spike_count = 0;
   record_more_transmissions = true;
 
   this->clear_transmission_list();
   d_conventional = call->is_conventional();
   curr_src_id = d_current_call->get_current_source_id();
   d_sample_count = 0;
-  d_first_work = true;
 
   // when a wav_sink first gets associated with a call, set its lifecycle to idle;
   state = IDLE;
@@ -139,15 +139,12 @@ bool transmission_sink::start_recording(Call *call) {
   char formattedTalkgroup[62];
   snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
   std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-  BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink SRC ID: " << curr_src_id;
+  BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink SRC ID: " << curr_src_id;
 
   return true;
 }
 
 bool transmission_sink::open_internal(const char *filename) {
-  int d_first_sample_pos;
-  unsigned d_samples_per_chan;
-
   // we use the open system call to get access to the O_LARGEFILE flag.
   //  O_APPEND|
   int fd;
@@ -179,7 +176,6 @@ bool transmission_sink::open_internal(const char *filename) {
   }
 
   d_sample_count = 0;
-  d_first_work = true;
 
   if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
     fprintf(stderr, "[%s] could not write to WAV file\n", __FILE__);
@@ -227,7 +223,6 @@ void transmission_sink::set_source(long src) {
         state = STOPPED;
       } else {
         state = IDLE;
-        d_first_work = true;
       }*/
     }
     curr_src_id = src;
@@ -247,13 +242,17 @@ void transmission_sink::end_transmission() {
     transmission.start_time = d_start_time; // Start time of the Call
     transmission.stop_time = d_stop_time;   // when the Call eneded
     transmission.sample_count = d_sample_count;
+    transmission.spike_count = d_spike_count;
+    transmission.error_count = d_error_count;
     transmission.length = length_in_seconds();       // length in seconds
     d_prior_transmission_length = d_prior_transmission_length + transmission.length;
     strcpy(transmission.filename, current_filename); // Copy the filename
     strcpy(transmission.base_filename, current_base_filename);
     this->add_transmission(transmission);
+
     d_sample_count = 0;
-    d_first_work = true;
+    d_error_count = 0;
+    d_spike_count = 0;
     curr_src_id = -1;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but the sample_count is 0" << std::endl;
@@ -271,7 +270,6 @@ void transmission_sink::stop_recording() {
     BOOST_LOG_TRIVIAL(trace) << "stop_recording() - stopping wavfile sink but recorder state is: " << state << std::endl;
   }
   d_current_call = NULL;
-  d_first_work = true;
   d_termination_flag = false;
   state = AVAILABLE;
 }
@@ -314,12 +312,10 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if ((state == STOPPED) || (state == AVAILABLE)) {
     if (noutput_items > 1) {
-      time_t now = time(NULL);
-      double its_been = difftime(now, d_stop_time);
       char formattedTalkgroup[62];
       snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
       std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping samples - Recorder state is: " << format_state(this->state);
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - Recorder state is: " << format_state(this->state);
 
       //BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
@@ -327,8 +323,10 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   }
 
   std::vector<gr::tag_t> tags;
-  pmt::pmt_t this_key(pmt::intern("src_id"));
-  pmt::pmt_t that_key(pmt::intern("terminate"));
+  pmt::pmt_t src_id_key(pmt::intern("src_id"));
+  pmt::pmt_t terminate_key(pmt::intern("terminate"));
+  pmt::pmt_t spike_count_key(pmt::intern("spike_count"));
+  pmt::pmt_t error_count_key(pmt::intern("error_count"));
   //pmt::pmt_t squelch_key(pmt::intern("squelch_eob"));
   //get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
   get_tags_in_window(tags, 0, 0, noutput_items);
@@ -337,7 +335,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
   for (unsigned int i = 0; i < tags.size(); i++) {
     //BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
-    if (pmt::eq(this_key, tags[i].key)) {
+    if (pmt::eq(src_id_key, tags[i].key)) {
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
 
@@ -360,18 +358,16 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
             state = STOPPED;
           } else {
             state = IDLE;
-            d_first_work = true;
           }*/
           
           curr_src_id = src_id;
         }
         //BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
         
-
       }
-
+        
     }
-    if (pmt::eq(that_key, tags[i].key)) {
+    if (pmt::eq(terminate_key, tags[i].key)) {
       d_termination_flag = true;
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
       char formattedTalkgroup[62];
@@ -382,6 +378,26 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
         
         
       //BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
+    }
+
+    // Only process Spike and Error Count tags if the sink is currently recording
+    if (state == RECORDING) {
+      if (pmt::eq(spike_count_key, tags[i].key)) {
+        d_spike_count = pmt::to_long(tags[i].value);
+          char formattedTalkgroup[62];
+          snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+          std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+          
+          BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tSpike Count: " << d_spike_count << " pos: " << pos << " offset: " << tags[i].offset;
+      }
+      if (pmt::eq(error_count_key, tags[i].key)) {
+        d_error_count = pmt::to_long(tags[i].value);
+          char formattedTalkgroup[62];
+          snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+          std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+          
+          BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tError Count: " << d_error_count << " pos: " << pos << " offset: " << tags[i].offset;
+      }
     }
   }
   tags.clear();
@@ -406,14 +422,18 @@ void transmission_sink::add_transmission(Transmission t) {
 }
 
 void transmission_sink::set_record_more_transmissions(bool more) {
-  // If a Recorder is STOPPED and record_more is false, prep it so it is ready to go.
+  if (record_more_transmissions != more) {
+    BOOST_LOG_TRIVIAL(trace) << "wav - setting record_more to: " << more << ", State: " << format_state(state) << " sample count: " << d_sample_count;
+  }
+  // If a Recorder is STOPPED and record_more_transmissions is false, prep it so it is ready to go.
   if ((record_more_transmissions == false) && (more == true) && (state == STOPPED)) {
-    //BOOST_LOG_TRIVIAL(info) << "wav - setting record_more to true, sample count: " << d_sample_count;
     d_sample_count = 0;
-    d_first_work = true;
     state = IDLE;
   }
+
+
   record_more_transmissions = more;
+  
 }
 
 void transmission_sink::clear_transmission_list() {
@@ -428,51 +448,64 @@ std::vector<Transmission> transmission_sink::get_transmission_list() {
 int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
   // block
   int n_in_chans = input_items.size();
-  short int sample_buf_s;
-  int nwritten;
+  int16_t sample_buf_s;
+  int nwritten=0;
 
   // A Termination Tag was receive
   if (d_termination_flag) {
+      d_termination_flag = false;
+
+      char formattedTalkgroup[62];
+      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
     if (d_current_call == NULL) {
       BOOST_LOG_TRIVIAL(error) << "wav - no current call, but in temination loop";
       state = STOPPED;
+      
       return noutput_items;
     }
 
     if (d_sample_count > 0) {
-      end_transmission();
-    }
+        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
+        
+        end_transmission();
 
-    // Check to see if we have started a Transmission yet
-    // A Terminator with any Transmission started shouldn't do anything... right?
-    //if (d_first_work == false) {
-      // Another GRANT message has arrived.
+
+
+      // If it is a conventional call or an UPDATE or GRANT message has been received recently, 
+      // then set it in IDLE state, which allows a new transmission to start.
       if (d_conventional || (record_more_transmissions == true)) {
         state = IDLE;
-        d_first_work = true;
       } else {
-        char formattedTalkgroup[62];
-        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-        
-        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder state to STOPPED - count: " << d_sample_count;
-        //BOOST_LOG_TRIVIAL(trace) << "Call completed - putting recorder into state Completed - we had samples";
-        
         state = STOPPED;
       } 
-    //}
+    
+      if (noutput_items > 1) {
+          char formattedTalkgroup[62];
+        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);      
+        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped: " << noutput_items;
 
-
-    d_termination_flag = false;
-
+      }
+    }
+    // In order to actually transmit the Tag, you need to attach it to a sample. An empty sample is used and it should be discarded.
     return noutput_items;
   }
 
-  if (d_first_work) {
+
+
+  if (state == IDLE) {
+    if (!record_more_transmissions) {
+      char formattedTalkgroup[62];
+      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+      
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tWAV - Weird! State was IDLE but record_more_transmissions was FALSE - count: " << d_sample_count;
+    }
     if (d_fp) {
       // if we are already recording a file for this call, close it before starting a new one.
-      BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but d_first_work was true:  " << current_filename << std::endl;
+      BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but STATE was IDLE:  " << current_filename << std::endl;
 
       close_wav(false);
     }
@@ -495,11 +528,11 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
+    BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
 
     //curr_src_id = d_current_call->get_current_source_id();
     record_more_transmissions = false;
-    d_first_work = false;
+    state = RECORDING;
   }
 
   if (!d_fp) // drop output on the floor
@@ -508,28 +541,32 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     return noutput_items;
   }
 
-  for (nwritten = 0; nwritten < noutput_items; nwritten++) {
-    for (int chan = 0; chan < d_nchans; chan++) {
-      // Write zeros to channels which are in the WAV file
-      // but don't have any inputs here
-      if (chan < n_in_chans) {
-          int16_t **in = (int16_t **)&input_items[0];
-          sample_buf_s = in[chan][nwritten];
-      } else {
-        sample_buf_s = 0;
+  if (state == RECORDING) {
+    for (nwritten = 0; nwritten < noutput_items; nwritten++) {
+      for (int chan = 0; chan < d_nchans; chan++) {
+        // Write zeros to channels which are in the WAV file
+        // but don't have any inputs here
+        if (chan < n_in_chans) {
+            int16_t **in = (int16_t **)&input_items[0];
+            sample_buf_s = in[chan][nwritten];
+        } else {
+          sample_buf_s = 0;
+        }
+
+        wav_write_sample(d_fp, sample_buf_s, d_bytes_per_sample);
+
+        d_sample_count++;
       }
-
-      wav_write_sample(d_fp, sample_buf_s, d_bytes_per_sample);
-
-      d_sample_count++;
     }
   }
 
-  if (nwritten > 0) {
-    state = RECORDING;
+  if (nwritten < noutput_items) {
+    char formattedTalkgroup[62];
+      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);      
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tFailed to Write! Wrote: " << nwritten << " of " << noutput_items;
   }
-  // fflush (d_fp);  // this is added so unbuffered content is written.
-  return nwritten;
+  return noutput_items;
 }
 
 void transmission_sink::set_bits_per_sample(int bits_per_sample) {

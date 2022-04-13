@@ -41,11 +41,6 @@ namespace gr {
 		class tps_decoder_sink_impl : public tps_decoder_sink
 		{
 		private:
-            const int phase1_samples_per_symbol = 5;
-            const int phase2_samples_per_symbol = 4;
-            const double phase1_symbol_rate = 4800;
-            const double phase2_symbol_rate = 6000;
-
             int d_src_num;
             decoder_callback d_callback;
 

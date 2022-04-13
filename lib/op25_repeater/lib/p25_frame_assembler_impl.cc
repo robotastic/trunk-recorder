@@ -150,15 +150,6 @@ p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_inpu
    std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
 }
 
-
-    void p25_frame_assembler_impl::reset_rx_status() {
-      p1fdma.reset_rx_status();
-    }
-
-    Rx_Status p25_frame_assembler_impl::get_rx_status() {
-      return p1fdma.get_rx_status();
-    }
-
     void p25_frame_assembler_impl::clear() {
       p1fdma.clear();
     }
@@ -202,38 +193,44 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
         BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
           
+        // output_queue.size() is the number of samples that were actually generated
+        // amt_produce just defaults to the standard amount expected for the block  
         if (amt_produce > (int)output_queue.size()) {
           amt_produce = output_queue.size();
-        }
+        } 
+
 
         if (amt_produce > 0) {
           long src_id = p1fdma.get_curr_src_id();
 
-          if (src_id) {
-            // fprintf(stderr,  "tagging source: %ld at %lu\n", src_id,
-            //  nitems_written(0));
+          // If a SRC wasn't received on the voice channel since the last check, it will be -1
+          if (src_id > 0) {
             add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
           }
-
+          
           for (int i = 0; i < amt_produce; i++) {
             out[i] = output_queue[i];
           }
           output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
 
-          /*
-            if (amt_produce < noutput_items) {
-            std::fill(out + amt_produce, out + noutput_items, 0);
-            amt_produce = noutput_items;
-            }*/
+
           BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
           silence_frame_count = d_silence_frames;
         } else {
-
-          if (terminate_call) {
-            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src);
-            std::fill(out, out + 1, 0);
-            amt_produce = 1;
-            //BOOST_LOG_TRIVIAL(info) << "Call Terminated, NO amount produced: " << amt_produce << " SRC: " << p1fdma.get_curr_src_id() << " n written " << nitems_written(0);
+            if (terminate_call) {
+            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
+            
+            Rx_Status status = p1fdma.get_rx_status();
+            
+            // If something was recorded, send the number of Errors and Spikes that were counted during that period
+            if (status.total_len > 0 ) {
+              add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
+              add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
+              p1fdma.reset_rx_status();
+            }
+            
+              std::fill(out, out + 1, 0);
+              amt_produce = 1;
           }
           if (silence_frame_count > 0) {
             std::fill(out, out + noutput_items, 0);
@@ -243,7 +240,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
         }
       }
   consume_each(ninput_items[0]);
-  // Tell runtime system how many output items we produced.
+  // Tell runtime system how many output items we actually produced.
   return amt_produce;
 }
 

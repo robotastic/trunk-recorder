@@ -64,13 +64,7 @@ void p25_recorder_decode::switch_tdma(bool phase2_tdma) {
     op25_frame_assembler->set_phase2_tdma(phase2_tdma);
 }
 
-void p25_recorder_decode::reset_rx_status() {
-  op25_frame_assembler->reset_rx_status();
-}
 
-Rx_Status p25_recorder_decode::get_rx_status() {
-  return op25_frame_assembler->get_rx_status();
-}
 void p25_recorder_decode::initialize(  int silence_frames) {
   //OP25 Slicer
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
@@ -87,7 +81,7 @@ void p25_recorder_decode::initialize(  int silence_frames) {
 
   int udp_port = 0;
   int verbosity = 0; // 10 = lots of debug messages
-  const char *udp_host = "";
+  const char *udp_host = "127.0.0.1";
   bool do_imbe = 1;
   bool do_output = 1;
   bool do_msgq = 0;

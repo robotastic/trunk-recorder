@@ -56,10 +56,8 @@ private:
   double system_channel_rate;
   double symbol_rate;
   int samples_per_symbol;
-  const int phase1_samples_per_symbol = 5;
-  const int phase2_samples_per_symbol = 4;
   const double phase1_symbol_rate = 4800;
-  const double phase2_symbol_rate = 6000;
+
 
    std::vector<float> baseband_noise_filter_taps;
   std::vector<float> sym_taps;

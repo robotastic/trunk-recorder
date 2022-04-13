@@ -245,7 +245,10 @@ namespace gr {
 		}
 
 		long p25p1_fdma::get_curr_src_id() {
-			return curr_src_id;
+            long addr = curr_src_id;
+            curr_src_id = -1;
+            // This makes it easy to tell when a new Src Address has been received, all other times it will be -1
+			return addr;
 		}
 		void p25p1_fdma::clear() {
 			p1voice_decode.clear();
@@ -684,6 +687,7 @@ namespace gr {
                         if (!d_do_nocrypt || !encrypted()) {
                             std::string encr = "{\"encrypted\": " + std::to_string(0) + ", \"algid\": " + std::to_string(ess_algid) + ", \"keyid\": " + std::to_string(ess_keyid) + "}";
                             send_msg(encr, M_P25_JSON_DATA);
+                            // This is the Vocoder that OP25 currently uses.
                             /*software_decoder.decode_fullrate(u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
                             audio_samples *samples = software_decoder.audio();
                             for (int i=0; i < SND_FRAME; i++) {
@@ -695,9 +699,9 @@ namespace gr {
                                 }
                             }*/
 
-                            uint32_t u[8], E0, ET;
+                            // This is the older, fullrate vocoder
+                            // it was copied from p25p1_voice_decode.cc
                             int16_t frame_vector[8];
-                            imbe_header_decode(cw, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
 
                             for (int i=0; i < 8; i++) { // Ugh. For compatibility convert imbe params from uint32_t to int16_t
                                 frame_vector[i] = u[i];

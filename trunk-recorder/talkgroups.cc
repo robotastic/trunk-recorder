@@ -116,6 +116,89 @@ void Talkgroups::load_talkgroups(std::string filename) {
   }
 }
 
+void Talkgroups::load_channels(std::string filename) {
+  if (filename == "") {
+    return;
+  }
+
+  std::ifstream in(filename.c_str());
+
+  if (!in.is_open()) {
+    BOOST_LOG_TRIVIAL(error) << "Error Opening Channel File: " << filename << std::endl;
+    return;
+  }
+
+
+  boost::char_separator<char> sep(",", "\t", boost::keep_empty_tokens);
+  typedef boost::tokenizer<boost::char_separator<char>> t_tokenizer;
+
+  std::vector<std::string> vec;
+  std::string line;
+
+  int lines_read = 0;
+  int lines_pushed = 0;
+
+  while (!safeGetline(in, line).eof()) // this works with \r, \n, or \r\n
+  {
+    if (line.size() && (line[line.size() - 1] == '\r')) {
+      line = line.substr(0, line.size() - 1);
+    }
+
+    lines_read++;
+
+    if (line == "")
+      continue;
+
+    t_tokenizer tok(line, sep);
+
+    vec.assign(tok.begin(), tok.end());
+
+    Talkgroup *tg = NULL;
+
+    // Channel File  columns:
+    //
+    // [0] - talkgroup number
+    // [1] - channel freq
+    // [2] - tone
+    // [3] - alpha_tag
+    // [4] - description
+    // [5] - tag
+    // [6] - group
+    // [7] - enable (Optional, default is True)
+
+    if ((vec.size() != 7) && (vec.size() != 8)) {
+      BOOST_LOG_TRIVIAL(error) << "Malformed channel entry at line " << lines_read << ". Found: " << vec.size() << " Expected 7 or 8";
+      continue;
+    }
+    // TODO(nkw): more sanity checking here.
+    bool enable = true;
+    if (vec.size() == 8 ) {
+      boost::trim(vec[7]);
+      if (boost::iequals(vec[7], "false")) {
+        enable = false;
+      } 
+    }
+
+//Talkgroup(long num, double freq, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+   if (enable) {
+    tg = new Talkgroup(atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str());
+  
+    talkgroups.push_back(tg);
+   }
+    lines_pushed++;
+   
+  }
+
+  if (lines_pushed != lines_read) {
+    // The parser above is pretty brittle. This will help with debugging it, for
+    // now.
+    BOOST_LOG_TRIVIAL(error) << "Warning: skipped " << lines_read - lines_pushed << " of " << lines_read << " channel entries! Invalid format?";
+    BOOST_LOG_TRIVIAL(error) << "The format is very particular. See https://github.com/robotastic/trunk-recorder for example input.";
+  } else {
+    BOOST_LOG_TRIVIAL(info) << "Read " << lines_pushed << " channels.";
+  }
+}
+
 Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
   Talkgroup *tg_match = NULL;
 
@@ -130,7 +213,21 @@ Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
   return tg_match;
 }
 
-void Talkgroups::add(long num, std::string alphaTag) {
-  Talkgroup *tg = new Talkgroup(num, "X", alphaTag, "", "", "", 0);
-  talkgroups.push_back(tg);
+Talkgroup *Talkgroups::find_talkgroup_by_freq(double freq) {
+  Talkgroup *tg_match = NULL;
+
+  for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
+    Talkgroup *tg = (Talkgroup *)*it;
+
+    if (tg->freq == freq) {
+      tg_match = tg;
+      break;
+    }
+  }
+  return tg_match;
 }
+
+std::vector<Talkgroup *> Talkgroups::get_talkgroups() {
+  return talkgroups;
+}
+

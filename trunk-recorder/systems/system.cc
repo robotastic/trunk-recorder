@@ -64,6 +64,14 @@ void System::set_max_duration(double duration) {
   this->max_call_duration = duration;
 }
 
+double System::get_min_tx_duration() {
+  return this->min_transmission_duration;
+}
+
+void System::set_min_tx_duration(double duration) {
+  this->min_transmission_duration = duration;
+}
+
 System::System(int sys_num) {
   this->sys_num = sys_num;
   sys_id = 0;
@@ -77,7 +85,6 @@ System::System(int sys_num) {
   // Setup the unit tags from the CSV file
   unit_tags = new UnitTags();
   talkgroup_patches = {};
-  d_delaycreateoutput = false;
   d_hideEncrypted = false;
   d_hideUnknown = false;
   d_mdc_enabled = false;
@@ -254,6 +261,20 @@ std::string System::get_unit_tags_file() {
   return this->unit_tags_file;
 }
 
+void System::set_channel_file(std::string channel_file) {
+  BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
+  this->channel_file = channel_file;
+  this->talkgroups->load_channels(channel_file);
+}
+
+bool System::has_channel_file() {
+  if (this->channel_file.length() > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void System::set_talkgroups_file(std::string talkgroups_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;
@@ -278,6 +299,9 @@ Talkgroup *System::find_talkgroup(long tg_number) {
   return talkgroups->find_talkgroup(tg_number);
 }
 
+Talkgroup *System::find_talkgroup_by_freq(double freq) {
+  return talkgroups->find_talkgroup_by_freq(freq);
+}
 UnitTag *System::find_unit_tag(long unitID) {
   return unit_tags->find_unit_tag(unitID);
 }
@@ -286,6 +310,9 @@ std::vector<double> System::get_channels() {
   return channels;
 }
 
+std::vector<Talkgroup *> System::get_talkgroups() {
+  return talkgroups->get_talkgroups();
+}
 int System::channel_count() {
   return channels.size();
 }
@@ -418,14 +445,6 @@ System::TalkgroupDisplayFormat System::get_talkgroup_display_format() {
   return talkgroup_display_format;
 }
 
-bool System::get_delaycreateoutput() {
-  return d_delaycreateoutput;
-}
-
-void System::set_delaycreateoutput(bool delaycreateoutput) {
-  d_delaycreateoutput = delaycreateoutput;
-}
-
 bool System::get_hideEncrypted() {
   return d_hideEncrypted;
 }
@@ -475,29 +494,54 @@ std::vector<unsigned long> System::get_talkgroup_patch(unsigned long talkgroup){
   return patched_tgids;
 }
 
-void System::update_active_talkgroup_patches(MotoPatchData moto_patch_data){
+void System::update_active_talkgroup_patches(PatchData patch_data){
   std::time_t update_time = std::time(nullptr);
   bool new_flag = true;
 
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
-    if (patch.first == moto_patch_data.sg){
+    if (patch.first == patch_data.sg){
       new_flag = false;
-      patch.second[moto_patch_data.sg] = update_time;
-      patch.second[moto_patch_data.ga1] = update_time;
-      patch.second[moto_patch_data.ga2] = update_time;
-      patch.second[moto_patch_data.ga3] = update_time;
+      if (0 != patch_data.sg){
+        patch.second[patch_data.sg] = update_time;
+      }
+      if (0 != patch_data.ga1){
+        patch.second[patch_data.ga1] = update_time;
+      }
+      if (0 != patch_data.ga2){
+        patch.second[patch_data.ga2] = update_time;
+      }
+      if (0 != patch_data.ga3){
+        patch.second[patch_data.ga3] = update_time;
+      }
     }
-    //Can add another IF statement here to handle Harris patch messages
   }
   if (new_flag == true){
     //TGIDs from the Message were not found in an existing patch, so add them to a new one
     //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
     std::map<unsigned long,std::time_t> new_patch;
-    new_patch[moto_patch_data.sg] = update_time;
-    new_patch[moto_patch_data.ga1] = update_time;
-    new_patch[moto_patch_data.ga2] = update_time;
-    new_patch[moto_patch_data.ga3] = update_time;
-    talkgroup_patches[moto_patch_data.sg] = new_patch;
+    if (0 != patch_data.sg){
+      new_patch[patch_data.sg] = update_time;
+    }
+    if (0 != patch_data.ga1){
+      new_patch[patch_data.ga1] = update_time;
+    }
+    if (0 != patch_data.ga2){
+      new_patch[patch_data.ga2] = update_time;
+    }
+    if (0 != patch_data.ga3){
+      new_patch[patch_data.ga3] = update_time;
+    }
+    talkgroup_patches[patch_data.sg] = new_patch;
+  }
+}
+
+void System::delete_talkgroup_patch(PatchData patch_data){
+  BOOST_FOREACH (auto& patch, talkgroup_patches) {
+    if (patch.first == patch_data.sg){
+      patch.second.erase(patch_data.ga1);
+      patch.second.erase(patch_data.ga2);
+      patch.second.erase(patch_data.ga3);
+    }
   }
 }
 
@@ -514,7 +558,7 @@ void System::clear_stale_talkgroup_patches(){
       }
     }
     BOOST_FOREACH(auto& stale_talkgroup, stale_talkgroups){
-      BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch wigh sg id " << patch.first;
+      BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch with sg id " << patch.first;
       patch.second.erase(stale_talkgroup);
     }
     if (patch.second.size() == 0){

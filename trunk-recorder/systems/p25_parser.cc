@@ -209,7 +209,6 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
 
 std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac, int sys_num) {
   // self.stats['tsbks'] += 1
-  long updated = 0;
   std::vector<TrunkMessage> messages;
   TrunkMessage message;
   std::ostringstream os;
@@ -247,14 +246,15 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long ga2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga3 = bitset_shift_mask(tsbk, 16, 0xffff);
       BOOST_LOG_TRIVIAL(debug) << "tsbk00\tMoto Patch Add \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3;
-      message.message_type = MOTO_PATCH_ADD;
-      MotoPatchData moto_patch_data;
+      message.message_type = PATCH_ADD;
+      PatchData moto_patch_data;
       moto_patch_data.sg = sg;
       moto_patch_data.ga1 = ga1;
       moto_patch_data.ga2 = ga2;
       moto_patch_data.ga3 = ga3;
-      message.moto_patch_data = moto_patch_data;
-    } else {
+      message.patch_data = moto_patch_data;
+    } 
+    else {
       unsigned long f1 = channel_id_to_frequency(ch, sys_num);
       message.message_type = GRANT;
       message.freq = f1;
@@ -313,7 +313,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << format_freq(f) << "\tsg " << std::setw(7) << sg << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa;
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
-    } else {
+    } 
+    else {
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 48, 0xffff);
       unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
@@ -321,13 +322,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long f1 = channel_id_to_frequency(ch1, sys_num);
       unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
 
-      if (f1) {
-        updated += 1;
-      }
-
-      if (f2) {
-        updated += 1;
-      }
       message.message_type = UPDATE;
       message.freq = f1;
       message.talkgroup = ga1;
@@ -473,7 +467,24 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << format_freq(f) << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
   } else if (opcode == 0x05) { // Unit To Unit Answer Request
-    BOOST_LOG_TRIVIAL(debug) << "tsbk05: Unit To Unit Answer Request";
+    bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+    bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+    bool duplex = (bool) bitset_shift_mask(tsbk, 72, 0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk, 72, 0x10);
+    unsigned long priority = bitset_shift_mask(tsbk, 72, 0x07);
+    unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+    unsigned long si = bitset_shift_mask(tsbk, 40, 0xffffff);
+
+    message.message_type = UU_ANS_REQ;
+    message.emergency = emergency;
+    message.encrypted = encrypted;
+    message.duplex = duplex;
+    message.mode = mode;
+    message.priority = priority;
+    message.source = sa;
+    message.talkgroup = si;
+
+    BOOST_LOG_TRIVIAL(debug) << "tsbk05\tUnit To Unit Answer Request\tsa " << sa << "\tSource ID: " << si;
   } else if (opcode == 0x06) { //  Unit to Unit Voice Channel Grant Update (UU_V_CH_GRANT_UPDT)
     //unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     // unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -513,7 +524,26 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x0a) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk0a: Telephone Interconnect Answer Request";
   } else if (opcode == 0x14) {
-    BOOST_LOG_TRIVIAL(debug) << "tsbk14: SNDCP Data Channel Grant";
+    bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+    bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+    bool duplex = (bool) bitset_shift_mask(tsbk,72,0x20);
+    bool mode = (bool) bitset_shift_mask(tsbk,72,0x10);
+    unsigned long nsapi = bitset_shift_mask(tsbk, 72, 0xf);
+    unsigned long chT = bitset_shift_mask(tsbk, 56, 0xffff);
+    unsigned long chR = bitset_shift_mask(tsbk, 40, 0xffff);
+    unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+    unsigned long fT = channel_id_to_frequency(chT, sys_num);
+    unsigned long fR = channel_id_to_frequency(chR, sys_num);
+
+    message.message_type = DATA_GRANT;
+    message.emergency = emergency;
+    message.encrypted = encrypted;
+    message.duplex = duplex;
+    message.mode = mode;
+    message.source = sa;
+    message.freq = fT;
+
+    BOOST_LOG_TRIVIAL(debug) << "tsbk14\tSNDCP Data Channel Grant\tsa " << sa << "\tChannels: " << chT << "/" << chR << " Freqs: " << format_freq(fT) << "/" << format_freq(fR) << " NSAPI: " << nsapi;
   } else if (opcode == 0x15) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk15: SNDCP Data Page Request";
   } else if (opcode == 0x16) {
@@ -617,8 +647,66 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.source = si;
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Deregistration ACK\tSource ID: " << std::setw(7) << si;
-  } else if (opcode == 0x30) { //
-    BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
+  } else if (opcode == 0x30) {
+      unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+      if (mfrid == 0xA4) { // GRG_EXENC_CMD (M/A-COM patch)
+        //unsigned long grg_t = bitset_shift_mask(tsbk, 79, 0x1);
+        unsigned long grg_g = bitset_shift_mask(tsbk, 28, 0x1);
+        unsigned long grg_a = bitset_shift_mask(tsbk, 77, 0x01);
+        //unsigned long grg_ssn = bitset_shift_mask(tsbk, 72, 0x1f);  //TODO: SSN should be stored and checked
+        unsigned long sg = bitset_shift_mask(tsbk, 56, 0xffff);
+        //unsigned long keyid = bitset_shift_mask(tsbk, 40, 0xffff);
+        unsigned long rta = bitset_shift_mask(tsbk, 16, 0xffffff);
+        //unsigned long algid = (rta >> 16) & 0xff; 
+        unsigned long ga =  rta & 0xffff;  
+        if (grg_a == 1){ // Activate
+          if (grg_g == 1){ // Group request
+            message.message_type = PATCH_ADD;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM GROUP REQUEST PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
+          }
+          else{
+            message.message_type = PATCH_ADD;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM UNIT REQUEST PATCH sg TGID is "<<sg<<" patched with TGID "<<ga;
+          }
+        }
+        else{ // Deactivate
+          if (grg_g == 1){ // Group request
+            message.message_type = PATCH_DELETE;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM GROUP REQUEST PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
+          }
+          else{
+            message.message_type = PATCH_DELETE;
+            PatchData harris_patch_data;
+            harris_patch_data.sg = sg;
+            harris_patch_data.ga1 = ga;
+            harris_patch_data.ga2 = ga;
+            harris_patch_data.ga3 = ga;
+            message.patch_data = harris_patch_data;
+            BOOST_LOG_TRIVIAL(debug) << "tsbk30 M/A-COM UNIT REQUEST PATCH DELETE for sg "<<sg<<" with TGID "<<ga;
+          }
+        }
+      }
+      else{
+        BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
+      }
   } else if (opcode == 0x31) { //
     BOOST_LOG_TRIVIAL(debug) << "tsbk31 AUTHENTICATION DEMAND";
   } else if (opcode == 0x32) { //

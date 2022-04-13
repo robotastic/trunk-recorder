@@ -45,10 +45,11 @@ public:
   int upload(Call_Data_t call_info) {
     std::string api_key;
     std::string system_id;
-    std::string tg_group;
-    std::string tg_tag;
+    std::string talkgroup_group = call_info.talkgroup_group;
+    std::string talkgroup_tag = call_info.talkgroup_tag;
+    std::string talkgroup_alpha_tag = call_info.talkgroup_alpha_tag;
+    std::string talkgroup_description = call_info.talkgroup_description;
     bool compress_wav = false;
-    Talkgroup *tg;
     Rdio_Scanner_System *sys = get_system(call_info.short_name);
 
     if (call_info.encrypted) {
@@ -59,8 +60,6 @@ public:
       api_key = sys->api_key;
       compress_wav = call_info.compress_wav;
       system_id = sys->system_id;
-      tg_group = call_info.talkgroup;
-      tg_tag = call_info.talkgroup_tag;
     }
 
     if (api_key.size() == 0) {
@@ -93,7 +92,6 @@ public:
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    time_t start_time = call_info.start_time;
 
     if (call_info.transmission_source_list.size() != 0) {
       for (int i = 0; i < call_info.transmission_source_list.size(); i++) {
@@ -122,6 +120,28 @@ public:
       patch_list << "]";
     }
 
+
+    std::ostringstream freq_list;
+    std::string freq_list_string;
+    freq_list << std::fixed << std::setprecision(2);
+    freq_list << "[";
+
+    if (call_info.transmission_error_list.size() != 0) {
+      for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
+          freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"errorCount\": " << std::setprecision(0) <<call_info.transmission_error_list[i].error_count << ", \"spikeCount\": " << call_info.transmission_error_list[i].spike_count << "}"; 
+  
+        if (i < (call_info.transmission_error_list.size() - 1)) {
+          freq_list << ", ";
+        } else {
+          freq_list << "]";
+        }
+      }
+    }else {
+      freq_list << "]";
+    }
+
+
+
     //BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
     CURL *curl;
     CURLMcode res;
@@ -131,6 +151,7 @@ public:
     freq_string = freq.str();
 
     source_list_string = source_list.str();
+    freq_list_string = freq_list.str();
     call_length_string = call_length.str();
     patch_list_string = patch_list.str();
 
@@ -168,7 +189,7 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "frequencies",
-                 CURLFORM_COPYCONTENTS, "[]",
+                 CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
@@ -198,20 +219,26 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroupGroup",
-                 CURLFORM_COPYCONTENTS, tg_group.c_str(),
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_group).c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroupLabel",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_tag).c_str(),
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_alpha_tag).c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "talkgroupTag",
-                 CURLFORM_COPYCONTENTS, tg_tag.c_str(),
+                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_tag).c_str(),
                  CURLFORM_END);
+
+    curl_formadd(&formpost,
+                  &lastptr,
+                  CURLFORM_COPYNAME, "talkgroupName",
+                  CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_description).c_str(),
+                  CURLFORM_END);
 
     curl_formadd(&formpost,
                  &lastptr,
