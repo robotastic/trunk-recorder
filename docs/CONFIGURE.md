@@ -343,11 +343,11 @@ pulseaudio is the default sound system on many Linux computers, including the Ra
 
 An example command to set up pulseaudio to receive 8 kHz audio (digital audio) from simplestream on TCP port 9125:
 ```
-pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16be rate=8000 channels=1 
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16le rate=8000 channels=1 
 ```
 An example command to set up pulseaudio to receive 16 kHz audio (analog audio) from simplestream on TCP port 9125:
 ```
-pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16be rate=16000 channels=1 
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16le rate=16000 channels=1 
 ```
 The matching simplestream config to send audio from talkgroup 58918 to TCP port 9125 would then be something like this:
 ```yaml
