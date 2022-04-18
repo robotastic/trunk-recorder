@@ -358,7 +358,7 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
             "TGID":58918,
             "address":"127.0.0.1",
             "port":9125,
-            "sendTGID":true,
+            "sendTGID":false,
             "shortName":"CountyTrunked",
             "useTCP":true}
         }
