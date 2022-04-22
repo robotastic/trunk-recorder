@@ -289,7 +289,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
           }
         }
 
-        it = call_info.transmission_list.erase(it--);
+        call_info.transmission_list.erase(it--);
 
         continue;
       } 
