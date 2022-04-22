@@ -282,12 +282,15 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
           
           snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
           std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-          BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num<< "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() <<" seconds. Actual length: " << t.length << "." << std::endl;
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num<< "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() <<" seconds. Actual length: " << t.length << "." << std::endl;
       
           if (checkIfFile(t.filename)) {
             remove(t.filename);
           }
         }
+
+        it = call_info.transmission_list.erase(it);
+
         continue;
       } 
       snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
