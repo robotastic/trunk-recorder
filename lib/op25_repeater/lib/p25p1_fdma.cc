@@ -688,7 +688,7 @@ namespace gr {
                             std::string encr = "{\"encrypted\": " + std::to_string(0) + ", \"algid\": " + std::to_string(ess_algid) + ", \"keyid\": " + std::to_string(ess_keyid) + "}";
                             send_msg(encr, M_P25_JSON_DATA);
                             // This is the Vocoder that OP25 currently uses.
-                            /*software_decoder.decode_fullrate(u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
+                            software_decoder.decode_fullrate(u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], E0, ET);
                             audio_samples *samples = software_decoder.audio();
                             for (int i=0; i < SND_FRAME; i++) {
                            	    if (samples->size() > 0) {
@@ -697,10 +697,11 @@ namespace gr {
                                 } else {
                                     snd[i] = 0;
                                 }
-                            }*/
+                            }
 
                             // This is the older, fullrate vocoder
                             // it was copied from p25p1_voice_decode.cc
+                            /*
                             int16_t frame_vector[8];
 
                             for (int i=0; i < 8; i++) { // Ugh. For compatibility convert imbe params from uint32_t to int16_t
@@ -708,7 +709,7 @@ namespace gr {
                             }
                             frame_vector[7] >>= 1;
                             vocoder.imbe_decode(frame_vector, snd);
-
+                            */
 
 
 
