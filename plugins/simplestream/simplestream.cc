@@ -100,7 +100,6 @@ class Simple_Stream : public Plugin_Api {
   int start(){
     BOOST_FOREACH (auto& stream, streams){
       if (stream.tcp == true){
-        io_service my_tcp_io_service;
         ip::tcp::socket *my_tcp_socket = new ip::tcp::socket{my_tcp_io_service};
         stream.tcp_socket = my_tcp_socket;
         stream.tcp_socket->connect(ip::tcp::endpoint( boost::asio::ip::address::from_string(stream.address), stream.port ));
@@ -113,6 +112,7 @@ class Simple_Stream : public Plugin_Api {
   int stop(){
     BOOST_FOREACH (auto& stream, streams){
       if (stream.tcp == true){
+        stream.tcp_socket->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
         stream.tcp_socket->close();
       }
     }
