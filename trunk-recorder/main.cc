@@ -956,7 +956,7 @@ void unit_location(System *sys, long source_id, long talkgroup_num) {
 
 void handle_call_grant(TrunkMessage message, System *sys) {
   bool call_found = false;
-  bool recording_started = false;
+  bool recording_started [[maybe_unused]]  = false;
   
   /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
   that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
