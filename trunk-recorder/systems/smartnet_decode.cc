@@ -188,7 +188,7 @@ int smartnet_decode::work(int noutput_items,
 
   uint64_t abs_sample_cnt = nitems_read(0);
   std::vector<gr::tag_t> preamble_tags;
-  uint64_t outlen = 0; //output sample count
+  uint64_t outlen [[maybe_unused]] = 0; //output sample count
 
   get_tags_in_range(preamble_tags, 0, abs_sample_cnt, abs_sample_cnt + size, pmt::string_to_symbol("smartnet_preamble"));
 
