@@ -288,6 +288,11 @@ set_property(
 )
 
 
+set_target_properties(trunk_recorder_library PROPERTIES OUTPUT_NAME "trunk-recorder")
+
+# Weird - when I add LIBRARY before the DESTINATION, it installs in the /usr/local/lib dir on a mac
+install(TARGETS trunk_recorder_library DESTINATION ${CMAKE_INSTALL_LIBDIR}/trunk-recorder)
+
 add_subdirectory(plugins/openmhz_uploader)
 
 add_subdirectory(plugins/stat_socket)
