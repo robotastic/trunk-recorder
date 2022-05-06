@@ -1,8 +1,8 @@
 
 #include "analog_recorder.h"
-#include <gr_blocks/decoder_wrapper_impl.h>
-#include <gr_blocks/plugin_wrapper_impl.h>
-#include <gr_blocks/transmission_sink.h>
+#include "../gr_blocks/decoder_wrapper_impl.h"
+#include "../gr_blocks/plugin_wrapper_impl.h"
+#include "../gr_blocks/transmission_sink.h"
 #include "../formatter.h"
 #include "../recorder_globals.h"
 #include "../plugin_manager/plugin_manager.h"

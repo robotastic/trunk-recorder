@@ -73,7 +73,7 @@
 #include <op25_repeater/vocoder.h>
 
 #include "recorder.h"
-#include <gr_blocks/freq_xlating_fft_filter.h>
+#include "../gr_blocks/freq_xlating_fft_filter.h"
 
 class Source;
 class sigmf_recorder;

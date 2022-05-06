@@ -1,7 +1,7 @@
 #ifndef RECORDER_GLOBALS_H
 #define RECORDER_GLOBALS_H
 
-#include <gr_blocks/decoder_wrapper.h>
+#include "gr_blocks/decoder_wrapper.h"
 
 class Call;
 class Recorder;

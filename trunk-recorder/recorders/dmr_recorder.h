@@ -75,9 +75,9 @@
 #include <gnuradio/msg_queue.h>
 
 #include "recorder.h"
-#include <gr_blocks/plugin_wrapper_impl.h>
-#include <gr_blocks/transmission_sink.h>
-#include <gr_blocks/selector.h>
+#include "../gr_blocks/plugin_wrapper_impl.h"
+#include "../gr_blocks/transmission_sink.h"
+#include "../gr_blocks/selector.h"
 
 class Source;
 class dmr_recorder;

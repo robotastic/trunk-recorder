@@ -46,10 +46,10 @@ class analog_recorder;
 
 #include "../systems/system.h"
 #include "recorder.h"
-#include <gr_blocks/decoder_wrapper.h>
-#include <gr_blocks/plugin_wrapper.h>
-#include <gr_blocks/freq_xlating_fft_filter.h>
-#include <gr_blocks/transmission_sink.h>
+#include "../gr_blocks/decoder_wrapper.h"
+#include "../gr_blocks/plugin_wrapper.h"
+#include "../gr_blocks/freq_xlating_fft_filter.h"
+#include "../gr_blocks/transmission_sink.h"
 
 
 	#if GNURADIO_VERSION < 0x030900

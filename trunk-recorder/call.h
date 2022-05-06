@@ -3,7 +3,7 @@
 
 
 #include "./global_structs.h"
-#include "../lib/gr_blocks/decoder_wrapper.h"
+#include "gr_blocks/decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
 #include <string>
 #include <sys/time.h>

@@ -26,7 +26,7 @@
 
 
 #include <sys/time.h>
-#include <gr_blocks/wavfile_gr3.8.h>
+#include "wavfile_gr3.8.h"
 
 #include "../../trunk-recorder/global_structs.h"
 #include "../../trunk-recorder/formatter.h"
