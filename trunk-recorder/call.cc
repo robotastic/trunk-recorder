@@ -211,7 +211,7 @@ int Call::get_sys_num() {
   return sys->get_sys_num();
 }
 std::string Call::get_short_name() {
-  return sys->short_name;
+  return sys->get_short_name();
 }
 long Call::get_talkgroup() {
   return talkgroup;
@@ -407,9 +407,9 @@ void Call::update_talkgroup_display() {
   }
 
   char formattedTalkgroup[62];
-  if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_id_tag) {
+  if (this->sys->get_talkgroup_display_format() == talkGroupDisplayFormat_id_tag) {
     snprintf(formattedTalkgroup, 61, "%10ld (%c[%dm%23s%c[0m)", talkgroup, 0x1B, 35, talkgroup_tag.c_str(), 0x1B);
-  } else if (this->sys->get_talkgroup_display_format() == System::talkGroupDisplayFormat_tag_id) {
+  } else if (this->sys->get_talkgroup_display_format() == talkGroupDisplayFormat_tag_id) {
     snprintf(formattedTalkgroup, 61, "%c[%dm%23s%c[0m (%10ld)", 0x1B, 35, talkgroup_tag.c_str(), 0x1B, talkgroup);
   } else {
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, talkgroup, 0x1B);

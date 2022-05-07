@@ -12,6 +12,7 @@
 #include "../global_structs.h"
 #include "../formatter.h"
 #include "../systems/system.h"
+#include "../systems/system_impl.h"
 /*
 class Uploader;
 #include "../uploaders/uploader.h"

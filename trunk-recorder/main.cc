@@ -52,6 +52,7 @@
 #include "systems/smartnet_parser.h"
 #include "systems/smartnet_trunking.h"
 #include "systems/system.h"
+#include "systems/system_impl.h"
 
 #include <osmosdr/source.h>
 
@@ -214,7 +215,7 @@ bool load_config(string config_file) {
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
                    pt.get_child("systems")) {
       // each system should have a unique index value;
-      System *system = new System(sys_count++);
+      System *system = System::make(sys_count++);
 
       std::stringstream default_script;
       unsigned long sys_id;
@@ -338,11 +339,11 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
       std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
       if (boost::iequals(talkgroup_display_format_string, "id_tag")) {
-        system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id_tag);
+        system->set_talkgroup_display_format(talkGroupDisplayFormat_id_tag);
       } else if (boost::iequals(talkgroup_display_format_string, "tag_id")) {
-        system->set_talkgroup_display_format(System::talkGroupDisplayFormat_tag_id);
+        system->set_talkgroup_display_format(talkGroupDisplayFormat_tag_id);
       } else {
-        system->set_talkgroup_display_format(System::talkGroupDisplayFormat_id);
+        system->set_talkgroup_display_format(talkGroupDisplayFormat_id);
       }
       BOOST_LOG_TRIVIAL(info) << "Talkgroup Display Format: " << talkgroup_display_format_string;
 
@@ -728,7 +729,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 // This is to handle the messages that come off the Analog recorder.
 void process_message_queues() {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System *sys = (System *)*it;
+    System_impl *sys = (System_impl *)*it;
 
     for (std::vector<analog_recorder_sptr>::iterator arit = sys->conventional_recorders.begin(); arit != sys->conventional_recorders.end(); ++arit) {
       analog_recorder_sptr ar = (analog_recorder_sptr)*arit;
@@ -1175,7 +1176,8 @@ System *find_system(int sys_num) {
   return sys_match;
 }
 
-void retune_system(System *system) {
+void retune_system(System *sys) {
+  System_impl *system = (System_impl *) sys;
   bool source_found = false;
   Source *current_source = system->get_source();
   double control_channel_freq = system->get_next_control_channel();
@@ -1245,9 +1247,9 @@ void check_message_count(float timeDiff) {
   plugman_system_rates(systems, timeDiff);
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System *sys = (System *)*it;
+    System_impl *sys = (System_impl *)*it;
 
-    if ((sys->system_type != "conventional") && (sys->system_type != "conventionalP25") && (sys->system_type != "conventionalDMR")) {
+    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR")) {
       float msgs_decoded_per_second = sys->message_count / timeDiff;
 
       if (msgs_decoded_per_second < 2) {
@@ -1323,7 +1325,7 @@ void monitor_messages() {
       sys = find_system(sys_num);
 
       if (sys) {
-        sys->message_count++;
+        sys->set_message_count(sys->get_message_count() + 1);
 
         if (sys->get_system_type() == "smartnet") {
           trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys);
@@ -1484,7 +1486,7 @@ bool setup_systems() {
   Source *source = NULL;
 
   for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
-    System *system = *sys_it;
+    System_impl *system = (System_impl *) *sys_it;
     //bool    source_found = false;
     bool system_added = false;
     if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {

@@ -17,6 +17,7 @@ class System;
 #include "state.h"
 #include "systems/parser.h"
 #include "systems/system.h"
+#include "systems/system_impl.h"
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 //enum  CallState { MONITORING=0, recording=1, stopping=2};
 
