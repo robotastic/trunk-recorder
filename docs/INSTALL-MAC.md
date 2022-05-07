@@ -2,6 +2,19 @@
 There are two main "package managers" used on MacOS: Homebrew and MacPorts. Trunk-recorder can be installed with dependencies from one or the other
 
 ## Using Homebrew
+Tested on macOS Catalina 10.15.7 with the following packages:
+
+- homebrew 3.4.10
+- cmake 3.23.1
+- gnuradio 3.9.3.0
+- uhd 4.2.0.0
+- pkgconfig 0.29.2
+- cppunit 1.15.1
+- openssl 3.0.3
+- fdk-aac-encoder 1.0.2
+- sox 14.4.2
+- pybind11 2.9.2
+
 ### Install Homebrew
 See [the Brew homepage](https://brew.sh) for more information.
 ```bash
@@ -9,14 +22,27 @@ See [the Brew homepage](https://brew.sh) for more information.
 ```
 
 ### Install GNURadio and other dependencies
-Install GNURadio, the OsmoSDR package for GNURadio, CMake, pkgconfig, cppunit, and openssl through Homebrew:
 ```bash
-brew install gnuradio uhd gr-osmosdr cmake pkgconfig cppunit openssl fdk-aac-encoder sox
+brew install gnuradio uhd cmake pkgconfig cppunit openssl fdk-aac-encoder sox pybind11
 ```
+### Install the OsmoSDR Package for GNURadio
+See the gr-osmosdr [homepage](https://osmocom.org/projects/gr-osmosdr/wiki/GrOsmoSDR) for more information.
+```bash
+git clone git://git.osmocom.org/gr-osmosdr
+cd gr-osmosdr
+mkdir build && cd build
+cmake ..
+make -j
+sudo make install
+sudo update_dyld_shared_cache
+```
+At this point, proceed to the [build instructions](#building-trunk-recorder).
+
 Note that you will need to provide the flag `-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl` to the invocation of `cmake` in the [Build Instructions](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder) or you will receive an error from CMake about not finding libssl or a linking error from `make` about not having a library for `-lssl`:
 ```bash
 cmake ../trunk-recorder -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
 ```
+
 ## Using MacPorts
 ### These instructions should work on OS X 10.10, OS X 10.11, and macOS 10.12.
 
@@ -67,6 +93,16 @@ extract the source, and cd to the source directory
 autoreconf -i
 ./configure
 make
+sudo make install
+```
+
+## Building Trunk Recorder
+```bash
+mkdir trunk-recorder && cd trunk-recorder
+git clone https://github.com/robotastic/trunk-recorder.git source
+mkdir build && cd build
+cmake ../source -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+make -j
 sudo make install
 ```
 
