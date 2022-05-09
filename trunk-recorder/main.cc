@@ -1033,7 +1033,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    Call *call = new Call(message, sys, config);
+    Call *call = Call::make(message, sys, config);
     recording_started = start_recorder(call, message, sys);
     calls.push_back(call);
     plugman_call_start(call);

@@ -5,12 +5,12 @@ class System;
 class Recorder;
 
 #include "call.h"
+#include "call_impl.h"
 #include <string>
 
-class Call_conventional : public Call {
+class Call_conventional : public Call_impl {
 public:
   Call_conventional(long t, double f, System *s, Config c);
-  ~Call_conventional();
   time_t get_start_time();
   virtual bool is_conventional() { return true; }
   void restart_call();

@@ -2,6 +2,7 @@
 #define PLUGIN_API_H
 
 #include "../call_concluder/call_concluder.h"
+#include "../gr_blocks/decoder_wrapper.h"
 #include "../formatter.h"
 typedef enum {
   PLUGIN_UNKNOWN,

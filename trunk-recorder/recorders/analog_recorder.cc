@@ -370,7 +370,6 @@ void analog_recorder::tune_offset(double f) {
 
 void analog_recorder::decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal) {
   if (call != NULL) {
-    //call->add_signal_source(unitId, signaling_type, signal);
     wav_sink->set_source(unitId);
     plugman_signal(unitId, signaling_type, signal, call, call->get_system(), this);
   } else {
