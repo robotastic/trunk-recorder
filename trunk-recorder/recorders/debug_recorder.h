@@ -13,7 +13,12 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/shared_ptr.hpp>
+#if GNURADIO_VERSION < 0x030a00
 #include <gnuradio/blocks/udp_sink.h>
+#endif
+#if GNURADIO_VERSION >= 0x030a00
+#include <gnuradio/network/udp_sink.h>
+#endif
 
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
@@ -142,7 +147,11 @@ private:
   gr::analog::sig_source_c::sptr lo;
   gr::analog::sig_source_c::sptr bfo;
   gr::blocks::multiply_cc::sptr mixer;
+  #if GNURADIO_VERSION < 0x030a00
   gr::blocks::udp_sink::sptr udp_sink;
+  #else
+  gr::network::udp_sink::sptr udp_sink;
+  #endif
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 };
 

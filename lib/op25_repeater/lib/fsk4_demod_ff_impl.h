@@ -24,6 +24,9 @@
 #ifndef INCLUDED_OP25_REPEATER_FSK4_DEMOD_FF_IMPL_H
 #define INCLUDED_OP25_REPEATER_FSK4_DEMOD_FF_IMPL_H
 
+#if GNURADIO_VERSION >= 0x030a00
+#include <boost/smart_ptr/scoped_array.hpp>
+#endif
 #include <op25_repeater/fsk4_demod_ff.h>
 
 namespace gr {

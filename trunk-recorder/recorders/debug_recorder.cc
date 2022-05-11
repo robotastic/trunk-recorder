@@ -1,6 +1,9 @@
 
 #include "debug_recorder.h"
 #include <boost/log/trivial.hpp>
+#if GNURADIO_VERSION >= 0x030a00
+#include <gnuradio/network/udp_header_types.h>
+#endif
 
 //static int rec_counter=0;
 
@@ -156,7 +159,11 @@ debug_recorder::debug_recorder(Source *src, std::string address, int port)
   starttime = time(NULL);
 
   initialize_prefilter();
+  #if GNURADIO_VERSION < 0x030a00
   udp_sink = gr::blocks::udp_sink::make(sizeof(gr_complex), address, port);
+  #else
+  udp_sink = gr::network::udp_sink::make(sizeof(gr_complex), 1, address, port, HEADERTYPE_NONE, 1472, true);
+  #endif
   connect(arb_resampler, 0, udp_sink, 0);
 }
 

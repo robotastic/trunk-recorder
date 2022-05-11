@@ -1,5 +1,8 @@
 #include <curl/curl.h>
 #include <time.h>
+#if GNURADIO_VERSION >= 0x030a00
+#include <iomanip>
+#endif
 #include <vector>
 
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
