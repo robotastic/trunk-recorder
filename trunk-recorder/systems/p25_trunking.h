@@ -55,7 +55,7 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-#include <gr_blocks/freq_xlating_fft_filter.h>
+#include "../gr_blocks/freq_xlating_fft_filter.h"
 
 class p25_trunking;
 

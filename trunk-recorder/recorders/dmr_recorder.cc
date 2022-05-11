@@ -2,7 +2,7 @@
 #include "dmr_recorder.h"
 #include "../formatter.h"
 #include <boost/log/trivial.hpp>
-#include <gr_blocks/plugin_wrapper_impl.h>
+#include "../gr_blocks/plugin_wrapper_impl.h"
 #include "../plugin_manager/plugin_manager.h"
 
 dmr_recorder_sptr make_dmr_recorder(Source *src) {

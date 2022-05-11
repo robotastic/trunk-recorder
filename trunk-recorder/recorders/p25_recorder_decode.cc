@@ -1,6 +1,6 @@
 
 #include "p25_recorder_decode.h"
-#include <gr_blocks/plugin_wrapper_impl.h>
+#include "../gr_blocks/plugin_wrapper_impl.h"
 #include "../plugin_manager/plugin_manager.h"
 
 p25_recorder_decode_sptr make_p25_recorder_decode( Recorder* recorder, int silence_frames) {

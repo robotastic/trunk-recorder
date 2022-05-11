@@ -8,7 +8,7 @@
 #include "../../trunk-recorder/source.h"
 //#include "../../trunk-recorder/systems/system.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
-#include <gr_blocks/decoder_wrapper.h>
+#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS   
 #include <boost/property_tree/json_parser.hpp>
 
@@ -163,7 +163,7 @@ public:
       }
       sys_node.add_child("channels", channels_node);
 
-      if (sys->system_type == "smartnet") {
+      if (sys->get_system_type() == "smartnet") {
         sys_node.put("bandplan", sys->get_bandplan());
         sys_node.put("bandfreq", sys->get_bandfreq());
         sys_node.put("bandplan_base", sys->get_bandplan_base());

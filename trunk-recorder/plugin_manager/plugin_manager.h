@@ -3,6 +3,7 @@
 
 #include "../recorders/recorder.h"
 #include "../systems/system.h"
+#include "../systems/system_impl.h"
 #include "../source.h"
 #include "../call_concluder/call_concluder.h"
 

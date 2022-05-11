@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
-#include <gr_blocks/decoder_wrapper.h>
+#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
 
 struct Broadcastify_System_Key {
   std::string api_key;

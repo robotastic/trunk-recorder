@@ -22,8 +22,8 @@
 #include <gnuradio/blocks/multiply_const.h>
 #endif
 
-#include <gr_blocks/transmission_sink.h>
-#include <gr_blocks/plugin_wrapper.h>
+#include "../gr_blocks/transmission_sink.h"
+#include "../gr_blocks/plugin_wrapper.h"
 #include "recorder.h"
 
 class p25_recorder_decode;

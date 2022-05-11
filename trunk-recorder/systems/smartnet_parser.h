@@ -2,6 +2,7 @@
 #define SMARTNET_PARSE_H
 #include "parser.h"
 #include "system.h"
+#include "system_impl.h"
 #include <iostream>
 #include <vector>
 

@@ -57,7 +57,7 @@
 #include <gnuradio/msg_queue.h>
 
 #include "recorder.h"
-#include <gr_blocks/freq_xlating_fft_filter.h>
+#include "../gr_blocks/freq_xlating_fft_filter.h"
 
 
 class Source;

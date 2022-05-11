@@ -218,7 +218,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hid
 
 list(APPEND trunk_recorder_sources
   trunk-recorder/recorders/recorder.cc
-  trunk-recorder/call.cc
+  trunk-recorder/call_impl.cc
   trunk-recorder/formatter.cc
   trunk-recorder/source.cc
   trunk-recorder/call_conventional.cc
@@ -227,7 +227,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/systems/smartnet_parser.cc
   trunk-recorder/systems/p25_parser.cc
   trunk-recorder/systems/smartnet_decode.cc
-  trunk-recorder/systems/system.cc
+  trunk-recorder/systems/system_impl.cc
   trunk-recorder/recorders/debug_recorder.cc
   trunk-recorder/recorders/sigmf_recorder.cc
   trunk-recorder/recorders/analog_recorder.cc
@@ -245,19 +245,25 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/call_concluder/call_concluder.cc
 
   lib/lfsr/lfsr.cxx
-  lib/gr_blocks/freq_xlating_fft_filter.cc
-  lib/gr_blocks/transmission_sink.cc
-  lib/gr_blocks/decoders/fsync_decode.cc
-  lib/gr_blocks/decoders/mdc_decode.cc
-  lib/gr_blocks/decoders/star_decode.cc
-  lib/gr_blocks/decoders/signal_decoder_sink_impl.cc
-  lib/gr_blocks/decoders/tps_decoder_sink_impl.cc
-  lib/gr_blocks/decoder_wrapper_impl.cc
-  lib/gr_blocks/plugin_wrapper_impl.cc
-  lib/gr_blocks/selector_impl.cc
-  lib/gr_blocks/wavfile_gr3.8.cc
+  trunk-recorder/gr_blocks/freq_xlating_fft_filter.cc
+  trunk-recorder/gr_blocks/transmission_sink.cc
+  trunk-recorder/gr_blocks/decoders/fsync_decode.cc
+  trunk-recorder/gr_blocks/decoders/mdc_decode.cc
+  trunk-recorder/gr_blocks/decoders/star_decode.cc
+  trunk-recorder/gr_blocks/decoders/signal_decoder_sink_impl.cc
+  trunk-recorder/gr_blocks/decoders/tps_decoder_sink_impl.cc
+  trunk-recorder/gr_blocks/decoder_wrapper_impl.cc
+  trunk-recorder/gr_blocks/plugin_wrapper_impl.cc
+  trunk-recorder/gr_blocks/selector_impl.cc
+  trunk-recorder/gr_blocks/wavfile_gr3.8.cc
   )
 
+
+
+  list(APPEND trunk_recorder_headers
+    trunk-recorder/call.h
+    trunk-recorder/plugin_manager/plugin_api.h
+  )
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
 
@@ -289,9 +295,20 @@ set_property(
 
 
 set_target_properties(trunk_recorder_library PROPERTIES OUTPUT_NAME "trunk-recorder")
+set_target_properties(trunk_recorder_library PROPERTIES PUBLIC_HEADER "${trunk_recorder_headers}")
+
 
 # Weird - when I add LIBRARY before the DESTINATION, it installs in the /usr/local/lib dir on a mac
-install(TARGETS trunk_recorder_library DESTINATION ${CMAKE_INSTALL_LIBDIR}/trunk-recorder)
+install(TARGETS trunk_recorder_library 
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/trunk-recorder
+)
+    
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/trunk-recorder/" # source directory
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder" # target directory
+    FILES_MATCHING # install only matched files
+    PATTERN "*.h" # select header files
+)
+
 
 add_subdirectory(plugins/openmhz_uploader)
 

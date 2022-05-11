@@ -1,8 +1,8 @@
 
 #include "analog_recorder.h"
-#include <gr_blocks/decoder_wrapper_impl.h>
-#include <gr_blocks/plugin_wrapper_impl.h>
-#include <gr_blocks/transmission_sink.h>
+#include "../gr_blocks/decoder_wrapper_impl.h"
+#include "../gr_blocks/plugin_wrapper_impl.h"
+#include "../gr_blocks/transmission_sink.h"
 #include "../formatter.h"
 #include "../recorder_globals.h"
 #include "../plugin_manager/plugin_manager.h"
@@ -370,7 +370,6 @@ void analog_recorder::tune_offset(double f) {
 
 void analog_recorder::decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal) {
   if (call != NULL) {
-    //call->add_signal_source(unitId, signaling_type, signal);
     wav_sink->set_source(unitId);
     plugman_signal(unitId, signaling_type, signal, call, call->get_system(), this);
   } else {
