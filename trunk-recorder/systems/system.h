@@ -5,10 +5,9 @@
 #include <boost/log/trivial.hpp>
 #include <boost/foreach.hpp>
 #include <stdio.h>
-//#include "../source.h"
-#include "p25_trunking.h"
+//#include "../source.h"ß
 #include "parser.h"
-#include "smartnet_trunking.h"
+
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -16,7 +15,6 @@
 //#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif
 
-#include <lfsr/lfsr.h>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
@@ -28,6 +26,9 @@ class Source;
 class analog_recorder;
 class p25_recorder;
 class dmr_recorder;
+enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id = 0,
+                                talkGroupDisplayFormat_id_tag = 1,
+                                talkGroupDisplayFormat_tag_id = 2 };
 
 	#if GNURADIO_VERSION < 0x030900
   typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
@@ -36,197 +37,131 @@ class dmr_recorder;
 	#else
   typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
   typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
-  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;ß
 	#endif
 
 class System {
-  int sys_num;
-  unsigned long sys_id;
-  unsigned long wacn;
-  unsigned long nac;
+
 
 public:
-  enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id = 0,
-                                talkGroupDisplayFormat_id_tag = 1,
-                                talkGroupDisplayFormat_tag_id = 2 };
 
-  Talkgroups *talkgroups;
-  UnitTags *unit_tags;
-  p25p2_lfsr *lfsr;
-  Source *source;
-  std::string talkgroups_file;
-  std::string channel_file;
-  std::string unit_tags_file;
-  std::string short_name;
-  std::string api_key;
-  std::string bcfy_api_key;
-  std::string default_mode;
-  std::string system_type;
-  std::string upload_script;
-  int bcfy_system_id;
-  int message_count;
-  int retune_attempts;
-  time_t last_message_time;
-  std::string bandplan;
-  int bandfreq;
-  double bandplan_base;
-  double bandplan_high;
-  double bandplan_spacing;
-  int bandplan_offset;
-  int max_dev;
-  double filter_width;
-  double min_call_duration;
-  double max_call_duration;
-  double min_transmission_duration;
-  bool compress_wav;
-  bool conversation_mode;
-  bool qpsk_mod;
-  double squelch_db;
-  double analog_levels;
-  double digital_levels;
+  static System * make(int sys_id);
+  virtual std::string get_short_name() = 0;
+  virtual void set_short_name(std::string short_name) = 0;
+  virtual std::string get_upload_script() = 0;
+  virtual void set_upload_script(std::string script) = 0;
+  virtual bool get_compress_wav() = 0;
+  virtual void set_compress_wav(bool compress) = 0;
+  virtual std::string get_api_key() = 0;
+  virtual void set_api_key(std::string api_key) = 0;
+  virtual std::string get_bcfy_api_key() = 0;
+  virtual void set_bcfy_api_key(std::string bcfy_api_key) = 0;
+  virtual int get_bcfy_system_id() = 0;
+  virtual void set_bcfy_system_id(int bcfy_system_id) = 0;
+  virtual double get_min_duration() = 0;
+  virtual void set_min_duration(double duration) = 0;
+  virtual double get_max_duration() = 0;
+  virtual void set_max_duration(double duration) = 0;
+  virtual double get_min_tx_duration() = 0;
+  virtual void set_min_tx_duration(double duration) = 0;
+  virtual bool get_audio_archive() = 0;
+  virtual void set_audio_archive(bool) = 0;
+  virtual bool get_transmission_archive() = 0;
+  virtual void set_transmission_archive(bool) = 0;
+  virtual bool get_record_unknown() = 0;
+  virtual void set_record_unknown(bool) = 0;
+  virtual bool get_call_log() = 0;
+  virtual void set_call_log(bool) = 0;
+  virtual bool get_conversation_mode() = 0;
+  virtual void set_conversation_mode(bool mode) = 0;
+  virtual void set_mdc_enabled(bool b) = 0;
+  virtual void set_fsync_enabled(bool b) = 0;
+  virtual void set_star_enabled(bool b) = 0;
+  virtual void set_tps_enabled(bool b) = 0;
 
-  unsigned xor_mask_len;
-  const char *xor_mask;
-  std::vector<double> control_channels;
-  unsigned int current_control_channel;
-  std::vector<double> channels;
-  std::vector<analog_recorder_sptr> conventional_recorders;
-  std::vector<p25_recorder_sptr> conventionalP25_recorders;
-  std::vector<dmr_recorder_sptr> conventionalDMR_recorders;
-  bool transmission_archive;
-  bool audio_archive;
-  bool record_unknown;
-  bool call_log;
+  virtual bool get_mdc_enabled() = 0;
+  virtual bool get_fsync_enabled() = 0;
+  virtual bool get_star_enabled() = 0;
+  virtual bool get_tps_enabled() = 0;
 
-  smartnet_trunking_sptr smartnet_trunking;
-  p25_trunking_sptr p25_trunking;
-  
-  std::map<unsigned long,std::map<unsigned long,std::time_t>> talkgroup_patches;
+  virtual void set_analog_levels(double r) = 0;
+  virtual double get_analog_levels() = 0;
+  virtual void set_digital_levels(double r) = 0;
+  virtual double get_digital_levels() = 0;
+  virtual void set_qpsk_mod(bool m) = 0;
+  virtual bool get_qpsk_mod() = 0;
+  virtual void set_squelch_db(double s) = 0;
+  virtual double get_squelch_db() = 0;
+  virtual void set_max_dev(int max_dev) = 0;
+  virtual int get_max_dev() = 0;
+  virtual void set_filter_width(double f) = 0;
+  virtual double get_filter_width() = 0;
 
-  std::string get_short_name();
-  void set_short_name(std::string short_name);
-  std::string get_upload_script();
-  void set_upload_script(std::string script);
-  bool get_compress_wav();
-  void set_compress_wav(bool compress);
-  std::string get_api_key();
-  void set_api_key(std::string api_key);
-  std::string get_bcfy_api_key();
-  void set_bcfy_api_key(std::string bcfy_api_key);
-  int get_bcfy_system_id();
-  void set_bcfy_system_id(int bcfy_system_id);
-  double get_min_duration();
-  void set_min_duration(double duration);
-  double get_max_duration();
-  void set_max_duration(double duration);
-  double get_min_tx_duration();
-  void set_min_tx_duration(double duration);
-  bool get_audio_archive();
-  void set_audio_archive(bool);
-  bool get_transmission_archive();
-  void set_transmission_archive(bool);
-  bool get_record_unknown();
-  void set_record_unknown(bool);
-  bool get_call_log();
-  void set_call_log(bool);
-  bool get_conversation_mode();
-  void set_conversation_mode(bool mode);
-  void set_mdc_enabled(bool b);
-  void set_fsync_enabled(bool b);
-  void set_star_enabled(bool b);
-  void set_tps_enabled(bool b);
+  virtual std::string get_system_type() = 0;
+  virtual unsigned long get_sys_id() = 0;
+  virtual unsigned long get_wacn() = 0;
+  virtual unsigned long get_nac() = 0;
+  virtual void set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac) = 0;
+  virtual const char *get_xor_mask() = 0;
+  virtual bool update_status(TrunkMessage message) = 0;
+  virtual int get_sys_num() = 0;
+  virtual void set_system_type(std::string) = 0;
+  virtual std::string get_talkgroups_file() = 0;
+  virtual std::string get_unit_tags_file() = 0;
+  virtual Source *get_source() = 0;
+  virtual void set_source(Source *) = 0;
+  virtual Talkgroup *find_talkgroup(long tg) = 0;
+  virtual Talkgroup *find_talkgroup_by_freq(double freq) = 0;
+  virtual UnitTag *find_unit_tag(long unitID) = 0;
+  virtual void set_talkgroups_file(std::string) = 0;
+  virtual void set_channel_file(std::string channel_file) = 0; 
+  virtual bool has_channel_file() = 0;
+  virtual void set_unit_tags_file(std::string) = 0;
+  virtual int control_channel_count() = 0;
+  virtual void add_control_channel(double channel) = 0;
+  virtual double get_next_control_channel() = 0;
+  virtual double get_current_control_channel() = 0;
+  virtual int channel_count() = 0;
+  virtual int get_message_count() =0;
+  virtual void set_message_count(int count) = 0;
+  virtual void add_channel(double channel) = 0;
+  virtual void add_conventional_recorder(analog_recorder_sptr rec) = 0;
+  virtual std::vector<analog_recorder_sptr> get_conventional_recorders() = 0;
+  virtual void add_conventionalP25_recorder(p25_recorder_sptr rec) = 0;
+  virtual void add_conventionalDMR_recorder(dmr_recorder_sptr rec) = 0; 
+  virtual std::vector<p25_recorder_sptr> get_conventionalP25_recorders() = 0;
+  virtual std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders() = 0;
+  virtual std::vector<double> get_channels() = 0;
+  virtual std::vector<double> get_control_channels() = 0;
+  virtual std::vector<Talkgroup *> get_talkgroups() = 0;
 
-  bool get_mdc_enabled();
-  bool get_fsync_enabled();
-  bool get_star_enabled();
-  bool get_tps_enabled();
+  virtual void set_bandplan(std::string) = 0;
+  virtual std::string get_bandplan() = 0;
+  virtual void set_bandfreq(int) = 0;
+  virtual int get_bandfreq() = 0;
+  virtual void set_bandplan_base(double) = 0;
+  virtual double get_bandplan_base() = 0;
+  virtual void set_bandplan_high(double high) = 0;
+  virtual double get_bandplan_high() = 0;
+  virtual void set_bandplan_spacing(double) = 0;
+  virtual double get_bandplan_spacing() = 0;
+  virtual void set_bandplan_offset(int) = 0;
+  virtual int get_bandplan_offset() = 0;
+  virtual void set_talkgroup_display_format(TalkgroupDisplayFormat format) = 0;
+  virtual TalkgroupDisplayFormat get_talkgroup_display_format() = 0;
 
-  void set_analog_levels(double r);
-  double get_analog_levels();
-  void set_digital_levels(double r);
-  double get_digital_levels();
-  void set_qpsk_mod(bool m);
-  bool get_qpsk_mod();
-  void set_squelch_db(double s);
-  double get_squelch_db();
-  void set_max_dev(int max_dev);
-  int get_max_dev();
-  void set_filter_width(double f);
-  double get_filter_width();
+  virtual bool get_hideEncrypted() = 0;
+  virtual void set_hideEncrypted(bool hideEncrypted) = 0;
 
-  std::string get_system_type();
-  unsigned long get_sys_id();
-  unsigned long get_wacn();
-  unsigned long get_nac();
-  void set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac);
-  const char *get_xor_mask();
-  bool update_status(TrunkMessage message);
-  int get_sys_num();
-  void set_system_type(std::string);
-  std::string get_talkgroups_file();
-  std::string get_unit_tags_file();
-  Source *get_source();
-  void set_source(Source *);
-  Talkgroup *find_talkgroup(long tg);
-  Talkgroup *find_talkgroup_by_freq(double freq);
-  UnitTag *find_unit_tag(long unitID);
-  void set_talkgroups_file(std::string);
-  void set_channel_file(std::string channel_file); 
-  bool has_channel_file();
-  void set_unit_tags_file(std::string);
-  int control_channel_count();
-  void add_control_channel(double channel);
-  double get_next_control_channel();
-  double get_current_control_channel();
-  int channel_count();
-  void add_channel(double channel);
-  void add_conventional_recorder(analog_recorder_sptr rec);
-  std::vector<analog_recorder_sptr> get_conventional_recorders();
-  void add_conventionalP25_recorder(p25_recorder_sptr rec);
-  void add_conventionalDMR_recorder(dmr_recorder_sptr rec); 
-  std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
-  std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders();
-  std::vector<double> get_channels();
-  std::vector<double> get_control_channels();
-  std::vector<Talkgroup *> get_talkgroups();
-  System(int sys_id);
-  void set_bandplan(std::string);
-  std::string get_bandplan();
-  void set_bandfreq(int);
-  int get_bandfreq();
-  void set_bandplan_base(double);
-  double get_bandplan_base();
-  void set_bandplan_high(double high);
-  double get_bandplan_high();
-  void set_bandplan_spacing(double);
-  double get_bandplan_spacing();
-  void set_bandplan_offset(int);
-  int get_bandplan_offset();
-  void set_talkgroup_display_format(TalkgroupDisplayFormat format);
-  TalkgroupDisplayFormat get_talkgroup_display_format();
+  virtual bool get_hideUnknown() = 0;
+  virtual void set_hideUnknown(bool hideUnknown) = 0;
 
-  bool get_hideEncrypted();
-  void set_hideEncrypted(bool hideEncrypted);
+  virtual boost::property_tree::ptree get_stats() = 0;
+  virtual boost::property_tree::ptree get_stats_current(float timeDiff) = 0;
 
-  bool get_hideUnknown();
-  void set_hideUnknown(bool hideUnknown);
-
-  boost::property_tree::ptree get_stats();
-  boost::property_tree::ptree get_stats_current(float timeDiff);
-
-  std::vector<unsigned long> get_talkgroup_patch(unsigned long talkgroup);
-  void update_active_talkgroup_patches(PatchData f_data);
-  void delete_talkgroup_patch(PatchData f_data);
-  void clear_stale_talkgroup_patches();
-
-private:
-  TalkgroupDisplayFormat talkgroup_display_format;
-  bool d_hideEncrypted;
-  bool d_hideUnknown;
-
-  bool d_mdc_enabled;
-  bool d_fsync_enabled;
-  bool d_star_enabled;
-  bool d_tps_enabled;
+  virtual std::vector<unsigned long> get_talkgroup_patch(unsigned long talkgroup) = 0;
+  virtual void update_active_talkgroup_patches(PatchData f_data) = 0;
+  virtual void delete_talkgroup_patch(PatchData f_data) = 0;
+  virtual void clear_stale_talkgroup_patches() = 0;
 };
 #endif

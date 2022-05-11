@@ -163,7 +163,7 @@ public:
       }
       sys_node.add_child("channels", channels_node);
 
-      if (sys->system_type == "smartnet") {
+      if (sys->get_system_type() == "smartnet") {
         sys_node.put("bandplan", sys->get_bandplan());
         sys_node.put("bandfreq", sys->get_bandfreq());
         sys_node.put("bandplan_base", sys->get_bandplan_base());

@@ -1,6 +1,8 @@
 #ifndef GLOBAL_STRUCTS_H
 #define GLOBAL_STRUCTS_H
 #include <string>
+#include <vector>
+#include <ctime>
 
 struct Transmission {
   long source;
@@ -65,5 +67,48 @@ struct Call_Error {
   double error_count;
   double spike_count;
 };
+
+
+enum Call_Data_Status { INITIAL, SUCCESS, RETRY, FAILED };
+struct Call_Data_t {
+  long talkgroup;
+  std::vector<unsigned long> patched_talkgroups;
+  std::string talkgroup_tag;
+  std::string talkgroup_alpha_tag;
+  std::string talkgroup_description;
+  std::string talkgroup_group;
+  long call_num;
+  double freq;
+  long start_time;
+  long stop_time;
+  long error_count;
+  long spike_count;
+  bool encrypted;
+  bool emergency;
+  bool audio_archive;
+  bool transmission_archive;
+  bool call_log;
+  bool compress_wav;
+  char filename[300];
+  char status_filename[300];
+  char converted[300];
+
+  std::string short_name;
+  std::string upload_script;
+  std::string audio_type;
+
+  int tdma_slot;
+  double length;
+  bool phase2_tdma;
+
+  std::vector<Call_Source> transmission_source_list;
+  std::vector<Call_Error> transmission_error_list;
+  std::vector<Transmission> transmission_list;
+
+  Call_Data_Status status;
+  time_t process_call_time;
+  int retry_attempt;
+};
+
 
 #endif

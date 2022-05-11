@@ -1,78 +1,83 @@
 #include "system.h"
+#include "system_impl.h"
 
-std::string System::get_api_key() {
+System * System::make(int sys_num) {
+  return (System *) new System_impl(sys_num);
+}
+
+std::string System_impl::get_api_key() {
   return this->api_key;
 }
 
-void System::set_api_key(std::string api_key) {
+void System_impl::set_api_key(std::string api_key) {
   this->api_key = api_key;
 }
 
-std::string System::get_bcfy_api_key() {
+std::string System_impl::get_bcfy_api_key() {
   return this->bcfy_api_key;
 }
 
-void System::set_bcfy_api_key(std::string bcfy_api_key) {
+void System_impl::set_bcfy_api_key(std::string bcfy_api_key) {
   this->bcfy_api_key = bcfy_api_key;
 }
 
-int System::get_bcfy_system_id() {
+int System_impl::get_bcfy_system_id() {
   return this->bcfy_system_id;
 }
 
-void System::set_bcfy_system_id(int bcfy_system_id) {
+void System_impl::set_bcfy_system_id(int bcfy_system_id) {
   this->bcfy_system_id = bcfy_system_id;
 }
 
-std::string System::get_short_name() {
+std::string System_impl::get_short_name() {
   return this->short_name;
 }
 
-void System::set_short_name(std::string short_name) {
+void System_impl::set_short_name(std::string short_name) {
   this->short_name = short_name;
 }
 
-std::string System::get_upload_script() {
+std::string System_impl::get_upload_script() {
   return this->upload_script;
 }
 
-void System::set_upload_script(std::string script) {
+void System_impl::set_upload_script(std::string script) {
   this->upload_script = script;
 }
 
-bool System::get_compress_wav() {
+bool System_impl::get_compress_wav() {
   return this->compress_wav;
 }
 
-void System::set_compress_wav(bool compress) {
+void System_impl::set_compress_wav(bool compress) {
   this->compress_wav = compress;
 }
 
-double System::get_min_duration() {
+double System_impl::get_min_duration() {
   return this->min_call_duration;
 }
 
-void System::set_min_duration(double duration) {
+void System_impl::set_min_duration(double duration) {
   this->min_call_duration = duration;
 }
 
-double System::get_max_duration() {
+double System_impl::get_max_duration() {
   return this->max_call_duration;
 }
 
-void System::set_max_duration(double duration) {
+void System_impl::set_max_duration(double duration) {
   this->max_call_duration = duration;
 }
 
-double System::get_min_tx_duration() {
+double System_impl::get_min_tx_duration() {
   return this->min_transmission_duration;
 }
 
-void System::set_min_tx_duration(double duration) {
+void System_impl::set_min_tx_duration(double duration) {
   this->min_transmission_duration = duration;
 }
 
-System::System(int sys_num) {
+System_impl::System_impl(int sys_num) {
   this->sys_num = sys_num;
   sys_id = 0;
   wacn = 0;
@@ -95,12 +100,12 @@ System::System(int sys_num) {
   message_count = 0;
 }
 
-void System::set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac) {
+void System_impl::set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac) {
   if (sys_id && wacn && nac) {
     this->sys_id = sys_id;
     this->wacn = wacn;
     this->nac = nac;
-    BOOST_LOG_TRIVIAL(info) << "Setting XOR Mask: System ID " << std::dec << sys_id << " WACN: " << wacn << " NAC: " << nac << std::dec;
+    BOOST_LOG_TRIVIAL(info) << "Setting XOR Mask: System_impl ID " << std::dec << sys_id << " WACN: " << wacn << " NAC: " << nac << std::dec;
     if (sys_id && wacn && nac) {
       lfsr = new p25p2_lfsr(nac, sys_id, wacn);
       xor_mask = lfsr->getXorChars(xor_mask_len);
@@ -112,12 +117,12 @@ void System::set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned lon
     }
   }
 }
-bool System::update_status(TrunkMessage message) {
+bool System_impl::update_status(TrunkMessage message) {
   if (!sys_id || !wacn || !nac) {
     sys_id = message.sys_id;
     wacn = message.wacn;
     nac = message.nac;
-    BOOST_LOG_TRIVIAL(info) << "[" << short_name << "]\tDecoding System ID "
+    BOOST_LOG_TRIVIAL(info) << "[" << short_name << "]\tDecoding System_impl ID "
                             << std::hex << std::uppercase << message.sys_id << " WACN: "
                             << std::hex << std::uppercase << message.wacn << " NAC: " << std::hex << std::uppercase << message.nac;
     if (sys_id && wacn && nac) {
@@ -134,140 +139,140 @@ bool System::update_status(TrunkMessage message) {
   return false;
 }
 
-const char *System::get_xor_mask() {
+const char *System_impl::get_xor_mask() {
   return xor_mask;
 }
 
-int System::get_sys_num() {
+int System_impl::get_sys_num() {
   return this->sys_num;
 }
 
-unsigned long System::get_sys_id() {
+unsigned long System_impl::get_sys_id() {
   return this->sys_id;
 }
 
-unsigned long System::get_nac() {
+unsigned long System_impl::get_nac() {
   return this->nac;
 }
 
-unsigned long System::get_wacn() {
+unsigned long System_impl::get_wacn() {
   return this->wacn;
 }
 
-bool System::get_call_log() {
+bool System_impl::get_call_log() {
   return this->call_log;
 }
 
-void System::set_call_log(bool call_log) {
+void System_impl::set_call_log(bool call_log) {
   this->call_log = call_log;
 }
 
-void System::set_squelch_db(double s) {
+void System_impl::set_squelch_db(double s) {
   squelch_db = s;
 }
 
-double System::get_squelch_db() {
+double System_impl::get_squelch_db() {
   return squelch_db;
 }
 
-void System::set_filter_width(double filter_width) {
+void System_impl::set_filter_width(double filter_width) {
   this->filter_width = filter_width;
 }
 
-double System::get_filter_width() {
+double System_impl::get_filter_width() {
   return filter_width;
 }
 
-void System::set_max_dev(int max_dev) {
+void System_impl::set_max_dev(int max_dev) {
   this->max_dev = max_dev;
 }
 
-int System::get_max_dev() {
+int System_impl::get_max_dev() {
   return max_dev;
 }
 
-void System::set_analog_levels(double r) {
+void System_impl::set_analog_levels(double r) {
   analog_levels = r;
 }
 
-double System::get_analog_levels() {
+double System_impl::get_analog_levels() {
   return analog_levels;
 }
 
-void System::set_digital_levels(double r) {
+void System_impl::set_digital_levels(double r) {
   digital_levels = r;
 }
 
-double System::get_digital_levels() {
+double System_impl::get_digital_levels() {
   return digital_levels;
 }
 
-void System::set_qpsk_mod(bool m) {
+void System_impl::set_qpsk_mod(bool m) {
   qpsk_mod = m;
 }
 
-bool System::get_qpsk_mod() {
+bool System_impl::get_qpsk_mod() {
   return qpsk_mod;
 }
 
-void System::set_mdc_enabled(bool b) { d_mdc_enabled = b; };
-void System::set_fsync_enabled(bool b) { d_fsync_enabled = b; };
-void System::set_star_enabled(bool b) { d_star_enabled = b; };
-void System::set_tps_enabled(bool b) { d_tps_enabled = b; }
+void System_impl::set_mdc_enabled(bool b) { d_mdc_enabled = b; };
+void System_impl::set_fsync_enabled(bool b) { d_fsync_enabled = b; };
+void System_impl::set_star_enabled(bool b) { d_star_enabled = b; };
+void System_impl::set_tps_enabled(bool b) { d_tps_enabled = b; }
 
-bool System::get_mdc_enabled() { return d_mdc_enabled; };
-bool System::get_fsync_enabled() { return d_fsync_enabled; };
-bool System::get_star_enabled() { return d_star_enabled; };
-bool System::get_tps_enabled() { return d_tps_enabled; };
+bool System_impl::get_mdc_enabled() { return d_mdc_enabled; };
+bool System_impl::get_fsync_enabled() { return d_fsync_enabled; };
+bool System_impl::get_star_enabled() { return d_star_enabled; };
+bool System_impl::get_tps_enabled() { return d_tps_enabled; };
 
-bool System::get_audio_archive() {
+bool System_impl::get_audio_archive() {
   return this->audio_archive;
 }
 
-void System::set_audio_archive(bool audio_archive) {
+void System_impl::set_audio_archive(bool audio_archive) {
   this->audio_archive = audio_archive;
 }
 
-bool System::get_transmission_archive() {
+bool System_impl::get_transmission_archive() {
   return this->transmission_archive;
 }
 
-void System::set_transmission_archive(bool transmission_archive) {
+void System_impl::set_transmission_archive(bool transmission_archive) {
   this->transmission_archive = transmission_archive;
 }
 
 
-bool System::get_record_unknown() {
+bool System_impl::get_record_unknown() {
   return this->record_unknown;
 }
 
-void System::set_record_unknown(bool unknown) {
+void System_impl::set_record_unknown(bool unknown) {
   this->record_unknown = unknown;
 }
 
-std::string System::get_system_type() {
+std::string System_impl::get_system_type() {
   return this->system_type;
 }
 
-void System::set_system_type(std::string sys_type) {
+void System_impl::set_system_type(std::string sys_type) {
   this->system_type = sys_type;
 }
 
-std::string System::get_talkgroups_file() {
+std::string System_impl::get_talkgroups_file() {
   return this->talkgroups_file;
 }
 
-std::string System::get_unit_tags_file() {
+std::string System_impl::get_unit_tags_file() {
   return this->unit_tags_file;
 }
 
-void System::set_channel_file(std::string channel_file) {
+void System_impl::set_channel_file(std::string channel_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->channel_file = channel_file;
   this->talkgroups->load_channels(channel_file);
 }
 
-bool System::has_channel_file() {
+bool System_impl::has_channel_file() {
   if (this->channel_file.length() > 0) {
     return true;
   } else {
@@ -275,72 +280,72 @@ bool System::has_channel_file() {
   }
 }
 
-void System::set_talkgroups_file(std::string talkgroups_file) {
+void System_impl::set_talkgroups_file(std::string talkgroups_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;
   this->talkgroups->load_talkgroups(talkgroups_file);
 }
 
-void System::set_unit_tags_file(std::string unit_tags_file) {
+void System_impl::set_unit_tags_file(std::string unit_tags_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Unit Tags...";
   this->unit_tags_file = unit_tags_file;
   this->unit_tags->load_unit_tags(unit_tags_file);
 }
 
-Source *System::get_source() {
+Source *System_impl::get_source() {
   return this->source;
 }
 
-void System::set_source(Source *s) {
+void System_impl::set_source(Source *s) {
   this->source = s;
 }
 
-Talkgroup *System::find_talkgroup(long tg_number) {
+Talkgroup *System_impl::find_talkgroup(long tg_number) {
   return talkgroups->find_talkgroup(tg_number);
 }
 
-Talkgroup *System::find_talkgroup_by_freq(double freq) {
+Talkgroup *System_impl::find_talkgroup_by_freq(double freq) {
   return talkgroups->find_talkgroup_by_freq(freq);
 }
-UnitTag *System::find_unit_tag(long unitID) {
+UnitTag *System_impl::find_unit_tag(long unitID) {
   return unit_tags->find_unit_tag(unitID);
 }
 
-std::vector<double> System::get_channels() {
+std::vector<double> System_impl::get_channels() {
   return channels;
 }
 
-std::vector<Talkgroup *> System::get_talkgroups() {
+std::vector<Talkgroup *> System_impl::get_talkgroups() {
   return talkgroups->get_talkgroups();
 }
-int System::channel_count() {
+int System_impl::channel_count() {
   return channels.size();
 }
 
-void System::add_conventional_recorder(analog_recorder_sptr rec) {
+void System_impl::add_conventional_recorder(analog_recorder_sptr rec) {
   conventional_recorders.push_back(rec);
 }
-std::vector<analog_recorder_sptr> System::get_conventional_recorders() {
+std::vector<analog_recorder_sptr> System_impl::get_conventional_recorders() {
   return conventional_recorders;
 }
 
-void System::add_conventionalP25_recorder(p25_recorder_sptr rec) {
+void System_impl::add_conventionalP25_recorder(p25_recorder_sptr rec) {
   conventionalP25_recorders.push_back(rec);
 }
 
-void System::add_conventionalDMR_recorder(dmr_recorder_sptr rec) {
+void System_impl::add_conventionalDMR_recorder(dmr_recorder_sptr rec) {
   conventionalDMR_recorders.push_back(rec);
 }
 
-std::vector<p25_recorder_sptr> System::get_conventionalP25_recorders() {
+std::vector<p25_recorder_sptr> System_impl::get_conventionalP25_recorders() {
   return conventionalP25_recorders;
 }
 
-std::vector<dmr_recorder_sptr> System::get_conventionalDMR_recorders() {
+std::vector<dmr_recorder_sptr> System_impl::get_conventionalDMR_recorders() {
   return conventionalDMR_recorders;
 }
 
-void System::add_channel(double channel) {
+void System_impl::add_channel(double channel) {
   if (channels.size() == 0) {
     channels.push_back(channel);
   } else {
@@ -350,15 +355,21 @@ void System::add_channel(double channel) {
   }
 }
 
-int System::control_channel_count() {
+int System_impl::control_channel_count() {
   return control_channels.size();
 }
 
-std::vector<double> System::get_control_channels() {
+std::vector<double> System_impl::get_control_channels() {
   return control_channels;
 }
 
-void System::add_control_channel(double control_channel) {
+int System_impl::get_message_count(){
+  return message_count;
+}
+void System_impl::set_message_count(int count) {
+  message_count = count;
+}
+void System_impl::add_control_channel(double control_channel) {
   if (control_channels.size() == 0) {
     control_channels.push_back(control_channel);
   } else {
@@ -369,11 +380,11 @@ void System::add_control_channel(double control_channel) {
   }
 }
 
-double System::get_current_control_channel() {
+double System_impl::get_current_control_channel() {
   return this->control_channels[current_control_channel];
 }
 
-double System::get_next_control_channel() {
+double System_impl::get_next_control_channel() {
   current_control_channel++;
   if (current_control_channel >= control_channels.size()) {
     current_control_channel = 0;
@@ -381,86 +392,86 @@ double System::get_next_control_channel() {
   return this->control_channels[current_control_channel];
 }
 
-void System::set_conversation_mode(bool mode) {
+void System_impl::set_conversation_mode(bool mode) {
   this->conversation_mode = mode;
 }
 
- bool System::get_conversation_mode() {
+ bool System_impl::get_conversation_mode() {
   return this->conversation_mode;
 }
 
-void System::set_bandplan(std::string bandplan) {
+void System_impl::set_bandplan(std::string bandplan) {
   this->bandplan = bandplan;
 }
 
-std::string System::get_bandplan() {
+std::string System_impl::get_bandplan() {
   return this->bandplan;
 }
 
-void System::set_bandfreq(int freq) {
+void System_impl::set_bandfreq(int freq) {
   this->bandfreq = freq;
 }
 
-int System::get_bandfreq() {
+int System_impl::get_bandfreq() {
   return this->bandfreq;
 }
 
-void System::set_bandplan_high(double high) {
+void System_impl::set_bandplan_high(double high) {
   this->bandplan_high = high;
 }
 
-double System::get_bandplan_high() {
+double System_impl::get_bandplan_high() {
   return this->bandplan_high / 1000000;
 }
 
-void System::set_bandplan_base(double base) {
+void System_impl::set_bandplan_base(double base) {
   this->bandplan_base = base;
 }
 
-double System::get_bandplan_base() {
+double System_impl::get_bandplan_base() {
   return this->bandplan_base / 1000000;
 }
 
-void System::set_bandplan_spacing(double space) {
+void System_impl::set_bandplan_spacing(double space) {
   this->bandplan_spacing = space / 1000000;
 }
 
-double System::get_bandplan_spacing() {
+double System_impl::get_bandplan_spacing() {
   return this->bandplan_spacing;
 }
 
-void System::set_bandplan_offset(int offset) {
+void System_impl::set_bandplan_offset(int offset) {
   this->bandplan_offset = offset;
 }
 
-int System::get_bandplan_offset() {
+int System_impl::get_bandplan_offset() {
   return this->bandplan_offset;
 }
 
-void System::set_talkgroup_display_format(TalkgroupDisplayFormat format) {
+void System_impl::set_talkgroup_display_format(TalkgroupDisplayFormat format) {
   talkgroup_display_format = format;
 }
 
-System::TalkgroupDisplayFormat System::get_talkgroup_display_format() {
+TalkgroupDisplayFormat System_impl::get_talkgroup_display_format() {
   return talkgroup_display_format;
 }
 
-bool System::get_hideEncrypted() {
+bool System_impl::get_hideEncrypted() {
   return d_hideEncrypted;
 }
-void System::set_hideEncrypted(bool hideEncrypted) {
+void System_impl::set_hideEncrypted(bool hideEncrypted) {
   d_hideEncrypted = hideEncrypted;
 }
 
-bool System::get_hideUnknown() {
+bool System_impl::get_hideUnknown() {
   return d_hideUnknown;
 }
 
-void System::set_hideUnknown(bool hideUnknown) {
+void System_impl::set_hideUnknown(bool hideUnknown) {
   d_hideUnknown = hideUnknown;
 }
 
-boost::property_tree::ptree System::get_stats() {
+boost::property_tree::ptree System_impl::get_stats() {
   boost::property_tree::ptree system_node;
   system_node.put("id", this->get_sys_num());
   system_node.put("name", this->get_short_name());
@@ -472,7 +483,7 @@ boost::property_tree::ptree System::get_stats() {
   return system_node;
 }
 
-boost::property_tree::ptree System::get_stats_current(float timeDiff) {
+boost::property_tree::ptree System_impl::get_stats_current(float timeDiff) {
   boost::property_tree::ptree system_node;
   system_node.put("id", this->get_sys_num());
   system_node.put("decoderate", this->message_count / timeDiff);
@@ -480,7 +491,7 @@ boost::property_tree::ptree System::get_stats_current(float timeDiff) {
   return system_node;
 }
 
-std::vector<unsigned long> System::get_talkgroup_patch(unsigned long talkgroup){
+std::vector<unsigned long> System_impl::get_talkgroup_patch(unsigned long talkgroup){
   //Given a single TGID, return a vector of TGIDs that are part of the same patch
   std::vector<unsigned long> patched_tgids;
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
@@ -494,7 +505,7 @@ std::vector<unsigned long> System::get_talkgroup_patch(unsigned long talkgroup){
   return patched_tgids;
 }
 
-void System::update_active_talkgroup_patches(PatchData patch_data){
+void System_impl::update_active_talkgroup_patches(PatchData patch_data){
   std::time_t update_time = std::time(nullptr);
   bool new_flag = true;
 
@@ -535,7 +546,7 @@ void System::update_active_talkgroup_patches(PatchData patch_data){
   }
 }
 
-void System::delete_talkgroup_patch(PatchData patch_data){
+void System_impl::delete_talkgroup_patch(PatchData patch_data){
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
     if (patch.first == patch_data.sg){
       patch.second.erase(patch_data.ga1);
@@ -545,7 +556,7 @@ void System::delete_talkgroup_patch(PatchData patch_data){
   }
 }
 
-void System::clear_stale_talkgroup_patches(){
+void System_impl::clear_stale_talkgroup_patches(){
   std::vector<unsigned long> stale_patches;
 
   BOOST_FOREACH (auto& patch, talkgroup_patches) {
