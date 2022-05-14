@@ -5,7 +5,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/foreach.hpp>
 #include <stdio.h>
-//#include "../source.h"ß
+//#include "../source.h"
 #include "parser.h"
 
 
@@ -37,7 +37,7 @@ enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id = 0,
 	#else
   typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
   typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
-  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;ß
+  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
 	#endif
 
 class System {
