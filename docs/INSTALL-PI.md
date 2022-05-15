@@ -77,7 +77,8 @@ sudo apt -y install libssl-dev openssl curl git fdkaac sox libcurl3-gnutls libcu
 Configure RTL-SDRs to load correctly:
 
 ```bash
-sudo wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules  /etc/udev/rules.d/20.rtlsdr.rules
+sudo wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules ~/rtl-sdr.rules
+sudo mv ~/rtl-sdr.rules /etc/udev/rules.d/20.rtlsdr.rules
 ```
 
 You will need to restart for the rules to take effect. Logging out and logging back in will not be enough.
