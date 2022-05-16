@@ -66,6 +66,8 @@
 
 #include "plugin_manager/plugin_manager.h"
 
+#include "git.h"
+
 using namespace std;
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
@@ -1582,10 +1584,19 @@ int main(int argc, char **argv) {
   //std::locale::global(std::locale("C"));
 
   boost::program_options::options_description desc("Options");
-  desc.add_options()("help,h", "Help screen")("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File");
+  desc.add_options()
+		  ("help,h", "Help screen")
+		  ("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File")
+		  ("version", "Version Informaiotn");
+
   boost::program_options::variables_map vm;
   boost::program_options::store(parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
+
+  if (vm.count("version")) {
+	GitMetadata::VersionInfo();
+    exit(0);
+  }
 
   if (vm.count("help")) {
     std::cout << "Usage: options_description [options]\n";
