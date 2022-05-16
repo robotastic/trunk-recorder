@@ -22,7 +22,7 @@
 ########################################################################
 
 cmake_minimum_required(VERSION 3.2)
-project(Trunk-Recorder LANGUAGES CXX C VERSION "4.0.1")
+project(Trunk-Recorder LANGUAGES CXX C VERSION "4.3.2")
 
 configure_file(cmake.h.in "${PROJECT_BINARY_DIR}/cmake.h" @ONLY)
 
