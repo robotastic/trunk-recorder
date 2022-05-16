@@ -11,13 +11,8 @@ This is a [good guide](https://desertbot.io/blog/headless-raspberry-pi-4-ssh-wif
 
 The first step is to put the Raspberry Pi OS onto a MicroSD card. You will need to have a USB MicroSD card adaptor, so you can connect it to your computer. Either of these approaches should work:
 
-- Download the [Raspbery OS Desktop](https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit)
-- Use [Etcher](https://www.balena.io/etcher/) to burn it to a MicroSD card
-
-OR
-
-- get the [Pi Imager](https://www.raspberrypi.org/software/) which can download and burn an image.
-
+- Download the [Raspberry Pi OS Lite](https://www.raspberrypi.com/software/operating-systems/#raspberry-pi-os-64-bit) image.
+- [Install Raspberry Pi OS using Raspberry Pi Imager](https://www.raspberrypi.org/software/) which can download and burn the image above.
 
 #### Setup for headless boot
 
@@ -62,7 +57,7 @@ sudo nano /etc/apt/sources.list
 ```
 - and add this line to the end:
 ```
-deb http://www.deb-multimedia.org/ buster main non-free
+deb http://www.deb-multimedia.org/ bullseye main non-free
 ```
 - Download the keys for the apt source and install them:
 ```bash
@@ -82,16 +77,20 @@ sudo apt -y install libssl-dev openssl curl git fdkaac sox libcurl3-gnutls libcu
 Configure RTL-SDRs to load correctly:
 
 ```bash
-sudo wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules  /etc/udev/rules.d/20.rtlsdr.rules
+sudo wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules ~/rtl-sdr.rules
+sudo mv ~/rtl-sdr.rules /etc/udev/rules.d/20.rtlsdr.rules
 ```
 
+You will need to restart for the rules to take effect. Logging out and logging back in will not be enough.
 
+```bash
+sudo shutdown -r now
+```
 
 Now go [Build](#build-trunk-recorder) Trunk Recorder!
 
-
 ***
-## Ubuntu 20.04 Server (64-bit support!)
+# Ubuntu 22.04 Server (64-bit support!)
 
 Ubuntu has a very good [guide](https://ubuntu.com/tutorials/how-to-install-ubuntu-on-your-raspberry-pi#1-overview) on setting up Ubuntu Server to run on a Raspberry Pi. Follow this to get started.
 
@@ -102,7 +101,7 @@ sudo apt upgrade
 ```
 
 ```bash
-sudo   apt-get install -y apt-transport-https build-essential ca-certificates fdkaac git gnupg gnuradio gnuradio-dev gr-osmosdr libboost-all-dev libcurl4-openssl-dev libgmp-dev libhackrf-dev liborc-0.4-dev libpthread-stubs0-dev libssl-dev libuhd-dev libusb-dev pkg-config software-properties-common cmake sox
+sudo apt install -y apt-transport-https build-essential ca-certificates fdkaac git gnupg gnuradio gnuradio-dev gr-osmosdr libboost-all-dev libcurl4-openssl-dev libgmp-dev libhackrf-dev liborc-0.4-dev libpthread-stubs0-dev libssl-dev libuhd-dev libusb-dev pkg-config software-properties-common cmake sox
 ```
 
 If you are using a HackRF:
@@ -126,6 +125,7 @@ In order to keep your copy of the Trunk Recorder source code free of build artif
 Assuming you are in the desired directory to place both trunk-recorder and trunk-build folders to, perform the following...
 
 ```bash
+cd ~
 mkdir trunk-build
 git clone https://github.com/robotastic/trunk-recorder.git
 cd trunk-build
