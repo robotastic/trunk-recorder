@@ -67,6 +67,7 @@
 #include "plugin_manager/plugin_manager.h"
 
 #include "git.h"
+#include "cmake.h"
 
 using namespace std;
 namespace logging = boost::log;
@@ -1608,6 +1609,7 @@ int main(int argc, char **argv) {
   if (vm.count("config")) {
     BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
   }
+  BOOST_LOG_TRIVIAL(info) << PROJECT_NAME << ": " << "Version: " << PROJECT_VER << "\n";
 
   tb = gr::make_top_block("Trunking");
   tb->start();
