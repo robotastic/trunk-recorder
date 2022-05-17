@@ -75,13 +75,9 @@ class debug_recorder;
 
 
 class debug_recorder_impl : public debug_recorder {
-  friend debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port);
-
-protected:
-  debug_recorder_impl(Source *src, std::string address, int port);
 
 public:
-
+  debug_recorder_impl(Source *src, std::string address, int port);
 
   void tune_freq(double f);
   void tune_offset(double f);
