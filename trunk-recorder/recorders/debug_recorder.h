@@ -40,6 +40,7 @@ class debug_recorder : virtual public gr::hier_block2, virtual public Recorder  
 
 
 public:
+  debug_recorder() {};
   virtual ~debug_recorder() {};
 
   virtual void tune_freq(double f) = 0;

@@ -77,6 +77,7 @@ class debug_recorder;
 class debug_recorder_impl : public debug_recorder {
 
 public:
+  
   debug_recorder_impl(Source *src, std::string address, int port);
 
   void tune_freq(double f);
