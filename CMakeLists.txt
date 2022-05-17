@@ -228,11 +228,11 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/systems/p25_parser.cc
   trunk-recorder/systems/smartnet_decode.cc
   trunk-recorder/systems/system_impl.cc
-  trunk-recorder/recorders/debug_recorder.cc
-  trunk-recorder/recorders/sigmf_recorder.cc
+  trunk-recorder/recorders/debug_recorder_impl.cc
+  trunk-recorder/recorders/sigmf_recorder_impl.cc
   trunk-recorder/recorders/analog_recorder.cc
-  trunk-recorder/recorders/dmr_recorder.cc
-  trunk-recorder/recorders/p25_recorder.cc
+  trunk-recorder/recorders/dmr_recorder_impl.cc
+  trunk-recorder/recorders/p25_recorder_impl.cc
   trunk-recorder/recorders/p25_recorder_fsk4_demod.cc
   trunk-recorder/recorders/p25_recorder_qpsk_demod.cc
   trunk-recorder/recorders/p25_recorder_decode.cc
