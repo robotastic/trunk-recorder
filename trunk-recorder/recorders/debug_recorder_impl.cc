@@ -1,13 +1,17 @@
 
 #include "debug_recorder.h"
+#include "debug_recorder_impl.h"
 #include <boost/log/trivial.hpp>
 
 //static int rec_counter=0;
 
 debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port) {
-  return gnuradio::get_initial_sptr(new debug_recorder(src, address, port));
+    debug_recorder *recorder = new debug_recorder_impl(src, address, port);
+
+  return gnuradio::get_initial_sptr(recorder);
+
 }
-void debug_recorder::generate_arb_taps() {
+void debug_recorder_impl::generate_arb_taps() {
 
   double arb_size = 32;
   double arb_atten = 100;
@@ -41,7 +45,7 @@ void debug_recorder::generate_arb_taps() {
   }
 }
 
-debug_recorder::DecimSettings debug_recorder::get_decim(long speed) {
+debug_recorder_impl::DecimSettings debug_recorder_impl::get_decim(long speed) {
   long s = speed;
   long if_freqs[] = {32000};
   DecimSettings decim_settings = {-1, -1};
@@ -69,7 +73,7 @@ debug_recorder::DecimSettings debug_recorder::get_decim(long speed) {
   return decim_settings;
 }
 
-void debug_recorder::initialize_prefilter() {
+void debug_recorder_impl::initialize_prefilter() {
   //double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   //double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = 32000;
@@ -86,7 +90,7 @@ void debug_recorder::initialize_prefilter() {
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make();
 
-  debug_recorder::DecimSettings decim_settings = get_decim(input_rate);
+  debug_recorder_impl::DecimSettings decim_settings = get_decim(input_rate);
   if (decim_settings.decim != -1) {
     double_decim = true;
     decim = decim_settings.decim;
@@ -138,7 +142,7 @@ void debug_recorder::initialize_prefilter() {
   connect(lowpass_filter, 0, arb_resampler, 0);
 }
 
-debug_recorder::debug_recorder(Source *src, std::string address, int port)
+debug_recorder_impl::debug_recorder_impl(Source *src, std::string address, int port)
     : gr::hier_block2("debug_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
@@ -160,25 +164,24 @@ debug_recorder::debug_recorder(Source *src, std::string address, int port)
   connect(arb_resampler, 0, udp_sink, 0);
 }
 
-debug_recorder::~debug_recorder() {}
 
-long debug_recorder::get_source_count() {
+long debug_recorder_impl::get_source_count() {
   return 0;
 }
 
-Call_Source *debug_recorder::get_source_list() {
+Call_Source *debug_recorder_impl::get_source_list() {
   return NULL; //wav_sink->get_source_list();
 }
 
-Source *debug_recorder::get_source() {
+Source *debug_recorder_impl::get_source() {
   return source;
 }
 
-int debug_recorder::get_num() {
+int debug_recorder_impl::get_num() {
   return rec_num;
 }
 
-bool debug_recorder::is_active() {
+bool debug_recorder_impl::is_active() {
   if (state == ACTIVE) {
     return true;
   } else {
@@ -186,28 +189,28 @@ bool debug_recorder::is_active() {
   }
 }
 
-double debug_recorder::get_freq() {
+double debug_recorder_impl::get_freq() {
   return chan_freq;
 }
 
-double debug_recorder::get_current_length() {
+double debug_recorder_impl::get_current_length() {
   return 0; //wav_sink->length_in_seconds();
 }
 
-int debug_recorder::lastupdate() {
+int debug_recorder_impl::lastupdate() {
   return time(NULL) - timestamp;
 }
 
-long debug_recorder::elapsed() {
+long debug_recorder_impl::elapsed() {
   return time(NULL) - starttime;
 }
 
-void debug_recorder::tune_freq(double f) {
+void debug_recorder_impl::tune_freq(double f) {
   chan_freq = f;
   float freq = (center_freq - f);
   tune_offset(freq);
 }
-void debug_recorder::tune_offset(double f) {
+void debug_recorder_impl::tune_offset(double f) {
 
   float freq = static_cast<float>(f);
 
@@ -232,11 +235,11 @@ void debug_recorder::tune_offset(double f) {
   }
 }
 
-State debug_recorder::get_state() {
+State debug_recorder_impl::get_state() {
   return state;
 }
 
-void debug_recorder::stop() {
+void debug_recorder_impl::stop() {
   if (state == ACTIVE) {
     BOOST_LOG_TRIVIAL(error) << "debug_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << chan_freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = INACTIVE;
@@ -246,7 +249,7 @@ void debug_recorder::stop() {
   }
 }
 
-bool debug_recorder::start(Call *call) {
+bool debug_recorder_impl::start(Call *call) {
   if (state == INACTIVE) {
     timestamp = time(NULL);
     starttime = time(NULL);

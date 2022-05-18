@@ -1,15 +1,16 @@
 
 #include "p25_recorder.h"
+#include "p25_recorder_impl.h"
 #include "../formatter.h"
 #include <boost/log/trivial.hpp>
 
 p25_recorder_sptr make_p25_recorder(Source *src) {
-  p25_recorder *recorder = new p25_recorder();
-  recorder->initialize(src);
-  return gnuradio::get_initial_sptr(recorder);
+  p25_recorder *recorder = new p25_recorder_impl(src);
+
+  return gnuradio::get_initial_sptr( recorder);
 }
 
-void p25_recorder::generate_arb_taps() {
+void p25_recorder_impl::generate_arb_taps() {
 
   double arb_size = 32;
   double arb_atten = 100;
@@ -43,21 +44,18 @@ void p25_recorder::generate_arb_taps() {
   }
 }
 
-p25_recorder::p25_recorder()
+
+
+p25_recorder_impl::p25_recorder_impl(Source *src)
     : gr::hier_block2("p25_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder("P25") {
+        initialize(src);
 }
 
-p25_recorder::p25_recorder(std::string type)
-    : gr::hier_block2("p25_recorder",
-                      gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                      gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder(type) {
-}
 
-p25_recorder::DecimSettings p25_recorder::get_decim(long speed) {
+p25_recorder_impl::DecimSettings p25_recorder_impl::get_decim(long speed) {
   long s = speed;
   long if_freqs[] = {24000, 25000, 32000};
   DecimSettings decim_settings = {-1, -1};
@@ -84,7 +82,7 @@ p25_recorder::DecimSettings p25_recorder::get_decim(long speed) {
   BOOST_LOG_TRIVIAL(error) << "P25 recorder Decim: Nothing found";
   return decim_settings;
 }
-void p25_recorder::initialize_prefilter() {
+void p25_recorder_impl::initialize_prefilter() {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   long if_rate = phase1_channel_rate;
   long fa = 0;
@@ -97,7 +95,7 @@ void p25_recorder::initialize_prefilter() {
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make();
 
-  p25_recorder::DecimSettings decim_settings = get_decim(input_rate);
+  p25_recorder_impl::DecimSettings decim_settings = get_decim(input_rate);
   if (decim_settings.decim != -1) {
     double_decim = true;
     decim = decim_settings.decim;
@@ -148,7 +146,7 @@ void p25_recorder::initialize_prefilter() {
   connect(arb_resampler, 0, cutoff_filter, 0);
 }
 
-void p25_recorder::initialize(Source *src) {
+void p25_recorder_impl::initialize(Source *src) {
   source = src;
   chan_freq = source->get_center();
   center_freq = source->get_center();
@@ -201,7 +199,7 @@ void p25_recorder::initialize(Source *src) {
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
 }
 
-void p25_recorder::switch_tdma(bool phase2) {
+void p25_recorder_impl::switch_tdma(bool phase2) {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = phase1_channel_rate;
@@ -226,17 +224,17 @@ void p25_recorder::switch_tdma(bool phase2) {
   }
 }
 
-void p25_recorder::set_tdma(bool phase2) {
+void p25_recorder_impl::set_tdma(bool phase2) {
   if (phase2 != d_phase2_tdma) {
     switch_tdma(phase2);
   }
 }
 
-void p25_recorder::clear() {
+void p25_recorder_impl::clear() {
   //op25_frame_assembler->clear();
 }
 
-void p25_recorder::autotune() {
+void p25_recorder_impl::autotune() {
   /*if (!qpsk_mod) {
     gr::message::sptr msg;
     msg = tune_queue->delete_head_nowait();
@@ -250,17 +248,15 @@ void p25_recorder::autotune() {
   }*/
 }
 
-p25_recorder::~p25_recorder() {}
-
-Source *p25_recorder::get_source() {
+Source *p25_recorder_impl::get_source() {
   return source;
 }
 
-int p25_recorder::get_num() {
+int p25_recorder_impl::get_num() {
   return rec_num;
 }
 
-double p25_recorder::since_last_write() {
+double p25_recorder_impl::since_last_write() {
   if (qpsk_mod) {
     return qpsk_p25_decode->since_last_write();
   } else {
@@ -268,7 +264,7 @@ double p25_recorder::since_last_write() {
   }
 }
 
-State p25_recorder::get_state() {
+State p25_recorder_impl::get_state() {
   if (qpsk_mod) {
     return qpsk_p25_decode->get_state();
   } else {
@@ -276,7 +272,7 @@ State p25_recorder::get_state() {
   }
 }
 
-bool p25_recorder::is_active() {
+bool p25_recorder_impl::is_active() {
   if (state == ACTIVE) {
     return true;
   } else {
@@ -284,13 +280,13 @@ bool p25_recorder::is_active() {
   }
 }
 
-bool p25_recorder::is_squelched() {
+bool p25_recorder_impl::is_squelched() {
   if (state == ACTIVE) {
     return !squelch->unmuted();
   }
   return true;
 }
-bool p25_recorder::is_idle() {
+bool p25_recorder_impl::is_idle() {
   if (qpsk_mod) {
     if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)) {
       return true;
@@ -303,11 +299,11 @@ bool p25_recorder::is_idle() {
   return false;
 }
 
-double p25_recorder::get_freq() {
+double p25_recorder_impl::get_freq() {
   return chan_freq;
 }
 
-double p25_recorder::get_current_length() {
+double p25_recorder_impl::get_current_length() {
   if (qpsk_mod) {
     return qpsk_p25_decode->get_current_length();
   } else {
@@ -315,20 +311,20 @@ double p25_recorder::get_current_length() {
   }
 }
 
-int p25_recorder::lastupdate() {
+int p25_recorder_impl::lastupdate() {
   return time(NULL) - timestamp;
 }
 
-long p25_recorder::elapsed() {
+long p25_recorder_impl::elapsed() {
   return time(NULL) - starttime;
 }
 
-void p25_recorder::tune_freq(double f) {
+void p25_recorder_impl::tune_freq(double f) {
   chan_freq = f;
   float freq = (center_freq - f);
   tune_offset(freq);
 }
-void p25_recorder::tune_offset(double f) {
+void p25_recorder_impl::tune_offset(double f) {
 
   float freq = static_cast<float>(f);
 
@@ -359,7 +355,7 @@ void p25_recorder::tune_offset(double f) {
   }
 }
 
-void p25_recorder::set_record_more_transmissions(bool more) {
+void p25_recorder_impl::set_record_more_transmissions(bool more) {
   if (qpsk_mod) {
     return qpsk_p25_decode->set_record_more_transmissions(more);
   } else {
@@ -367,7 +363,7 @@ void p25_recorder::set_record_more_transmissions(bool more) {
   }
 }
 
-std::vector<Transmission> p25_recorder::get_transmission_list() {
+std::vector<Transmission> p25_recorder_impl::get_transmission_list() {
   if (qpsk_mod) {
     return qpsk_p25_decode->get_transmission_list();
   } else {
@@ -375,7 +371,7 @@ std::vector<Transmission> p25_recorder::get_transmission_list() {
   }
 }
 
-void p25_recorder::stop() {
+void p25_recorder_impl::stop() {
   if (state == ACTIVE) {
     if (qpsk_mod) {
       recording_duration += qpsk_p25_decode->get_current_length();
@@ -397,7 +393,7 @@ void p25_recorder::stop() {
   }
 }
 
-void p25_recorder::set_tdma_slot(int slot) {
+void p25_recorder_impl::set_tdma_slot(int slot) {
   if (qpsk_mod) {
     qpsk_p25_decode->set_tdma_slot(slot);
   } else {
@@ -406,7 +402,7 @@ void p25_recorder::set_tdma_slot(int slot) {
   tdma_slot = slot;
 }
 
-bool p25_recorder::start(Call *call) {
+bool p25_recorder_impl::start(Call *call) {
   if (state == INACTIVE) {
     System *system = call->get_system();
     qpsk_mod = system->get_qpsk_mod();

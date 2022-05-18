@@ -1,17 +1,18 @@
 
-#include "dmr_recorder.h"
+#include "dmr_recorder_impl.h"
+
 #include "../formatter.h"
 #include <boost/log/trivial.hpp>
 #include "../gr_blocks/plugin_wrapper_impl.h"
 #include "../plugin_manager/plugin_manager.h"
 
 dmr_recorder_sptr make_dmr_recorder(Source *src) {
-  dmr_recorder *recorder = new dmr_recorder();
-  recorder->initialize(src);
+  dmr_recorder *recorder = new dmr_recorder_impl(src);
+
   return gnuradio::get_initial_sptr(recorder);
 }
 
-void dmr_recorder::generate_arb_taps() {
+void dmr_recorder_impl::generate_arb_taps() {
 
   double arb_size = 32;
   double arb_atten = 100;
@@ -45,21 +46,16 @@ void dmr_recorder::generate_arb_taps() {
   }
 }
 
-dmr_recorder::dmr_recorder()
+
+dmr_recorder_impl::dmr_recorder_impl(Source *src)
     : gr::hier_block2("dmr_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder("DMR") {
+        initialize(src);
 }
 
-dmr_recorder::dmr_recorder(std::string type)
-    : gr::hier_block2("dmr_recorder",
-                      gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                      gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder(type) {
-}
-
-dmr_recorder::DecimSettings dmr_recorder::get_decim(long speed) {
+dmr_recorder_impl::DecimSettings dmr_recorder_impl::get_decim(long speed) {
   long s = speed;
   long if_freqs[] = {24000, 25000, 32000};
   DecimSettings decim_settings = {-1, -1};
@@ -86,7 +82,7 @@ dmr_recorder::DecimSettings dmr_recorder::get_decim(long speed) {
   BOOST_LOG_TRIVIAL(error) << "DMR recorder Decim: Nothing found";
   return decim_settings;
 }
-void dmr_recorder::initialize_prefilter() {
+void dmr_recorder_impl::initialize_prefilter() {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   long if_rate = phase1_channel_rate;
   long fa = 0;
@@ -99,7 +95,7 @@ void dmr_recorder::initialize_prefilter() {
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make();
 
-  dmr_recorder::DecimSettings decim_settings = get_decim(input_rate);
+  dmr_recorder_impl::DecimSettings decim_settings = get_decim(input_rate);
   if (decim_settings.decim != -1) {
     double_decim = true;
     decim = decim_settings.decim;
@@ -150,7 +146,7 @@ void dmr_recorder::initialize_prefilter() {
   connect(arb_resampler, 0, cutoff_filter, 0);
 }
 
-void dmr_recorder::initialize(Source *src) {
+void dmr_recorder_impl::initialize(Source *src) {
   source = src;
   chan_freq = source->get_center();
   center_freq = source->get_center();
@@ -224,7 +220,7 @@ void dmr_recorder::initialize(Source *src) {
   framer = gr::op25_repeater::frame_assembler::make(0,"file:///tmp/out1.raw", verbosity, 1, rx_queue);
   //op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
   levels = gr::blocks::multiply_const_ff::make(1);
-  plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
+  plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder_impl::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
 
 
   // Squelch DB
@@ -247,11 +243,11 @@ void dmr_recorder::initialize(Source *src) {
   connect(framer, 1, wav_sink_slot1, 0);
 }
 
-void dmr_recorder::plugin_callback_handler(int16_t *samples, int sampleCount) {
+void dmr_recorder_impl::plugin_callback_handler(int16_t *samples, int sampleCount) {
   //plugman_audio_callback(_recorder, samples, sampleCount);
 }
 
-void dmr_recorder::switch_tdma(bool phase2) {
+void dmr_recorder_impl::switch_tdma(bool phase2) {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   long if_rate = phase1_channel_rate;
 
@@ -269,7 +265,7 @@ void dmr_recorder::switch_tdma(bool phase2) {
   //op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
 }
 
-void dmr_recorder::set_tdma(bool phase2) {
+void dmr_recorder_impl::set_tdma(bool phase2) {
   if (phase2 != d_phase2_tdma) {
     switch_tdma(phase2);
   }
@@ -277,26 +273,24 @@ void dmr_recorder::set_tdma(bool phase2) {
 
 
 
-dmr_recorder::~dmr_recorder() {}
-
-Source *dmr_recorder::get_source() {
+Source *dmr_recorder_impl::get_source() {
   return source;
 }
 
-int dmr_recorder::get_num() {
+int dmr_recorder_impl::get_num() {
   return rec_num;
 }
 
-double dmr_recorder::since_last_write() {
+double dmr_recorder_impl::since_last_write() {
   time_t now = time(NULL);
   return now - wav_sink_slot0->get_stop_time();
 }
 
-State dmr_recorder::get_state() {
+State dmr_recorder_impl::get_state() {
   return wav_sink_slot0->get_state();
 }
 
-bool dmr_recorder::is_active() {
+bool dmr_recorder_impl::is_active() {
   if (state == ACTIVE) {
     return true;
   } else {
@@ -304,13 +298,13 @@ bool dmr_recorder::is_active() {
   }
 }
 
-bool dmr_recorder::is_squelched() {
+bool dmr_recorder_impl::is_squelched() {
   if (state == ACTIVE) {
     return !squelch->unmuted();
   }
   return true;
 }
-bool dmr_recorder::is_idle() {
+bool dmr_recorder_impl::is_idle() {
 
     if ((wav_sink_slot0->get_state() == IDLE) || (wav_sink_slot0->get_state() == STOPPED)) {
       return true;
@@ -319,28 +313,28 @@ bool dmr_recorder::is_idle() {
   return false;
 }
 
-double dmr_recorder::get_freq() {
+double dmr_recorder_impl::get_freq() {
   return chan_freq;
 }
 
-double dmr_recorder::get_current_length() {
+double dmr_recorder_impl::get_current_length() {
     return wav_sink_slot0->total_length_in_seconds();
 }
 
-int dmr_recorder::lastupdate() {
+int dmr_recorder_impl::lastupdate() {
   return time(NULL) - timestamp;
 }
 
-long dmr_recorder::elapsed() {
+long dmr_recorder_impl::elapsed() {
   return time(NULL) - starttime;
 }
 
-void dmr_recorder::tune_freq(double f) {
+void dmr_recorder_impl::tune_freq(double f) {
   chan_freq = f;
   float freq = (center_freq - f);
   tune_offset(freq);
 }
-void dmr_recorder::tune_offset(double f) {
+void dmr_recorder_impl::tune_offset(double f) {
 
   float freq = static_cast<float>(f);
 
@@ -366,7 +360,7 @@ void dmr_recorder::tune_offset(double f) {
 
 }
 
-void dmr_recorder::set_record_more_transmissions(bool more) {
+void dmr_recorder_impl::set_record_more_transmissions(bool more) {
   
     return wav_sink_slot0->set_record_more_transmissions(more);
 }
@@ -378,7 +372,7 @@ bool compareTransmissions(Transmission t1, Transmission t2)
 }
  
 
-std::vector<Transmission> dmr_recorder::get_transmission_list() {
+std::vector<Transmission> dmr_recorder_impl::get_transmission_list() {
     std::vector<Transmission> return_list = wav_sink_slot0->get_transmission_list();
     std::vector<Transmission> second_list = wav_sink_slot1->get_transmission_list();
     BOOST_LOG_TRIVIAL(info) << "Slot 0: "  << return_list.size() << " Slot 1: "  << second_list.size();
@@ -392,7 +386,7 @@ std::vector<Transmission> dmr_recorder::get_transmission_list() {
 
 
 
-void dmr_recorder::stop() {
+void dmr_recorder_impl::stop() {
   if (state == ACTIVE) {
 
       recording_duration += wav_sink_slot0->total_length_in_seconds();
@@ -408,12 +402,12 @@ void dmr_recorder::stop() {
   }
 }
 
-void dmr_recorder::set_tdma_slot(int slot) {
+void dmr_recorder_impl::set_tdma_slot(int slot) {
   tdma_slot = slot;
   //op25_frame_assembler->set_slotid(tdma_slot);
 }
 
-bool dmr_recorder::start(Call *call) {
+bool dmr_recorder_impl::start(Call *call) {
   if (state == INACTIVE) {
     System *system = call->get_system();
     set_tdma_slot(0);
