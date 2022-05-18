@@ -34,6 +34,7 @@ class dmr_recorder : virtual public gr::hier_block2, virtual public Recorder  {
 
 
 public:
+  dmr_recorder() {};
   virtual ~dmr_recorder() {};
   virtual void tune_offset(double f) = 0;
   virtual void tune_freq(double f) = 0;

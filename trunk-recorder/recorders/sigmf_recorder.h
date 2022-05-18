@@ -34,6 +34,7 @@ sigmf_recorder_sptr make_sigmf_recorder(Source *src);
 class sigmf_recorder : virtual public gr::hier_block2, virtual public Recorder {
 
 public:
+  sigmf_recorder() {};
   virtual ~sigmf_recorder() {};
   virtual void tune_offset(double f) = 0;
   virtual bool start(Call *call) = 0;
