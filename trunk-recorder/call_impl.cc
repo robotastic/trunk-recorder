@@ -337,7 +337,6 @@ bool Call_impl::update(TrunkMessage message) {
 }
 
 int Call_impl::since_last_update() {
-    BOOST_LOG_TRIVIAL(trace) << "last_update: " << last_update << " diff: " << time(NULL) - last_update;
     return time(NULL) - last_update;
 }
 
