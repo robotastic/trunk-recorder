@@ -25,6 +25,7 @@ Call * Call::make(TrunkMessage message, System *s, Config c) {
 Call_impl::Call_impl(long t, double f, System *s, Config c) {
   config = c;
   call_num = call_counter++;
+  final_length = 0;
   idle_count = 0;
   curr_freq = 0;
   curr_src_id = -1;
@@ -52,6 +53,7 @@ Call_impl::Call_impl(long t, double f, System *s, Config c) {
 Call_impl::Call_impl(TrunkMessage message, System *s, Config c) {
   config = c;
   call_num = call_counter++;
+  final_length = 0;
   idle_count = 0;
   curr_src_id = -1;
   curr_freq = 0;
