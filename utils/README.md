@@ -11,6 +11,7 @@ From the root directory of trunk-recorder, run:
 
 `docker build -t tr-fedora -f utils/Dockerfile.fedora-35.dev .`
 
+`docker build -t tr-ubuntu -f utils/Dockerfile.ubuntu-22.04.dev .`
 
 *On an M1 based Mac:*
 `docker build -t tr-arch -f utils/Dockerfile.arch-latest.dev --platform=linux/amd64 .`
