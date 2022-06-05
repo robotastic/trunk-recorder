@@ -15,8 +15,7 @@
 #include <boost/shared_ptr.hpp>
 #if GNURADIO_VERSION < 0x030a00
 #include <gnuradio/blocks/udp_sink.h>
-#endif
-#if GNURADIO_VERSION >= 0x030a00
+#else
 #include <gnuradio/network/udp_sink.h>
 #endif
 
@@ -147,7 +146,7 @@ private:
   gr::analog::sig_source_c::sptr bfo;
   gr::blocks::multiply_cc::sptr mixer;
   #if GNURADIO_VERSION >= 0x030a00
-  gr::blocks::network::udp_sink::sptr udp_sink
+  gr::network::udp_sink::sptr udp_sink;
   #else
   gr::blocks::udp_sink::sptr udp_sink;
   #endif
