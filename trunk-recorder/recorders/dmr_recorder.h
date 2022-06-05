@@ -10,32 +10,29 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "../gr_blocks/plugin_wrapper_impl.h"
+#include "../source.h"
+#include "recorder.h"
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/shared_ptr.hpp>
-#include "../source.h"
-#include "recorder.h"
-#include "../gr_blocks/plugin_wrapper_impl.h"
-
 
 class Source;
 class dmr_recorder;
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
-	#else
-  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
-	#endif
-
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+#else
+typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+#endif
 
 dmr_recorder_sptr make_dmr_recorder(Source *src);
 
-class dmr_recorder : virtual public gr::hier_block2, virtual public Recorder  {
-
+class dmr_recorder : virtual public gr::hier_block2, virtual public Recorder {
 
 public:
-  dmr_recorder() {};
-  virtual ~dmr_recorder() {};
+  dmr_recorder(){};
+  virtual ~dmr_recorder(){};
   virtual void tune_offset(double f) = 0;
   virtual void tune_freq(double f) = 0;
   virtual bool start(Call *call) = 0;
@@ -46,18 +43,17 @@ public:
   virtual void switch_tdma(bool phase2) = 0;
   virtual void set_tdma_slot(int slot) = 0;
   virtual void set_record_more_transmissions(bool more) = 0;
-  virtual double since_last_write() = 0; 
+  virtual double since_last_write() = 0;
   virtual void generate_arb_taps() = 0;
   virtual double get_current_length() = 0;
   virtual bool is_active() = 0;
   virtual bool is_idle() = 0;
   virtual bool is_squelched() = 0;
-  virtual std::vector<Transmission> get_transmission_list() = 0; 
+  virtual std::vector<Transmission> get_transmission_list() = 0;
   virtual State get_state() = 0;
   virtual int lastupdate() = 0;
   virtual long elapsed() = 0;
   virtual Source *get_source() = 0;
-
 };
 
 #endif // ifndef dmr_recorder_H

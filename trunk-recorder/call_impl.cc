@@ -1,3 +1,4 @@
+#include "call_impl.h"
 #include "call.h"
 #include "call_concluder/call_concluder.h"
 #include "formatter.h"
@@ -7,7 +8,6 @@
 #include <boost/algorithm/string.hpp>
 #include <signal.h>
 #include <stdio.h>
-#include "call_impl.h"
 
 std::string Call_impl::get_capture_dir() {
   return this->config.capture_dir;
@@ -18,8 +18,8 @@ Call * Call::make(long t, double f, System *s, Config c) {
   return (Call *) new Call_impl(t, f, s, c);
 }*/
 
-Call * Call::make(TrunkMessage message, System *s, Config c) {
-  return (Call *) new Call_impl(message, s, c);
+Call *Call::make(TrunkMessage message, System *s, Config c) {
+  return (Call *)new Call_impl(message, s, c);
 }
 
 Call_impl::Call_impl(long t, double f, System *s, Config c) {
@@ -123,7 +123,7 @@ long Call_impl::get_call_num() {
 }
 void Call_impl::conclude_call() {
 
-  //BOOST_LOG_TRIVIAL(info) << "conclude_call()";
+  // BOOST_LOG_TRIVIAL(info) << "conclude_call()";
   stop_time = time(NULL);
 
   if (state == COMPLETED) {
@@ -168,7 +168,7 @@ Recorder *Call_impl::get_debug_recorder() {
 
 void Call_impl::set_recorder(Recorder *r) {
   recorder = r;
-  //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
+  // BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
 }
 
 Recorder *Call_impl::get_recorder() {
@@ -190,10 +190,9 @@ double Call_impl::get_current_length() {
     }
     return get_recorder()->get_current_length(); // This could SegFault
   } else {
-    return 0; //time(NULL) - start_time;
+    return 0; // time(NULL) - start_time;
   }
 }
-
 
 System *Call_impl::get_system() {
   return sys;
@@ -236,7 +235,7 @@ void Call_impl::set_sigmf_recording(bool m) {
   sigmf_recording = m;
 }
 
-void Call_impl::set_is_analog( bool a ){
+void Call_impl::set_is_analog(bool a) {
   is_analog = a;
 }
 
@@ -311,7 +310,7 @@ bool Call_impl::add_source(long src) {
   curr_src_id = src;
 
   if (state == RECORDING) {
-     Recorder *rec = this->get_recorder(); 
+    Recorder *rec = this->get_recorder();
     if (rec != NULL) {
       rec->set_source(src);
     }
@@ -319,7 +318,7 @@ bool Call_impl::add_source(long src) {
 
   plugman_signal(src, NULL, gr::blocks::SignalType::Normal, this, this->get_system(), NULL);
 
-  return true ;
+  return true;
 }
 
 bool Call_impl::update(TrunkMessage message) {
@@ -337,7 +336,7 @@ bool Call_impl::update(TrunkMessage message) {
 }
 
 int Call_impl::since_last_update() {
-    return time(NULL) - last_update;
+  return time(NULL) - last_update;
 }
 
 long Call_impl::elapsed() {
@@ -426,7 +425,6 @@ boost::property_tree::ptree Call_impl::get_stats() {
   call_node.put("stopTime", this->get_stop_time());
   call_node.put("srcId", this->get_current_source_id());
 
-
   Recorder *recorder = this->get_recorder();
 
   if (recorder) {
@@ -435,7 +433,6 @@ boost::property_tree::ptree Call_impl::get_stats() {
     call_node.put("recState", recorder->get_state());
     call_node.put("analog", recorder->is_analog());
   }
-
 
   return call_node;
 }

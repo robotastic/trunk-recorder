@@ -14,19 +14,17 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/shared_ptr.hpp>
 
-
-#include "recorder.h"
 #include "../gr_blocks/freq_xlating_fft_filter.h"
+#include "recorder.h"
 
 class Source;
 class sigmf_recorder;
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
-	#else
-  typedef std::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
-	#endif
-
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
+#else
+typedef std::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
+#endif
 
 sigmf_recorder_sptr make_sigmf_recorder(Source *src);
 #include "../source.h"
@@ -34,8 +32,8 @@ sigmf_recorder_sptr make_sigmf_recorder(Source *src);
 class sigmf_recorder : virtual public gr::hier_block2, virtual public Recorder {
 
 public:
-  sigmf_recorder() {};
-  virtual ~sigmf_recorder() {};
+  sigmf_recorder(){};
+  virtual ~sigmf_recorder(){};
   virtual void tune_offset(double f) = 0;
   virtual bool start(Call *call) = 0;
   virtual void stop() = 0;

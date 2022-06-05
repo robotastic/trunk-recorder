@@ -1,18 +1,17 @@
 
-#include "debug_recorder.h"
 #include "debug_recorder_impl.h"
+#include "debug_recorder.h"
 #include <boost/log/trivial.hpp>
 #if GNURADIO_VERSION >= 0x030a00
 #include <gnuradio/network/udp_header_types.h>
 #endif
 
-//static int rec_counter=0;
+// static int rec_counter=0;
 
 debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port) {
-    debug_recorder *recorder = new debug_recorder_impl(src, address, port);
+  debug_recorder *recorder = new debug_recorder_impl(src, address, port);
 
   return gnuradio::get_initial_sptr(recorder);
-
 }
 void debug_recorder_impl::generate_arb_taps() {
 
@@ -32,16 +31,16 @@ void debug_recorder_impl::generate_arb_taps() {
     double bw = percent * halfband;
     double tb = (percent / 2.0) * halfband;
 
-    // BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
-    // tb;
+// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
+// tb;
 
-    // As we drop the bw factor, the optfir filter has a harder time converging;
-    // using the firdes method here for better results.
-    #if GNURADIO_VERSION < 0x030900
+// As we drop the bw factor, the optfir filter has a harder time converging;
+// using the firdes method here for better results.
+#if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-    #else
+#else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-    #endif
+#endif
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
@@ -77,8 +76,8 @@ debug_recorder_impl::DecimSettings debug_recorder_impl::get_decim(long speed) {
 }
 
 void debug_recorder_impl::initialize_prefilter() {
-  //double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  //double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  // double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  // double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   long if_rate = 32000;
   long fa = 0;
   long fb = 0;
@@ -86,7 +85,7 @@ void debug_recorder_impl::initialize_prefilter() {
   if2 = 0;
   samples_per_symbol = phase1_samples_per_symbol;
   symbol_rate = phase1_symbol_rate;
-  system_channel_rate = 32000; //symbol_rate * samples_per_symbol;
+  system_channel_rate = 32000; // symbol_rate * samples_per_symbol;
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
@@ -163,21 +162,20 @@ debug_recorder_impl::debug_recorder_impl(Source *src, std::string address, int p
   starttime = time(NULL);
 
   initialize_prefilter();
-  #if GNURADIO_VERSION < 0x030a00
+#if GNURADIO_VERSION < 0x030a00
   udp_sink = gr::blocks::udp_sink::make(sizeof(gr_complex), address, port);
-  #else
+#else
   udp_sink = gr::network::udp_sink::make(sizeof(gr_complex), 1, address, port, HEADERTYPE_NONE, 1472, true);
-  #endif
+#endif
   connect(arb_resampler, 0, udp_sink, 0);
 }
-
 
 long debug_recorder_impl::get_source_count() {
   return 0;
 }
 
 Call_Source *debug_recorder_impl::get_source_list() {
-  return NULL; //wav_sink->get_source_list();
+  return NULL; // wav_sink->get_source_list();
 }
 
 Source *debug_recorder_impl::get_source() {
@@ -201,7 +199,7 @@ double debug_recorder_impl::get_freq() {
 }
 
 double debug_recorder_impl::get_current_length() {
-  return 0; //wav_sink->length_in_seconds();
+  return 0; // wav_sink->length_in_seconds();
 }
 
 int debug_recorder_impl::lastupdate() {

@@ -30,16 +30,16 @@ void smartnet_trunking::generate_arb_taps() {
     double bw = percent * halfband;
     double tb = (percent / 2.0) * halfband;
 
-    // BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
-    // tb;
+// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
+// tb;
 
-    // As we drop the bw factor, the optfir filter has a harder time converging;
-    // using the firdes method here for better results.
-    #if GNURADIO_VERSION < 0x030900
+// As we drop the bw factor, the optfir filter has a harder time converging;
+// using the firdes method here for better results.
+#if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-    #else
+#else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-    #endif
+#endif
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
@@ -195,10 +195,10 @@ void smartnet_trunking::reset() {
   BOOST_LOG_TRIVIAL(info) << "Pll Phase: " << pll_demod->get_phase() << " min Freq: " << format_freq(pll_demod->get_min_freq()) << " Max Freq: " << format_freq(pll_demod->get_max_freq());
   carriertrack->set_rolloff(0.6);
   pll_demod->update_gains();
-  //pll_demod->frequency_limit();
+  // pll_demod->frequency_limit();
   pll_demod->phase_wrap();
-  //softbits->set_verbose(true);
-  //pll_demod->set_phase(0);
+  // softbits->set_verbose(true);
+  // pll_demod->set_phase(0);
 }
 
 void smartnet_trunking::set_center(double c) {

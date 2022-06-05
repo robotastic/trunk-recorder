@@ -44,22 +44,20 @@
 class Source;
 class analog_recorder;
 
+#include "../gr_blocks/decoder_wrapper.h"
+#include "../gr_blocks/freq_xlating_fft_filter.h"
+#include "../gr_blocks/plugin_wrapper.h"
+#include "../gr_blocks/transmission_sink.h"
 #include "../systems/system.h"
 #include "recorder.h"
-#include "../gr_blocks/decoder_wrapper.h"
-#include "../gr_blocks/plugin_wrapper.h"
-#include "../gr_blocks/freq_xlating_fft_filter.h"
-#include "../gr_blocks/transmission_sink.h"
 
-
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
-	#else
-  typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
-	#endif
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+#else
+typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
+#endif
 
 #include "../source.h"
-
 
 int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 
@@ -82,12 +80,12 @@ public:
   long get_talkgroup();
   time_t get_start_time();
   double get_current_length();
-  long get_wav_hz(); 
+  long get_wav_hz();
   bool is_active();
   bool is_analog();
   bool is_idle();
   bool is_squelched();
-  std::vector<Transmission> get_transmission_list(); 
+  std::vector<Transmission> get_transmission_list();
   State get_state();
   int get_num();
   int lastupdate();

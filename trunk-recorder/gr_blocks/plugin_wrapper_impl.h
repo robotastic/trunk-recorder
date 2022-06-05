@@ -27,38 +27,33 @@
 #include <boost/log/trivial.hpp>
 
 namespace gr {
-	namespace blocks {
+namespace blocks {
 
-		class plugin_wrapper_impl : public plugin_wrapper
-		{
-		private:
-			plugin_callback d_callback;
+class plugin_wrapper_impl : public plugin_wrapper {
+private:
+  plugin_callback d_callback;
 
-        protected:
+protected:
+  boost::mutex d_mutex;
+  virtual int dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items);
 
-			boost::mutex d_mutex;
-			virtual int dowork(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items);
+public:
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<plugin_wrapper_impl> sptr;
+#else
+  typedef std::shared_ptr<plugin_wrapper_impl> sptr;
+#endif
 
-		public:
+  static sptr make(plugin_callback callback);
 
-			
-	#if GNURADIO_VERSION < 0x030900
-	typedef boost::shared_ptr <plugin_wrapper_impl> sptr;
-	#else
-	typedef std::shared_ptr <plugin_wrapper_impl> sptr;
-	#endif
+  plugin_wrapper_impl(plugin_callback callback);
 
+  virtual int work(int noutput_items,
+                   gr_vector_const_void_star &input_items,
+                   gr_vector_void_star &output_items);
+};
 
-			static sptr make(plugin_callback callback);
-
-			plugin_wrapper_impl(plugin_callback callback);
-			
-            virtual int work(int noutput_items,
-				gr_vector_const_void_star& input_items,
-				gr_vector_void_star& output_items);
-		};
-
-	} /* namespace blocks */
+} /* namespace blocks */
 } /* namespace gr */
 
 #endif /* INCLUDED_GR_PLUGIN_WRAPPER_IMPL_H */

@@ -14,7 +14,7 @@ boost::format format_freq(double f) {
 }
 
 std::string get_frequency_format() {
-    if (frequencyFormat == 1)
+  if (frequencyFormat == 1)
     return "mhz";
   else if (frequencyFormat == 2)
     return "hz";

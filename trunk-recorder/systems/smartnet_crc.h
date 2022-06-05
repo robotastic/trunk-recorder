@@ -1,4 +1,4 @@
-//smartnet_crc.h
+// smartnet_crc.h
 /* -*- c++ -*- */
 /*
  * Copyright 2004 Free Software Foundation, Inc.
@@ -41,11 +41,11 @@ class smartnet_crc;
  * As a convention, the _sptr suffix indicates a boost::shared_ptr
  */
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<smartnet_crc> smartnet_crc_sptr;
-	#else
-  typedef std::shared_ptr<smartnet_crc> smartnet_crc_sptr;
-	#endif
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<smartnet_crc> smartnet_crc_sptr;
+#else
+typedef std::shared_ptr<smartnet_crc> smartnet_crc_sptr;
+#endif
 /*!
  * \brief Return a shared_ptr to a new instance of smartnet_crc.
  *

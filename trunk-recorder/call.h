@@ -1,7 +1,6 @@
 #ifndef CALL_H
 #define CALL_H
 
-
 #include "./global_structs.h"
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
@@ -11,23 +10,18 @@
 #include <sys/time.h>
 #include <vector>
 
-
-
 class Recorder;
 class System;
 
 #include "state.h"
-#include "systems/system.h"
 #include "systems/parser.h"
-
-
-
+#include "systems/system.h"
 
 class Call {
 public:
-  //static Call * make(long t, double f, System *s, Config c);
-  static Call * make(TrunkMessage message, System *s, Config c);
-  virtual ~Call() {};
+  // static Call * make(long t, double f, System *s, Config c);
+  static Call *make(TrunkMessage message, System *s, Config c);
+  virtual ~Call(){};
   virtual long get_call_num() = 0;
   virtual void restart_call() = 0;
   virtual void set_record_more_transmissions(bool more) = 0;
@@ -46,7 +40,6 @@ public:
   virtual std::string get_capture_dir() = 0;
   virtual void set_freq(double f) = 0;
   virtual long get_talkgroup() = 0;
-
 
   virtual bool update(TrunkMessage message) = 0;
   virtual int get_idle_count() = 0;
@@ -68,10 +61,10 @@ public:
   virtual void set_tdma_slot(int s) = 0;
   virtual int get_tdma_slot() = 0;
   virtual bool get_is_analog() = 0;
-  virtual void set_is_analog( bool a ) = 0;
+  virtual void set_is_analog(bool a) = 0;
   virtual const char *get_xor_mask() = 0;
   virtual time_t get_start_time() = 0;
-  virtual bool is_conventional() =0;
+  virtual bool is_conventional() = 0;
   virtual void set_encrypted(bool m) = 0;
   virtual bool get_encrypted() = 0;
   virtual void set_emergency(bool m) = 0;
@@ -88,9 +81,6 @@ public:
   virtual bool get_conversation_mode() = 0;
   virtual System *get_system() = 0;
   virtual std::vector<Transmission> get_transmissions() = 0;
-
 };
-
-
 
 #endif

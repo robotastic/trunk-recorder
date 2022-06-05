@@ -2,8 +2,8 @@
 #define SYSTEM_IMPL_H
 #include "../talkgroups.h"
 #include "../unit_tags.h"
-#include <boost/log/trivial.hpp>
 #include <boost/foreach.hpp>
+#include <boost/log/trivial.hpp>
 #include <stdio.h>
 //#include "../source.h"
 #include "p25_trunking.h"
@@ -30,15 +30,15 @@ class analog_recorder;
 class p25_recorder;
 class dmr_recorder;
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
-  typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-  typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
-	#else
-  typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
-  typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
-  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
-	#endif
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+#else
+typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
+typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
+typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+#endif
 
 class System_impl : public System {
   int sys_num;
@@ -97,8 +97,8 @@ public:
 
   smartnet_trunking_sptr smartnet_trunking;
   p25_trunking_sptr p25_trunking;
-  
-  std::map<unsigned long,std::map<unsigned long,std::time_t>> talkgroup_patches;
+
+  std::map<unsigned long, std::map<unsigned long, std::time_t>> talkgroup_patches;
 
   std::string get_short_name();
   void set_short_name(std::string short_name);
@@ -168,7 +168,7 @@ public:
   Talkgroup *find_talkgroup_by_freq(double freq);
   UnitTag *find_unit_tag(long unitID);
   void set_talkgroups_file(std::string);
-  void set_channel_file(std::string channel_file); 
+  void set_channel_file(std::string channel_file);
   bool has_channel_file();
   void set_unit_tags_file(std::string);
   int control_channel_count();
@@ -182,7 +182,7 @@ public:
   void add_conventional_recorder(analog_recorder_sptr rec);
   std::vector<analog_recorder_sptr> get_conventional_recorders();
   void add_conventionalP25_recorder(p25_recorder_sptr rec);
-  void add_conventionalDMR_recorder(dmr_recorder_sptr rec); 
+  void add_conventionalDMR_recorder(dmr_recorder_sptr rec);
   std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
   std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders();
   std::vector<double> get_channels();

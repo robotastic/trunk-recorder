@@ -1,18 +1,16 @@
 
 #include "analog_recorder.h"
+#include "../formatter.h"
 #include "../gr_blocks/decoder_wrapper_impl.h"
 #include "../gr_blocks/plugin_wrapper_impl.h"
 #include "../gr_blocks/transmission_sink.h"
-#include "../formatter.h"
-#include "../recorder_globals.h"
 #include "../plugin_manager/plugin_manager.h"
+#include "../recorder_globals.h"
 
 using namespace std;
 
 bool analog_recorder::logging = false;
-//static int rec_counter = 0;
-
-
+// static int rec_counter = 0;
 
 std::vector<float> design_filter(double interpolation, double deci) {
   float beta = 5.0;
@@ -73,7 +71,7 @@ analog_recorder::analog_recorder(Source *src)
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder("A") {
-  //int nchars;
+  // int nchars;
 
   source = src;
   chan_freq = source->get_center();
@@ -92,25 +90,23 @@ analog_recorder::analog_recorder(Source *src)
   starttime = time(NULL);
 
   float offset = 0;
-  bool use_streaming = false; 
-  
-  if (config != NULL ) {
+  bool use_streaming = false;
+
+  if (config != NULL) {
     use_streaming = config->enable_audio_streaming;
   }
 
-
-  //int samp_per_sym        = 10;
-  system_channel_rate = 96000; //4800 * samp_per_sym;
-  wav_sample_rate = 16000;    // Must be an integer decimation of system_channel_rate
+  // int samp_per_sym        = 10;
+  system_channel_rate = 96000; // 4800 * samp_per_sym;
+  wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
                                /*  int decim               = floor(samp_rate / 384000);
-
+                             
   double pre_channel_rate = samp_rate / decim;*/
 
   int initial_decim = floor(samp_rate / 480000);
   initial_rate = double(samp_rate) / double(initial_decim);
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
-
 
 #if GNURADIO_VERSION < 0x030900
   inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
@@ -137,7 +133,7 @@ analog_recorder::analog_recorder(Source *src)
   // width of 0.5.  If rate < 1, we need to filter to less
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
-  //double percent = 0.80;
+  // double percent = 0.80;
   double percent = 1.00; // Slightly widening this filter helps wideband and makes the audio a little better when using a higher sample rate
 
   if (arb_rate <= 1) {
@@ -145,16 +141,16 @@ analog_recorder::analog_recorder(Source *src)
     double bw = percent * halfband;
     double tb = (percent / 2.0) * halfband;
 
-    // BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
-    // tb;
+// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
+// tb;
 
-    // As we drop the bw factor, the optfir filter has a harder time converging;
-    // using the firdes method here for better results.
-    #if GNURADIO_VERSION < 0x030900
+// As we drop the bw factor, the optfir filter has a harder time converging;
+// using the firdes method here for better results.
+#if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-    #else
+#else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-    #endif
+#endif
     double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
     BOOST_LOG_TRIVIAL(info) << "Analog Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
   } else {
@@ -200,11 +196,11 @@ analog_recorder::analog_recorder(Source *src)
   // downsample from 48k to 8k
   decim_audio = gr::filter::fir_filter_fff::make((system_channel_rate / wav_sample_rate), audio_resampler_taps); // Calculated to make sample rate changable
 
-  //tm *ltm = localtime(&starttime);
+  // tm *ltm = localtime(&starttime);
 
   wav_sink = gr::blocks::transmission_sink::make(1, wav_sample_rate, 16); //  Configurable
 
-  if(use_streaming) {
+  if (use_streaming) {
     BOOST_LOG_TRIVIAL(info) << "Creating plugin sink..." << std::endl;
     plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&analog_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
     BOOST_LOG_TRIVIAL(info) << "Plugin sink created!" << std::endl;
@@ -217,17 +213,17 @@ analog_recorder::analog_recorder(Source *src)
   // Analog audio band pass from 300 to 3000 Hz
   // can't use gnuradio.filter.firdes.band_pass since we have different transition widths
   // 300 Hz high pass (275-325 Hz): removes CTCSS/DCS and Type II 150 bps Low Speed Data (LSD), or "FSK wobble"
-      #if GNURADIO_VERSION < 0x030900
-      high_f_taps = gr::filter::firdes::high_pass(1, wav_sample_rate, 300, 50, gr::filter::firdes::WIN_HANN); // Configurable
-      low_f_taps = gr::filter::firdes::low_pass(1, wav_sample_rate, 3250, 500, gr::filter::firdes::WIN_HANN);
-      #else
-      high_f_taps = gr::filter::firdes::high_pass(1, wav_sample_rate, 300, 50, gr::fft::window::WIN_HANN); // Configurable
-      low_f_taps = gr::filter::firdes::low_pass(1, wav_sample_rate, 3250, 500, gr::fft::window::WIN_HANN);
-      #endif
-  
+#if GNURADIO_VERSION < 0x030900
+  high_f_taps = gr::filter::firdes::high_pass(1, wav_sample_rate, 300, 50, gr::filter::firdes::WIN_HANN); // Configurable
+  low_f_taps = gr::filter::firdes::low_pass(1, wav_sample_rate, 3250, 500, gr::filter::firdes::WIN_HANN);
+#else
+  high_f_taps = gr::filter::firdes::high_pass(1, wav_sample_rate, 300, 50, gr::fft::window::WIN_HANN); // Configurable
+  low_f_taps = gr::filter::firdes::low_pass(1, wav_sample_rate, 3250, 500, gr::fft::window::WIN_HANN);
+#endif
+
   high_f = gr::filter::fir_filter_fff::make(1, high_f_taps);
   // 3000 Hz low pass (3000-3500 Hz)
-  
+
   low_f = gr::filter::fir_filter_fff::make(1, low_f_taps);
 
   // using squelch
@@ -246,21 +242,18 @@ analog_recorder::analog_recorder(Source *src)
   connect(decim_audio, 0, high_f, 0);
   connect(decim_audio, 0, decoder_sink, 0);
 
-
   connect(high_f, 0, low_f, 0);
   connect(low_f, 0, squelch_two, 0);
   connect(squelch_two, 0, levels, 0);
   connect(levels, 0, converter, 0);
-  connect(converter, 0,  wav_sink, 0);
+  connect(converter, 0, wav_sink, 0);
 
-  if(use_streaming) {
+  if (use_streaming) {
     connect(converter, 0, plugin_sink, 0);
   }
-  
 }
 
 analog_recorder::~analog_recorder() {}
-
 
 long analog_recorder::get_wav_hz() { return wav_sample_rate; };
 
@@ -328,7 +321,6 @@ bool analog_recorder::is_idle() {
   }
   return true;
 }
-
 
 long analog_recorder::get_talkgroup() {
   return talkgroup;
@@ -402,7 +394,7 @@ bool analog_recorder::start(Call *call) {
   squelch->set_threshold(squelch_db);
   BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting Analog Recorder Num [" << rec_num << "]\u001b[0m \tSquelch: " << squelch_db;
 
-  //BOOST_LOG_TRIVIAL(error) << "Setting squelch to: " << squelch_db << " block says: " << squelch->threshold();
+  // BOOST_LOG_TRIVIAL(error) << "Setting squelch to: " << squelch_db << " block says: " << squelch->threshold();
   levels->set_k(system->get_analog_levels());
   int d_max_dev = system->get_max_dev();
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, d_max_dev, 1000, 100);
@@ -421,4 +413,3 @@ bool analog_recorder::start(Call *call) {
 double analog_recorder::get_output_sample_rate() {
   return wav_sample_rate;
 }
-

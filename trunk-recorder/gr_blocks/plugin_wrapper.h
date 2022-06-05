@@ -24,36 +24,35 @@
 #define INCLUDED_GR_PLUGIN_WRAPPER_H
 
 #include <boost/log/trivial.hpp>
+#include <functional>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/sync_block.h>
-#include <functional>
 
 namespace gr {
-    namespace blocks {
+namespace blocks {
 
-        typedef std::function<void(int16_t *samples, int sampleCount)> plugin_callback;
+typedef std::function<void(int16_t *samples, int sampleCount)> plugin_callback;
 
-        /*!
-         * \brief Wrapps the plugin functions into a single block.
-         * \ingroup audio_blk
-         *
-         * \details
-         * Values must be floats within [-1;1].
-         * Check gr_make_plugin_wrapper() for extra info.
-         */
-        class BLOCKS_API plugin_wrapper : virtual public sync_block
-        {
-        public:
-            // gr::blocks::plugin_wrapper::sptr
-            
-            #if GNURADIO_VERSION < 0x030900
-            typedef boost::shared_ptr<plugin_wrapper> sptr;
-            #else
-            typedef std::shared_ptr<plugin_wrapper> sptr;
-            #endif
-        };
+/*!
+ * \brief Wrapps the plugin functions into a single block.
+ * \ingroup audio_blk
+ *
+ * \details
+ * Values must be floats within [-1;1].
+ * Check gr_make_plugin_wrapper() for extra info.
+ */
+class BLOCKS_API plugin_wrapper : virtual public sync_block {
+public:
+  // gr::blocks::plugin_wrapper::sptr
 
-    } /* namespace blocks */
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<plugin_wrapper> sptr;
+#else
+  typedef std::shared_ptr<plugin_wrapper> sptr;
+#endif
+};
+
+} /* namespace blocks */
 } /* namespace gr */
 
 #endif /* INCLUDED_GR_PLUGIN_WRAPPER_H */

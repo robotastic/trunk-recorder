@@ -1,7 +1,6 @@
 #ifndef CALL_IMPL_H
 #define CALL_IMPL_H
 
-
 #include "./global_structs.h"
 #include "gr_blocks/decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
@@ -9,20 +8,16 @@
 #include <sys/time.h>
 #include <vector>
 
-
-
 class Recorder;
 class System;
 
-#include "state.h"
 #include "call.h"
+#include "state.h"
 #include "systems/parser.h"
 #include "systems/system.h"
 #include "systems/system_impl.h"
 #include <op25_repeater/include/op25_repeater/rx_status.h>
-//enum  CallState { MONITORING=0, recording=1, stopping=2};
-
-
+// enum  CallState { MONITORING=0, recording=1, stopping=2};
 
 class Call_impl : public Call {
 public:
@@ -68,9 +63,9 @@ public:
   void set_tdma_slot(int s);
   int get_tdma_slot();
   bool get_is_analog();
-  void set_is_analog( bool a );
+  void set_is_analog(bool a);
   const char *get_xor_mask();
-  virtual time_t get_start_time() {return start_time;}
+  virtual time_t get_start_time() { return start_time; }
   virtual bool is_conventional() { return false; }
   void set_encrypted(bool m);
   bool get_encrypted();
@@ -81,7 +76,6 @@ public:
   void clear_transmission_list();
   boost::property_tree::ptree get_stats();
 
-
   std::string get_talkgroup_tag();
   std::string get_system_type();
   double get_final_length();
@@ -89,6 +83,7 @@ public:
   bool get_conversation_mode();
   System *get_system();
   std::vector<Transmission> get_transmissions();
+
 protected:
   State state;
   static long call_counter;
@@ -134,8 +129,6 @@ protected:
   void update_talkgroup_display();
 };
 
-
 int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
-
 
 #endif

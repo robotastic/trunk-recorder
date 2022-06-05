@@ -5,7 +5,7 @@
  * Author: Matthew Kaufman (matthew@eeph.com)
  *
  * Copyright (c) 2012  Matthew Kaufman  All rights reserved.
- * 
+ *
  *  This file is part of Matthew Kaufman's STAR Encoder/Decoder Library
  *
  *  The STAR Encoder/Decoder Library is free software; you can
@@ -52,7 +52,4 @@ typedef float star_sample_t;
 /* #define STAR_SAMPLE_FORMAT_U16 */
 #define STAR_SAMPLE_FORMAT_FLOAT
 
-
 #endif
-
-

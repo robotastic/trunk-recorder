@@ -2,19 +2,17 @@
 #define SYSTEM_H
 #include "../talkgroups.h"
 #include "../unit_tags.h"
-#include <boost/log/trivial.hpp>
 #include <boost/foreach.hpp>
+#include <boost/log/trivial.hpp>
 #include <stdio.h>
 //#include "../source.h"
 #include "parser.h"
-
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 //#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 //#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif
-
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
@@ -27,25 +25,23 @@ class analog_recorder;
 class p25_recorder;
 class dmr_recorder;
 enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id = 0,
-                                talkGroupDisplayFormat_id_tag = 1,
-                                talkGroupDisplayFormat_tag_id = 2 };
+                              talkGroupDisplayFormat_id_tag = 1,
+                              talkGroupDisplayFormat_tag_id = 2 };
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
-  typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-  typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
-	#else
-  typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
-  typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
-  typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
-	#endif
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
+typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+#else
+typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
+typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
+typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+#endif
 
 class System {
 
-
 public:
-
-  static System * make(int sys_id);
+  static System *make(int sys_id);
   virtual std::string get_short_name() = 0;
   virtual void set_short_name(std::string short_name) = 0;
   virtual std::string get_upload_script() = 0;
@@ -114,7 +110,7 @@ public:
   virtual Talkgroup *find_talkgroup_by_freq(double freq) = 0;
   virtual UnitTag *find_unit_tag(long unitID) = 0;
   virtual void set_talkgroups_file(std::string) = 0;
-  virtual void set_channel_file(std::string channel_file) = 0; 
+  virtual void set_channel_file(std::string channel_file) = 0;
   virtual bool has_channel_file() = 0;
   virtual void set_unit_tags_file(std::string) = 0;
   virtual int control_channel_count() = 0;
@@ -122,13 +118,13 @@ public:
   virtual double get_next_control_channel() = 0;
   virtual double get_current_control_channel() = 0;
   virtual int channel_count() = 0;
-  virtual int get_message_count() =0;
+  virtual int get_message_count() = 0;
   virtual void set_message_count(int count) = 0;
   virtual void add_channel(double channel) = 0;
   virtual void add_conventional_recorder(analog_recorder_sptr rec) = 0;
   virtual std::vector<analog_recorder_sptr> get_conventional_recorders() = 0;
   virtual void add_conventionalP25_recorder(p25_recorder_sptr rec) = 0;
-  virtual void add_conventionalDMR_recorder(dmr_recorder_sptr rec) = 0; 
+  virtual void add_conventionalDMR_recorder(dmr_recorder_sptr rec) = 0;
   virtual std::vector<p25_recorder_sptr> get_conventionalP25_recorders() = 0;
   virtual std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders() = 0;
   virtual std::vector<double> get_channels() = 0;

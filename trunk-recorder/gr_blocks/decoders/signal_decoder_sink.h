@@ -28,38 +28,36 @@
 #include <gnuradio/sync_block.h>
 
 namespace gr {
-    namespace blocks {
+namespace blocks {
 
-        /*!
-         * \brief Connects a gnuradio audio block to non-gnuradio signal decoders.
-         * \ingroup audio_blk
-         *
-         * \details
-         * Values must be floats within [-1;1].
-         * Check gr_make_signal_decoder_sink() for extra info.
-         */
-        class BLOCKS_API signal_decoder_sink : virtual public sync_block
-        {
-        public:
-            // gr::blocks::wavfile_sink::sptr
-            
-            #if GNURADIO_VERSION < 0x030900
-            typedef boost::shared_ptr<signal_decoder_sink> sptr;
-            #else
-            typedef std::shared_ptr<signal_decoder_sink> sptr;
-            #endif
+/*!
+ * \brief Connects a gnuradio audio block to non-gnuradio signal decoders.
+ * \ingroup audio_blk
+ *
+ * \details
+ * Values must be floats within [-1;1].
+ * Check gr_make_signal_decoder_sink() for extra info.
+ */
+class BLOCKS_API signal_decoder_sink : virtual public sync_block {
+public:
+  // gr::blocks::wavfile_sink::sptr
 
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<signal_decoder_sink> sptr;
+#else
+  typedef std::shared_ptr<signal_decoder_sink> sptr;
+#endif
 
-            virtual void set_mdc_enabled(bool b) {};
-            virtual void set_fsync_enabled(bool b) {};
-            virtual void set_star_enabled(bool b) {};
+  virtual void set_mdc_enabled(bool b){};
+  virtual void set_fsync_enabled(bool b){};
+  virtual void set_star_enabled(bool b){};
 
-            virtual bool get_mdc_enabled() { return false; };
-            virtual bool get_fsync_enabled() { return false; };
-            virtual bool get_star_enabled() { return false; };
-        };
+  virtual bool get_mdc_enabled() { return false; };
+  virtual bool get_fsync_enabled() { return false; };
+  virtual bool get_star_enabled() { return false; };
+};
 
-    } /* namespace blocks */
+} /* namespace blocks */
 } /* namespace gr */
 
 #endif /* INCLUDED_GR_SIGNAL_DECODER_SINK_H */

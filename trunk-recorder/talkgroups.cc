@@ -51,8 +51,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
     t_tokenizer tok(line, sep);
 
     vec.assign(tok.begin(), tok.end());
-    if (strcmp(vec[0].c_str(), "Decimal") == 0)
-    {
+    if (strcmp(vec[0].c_str(), "Decimal") == 0) {
       radioreference_format = true;
       BOOST_LOG_TRIVIAL(info) << "Found radioreference.com header, assuming direct csv download";
       // don't warn later on about the header line not being a valid talk group
@@ -60,8 +59,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
       continue;
     }
     Talkgroup *tg = NULL;
-    if (radioreference_format)
-    {
+    if (radioreference_format) {
       // Talkgroup configuration columns:
       //
       // [0] - talkgroup number
@@ -72,16 +70,13 @@ void Talkgroups::load_talkgroups(std::string filename) {
       // [5] - tag
       // [6] - group
 
-      if (vec.size() != 7)
-      {
+      if (vec.size() != 7) {
         BOOST_LOG_TRIVIAL(error) << "Malformed radioreference talkgroup entry at line " << lines_read << ".";
         continue;
       }
 
       tg = new Talkgroup(atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
-    }
-    else
-    {
+    } else {
       // Talkgroup configuration columns:
       //
       // [0] - talkgroup number
@@ -128,7 +123,6 @@ void Talkgroups::load_channels(std::string filename) {
     return;
   }
 
-
   boost::char_separator<char> sep(",", "\t", boost::keep_empty_tokens);
   typedef boost::tokenizer<boost::char_separator<char>> t_tokenizer;
 
@@ -172,21 +166,20 @@ void Talkgroups::load_channels(std::string filename) {
     }
     // TODO(nkw): more sanity checking here.
     bool enable = true;
-    if (vec.size() == 8 ) {
+    if (vec.size() == 8) {
       boost::trim(vec[7]);
       if (boost::iequals(vec[7], "false")) {
         enable = false;
-      } 
+      }
     }
 
-//Talkgroup(long num, double freq, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
-   if (enable) {
-    tg = new Talkgroup(atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str());
-  
-    talkgroups.push_back(tg);
-   }
+    // Talkgroup(long num, double freq, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+    if (enable) {
+      tg = new Talkgroup(atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str());
+
+      talkgroups.push_back(tg);
+    }
     lines_pushed++;
-   
   }
 
   if (lines_pushed != lines_read) {
@@ -230,4 +223,3 @@ Talkgroup *Talkgroups::find_talkgroup_by_freq(double freq) {
 std::vector<Talkgroup *> Talkgroups::get_talkgroups() {
   return talkgroups;
 }
-

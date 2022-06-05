@@ -1,4 +1,4 @@
-//datatypes for smartnet decoder
+// datatypes for smartnet decoder
 
 struct smartnet_packet {
   unsigned int address;

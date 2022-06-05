@@ -14,22 +14,16 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/shared_ptr.hpp>
 
-
-
-
-
 #include "recorder.h"
-
 
 class Source;
 class p25_recorder;
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
-	#else
-  typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
-	#endif
-
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
+#else
+typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
+#endif
 
 p25_recorder_sptr make_p25_recorder(Source *src);
 #include "../source.h"
@@ -37,11 +31,9 @@ p25_recorder_sptr make_p25_recorder(Source *src);
 class p25_recorder : virtual public gr::hier_block2, virtual public Recorder {
   static p25_recorder_sptr make_p25_recorder(Source *src);
 
-
-
 public:
-  p25_recorder() {};
-  virtual ~p25_recorder() {};
+  p25_recorder(){};
+  virtual ~p25_recorder(){};
   virtual DecimSettings get_decim(long speed) = 0;
   virtual void tune_offset(double f) = 0;
   virtual void tune_freq(double f) = 0;
@@ -54,12 +46,12 @@ public:
   virtual void switch_tdma(bool phase2) = 0;
   virtual void set_tdma_slot(int slot) = 0;
   virtual void set_record_more_transmissions(bool more) = 0;
-  virtual double since_last_write() = 0; 
+  virtual double since_last_write() = 0;
   virtual double get_current_length() = 0;
   virtual bool is_active() = 0;
   virtual bool is_idle() = 0;
   virtual bool is_squelched() = 0;
-  virtual std::vector<Transmission> get_transmission_list() = 0; 
+  virtual std::vector<Transmission> get_transmission_list() = 0;
   virtual State get_state() = 0;
   virtual int lastupdate() = 0;
   virtual long elapsed() = 0;

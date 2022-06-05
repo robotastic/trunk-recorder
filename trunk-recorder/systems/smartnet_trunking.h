@@ -35,12 +35,11 @@
 
 class smartnet_trunking;
 
-
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
-	#else
-  typedef std::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
-	#endif
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
+#else
+typedef std::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
+#endif
 smartnet_trunking_sptr make_smartnet_trunking(float f,
                                               float c,
                                               long s,

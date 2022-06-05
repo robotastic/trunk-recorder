@@ -7,8 +7,6 @@
 Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Call_impl(t, f, s, c) {
 }
 
-
-
 void Call_conventional::restart_call() {
   idle_count = 0;
   curr_src_id = -1;
@@ -29,7 +27,6 @@ time_t Call_conventional::get_start_time() {
   // Fixes https://github.com/robotastic/trunk-recorder/issues/103#issuecomment-284825841
   return start_time = stop_time - final_length;
 }
-
 
 void Call_conventional::set_recorder(Recorder *r) {
   recorder = r;

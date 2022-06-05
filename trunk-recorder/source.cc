@@ -98,13 +98,12 @@ int Source::get_gain_by_name(std::string name) {
     try {
       return cast_to_osmo_sptr(source_block)->get_gain(name, 0);
     } catch (std::exception &e) {
-      BOOST_LOG_TRIVIAL(error) << name <<  " Gain unsupported or other error: " << e.what();
+      BOOST_LOG_TRIVIAL(error) << name << " Gain unsupported or other error: " << e.what();
     }
-  }  else {
+  } else {
     BOOST_LOG_TRIVIAL(error) << "Unable to get Gain by Name for SDR drive: " << driver;
   }
   return -1;
-
 }
 
 int Source::get_gain() {
@@ -159,8 +158,8 @@ Recorder *Source::get_analog_recorder(Talkgroup *talkgroup) {
   int num_available_recorders = get_num_available_analog_recorders();
 
   if (talkgroup && talkgroup->get_priority() > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
-    BOOST_LOG_TRIVIAL(info) << "\t\tNot recording talkgroup " << talkgroup->number << " (" << talkgroup->alpha_tag << ")" << ", priority is " <<
-      talkgroup->get_priority() << " but only " << num_available_recorders << " recorders available";
+    BOOST_LOG_TRIVIAL(info) << "\t\tNot recording talkgroup " << talkgroup->number << " (" << talkgroup->alpha_tag << ")"
+                            << ", priority is " << talkgroup->get_priority() << " but only " << num_available_recorders << " recorders available";
     return NULL;
   }
 
@@ -336,8 +335,8 @@ Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority) {
   int num_available_recorders = get_num_available_digital_recorders();
 
   if (talkgroup && priority > num_available_recorders) { // a low priority is bad. You need atleast the number of availalbe recorders to your priority
-    BOOST_LOG_TRIVIAL(info) << "\t\tNot recording talkgroup " << talkgroup->number << " (" << talkgroup->alpha_tag << ")" << ", priority is " <<
-      priority << " but only " << num_available_recorders << " recorders available";
+    BOOST_LOG_TRIVIAL(info) << "\t\tNot recording talkgroup " << talkgroup->number << " (" << talkgroup->alpha_tag << ")"
+                            << ", priority is " << priority << " but only " << num_available_recorders << " recorders available";
     return NULL;
   }
 
@@ -455,7 +454,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
       for (std::vector<double>::iterator gain_it = gains.begin(); gain_it != gains.end(); gain_it++) {
         double gain_opt = *gain_it;
         std::ostringstream ss;
-        //gain_opt = floor(gain_opt * 10) / 10;
+        // gain_opt = floor(gain_opt * 10) / 10;
         ss << gain_opt << " ";
 
         gain_opt_str += ss.str();

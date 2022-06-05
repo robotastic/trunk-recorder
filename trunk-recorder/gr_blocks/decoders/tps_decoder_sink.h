@@ -23,42 +23,39 @@
 #ifndef INCLUDED_GR_TPS_DECODER_SINK_H
 #define INCLUDED_GR_TPS_DECODER_SINK_H
 
+#include "../decoder_wrapper.h"
 #include <boost/log/trivial.hpp>
 #include <gnuradio/blocks/api.h>
 #include <gnuradio/hier_block2.h>
-#include "../decoder_wrapper.h"
 
 namespace gr {
-    namespace blocks {
+namespace blocks {
 
-        /*!
-         * \brief Decodes Motorola Tactical Public Safety signals.
-         * \ingroup audio_blk
-         *
-         * \details
-         * Values must be floats within [-1;1].
-         */
-        class BLOCKS_API tps_decoder_sink : virtual public hier_block2
-        {
-        public:
-            // gr::blocks::wavfile_sink::sptr
-            
-            #if GNURADIO_VERSION < 0x030900
-            typedef boost::shared_ptr<tps_decoder_sink> sptr;
-            #else
-            typedef std::shared_ptr<tps_decoder_sink> sptr;
-            #endif
+/*!
+ * \brief Decodes Motorola Tactical Public Safety signals.
+ * \ingroup audio_blk
+ *
+ * \details
+ * Values must be floats within [-1;1].
+ */
+class BLOCKS_API tps_decoder_sink : virtual public hier_block2 {
+public:
+  // gr::blocks::wavfile_sink::sptr
 
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<tps_decoder_sink> sptr;
+#else
+  typedef std::shared_ptr<tps_decoder_sink> sptr;
+#endif
 
+  virtual void set_enabled(bool b){};
 
-            virtual void set_enabled(bool b) {};
+  virtual bool get_enabled() { return false; };
 
-            virtual bool get_enabled() { return false; };
+  virtual void process_message_queues(void){};
+};
 
-            virtual void process_message_queues(void) {};
-        };
-
-    } /* namespace blocks */
+} /* namespace blocks */
 } /* namespace gr */
 
 #endif /* INCLUDED_GR_TPS_DECODER_SINK_H */
