@@ -5,10 +5,10 @@ This page covers installing Trunk Recorder on a Linux box. I test everything on 
 ## Install Prerequistes
 To get started, install all of the required packages. Instructions for different versions are below:
 
-### Ubuntu 21.04
+### Ubuntu 21.04 / 22.04
 
 ```bash
-sudo   apt-get install -y apt-transport-https build-essential ca-certificates fdkaac git gnupg gnuradio gnuradio-dev gr-osmosdr libuhd3.15.0 libuhd-dev libboost-all-dev libcurl4-openssl-dev libgmp-dev libhackrf-dev liborc-0.4-dev libpthread-stubs0-dev libssl-dev libuhd-dev libusb-dev pkg-config software-properties-common cmake sox
+sudo   apt-get install -y apt-transport-https build-essential ca-certificates fdkaac git gnupg gnuradio gnuradio-dev gr-osmosdr libuhd3.15.0 libuhd-dev libboost-all-dev libcurl4-openssl-dev libgmp-dev libhackrf-dev liborc-0.4-dev libpthread-stubs0-dev libssl-dev libuhd-dev libusb-dev pkg-config software-properties-common cmake libsndfile1-dev sox
 ```
 
 If you are using a HackRF:
