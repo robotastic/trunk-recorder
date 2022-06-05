@@ -8,6 +8,9 @@
 #include "../call_concluder/call_concluder.h"
 
 #include "plugin_api.h"
+#if GNURADIO_VERSION >= 0x030a00
+#include <boost/function.hpp>
+#endif
 #include <boost/property_tree/ptree.hpp>
 #include <boost/optional/optional.hpp>
 #include <vector>
