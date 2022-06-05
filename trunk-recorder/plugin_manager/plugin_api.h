@@ -1,7 +1,11 @@
 #ifndef PLUGIN_API_H
 #define PLUGIN_API_H
 
-#include "../call_concluder/call_concluder.h"
+#include "../global_structs.h"
+#include "../gr_blocks/decoder_wrapper.h"
+#include "../systems/system.h"
+#include "../call.h"
+
 #include "../formatter.h"
 typedef enum {
   PLUGIN_UNKNOWN,

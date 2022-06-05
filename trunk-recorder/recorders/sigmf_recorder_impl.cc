@@ -1,14 +1,16 @@
 
-#include "sigmf_recorder.h"
+#include "sigmf_recorder_impl.h"
 #include <boost/log/trivial.hpp>
 
 //static int rec_counter=0;
 
 sigmf_recorder_sptr make_sigmf_recorder(Source *src) {
-  return gnuradio::get_initial_sptr(new sigmf_recorder(src));
+  sigmf_recorder *recorder = new sigmf_recorder_impl(src);
+
+  return gnuradio::get_initial_sptr(recorder);
 }
 
-sigmf_recorder::sigmf_recorder(Source *src)
+sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
     : gr::hier_block2("sigmf_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
@@ -47,25 +49,12 @@ sigmf_recorder::sigmf_recorder(Source *src)
   connect(valve, 0, raw_sink, 0);
 }
 
-sigmf_recorder::~sigmf_recorder() {}
 
-long sigmf_recorder::get_source_count() {
-  return 0;
-}
-
-Call_Source *sigmf_recorder::get_source_list() {
-  return NULL; 
-}
-
-Source *sigmf_recorder::get_source() {
-  return source;
-}
-
-int sigmf_recorder::get_num() {
+int sigmf_recorder_impl::get_num() {
   return rec_num;
 }
 
-bool sigmf_recorder::is_active() {
+bool sigmf_recorder_impl::is_active() {
   if (state == ACTIVE) {
     return true;
   } else {
@@ -73,33 +62,33 @@ bool sigmf_recorder::is_active() {
   }
 }
 
-double sigmf_recorder::get_freq() {
+double sigmf_recorder_impl::get_freq() {
   return freq;
 }
 
-double sigmf_recorder::get_current_length() {
+double sigmf_recorder_impl::get_current_length() {
   return 0; 
 }
 
-int sigmf_recorder::lastupdate() {
+int sigmf_recorder_impl::lastupdate() {
   return time(NULL) - timestamp;
 }
 
-long sigmf_recorder::elapsed() {
+long sigmf_recorder_impl::elapsed() {
   return time(NULL) - starttime;
 }
 
-void sigmf_recorder::tune_offset(double f) {
+void sigmf_recorder_impl::tune_offset(double f) {
   // have to flip this for 3.7
   // BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "
   //  << freq;
 }
 
-State sigmf_recorder::get_state() {
+State sigmf_recorder_impl::get_state() {
   return state;
 }
 
-void sigmf_recorder::stop() {
+void sigmf_recorder_impl::stop() {
   if (state == ACTIVE) {
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
     state = INACTIVE;
@@ -110,7 +99,7 @@ void sigmf_recorder::stop() {
   }
 }
 
-bool sigmf_recorder::start(Call *call) {
+bool sigmf_recorder_impl::start(Call *call) {
   if (state == INACTIVE) {
     timestamp = time(NULL);
     starttime = time(NULL);

@@ -4,16 +4,13 @@
 #include "recorders/recorder.h"
 #include <boost/algorithm/string.hpp>
 
-Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Call(t, f, s, c) {
+Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Call_impl(t, f, s, c) {
 }
 
-Call_conventional::~Call_conventional() {
-}
+
 
 void Call_conventional::restart_call() {
   idle_count = 0;
-  freq_count = 0;
-  error_list_count = 0;
   curr_src_id = -1;
   start_time = time(NULL);
   stop_time = time(NULL);

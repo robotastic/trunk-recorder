@@ -109,18 +109,20 @@ public:
   int digital_recorder_count();
   int analog_recorder_count();
   Config *get_config();
-  analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
+ 
+  void create_debug_recorder(gr::top_block_sptr tb, int source_num);
+  void create_sigmf_recorders(gr::top_block_sptr tb, int r);
   void create_analog_recorders(gr::top_block_sptr tb, int r);
-  Recorder *get_analog_recorder();
-  Recorder *get_analog_recorder(Talkgroup *talkgroup);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
+  analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb); 
+  
   Recorder *get_digital_recorder();
   Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority);
-  void create_debug_recorder(gr::top_block_sptr tb, int source_num);
+  Recorder *get_analog_recorder();
+  Recorder *get_analog_recorder(Talkgroup *talkgroup);
   Recorder *get_debug_recorder();
-  void create_sigmf_recorders(gr::top_block_sptr tb, int r);
   Recorder *get_sigmf_recorder();
 
     #if GNURADIO_VERSION < 0x030900
