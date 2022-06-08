@@ -26,8 +26,8 @@
 #ifndef _GR_WAVFILE_GR_3_8_H_
 #define _GR_WAVFILE_GR_3_8_H_
 
-#include <gnuradio/blocks/api.h>
 #include <cstdio>
+#include <gnuradio/blocks/api.h>
 
 namespace gr {
 namespace blocks {
@@ -47,12 +47,12 @@ namespace blocks {
  * \return True on a successful read, false if the file could not be read or is
  *         not a valid WAV file.
  */
-BLOCKS_API bool wavheader_parse(FILE* fp,
-                                unsigned int& sample_rate,
-                                int& nchans,
-                                int& bytes_per_sample,
-                                int& first_sample_pos,
-                                unsigned int& samples_per_chan);
+BLOCKS_API bool wavheader_parse(FILE *fp,
+                                unsigned int &sample_rate,
+                                int &nchans,
+                                int &bytes_per_sample,
+                                int &first_sample_pos,
+                                unsigned int &samples_per_chan);
 
 /*!
  * \brief Read one sample from an open WAV file at the current position.
@@ -60,8 +60,7 @@ BLOCKS_API bool wavheader_parse(FILE* fp,
  * \details
  * Takes care of endianness.
  */
-BLOCKS_API short int wav_read_sample(FILE* fp, int bytes_per_sample);
-
+BLOCKS_API short int wav_read_sample(FILE *fp, int bytes_per_sample);
 
 /*!
  * \brief Write a valid RIFF file header
@@ -71,7 +70,7 @@ BLOCKS_API short int wav_read_sample(FILE* fp, int bytes_per_sample);
  * gri_wavheader_complete() to fill these in.
  */
 BLOCKS_API bool
-wavheader_write(FILE* fp, unsigned int sample_rate, int nchans, int bytes_per_sample);
+wavheader_write(FILE *fp, unsigned int sample_rate, int nchans, int bytes_per_sample);
 
 /*!
  * \brief Write one sample to an open WAV file at the current position.
@@ -79,8 +78,7 @@ wavheader_write(FILE* fp, unsigned int sample_rate, int nchans, int bytes_per_sa
  * \details
  * Takes care of endianness.
  */
-BLOCKS_API void wav_write_sample(FILE* fp, short int sample, int bytes_per_sample);
-
+BLOCKS_API void wav_write_sample(FILE *fp, short int sample, int bytes_per_sample);
 
 /*!
  * \brief Complete a WAV header
@@ -94,7 +92,7 @@ BLOCKS_API void wav_write_sample(FILE* fp, short int sample, int bytes_per_sampl
  * \param[in] fp         File pointer to an open WAV file with a blank header
  * \param[in] byte_count Length of all samples written to the file in bytes.
  */
-BLOCKS_API bool wavheader_complete(FILE* fp, unsigned int byte_count);
+BLOCKS_API bool wavheader_complete(FILE *fp, unsigned int byte_count);
 
 } /* namespace blocks */
 } /* namespace gr */

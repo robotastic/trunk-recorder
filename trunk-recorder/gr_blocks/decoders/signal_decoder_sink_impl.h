@@ -27,61 +27,55 @@
 #include "signal_decoder_sink.h"
 #include <boost/log/trivial.hpp>
 
-#include "mdc_decode.h"
 #include "fsync_decode.h"
+#include "mdc_decode.h"
 #include "star_decode.h"
 
 namespace gr {
-	namespace blocks {
+namespace blocks {
 
-		class signal_decoder_sink_impl : public signal_decoder_sink
-		{
-		private:
-			mdc_decoder_t * d_mdc_decoder;
-			fsync_decoder_t * d_fsync_decoder;
-			star_decoder_t * d_star_decoder;
-			decoder_callback d_callback;
+class signal_decoder_sink_impl : public signal_decoder_sink {
+private:
+  mdc_decoder_t *d_mdc_decoder;
+  fsync_decoder_t *d_fsync_decoder;
+  star_decoder_t *d_star_decoder;
+  decoder_callback d_callback;
 
-			bool d_mdc_enabled;
-			bool d_fsync_enabled;
-			bool d_star_enabled;
+  bool d_mdc_enabled;
+  bool d_fsync_enabled;
+  bool d_star_enabled;
 
-		protected:
+protected:
+  boost::mutex d_mutex;
+  virtual int dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items);
 
-			boost::mutex d_mutex;
-			virtual int dowork(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items);
+public:
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<signal_decoder_sink_impl> sptr;
+#else
+  typedef std::shared_ptr<signal_decoder_sink_impl> sptr;
+#endif
+  /*
+   * \param sample_rate Sample rate [S/s]
+   */
+  static sptr make(unsigned int sample_rate, decoder_callback callback);
 
-		public:
+  signal_decoder_sink_impl(unsigned int sample_rate, decoder_callback callback);
 
-			
-			#if GNURADIO_VERSION < 0x030900
-				typedef boost::shared_ptr <signal_decoder_sink_impl> sptr;
-			#else
-				typedef std::shared_ptr <signal_decoder_sink_impl> sptr;
-			#endif
-			/*
-			 * \param sample_rate Sample rate [S/s]
-			 */
-			static sptr make(unsigned int sample_rate, decoder_callback callback);
+  virtual int work(int noutput_items,
+                   gr_vector_const_void_star &input_items,
+                   gr_vector_void_star &output_items);
 
-			signal_decoder_sink_impl(unsigned int sample_rate, decoder_callback callback);
+  void set_mdc_enabled(bool b);
+  void set_fsync_enabled(bool b);
+  void set_star_enabled(bool b);
+  bool get_mdc_enabled();
+  bool get_fsync_enabled();
+  bool get_star_enabled();
+  void log_decoder_msg(long unitId, const char *signaling_type, SignalType signal);
+};
 
-			virtual int work(int noutput_items,
-				gr_vector_const_void_star& input_items,
-				gr_vector_void_star& output_items);
-
-			void set_mdc_enabled(bool b);
-			void set_fsync_enabled(bool b);
-			void set_star_enabled(bool b);
-
-			bool get_mdc_enabled();
-			bool get_fsync_enabled();
-			bool get_star_enabled();
-
-			void log_decoder_msg(long unitId, const char* signaling_type, SignalType signal);
-		};
-
-	} /* namespace blocks */
+} /* namespace blocks */
 } /* namespace gr */
 
 #endif /* INCLUDED_GR_SIGNAL_DECODER_SINK_IMPL_H */

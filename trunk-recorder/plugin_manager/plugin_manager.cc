@@ -15,7 +15,7 @@ std::vector<Plugin *> plugins;
 
 Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
   BOOST_LOG_TRIVIAL(info) << "Setting up plugin -  Name: " << plugin_name << "\t Library file: " << plugin_lib;
-  //Plugin *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
+  // Plugin *plugin = plugin_new(plugin_lib == "" ? NULL : plugin_lib.c_str(), plugin_name.c_str());
 
   // Based on factory plugin method from Boost: https://www.boost.org/doc/libs/1_64_0/doc/html/boost_dll/tutorial.html#boost_dll.tutorial.factory_method_in_plugin
   boost::filesystem::path lib_path("./");
@@ -24,8 +24,7 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
       plugin_lib,                                                 // path to library
       "create_plugin",                                            // symbol to import
       boost::dll::load_mode::append_decorations                   // do append extensions and prefixes
-      | boost::dll::load_mode::search_system_folders
-  );
+          | boost::dll::load_mode::search_system_folders);
 
   plugin->api = plugin->creator();
   plugin->name = plugin_name;
@@ -57,7 +56,7 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::v
   } else {
     BOOST_LOG_TRIVIAL(info) << "No plugins configured";
   }
-  
+
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
     Plugin *plugin = *it;
     int ret = plugin->api->init(config, sources, systems);
@@ -72,9 +71,8 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::v
 
 void add_internal_plugin(std::string name, std::string library, boost::property_tree::ptree &cfg) {
 
-  Plugin *plugin = setup_plugin(library, name );
+  Plugin *plugin = setup_plugin(library, name);
   plugin->api->parse_config(cfg);
-
 }
 
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems) {

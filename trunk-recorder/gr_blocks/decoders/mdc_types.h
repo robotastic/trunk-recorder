@@ -5,7 +5,7 @@
  * Author: Matthew Kaufman (matthew@eeph.com)
  *
  * Copyright (c) 2010  Matthew Kaufman  All rights reserved.
- * 
+ *
  *  This file is part of Matthew Kaufman's MDC Encoder/Decoder Library
  *
  *  The MDC Encoder/Decoder Library is free software; you can
@@ -54,6 +54,5 @@ typedef float mdc_sample_t;
 /* #define MDC_SAMPLE_FORMAT_S16 */
 /* #define MDC_SAMPLE_FORMAT_U16 */
 #define MDC_SAMPLE_FORMAT_FLOAT
-
 
 #endif

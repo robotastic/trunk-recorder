@@ -24,16 +24,16 @@ void p25_trunking::generate_arb_taps() {
     double bw = percent * halfband;
     double tb = (percent / 2.0) * halfband;
 
-    // BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
-    // tb;
+// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
+// tb;
 
-    // As we drop the bw factor, the optfir filter has a harder time converging;
-    // using the firdes method here for better results.
-    #if GNURADIO_VERSION < 0x030900
+// As we drop the bw factor, the optfir filter has a harder time converging;
+// using the firdes method here for better results.
+#if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-    #else
+#else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-    #endif
+#endif
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
@@ -136,7 +136,7 @@ void p25_trunking::initialize_prefilter() {
 void p25_trunking::initialize_fsk4() {
 
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  //double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  // double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   const double pi = M_PI;
 
   // FSK4: Phase Loop Lock - can only be Phase 1, so locking at that rate.
@@ -145,25 +145,25 @@ void p25_trunking::initialize_fsk4() {
   double fd = 600.0;
   double pll_demod_gain = 1.0 / (fd * freq_to_norm_radians);
   pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
-  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0); //source->get_());
+  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0); // source->get_());
 
-  //FSK4: noise filter - can only be Phase 1, so locking at that rate.
-  	#if GNURADIO_VERSION < 0x030900
+  // FSK4: noise filter - can only be Phase 1, so locking at that rate.
+#if GNURADIO_VERSION < 0x030900
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
-  #else
+#else
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::fft::window::WIN_KAISER, 6.76);
-  
-  #endif
+
+#endif
   noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
 
-  //FSK4: Symbol Taps
+  // FSK4: Symbol Taps
   double symbol_decim = 1;
   for (int i = 0; i < samples_per_symbol; i++) {
     sym_taps.push_back(1.0 / samples_per_symbol);
   }
   sym_filter = gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
 
-  //FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
+  // FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
   tune_queue = gr::msg_queue::make(20);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
 
@@ -210,12 +210,12 @@ void p25_trunking::initialize_qpsk() {
 }
 
 void p25_trunking::initialize_p25() {
-  //OP25 Slicer
+  // OP25 Slicer
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
 
-  //OP25 Frame Assembler
+  // OP25 Frame Assembler
   traffic_queue = gr::msg_queue::make(2);
   tune_queue = gr::msg_queue::make(2);
 
@@ -242,7 +242,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   this->sys_num = sys_num;
   chan_freq = f;
   center_freq = c;
-  //long samp_rate = s;
+  // long samp_rate = s;
   input_rate = s;
   rx_queue = queue;
   qpsk_mod = qpsk;

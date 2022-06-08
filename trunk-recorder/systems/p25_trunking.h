@@ -59,13 +59,12 @@
 
 class p25_trunking;
 
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<p25_trunking> p25_trunking_sptr;
+#else
+typedef std::shared_ptr<p25_trunking> p25_trunking_sptr;
+#endif
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<p25_trunking> p25_trunking_sptr;
-	#else
-  typedef std::shared_ptr<p25_trunking> p25_trunking_sptr;
-	#endif
-  
 p25_trunking_sptr make_p25_trunking(double f,
                                     double c,
                                     long s,

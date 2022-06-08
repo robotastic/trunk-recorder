@@ -14,7 +14,6 @@ p25_recorder_fsk4_demod::p25_recorder_fsk4_demod()
 }
 
 p25_recorder_fsk4_demod::~p25_recorder_fsk4_demod() {
-
 }
 
 void p25_recorder_fsk4_demod::reset() {
@@ -23,7 +22,7 @@ void p25_recorder_fsk4_demod::reset() {
   pll_freq_lock->frequency_limit();
   pll_freq_lock->phase_wrap();
   fsk4_demod->reset();*/
-  //pll_demod->set_phase(0);
+  // pll_demod->set_phase(0);
 }
 
 void p25_recorder_fsk4_demod::initialize() {
@@ -35,20 +34,20 @@ void p25_recorder_fsk4_demod::initialize() {
   double fc = 0.0;
   double fd = 600.0;
   double pll_demod_gain = 1.0 / (fd * freq_to_norm_radians);
-double samples_per_symbol =  5;
+  double samples_per_symbol = 5;
   pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
   pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0);
 
-  //FSK4: noise filter - can only be Phase 1, so locking at that rate.
-  	#if GNURADIO_VERSION < 0x030900
+  // FSK4: noise filter - can only be Phase 1, so locking at that rate.
+#if GNURADIO_VERSION < 0x030900
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
-  #else
+#else
   baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::fft::window::WIN_KAISER, 6.76);
-  
-  #endif
+
+#endif
   noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
 
-  //FSK4: Symbol Taps
+  // FSK4: Symbol Taps
   double symbol_decim = 1;
 
   for (int i = 0; i < samples_per_symbol; i++) {
@@ -56,13 +55,10 @@ double samples_per_symbol =  5;
   }
   sym_filter = gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
 
-  //FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
+  // FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
   tune_queue = gr::msg_queue::make(20);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
 
-
-    
-  
   connect(self(), 0, pll_freq_lock, 0);
   connect(pll_freq_lock, 0, pll_amp, 0);
   connect(pll_amp, 0, noise_filter, 0);

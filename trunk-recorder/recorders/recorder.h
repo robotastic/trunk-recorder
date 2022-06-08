@@ -1,8 +1,6 @@
 #ifndef RECORDER_H
 #define RECORDER_H
 
-
-
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -54,15 +52,13 @@
 
 #include <gnuradio/blocks/head.h>
 
-#include <gnuradio/blocks/file_sink.h>
-#include "../state.h"
 #include "../call.h"
+#include "../state.h"
+#include <gnuradio/blocks/file_sink.h>
 
 #include "../gr_blocks/transmission_sink.h"
 
 //#include <op25_repeater/include/op25_repeater/rx_status.h>
-
-
 
 unsigned GCD(unsigned u, unsigned v);
 
@@ -77,13 +73,13 @@ public:
   Recorder(std::string type);
   virtual void tune_offset(double f){};
   virtual void tune_freq(double f){};
-  virtual bool start(Call *call){ return false;};
+  virtual bool start(Call *call) { return false; };
   virtual void stop(){};
   virtual void set_tdma_slot(int slot){};
   virtual double get_freq() { return 0; };
   virtual Source *get_source() { return NULL; };
   virtual std::vector<Transmission> get_transmission_list() { return {}; };
-  virtual void set_source(long src) {};
+  virtual void set_source(long src){};
   virtual Call_Source *get_source_list() { return NULL; };
   int get_num() { return rec_num; };
   virtual long get_source_count() { return 0; };
@@ -95,7 +91,7 @@ public:
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };
   virtual bool is_idle() { return true; };
-  virtual bool is_squelched() { return true; };  
+  virtual bool is_squelched() { return true; };
   virtual double get_current_length() { return 0; };
   virtual double since_last_write() { return 0; };
   virtual void clear(){};
@@ -105,9 +101,9 @@ public:
   virtual int get_recording_count() { return recording_count; }
   virtual double get_recording_duration() { return recording_duration; }
   virtual void process_message_queues(void){};
-  virtual double get_output_sample_rate(){ return 0;}
+  virtual double get_output_sample_rate() { return 0; }
   virtual int get_output_channels() { return 1; }
-  virtual bool get_enable_audio_streaming() {return d_enable_audio_streaming; };
+  virtual bool get_enable_audio_streaming() { return d_enable_audio_streaming; };
   virtual void set_enable_audio_streaming(bool enable_audio_streaming) { d_enable_audio_streaming = enable_audio_streaming; };
 
 protected:

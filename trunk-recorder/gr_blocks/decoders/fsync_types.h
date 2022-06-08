@@ -5,7 +5,7 @@
  * Author: Matthew Kaufman (matthew@eeph.com)
  *
  * Copyright (c) 2012, 2013, 2014  Matthew Kaufman  All rights reserved.
- * 
+ *
  *  This file is part of Matthew Kaufman's fsync Encoder/Decoder Library
  *
  *  The fsync Encoder/Decoder Library is free software; you can
@@ -51,6 +51,5 @@ typedef float fsync_sample_t;
 /* #define FSYNC_SAMPLE_FORMAT_S16 */
 /* #define FSYNC_SAMPLE_FORMAT_U16 */
 #define FSYNC_SAMPLE_FORMAT_FLOAT
-
 
 #endif

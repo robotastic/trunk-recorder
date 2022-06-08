@@ -2,7 +2,7 @@
 #include "sigmf_recorder_impl.h"
 #include <boost/log/trivial.hpp>
 
-//static int rec_counter=0;
+// static int rec_counter=0;
 
 sigmf_recorder_sptr make_sigmf_recorder(Source *src) {
   sigmf_recorder *recorder = new sigmf_recorder_impl(src);
@@ -28,7 +28,7 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
 
   state = INACTIVE;
 
-  //double symbol_rate         = 4800;
+  // double symbol_rate         = 4800;
 
   timestamp = time(NULL);
   starttime = time(NULL);
@@ -36,7 +36,7 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
 
-  //tm *ltm = localtime(&starttime);
+  // tm *ltm = localtime(&starttime);
 
   int nchars = snprintf(filename, 160, "%ld-%ld_%g.raw", talkgroup, starttime, freq);
 
@@ -48,7 +48,6 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
   connect(self(), 0, valve, 0);
   connect(valve, 0, raw_sink, 0);
 }
-
 
 int sigmf_recorder_impl::get_num() {
   return rec_num;
@@ -67,7 +66,7 @@ double sigmf_recorder_impl::get_freq() {
 }
 
 double sigmf_recorder_impl::get_current_length() {
-  return 0; 
+  return 0;
 }
 
 int sigmf_recorder_impl::lastupdate() {
@@ -111,14 +110,12 @@ bool sigmf_recorder_impl::start(Call *call) {
 
     BOOST_LOG_TRIVIAL(info) << "sigmf_recorder.cc: Starting Logger   \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
 
-
     std::stringstream path_stream;
 
     // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
     path_stream << call->get_capture_dir() << "/" << call->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
     std::string path_string = path_stream.str();
     boost::filesystem::create_directories(path_string);
-
 
     nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.raw", path_string.c_str(), talkgroup, starttime, call->get_freq());
     if (nchars >= 255) {
@@ -133,4 +130,3 @@ bool sigmf_recorder_impl::start(Call *call) {
   }
   return true;
 }
-

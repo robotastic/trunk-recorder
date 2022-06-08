@@ -44,7 +44,7 @@ int Talkgroup::get_priority() {
   return priority;
 }
 
-void Talkgroup::set_priority(int new_priority){
+void Talkgroup::set_priority(int new_priority) {
   priority = new_priority;
   return;
 }

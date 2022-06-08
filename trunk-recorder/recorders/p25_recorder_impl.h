@@ -18,11 +18,10 @@
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
 
+#include <gnuradio/analog/pll_freqdet_cf.h>
+#include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/filter/fft_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
-#include <gnuradio/analog/pwr_squelch_cc.h>
-#include <gnuradio/analog/pll_freqdet_cf.h>
-
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
@@ -44,35 +43,30 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/blocks/head.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-#include "recorder.h"
+#include "../gr_blocks/selector.h"
+#include "../gr_blocks/transmission_sink.h"
 #include "p25_recorder.h"
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"
 #include "p25_recorder_qpsk_demod.h"
-#include "../gr_blocks/transmission_sink.h"
-#include "../gr_blocks/selector.h"
+#include "recorder.h"
 
 class Source;
 class p25_recorder;
 
-
 #include "../source.h"
 
-class p25_recorder_impl :  public p25_recorder {
-
+class p25_recorder_impl : public p25_recorder {
 
 protected:
-
   void initialize(Source *src);
 
 public:
-
   p25_recorder_impl(Source *src);
   DecimSettings get_decim(long speed);
   void initialize_prefilter();
@@ -90,13 +84,13 @@ public:
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);
   void set_record_more_transmissions(bool more);
-  double since_last_write(); 
+  double since_last_write();
   void generate_arb_taps();
   double get_current_length();
   bool is_active();
   bool is_idle();
   bool is_squelched();
-  std::vector<Transmission> get_transmission_list(); 
+  std::vector<Transmission> get_transmission_list();
   State get_state();
   int lastupdate();
   long elapsed();
@@ -120,15 +114,15 @@ protected:
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::selector::sptr modulation_selector;
   gr::blocks::copy::sptr valve;
-  //gr::blocks::multiply_const_ss::sptr levels;
-
+  // gr::blocks::multiply_const_ss::sptr levels;
 
   p25_recorder_fsk4_demod_sptr fsk4_demod;
-  p25_recorder_decode_sptr     fsk4_p25_decode;
+  p25_recorder_decode_sptr fsk4_p25_decode;
   p25_recorder_qpsk_demod_sptr qpsk_demod;
-  p25_recorder_decode_sptr     qpsk_p25_decode;
+  p25_recorder_decode_sptr qpsk_p25_decode;
 
-gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+
 private:
   double system_channel_rate;
   double arb_rate;
@@ -152,8 +146,6 @@ private:
 
   std::vector<float> arb_taps;
 
-
- 
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
@@ -169,11 +161,7 @@ private:
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
-
   gr::blocks::multiply_const_ff::sptr rescale;
-
-
-
 };
 
 #endif // ifndef P25_RECORDER_H

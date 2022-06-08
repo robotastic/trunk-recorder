@@ -10,17 +10,14 @@
 //#include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
-#include "recorders/p25_recorder.h"
 #include "recorders/dmr_recorder.h"
+#include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
-
 
 struct Gain_Stage_t {
   std::string stage_name;
   int value;
 };
-
-
 
 class Source {
 
@@ -86,7 +83,7 @@ public:
   void set_gain_mode(bool m);
   bool get_gain_mode();
   void set_gain(int r);
-  std::vector<Gain_Stage_t> get_gain_stages(); 
+  std::vector<Gain_Stage_t> get_gain_stages();
   int get_gain_by_name(std::string name);
   void set_gain_by_name(std::string name, int r);
   int get_gain();
@@ -109,15 +106,15 @@ public:
   int digital_recorder_count();
   int analog_recorder_count();
   Config *get_config();
- 
+
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);
   void create_analog_recorders(gr::top_block_sptr tb, int r);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
-  dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb); 
-  
+  dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb);
+
   Recorder *get_digital_recorder();
   Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority);
   Recorder *get_analog_recorder();
@@ -125,11 +122,11 @@ public:
   Recorder *get_debug_recorder();
   Recorder *get_sigmf_recorder();
 
-    #if GNURADIO_VERSION < 0x030900
+#if GNURADIO_VERSION < 0x030900
   inline osmosdr::source::sptr cast_to_osmo_sptr(gr::basic_block_sptr p) {
     return boost::dynamic_pointer_cast<osmosdr::source, gr::basic_block>(p);
   }
-    inline gr::uhd::usrp_source::sptr cast_to_usrp_sptr(gr::basic_block_sptr p) {
+  inline gr::uhd::usrp_source::sptr cast_to_usrp_sptr(gr::basic_block_sptr p) {
     return boost::dynamic_pointer_cast<gr::uhd::usrp_source, gr::basic_block>(p);
   }
 #else

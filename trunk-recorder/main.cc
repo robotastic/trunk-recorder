@@ -66,8 +66,8 @@
 
 #include "plugin_manager/plugin_manager.h"
 
-#include "git.h"
 #include "cmake.h"
+#include "git.h"
 
 using namespace std;
 namespace logging = boost::log;
@@ -101,7 +101,6 @@ unsigned GCD(unsigned u, unsigned v) {
   }
   return u;
 }
-
 
 void set_logging_level(std::string log_level) {
   boost::log::trivial::severity_level sev_level = boost::log::trivial::info;
@@ -152,9 +151,7 @@ bool load_config(string config_file) {
     }
 
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
-  
-  
-  
+
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
 
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
@@ -209,8 +206,7 @@ bool load_config(string config_file) {
     std::string log_level = pt.get<std::string>("logLevel", "info");
     BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
     set_logging_level(log_level);
-  
-  
+
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
 
     config.debug_recorder = pt.get<bool>("debugRecorder", 0);
@@ -237,7 +233,7 @@ bool load_config(string config_file) {
 
       // If it is a conventional System
       if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
-        
+
         boost::optional<std::string> channel_file_exist = node.second.get_optional<std::string>("channelFile");
         boost::optional<boost::property_tree::ptree &> channels_exist = node.second.get_child_optional("channels");
 
@@ -268,7 +264,7 @@ bool load_config(string config_file) {
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels")) {
           double control_channel = sub_node.second.get<double>("", 0);
           BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channel);
-          system->add_control_channel(control_channel); 
+          system->add_control_channel(control_channel);
         }
         system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
         BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
@@ -390,7 +386,6 @@ bool load_config(string config_file) {
       system->set_min_tx_duration(node.second.get<double>("minTransmissionDuration", 0));
       BOOST_LOG_TRIVIAL(info) << "Minimum Transmission Duration (in seconds): " << system->get_min_tx_duration();
 
-
       if (!system->get_compress_wav()) {
         if ((system->get_api_key().length() > 0) || (system->get_bcfy_api_key().length() > 0)) {
           BOOST_LOG_TRIVIAL(error) << "Compress WAV must be set to true if you are using OpenMHz or Broadcastify";
@@ -470,8 +465,8 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
       if (node.second.count("gainSettings") != 0) {
         BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("gainSettings")) {
-            source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
-            gain_set = true;
+          source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
+          gain_set = true;
         }
       }
 
@@ -534,7 +529,7 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
       }
 
-	    source->set_gain_mode(agc);
+      source->set_gain_mode(agc);
       source->set_antenna(antenna);
       source->set_silence_frames(silence_frames);
 
@@ -547,15 +542,14 @@ bool load_config(string config_file) {
       if (config.debug_recorder) {
         source->create_debug_recorder(tb, source_count);
       }
-      
+
       sources.push_back(source);
       source_count++;
       BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n\n";
     }
 
-
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
-    add_internal_plugin("openmhz_uploader","libopenmhz_uploader.so",  pt);
+    add_internal_plugin("openmhz_uploader", "libopenmhz_uploader.so", pt);
     add_internal_plugin("broadcastify_uploader", "libbroadcastify_uploader.so", pt);
     add_internal_plugin("unit_script", "libunit_script.so", pt);
     add_internal_plugin("stat_socket", "libstat_socket.so", pt);
@@ -617,7 +611,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
   if (!talkgroup && (sys->get_record_unknown() == false)) {
     if (sys->get_hideUnknown() == false) {
-      //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
+      // BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
     }
     return false;
   }
@@ -628,9 +622,9 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     call->set_talkgroup_tag("-");
   }
 
-  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode.compare("E") == 0 || talkgroup->mode.compare("TE") == 0  || talkgroup->mode.compare("DE") == 0 ))) {
+  if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode.compare("E") == 0 || talkgroup->mode.compare("TE") == 0 || talkgroup->mode.compare("DE") == 0))) {
     if (sys->get_hideEncrypted() == false) {
-      //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
+      // BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
     }
     return false;
   }
@@ -644,9 +638,9 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
 
       if (talkgroup) {
         int priority = talkgroup->get_priority();
-        BOOST_FOREACH (auto& TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {
-          if (sys->find_talkgroup(TGID) != NULL){
-            if (sys->find_talkgroup(TGID)->get_priority() < priority){
+        BOOST_FOREACH (auto &TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {
+          if (sys->find_talkgroup(TGID) != NULL) {
+            if (sys->find_talkgroup(TGID)->get_priority() < priority) {
               priority = sys->find_talkgroup(TGID)->get_priority();
               BOOST_LOG_TRIVIAL(info) << "Temporarily increased priority of talkgroup " << call->get_talkgroup() << " to " << sys->find_talkgroup(TGID)->get_priority() << " due to active patch with talkgroup " << TGID;
             }
@@ -671,7 +665,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
           recorder = source->get_digital_recorder();
         }
       }
-      //int total_recorders = get_total_recorders();
+      // int total_recorders = get_total_recorders();
 
       if (recorder) {
         if (message.meta.length()) {
@@ -725,7 +719,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (!source_found) {
-    //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    // BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -787,8 +781,8 @@ void manage_conventional_call(Call *call) {
       plugman_call_start(call);
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Starting P25 Convetional Recorder ";
 
-      //plugman_setup_recorder((Recorder *)recorder->get());
-    } 
+      // plugman_setup_recorder((Recorder *)recorder->get());
+    }
   }
 }
 
@@ -826,18 +820,15 @@ void manage_calls() {
     }
 
     // Handle Trunked Calls
-    if ((call->since_last_update() > 1.0/*config.call_timeout*/) && ((state == RECORDING) || (state == MONITORING))) {
+    if ((call->since_last_update() > 1.0 /*config.call_timeout*/) && ((state == RECORDING) || (state == MONITORING))) {
       if (state == RECORDING) {
         ended_call = true;
         call->set_record_more_transmissions(false);
         call->set_state(INACTIVE);
         // set the call state to inactive
 
-
-
         // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to COMPLETED
-        //call->stop_call();
-        
+        // call->stop_call();
       }
       // we do not need to stop Monitoring Calls, we can just delete them
       if (state == MONITORING) {
@@ -847,8 +838,6 @@ void manage_calls() {
         continue;
       }
     }
-
-
 
     // If a call's state has been set to COMPLETED, we can conclude the call and delete it
     // we need to check the Call State again because it could have been updated by the previous command.
@@ -874,7 +863,7 @@ void manage_calls() {
 
         // if the recorder has simply been going for a while and a call is inactive, end things
         if (call->since_last_update() > config.call_timeout) {
-          //BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
+          // BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
           BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call that has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << recorder->get_state();
 
           // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
@@ -893,7 +882,7 @@ void manage_calls() {
         }
 
         // In this case, the Call is inactive and was waiting for the recorder to finish. In this
-        // case you can now conclude the call. 
+        // case you can now conclude the call.
         /*if ((recorder->get_state() == IDLE) || (recorder->get_state() == STOPPED)) {
           //BOOST_LOG_TRIVIAL(info) << "Recorder state: " << format_state(recorder->get_state());
           //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) <<  "\t\u001b[36mCompleting Call, its state is INACTIVE and its recorder state is STOPPED or IDLE\u001b[0m";
@@ -962,17 +951,17 @@ void unit_location(System *sys, long source_id, long talkgroup_num) {
 
 void handle_call_grant(TrunkMessage message, System *sys) {
   bool call_found = false;
-  bool recording_started [[maybe_unused]]  = false;
-  
+  bool recording_started [[maybe_unused]] = false;
+
   /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
   that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
   recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
-  of the original recorder gets flushed. 
+  of the original recorder gets flushed.
   UPDATED: however if we have 2 different talkgroups on the same freq we should do a stop_call on the original call since it is being used by another TG now. This will let the recorder keep
   going until it gets a termination flag.
   */
 
-  //BOOST_LOG_TRIVIAL(info) << "TG: "  << message.talkgroup << " sys num: "<< message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
+  // BOOST_LOG_TRIVIAL(info) << "TG: "  << message.talkgroup << " sys num: "<< message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
@@ -986,8 +975,8 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
 
-      //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m GRANT Message for existing Call\u001b[0m";
-      
+      // BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m GRANT Message for existing Call\u001b[0m";
+
       if (call->get_state() == RECORDING) {
         call->set_record_more_transmissions(true);
       }
@@ -1018,14 +1007,14 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       continue;
     }
 
-        // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
+    // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
     // keep writing to the file until it hits a termination flag, so no packets should be dropped.
     if ((call->get_state() == INACTIVE) && (call->get_talkgroup() != message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       Recorder *recorder = call->get_recorder();
       string recorder_state = "UNKNOWN";
       if (recorder != NULL) {
         recorder_state = format_state(recorder->get_state());
-      }      
+      }
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mStopping INACTIVE call, Recorder State: " << recorder_state << " RX overlapping TG message Freq TG:" << message.talkgroup << "\u001b[0m";
 
       call->set_state(COMPLETED);
@@ -1044,9 +1033,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     plugman_call_start(call);
     plugman_calls_active(calls);
   }
-  
 }
-
 
 void handle_call_update(TrunkMessage message, System *sys) {
   bool call_found = false;
@@ -1054,7 +1041,7 @@ void handle_call_update(TrunkMessage message, System *sys) {
   /* Notes: it is possible for 2 Calls to exist for the same talkgroup on different freq. This happens when a Talkgroup starts on a freq
   that current recorder can't retune to. In this case, the current orig Talkgroup reocrder will keep going on the old freq, while a new
   recorder is start on a source that can cover that freq. This makes sure any of the remaining transmission that it is in the buffer
-  of the original recorder gets flushed. 
+  of the original recorder gets flushed.
   UPDATED: however if we have 2 different talkgroups on the same freq we should do a stop_call on the original call since it is being used by another TG now. This will let the recorder keep
   going until it gets a termination flag.
   */
@@ -1067,23 +1054,22 @@ void handle_call_update(TrunkMessage message, System *sys) {
       continue;
     }
 
-    //BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
+    // BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
 
       if (call->get_state() == INACTIVE) {
-       // Only a RECORDING call can be set to INACTIVE
-       // We should be safe to set it to RECORDING if it starts to get UPDATE messages 
-       call->set_state(RECORDING); 
-       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Reactivating an INACTIVE Call \u001b[0m";
+        // Only a RECORDING call can be set to INACTIVE
+        // We should be safe to set it to RECORDING if it starts to get UPDATE messages
+        call->set_state(RECORDING);
+        BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Reactivating an INACTIVE Call \u001b[0m";
       }
-        //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
-     
+      // BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Updating Call \u001b[0m";
 
-        // It is helpful to have both GRANT and UPDATE messages allow for new calls to be started
-        // This is because GRANT message can be sometimes dropped if the control channel is not perfect
-        // In either event, when a  Call times out and goes INACTIVE, then record_more_transmissions gets set to false
-        call->set_record_more_transmissions(true);
+      // It is helpful to have both GRANT and UPDATE messages allow for new calls to be started
+      // This is because GRANT message can be sometimes dropped if the control channel is not perfect
+      // In either event, when a  Call times out and goes INACTIVE, then record_more_transmissions gets set to false
+      call->set_record_more_transmissions(true);
 
       bool source_updated = call->update(message);
       if (source_updated) {
@@ -1093,9 +1079,8 @@ void handle_call_update(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    //BOOST_LOG_TRIVIAL(error) << "Weird - call not found for UPDATE\tFreq: " << format_freq(message.freq) << "\tTG:" << message.freq;
+    // BOOST_LOG_TRIVIAL(error) << "Weird - call not found for UPDATE\tFreq: " << format_freq(message.freq) << "\tTG:" << message.freq;
   }
-
 }
 
 void handle_message(std::vector<TrunkMessage> messages, System *sys) {
@@ -1112,13 +1097,13 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UU_V_GRANT:
-      if(config.record_uu_v_calls){
+      if (config.record_uu_v_calls) {
         handle_call_grant(message, sys);
       }
       break;
 
     case UU_V_UPDATE:
-      if(config.record_uu_v_calls){
+      if (config.record_uu_v_calls) {
         handle_call_update(message, sys);
       }
       break;
@@ -1132,11 +1117,11 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case DEREGISTRATION:
-      unit_deregistration( sys, message.source);
+      unit_deregistration(sys, message.source);
       break;
 
     case AFFILIATION:
-      unit_group_affiliation( sys, message.source, message.talkgroup);
+      unit_group_affiliation(sys, message.source, message.talkgroup);
       break;
 
     case SYSID:
@@ -1147,11 +1132,11 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case LOCATION:
-      unit_location( sys, message.source, message.talkgroup);
+      unit_location(sys, message.source, message.talkgroup);
       break;
-    
+
     case ACKNOWLEDGE:
-      unit_acknowledge_response( sys, message.source);
+      unit_acknowledge_response(sys, message.source);
       break;
 
     case PATCH_ADD:
@@ -1194,7 +1179,7 @@ System *find_system(int sys_num) {
 }
 
 void retune_system(System *sys) {
-  System_impl *system = (System_impl *) sys;
+  System_impl *system = (System_impl *)sys;
   bool source_found = false;
   Source *current_source = system->get_source();
   double control_channel_freq = system->get_next_control_channel();
@@ -1310,30 +1295,29 @@ void monitor_messages() {
   while (1) {
 
     if (exit_flag) { // my action when signal set it 1
-        BOOST_LOG_TRIVIAL(info) << "Caught Exit Signal...";
-        for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
-         Call *call = *it;
-                  
+      BOOST_LOG_TRIVIAL(info) << "Caught Exit Signal...";
+      for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
+        Call *call = *it;
+
         if (call->get_state() != MONITORING) {
           call->set_state(COMPLETED);
           call->conclude_call();
         }
 
-         it = calls.erase(it);
-         delete call;
-       }
+        it = calls.erase(it);
+        delete call;
+      }
 
-       BOOST_LOG_TRIVIAL(info) << "Cleaning up & Exiting...";
+      BOOST_LOG_TRIVIAL(info) << "Cleaning up & Exiting...";
 
-       // Sleep for 5 seconds to allow for all of the Call Concluder threads to finish.
-       boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
+      // Sleep for 5 seconds to allow for all of the Call Concluder threads to finish.
+      boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
       return;
     }
 
     process_message_queues();
 
     plugman_poll_one();
-
 
     msg = msg_queue->delete_head_nowait();
 
@@ -1370,7 +1354,7 @@ void monitor_messages() {
       }
 
       boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-      //usleep(1000 * 10);
+      // usleep(1000 * 10);
     }
 
     current_time = time(NULL);
@@ -1399,102 +1383,99 @@ void monitor_messages() {
 
 bool setup_convetional_channel(System *system, double frequency, long channel_index) {
   bool channel_added = false;
-      Source *source = NULL;
-        for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
-          source = *src_it;
+  Source *source = NULL;
+  for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+    source = *src_it;
 
-          if ((source->get_min_hz() <= frequency) && (source->get_max_hz() >= frequency)) {
-            channel_added = true;
-            if (system->get_squelch_db() == -160) {
-              BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
-              return false;
-            } else {
-              channel_added = true;
-            }
+    if ((source->get_min_hz() <= frequency) && (source->get_max_hz() >= frequency)) {
+      channel_added = true;
+      if (system->get_squelch_db() == -160) {
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
+        return false;
+      } else {
+        channel_added = true;
+      }
 
-            
-            
-            Call_conventional *call = NULL;
-            if (system->has_channel_file()) {
-              Talkgroup *tg = system->find_talkgroup_by_freq(frequency);
-              call = new Call_conventional(tg->number, tg->freq, system, config);
-              call->set_talkgroup_tag(tg->alpha_tag);
-            } else {
-              call = new Call_conventional(channel_index, frequency, system, config);
-            }
-            BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
-            if (system->get_system_type() == "conventional") {
-              analog_recorder_sptr rec;
-              rec = source->create_conventional_recorder(tb);
-              rec->start(call);
-              call->set_is_analog(true);
-              call->set_recorder((Recorder *)rec.get());
-              call->set_state(RECORDING);
-              system->add_conventional_recorder(rec);
-              calls.push_back(call);
-              plugman_setup_recorder((Recorder *)rec.get());
-              plugman_call_start(call);
-            } else if (system->get_system_type() == "conventionalDMR") {
-               // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
-              // This has something to do with the way the Selector block works.
-              // the manage_conventional_calls() function handles adding and starting the P25 Recorder
-              dmr_recorder_sptr rec;
-              rec = source->create_dmr_conventional_recorder(tb);
-              call->set_recorder((Recorder *)rec.get());
-              system->add_conventionalDMR_recorder(rec);
-              calls.push_back(call);           
-            } else  { // has to be "conventional P25"
-              // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
-              // This has something to do with the way the Selector block works.
-              // the manage_conventional_calls() function handles adding and starting the P25 Recorder
-              p25_recorder_sptr rec;
-              rec = source->create_digital_conventional_recorder(tb);
-              call->set_recorder((Recorder *)rec.get());
-              system->add_conventionalP25_recorder(rec);
-              calls.push_back(call);
-            }
+      Call_conventional *call = NULL;
+      if (system->has_channel_file()) {
+        Talkgroup *tg = system->find_talkgroup_by_freq(frequency);
+        call = new Call_conventional(tg->number, tg->freq, system, config);
+        call->set_talkgroup_tag(tg->alpha_tag);
+      } else {
+        call = new Call_conventional(channel_index, frequency, system, config);
+      }
+      BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
+      if (system->get_system_type() == "conventional") {
+        analog_recorder_sptr rec;
+        rec = source->create_conventional_recorder(tb);
+        rec->start(call);
+        call->set_is_analog(true);
+        call->set_recorder((Recorder *)rec.get());
+        call->set_state(RECORDING);
+        system->add_conventional_recorder(rec);
+        calls.push_back(call);
+        plugman_setup_recorder((Recorder *)rec.get());
+        plugman_call_start(call);
+      } else if (system->get_system_type() == "conventionalDMR") {
+        // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
+        // This has something to do with the way the Selector block works.
+        // the manage_conventional_calls() function handles adding and starting the P25 Recorder
+        dmr_recorder_sptr rec;
+        rec = source->create_dmr_conventional_recorder(tb);
+        call->set_recorder((Recorder *)rec.get());
+        system->add_conventionalDMR_recorder(rec);
+        calls.push_back(call);
+      } else { // has to be "conventional P25"
+        // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
+        // This has something to do with the way the Selector block works.
+        // the manage_conventional_calls() function handles adding and starting the P25 Recorder
+        p25_recorder_sptr rec;
+        rec = source->create_digital_conventional_recorder(tb);
+        call->set_recorder((Recorder *)rec.get());
+        system->add_conventionalP25_recorder(rec);
+        calls.push_back(call);
+      }
 
-            // break out of the for loop
-            break;
-          }
-        }
-        return channel_added;
+      // break out of the for loop
+      break;
+    }
+  }
+  return channel_added;
 }
 
-
 bool setup_conventional_system(System *system) {
-    bool system_added = false;
-    
-    if (system->has_channel_file()) {
-     std::vector<Talkgroup *> talkgroups = system->get_talkgroups(); 
+  bool system_added = false;
+
+  if (system->has_channel_file()) {
+    std::vector<Talkgroup *> talkgroups = system->get_talkgroups();
     for (vector<Talkgroup *>::iterator tg_it = talkgroups.begin(); tg_it != talkgroups.end(); tg_it++) {
       Talkgroup *tg = *tg_it;
-      
+
       bool channel_added = setup_convetional_channel(system, tg->freq, tg->number);
 
       if (!channel_added) {
         BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(tg->freq) << " Talkgroup: " << tg->number;
-        //return false;
+        // return false;
       } else {
         system_added = true;
       }
     }
-    } else {
-      std::vector<double> channels = system->get_channels();
-      int channel_index = 0;
-     for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
+  } else {
+    std::vector<double> channels = system->get_channels();
+    int channel_index = 0;
+    for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
       double channel = *chan_it;
       ++channel_index;
       bool channel_added = setup_convetional_channel(system, channel, channel_index);
 
       if (!channel_added) {
         BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel) << " Talkgroup: " << channel_index;
-        //return false;
+        // return false;
       } else {
         system_added = true;
       }
     }
-    }
+  }
   return system_added;
 }
 
@@ -1503,8 +1484,8 @@ bool setup_systems() {
   Source *source = NULL;
 
   for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
-    System_impl *system = (System_impl *) *sys_it;
-    //bool    source_found = false;
+    System_impl *system = (System_impl *)*sys_it;
+    // bool    source_found = false;
     bool system_added = false;
     if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
       system_added = setup_conventional_system(system);
@@ -1550,8 +1531,8 @@ bool setup_systems() {
         }
       }
       if (!system_added) {
-          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Control Channel Freq: " << format_freq(control_channel_freq);
-          return false;
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Control Channel Freq: " << format_freq(control_channel_freq);
+        return false;
       }
     }
   }
@@ -1569,7 +1550,7 @@ void add_logs(const F &fmt) {
 }
 
 int main(int argc, char **argv) {
-  //BOOST_STATIC_ASSERT(true) __attribute__((unused));
+  // BOOST_STATIC_ASSERT(true) __attribute__((unused));
 
   logging::core::get()->set_filter(logging::trivial::severity >= logging::trivial::info);
 
@@ -1581,21 +1562,18 @@ int main(int argc, char **argv) {
 
   add_logs(boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
 
-  //boost::log::sinks->imbue(std::locale("C"));
-  //std::locale::global(std::locale("C"));
+  // boost::log::sinks->imbue(std::locale("C"));
+  // std::locale::global(std::locale("C"));
 
   boost::program_options::options_description desc("Options");
-  desc.add_options()
-		  ("help,h", "Help screen")
-		  ("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File")
-		  ("version", "Version Informaiotn");
+  desc.add_options()("help,h", "Help screen")("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File")("version", "Version Informaiotn");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
 
   if (vm.count("version")) {
-	GitMetadata::VersionInfo();
+    GitMetadata::VersionInfo();
     exit(0);
   }
 
@@ -1609,7 +1587,8 @@ int main(int argc, char **argv) {
   if (vm.count("config")) {
     BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
   }
-  BOOST_LOG_TRIVIAL(info) << PROJECT_NAME << ": " << "Version: " << PROJECT_VER << "\n";
+  BOOST_LOG_TRIVIAL(info) << PROJECT_NAME << ": "
+                          << "Version: " << PROJECT_VER << "\n";
 
   tb = gr::make_top_block("Trunking");
   tb->start();

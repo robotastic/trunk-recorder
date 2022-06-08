@@ -18,11 +18,11 @@
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
 
+#include <gnuradio/analog/pll_freqdet_cf.h>
+#include <gnuradio/analog/pwr_squelch_cc.h>
+#include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/filter/fft_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
-#include <gnuradio/analog/pwr_squelch_cc.h>
-#include <gnuradio/analog/pll_freqdet_cf.h>
-#include <gnuradio/blocks/short_to_float.h>
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
@@ -44,19 +44,16 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-
 #include <boost/shared_ptr.hpp>
+#include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/block.h>
+#include <gnuradio/filter/fft_filter_fff.h>
+#include <gnuradio/filter/firdes.h>
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
-#include <gnuradio/filter/firdes.h>
-#include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/msg_queue.h>
-#include <gnuradio/filter/fft_filter_fff.h>
 
 #include <gnuradio/filter/fft_filter_ccf.h>
-
-
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/blocks/multiply_const_ff.h>
@@ -66,10 +63,10 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-#include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
-#include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
+#include <op25_repeater/gardner_costas_cc.h>
 #include <op25_repeater/include/op25_repeater/frame_assembler.h>
+#include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
 
 #include <gnuradio/blocks/file_sink.h>
@@ -77,21 +74,16 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-#include "recorder.h"
+#include "../gr_blocks/plugin_wrapper_impl.h"
+#include "../gr_blocks/selector.h"
+#include "../gr_blocks/transmission_sink.h"
 #include "../source.h"
 #include "dmr_recorder.h"
-#include "../gr_blocks/plugin_wrapper_impl.h"
-#include "../gr_blocks/transmission_sink.h"
-#include "../gr_blocks/selector.h"
-
-
+#include "recorder.h"
 
 class dmr_recorder_impl : public dmr_recorder {
 
-
 protected:
-
-
   void initialize(Source *src);
 
 public:
@@ -108,13 +100,13 @@ public:
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);
   void set_record_more_transmissions(bool more);
-  double since_last_write(); 
+  double since_last_write();
   void generate_arb_taps();
   double get_current_length();
   bool is_active();
   bool is_idle();
   bool is_squelched();
-  std::vector<Transmission> get_transmission_list(); 
+  std::vector<Transmission> get_transmission_list();
   State get_state();
   int lastupdate();
   long elapsed();
@@ -139,10 +131,10 @@ protected:
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::selector::sptr modulation_selector;
   gr::blocks::copy::sptr valve;
-  //gr::blocks::multiply_const_ss::sptr levels;
+  // gr::blocks::multiply_const_ss::sptr levels;
 
+  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 
-gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 private:
   double arb_rate;
   long decim;
@@ -160,8 +152,6 @@ private:
 
   std::vector<float> arb_taps;
 
-
- 
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
@@ -177,29 +167,25 @@ private:
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
-
   gr::blocks::multiply_const_ff::sptr rescale;
-
 
   /* FSK4 Stuff */
 
   std::vector<float> baseband_noise_filter_taps;
   std::vector<float> sym_taps;
-    gr::msg_queue::sptr tune_queue;
+  gr::msg_queue::sptr tune_queue;
 
   gr::filter::fft_filter_fff::sptr noise_filter;
   gr::filter::fir_filter_fff::sptr sym_filter;
 
-
-    gr::blocks::multiply_const_ff::sptr pll_amp;
+  gr::blocks::multiply_const_ff::sptr pll_amp;
   gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
-    gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
-    gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-
+  gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
+  gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
 
   /* P25 Decoder */
-   gr::op25_repeater::frame_assembler::sptr framer;
-    gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
+  gr::op25_repeater::frame_assembler::sptr framer;
+  gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
 
@@ -209,7 +195,6 @@ private:
   gr::blocks::transmission_sink::sptr wav_sink_slot0;
   gr::blocks::transmission_sink::sptr wav_sink_slot1;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
-
 };
 
 #endif // ifndef dmr_recorder_H

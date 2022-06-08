@@ -67,13 +67,12 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-
-#include "recorder.h"
 #include "../gr_blocks/freq_xlating_fft_filter.h"
+#include "recorder.h"
 
 #include "../source.h"
 
-class sigmf_recorder_impl : public  sigmf_recorder{
+class sigmf_recorder_impl : public sigmf_recorder {
 
 public:
   sigmf_recorder_impl(Source *src);
@@ -92,7 +91,7 @@ public:
   gr::msg_queue::sptr tune_queue;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
-  //void forecast(int noutput_items, gr_vector_int &ninput_items_required);
+  // void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 
 private:
   double center, freq;
@@ -104,17 +103,15 @@ private:
   Config *config;
   Source *source;
   char filename[255];
-  //int num;
+  // int num;
   State state;
 
-  //std::vector<gr_complex> lpf_coeffs;
+  // std::vector<gr_complex> lpf_coeffs;
   std::vector<float> lpf_coeffs;
   std::vector<float> arb_taps;
   std::vector<float> sym_taps;
 
   gr::filter::freq_xlating_fir_filter_ccf::sptr prefilter;
-
-
 
   gr::analog::quadrature_demod_cf::sptr fm_demod;
   gr::analog::feedforward_agc_cc::sptr agc;
@@ -123,8 +120,6 @@ private:
   gr::blocks::file_sink::sptr raw_sink;
   gr::blocks::short_to_float::sptr converter;
   gr::blocks::copy::sptr valve;
-
-
 };
 
 #endif

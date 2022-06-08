@@ -39,29 +39,25 @@ namespace blocks {
  * Other output ports produce no samples
  *
  */
-class BLOCKS_API selector : virtual public block
-{
+class BLOCKS_API selector : virtual public block {
 public:
-    
-	#if GNURADIO_VERSION < 0x030900
-    typedef boost::shared_ptr<selector> sptr;
-	#else
-    typedef std::shared_ptr<selector> sptr;
-	#endif
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<selector> sptr;
+#else
+  typedef std::shared_ptr<selector> sptr;
+#endif
 
-    static sptr
-    make(size_t itemsize, unsigned int input_index, unsigned int output_index);
+  static sptr
+  make(size_t itemsize, unsigned int input_index, unsigned int output_index);
 
-    // When enabled is set to false, no output samples are produced
-    // Otherwise samples are copied to the selected output port
-    virtual void set_enabled(bool enable) = 0;
-    virtual bool enabled() const = 0;
-
-    virtual void set_input_index(unsigned int input_index) = 0;
-    virtual int input_index() const = 0;
-
-    virtual void set_output_index(unsigned int output_index) = 0;
-    virtual int output_index() const = 0;
+  // When enabled is set to false, no output samples are produced
+  // Otherwise samples are copied to the selected output port
+  virtual void set_enabled(bool enable) = 0;
+  virtual bool enabled() const = 0;
+  virtual void set_input_index(unsigned int input_index) = 0;
+  virtual int input_index() const = 0;
+  virtual void set_output_index(unsigned int output_index) = 0;
+  virtual int output_index() const = 0;
 };
 
 } /* namespace blocks */

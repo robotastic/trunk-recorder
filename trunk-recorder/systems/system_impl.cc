@@ -1,8 +1,8 @@
-#include "system.h"
 #include "system_impl.h"
+#include "system.h"
 
-System * System::make(int sys_num) {
-  return (System *) new System_impl(sys_num);
+System *System::make(int sys_num) {
+  return (System *)new System_impl(sys_num);
 }
 
 std::string System_impl::get_api_key() {
@@ -109,9 +109,9 @@ void System_impl::set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigne
     if (sys_id && wacn && nac) {
       lfsr = new p25p2_lfsr(nac, sys_id, wacn);
       xor_mask = lfsr->getXorChars(xor_mask_len);
-      
+
       BOOST_LOG_TRIVIAL(info) << "XOR Mask len: " << xor_mask_len;
-      for (unsigned i=0; i<xor_mask_len; i++) {
+      for (unsigned i = 0; i < xor_mask_len; i++) {
         std::cout << (short)xor_mask[i] << ", ";
       }
     }
@@ -241,7 +241,6 @@ void System_impl::set_transmission_archive(bool transmission_archive) {
   this->transmission_archive = transmission_archive;
 }
 
-
 bool System_impl::get_record_unknown() {
   return this->record_unknown;
 }
@@ -363,7 +362,7 @@ std::vector<double> System_impl::get_control_channels() {
   return control_channels;
 }
 
-int System_impl::get_message_count(){
+int System_impl::get_message_count() {
   return message_count;
 }
 void System_impl::set_message_count(int count) {
@@ -396,7 +395,7 @@ void System_impl::set_conversation_mode(bool mode) {
   this->conversation_mode = mode;
 }
 
- bool System_impl::get_conversation_mode() {
+bool System_impl::get_conversation_mode() {
   return this->conversation_mode;
 }
 
@@ -491,13 +490,13 @@ boost::property_tree::ptree System_impl::get_stats_current(float timeDiff) {
   return system_node;
 }
 
-std::vector<unsigned long> System_impl::get_talkgroup_patch(unsigned long talkgroup){
-  //Given a single TGID, return a vector of TGIDs that are part of the same patch
+std::vector<unsigned long> System_impl::get_talkgroup_patch(unsigned long talkgroup) {
+  // Given a single TGID, return a vector of TGIDs that are part of the same patch
   std::vector<unsigned long> patched_tgids;
-  BOOST_FOREACH (auto& patch, talkgroup_patches) {
+  BOOST_FOREACH (auto &patch, talkgroup_patches) {
     if (patch.second.find(talkgroup) != patch.second.end()) {
-      //talkgroup passed in is part of this patch, so add all talkgroups from this patch to our output vector
-      BOOST_FOREACH(auto& patch_element, patch.second){
+      // talkgroup passed in is part of this patch, so add all talkgroups from this patch to our output vector
+      BOOST_FOREACH (auto &patch_element, patch.second) {
         patched_tgids.push_back(patch_element.first);
       }
     }
@@ -505,50 +504,50 @@ std::vector<unsigned long> System_impl::get_talkgroup_patch(unsigned long talkgr
   return patched_tgids;
 }
 
-void System_impl::update_active_talkgroup_patches(PatchData patch_data){
+void System_impl::update_active_talkgroup_patches(PatchData patch_data) {
   std::time_t update_time = std::time(nullptr);
   bool new_flag = true;
 
-  BOOST_FOREACH (auto& patch, talkgroup_patches) {
-    if (patch.first == patch_data.sg){
+  BOOST_FOREACH (auto &patch, talkgroup_patches) {
+    if (patch.first == patch_data.sg) {
       new_flag = false;
-      if (0 != patch_data.sg){
+      if (0 != patch_data.sg) {
         patch.second[patch_data.sg] = update_time;
       }
-      if (0 != patch_data.ga1){
+      if (0 != patch_data.ga1) {
         patch.second[patch_data.ga1] = update_time;
       }
-      if (0 != patch_data.ga2){
+      if (0 != patch_data.ga2) {
         patch.second[patch_data.ga2] = update_time;
       }
-      if (0 != patch_data.ga3){
+      if (0 != patch_data.ga3) {
         patch.second[patch_data.ga3] = update_time;
       }
     }
   }
-  if (new_flag == true){
-    //TGIDs from the Message were not found in an existing patch, so add them to a new one
-    //BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
-    std::map<unsigned long,std::time_t> new_patch;
-    if (0 != patch_data.sg){
+  if (new_flag == true) {
+    // TGIDs from the Message were not found in an existing patch, so add them to a new one
+    // BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
+    std::map<unsigned long, std::time_t> new_patch;
+    if (0 != patch_data.sg) {
       new_patch[patch_data.sg] = update_time;
     }
-    if (0 != patch_data.ga1){
+    if (0 != patch_data.ga1) {
       new_patch[patch_data.ga1] = update_time;
     }
-    if (0 != patch_data.ga2){
+    if (0 != patch_data.ga2) {
       new_patch[patch_data.ga2] = update_time;
     }
-    if (0 != patch_data.ga3){
+    if (0 != patch_data.ga3) {
       new_patch[patch_data.ga3] = update_time;
     }
     talkgroup_patches[patch_data.sg] = new_patch;
   }
 }
 
-void System_impl::delete_talkgroup_patch(PatchData patch_data){
-  BOOST_FOREACH (auto& patch, talkgroup_patches) {
-    if (patch.first == patch_data.sg){
+void System_impl::delete_talkgroup_patch(PatchData patch_data) {
+  BOOST_FOREACH (auto &patch, talkgroup_patches) {
+    if (patch.first == patch_data.sg) {
       patch.second.erase(patch_data.ga1);
       patch.second.erase(patch_data.ga2);
       patch.second.erase(patch_data.ga3);
@@ -556,38 +555,38 @@ void System_impl::delete_talkgroup_patch(PatchData patch_data){
   }
 }
 
-void System_impl::clear_stale_talkgroup_patches(){
+void System_impl::clear_stale_talkgroup_patches() {
   std::vector<unsigned long> stale_patches;
 
-  BOOST_FOREACH (auto& patch, talkgroup_patches) {
-    //patch.first (map key) is supergroup TGID, patch.second (map value) is the map of all TGIDs in this patch and associated timestamps
+  BOOST_FOREACH (auto &patch, talkgroup_patches) {
+    // patch.first (map key) is supergroup TGID, patch.second (map value) is the map of all TGIDs in this patch and associated timestamps
     std::vector<unsigned long> stale_talkgroups;
-    BOOST_FOREACH(auto& patch_element, patch.second){
-      //patch_element.first (map key) is TGID, patch.second (map value) is the timestamp
-      if (std::time(nullptr) - patch_element.second >= 10){  //10 second hard coded timeout for now
-        stale_talkgroups.push_back(patch_element.first);  //add this tgid to the list that we'll delete from this patch since it's expired
+    BOOST_FOREACH (auto &patch_element, patch.second) {
+      // patch_element.first (map key) is TGID, patch.second (map value) is the timestamp
+      if (std::time(nullptr) - patch_element.second >= 10) { // 10 second hard coded timeout for now
+        stale_talkgroups.push_back(patch_element.first);     // add this tgid to the list that we'll delete from this patch since it's expired
       }
     }
-    BOOST_FOREACH(auto& stale_talkgroup, stale_talkgroups){
+    BOOST_FOREACH (auto &stale_talkgroup, stale_talkgroups) {
       BOOST_LOG_TRIVIAL(debug) << "Going to remove stale TGID " << stale_talkgroup << "from patch with sg id " << patch.first;
       patch.second.erase(stale_talkgroup);
     }
-    if (patch.second.size() == 0){
-      stale_patches.push_back(patch.first);  //This patch is not empty, so add it to the list of patches we'll delete
+    if (patch.second.size() == 0) {
+      stale_patches.push_back(patch.first); // This patch is not empty, so add it to the list of patches we'll delete
     }
   }
-  BOOST_FOREACH(auto& stale_patch, stale_patches){
+  BOOST_FOREACH (auto &stale_patch, stale_patches) {
     BOOST_LOG_TRIVIAL(debug) << "Going to remove entire patch with sg id " << stale_patch;
     talkgroup_patches.erase(stale_patch);
   }
-  
-  //Print out all active patches to the console
+
+  // Print out all active patches to the console
   BOOST_LOG_TRIVIAL(debug) << "Found " << talkgroup_patches.size() << " active talkgroup patches:";
-  BOOST_FOREACH (auto& patch, talkgroup_patches) {
+  BOOST_FOREACH (auto &patch, talkgroup_patches) {
     std::string printstring;
-    BOOST_FOREACH(auto& patch_element, patch.second){
-      printstring+=" ";
-      printstring+= std::to_string(patch_element.first);
+    BOOST_FOREACH (auto &patch_element, patch.second) {
+      printstring += " ";
+      printstring += std::to_string(patch_element.first);
     }
     BOOST_LOG_TRIVIAL(debug) << "Active Patch of TGIDs" << printstring;
   }

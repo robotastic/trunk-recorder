@@ -1,13 +1,13 @@
 
-#include "p25_recorder.h"
 #include "p25_recorder_impl.h"
 #include "../formatter.h"
+#include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 
 p25_recorder_sptr make_p25_recorder(Source *src) {
   p25_recorder *recorder = new p25_recorder_impl(src);
 
-  return gnuradio::get_initial_sptr( recorder);
+  return gnuradio::get_initial_sptr(recorder);
 }
 
 void p25_recorder_impl::generate_arb_taps() {
@@ -28,32 +28,29 @@ void p25_recorder_impl::generate_arb_taps() {
     double bw = percent * halfband;
     double tb = (percent / 2.0) * halfband;
 
-    // BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
-    // tb;
+// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
+// tb;
 
-    // As we drop the bw factor, the optfir filter has a harder time converging;
-    // using the firdes method here for better results.
-    #if GNURADIO_VERSION < 0x030900
+// As we drop the bw factor, the optfir filter has a harder time converging;
+// using the firdes method here for better results.
+#if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-    #else
+#else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-    #endif
+#endif
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
   }
 }
 
-
-
 p25_recorder_impl::p25_recorder_impl(Source *src)
     : gr::hier_block2("p25_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder("P25") {
-        initialize(src);
+  initialize(src);
 }
-
 
 p25_recorder_impl::DecimSettings p25_recorder_impl::get_decim(long speed) {
   long s = speed;
@@ -166,14 +163,14 @@ void p25_recorder_impl::initialize(Source *src) {
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  if (config == NULL ) {
+  if (config == NULL) {
     this->set_enable_audio_streaming(false);
   } else {
     this->set_enable_audio_streaming(config->enable_audio_streaming);
   }
 
   initialize_prefilter();
-  //initialize_p25();
+  // initialize_p25();
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
@@ -231,7 +228,7 @@ void p25_recorder_impl::set_tdma(bool phase2) {
 }
 
 void p25_recorder_impl::clear() {
-  //op25_frame_assembler->clear();
+  // op25_frame_assembler->clear();
 }
 
 void p25_recorder_impl::autotune() {
@@ -379,7 +376,7 @@ void p25_recorder_impl::stop() {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
     clear();
-    //BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    // BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
     state = INACTIVE;
     valve->set_enabled(false);

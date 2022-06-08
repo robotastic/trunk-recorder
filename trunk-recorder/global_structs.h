@@ -1,8 +1,8 @@
 #ifndef GLOBAL_STRUCTS_H
 #define GLOBAL_STRUCTS_H
+#include <ctime>
 #include <string>
 #include <vector>
-#include <ctime>
 
 struct Transmission {
   long source;
@@ -16,8 +16,6 @@ struct Transmission {
   char filename[255];
   char base_filename[255];
 };
-
-
 
 struct Config {
   std::string upload_script;
@@ -39,8 +37,6 @@ struct Config {
   bool enable_audio_streaming;
   bool record_uu_v_calls;
 };
-
-
 
 struct Call_Source {
   long source;
@@ -68,8 +64,10 @@ struct Call_Error {
   double spike_count;
 };
 
-
-enum Call_Data_Status { INITIAL, SUCCESS, RETRY, FAILED };
+enum Call_Data_Status { INITIAL,
+                        SUCCESS,
+                        RETRY,
+                        FAILED };
 struct Call_Data_t {
   long talkgroup;
   std::vector<unsigned long> patched_talkgroups;
@@ -109,6 +107,5 @@ struct Call_Data_t {
   time_t process_call_time;
   int retry_attempt;
 };
-
 
 #endif

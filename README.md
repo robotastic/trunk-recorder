@@ -22,7 +22,9 @@ Trunk Recorder currently supports the following:
 
 Supported platforms:
 
-**Ubuntu** (18.04,  20.04, 21.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
+**Ubuntu** (18.04,  20.04, 21.04, 22.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04, 22.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
+
+GNU Radio 3.7 - 3.10
 
 ...and SDRs:
 

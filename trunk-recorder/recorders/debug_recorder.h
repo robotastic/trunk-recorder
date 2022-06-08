@@ -13,35 +13,36 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/shared_ptr.hpp>
+#if GNURADIO_VERSION < 0x030a00
 #include <gnuradio/blocks/udp_sink.h>
+#else
+#include <gnuradio/network/udp_sink.h>
+#endif
 
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
 
-
-#include "recorder.h"
 #include "../gr_blocks/freq_xlating_fft_filter.h"
-
+#include "recorder.h"
 
 class Source;
 class debug_recorder;
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
-	#else
-  typedef std::shared_ptr<debug_recorder> debug_recorder_sptr;
-	#endif
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
+#else
+typedef std::shared_ptr<debug_recorder> debug_recorder_sptr;
+#endif
 
 debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port);
 #include "../source.h"
 
-class debug_recorder : virtual public gr::hier_block2, virtual public Recorder  {
+class debug_recorder : virtual public gr::hier_block2, virtual public Recorder {
   static debug_recorder_sptr make_debug_recorder(Source *src, std::string address, int port);
 
-
 public:
-  debug_recorder() {};
-  virtual ~debug_recorder() {};
+  debug_recorder(){};
+  virtual ~debug_recorder(){};
 
   virtual void tune_freq(double f) = 0;
   virtual void tune_offset(double f) = 0;

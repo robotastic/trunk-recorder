@@ -1,10 +1,10 @@
 #ifndef PLUGIN_API_H
 #define PLUGIN_API_H
 
+#include "../call.h"
 #include "../global_structs.h"
 #include "../gr_blocks/decoder_wrapper.h"
 #include "../systems/system.h"
-#include "../call.h"
 
 #include "../formatter.h"
 typedef enum {
@@ -19,7 +19,7 @@ typedef enum {
 class Plugin_Api {
 public:
   virtual int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { return 0; };
-  virtual int parse_config(boost::property_tree::ptree &cfg) { return 0; }; //const { BOOST_LOG_TRIVIAL(info) << "plugin_api created!";return 0; };
+  virtual int parse_config(boost::property_tree::ptree &cfg) { return 0; }; // const { BOOST_LOG_TRIVIAL(info) << "plugin_api created!";return 0; };
   virtual int start() { return 0; };
   virtual int stop() { return 0; };
   virtual int poll_one() { return 0; };
@@ -41,7 +41,7 @@ public:
   virtual int unit_data_grant(System *sys, long source_id) { return 0; };
   virtual int unit_answer_request(System *sys, long source_id, long talkgroup) { return 0; };
   virtual int unit_location(System *sys, long source_id, long talkgroup_num) { return 0; };
-  void set_frequency_format(int f) { frequencyFormat = f;}
+  void set_frequency_format(int f) { frequencyFormat = f; }
   virtual ~Plugin_Api(){};
 };
 

@@ -5,7 +5,7 @@
  * Author: Matthew Kaufman (matthew@eeph.com)
  *
  * Copyright (c) 2005, 2010  Matthew Kaufman  All rights reserved.
- * 
+ *
  *  This file is part of Matthew Kaufman's MDC Encoder/Decoder Library
  *
  *  The MDC Encoder/Decoder Library is free software; you can
@@ -38,80 +38,78 @@
 
 #include "mdc_types.h"
 
-#define MDC_GDTHRESH 5  // "good bits" threshold
+#define MDC_GDTHRESH 5 // "good bits" threshold
 
 #define MDC_ECC
 
-#define MDC_FOURPOINT	// recommended 4-point method, requires high sample rates (16000 or higher)
-#undef  MDC_ONEPOINT    // alternative 1-point method
+#define MDC_FOURPOINT // recommended 4-point method, requires high sample rates (16000 or higher)
+#undef MDC_ONEPOINT   // alternative 1-point method
 
 #ifdef MDC_FOURPOINT
- #define MDC_ND 5  // recommended for four-point method
+#define MDC_ND 5 // recommended for four-point method
 #endif
 
 #ifdef MDC_ONEPOINT
- #define MDC_ND 4  // recommended for one-point method
+#define MDC_ND 4 // recommended for one-point method
 #endif
 
-typedef void (*mdc_decoder_callback_t)(	int frameCount, // 1 or 2 - if 2 then extra0-3 are valid
-										unsigned char op,
-										unsigned char arg,
-										unsigned short unitID,
-										unsigned char extra0,
-										unsigned char extra1,
-										unsigned char extra2,
-										unsigned char extra3,
-										void *context);
+typedef void (*mdc_decoder_callback_t)(int frameCount, // 1 or 2 - if 2 then extra0-3 are valid
+                                       unsigned char op,
+                                       unsigned char arg,
+                                       unsigned short unitID,
+                                       unsigned char extra0,
+                                       unsigned char extra1,
+                                       unsigned char extra2,
+                                       unsigned char extra3,
+                                       void *context);
 
 typedef struct
 {
-//	mdc_float_t th;
-	mdc_u32_t thu;
-//	mdc_int_t zc; - deprecated
-	mdc_int_t xorb;
-	mdc_int_t invert;
+  //	mdc_float_t th;
+  mdc_u32_t thu;
+  //	mdc_int_t zc; - deprecated
+  mdc_int_t xorb;
+  mdc_int_t invert;
 #ifdef MDC_FOURPOINT
 #ifdef MDC_FIXEDMATH
 #error "fixed-point math not allowed for fourpoint strategy"
 #endif // MDC_FIXEDMATH
-	mdc_int_t nlstep;
-	mdc_float_t nlevel[10];
-#endif  // MDC_FOURPOINT
+  mdc_int_t nlstep;
+  mdc_float_t nlevel[10];
+#endif // MDC_FOURPOINT
 #ifdef PLL
-	mdc_u32_t plt;
+  mdc_u32_t plt;
 #endif
-	mdc_u32_t synclow;
-	mdc_u32_t synchigh;
-	mdc_int_t shstate;
-	mdc_int_t shcount;
-	mdc_int_t bits[112];
+  mdc_u32_t synclow;
+  mdc_u32_t synchigh;
+  mdc_int_t shstate;
+  mdc_int_t shcount;
+  mdc_int_t bits[112];
 } mdc_decode_unit_t;
 
 typedef struct {
-	mdc_decode_unit_t du[MDC_ND];
-//	mdc_float_t hyst;
-//	mdc_float_t incr;
-	mdc_u32_t incru;
+  mdc_decode_unit_t du[MDC_ND];
+  //	mdc_float_t hyst;
+  //	mdc_float_t incr;
+  mdc_u32_t incru;
 #ifdef PLL
-	mdc_u32_t zthu;
-	mdc_int_t zprev;
-	mdc_float_t vprev;
+  mdc_u32_t zthu;
+  mdc_int_t zprev;
+  mdc_float_t vprev;
 #endif
-	mdc_int_t level;
-	mdc_int_t good;
-	mdc_int_t indouble;
-	mdc_u8_t op;
-	mdc_u8_t arg;
-	mdc_u16_t unitID;
-	mdc_u8_t extra0;
-	mdc_u8_t extra1;
-	mdc_u8_t extra2;
-	mdc_u8_t extra3;
-	mdc_decoder_callback_t callback;
-	void *callback_context;
+  mdc_int_t level;
+  mdc_int_t good;
+  mdc_int_t indouble;
+  mdc_u8_t op;
+  mdc_u8_t arg;
+  mdc_u16_t unitID;
+  mdc_u8_t extra0;
+  mdc_u8_t extra1;
+  mdc_u8_t extra2;
+  mdc_u8_t extra3;
+  mdc_decoder_callback_t callback;
+  void *callback_context;
 } mdc_decoder_t;
-	
-
 
 /*
  mdc_decoder_new
@@ -122,7 +120,7 @@ typedef struct {
   returns: an mdc_decoder object or null if failure
 
 */
-mdc_decoder_t * mdc_decoder_new(int sampleRate);
+mdc_decoder_t *mdc_decoder_new(int sampleRate);
 
 /*
  mdc_decoder_process_samples
@@ -137,11 +135,10 @@ mdc_decoder_t * mdc_decoder_new(int sampleRate);
           1 if a decoded single packet is available to read (if no callback set)
           2 if a decoded double packet is available to read (if no callback set)
 */
- 
+
 int mdc_decoder_process_samples(mdc_decoder_t *decoder,
                                 mdc_sample_t *samples,
                                 int numSamples);
-
 
 /*
  mdc_decoder_get_packet
@@ -155,10 +152,10 @@ int mdc_decoder_process_samples(mdc_decoder_t *decoder,
  returns: -1 if error, 0 otherwise
 */
 
-int mdc_decoder_get_packet(mdc_decoder_t *decoder, 
+int mdc_decoder_get_packet(mdc_decoder_t *decoder,
                            unsigned char *op,
-			   unsigned char *arg,
-			   unsigned short *unitID);
+                           unsigned char *arg,
+                           unsigned short *unitID);
 
 /*
  mdc_decoder_get_double_packet
@@ -176,15 +173,14 @@ int mdc_decoder_get_packet(mdc_decoder_t *decoder,
  returns: -1 if error, 0 otherwise
 */
 
-int mdc_decoder_get_double_packet(mdc_decoder_t *decoder, 
-                           unsigned char *op,
-			   unsigned char *arg,
-			   unsigned short *unitID,
-                           unsigned char *extra0,
-                           unsigned char *extra1,
-                           unsigned char *extra2,
-                           unsigned char *extra3);
-
+int mdc_decoder_get_double_packet(mdc_decoder_t *decoder,
+                                  unsigned char *op,
+                                  unsigned char *arg,
+                                  unsigned short *unitID,
+                                  unsigned char *extra0,
+                                  unsigned char *extra1,
+                                  unsigned char *extra2,
+                                  unsigned char *extra3);
 
 /*
  mdc_decoder_set_callback

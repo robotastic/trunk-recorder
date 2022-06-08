@@ -21,54 +21,49 @@
  * Boston, MA 02110-1301, USA.
  */
 
-
-
-#include "plugin_wrapper.h"
 #include "plugin_wrapper_impl.h"
-#include <gnuradio/io_signature.h>
-#include <stdexcept>
-#include <climits>
-#include <cstring>
-#include <cmath>
-#include <fcntl.h>
-#include <gnuradio/thread/thread.h>
+#include "plugin_wrapper.h"
 #include <boost/math/special_functions/round.hpp>
+#include <climits>
+#include <cmath>
+#include <cstring>
+#include <fcntl.h>
+#include <gnuradio/io_signature.h>
+#include <gnuradio/thread/thread.h>
+#include <stdexcept>
 #include <stdio.h>
 
 namespace gr {
-    namespace blocks {
+namespace blocks {
 
-        plugin_wrapper_impl::sptr
-            plugin_wrapper_impl::make(plugin_callback callback)
-        {
-            return gnuradio::get_initial_sptr
-            (new plugin_wrapper_impl(callback));
-        }
+plugin_wrapper_impl::sptr
+plugin_wrapper_impl::make(plugin_callback callback) {
+  return gnuradio::get_initial_sptr(new plugin_wrapper_impl(callback));
+}
 
-        plugin_wrapper_impl::plugin_wrapper_impl(plugin_callback callback)
-            : sync_block("plugin_wrapper_impl",
-                io_signature::make(1, 1, sizeof(int16_t)),
-                io_signature::make(0, 0, 0)),
-            d_callback(callback){}
+plugin_wrapper_impl::plugin_wrapper_impl(plugin_callback callback)
+    : sync_block("plugin_wrapper_impl",
+                 io_signature::make(1, 1, sizeof(int16_t)),
+                 io_signature::make(0, 0, 0)),
+      d_callback(callback) {}
 
-        int plugin_wrapper_impl::work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items) {
+int plugin_wrapper_impl::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
-            gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
+  gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
 
-            return dowork(noutput_items, input_items, output_items);
-        }
+  return dowork(noutput_items, input_items, output_items);
+}
 
-        int plugin_wrapper_impl::dowork(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items) {
+int plugin_wrapper_impl::dowork(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
-            if(d_callback != NULL) {
-                d_callback((int16_t *)input_items[0], noutput_items);
-            }
-            else {
-                BOOST_LOG_TRIVIAL(warning) << "plugin_wrapper_impl dropped, no callback setup!";
-            }
+  if (d_callback != NULL) {
+    d_callback((int16_t *)input_items[0], noutput_items);
+  } else {
+    BOOST_LOG_TRIVIAL(warning) << "plugin_wrapper_impl dropped, no callback setup!";
+  }
 
-            return noutput_items;
-        }
+  return noutput_items;
+}
 
-    } /* namespace blocks */
+} /* namespace blocks */
 } /* namespace gr */

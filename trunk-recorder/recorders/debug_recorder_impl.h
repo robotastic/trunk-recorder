@@ -13,7 +13,11 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/shared_ptr.hpp>
+#if GNURADIO_VERSION < 0x030a00
 #include <gnuradio/blocks/udp_sink.h>
+#else
+#include <gnuradio/network/udp_sink.h>
+#endif
 
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
@@ -56,28 +60,23 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
-#include "recorder.h"
-#include "debug_recorder.h"
-#include "../source.h"
 #include "../gr_blocks/freq_xlating_fft_filter.h"
-
+#include "../source.h"
+#include "debug_recorder.h"
+#include "recorder.h"
 
 class Source;
 class debug_recorder;
 
-	#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
-	#else
-  typedef std::shared_ptr<debug_recorder> debug_recorder_sptr;
-	#endif
-
-
-
+#if GNURADIO_VERSION < 0x030900
+typedef boost::shared_ptr<debug_recorder> debug_recorder_sptr;
+#else
+typedef std::shared_ptr<debug_recorder> debug_recorder_sptr;
+#endif
 
 class debug_recorder_impl : public debug_recorder {
 
 public:
-  
   debug_recorder_impl(Source *src, std::string address, int port);
 
   void tune_freq(double f);
@@ -97,7 +96,7 @@ public:
   void initialize_prefilter();
   DecimSettings get_decim(long speed);
   void generate_arb_taps();
-  //void forecast(int noutput_items, gr_vector_int &ninput_items_required);
+  // void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 
 private:
   double chan_freq;
@@ -109,7 +108,7 @@ private:
   Config *config;
   Source *source;
 
-  //int num;
+  // int num;
   State state;
 
   double system_channel_rate;
@@ -141,7 +140,11 @@ private:
   gr::analog::sig_source_c::sptr lo;
   gr::analog::sig_source_c::sptr bfo;
   gr::blocks::multiply_cc::sptr mixer;
+#if GNURADIO_VERSION >= 0x030a00
+  gr::network::udp_sink::sptr udp_sink;
+#else
   gr::blocks::udp_sink::sptr udp_sink;
+#endif
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 };
 
