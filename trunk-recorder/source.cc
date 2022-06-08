@@ -157,7 +157,7 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 Recorder *Source::get_analog_recorder(Talkgroup *talkgroup, int priority, Call *call) {
   int num_available_recorders = get_num_available_analog_recorders();
 
-    if(talkgroup && (priority == -1)){
+  if(talkgroup && (priority == -1)){
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
     return NULL;
   }
