@@ -191,6 +191,9 @@ if(NOT Boost_FOUND)
 endif()
 
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
+if(NOT EXISTS /usr/include/spdlog/fmt/bundled)
+  ADD_DEFINITIONS(-DSPDLOG_FMT_EXTERNAL=ON)
+endif()
 add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
 
 ########################################################################
