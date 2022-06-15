@@ -250,6 +250,7 @@ namespace gr {
             // This makes it easy to tell when a new Src Address has been received, all other times it will be -1
 			return addr;
 		}
+        
 		void p25p1_fdma::clear() {
 			p1voice_decode.clear();
 		}

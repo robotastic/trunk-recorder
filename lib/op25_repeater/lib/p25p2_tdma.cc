@@ -135,6 +135,13 @@ bool p25p2_tdma::get_call_terminated() {
 	return terminate_call;
 }
 
+long p25p2_tdma::get_curr_src_id() {
+	long addr = curr_src_id;
+	curr_src_id = -1;
+	// This makes it easy to tell when a new Src Address has been received, all other times it will be -1
+	return addr;
+}
+
 p25p2_tdma::~p25p2_tdma()	// destructor
 {
 	delete[](tdma_xormask);
@@ -213,6 +220,7 @@ void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len
 		}
 		send_msg(pdu, M_P25_MAC_PTT);
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
+		curr_src_id = srcaddr;
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
         std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
         send_msg(s, -3);
@@ -248,6 +256,7 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
 
         uint16_t colorcd = ((byte_buf[1] & 0x0f) << 8) + byte_buf[2];
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
+		curr_src_id = srcaddr;
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
 
         if (d_debug >= 10)
