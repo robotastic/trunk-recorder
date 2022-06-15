@@ -344,7 +344,6 @@ namespace gr {
             if (d_debug >= 10) {
                 fprintf (stderr, "\n");
             }
-
             process_voice(A);
         }
 
@@ -477,6 +476,18 @@ namespace gr {
                     }
                 } else if (sf == 1) {						// sf=1, implicit MFID
                     switch (lco) {
+                        case 0x00: { // Group Voice Channel User
+                            uint16_t grpaddr = (lcw[4] << 8) + lcw[5];
+                            uint32_t srcaddr = (lcw[6] << 16) + (lcw[7] << 8) + lcw[8];
+
+                            curr_src_id = srcaddr;
+                            //BOOST_LOG_TRIVIAL(error) << "LCW: Group Voice Channel User. New SRCID: " << srcaddr;
+                            s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
+                            send_msg(s, -3);
+                            if (d_debug >= 10)
+                                fprintf(stderr, ", srcaddr=%d, grpaddr=%d", srcaddr, grpaddr);
+                            break;
+                        }
                         case 0x02: { // Group Voice Channel Update
                             std::string tsbk(12,0);
                             uint16_t ch_A  = (lcw[1] << 8) + lcw[2];
