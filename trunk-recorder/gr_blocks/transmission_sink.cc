@@ -361,8 +361,8 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
             } else {
               state = IDLE;
             }
-            curr_src_id = src_id;
         }
+        curr_src_id = src_id;
         // BOOST_LOG_TRIVIAL(info) << "Updated Voice Channel source id: " << src_id << " pos: " << pos << " offset: " << tags[i].offset - nitems_read(0);
       }
     }

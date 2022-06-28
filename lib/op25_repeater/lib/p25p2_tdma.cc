@@ -326,6 +326,15 @@ void p25p2_tdma::decode_mac_msg(const uint8_t byte_buf[], const unsigned int len
 			case 0x00: // Null Information
 				msg_len = len_remaining;
 				break;
+			case 0x01: // Group Voice Channel User Message Abbreviated
+					grpaddr[0] = (byte_buf[msg_ptr+2] << 8) + byte_buf[msg_ptr+3];
+					srcaddr    = (byte_buf[msg_ptr+4] << 16) + (byte_buf[msg_ptr+5] << 8) + byte_buf[msg_ptr+6];
+					curr_src_id = srcaddr;
+					if (d_debug >= 10)
+							fprintf(stderr, ", grpaddr=%u, srcaddr=%u", grpaddr[0], srcaddr);
+					s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr[0]) + "}";
+					//BOOST_LOG_TRIVIAL(error) << "GROUP VOICE CHANNEL USER\t SRC: " << srcaddr;
+					break;
 			case 0x08: // Null Avoid Zero Bias Message
 				msg_len = byte_buf[msg_ptr+1] & 0x3f;
 				break;
@@ -335,6 +344,15 @@ void p25p2_tdma::decode_mac_msg(const uint8_t byte_buf[], const unsigned int len
 			case 0x12: // Individual Paging with Priority
 				msg_len = (((byte_buf[msg_ptr+1] & 0x3) + 1) * 3) + 2;
 				break;
+			case 0x21: // Group Voice Channel User Message Abbreviated
+					grpaddr[0] = (byte_buf[msg_ptr+2] << 8) + byte_buf[msg_ptr+3];
+					srcaddr    = (byte_buf[msg_ptr+4] << 16) + (byte_buf[msg_ptr+5] << 8) + byte_buf[msg_ptr+6];
+					curr_src_id = srcaddr;
+					if (d_debug >= 10)
+							fprintf(stderr, ", grpaddr=%u, srcaddr=%u", grpaddr[0], srcaddr);
+					s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr[0]) + "}";
+					//BOOST_LOG_TRIVIAL(error) << "GROUP VOICE CHANNEL USER\t SRC: " << srcaddr;
+					break;
 			default:
 				if (b1b2 == 0x2) {				// Manufacturer-specific ops have len field
 					mfid = byte_buf[msg_ptr+1];
