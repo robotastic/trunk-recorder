@@ -22,15 +22,16 @@ class p25p2_framer
 private:
 	typedef std::vector<bool> bit_vector;
   // internal instance variables and state
-	uint8_t d_reverse_p;
 	uint32_t d_next_bit;
 	uint32_t d_in_sync;
+	uint64_t d_fs;
 	uint64_t nid_accum;
 
 public:
 	p25p2_framer();  	// constructor
 	~p25p2_framer ();	// destructor
 	bool rx_sym(uint8_t dibit) ;
+    uint64_t get_fs() { return d_fs; }
 
 	uint32_t symbols_received;
 

@@ -11,6 +11,7 @@ p25_recorder_qpsk_demod::p25_recorder_qpsk_demod()
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(1, 1, sizeof(float))) {
   symbol_rate = 4800;
+  tdma_mode = false;
   samples_per_symbol = 5;
   symbol_rate = phase1_symbol_rate;
   system_channel_rate = symbol_rate * samples_per_symbol;
@@ -27,6 +28,7 @@ void p25_recorder_qpsk_demod::switch_tdma(bool phase2) {
   double omega;
   double fmax;
   const double pi = M_PI;
+  tdma_mode = phase2;
 
   if (phase2) {
     symbol_rate = 6000;

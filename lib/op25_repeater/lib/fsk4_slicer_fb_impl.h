@@ -22,24 +22,31 @@
 #define INCLUDED_OP25_REPEATER_FSK4_SLICER_FB_IMPL_H
 
 #include <op25_repeater/fsk4_slicer_fb.h>
+#include "p25_dibit.h"
 
 namespace gr {
   namespace op25_repeater {
 
-    class fsk4_slicer_fb_impl : public fsk4_slicer_fb
-    {
-     private:
-      float d_slice_levels[4];
+class fsk4_slicer_fb_impl : public fsk4_slicer_fb
+{
+    private:
+        int d_msgq_id;
+        int d_debug;
+        float d_slice_levels[4];
+        uint64_t d_accum;
+        std::vector<uint64_t> d_sync_magics;
+        p25_dibit p25dibit;
 
-     public:
-      fsk4_slicer_fb_impl(const std::vector<float> &slice_levels);
-      ~fsk4_slicer_fb_impl();
+    public:
+        fsk4_slicer_fb_impl(const int msgq_id, const int debug, const std::vector<float> &slice_levels);
+        ~fsk4_slicer_fb_impl();
+        void set_debug(int debug) { d_debug = debug; p25dibit.set_debug(debug); }
 
-      // Where all the action really happens
-      int work(int noutput_items,
-	       gr_vector_const_void_star &input_items,
-	       gr_vector_void_star &output_items);
-    };
+        // Where all the action really happens
+        int work(int noutput_items,
+                 gr_vector_const_void_star &input_items,
+                 gr_vector_void_star &output_items);
+};
 
   } // namespace op25_repeater
 } // namespace gr

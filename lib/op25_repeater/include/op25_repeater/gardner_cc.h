@@ -19,11 +19,11 @@
  */
 
 
-#ifndef INCLUDED_OP25_REPEATER_FSK4_SLICER_FB_H
-#define INCLUDED_OP25_REPEATER_FSK4_SLICER_FB_H
+#ifndef INCLUDED_OP25_REPEATER_GARDNER_CC_H
+#define INCLUDED_OP25_REPEATER_GARDNER_CC_H
 
 #include <op25_repeater/api.h>
-#include <gnuradio/sync_block.h>
+#include <gnuradio/block.h>
 
 namespace gr {
   namespace op25_repeater {
@@ -33,33 +33,31 @@ namespace gr {
      * \ingroup op25_repeater
      *
      */
-    class OP25_REPEATER_API fsk4_slicer_fb : virtual public gr::sync_block
+    class OP25_REPEATER_API gardner_cc : virtual public gr::block
     {
      public:
-           #if GNURADIO_VERSION < 0x030900
-      typedef boost::shared_ptr<fsk4_slicer_fb> sptr;
-      #else
-      typedef std::shared_ptr<fsk4_slicer_fb> sptr;
-      #endif
-	#if GNURADIO_VERSION < 0x030900
+      typedef boost::shared_ptr<gardner_cc> sptr;
 
-	#else
-
-	#endif
       /*!
-       * \brief Return a shared_ptr to a new instance of op25_repeater::fsk4_slicer_fb.
+       * \brief Return a shared_ptr to a new instance of op25_repeater::gardner_cc.
        *
-       * To avoid accidental use of raw pointers, op25_repeater::fsk4_slicer_fb's
+       * To avoid accidental use of raw pointers, op25_repeater::gardner_cc's
        * constructor is in a private implementation
-       * class. op25_repeater::fsk4_slicer_fb::make is the public interface for
+       * class. op25_repeater::gardner_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(const int msgq_id, const int debug, const std::vector<float> &slice_levels);
-      virtual void set_debug(int debug) {}
+      static sptr make(float samples_per_symbol,
+                       float gain_mu,
+                       float gain_omega,
+                       float lock_threshold = 0.28);
+      virtual void set_omega(float omega) {}
+      virtual void reset() {}
+      virtual bool locked() { return false; }
+      virtual float quality() { return 0; }
     };
 
   } // namespace op25_repeater
 } // namespace gr
 
-#endif /* INCLUDED_OP25_REPEATER_FSK4_SLICER_FB_H */
+#endif /* INCLUDED_OP25_REPEATER_GARDNER_CC_H */
 

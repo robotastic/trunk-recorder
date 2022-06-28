@@ -48,6 +48,10 @@ static const uint64_t P25P2_FRAME_SYNC_MAGIC   = 0x575D57F7FFLL;   // 40 bits
 static const uint64_t P25P2_FRAME_SYNC_REV_P   = 0x575D57F7FFLL ^ 0xAAAAAAAAAALL;
 static const uint64_t P25P2_FRAME_SYNC_MASK    = 0xFFFFFFFFFFLL;
 
+static const uint64_t P25P2_FRAME_SYNC_N1200   = 0x0104015155LL;
+static const uint64_t P25P2_FRAME_SYNC_X2400   = 0xa8a2a8d800LL;
+static const uint64_t P25P2_FRAME_SYNC_P1200   = 0xfefbfeaeaaLL;
+
 // DSTAR
 static const uint64_t DSTAR_FRAME_SYNC_MAGIC   = 0x444445101440LL; 
 

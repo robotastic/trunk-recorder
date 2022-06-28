@@ -54,6 +54,7 @@ private:
   double symbol_rate;
   int samples_per_symbol;
   const double phase1_symbol_rate = 4800;
+  bool tdma_mode;
 
   std::vector<float> baseband_noise_filter_taps;
   std::vector<float> sym_taps;

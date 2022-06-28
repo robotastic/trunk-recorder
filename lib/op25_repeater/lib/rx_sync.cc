@@ -75,6 +75,7 @@ void rx_sync::sync_reset(void) {
 	d_threshold = 0;
 	d_shift_reg = 0;
 	d_sync_reg = 0;
+	d_fs = 0;
 	d_expires = 0;
 	d_current_type = RX_TYPE_NONE;
 	d_fragment_len = MODE_DATA[d_current_type].fragment_len;
@@ -207,6 +208,7 @@ rx_sync::rx_sync(int sys_num, const char * options, int debug, int msgq_id, gr::
 	sync_timer(op25_timer(1000000)),
 	d_symbol_count(0),
 	d_sync_reg(0),
+	d_fs(0),
 	d_cbuf_idx(0),
 	d_current_type(RX_TYPE_NONE),
 	d_rx_count(0),
@@ -474,6 +476,7 @@ void rx_sync::rx_sym(const uint8_t sym)
 	for (int i = 0; i < KNOWN_MAGICS; i++) {
 		if (check_frame_sync(SYNC_MAGIC[i].magic ^ d_sync_reg, (SYNC_MAGIC[i].type == d_current_type) ? d_threshold : 0, MODE_DATA[SYNC_MAGIC[i].type].sync_len)) {
 			sync_detected = (enum rx_types) SYNC_MAGIC[i].type;
+            d_fs = SYNC_MAGIC[i].magic;
 			break;
 		}
 	}
@@ -532,7 +535,7 @@ void rx_sync::rx_sym(const uint8_t sym)
 		break;
 	case RX_TYPE_P25P1:
         if (d_fragment_len == MODE_DATA[d_current_type].fragment_len) {
-		    int frame_len = p25fdma.load_nid(symbol_ptr, MODE_DATA[d_current_type].fragment_len);
+		    int frame_len = p25fdma.load_nid(symbol_ptr, MODE_DATA[d_current_type].fragment_len, d_fs);
             if (frame_len > 0) {
                 d_fragment_len = frame_len;                             // expected length of remainder of this frame
             } else {
@@ -544,8 +547,8 @@ void rx_sync::rx_sym(const uint8_t sym)
         }
 		break;
 	case RX_TYPE_P25P2:
-		p25tdma.handle_packet(symbol_ptr); // passing 180 dibit packets is faster than bit-shuffling via p25tdma::rx_sym()
-        p25fdma.reset_timer();             // reset FDMA timer in case of long TDMA transmissions
+		p25tdma.handle_packet(symbol_ptr, d_fs); // passing 180 dibit packets is faster than bit-shuffling via p25tdma::rx_sym()
+        p25fdma.reset_timer();                   // reset FDMA timer in case of long TDMA transmissions
 		break;
 	case RX_TYPE_DMR:
 		// frame with explicit sync resets expiration counter
