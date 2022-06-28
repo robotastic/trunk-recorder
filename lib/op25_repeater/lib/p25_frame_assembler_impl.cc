@@ -203,11 +203,8 @@ p25_frame_assembler_impl::general_work (int noutput_items,
         if (amt_produce > 0) {
           
           long src_id = -1;
-          long p25p1_src_id = -1;
           if(d_do_phase2_tdma) {
-            p25p1_src_id = p1fdma.get_curr_src_id();
             src_id = p2tdma.get_curr_src_id();
-            BOOST_LOG_TRIVIAL(error) << "P25 P1 SRC : " << p25p1_src_id << " P25 P2 SRC : " << src_id;
           }
           else{
             src_id = p1fdma.get_curr_src_id();

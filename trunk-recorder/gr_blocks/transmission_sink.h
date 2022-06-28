@@ -65,7 +65,6 @@ private:
   double d_current_call_freq;
   double d_prior_transmission_length;
   long d_current_call_talkgroup;
-  char d_current_call_formattedTG[62];
   bool record_more_transmissions;
 
 protected:
