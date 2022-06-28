@@ -129,6 +129,13 @@ void p25_recorder_impl::initialize_prefilter() {
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate;
 
+  sps = phase1_samples_per_symbol;
+
+  self.agc = rms_agc.rms_agc(0.45, 0.85)
+  self.fll = digital.fll_band_edge_cc(sps, excess_bw, 2*sps+1, TWO_PI/sps/250) # automatic frequency correction
+        
+
+
   connect(self(), 0, valve, 0);
   if (double_decim) {
     connect(valve, 0, bandpass_filter, 0);
