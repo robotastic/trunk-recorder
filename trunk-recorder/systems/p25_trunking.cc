@@ -120,6 +120,15 @@ void p25_trunking::initialize_prefilter() {
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t P25 Trunking ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
+  double sps = phase1_samples_per_symbol;
+  double def_excess_bw = 0.2;
+  const double pi = M_PI;
+  rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250); 
+
+ 
+     
+
   if (double_decim) {
     connect(self(), 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
@@ -131,6 +140,8 @@ void p25_trunking::initialize_prefilter() {
   connect(mixer, 0, lowpass_filter, 0);
   connect(lowpass_filter, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
+  connect(cutoff_filter, 0, rms_agc, 0);
+  connect(rms_agc,0, fll_band_edge, 0);
 }
 
 void p25_trunking::initialize_fsk4() {
@@ -167,7 +178,7 @@ void p25_trunking::initialize_fsk4() {
   tune_queue = gr::msg_queue::make(20);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
 
-  connect(cutoff_filter, 0, pll_freq_lock, 0);
+  connect(fll_band_edge, 0, pll_freq_lock, 0);
   connect(pll_freq_lock, 0, pll_amp, 0);
   connect(pll_amp, 0, noise_filter, 0);
   connect(noise_filter, 0, sym_filter, 0);
@@ -190,7 +201,10 @@ void p25_trunking::initialize_qpsk() {
   double fmax = 3000; // Hz
   fmax = 2 * pi * fmax / double(system_channel_rate);
 
-  costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha, beta, fmax, -fmax);
+  //costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha, beta, fmax, -fmax);
+  costas = gr::op25_repeater::costas_loop_cc::make(costas_alpha,  4, (2 * pi)/4 ); //beta, fmax, -fmax);
+  clock = gr::op25_repeater::gardner_cc::make(omega, gain_mu, gain_omega);
+
 
   // QPSK: Perform Differential decoding on the constellation
   diffdec = gr::digital::diff_phasor_cc::make();
@@ -201,10 +215,13 @@ void p25_trunking::initialize_qpsk() {
   // QPSK: convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
-  connect(cutoff_filter, 0, agc, 0);
-  connect(agc, 0, costas_clock, 0);
-  connect(costas_clock, 0, diffdec, 0);
-  connect(diffdec, 0, to_float, 0);
+
+
+
+  connect(fll_band_edge, 0, clock, 0);
+  connect(clock, 0, diffdec, 0);
+  connect(diffdec, 0, costas,0);
+  connect(costas,0, to_float, 0);
   connect(to_float, 0, rescale, 0);
   connect(rescale, 0, slicer, 0);
 }
@@ -305,6 +322,9 @@ void p25_trunking::tune_offset(double f) {
     lo->set_frequency(freq);
   }
   if (qpsk_mod) {
-    costas_clock->reset();
+    costas->set_phase(0);
+    costas->set_frequency(0);
+  } else {
+    fsk4_demod->reset();
   }
 }

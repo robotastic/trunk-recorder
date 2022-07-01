@@ -49,12 +49,14 @@
 
 #include <op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/gardner_costas_cc.h>
+#include <op25_repeater/costas_loop_cc.h>
+#include <op25_repeater/gardner_cc.h>
 #include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
-
+#include <gnuradio/digital/fll_band_edge_cc.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
+#include "../gr_blocks/rms_agc.h"
 #include "../gr_blocks/freq_xlating_fft_filter.h"
 
 class p25_trunking;
@@ -166,7 +168,10 @@ private:
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+  gr::op25_repeater::gardner_cc::sptr clock;
+  gr::op25_repeater::costas_loop_cc::sptr costas;
+  gr::digital::fll_band_edge_cc::sptr fll_band_edge;
+  gr::blocks::rms_agc::sptr rms_agc;
 };
 
 #endif // ifndef P25_TRUNKING_H

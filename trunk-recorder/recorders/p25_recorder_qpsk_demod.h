@@ -15,7 +15,8 @@
 #include <gnuradio/filter/fft_filter_ccf.h>
 
 #include <gnuradio/digital/diff_phasor_cc.h>
-#include <op25_repeater/gardner_costas_cc.h>
+#include <op25_repeater/costas_loop_cc.h>
+#include <op25_repeater/gardner_cc.h>
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/blocks/multiply_const_ff.h>
@@ -41,7 +42,8 @@ class p25_recorder_qpsk_demod : public gr::hier_block2 {
 protected:
   virtual void initialize();
 
-  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+   gr::op25_repeater::gardner_cc::sptr clock;
+  gr::op25_repeater::costas_loop_cc::sptr costas;
 
 public:
   p25_recorder_qpsk_demod();
