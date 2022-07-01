@@ -62,8 +62,13 @@ class OP25_REPEATER_API costas_loop_cc : virtual public sync_block
 {
 public:
     // gr::digital::costas_loop_cc::sptr
-    typedef boost::shared_ptr<costas_loop_cc> sptr;
 
+     	#if GNURADIO_VERSION < 0x030900
+         typedef boost::shared_ptr<costas_loop_cc> sptr;
+	    #else
+        typedef std::shared_ptr<costas_loop_cc> sptr;
+	    #endif
+     
     /*!
      * Make a Costas loop carrier recovery block.
      *
