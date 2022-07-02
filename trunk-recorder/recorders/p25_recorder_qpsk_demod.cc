@@ -11,6 +11,7 @@ p25_recorder_qpsk_demod::p25_recorder_qpsk_demod()
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(1, 1, sizeof(float))) {
   symbol_rate = 4800;
+  tdma_mode = false;
   samples_per_symbol = 5;
   symbol_rate = phase1_symbol_rate;
   system_channel_rate = symbol_rate * samples_per_symbol;
@@ -20,13 +21,16 @@ p25_recorder_qpsk_demod::~p25_recorder_qpsk_demod() {
 }
 
 void p25_recorder_qpsk_demod::reset() {
-  costas_clock->reset();
+    costas->set_phase(0);
+    costas->set_frequency(0);
+    clock->reset();
 }
 
 void p25_recorder_qpsk_demod::switch_tdma(bool phase2) {
   double omega;
   double fmax;
   const double pi = M_PI;
+  tdma_mode = phase2;
 
   if (phase2) {
     symbol_rate = 6000;
@@ -41,8 +45,9 @@ void p25_recorder_qpsk_demod::switch_tdma(bool phase2) {
   omega = double(system_channel_rate) / double(symbol_rate);
   fmax = symbol_rate / 2; // Hz
   fmax = 2 * pi * fmax / double(system_channel_rate);
-  costas_clock->update_omega(omega);
-  costas_clock->update_fmax(fmax);
+  clock->set_omega(omega);
+  //costas_clock->update_fmax(fmax);
+  this->reset();
   // op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
 }
 
@@ -61,8 +66,8 @@ void p25_recorder_qpsk_demod::initialize() {
   double fmax = 3000; // Hz
   fmax = 2 * pi * fmax / double(system_channel_rate);
 
-  costas_clock = gr::op25_repeater::gardner_costas_cc::make(omega, gain_mu, gain_omega, alpha, beta, fmax, -fmax);
-
+  costas = gr::op25_repeater::costas_loop_cc::make(costas_alpha,  4, (2 * pi)/4 ); //beta, fmax, -fmax);
+  clock = gr::op25_repeater::gardner_cc::make(omega, gain_mu, gain_omega);
   // QPSK: Perform Differential decoding on the constellation
   diffdec = gr::digital::diff_phasor_cc::make();
 
@@ -72,10 +77,11 @@ void p25_recorder_qpsk_demod::initialize() {
   // QPSK: convert from radians such that signal is in -3/-1/+1/+3
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
-  connect(self(), 0, agc, 0);
-  connect(agc, 0, costas_clock, 0);
-  connect(costas_clock, 0, diffdec, 0);
-  connect(diffdec, 0, to_float, 0);
+
+  connect(self(), 0, clock, 0);
+  connect(clock, 0, diffdec, 0);
+  connect(diffdec, 0, costas,0);
+  connect(costas,0, to_float, 0);
   connect(to_float, 0, rescale, 0);
   connect(rescale, 0, self(), 0);
 }

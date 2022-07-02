@@ -269,7 +269,6 @@ namespace gr {
                 memcpy(&wbuf[p], buf, len);	// copy data
                 p += len;
             }
-            
             send_msg(std::string(wbuf, p), duid);
             qtimer.reset();
         }
@@ -833,8 +832,8 @@ namespace gr {
         }
 
         // Load a frame starting with NID block (used by multi_rx.py)
-        uint32_t p25p1_fdma::load_nid(const uint8_t *syms, int nsyms) {
-            uint32_t fr_len = framer->load_nid(syms, nsyms);
+        uint32_t p25p1_fdma::load_nid(const uint8_t *syms, int nsyms, const uint64_t fs) {
+            uint32_t fr_len = framer->load_nid(syms, nsyms, fs);
             check_timeout();
             return fr_len;
         }
@@ -862,9 +861,7 @@ namespace gr {
                     }
 
                     qtimer.reset();
-                    
-                    gr::message::sptr msg = gr::message::make( M_P25_TIMEOUT, d_sys_num, 0);
-                    //gr::message::sptr msg = gr::message::make(get_msg_type(PROTOCOL_P25, M_P25_TIMEOUT), d_sys_num, 0);
+                    gr::message::sptr msg = gr::message::make(get_msg_type(PROTOCOL_P25, M_P25_TIMEOUT), (d_msgq_id << 1), logts.get_ts());
                     d_msg_queue->insert_tail(msg);
                 }
             }

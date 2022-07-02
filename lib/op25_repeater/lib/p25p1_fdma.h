@@ -118,7 +118,7 @@ namespace gr {
                 void rx_sym (const uint8_t *syms, int nsyms);
                 p25p1_fdma(int sys_num, const op25_audio& udp, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, bool do_nocrypt, int msgq_id = 0);
                 ~p25p1_fdma();
-                uint32_t load_nid(const uint8_t *syms, int nsyms);
+                uint32_t load_nid(const uint8_t *syms, int nsyms, const uint64_t fs);
                 bool load_body(const uint8_t * syms, int nsyms);
 
                 // Where all the action really happens

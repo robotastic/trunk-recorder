@@ -289,7 +289,7 @@ dmr_slot::decode_csbk(uint8_t* csbk) {
 			uint32_t grpAddr = extract(csbk, 40, 64);
 			uint8_t  lcn     = extract(csbk, 64, 68);
 			uint8_t  tslot   = csbk[68];
-			if (d_debug >= 0) {
+			if (d_debug >= 10) {
 				fprintf(stderr, "%s Slot(%d), CC(%x), CSBK LB(%d), PF(%d), CSBKO(%02x), FID(%02x), CONNECT PLUS GRANT srcAddr(%06x), grpAddr(%06x), LCN(%x), TS(%d)\n", logts.get(d_msgq_id), d_chan, get_slot_cc(), csbk_lb, csbk_pf, csbk_o, csbk_fid, srcAddr, grpAddr, lcn, tslot);
 			}
 			break;

@@ -212,7 +212,9 @@ void tps_decoder_sink_impl::initialize_p25() {
   // OP25 Slicer
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
-  slicer = gr::op25_repeater::fsk4_slicer_fb::make(slices);
+  const int msgq_id = 0;
+  const int debug = 0;
+  slicer = gr::op25_repeater::fsk4_slicer_fb::make(msgq_id, debug, slices);
 
   int udp_port = 0;
   int verbosity = 0;

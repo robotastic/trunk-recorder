@@ -14,9 +14,9 @@
 
 // constructor
 p25p2_framer::p25p2_framer() :
-	d_reverse_p(0),
 	d_next_bit(0),
 	d_in_sync(0),
+	d_fs(0),
 	nid_accum(0),
 	symbols_received(0),
 	d_frame_body(P25P2_BURST_SIZE)
@@ -42,23 +42,32 @@ bool p25p2_framer::rx_sym(uint8_t dibit) {
 
 	symbols_received++;
 
-	dibit ^= d_reverse_p;
-	// FIXME assert(dibit >= 0 && dibit <= 3)
-
 	nid_accum <<= 2;
-	nid_accum |= dibit;
+	nid_accum |= (dibit & 0x3);
 
 	int found=0;
 	if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_MAGIC, 4, 40)) {
+        d_fs = P25P2_FRAME_SYNC_MAGIC;
 		found = 1;
 	}
 	else if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_REV_P, 0, 40)) {
+        d_fs = P25P2_FRAME_SYNC_REV_P;
 		found = 1;
-		d_reverse_p ^= 0x02;   // auto flip polarity reversal
-		fprintf(stderr, "TDMA: Reversed FS polarity detected - autocorrecting\n");
+	}
+	else if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_X2400, 0, 40)) {
+        d_fs = P25P2_FRAME_SYNC_X2400;
+		found = 1;
+	}
+	else if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_N1200, 0, 40)) {
+        d_fs = P25P2_FRAME_SYNC_N1200;
+		found = 1;
+	}
+	else if(check_frame_sync((nid_accum & P25P2_FRAME_SYNC_MASK) ^ P25P2_FRAME_SYNC_P1200, 0, 40)) {
+        d_fs = P25P2_FRAME_SYNC_P1200;
+		found = 1;
 	}
 	if (found) {
-		uint64_t accum = P25P2_FRAME_SYNC_MAGIC;
+		uint64_t accum = d_fs;
 		for (int i=0; i < 40; i++) {
 			d_frame_body[39 - i] = accum & 1;
 			accum = accum >> 1;
@@ -76,6 +85,8 @@ bool p25p2_framer::rx_sym(uint8_t dibit) {
 			d_in_sync--;	// each frame reduces allowance
 			d_next_bit = 0;
 		}
-	}
+	} else {
+        d_fs = 0;
+    }
 	return rc;
 }

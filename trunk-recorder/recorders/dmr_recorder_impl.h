@@ -64,7 +64,8 @@
 #endif
 
 #include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/gardner_costas_cc.h>
+#include <op25_repeater/costas_loop_cc.h>
+#include <op25_repeater/gardner_cc.h>
 #include <op25_repeater/include/op25_repeater/frame_assembler.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 #include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
@@ -133,7 +134,8 @@ protected:
   gr::blocks::copy::sptr valve;
   // gr::blocks::multiply_const_ss::sptr levels;
 
-  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
+  gr::op25_repeater::gardner_cc::sptr clock;
+  gr::op25_repeater::costas_loop_cc::sptr costas;
 
 private:
   double arb_rate;

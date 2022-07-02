@@ -159,7 +159,7 @@ int p25p2_tdma::process_mac_pdu(const uint8_t byte_buf[], const unsigned int len
 	unsigned int offset = (byte_buf[0] >> 2) & 0x7;
 
 #if 0
-        if (d_debug >= 0) {
+        if (d_debug >= 10) {
                 fprintf(stderr, "%s process_mac_pdu: opcode %d len %d\n", logts.get(d_msgq_id), opcode, len);
         }
 #endif
@@ -599,13 +599,14 @@ int p25p2_tdma::handle_frame(void)
 	int rc;
 	for (size_t i=0; i<sizeof(dibits); i++)
 		dibits[i] = p2framer.d_frame_body[i*2+1] + (p2framer.d_frame_body[i*2] << 1);
-	rc = handle_packet(dibits);
+	rc = handle_packet(dibits, p2framer.get_fs());
 	return rc;
 }
 
 /* returns true if in sync and slot matches current active slot d_slotid */
-int p25p2_tdma::handle_packet(const uint8_t dibits[]) 
+int p25p2_tdma::handle_packet(uint8_t dibits[], const uint64_t fs) 
 {
+	// descramble and process the frame
 	int rc = -1;
 	static const int which_slot[] = {0,1,0,1,0,1,0,1,0,1,1,0};
 	packets++;

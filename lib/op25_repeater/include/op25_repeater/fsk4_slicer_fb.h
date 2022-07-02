@@ -36,16 +36,12 @@ namespace gr {
     class OP25_REPEATER_API fsk4_slicer_fb : virtual public gr::sync_block
     {
      public:
-           #if GNURADIO_VERSION < 0x030900
+      #if GNURADIO_VERSION < 0x030900
       typedef boost::shared_ptr<fsk4_slicer_fb> sptr;
       #else
       typedef std::shared_ptr<fsk4_slicer_fb> sptr;
       #endif
-	#if GNURADIO_VERSION < 0x030900
 
-	#else
-
-	#endif
       /*!
        * \brief Return a shared_ptr to a new instance of op25_repeater::fsk4_slicer_fb.
        *
@@ -54,7 +50,8 @@ namespace gr {
        * class. op25_repeater::fsk4_slicer_fb::make is the public interface for
        * creating new instances.
        */
-      static sptr make(const std::vector<float> &slice_levels);
+      static sptr make(const int msgq_id, const int debug, const std::vector<float> &slice_levels);
+      virtual void set_debug(int debug) {}
     };
 
   } // namespace op25_repeater

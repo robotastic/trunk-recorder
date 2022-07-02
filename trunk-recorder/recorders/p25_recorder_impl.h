@@ -43,6 +43,7 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
+#include <gnuradio/digital/fll_band_edge_cc.h>
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/blocks/head.h>
 #include <gnuradio/message.h>
@@ -50,6 +51,7 @@
 
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
+#include "../gr_blocks/rms_agc.h"
 #include "p25_recorder.h"
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"
@@ -115,6 +117,8 @@ protected:
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::selector::sptr modulation_selector;
   gr::blocks::copy::sptr valve;
+  gr::digital::fll_band_edge_cc::sptr fll_band_edge;
+  gr::blocks::rms_agc::sptr rms_agc;
   // gr::blocks::multiply_const_ss::sptr levels;
 
   p25_recorder_fsk4_demod_sptr fsk4_demod;
@@ -122,7 +126,6 @@ protected:
   p25_recorder_qpsk_demod_sptr qpsk_demod;
   p25_recorder_decode_sptr qpsk_p25_decode;
 
-  gr::op25_repeater::gardner_costas_cc::sptr costas_clock;
 
 private:
   double system_channel_rate;
