@@ -195,6 +195,7 @@ if(NOT EXISTS /usr/include/spdlog/fmt/bundled)
   ADD_DEFINITIONS(-DSPDLOG_FMT_EXTERNAL=ON)
 endif()
 add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
+message(STATUS "Gnuradio Version is: " ${Gnuradio_VERSION})
 
 ########################################################################
 # Setup the include and linker paths
@@ -344,7 +345,6 @@ target_link_libraries(trunk-recorder git trunk_recorder_library gnuradio-op25_re
 
 message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
 if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
-
     target_link_libraries(trunk-recorder
     gnuradio::gnuradio-analog
     gnuradio::gnuradio-blocks

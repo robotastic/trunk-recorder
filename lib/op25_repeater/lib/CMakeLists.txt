@@ -118,14 +118,13 @@ set(GR_FILTER_LIBRARIES ${GR_FILTER_LIBRARY})
 set(GR_PMT_LIBRARIES ${GR_PMT_LIBRARY})
 
 target_link_libraries(gnuradio-op25_repeater ${Boost_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GR_PMT_LIBRARIES} ${GR_FILTER_LIBRARIES} )
+
 if(NOT Gnuradio_VERSION VERSION_LESS "3.10")
     target_link_libraries(gnuradio-op25_repeater
-    gnuradio::gnuradio-runtime
-    gnuradio::gnuradio-filter
-    gnuradio::gnuradio-pmt
     gnuradio-network
     )
-else(NOT Gnuradio_VERSION VERSION_LESS "3.8")
+endif()
+if (NOT Gnuradio_VERSION VERSION_LESS "3.8")
     target_link_libraries(gnuradio-op25_repeater
     gnuradio::gnuradio-runtime
     gnuradio::gnuradio-filter
