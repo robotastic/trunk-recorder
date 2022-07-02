@@ -217,7 +217,7 @@ void transmission_sink::set_source(long src) {
       /*if (d_sample_count > 0) {
         end_transmission();
       }*/
-      BOOST_LOG_TRIVIAL(info) << "ENDING TRANSMISSION Voice Channel mismatch source id - current: " << curr_src_id << " new: " << src;
+      BOOST_LOG_TRIVIAL(info) << "Voice Channel mismatch source id - current: " << curr_src_id << " new: " << src;
       // state = STOPPED;
       /*if (!record_more_transmissions) {
         state = STOPPED;

@@ -36,6 +36,10 @@ void p25_recorder_decode::set_record_more_transmissions(bool more) {
   wav_sink->set_record_more_transmissions(more);
 }
 
+void p25_recorder_decode::set_source(long src) {
+  wav_sink->set_source(src);
+}
+
 std::vector<Transmission> p25_recorder_decode::get_transmission_list() {
   return wav_sink->get_transmission_list();
 }

@@ -84,6 +84,7 @@ public:
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);
   void set_record_more_transmissions(bool more);
+  void set_source(long src);
   double since_last_write();
   void generate_arb_taps();
   double get_current_length();

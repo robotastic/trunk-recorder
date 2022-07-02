@@ -360,6 +360,14 @@ void p25_recorder_impl::set_record_more_transmissions(bool more) {
   }
 }
 
+void p25_recorder_impl::set_source(long src) {
+  if (qpsk_mod) {
+    return qpsk_p25_decode->set_source(src);
+  } else {
+    return fsk4_p25_decode->set_source(src);
+  }
+}
+
 std::vector<Transmission> p25_recorder_impl::get_transmission_list() {
   if (qpsk_mod) {
     return qpsk_p25_decode->get_transmission_list();
