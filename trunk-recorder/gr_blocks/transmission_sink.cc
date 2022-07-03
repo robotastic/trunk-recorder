@@ -206,27 +206,21 @@ void transmission_sink::set_source(long src) {
 
   if (curr_src_id == -1) {
 
-    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID set via Control Channel, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
     curr_src_id = src;
-  } else if (src != curr_src_id) {
+  }
+  /* else if (src != curr_src_id) {
     if (state == RECORDING) {
 
       BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
-      /*if (d_sample_count > 0) {
-        end_transmission();
-      }*/
+
       BOOST_LOG_TRIVIAL(info) << "Voice Channel mismatch source id - current: " << curr_src_id << " new: " << src;
-      // state = STOPPED;
-      /*if (!record_more_transmissions) {
-        state = STOPPED;
-      } else {
-        state = IDLE;
-      }*/
+
     }
     curr_src_id = src;
-  }
+  }*/
 }
 
 void transmission_sink::end_transmission() {
