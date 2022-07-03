@@ -123,7 +123,9 @@ void p25_trunking::initialize_prefilter() {
   double sps = phase1_samples_per_symbol;
   double def_excess_bw = 0.2;
   const double pi = M_PI;
-  rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
+  
+  //rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
+  rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250); 
 
  

@@ -51,7 +51,8 @@
 
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
-#include "../gr_blocks/rms_agc.h"
+#include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
+//#include "../gr_blocks/rms_agc.h"
 #include "p25_recorder.h"
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"
@@ -118,7 +119,8 @@ protected:
   gr::blocks::selector::sptr modulation_selector;
   gr::blocks::copy::sptr valve;
   gr::digital::fll_band_edge_cc::sptr fll_band_edge;
-  gr::blocks::rms_agc::sptr rms_agc;
+  //gr::blocks::rms_agc::sptr rms_agc;
+  gr::op25_repeater::rmsagc_ff::sptr rms_agc;
   // gr::blocks::multiply_const_ss::sptr levels;
 
   p25_recorder_fsk4_demod_sptr fsk4_demod;

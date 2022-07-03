@@ -5,10 +5,18 @@
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/blocks/rms_cf.h>
-#include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/blocks/float_to_complex.h>
-#include <gnuradio/blocks/divide.h>
+
 #include <gnuradio/blocks/add_const_ff.h>
+
+
+#if GNURADIO_VERSION < 0x030800
+#include <gnuradio/blocks/multiply_const_ff.h>
+#include <gnuradio/blocks/divide_cc.h>
+#else
+#include <gnuradio/blocks/multiply_const.h>
+#include <gnuradio/blocks/divide.h>
+#endif
 
 class rms_agc;
 namespace gr {
