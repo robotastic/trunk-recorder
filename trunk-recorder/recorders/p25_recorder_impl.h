@@ -83,6 +83,7 @@ public:
   void clear();
   double get_freq();
   int get_num();
+  int get_freq_error();
   void set_tdma(bool phase2);
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);

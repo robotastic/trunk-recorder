@@ -155,6 +155,7 @@ void p25_recorder_impl::initialize_prefilter() {
   connect(rms_agc,0, fll_band_edge, 0);
 }
 
+
 void p25_recorder_impl::initialize(Source *src) {
   source = src;
   chan_freq = source->get_center();
@@ -221,17 +222,19 @@ void p25_recorder_impl::switch_tdma(bool phase2) {
     if_rate = phase1_channel_rate;
   }
 
-  arb_rate = if_rate / resampled_rate;
+  arb_rate = if_rate / double(resampled_rate);
 
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
-
+  fll_band_edge->set_samples_per_symbol(arb_rate);
   if (qpsk_mod) {
     qpsk_p25_decode->switch_tdma(phase2);
     qpsk_demod->switch_tdma(phase2);
   }
 }
+
+
 
 void p25_recorder_impl::set_tdma(bool phase2) {
   if (phase2 != d_phase2_tdma) {
@@ -255,6 +258,19 @@ void p25_recorder_impl::autotune() {
       tune_queue->flush();
     }
   }*/
+}
+
+int p25_recorder_impl::get_freq_error() {   // get frequency error from FLL and convert to Hz
+  const float pi = M_PI;
+  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+  long if_rate;
+  if (d_phase2_tdma) {
+    if_rate = phase2_channel_rate;
+  } else {
+    if_rate = phase1_channel_rate;
+  }
+        return int((fll_band_edge->get_frequency() / (2*pi)) * if_rate);
 }
 
 Source *p25_recorder_impl::get_source() {
@@ -356,12 +372,12 @@ void p25_recorder_impl::tune_offset(double f) {
   } else {
     lo->set_frequency(freq);
   }
-
+  /*
   if (!qpsk_mod) {
     fsk4_demod->reset();
   } else {
     qpsk_demod->reset();
-  }
+  }*/
 }
 
 void p25_recorder_impl::set_record_more_transmissions(bool more) {
@@ -396,7 +412,7 @@ void p25_recorder_impl::stop() {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
     clear();
-    // BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
     state = INACTIVE;
     valve->set_enabled(false);
@@ -459,7 +475,6 @@ bool p25_recorder_impl::start(Call *call) {
     tune_offset(offset_amount);
     if (qpsk_mod) {
       modulation_selector->set_output_index(1);
-      qpsk_demod->reset();
       qpsk_p25_decode->start(call);
     } else {
       modulation_selector->set_output_index(0);
