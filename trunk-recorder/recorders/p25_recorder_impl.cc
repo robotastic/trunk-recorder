@@ -128,10 +128,11 @@ void p25_recorder_impl::initialize_prefilter() {
   arb_rate = if_rate / resampled_rate;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate;
-
-  double sps = phase1_samples_per_symbol;
+  double sps = floor(resampled_rate / phase1_symbol_rate);
   double def_excess_bw = 0.2;
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate << " SPS: " << sps;
+
+ 
 
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
@@ -212,22 +213,24 @@ void p25_recorder_impl::initialize(Source *src) {
 void p25_recorder_impl::switch_tdma(bool phase2) {
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
+
   long if_rate = phase1_channel_rate;
 
   if (phase2) {
     d_phase2_tdma = true;
     if_rate = phase2_channel_rate;
+    fll_band_edge->set_samples_per_symbol(phase2_samples_per_symbol);
   } else {
     d_phase2_tdma = false;
     if_rate = phase1_channel_rate;
+    fll_band_edge->set_samples_per_symbol(phase1_samples_per_symbol);
   }
 
   arb_rate = if_rate / double(resampled_rate);
-
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
-  fll_band_edge->set_samples_per_symbol(arb_rate);
+
   if (qpsk_mod) {
     qpsk_p25_decode->switch_tdma(phase2);
     qpsk_demod->switch_tdma(phase2);
