@@ -55,6 +55,7 @@ private:
   long d_spike_count;
   long d_error_count;
   long curr_src_id;
+  long next_src_id;
   char current_filename[255];
   char current_base_filename[255];
   Call *d_current_call;

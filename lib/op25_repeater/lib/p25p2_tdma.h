@@ -53,6 +53,7 @@ public:
 	bool rx_sym(uint8_t sym);
 	int handle_frame(void) ;
   	bool get_call_terminated();
+	long get_ptt_src_id();
 private:
 	p25p2_sync sync;
 	p25p2_duid duid;
@@ -75,6 +76,7 @@ private:
 	bool d_do_audio_output;
         bool d_do_nocrypt;
 		bool terminate_call;
+		long src_id;
         const op25_audio& op25audio;
 	log_ts logts;
     int d_nac;

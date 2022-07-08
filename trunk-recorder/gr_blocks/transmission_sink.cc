@@ -129,6 +129,7 @@ bool transmission_sink::start_recording(Call *call) {
 
   this->clear_transmission_list();
   d_conventional = call->is_conventional();
+  next_src_id = -1;
   curr_src_id = d_current_call->get_current_source_id();
   d_sample_count = 0;
 
@@ -247,7 +248,13 @@ void transmission_sink::end_transmission() {
     d_sample_count = 0;
     d_error_count = 0;
     d_spike_count = 0;
-    curr_src_id = -1;
+    if (next_src_id > 0) {
+      curr_src_id = next_src_id;
+      next_src_id = -1;
+    } else {
+      curr_src_id = -1;
+      next_src_id = -1;
+    }
   } else {
     BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but the sample_count is 0" << std::endl;
   }
@@ -318,9 +325,11 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
   std::vector<gr::tag_t> tags;
   pmt::pmt_t src_id_key(pmt::intern("src_id"));
+  pmt::pmt_t ptt_src_id_key(pmt::intern("ptt_src_id"));
   pmt::pmt_t terminate_key(pmt::intern("terminate"));
   pmt::pmt_t spike_count_key(pmt::intern("spike_count"));
   pmt::pmt_t error_count_key(pmt::intern("error_count"));
+
   // pmt::pmt_t squelch_key(pmt::intern("squelch_eob"));
   // get_tags_in_range(tags, 0, nitems_read(0), nitems_read(0) + noutput_items);
   get_tags_in_window(tags, 0, 0, noutput_items);
@@ -369,7 +378,20 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
       // BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
     }
+    if (pmt::eq(ptt_src_id_key, tags[i].key)) {
+      long src_id = pmt::to_long(tags[i].value);
+      if (src_id != curr_src_id) {
+        d_termination_flag = true;
+        next_src_id = src_id;
+        pos = d_sample_count + (tags[i].offset - nitems_read(0));
+        char formattedTalkgroup[62];
+        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
+        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
+        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tPTT Termination - rec sample count " << d_sample_count << " pos: " << pos << " offset: " << tags[i].offset;
+      }
+      // BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
+    }
     // Only process Spike and Error Count tags if the sink is currently recording
     if (state == RECORDING) {
       if (pmt::eq(spike_count_key, tags[i].key)) {

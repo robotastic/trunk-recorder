@@ -164,7 +164,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
   const uint8_t *in = (const uint8_t *) input_items[0];
 
   bool terminate_call = false;
-
+  long p2_ptt_src_id = -1;
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
 	for (int i = 0; i < ninput_items[0]; i++) {
@@ -172,6 +172,9 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 			int rc = p2tdma.handle_frame();
       if (p2tdma.get_call_terminated()) {
         terminate_call = true;
+      }
+      if (p2tdma.get_ptt_src_id() > 0) {
+        p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
       }
 			if (rc > -1) {
         p25p2_queue_msg(rc);
@@ -191,7 +194,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
         amt_produce = noutput_items;
         int16_t *out = (int16_t *)output_items[0];
 
-        BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
+        //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
           
         // output_queue.size() is the number of samples that were actually generated
         // amt_produce just defaults to the standard amount expected for the block  
@@ -199,8 +202,12 @@ p25_frame_assembler_impl::general_work (int noutput_items,
           amt_produce = output_queue.size();
         } 
 
-
-   if (amt_produce > 0) {
+    if (p2_ptt_src_id > 0) {
+      add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
+       //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
+       std::fill(out, out + 1, 0);
+       amt_produce = 1;
+    } else  if (amt_produce > 0) {
           long src_id = p1fdma.get_curr_src_id();
 
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
