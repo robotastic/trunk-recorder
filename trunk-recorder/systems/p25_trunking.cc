@@ -195,7 +195,7 @@ void p25_trunking::initialize_qpsk() {
 
   // Gardner Costas Clock
   double gain_mu = 0.025; // 0.025
-  double costas_alpha = 0.04;
+  double costas_alpha = 0.008;
   double omega = double(system_channel_rate) / symbol_rate; // set to 6000 for TDMA, should be symbol_rate
   double gain_omega = 0.1 * gain_mu * gain_mu;
   double alpha = costas_alpha;
