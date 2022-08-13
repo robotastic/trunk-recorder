@@ -7,7 +7,7 @@ Modify the example serivce: [trunk-recorder.service](trunk-recorder.service)
 Install it by copying it to the **/etc/systemd/system** folder:
 
 ```bash
-sudo cp trunk-recorder.service /etc/systemd/service
+sudo cp trunk-recorder.service /etc/systemd/service/
 ```
 
 And now start it up!
