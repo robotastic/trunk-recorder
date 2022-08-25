@@ -36,7 +36,7 @@ std::string GitMetadata::Describe() {
 std::string GitMetadata::Branch() {
     return "@GIT_BRANCH@";
 }
-void GitMetadata::VersionInfo() {
+__attribute__ ((visibility ("default"))) void GitMetadata::VersionInfo() {
    std::cout << PROJECT_NAME << ": " << PROJECT_VER << std::endl;
 
    if(GitMetadata::Populated()) {
