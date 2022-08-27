@@ -1,6 +1,5 @@
-FROM ubuntu:21.04 AS base
+FROM ubuntu:22.04 AS base
 
-# Install everything except cmake
 # Install docker for passing the socket to allow for intercontainer exec
 RUN apt-get update && \
   apt-get -y upgrade &&\
