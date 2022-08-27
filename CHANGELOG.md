@@ -1,9 +1,39 @@
 Trunk Recorder ChangeLog
 ========================
 
+
 ### Version 4.4.0
 * Add support for using a .csv file for adding for conventional channels
 * Removed alphaTags support from config.json, use the channel.csv instead
+* M/A-COM patch following enhancement by @aaknitt in https://github.com/robotastic/trunk-recorder/pull/643
+* Conventional Channel Information by @robotastic in https://github.com/robotastic/trunk-recorder/pull/652
+* Note on column headings for priority detection by @hayden-t in https://github.com/robotastic/trunk-recorder/pull/650
+* Add TCP support to simplestream plugin by @aaknitt in https://github.com/robotastic/trunk-recorder/pull/649
+* Add per-system configuration option for minimum transmission length. by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/654
+* GNU Radio typo by @777arc in https://github.com/robotastic/trunk-recorder/pull/655
+* Fix op25 errors by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/659
+* Report Errors/Spikes to Rdio Scanner by @taclane in https://github.com/robotastic/trunk-recorder/pull/660
+* Set alpha tag for conventional talkgroup and restore startup console message by @taclane in https://github.com/robotastic/trunk-recorder/pull/662
+* Log data channel grants, unit answer requests, Location Reg Responses by @rosecitytransit in https://github.com/robotastic/trunk-recorder/pull/661
+* minor fix to unit answer reqest logging by @rosecitytransit in https://github.com/robotastic/trunk-recorder/pull/663
+* a new approach for tracking call timeouts  by @robotastic in https://github.com/robotastic/trunk-recorder/pull/664
+* Simplestream fixes by @aaknitt in https://github.com/robotastic/trunk-recorder/pull/671
+* Fix missing audio on rdio-scanner web and mobile devices by @kb2ear in https://github.com/robotastic/trunk-recorder/pull/668
+* Update macOS Build Instructions by @dechilders in https://github.com/robotastic/trunk-recorder/pull/680
+* Add config option to not record Unit-to-Unit voice calls by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/667
+* Public Plugin API by @robotastic in https://github.com/robotastic/trunk-recorder/pull/681
+* Remove extra characters by @dechilders in https://github.com/robotastic/trunk-recorder/pull/684
+* Raspberry Pi Bullseye & Ubuntu 22.04 Updates. by @Dygear in https://github.com/robotastic/trunk-recorder/pull/685
+* added --version switch to pull both github and CMake version information as well as log the Version info into the log file by @rabarar in https://github.com/robotastic/trunk-recorder/pull/688
+* Remove nested BOOST_LOG_TRIVIAL to fix erroneous log level display by @taclane in https://github.com/robotastic/trunk-recorder/pull/692
+* Add initial support for gnuradio 3.10. by @geezer85 in https://github.com/robotastic/trunk-recorder/pull/682
+* Added debian notes to PI install. by @Dygear in https://github.com/robotastic/trunk-recorder/pull/695
+* Update INSTALL-LINUX.md by @joe00dev in https://github.com/robotastic/trunk-recorder/pull/696
+* Include boost/filesystem header by @geezer85 in https://github.com/robotastic/trunk-recorder/pull/698
+* P25p2 uid by @robotastic in https://github.com/robotastic/trunk-recorder/pull/708
+* Op25 june 22 by @robotastic in https://github.com/robotastic/trunk-recorder/pull/709
+* mark one function visible to allow shared build by @ZeroChaos- in https://github.com/robotastic/trunk-recorder/pull/720
+* modified version switch to build without .git repo directory and adde… by @rabarar in https://github.com/robotastic/trunk-recorder/pull/715
 
 ### Version 4.3.0
 * Add support for DMR / MotoTRBO

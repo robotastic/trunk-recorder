@@ -24,6 +24,7 @@ RUN apt-get update && \
     libssl-dev \
     libuhd-dev \
     libusb-dev \
+    libsndfile1-dev \
     pkg-config \
     software-properties-common \
     cmake \
