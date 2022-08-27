@@ -25,6 +25,8 @@ cmake_minimum_required(VERSION 3.2)
 project(Trunk-Recorder LANGUAGES CXX C VERSION "4.3.2")
 
 configure_file(cmake.h.in "${PROJECT_SOURCE_DIR}/cmake.h" @ONLY)
+ADD_COMPILE_DEFINITIONS(MANUAL_GITINFO="${MANUAL_GITINFO}")
+
 
 # Define the two required variables before including
 # the source code for watching a git repository.

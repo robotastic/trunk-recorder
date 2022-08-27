@@ -136,7 +136,7 @@ macro(RunGitCommand)
         # those default values.
         if(GIT_FAIL_IF_NONZERO_EXIT )
             string(REPLACE ";" " " args_with_spaces "${ARGV}")
-            message(FATAL_ERROR "${stderr} (${GIT_EXECUTABLE} ${args_with_spaces})")
+            message("${stderr} (${GIT_EXECUTABLE} ${args_with_spaces})")
         endif()
     endif()
 endmacro()

@@ -50,7 +50,11 @@ __attribute__ ((visibility ("default"))) void GitMetadata::VersionInfo() {
                   << "\t" << GitMetadata::CommitSubject() << "\n" << GitMetadata::CommitBody() << std::endl;
     }
     else {
-        std::cerr << "WARN: failed to get the current git state. Is this a git repo?" << std::endl;
+#ifdef MANUAL_GITINFO
+        std::cerr << "INFO: manual git info: " << MANUAL_GITINFO << std::endl;
+#else
+        std::cerr << "WARN: no manual git info defined " << std::endl;
+#endif
     }
 }
 
