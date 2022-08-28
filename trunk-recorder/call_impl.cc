@@ -264,7 +264,7 @@ bool Call_impl::get_encrypted() {
 }
 
 void Call_impl::set_emergency(bool m) {
-  emergency = m;
+  emergency |= m;
 }
 
 bool Call_impl::get_emergency() {
