@@ -8,28 +8,52 @@ RUN apt-get update && \
     apt-transport-https \
     build-essential \
     ca-certificates \
+    cmake \
+    docker.io \
     fdkaac \
     git \
-    docker.io \
     gnupg \
     gnuradio \
     gnuradio-dev \
-    gr-osmosdr \
+    gr-funcube \
+    gr-iqbal \
+    libairspy-dev \
+    libairspyhf-dev \
+    libbladerf-dev \
     libboost-all-dev \
     libcurl4-openssl-dev \
+    libfreesrp-dev \
     libgmp-dev \
     libhackrf-dev \
     liborc-0.4-dev \
     libpthread-stubs0-dev \
+    librtlsdr-dev \
+    libsndfile1-dev \
+    libsoapysdr-dev \
     libssl-dev \
     libuhd-dev \
     libusb-dev \
-    libsndfile1-dev \
+    libxtrx-dev \
     pkg-config \
     software-properties-common \
-    cmake \
     sox && \
   rm -rf /var/lib/apt/lists/*
+
+COPY lib/gr-osmosdr/airspy_source_c.cc.patch /tmp/airspy_source_c.cc.patch
+
+# Compile gr-osmosdr ourselves so we can install the Airspy serial number patch
+RUN cd /tmp && \
+  git clone https://git.osmocom.org/gr-osmosdr && \
+  cd gr-osmosdr && \
+  git apply ../airspy_source_c.cc.patch && \
+  mkdir build && \
+  cd build && \
+  cmake .. && \
+  make -j$(nproc) && \
+  make install && \
+  ldconfig && \
+  cd /tmp && \
+  rm -rf gr-osmosdr airspy_source_c.cc.patch
 
 WORKDIR /src
 
