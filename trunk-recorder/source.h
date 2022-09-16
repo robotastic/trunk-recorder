@@ -115,10 +115,10 @@ public:
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb);
 
-  Recorder *get_digital_recorder();
-  Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority);
-  Recorder *get_analog_recorder();
-  Recorder *get_analog_recorder(Talkgroup *talkgroup);
+  Recorder *get_digital_recorder(Call *call);
+  Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call);
+  Recorder *get_analog_recorder(Call *call);
+  Recorder *get_analog_recorder(Talkgroup *talkgroup, int priority, Call *call);
   Recorder *get_debug_recorder();
   Recorder *get_sigmf_recorder();
 
