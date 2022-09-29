@@ -278,11 +278,15 @@ public:
       std::string code = response_buffer.substr(0, spacepos);
       std::string message = response_buffer.substr(spacepos + 1);
 
-      if (code == "1" && message == "SKIPPED---ALREADY-RECEIVED-THIS-CALL") {
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload Skipped: " << message;
-        return 0;
+      if (code == "1" && (message.rfind("SKIPPED", 0) == 0)) {
+          BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload Skipped: " << message;
+          return 0;
       }
-
+      if (code == "1" && (message.rfind("REJECTED", 0) == 0)) {
+          BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload REJECTED: " << message;
+          return 0;
+      }
+      
       if (code != "0") {
         BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << message;
         return 1;
