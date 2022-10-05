@@ -35,6 +35,7 @@ Call_impl::Call_impl(long t, double f, System *s, Config c) {
   stop_time = time(NULL);
   last_update = time(NULL);
   state = MONITORING;
+  monitoringState = UNSPECIFIED;
   debug_recording = false;
   sigmf_recording = false;
   recorder = NULL;
@@ -63,6 +64,7 @@ Call_impl::Call_impl(TrunkMessage message, System *s, Config c) {
   stop_time = time(NULL);
   last_update = time(NULL);
   state = MONITORING;
+  monitoringState = UNSPECIFIED;
   debug_recording = false;
   sigmf_recording = false;
   recorder = NULL;
@@ -253,6 +255,14 @@ void Call_impl::set_state(State s) {
 
 State Call_impl::get_state() {
   return state;
+}
+
+void Call_impl::set_monitoring_state(MonitoringState s) {
+  monitoringState = s;
+}
+
+MonitoringState Call_impl::get_monitoring_state() {
+  return monitoringState;
 }
 
 void Call_impl::set_encrypted(bool m) {

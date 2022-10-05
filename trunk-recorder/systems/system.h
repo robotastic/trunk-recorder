@@ -159,5 +159,9 @@ public:
   virtual void update_active_talkgroup_patches(PatchData f_data) = 0;
   virtual void delete_talkgroup_patch(PatchData f_data) = 0;
   virtual void clear_stale_talkgroup_patches() = 0;
+
+  virtual bool get_multiSite() = 0;
+  virtual void set_multiSite(bool multiSite) = 0;
+
 };
 #endif

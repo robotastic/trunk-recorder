@@ -218,11 +218,15 @@ public:
   void delete_talkgroup_patch(PatchData f_data);
   void clear_stale_talkgroup_patches();
 
+  bool get_multiSite();
+  void set_multiSite(bool multiSite);
+
 private:
   TalkgroupDisplayFormat talkgroup_display_format;
   bool d_hideEncrypted;
   bool d_hideUnknown;
-
+  bool d_multiSite;
+  
   bool d_mdc_enabled;
   bool d_fsync_enabled;
   bool d_star_enabled;
