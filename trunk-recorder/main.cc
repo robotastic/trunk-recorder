@@ -1095,7 +1095,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
         original_call->conclude_call();
       }
       else{
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder. Continuing original call: " << original_call->get_call_num() << "C";
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder. Continuing original call: " << original_call->get_call_num() << "C\u001b[0m";
       }
     }
     else if (duplicate_grant) {
