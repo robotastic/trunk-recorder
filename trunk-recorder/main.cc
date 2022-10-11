@@ -788,7 +788,7 @@ void manage_conventional_call(Call *call) {
 }
 
 void print_status() {
-  BOOST_LOG_TRIVIAL(info) << "\n\n\nCurrently Active Calls: " << calls.size();
+  BOOST_LOG_TRIVIAL(info) << "nCurrently Active Calls: " << calls.size();
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
@@ -799,19 +799,18 @@ void print_status() {
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(3) << call->elapsed() << " State: " << format_state(call->get_state());
     }
 
-    // if (recorder) {
-    //   BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
-    // }
+    if (recorder) {
+      BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
+    }
   }
-  BOOST_LOG_TRIVIAL(info) << "\n\n";
 
-  /*
+  
   BOOST_LOG_TRIVIAL(info) << "Recorders: ";
 
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     Source *source = *it;
     source->print_recorders();
-  }*/
+  }
 }
 
 void manage_calls() {
