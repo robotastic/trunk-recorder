@@ -1081,14 +1081,17 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       call->set_talkgroup_tag("-");
     }
 
-    // Clean up the original call. A new call will be started on the preferred NAC.
+    
     if(superseding_grant) {
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
+
+      // Start a new call on the preferred NAC.
+      recording_started = start_recorder(call, message, sys);
+      
+      // Clean up the original call. 
       original_call->set_state(MONITORING);
       original_call->set_monitoring_state(SUPERSEDED);
       original_call->conclude_call();
-
-      recording_started = start_recorder(call, message, sys);
     }
     else if (duplicate_grant) {
       call->set_monitoring_state(DUPLICATE);
