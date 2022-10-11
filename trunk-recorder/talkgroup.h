@@ -16,20 +16,23 @@ public:
   std::string group;
   int priority;
 
+
   // For Conventional
   double freq;
   double tone;
 
-  Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority);
+  Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, int preferredNAC);
   Talkgroup(long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group);
 
   bool is_active();
   int get_priority();
+  int get_preferredNAC();
   void set_priority(int new_priority);
   void set_active(bool a);
   std::string menu_string();
 
 private:
+  int prefferedNAC;
   bool active;
 };
 

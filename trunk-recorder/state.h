@@ -17,6 +17,6 @@ enum MonitoringState {
              NO_RECORDER = 3,
              ENCRYPTED = 4,
              DUPLICATE = 5,
-             SUPERCEDED = 6};
+             SUPERSEDED = 6};
 
 #endif

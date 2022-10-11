@@ -1,6 +1,6 @@
 #include "talkgroup.h"
 
-Talkgroup::Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority) {
+Talkgroup::Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, int prefferedNAC) {
   this->number = num;
   this->mode = mode;
   this->alpha_tag = alpha_tag;
@@ -11,6 +11,7 @@ Talkgroup::Talkgroup(long num, std::string mode, std::string alpha_tag, std::str
   this->active = false;
   this->freq = 0;
   this->tone = 0;
+  this->prefferedNAC = prefferedNAC;
 }
 
 Talkgroup::Talkgroup(long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group) {
@@ -24,6 +25,7 @@ Talkgroup::Talkgroup(long num, double freq, double tone, std::string alpha_tag, 
   this->freq = freq;
   this->tone = tone;
   this->priority = 0;
+  this->prefferedNAC = 0;
 }
 
 std::string Talkgroup::menu_string() {
@@ -42,6 +44,10 @@ std::string Talkgroup::menu_string() {
 
 int Talkgroup::get_priority() {
   return priority;
+}
+
+int Talkgroup::get_preferredNAC() {
+  return prefferedNAC;
 }
 
 void Talkgroup::set_priority(int new_priority) {

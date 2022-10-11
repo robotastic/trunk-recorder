@@ -677,7 +677,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
           recorder_found = true;
         } else {
           call->set_state(MONITORING);
-          //call->set_monitoring_state(NO_SOURCE);
+          // call->set_monitoring_state(NO_SOURCE);
           recorder_found = false;
           return false;
         }
@@ -719,8 +719,8 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (!source_found) {
-      call->set_monitoring_state(NO_SOURCE);
-      BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    call->set_monitoring_state(NO_SOURCE);
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -793,16 +793,15 @@ void print_status() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
-    if(call->get_state() == MONITORING){
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
-    }
-    else{
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << format_state(call->get_state());
+    if (call->get_state() == MONITORING) {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(3) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
+    } else {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(3) << call->elapsed() << " State: " << format_state(call->get_state());
     }
 
-    //if (recorder) {
-    //  BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
-    //}
+    // if (recorder) {
+    //   BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
+    // }
   }
   BOOST_LOG_TRIVIAL(info) << "\n\n";
 
@@ -960,6 +959,7 @@ void unit_location(System *sys, long source_id, long talkgroup_num) {
 void handle_call_grant(TrunkMessage message, System *sys) {
   bool call_found = false;
   bool duplicate_grant = false;
+  bool superseding_grant = false;
   bool recording_started [[maybe_unused]] = false;
 
   Call *original_call;
@@ -972,17 +972,14 @@ void handle_call_grant(TrunkMessage message, System *sys) {
   going until it gets a termination flag.
   */
 
-  // BOOST_LOG_TRIVIAL(info) << "TG: "  << message.talkgroup << " sys num: "<< message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
+  //BOOST_LOG_TRIVIAL(info) << "TG: " << message.talkgroup << " sys num: " << message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
 
-  System *message_sys;
-  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System *sys = (System *)*it;
-
-    if (sys->get_sys_num() == message.sys_num) {
-      message_sys = sys;
-      break;
-    }
+  int message_prefferedNAC = 0;
+  Talkgroup *message_talkgroup = sys->find_talkgroup(message.talkgroup);
+  if (message_talkgroup) {
+     message_prefferedNAC = message_talkgroup->get_preferredNAC();
   }
+  //BOOST_LOG_TRIVIAL(info) << "TG: " << message.talkgroup << " Preferred NAC: " << message_prefferedNAC << ".";
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
@@ -993,14 +990,26 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       continue;
     }
 
-    if ((call->get_talkgroup() == message.talkgroup) && (call->get_phase2_tdma() == message.phase2_tdma)){
-      if(call->get_sys_num() != message.sys_num){
-        if(call->get_system()->get_multiSite() && message_sys->get_multiSite()){
-          if(call->get_system()->get_wacn() == message_sys->get_wacn()){
-            if(call->get_system()->get_nac() != message_sys->get_nac()){
-              if(call->get_state() == RECORDING){
-                duplicate_grant = true; 
+    if ((call->get_talkgroup() == message.talkgroup) && (call->get_phase2_tdma() == message.phase2_tdma)) {
+      if (call->get_sys_num() != message.sys_num) {
+        if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
+          if (call->get_system()->get_wacn() == sys->get_wacn()) {
+            if (call->get_system()->get_nac() != sys->get_nac()) {
+              if (call->get_state() == RECORDING) {
+
+                duplicate_grant = true;
                 original_call = call;
+
+                int call_prefferedNAC = 0;
+                Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
+                if (call_talkgroup) {
+                  call_prefferedNAC = message_talkgroup->get_preferredNAC();
+                }
+
+                if ((call_prefferedNAC != call->get_system()->get_nac()) && (message_prefferedNAC == sys->get_nac())) {
+                  superseding_grant = true;
+                }
+
               }
             }
           }
@@ -1012,8 +1021,6 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       call_found = true;
 
       // BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m GRANT Message for existing Call\u001b[0m";
-
-
 
       if (call->get_state() == RECORDING) {
         call->set_record_more_transmissions(true);
@@ -1066,7 +1073,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
 
   if (!call_found) {
     Call *call = Call::make(message, sys, config);
-    
+
     Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
 
     if (talkgroup) {
@@ -1075,14 +1082,23 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       call->set_talkgroup_tag("-");
     }
 
-    if(!duplicate_grant) {
+    // Clean up the original call. A new call will be started on the preferred NAC.
+    if(superseding_grant) {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
+      original_call->set_state(MONITORING);
+      original_call->set_monitoring_state(SUPERSEDED);
+      original_call->conclude_call();
+
       recording_started = start_recorder(call, message, sys);
     }
-    else{
+    else if (duplicate_grant) {
       call->set_monitoring_state(DUPLICATE);
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant. Original Call NAC: " <<original_call->get_system()->get_nac() << " Grant Message NAC: " << message_sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";      
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
     }
-
+    else {
+      recording_started = start_recorder(call, message, sys);
+    }
+      
     calls.push_back(call);
     plugman_call_start(call);
     plugman_calls_active(calls);

@@ -234,6 +234,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.call_num = call->get_call_num();
   call_info.compress_wav = sys->get_compress_wav();
   call_info.talkgroup = call->get_talkgroup();
+  call_info.talkgroup_display = call->get_talkgroup_display();
   call_info.patched_talkgroups = sys->get_talkgroup_patch(call_info.talkgroup);
 
   Talkgroup *tg = sys->find_talkgroup(call->get_talkgroup());
@@ -257,6 +258,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
     call_info.audio_type = "digital";
   }
 
+
   // loop through the transmission list, pull in things to fill in totals for call_info
   // Using a for loop with iterator
   for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end();) {
@@ -278,9 +280,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
       it = call_info.transmission_list.erase(it);
       continue;
     }
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
+
+    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
 
     if (it == call_info.transmission_list.begin()) {
       call_info.start_time = t.start_time;
@@ -317,7 +318,12 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
   snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
   std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
-  if (call_info.transmission_list.size() == 0) {
+  if(call->get_state() == MONITORING && call->get_monitoring_state() == SUPERSEDED){
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\t Call has been superseded. Removing files.";
+    remove_call_files(call_info);
+    return;
+  }
+  else if (call_info.transmission_list.size() == 0) {
     BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmission were recorded!";
     return;
   }
@@ -327,6 +333,7 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
     remove_call_files(call_info);
     return;
   }
+
 
   call_data_workers.push_back(std::async(std::launch::async, upload_call_worker, call_info));
 }

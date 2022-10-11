@@ -64,8 +64,8 @@ std::string format_state(State state, MonitoringState monitoringState) {
         return "monitoring : ENCRYPTED";
       else if(monitoringState == DUPLICATE)
         return "monitoring : DUPLICATE";
-      else if(monitoringState == SUPERCEDED)
-        return "monitoring : SUPERCEDED";
+      else if(monitoringState == SUPERSEDED)
+        return "monitoring : SUPERSEDED";
       else
         return "monitoring";
     }

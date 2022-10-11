@@ -75,7 +75,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
         continue;
       }
 
-      tg = new Talkgroup(atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
+      tg = new Talkgroup(atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1, 0);
     } else {
       // Talkgroup configuration columns:
       //
@@ -88,14 +88,15 @@ void Talkgroups::load_talkgroups(std::string filename) {
       // [6] - group
       // [7] - priority
 
-      if (!((vec.size() == 8) || (vec.size() == 7))) {
+      if (!((vec.size() == 9) || (vec.size() == 8) || (vec.size() == 7))) {
         BOOST_LOG_TRIVIAL(error) << "Malformed talkgroup entry at line " << lines_read << ".";
         continue;
       }
       // TODO(nkw): more sanity checking here.
       priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
+      int preferredNAC = (vec.size() == 9) ? atoi(vec[8].c_str()) : 0;
 
-      tg = new Talkgroup(atoi(vec[0].c_str()), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
+      tg = new Talkgroup(atoi(vec[0].c_str()), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority, preferredNAC);
     }
     talkgroups.push_back(tg);
     lines_pushed++;
