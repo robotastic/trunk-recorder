@@ -319,12 +319,12 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
   std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
   if(call->get_state() == MONITORING && call->get_monitoring_state() == SUPERSEDED){
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\t Call has been superseded. Removing files.";
+    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tCall has been superseded. Removing files.";
     remove_call_files(call_info);
     return;
   }
   else if (call_info.transmission_list.size() == 0) {
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmission were recorded!";
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tNo Transmission were recorded!";
     return;
   }
 
