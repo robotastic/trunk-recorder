@@ -1085,13 +1085,18 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     if(superseding_grant) {
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
 
-      // Start a new call on the preferred NAC.
+      // Attempt to start a new call on the preferred NAC.
       recording_started = start_recorder(call, message, sys);
       
-      // Clean up the original call. 
-      original_call->set_state(MONITORING);
-      original_call->set_monitoring_state(SUPERSEDED);
-      original_call->conclude_call();
+      if(recording_started) {
+        // Clean up the original call.
+        original_call->set_state(MONITORING);
+        original_call->set_monitoring_state(SUPERSEDED);
+        original_call->conclude_call();
+      }
+      else{
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder. Continuing original call. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
+      }
     }
     else if (duplicate_grant) {
       call->set_monitoring_state(DUPLICATE);
