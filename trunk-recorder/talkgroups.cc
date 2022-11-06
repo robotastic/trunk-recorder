@@ -26,8 +26,8 @@ void Talkgroups::load_talkgroups(std::string filename) {
     return;
   }
 
-  boost::char_separator<char> sep(",\t");
-  typedef boost::tokenizer<boost::char_separator<char>> t_tokenizer;
+  boost::escaped_list_separator<char> sep("\\", ",\t", "\"");
+  typedef boost::tokenizer<boost::escaped_list_separator<char>> t_tokenizer;
 
   std::vector<std::string> vec;
   std::string line;
@@ -123,8 +123,8 @@ void Talkgroups::load_channels(std::string filename) {
     return;
   }
 
-  boost::char_separator<char> sep(",", "\t", boost::keep_empty_tokens);
-  typedef boost::tokenizer<boost::char_separator<char>> t_tokenizer;
+  boost::escaped_list_separator<char> sep("\\", ",\t", "\"");
+  typedef boost::tokenizer<boost::escaped_list_separator<char>> t_tokenizer;
 
   std::vector<std::string> vec;
   std::string line;
