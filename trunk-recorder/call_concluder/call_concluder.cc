@@ -235,6 +235,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.compress_wav = sys->get_compress_wav();
   call_info.talkgroup = call->get_talkgroup();
   call_info.patched_talkgroups = sys->get_talkgroup_patch(call_info.talkgroup);
+  call_info.min_transmissions_removed = 0;
 
   Talkgroup *tg = sys->find_talkgroup(call->get_talkgroup());
   if (tg != NULL) {
@@ -268,7 +269,9 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 
         snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
         std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << "." << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << ".";
+
+        call_info.min_transmissions_removed++;
 
         if (checkIfFile(t.filename)) {
           remove(t.filename);
@@ -317,8 +320,12 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
   snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
   std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
-  if (call_info.transmission_list.size() == 0) {
+  if (call_info.transmission_list.size() == 0 && call_info.min_transmissions_removed == 0) {
     BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmission were recorded!";
+    return;
+  }
+  else if (call_info.transmission_list.size() == 0 && call_info.min_transmissions_removed > 0) {
+    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmission were recorded! " << call_info.min_transmissions_removed << " tranmissions less than " << sys->get_min_tx_duration() << " seconds were removed.";
     return;
   }
 
