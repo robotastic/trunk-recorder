@@ -998,7 +998,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
         if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
           if (call->get_system()->get_wacn() == sys->get_wacn()) {
             // Default mode to match WACN and NAC and use a preferred NAC;
-            if (call->get_system()->get_nac() != sys->get_nac() && (call->get_system()->get_multiSiteSystemName() == "") {
+            if (call->get_system()->get_nac() != sys->get_nac() && (call->get_system()->get_multiSiteSystemName() == "")) {
               if (call->get_state() == RECORDING) {
 
                 duplicate_grant = true;
