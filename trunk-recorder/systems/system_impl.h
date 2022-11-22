@@ -229,7 +229,8 @@ private:
   bool d_hideEncrypted;
   bool d_hideUnknown;
   bool d_multiSite;
-  
+  std::string d_multiSiteSystemName;
+
   bool d_mdc_enabled;
   bool d_fsync_enabled;
   bool d_star_enabled;
