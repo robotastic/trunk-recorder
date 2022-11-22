@@ -1032,7 +1032,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
                 if (call_talkgroup) {
                   call_prefferedNAC = message_talkgroup->get_preferredNAC();
                 }
-                if ((call_prefferedNAC != call->get_sys_num()) && (message_prefferedNAC == sys->get_sys_num()))) {
+                if ((call_prefferedNAC != call->get_sys_num()) && (message_prefferedNAC == sys->get_sys_num())) {
                   superseding_grant = true;
                 }
 
