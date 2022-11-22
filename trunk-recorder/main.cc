@@ -389,7 +389,7 @@ bool load_config(string config_file) {
       system->set_multiSite(node.second.get<bool>("multiSite", false));
       BOOST_LOG_TRIVIAL(info) << "Multiple Site System: " << system->get_multiSite();
       system->set_multiSiteSystemName(node.second.get<std::string>("multiSiteSystemName", ""));
-      BOOST_LOG_TRIVIAL(info) << "Multiple Site System Name: " << system->get_multiSiteSystemName()
+      BOOST_LOG_TRIVIAL(info) << "Multiple Site System Name: " << system->get_multiSiteSystemName();
 
       if (!system->get_compress_wav()) {
         if ((system->get_api_key().length() > 0) || (system->get_bcfy_api_key().length() > 0)) {
