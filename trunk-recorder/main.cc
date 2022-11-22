@@ -1025,18 +1025,16 @@ void handle_call_grant(TrunkMessage message, System *sys) {
                 duplicate_grant = true;
                 original_call = call;
 
-                /* 
-                
-                Need a method to add a preferred Site when manually specifcying mutliSiteSystemName
+                // This is a hack to use the preferred Sytem Number as the preferredNAC.
+                // Should investiage a method to add a preferred Site name when manually specifcying mutliSiteSystemName
                 int call_prefferedNAC = 0;
                 Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
                 if (call_talkgroup) {
                   call_prefferedNAC = message_talkgroup->get_preferredNAC();
                 }
-                if ((call_prefferedNAC != call->get_system()->get_nac()) && (message_prefferedNAC == sys->get_nac())) {
+                if ((call_prefferedNAC != call->get_sys_num()) && (message_prefferedNAC == sys->get_sys_num()))) {
                   superseding_grant = true;
                 }
-                */
 
               }
             }
