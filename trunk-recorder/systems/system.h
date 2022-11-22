@@ -163,5 +163,8 @@ public:
   virtual bool get_multiSite() = 0;
   virtual void set_multiSite(bool multiSite) = 0;
 
+  virtual std::string get_multiSiteSystemName() = 0;
+  virtual void set_multiSiteSystemName(std::string multiSiteSystemName) = 0;
+
 };
 #endif

@@ -388,6 +388,8 @@ bool load_config(string config_file) {
 
       system->set_multiSite(node.second.get<bool>("multiSite", false));
       BOOST_LOG_TRIVIAL(info) << "Multiple Site System: " << system->get_multiSite();
+      system->set_multiSiteSystemName(node.second.get<std::string>("multiSiteSystemName", ""));
+      BOOST_LOG_TRIVIAL(info) << "Multiple Site System Name: " << system->get_multiSiteSystemName()
 
       if (!system->get_compress_wav()) {
         if ((system->get_api_key().length() > 0) || (system->get_bcfy_api_key().length() > 0)) {
@@ -620,6 +622,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (call->get_encrypted() == true || (talkgroup && (talkgroup->mode.compare("E") == 0 || talkgroup->mode.compare("TE") == 0 || talkgroup->mode.compare("DE") == 0))) {
+    call->set_state(MONITORING);
     call->set_monitoring_state(ENCRYPTED);
     if (sys->get_hideEncrypted() == false) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m ";
@@ -719,6 +722,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (!source_found) {
+    call->set_state(MONITORING);
     call->set_monitoring_state(NO_SOURCE);
     BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
@@ -993,7 +997,8 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       if (call->get_sys_num() != message.sys_num) {
         if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
           if (call->get_system()->get_wacn() == sys->get_wacn()) {
-            if (call->get_system()->get_nac() != sys->get_nac()) {
+            // Default mode to match WACN and NAC and use a preferred NAC;
+            if (call->get_system()->get_nac() != sys->get_nac() && (call->get_system()->get_multiSiteSystemName() == "") {
               if (call->get_state() == RECORDING) {
 
                 duplicate_grant = true;
@@ -1008,6 +1013,30 @@ void handle_call_grant(TrunkMessage message, System *sys) {
                 if ((call_prefferedNAC != call->get_system()->get_nac()) && (message_prefferedNAC == sys->get_nac())) {
                   superseding_grant = true;
                 }
+
+              }
+            }
+            // If a multiSiteSystemName has been manually entered;
+            // We already know that Call's system number does not match the message system number.
+            // In this case, we check that the multiSiteSystemName is present, and that the Call and System multiSiteSystemNames are the same.
+            else if ((call->get_system()->get_multiSiteSystemName() != "")  && (call->get_system()->get_multiSiteSystemName() == sys->get_multiSiteSystemName())) {
+              if (call->get_state() == RECORDING) {
+
+                duplicate_grant = true;
+                original_call = call;
+
+                /* 
+                
+                Need a method to add a preferred Site when manually specifcying mutliSiteSystemName
+                int call_prefferedNAC = 0;
+                Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
+                if (call_talkgroup) {
+                  call_prefferedNAC = message_talkgroup->get_preferredNAC();
+                }
+                if ((call_prefferedNAC != call->get_system()->get_nac()) && (message_prefferedNAC == sys->get_nac())) {
+                  superseding_grant = true;
+                }
+                */
 
               }
             }
@@ -1099,8 +1128,9 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       }
     }
     else if (duplicate_grant) {
+      call->set_state(MONITORING);
       call->set_monitoring_state(DUPLICATE);
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << " Source: " << message.source << " Call: " << original_call->get_call_num() << "C State: " << format_state(original_call->get_state()) << "\u001b[0m";
     }
     else {
       recording_started = start_recorder(call, message, sys);

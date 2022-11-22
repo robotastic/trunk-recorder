@@ -221,6 +221,9 @@ public:
   bool get_multiSite();
   void set_multiSite(bool multiSite);
 
+  std::string get_multiSiteSystemName();
+  void set_multiSiteSystemName(std::string multiSiteSystemName);
+
 private:
   TalkgroupDisplayFormat talkgroup_display_format;
   bool d_hideEncrypted;

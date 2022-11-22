@@ -158,12 +158,14 @@ Recorder *Source::get_analog_recorder(Talkgroup *talkgroup, int priority, Call *
   int num_available_recorders = get_num_available_analog_recorders();
 
   if(talkgroup && (priority == -1)){
+    call->set_state(MONITORING);
     call->set_monitoring_state(NO_RECORDER);
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
     return NULL;
   }
 
   if (talkgroup && priority > num_available_recorders) { // a high priority is bad. You need at least the number of availalbe recorders to your priority
+    call->set_state(MONITORING);
     call->set_monitoring_state(NO_RECORDER);
     BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " <<  priority << " but only " << num_available_recorders << " recorders are available.";
     return NULL;
@@ -341,12 +343,14 @@ Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call 
   int num_available_recorders = get_num_available_digital_recorders();
 
   if(talkgroup && (priority == -1)){
+    call->set_state(MONITORING);
     call->set_monitoring_state(NO_RECORDER);
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
     return NULL;
   }
 
   if (talkgroup && priority > num_available_recorders) { // a high priority is bad. You need at least the number of availalbe recorders to your priority
+    call->set_state(MONITORING);
     call->set_monitoring_state(NO_RECORDER);
     BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " <<  priority << " but only " << num_available_recorders << " recorders are available.";
     return NULL;
