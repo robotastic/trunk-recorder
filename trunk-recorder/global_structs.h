@@ -90,6 +90,7 @@ struct Call_Data_t {
   char filename[300];
   char status_filename[300];
   char converted[300];
+  int min_transmissions_removed;
 
   std::string short_name;
   std::string upload_script;
