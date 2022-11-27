@@ -167,8 +167,8 @@ public:
   Talkgroup *find_talkgroup(long tg);
   Talkgroup *find_talkgroup_by_freq(double freq);
   UnitTag *find_unit_tag(long unitID);
-  void set_talkgroups_file(std::string, bool strict_parsing);
-  void set_channel_file(std::string channel_file, bool strict_parsing);
+  int set_talkgroups_file(std::string, bool strict_parsing);
+  int set_channel_file(std::string channel_file, bool strict_parsing);
   bool has_channel_file();
   void set_unit_tags_file(std::string);
   int control_channel_count();

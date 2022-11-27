@@ -14,16 +14,20 @@
 
 Talkgroups::Talkgroups() {}
 
-void Talkgroups::load_talkgroups(std::string filename, bool strict_parsing) {
+int Talkgroups::load_talkgroups(std::string filename, bool strict_parsing) {
   if (filename == "") {
-    return;
+    return 0;
   }
 
   std::ifstream in(filename.c_str());
 
   if (!in.is_open()) {
     BOOST_LOG_TRIVIAL(error) << "Error Opening TG File: " << filename << std::endl;
-    return;
+    if (strict_parsing) {
+      return 1;
+    } else {
+      return 0;
+    }
   }
 
   boost::escaped_list_separator<char> sep("\\", ",\t", "\"");
@@ -72,7 +76,11 @@ void Talkgroups::load_talkgroups(std::string filename, bool strict_parsing) {
 
       if (vec.size() != 7) {
         BOOST_LOG_TRIVIAL(error) << "Malformed radioreference talkgroup entry at line " << lines_read << ".";
-        continue;
+        if (strict_parsing) {
+          return 1;
+        } else {
+          continue;
+        }
       }
 
       tg = new Talkgroup(atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
@@ -90,7 +98,11 @@ void Talkgroups::load_talkgroups(std::string filename, bool strict_parsing) {
 
       if (!((vec.size() == 8) || (vec.size() == 7))) {
         BOOST_LOG_TRIVIAL(error) << "Malformed talkgroup entry at line " << lines_read << ".";
-        continue;
+        if (strict_parsing) {
+          return 1;
+        } else {
+          continue;
+        }
       }
       // TODO(nkw): more sanity checking here.
       priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
@@ -109,18 +121,19 @@ void Talkgroups::load_talkgroups(std::string filename, bool strict_parsing) {
   } else {
     BOOST_LOG_TRIVIAL(info) << "Read " << lines_pushed << " talkgroups.";
   }
+  return 0;
 }
 
-void Talkgroups::load_channels(std::string filename, bool strict_parsing) {
+int Talkgroups::load_channels(std::string filename, bool strict_parsing) {
   if (filename == "") {
-    return;
+    return 1;
   }
 
   std::ifstream in(filename.c_str());
 
   if (!in.is_open()) {
     BOOST_LOG_TRIVIAL(error) << "Error Opening Channel File: " << filename << std::endl;
-    return;
+      return 1;
   }
 
   boost::escaped_list_separator<char> sep("\\", ",\t", "\"");
@@ -162,7 +175,11 @@ void Talkgroups::load_channels(std::string filename, bool strict_parsing) {
 
     if ((vec.size() != 7) && (vec.size() != 8)) {
       BOOST_LOG_TRIVIAL(error) << "Malformed channel entry at line " << lines_read << ". Found: " << vec.size() << " Expected 7 or 8";
-      continue;
+      if (strict_parsing) {
+        return 1;
+      } else {
+        continue;
+      }
     }
     // TODO(nkw): more sanity checking here.
     bool enable = true;
@@ -190,6 +207,7 @@ void Talkgroups::load_channels(std::string filename, bool strict_parsing) {
   } else {
     BOOST_LOG_TRIVIAL(info) << "Read " << lines_pushed << " channels.";
   }
+  return 0;
 }
 
 Talkgroup *Talkgroups::find_talkgroup(long tg_number) {

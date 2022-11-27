@@ -126,7 +126,7 @@ Here is a map of the different sections of the *config.json* file:
 | debugRecorderPort       |          | 1234              | number                                                      | The network port that the Debug Recorders will start on. For each Source an additional Debug Recorder will be added and the port used will be one higher than the last one. For example the ports for a system with 3 Sources would be: 1234, 12345, 1236. |
 | debugRecorderAddress    |          | "127.0.0.1"       | string                                                      | The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder. |
 | audioStreaming          |          |     false         | **true** / **false**                                        | whether or not to enable the audio streaming callbacks for plugins. |
-
+| strictCsvParsing          |          |     false         | **true** / **false**                                        | should Trunk Recorder exit if a CSV file (Talkgroup / Channels file) can not be parsed. |
 
 
 #### Source Object

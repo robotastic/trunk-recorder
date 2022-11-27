@@ -255,7 +255,9 @@ bool load_config(string config_file) {
         } else if (channel_file_exist) {
           std::string channel_file = node.second.get<std::string>("channelFile");
           BOOST_LOG_TRIVIAL(info) << "Channel File: " << channel_file;
-          system->set_channel_file(channel_file, config.strict_csv_parsing);
+          if (system->set_channel_file(channel_file, config.strict_csv_parsing) > 0) {
+            return false;
+          }
         } else {
           BOOST_LOG_TRIVIAL(error) << "Either \"channels\" or \"channelFile\" need to be defined for a conventional system!";
           return false;
@@ -268,7 +270,9 @@ bool load_config(string config_file) {
           BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channel);
           system->add_control_channel(control_channel);
         }
-        system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""), config.strict_csv_parsing);
+        if (system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""), config.strict_csv_parsing) > 0) {
+          return false;
+        }
         BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       } else {
         BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
