@@ -265,10 +265,10 @@ std::string System_impl::get_unit_tags_file() {
   return this->unit_tags_file;
 }
 
-void System_impl::set_channel_file(std::string channel_file) {
+void System_impl::set_channel_file(std::string channel_file, bool strict_parsing) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->channel_file = channel_file;
-  this->talkgroups->load_channels(channel_file);
+  this->talkgroups->load_channels(channel_file, strict_parsing);
 }
 
 bool System_impl::has_channel_file() {
@@ -279,10 +279,10 @@ bool System_impl::has_channel_file() {
   }
 }
 
-void System_impl::set_talkgroups_file(std::string talkgroups_file) {
+void System_impl::set_talkgroups_file(std::string talkgroups_file, bool strict_parsing) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;
-  this->talkgroups->load_talkgroups(talkgroups_file);
+  this->talkgroups->load_talkgroups(talkgroups_file, strict_parsing);
 }
 
 void System_impl::set_unit_tags_file(std::string unit_tags_file) {

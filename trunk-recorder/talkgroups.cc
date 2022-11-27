@@ -14,7 +14,7 @@
 
 Talkgroups::Talkgroups() {}
 
-void Talkgroups::load_talkgroups(std::string filename) {
+void Talkgroups::load_talkgroups(std::string filename, bool strict_parsing) {
   if (filename == "") {
     return;
   }
@@ -111,7 +111,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
   }
 }
 
-void Talkgroups::load_channels(std::string filename) {
+void Talkgroups::load_channels(std::string filename, bool strict_parsing) {
   if (filename == "") {
     return;
   }

@@ -28,6 +28,7 @@ struct Config {
   std::string debug_recorder_address;
   std::string log_dir;
   bool debug_recorder;
+  bool strict_csv_parsing;
   int debug_recorder_port;
   int call_timeout;
   bool log_file;

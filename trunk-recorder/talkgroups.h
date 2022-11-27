@@ -11,8 +11,8 @@ class Talkgroups {
 
 public:
   Talkgroups();
-  void load_talkgroups(std::string filename);
-  void load_channels(std::string filename);
+  void load_talkgroups(std::string filename, bool strict_parsing);
+  void load_channels(std::string filename, bool strict_parsing);
   Talkgroup *find_talkgroup(long tg);
   Talkgroup *find_talkgroup_by_freq(double freq);
   std::vector<Talkgroup *> get_talkgroups();
