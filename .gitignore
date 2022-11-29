@@ -31,3 +31,5 @@ cmake-build-debug/
 /out/
 top_block.py
 debug_recorder.py
+/cmake_build/
+/.cache/
