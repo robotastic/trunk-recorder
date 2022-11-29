@@ -10,7 +10,7 @@
 #ifndef EIGEN_BASIC_PRECONDITIONERS_H
 #define EIGEN_BASIC_PRECONDITIONERS_H
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \ingroup IterativeLinearSolvers_Module
   * \brief A preconditioner based on the digonal entries
@@ -52,15 +52,15 @@ class DiagonalPreconditioner
       compute(mat);
     }
 
-    Index rows() const { return m_invdiag.size(); }
-    Index cols() const { return m_invdiag.size(); }
-    
+    EIGEN_CONSTEXPR Index rows() const EIGEN_NOEXCEPT { return m_invdiag.size(); }
+    EIGEN_CONSTEXPR Index cols() const EIGEN_NOEXCEPT { return m_invdiag.size(); }
+
     template<typename MatType>
     DiagonalPreconditioner& analyzePattern(const MatType& )
     {
       return *this;
     }
-    
+
     template<typename MatType>
     DiagonalPreconditioner& factorize(const MatType& mat)
     {
@@ -77,7 +77,7 @@ class DiagonalPreconditioner
       m_isInitialized = true;
       return *this;
     }
-    
+
     template<typename MatType>
     DiagonalPreconditioner& compute(const MatType& mat)
     {
@@ -99,7 +99,7 @@ class DiagonalPreconditioner
                 && "DiagonalPreconditioner::solve(): invalid number of rows of the right hand side matrix b");
       return Solve<DiagonalPreconditioner, Rhs>(*this, b.derived());
     }
-    
+
     ComputationInfo info() { return Success; }
 
   protected:
@@ -121,7 +121,7 @@ class DiagonalPreconditioner
   * \implsparsesolverconcept
   *
   * The diagonal entries are pre-inverted and stored into a dense vector.
-  * 
+  *
   * \sa class LeastSquaresConjugateGradient, class DiagonalPreconditioner
   */
 template <typename _Scalar>
@@ -146,30 +146,45 @@ class LeastSquareDiagonalPreconditioner : public DiagonalPreconditioner<_Scalar>
     {
       return *this;
     }
-    
+
     template<typename MatType>
     LeastSquareDiagonalPreconditioner& factorize(const MatType& mat)
     {
       // Compute the inverse squared-norm of each column of mat
       m_invdiag.resize(mat.cols());
-      for(Index j=0; j<mat.outerSize(); ++j)
+      if(MatType::IsRowMajor)
       {
-        RealScalar sum = mat.innerVector(j).squaredNorm();
-        if(sum>0)
-          m_invdiag(j) = RealScalar(1)/sum;
-        else
-          m_invdiag(j) = RealScalar(1);
+        m_invdiag.setZero();
+        for(Index j=0; j<mat.outerSize(); ++j)
+        {
+          for(typename MatType::InnerIterator it(mat,j); it; ++it)
+            m_invdiag(it.index()) += numext::abs2(it.value());
+        }
+        for(Index j=0; j<mat.cols(); ++j)
+          if(numext::real(m_invdiag(j))>RealScalar(0))
+            m_invdiag(j) = RealScalar(1)/numext::real(m_invdiag(j));
+      }
+      else
+      {
+        for(Index j=0; j<mat.outerSize(); ++j)
+        {
+          RealScalar sum = mat.col(j).squaredNorm();
+          if(sum>RealScalar(0))
+            m_invdiag(j) = RealScalar(1)/sum;
+          else
+            m_invdiag(j) = RealScalar(1);
+        }
       }
       Base::m_isInitialized = true;
       return *this;
     }
-    
+
     template<typename MatType>
     LeastSquareDiagonalPreconditioner& compute(const MatType& mat)
     {
       return factorize(mat);
     }
-    
+
     ComputationInfo info() { return Success; }
 
   protected:
@@ -190,19 +205,19 @@ class IdentityPreconditioner
 
     template<typename MatrixType>
     explicit IdentityPreconditioner(const MatrixType& ) {}
-    
+
     template<typename MatrixType>
     IdentityPreconditioner& analyzePattern(const MatrixType& ) { return *this; }
-    
+
     template<typename MatrixType>
     IdentityPreconditioner& factorize(const MatrixType& ) { return *this; }
 
     template<typename MatrixType>
     IdentityPreconditioner& compute(const MatrixType& ) { return *this; }
-    
+
     template<typename Rhs>
     inline const Rhs& solve(const Rhs& b) const { return b; }
-    
+
     ComputationInfo info() { return Success; }
 };
 
