@@ -1,4 +1,4 @@
-PKG_CHECK_MODULES(GNURADIO_OSMOSDR gnuradio-osmosdr)
+PKG_CHECK_MODULES(PC_GNURADIO_OSMOSDR gnuradio-osmosdr)
 
 FIND_PATH(
     GNURADIO_OSMOSDR_INCLUDE_DIRS
@@ -6,9 +6,9 @@ FIND_PATH(
     HINTS $ENV{GNURADIO_OSMOSDR_DIR}/include
         ${GNURADIO_OSMOSDR_INCLUDEDIR}
         ${GNURADIO_OSMOSDR_INCLUDE_DIRS}
-        ${CMAKE_INSTALL_PREFIX}/include/osmosdr
-    PATHS /usr/local/include/osmosdr
-          /usr/include/osmosdr
+        ${CMAKE_INSTALL_PREFIX}/include
+    PATHS /usr/local/include
+          /usr/include
           /opt/local/include
 )
 
