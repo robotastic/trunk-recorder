@@ -36,6 +36,7 @@ struct Config {
   bool broadcast_signals;
   bool enable_audio_streaming;
   bool record_uu_v_calls;
+  int frequency_format;
 };
 
 struct Call_Source {

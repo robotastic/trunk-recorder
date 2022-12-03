@@ -1,22 +1,22 @@
 #include "formatter.h"
 #include <boost/lexical_cast.hpp>
 
-int frequencyFormat = 0;
+int frequency_format = 0;
 bool statusAsString = true;
 
 boost::format format_freq(double f) {
-  if (frequencyFormat == 1)
+  if (frequency_format == 1)
     return boost::format("%10.6f MHz") % (f / 1000000.0);
-  else if (frequencyFormat == 2)
+  else if (frequency_format == 2)
     return boost::format("%.0f Hz") % f;
   else
     return boost::format("%e") % f;
 }
 
 std::string get_frequency_format() {
-  if (frequencyFormat == 1)
+  if (frequency_format == 1)
     return "mhz";
-  else if (frequencyFormat == 2)
+  else if (frequency_format == 2)
     return "hz";
   else
     return "exp";

@@ -189,16 +189,16 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
     config.record_uu_v_calls = pt.get<bool>("recordUUVCalls", true);
     BOOST_LOG_TRIVIAL(info) << "Record Unit to Unit Voice Calls: " << config.record_uu_v_calls;
-    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "mhz");
+    std::string frequency_format_string = pt.get<std::string>("frequencyFormat", "mhz");
 
-    if (boost::iequals(frequencyFormatString, "mhz")) {
-      frequencyFormat = 1;
-    } else if (boost::iequals(frequencyFormatString, "hz")) {
-      frequencyFormat = 2;
+    if (boost::iequals(frequency_format_string, "mhz")) {
+      frequency_format = 1;
+    } else if (boost::iequals(frequency_format_string, "hz")) {
+      frequency_format = 2;
     } else {
-      frequencyFormat = 0;
+      frequency_format = 0;
     }
-
+    config.frequency_format = frequency_format;
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
 
     statusAsString = pt.get<bool>("statusAsString", statusAsString);
