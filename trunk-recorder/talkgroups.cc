@@ -14,7 +14,7 @@
 
 Talkgroups::Talkgroups() {}
 
-void Talkgroups::load_talkgroups(std::string filename) {
+void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
   if (filename == "") {
     return;
   }
@@ -75,7 +75,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
         continue;
       }
 
-      tg = new Talkgroup(atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
+      tg = new Talkgroup(sys_num, atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1);
     } else {
       // Talkgroup configuration columns:
       //
@@ -95,7 +95,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
       // TODO(nkw): more sanity checking here.
       priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
 
-      tg = new Talkgroup(atoi(vec[0].c_str()), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
+      tg = new Talkgroup(sys_num, atoi(vec[0].c_str()), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority);
     }
     talkgroups.push_back(tg);
     lines_pushed++;
@@ -111,7 +111,7 @@ void Talkgroups::load_talkgroups(std::string filename) {
   }
 }
 
-void Talkgroups::load_channels(std::string filename) {
+void Talkgroups::load_channels(int sys_num, std::string filename) {
   if (filename == "") {
     return;
   }
@@ -175,7 +175,7 @@ void Talkgroups::load_channels(std::string filename) {
 
     // Talkgroup(long num, double freq, double tone, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group) {
     if (enable) {
-      tg = new Talkgroup(atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str());
+      tg = new Talkgroup(sys_num, atoi(vec[0].c_str()), std::stod(vec[1]), std::stod(vec[2]), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str());
 
       talkgroups.push_back(tg);
     }
@@ -192,13 +192,13 @@ void Talkgroups::load_channels(std::string filename) {
   }
 }
 
-Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
+Talkgroup *Talkgroups::find_talkgroup(int sys_num, long tg_number) {
   Talkgroup *tg_match = NULL;
 
   for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
     Talkgroup *tg = (Talkgroup *)*it;
 
-    if (tg->number == tg_number) {
+    if ((tg->sys_num == sys_num) && (tg->number == tg_number)) {
       tg_match = tg;
       break;
     }
@@ -206,13 +206,13 @@ Talkgroup *Talkgroups::find_talkgroup(long tg_number) {
   return tg_match;
 }
 
-Talkgroup *Talkgroups::find_talkgroup_by_freq(double freq) {
+Talkgroup *Talkgroups::find_talkgroup_by_freq(int sys_num, double freq) {
   Talkgroup *tg_match = NULL;
 
   for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
     Talkgroup *tg = (Talkgroup *)*it;
 
-    if (tg->freq == freq) {
+    if ((tg->sys_num == sys_num) && (tg->freq == freq)) {
       tg_match = tg;
       break;
     }

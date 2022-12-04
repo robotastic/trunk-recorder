@@ -268,7 +268,7 @@ std::string System_impl::get_unit_tags_file() {
 void System_impl::set_channel_file(std::string channel_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->channel_file = channel_file;
-  this->talkgroups->load_channels(channel_file);
+  this->talkgroups->load_channels(sys_num, channel_file);
 }
 
 bool System_impl::has_channel_file() {
@@ -282,7 +282,7 @@ bool System_impl::has_channel_file() {
 void System_impl::set_talkgroups_file(std::string talkgroups_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->talkgroups_file = talkgroups_file;
-  this->talkgroups->load_talkgroups(talkgroups_file);
+  this->talkgroups->load_talkgroups(sys_num, talkgroups_file);
 }
 
 void System_impl::set_unit_tags_file(std::string unit_tags_file) {
@@ -300,11 +300,11 @@ void System_impl::set_source(Source *s) {
 }
 
 Talkgroup *System_impl::find_talkgroup(long tg_number) {
-  return talkgroups->find_talkgroup(tg_number);
+  return talkgroups->find_talkgroup(sys_num, tg_number);
 }
 
 Talkgroup *System_impl::find_talkgroup_by_freq(double freq) {
-  return talkgroups->find_talkgroup_by_freq(freq);
+  return talkgroups->find_talkgroup_by_freq(sys_num, freq);
 }
 UnitTag *System_impl::find_unit_tag(long unitID) {
   return unit_tags->find_unit_tag(unitID);

@@ -11,10 +11,10 @@ class Talkgroups {
 
 public:
   Talkgroups();
-  void load_talkgroups(std::string filename);
-  void load_channels(std::string filename);
-  Talkgroup *find_talkgroup(long tg);
-  Talkgroup *find_talkgroup_by_freq(double freq);
+  void load_talkgroups(int sys_num, std::string filename);
+  void load_channels(int sys_num, std::string filename);
+  Talkgroup *find_talkgroup(int sys_num, long tg);
+  Talkgroup *find_talkgroup_by_freq(int sys_num, double freq);
   std::vector<Talkgroup *> get_talkgroups();
 };
 #endif // TALKGROUPS_H

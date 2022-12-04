@@ -15,13 +15,14 @@ public:
   std::string tag;
   std::string group;
   int priority;
+  int sys_num;
 
   // For Conventional
   double freq;
   double tone;
 
-  Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority);
-  Talkgroup(long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group);
+  Talkgroup(int sys_num, long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority);
+  Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group);
 
   bool is_active();
   int get_priority();
