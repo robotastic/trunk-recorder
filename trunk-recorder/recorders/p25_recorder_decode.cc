@@ -21,6 +21,7 @@ p25_recorder_decode::~p25_recorder_decode() {
 
 void p25_recorder_decode::stop() {
   wav_sink->stop_recording();
+  d_call = NULL;
 }
 
 void p25_recorder_decode::start(Call *call) {
@@ -112,7 +113,9 @@ void p25_recorder_decode::initialize(int silence_frames) {
 }
 
 void p25_recorder_decode::plugin_callback_handler(int16_t *samples, int sampleCount) {
-  plugman_audio_callback(d_call, d_recorder, samples, sampleCount);
+  if (d_call) {
+    plugman_audio_callback(d_call, d_recorder, samples, sampleCount);
+  }
 }
 
 double p25_recorder_decode::get_output_sample_rate() {
