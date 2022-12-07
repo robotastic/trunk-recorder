@@ -428,14 +428,6 @@ public:
   }
 
   
- int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { 
-
-   /* you can use this section if you needed to pull information from the Config, Systems, or Sources and add 
-      that to internal data */
-   
-   return 0; 
-  }
-
  /*
    int start() { return 0; }
    int stop() { return 0; }
