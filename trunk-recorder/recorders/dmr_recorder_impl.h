@@ -88,7 +88,7 @@ protected:
   void initialize(Source *src);
 
 public:
-  dmr_recorder_impl(Source *src);
+  dmr_recorder_impl(Source *src, std::string type);
   DecimSettings get_decim(long speed);
   void initialize_prefilter();
   void tune_offset(double f);

@@ -6,8 +6,8 @@
 #include "../plugin_manager/plugin_manager.h"
 #include <boost/log/trivial.hpp>
 
-dmr_recorder_sptr make_dmr_recorder(Source *src) {
-  dmr_recorder *recorder = new dmr_recorder_impl(src);
+dmr_recorder_sptr make_dmr_recorder(Source *src, std::string type) {
+  dmr_recorder *recorder = new dmr_recorder_impl(src, type);
 
   return gnuradio::get_initial_sptr(recorder);
 }
@@ -46,11 +46,11 @@ void dmr_recorder_impl::generate_arb_taps() {
   }
 }
 
-dmr_recorder_impl::dmr_recorder_impl(Source *src)
+dmr_recorder_impl::dmr_recorder_impl(Source *src, std::string type)
     : gr::hier_block2("dmr_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder("DMR") {
+      Recorder(type) {
   initialize(src);
 }
 

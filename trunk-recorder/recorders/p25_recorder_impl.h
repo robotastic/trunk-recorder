@@ -70,7 +70,7 @@ protected:
   void initialize(Source *src);
 
 public:
-  p25_recorder_impl(Source *src);
+  p25_recorder_impl(Source *src, std::string type);
   DecimSettings get_decim(long speed);
   void initialize_prefilter();
   void initialize_qpsk();

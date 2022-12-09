@@ -4,8 +4,8 @@
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 
-p25_recorder_sptr make_p25_recorder(Source *src) {
-  p25_recorder *recorder = new p25_recorder_impl(src);
+p25_recorder_sptr make_p25_recorder(Source *src, std::string type) {
+  p25_recorder *recorder = new p25_recorder_impl(src, type);
 
   return gnuradio::get_initial_sptr(recorder);
 }
@@ -44,11 +44,11 @@ void p25_recorder_impl::generate_arb_taps() {
   }
 }
 
-p25_recorder_impl::p25_recorder_impl(Source *src)
+p25_recorder_impl::p25_recorder_impl(Source *src, std::string label)
     : gr::hier_block2("p25_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder("P25") {
+      Recorder(label) {
   initialize(src);
 }
 

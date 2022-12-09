@@ -61,13 +61,13 @@ typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
 
 int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 
-analog_recorder_sptr make_analog_recorder(Source *src);
+analog_recorder_sptr make_analog_recorder(Source *src, std::string type);
 
 class analog_recorder : public gr::hier_block2, public Recorder {
-  friend analog_recorder_sptr make_analog_recorder(Source *src);
+  friend analog_recorder_sptr make_analog_recorder(Source *src, std::string type);
 
 protected:
-  analog_recorder(Source *src);
+  analog_recorder(Source *src, std::string type);
 
 public:
   ~analog_recorder();
