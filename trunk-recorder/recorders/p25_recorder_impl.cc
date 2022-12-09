@@ -44,11 +44,11 @@ void p25_recorder_impl::generate_arb_taps() {
   }
 }
 
-p25_recorder_impl::p25_recorder_impl(Source *src, std::string label)
+p25_recorder_impl::p25_recorder_impl(Source *src, std::string type)
     : gr::hier_block2("p25_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder(label) {
+      Recorder(type) {
   initialize(src);
 }
 

@@ -148,7 +148,7 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
   max_analog_recorders = r;
 
   for (int i = 0; i < max_analog_recorders; i++) {
-    analog_recorder_sptr log = make_analog_recorder(this,"Analog");
+    analog_recorder_sptr log = make_analog_recorder(this, "Analog");
     analog_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
   }
