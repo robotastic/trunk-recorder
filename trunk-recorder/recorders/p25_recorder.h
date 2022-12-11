@@ -25,7 +25,7 @@ typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
 #endif
 
-p25_recorder_sptr make_p25_recorder(Source *src, std::string type);
+p25_recorder_sptr make_p25_recorder(Source *src, Recorder_Type type);
 #include "../source.h"
 
 class p25_recorder : virtual public gr::hier_block2, virtual public Recorder {

@@ -26,7 +26,7 @@ typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
 typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
 #endif
 
-dmr_recorder_sptr make_dmr_recorder(Source *src, std::string type);
+dmr_recorder_sptr make_dmr_recorder(Source *src, Recorder_Type type);
 
 class dmr_recorder : virtual public gr::hier_block2, virtual public Recorder {
 

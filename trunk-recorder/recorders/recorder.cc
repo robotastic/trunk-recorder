@@ -2,7 +2,7 @@
 #include "../source.h"
 #include <boost/algorithm/string.hpp>
 
-Recorder::Recorder(std::string type) {
+Recorder::Recorder(Recorder_Type type) {
   this->type = type;
 }
 
@@ -16,4 +16,25 @@ boost::property_tree::ptree Recorder::get_stats() {
   node.put("duration", recording_duration);
   node.put("state", get_state());
   return node;
+}
+
+std::string Recorder::get_type_string() {
+  switch(type) {
+    case DEBUG:
+      return "Debug";
+    case SIGMF:
+      return "SIGMF";
+    case ANALOGC:
+      return "AnalogC";
+    case ANALOG:
+      return "Analog";
+    case P25:
+      return "P25";
+    case P25C:
+      return "P25C";
+    case DMR:
+      return "DMR";
+    default:
+      return "Unknown";
+  }
 }

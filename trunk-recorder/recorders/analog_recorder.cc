@@ -37,7 +37,7 @@ std::vector<float> design_filter(double interpolation, double deci) {
   return result;
 }
 
-analog_recorder_sptr make_analog_recorder(Source *src, std::string type) {
+analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type) {
   return gnuradio::get_initial_sptr(new analog_recorder(src, type));
 }
 
@@ -66,7 +66,7 @@ void analog_recorder::calculate_iir_taps(double tau) {
   d_fbtaps[1] = -p1;
 }
 
-analog_recorder::analog_recorder(Source *src, std::string type)
+analog_recorder::analog_recorder(Source *src, Recorder_Type type)
     : gr::hier_block2("analog_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),

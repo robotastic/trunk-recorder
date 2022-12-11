@@ -138,7 +138,7 @@ int Source::get_if_gain() {
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in analog_conv_recorders
-  analog_recorder_sptr log = make_analog_recorder(this, "AnalogC");
+  analog_recorder_sptr log = make_analog_recorder(this, ANALOGC);
   analog_conv_recorders.push_back(log);
   tb->connect(source_block, 0, log, 0);
   return log;
@@ -148,7 +148,7 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
   max_analog_recorders = r;
 
   for (int i = 0; i < max_analog_recorders; i++) {
-    analog_recorder_sptr log = make_analog_recorder(this, "Analog");
+    analog_recorder_sptr log = make_analog_recorder(this, ANALOG);
     analog_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
   }
@@ -189,7 +189,7 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   max_digital_recorders = r;
 
   for (int i = 0; i < max_digital_recorders; i++) {
-    p25_recorder_sptr log = make_p25_recorder(this, "P25");
+    p25_recorder_sptr log = make_p25_recorder(this, P25);
     digital_recorders.push_back(log);
     tb->connect(source_block, 0, log, 0);
   }
@@ -198,7 +198,7 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
-  p25_recorder_sptr log = make_p25_recorder(this, "P25C");
+  p25_recorder_sptr log = make_p25_recorder(this, P25C);
   digital_conv_recorders.push_back(log);
   tb->connect(source_block, 0, log, 0);
   return log;
@@ -207,7 +207,7 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
 dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
-  dmr_recorder_sptr log = make_dmr_recorder(this, "DMR");
+  dmr_recorder_sptr log = make_dmr_recorder(this, DMR);
   dmr_conv_recorders.push_back(log);
   tb->connect(source_block, 0, log, 0);
   return log;
@@ -271,35 +271,35 @@ void Source::print_recorders() {
        it != digital_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type() << "\tState: " << format_state(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type_string() << "\tState: " << format_state(rx->get_state());
   }
 
   for (std::vector<p25_recorder_sptr>::iterator it = digital_conv_recorders.begin();
        it != digital_conv_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type() << "\tState: " << format_state(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type_string() << "\tState: " << format_state(rx->get_state());
   }
 
   for (std::vector<dmr_recorder_sptr>::iterator it = dmr_conv_recorders.begin();
        it != dmr_conv_recorders.end(); it++) {
     dmr_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type() << "\tState: " << format_state(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type_string() << "\tState: " << format_state(rx->get_state());
   }
 
   for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin();
        it != analog_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type() << "\tState: " << format_state(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type_string() << "\tState: " << format_state(rx->get_state());
   }
 
   for (std::vector<analog_recorder_sptr>::iterator it = analog_conv_recorders.begin();
        it != analog_conv_recorders.end(); it++) {
     analog_recorder_sptr rx = *it;
 
-    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type() << "\tState: " << format_state(rx->get_state());
+    BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type_string() << "\tState: " << format_state(rx->get_state());
   }
 }
 
