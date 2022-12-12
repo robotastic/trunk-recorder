@@ -54,6 +54,7 @@ public:
 	int handle_frame(void) ;
   	bool get_call_terminated();
 	long get_ptt_src_id();
+	long get_ptt_grp_id();
 private:
 	p25p2_sync sync;
 	p25p2_duid duid;
@@ -77,6 +78,7 @@ private:
         bool d_do_nocrypt;
 		bool terminate_call;
 		long src_id;
+		long grp_id;
         const op25_audio& op25audio;
 	log_ts logts;
     int d_nac;

@@ -165,6 +165,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
   bool terminate_call = false;
   long p2_ptt_src_id = -1;
+  long p2_ptt_grp_id = -1;
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
 	for (int i = 0; i < ninput_items[0]; i++) {
@@ -175,6 +176,9 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       }
       if (p2tdma.get_ptt_src_id() > 0) {
         p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
+      }
+      if (p2tdma.get_ptt_grp_id() > 0) {
+        p2_ptt_grp_id = p2tdma.get_ptt_grp_id(); 
       }
 			if (rc > -1) {
         p25p2_queue_msg(rc);
@@ -209,12 +213,16 @@ p25_frame_assembler_impl::general_work (int noutput_items,
        amt_produce = 1;
     } else  if (amt_produce > 0) {
           long src_id = p1fdma.get_curr_src_id();
-
+          long grp_id = p1fdma.get_curr_grp_id();
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
           if (src_id > 0) {
             add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
           }
           
+          if (grp_id > 0) {
+            add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
+          }
+
           for (int i = 0; i < amt_produce; i++) {
             out[i] = output_queue[i];
           }
