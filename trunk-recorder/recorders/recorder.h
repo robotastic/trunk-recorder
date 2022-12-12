@@ -70,7 +70,7 @@ public:
     long decim2;
   };
 
-  Recorder(std::string type);
+  Recorder(Recorder_Type  type);
   virtual void tune_offset(double f){};
   virtual void tune_freq(double f){};
   virtual bool start(Call *call) { return false; };
@@ -87,7 +87,8 @@ public:
   virtual long get_talkgroup() { return 0; };
   virtual void set_record_more_transmissions(bool more){};
   virtual State get_state() { return INACTIVE; };
-  virtual std::string get_type() { return type; }
+  std::string get_type_string();
+  Recorder_Type get_type() { return type; }
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };
   virtual bool is_idle() { return true; };
@@ -110,7 +111,7 @@ protected:
   int recording_count;
   bool d_enable_audio_streaming;
   double recording_duration;
-  std::string type;
+  Recorder_Type  type;
 };
 
 #endif
