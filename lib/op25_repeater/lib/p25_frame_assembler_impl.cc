@@ -174,12 +174,10 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       if (p2tdma.get_call_terminated()) {
         terminate_call = true;
       }
-      if (p2tdma.get_ptt_src_id() > 0) {
-        p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
-      }
-      if (p2tdma.get_ptt_grp_id() > 0) {
-        p2_ptt_grp_id = p2tdma.get_ptt_grp_id(); 
-      }
+
+      p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
+      p2_ptt_grp_id = p2tdma.get_ptt_grp_id(); 
+      
 			if (rc > -1) {
         p25p2_queue_msg(rc);
 				p1fdma.reset_timer(); // prevent P1 timeouts due to long TDMA transmissions
