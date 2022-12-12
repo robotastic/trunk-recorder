@@ -98,7 +98,7 @@ streamer::RecorderInfo* ToRecorderInfo(Recorder *recorder) {
 
     streamer::RecorderInfo* ri;
     ri->set_recorder_num(recorder->get_num());
-    ri->set_recorder_type(recorder->get_type());
+    ri->set_recorder_type(recorder->get_type_string());
     ri->set_source_num(recorder->get_source()->get_num());
     ri->set_id(boost::lexical_cast<std::string>(recorder->get_source()->get_num()) + "_" + boost::lexical_cast<std::string>(recorder->get_num()));
     ri->set_recorder_count(recorder->get_recording_count());

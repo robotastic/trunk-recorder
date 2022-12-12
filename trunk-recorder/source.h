@@ -50,9 +50,12 @@ class Source {
   Config *config;
 
   std::vector<p25_recorder_sptr> digital_recorders;
+  std::vector<p25_recorder_sptr> digital_conv_recorders;
   std::vector<debug_recorder_sptr> debug_recorders;
   std::vector<sigmf_recorder_sptr> sigmf_recorders;
   std::vector<analog_recorder_sptr> analog_recorders;
+  std::vector<analog_recorder_sptr> analog_conv_recorders;
+  std::vector<dmr_recorder_sptr> dmr_conv_recorders;
   std::vector<Gain_Stage_t> gain_stages;
   std::string driver;
   std::string device;
