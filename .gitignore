@@ -16,7 +16,6 @@ Makefile
 cmake_install.cmake
 install_manifest.txt
 recorder
-config.json
 ChanList.csv
 *.so
 *.a

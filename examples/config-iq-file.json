@@ -1,0 +1,18 @@
+{
+    "ver": 2,
+
+    "sources":   [{
+        "center": 855700000,
+        "rate": 2048000,
+        "digitalRecorders": 1,
+        "driver": "osmosdr",
+        "device": "file=debug-out.iq,freq=855700000,rate=2048000,repeat=true,throttle=true"
+    }
+    ],
+    "systems": [{
+        "control_channels": [855462500],
+        "type": "p25",
+        "shortName": "dcfems",
+        "modulation": "qpsk"
+    }]
+}
