@@ -110,12 +110,12 @@ void p25_recorder_impl::initialize_prefilter() {
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   } else {
     double_decim = false;
-    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
     lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
     decim = floor(input_rate / if_rate);
     resampled_rate = input_rate / decim;
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
+    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
   }
 
   // Cut-Off Filter
