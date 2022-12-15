@@ -151,8 +151,6 @@ Here is a map of the different sections of the *config.json* file:
 | vga1Gain         |          |               | number                                                       | [bladeRF only] sets the **VGA1** gain.                       |
 | vga2Gain         |          |               | number                                                       | [bladeRF only] sets the **VGA2** gain.                       |
 | antenna          |          |               | string, e.g.: **"TX/RX"**                                    | [usrp] selects which antenna jack to use                     |
-| debugRecorders   |          |               | number                                                       | the number of Debug Recorder to have attached to this source. Debug Recorders capture a raw sample that you can examine later using GNURadio Companion. This is helpful if you want to fine tune your the error and gain for this Source. |
-
 
 
 #### System Object

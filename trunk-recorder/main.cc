@@ -451,7 +451,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("silenceFrame", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
-      BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder", 0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
 
@@ -708,7 +707,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         plugman_setup_recorder(sigmf_recorder);
         recorder_found = true;
       } else {
-        // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
+        // BOOST_LOG_TRIVIAL(info) << "\tNot SIGMF recording call";
       }
 
       if (recorder_found) {
