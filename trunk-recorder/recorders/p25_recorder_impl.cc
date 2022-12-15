@@ -103,7 +103,11 @@ void p25_recorder_impl::initialize_prefilter() {
     fb = if2 / 2;
     BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
-    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa);
+    #if GNURADIO_VERSION < 0x030900
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
+    #else
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
+    #endif
     bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
@@ -111,7 +115,12 @@ void p25_recorder_impl::initialize_prefilter() {
   } else {
     double_decim = false;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
+
+    #if GNURADIO_VERSION < 0x030900
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::filter::firdes::WIN_HANN);
+    #else
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::fft::window::WIN_HANN);
+    #endif
     decim = floor(input_rate / if_rate);
     resampled_rate = input_rate / decim;
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
@@ -120,8 +129,12 @@ void p25_recorder_impl::initialize_prefilter() {
 
   // Cut-Off Filter
   fa = 6250;
-  fb = fa + 625;
-  cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa);
+  fb = fa + 1250;
+  #if GNURADIO_VERSION < 0x030900
+      cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HANN);
+  #else
+      cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HANN);
+  #endif
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
