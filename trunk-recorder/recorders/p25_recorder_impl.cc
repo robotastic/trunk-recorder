@@ -169,8 +169,12 @@ void p25_recorder_impl::initialize_prefilter() {
     connect(lo, 0, mixer, 1);
   }
   connect(mixer, 0, lowpass_filter, 0);
-  connect(lowpass_filter, 0, arb_resampler, 0);
-  connect(arb_resampler, 0, cutoff_filter, 0);
+  if (arb_rate == 1.0) {
+    connect(lowpass_filter, 0, cutoff_filter, 0);
+  } else {
+    connect(lowpass_filter, 0, arb_resampler, 0);
+    connect(arb_resampler, 0, cutoff_filter, 0);
+  }
   connect(cutoff_filter,0, squelch, 0);
   connect(squelch, 0, rms_agc, 0);
   connect(rms_agc,0, fll_band_edge, 0);
