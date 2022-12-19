@@ -75,6 +75,12 @@ namespace gr {
   void p25p2_queue_msg(int duid);
   void set_phase2_tdma(bool p);
 
+ public:
+
+   virtual void forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd);
+
+      // Nothing to declare in this block.
+
 public:
       p25_frame_assembler_impl(int sys_num, int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt);
       ~p25_frame_assembler_impl();

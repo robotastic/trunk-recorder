@@ -133,6 +133,22 @@ static const int MAX_IN = 1;	// maximum number of input streams
     }
 
 
+void
+p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
+{
+   // for do_imbe=false: we output packed bytes (4:1 ratio)
+   // for do_imbe=true: input rate= 4800, output rate= 1600 = 32 * 50 (3:1)
+   // for do_audio_output: output rate=8000 (ratio 0.6:1)
+   const size_t nof_inputs = nof_input_items_reqd.size();
+   int nof_samples_reqd = 4.0 * nof_output_items;
+   if (d_do_imbe)
+     nof_samples_reqd = 3.0 * nof_output_items;
+   nof_samples_reqd = nof_output_items;
+   if (d_do_audio_output)
+     nof_samples_reqd = 0.6 * nof_output_items;
+   nof_samples_reqd = std::max(nof_samples_reqd, 256);
+   std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
+}
 
     void p25_frame_assembler_impl::clear() {
       p1fdma.clear();
@@ -174,19 +190,26 @@ p25_frame_assembler_impl::general_work (int noutput_items,
     }
   }
 
+  int amt_produce = 0;
 
-
-      int  amt_produce = output_queue.size();
+      if (d_do_audio_output) {
+        amt_produce = output_queue.size();//noutput_items;
         int16_t *out = (int16_t *)output_items[0];
 
-        //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
+        //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
           
         // output_queue.size() is the number of samples that were actually generated
-        // This block will always output everything that has been processed each time it is called.
+        // amt_produce just defaults to the standard amount expected for the block  
+        if (amt_produce > (int)output_queue.size()) {
+          amt_produce = output_queue.size();
+        } 
 
-
-
-      if (amt_produce > 0) {
+    if (p2_ptt_src_id > 0) {
+      add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
+       //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
+       std::fill(out, out + 1, 0);
+       amt_produce = 1;
+    } else  if (amt_produce > 0) {
           long src_id = p1fdma.get_curr_src_id();
           long grp_id = p1fdma.get_curr_grp_id();
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
@@ -194,11 +217,6 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
           }
           
-          if (p2_ptt_src_id > 0) {
-            add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
-            //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
-          } 
-
           if (grp_id > 0) {
             add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
           }
@@ -233,7 +251,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             silence_frame_count--;
           }
         }
-
+      }
   consume_each(ninput_items[0]);
   // Tell runtime system how many output items we actually produced.
   return amt_produce;
