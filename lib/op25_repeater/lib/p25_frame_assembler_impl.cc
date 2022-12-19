@@ -193,7 +193,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
   int amt_produce = 0;
 
       if (d_do_audio_output) {
-        amt_produce = noutput_items;
+        amt_produce = output_queue.size();//noutput_items;
         int16_t *out = (int16_t *)output_items[0];
 
         //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
