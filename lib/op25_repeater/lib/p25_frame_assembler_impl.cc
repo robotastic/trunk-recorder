@@ -132,22 +132,6 @@ static const int MAX_IN = 1;	// maximum number of input streams
         set_output_multiple(160);
     }
 
-void
-p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
-{
-   // for do_imbe=false: we output packed bytes (4:1 ratio)
-   // for do_imbe=true: input rate= 4800, output rate= 1600 = 32 * 50 (3:1)
-   // for do_audio_output: output rate=8000 (ratio 0.6:1)
-   const size_t nof_inputs = nof_input_items_reqd.size();
-   int nof_samples_reqd = 4.0 * nof_output_items;
-   if (d_do_imbe)
-     nof_samples_reqd = 3.0 * nof_output_items;
-   nof_samples_reqd = nof_output_items;
-   if (d_do_audio_output)
-     nof_samples_reqd = 0.6 * nof_output_items;
-   nof_samples_reqd = std::max(nof_samples_reqd, 256);
-   std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
-}
 
 
     void p25_frame_assembler_impl::clear() {
@@ -190,63 +174,65 @@ p25_frame_assembler_impl::general_work (int noutput_items,
     }
   }
 
-  int  amt_produce = (int) output_queue.size();
-  int16_t *out = (int16_t *)output_items[0];
-
-    //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
-      
-    // output_queue.size() is the number of samples that were actually generated
-    // This block will always output everything that has been processed each time it is called.
 
 
+      int  amt_produce = output_queue.size();
+        int16_t *out = (int16_t *)output_items[0];
 
-  if (amt_produce > 0) {
-      long src_id = p1fdma.get_curr_src_id();
-      long grp_id = p1fdma.get_curr_grp_id();
-      // If a SRC wasn't received on the voice channel since the last check, it will be -1
-      if (src_id > 0) {
-        add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
-      }
-      
-      if (p2_ptt_src_id > 0) {
-        add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
-        //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
-      } 
-
-      if (grp_id > 0) {
-        add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
-      }
-
-      for (int i = 0; i < amt_produce; i++) {
-        out[i] = output_queue[i];
-      }
-      output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
+        //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
+          
+        // output_queue.size() is the number of samples that were actually generated
+        // This block will always output everything that has been processed each time it is called.
 
 
-      BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
-      silence_frame_count = d_silence_frames;
-    } else {
-        if (terminate_call) {
-        add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
-        
-        Rx_Status status = p1fdma.get_rx_status();
-        
-        // If something was recorded, send the number of Errors and Spikes that were counted during that period
-        if (status.total_len > 0 ) {
-          add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
-          add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
-          p1fdma.reset_rx_status();
+
+      if (amt_produce > 0) {
+          long src_id = p1fdma.get_curr_src_id();
+          long grp_id = p1fdma.get_curr_grp_id();
+          // If a SRC wasn't received on the voice channel since the last check, it will be -1
+          if (src_id > 0) {
+            add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
+          }
+          
+          if (p2_ptt_src_id > 0) {
+            add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
+            //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
+          } 
+
+          if (grp_id > 0) {
+            add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
+          }
+
+          for (int i = 0; i < amt_produce; i++) {
+            out[i] = output_queue[i];
+          }
+          output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
+
+
+          BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
+          silence_frame_count = d_silence_frames;
+        } else {
+            if (terminate_call) {
+            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
+            
+            Rx_Status status = p1fdma.get_rx_status();
+            
+            // If something was recorded, send the number of Errors and Spikes that were counted during that period
+            if (status.total_len > 0 ) {
+              add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
+              add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
+              p1fdma.reset_rx_status();
+            }
+            
+              std::fill(out, out + 1, 0);
+              amt_produce = 1;
+          }
+          if (silence_frame_count > 0) {
+            std::fill(out, out + noutput_items, 0);
+            amt_produce = noutput_items;
+            silence_frame_count--;
+          }
         }
-        
-          std::fill(out, out + 1, 0);
-          amt_produce = 1;
-      }
-      if (silence_frame_count > 0) {
-        std::fill(out, out + noutput_items, 0);
-        amt_produce = noutput_items;
-        silence_frame_count--;
-      }
-    }
 
   consume_each(ninput_items[0]);
   // Tell runtime system how many output items we actually produced.

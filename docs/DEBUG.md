@@ -17,8 +17,6 @@ make
 
 4. Startup Trunk Recorder and wait for a crash...
 
-5. With some versions of Ubuntu, the Core file may not end up in the directory you are running your program in. More info [Here](https://askubuntu.com/questions/1349047/where-do-i-find-core-dump-files-and-how-do-i-view-and-analyze-the-backtrace-st). Try looking in: `/var/lib/apport/coredump` or `/var/crash/`.
-
 5. After a crash, use the **gdb** program to unpack the **core** file that was generated during the crash.
 ```bash
 gdb trunk-recorder core
