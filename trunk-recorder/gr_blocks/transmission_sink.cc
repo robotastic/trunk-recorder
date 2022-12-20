@@ -305,7 +305,15 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+
+    // It is possible the P25 Frame Assembler passes a TDU after the call has timed out.
+    // In this case, the termination tag will be transferred on a blank sample and can safely be ignored.
+    if(noutput_items == 1){
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+    }
+    else{
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+    }
 
     return noutput_items;
   }
