@@ -156,10 +156,6 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     std::string shell_command_string;
     std::string files;
 
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-
     // loop through the transmission list, pull in things to fill in totals for call_info
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
@@ -234,6 +230,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.call_num = call->get_call_num();
   call_info.compress_wav = sys->get_compress_wav();
   call_info.talkgroup = call->get_talkgroup();
+  call_info.talkgroup_display = call->get_talkgroup_display();
   call_info.patched_talkgroups = sys->get_talkgroup_patch(call_info.talkgroup);
   call_info.min_transmissions_removed = 0;
 
@@ -262,15 +259,11 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   // Using a for loop with iterator
   for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end();) {
     Transmission t = *it;
-    char formattedTalkgroup[62];
 
     if (t.length < sys->get_min_tx_duration()) {
       if (!call_info.transmission_archive) {
 
-        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << ".";
-
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << ".";
         call_info.min_transmissions_removed++;
 
         if (checkIfFile(t.filename)) {
@@ -281,10 +274,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
       it = call_info.transmission_list.erase(it);
       continue;
     }
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
 
+    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
     if (it == call_info.transmission_list.begin()) {
       call_info.start_time = t.start_time;
       snprintf(call_info.filename, 300, "%s-call_%lu.wav", t.base_filename, call_info.call_num);
@@ -317,20 +308,17 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
   Call_Data_t call_info = create_call_data(call, sys, config);
 
-  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-
   if (call_info.transmission_list.size() == 0 && call_info.min_transmissions_removed == 0) {
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmissions were recorded!";
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmissions were recorded!";
     return;
   }
   else if (call_info.transmission_list.size() == 0 && call_info.min_transmissions_removed > 0) {
-    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmissions were recorded! " << call_info.min_transmissions_removed << " tranmissions less than " << sys->get_min_tx_duration() << " seconds were removed.";
+    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\t Freq: " << call_info.freq << "\tNo Transmissions were recorded! " << call_info.min_transmissions_removed << " tranmissions less than " << sys->get_min_tx_duration() << " seconds were removed.";
     return;
   }
 
   if (call_info.length <= sys->get_min_duration()) {
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << talkgroup_display << "\t Freq: " << call_info.freq << "\t Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_displayy << "\t Freq: " << call_info.freq << "\t Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
     remove_call_files(call_info);
     return;
   }
@@ -346,20 +334,17 @@ void Call_Concluder::manage_call_data_workers() {
 
       if (call_info.status == RETRY) {
         call_info.retry_attempt++;
-        char formattedTalkgroup[62];
-        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
-        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
         time_t start_time = call_info.start_time;
 
         if (call_info.retry_attempt > Call_Concluder::MAX_RETRY) {
           remove_call_files(call_info);
-          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m Failed to conclude call - TG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z");
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m Failed to conclude call - TG: " << call_info.talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z");
         } else {
           long jitter = rand() % 10;
           long backoff = (2 ^ call_info.retry_attempt * 60) + jitter;
           call_info.process_call_time = time(0) + backoff;
           retry_call_list.push_back(call_info);
-          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \tTG: " << talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << " retry attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
+          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \tTG: " << call_info.talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << " retry attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
         }
       }
       it = call_data_workers.erase(it);
