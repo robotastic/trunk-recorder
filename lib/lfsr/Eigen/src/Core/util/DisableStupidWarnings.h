@@ -1,7 +1,7 @@
 #ifndef EIGEN_WARNINGS_DISABLED
 #define EIGEN_WARNINGS_DISABLED
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
   // 4100 - unreferenced formal parameter (occurred e.g. in aligned_allocator::destroy(pointer p))
   // 4101 - unreferenced local variable
   // 4127 - conditional expression is constant
@@ -36,40 +36,103 @@
   #pragma warning disable 2196 279 1684 2259
 
 #elif defined __clang__
-  // -Wconstant-logical-operand - warning: use of logical && with constant operand; switch to bitwise & or remove constant
-  //     this is really a stupid warning as it warns on compile-time expressions involving enums
   #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
     #pragma clang diagnostic push
   #endif
-  #pragma clang diagnostic ignored "-Wconstant-logical-operand"
+  #if defined(__has_warning)
+    // -Wconstant-logical-operand - warning: use of logical && with constant operand; switch to bitwise & or remove constant
+    //     this is really a stupid warning as it warns on compile-time expressions involving enums
+    #if __has_warning("-Wconstant-logical-operand")
+      #pragma clang diagnostic ignored "-Wconstant-logical-operand"
+    #endif
+    #if __has_warning("-Wimplicit-int-float-conversion")
+      #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
+    #endif
+    #if ( defined(__ALTIVEC__) || defined(__VSX__) ) && __cplusplus < 201103L
+      // warning: generic selections are a C11-specific feature
+      // ignoring warnings thrown at vec_ctf in Altivec/PacketMath.h
+      #if __has_warning("-Wc11-extensions")
+        #pragma clang diagnostic ignored "-Wc11-extensions"
+      #endif
+    #endif
+  #endif
 
-#elif defined __GNUC__ && __GNUC__>=6
+#elif defined __GNUC__ && !defined(__FUJITSU)
 
-  #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+  #if (!defined(EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS)) &&  (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
     #pragma GCC diagnostic push
   #endif
-  #pragma GCC diagnostic ignored "-Wignored-attributes"
-
+  // g++ warns about local variables shadowing member functions, which is too strict
+  #pragma GCC diagnostic ignored "-Wshadow"
+  #if __GNUC__ == 4 && __GNUC_MINOR__ < 8
+    // Until g++-4.7 there are warnings when comparing unsigned int vs 0, even in templated functions:
+    #pragma GCC diagnostic ignored "-Wtype-limits"
+  #endif
+  #if __GNUC__>=6
+    #pragma GCC diagnostic ignored "-Wignored-attributes"
+  #endif
+  #if __GNUC__==7
+    // See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89325
+    #pragma GCC diagnostic ignored "-Wattributes"
+  #endif
 #endif
 
 #if defined __NVCC__
+  // MSVC 14.16 (required by CUDA 9.*) does not support the _Pragma keyword, so
+  // we instead use Microsoft's __pragma extension.
+  #if defined _MSC_VER
+    #define EIGEN_MAKE_PRAGMA(X) __pragma(#X)
+  #else
+    #define EIGEN_MAKE_PRAGMA(X) _Pragma(#X)
+  #endif
+  #if defined __NVCC_DIAG_PRAGMA_SUPPORT__
+    #define EIGEN_NV_DIAG_SUPPRESS(X) EIGEN_MAKE_PRAGMA(nv_diag_suppress X)
+  #else
+    #define EIGEN_NV_DIAG_SUPPRESS(X) EIGEN_MAKE_PRAGMA(diag_suppress X)
+  #endif
+
+  EIGEN_NV_DIAG_SUPPRESS(boolean_controlling_expr_is_constant)
   // Disable the "statement is unreachable" message
-  #pragma diag_suppress code_is_unreachable
+  EIGEN_NV_DIAG_SUPPRESS(code_is_unreachable)
   // Disable the "dynamic initialization in unreachable code" message
-  #pragma diag_suppress initialization_not_reachable
+  EIGEN_NV_DIAG_SUPPRESS(initialization_not_reachable)
   // Disable the "invalid error number" message that we get with older versions of nvcc
-  #pragma diag_suppress 1222
+  EIGEN_NV_DIAG_SUPPRESS(1222)
   // Disable the "calling a __host__ function from a __host__ __device__ function is not allowed" messages (yes, there are many of them and they seem to change with every version of the compiler)
-  #pragma diag_suppress 2527
-  #pragma diag_suppress 2529
-  #pragma diag_suppress 2651
-  #pragma diag_suppress 2653
-  #pragma diag_suppress 2668
-  #pragma diag_suppress 2669
-  #pragma diag_suppress 2670
-  #pragma diag_suppress 2671
-  #pragma diag_suppress 2735
-  #pragma diag_suppress 2737
+  EIGEN_NV_DIAG_SUPPRESS(2527)
+  EIGEN_NV_DIAG_SUPPRESS(2529)
+  EIGEN_NV_DIAG_SUPPRESS(2651)
+  EIGEN_NV_DIAG_SUPPRESS(2653)
+  EIGEN_NV_DIAG_SUPPRESS(2668)
+  EIGEN_NV_DIAG_SUPPRESS(2669)
+  EIGEN_NV_DIAG_SUPPRESS(2670)
+  EIGEN_NV_DIAG_SUPPRESS(2671)
+  EIGEN_NV_DIAG_SUPPRESS(2735)
+  EIGEN_NV_DIAG_SUPPRESS(2737)
+  EIGEN_NV_DIAG_SUPPRESS(2739)
+  EIGEN_NV_DIAG_SUPPRESS(2885)
+  EIGEN_NV_DIAG_SUPPRESS(2888)
+  EIGEN_NV_DIAG_SUPPRESS(2976)
+  EIGEN_NV_DIAG_SUPPRESS(2979)
+  EIGEN_NV_DIAG_SUPPRESS(20011)
+  EIGEN_NV_DIAG_SUPPRESS(20014)
+  // Disable the "// __device__ annotation is ignored on a function(...) that is
+  //              explicitly defaulted on its first declaration" message.
+  // The __device__ annotation seems to actually be needed in some cases,
+  // otherwise resulting in kernel runtime errors.
+  EIGEN_NV_DIAG_SUPPRESS(2886)
+  EIGEN_NV_DIAG_SUPPRESS(2977)
+  EIGEN_NV_DIAG_SUPPRESS(20012)
+  #undef EIGEN_NV_DIAG_SUPPRESS
+  #undef EIGEN_MAKE_PRAGMA
 #endif
+
+#else
+// warnings already disabled:
+# ifndef EIGEN_WARNINGS_DISABLED_2
+#  define EIGEN_WARNINGS_DISABLED_2
+# elif defined(EIGEN_INTERNAL_DEBUGGING)
+#  error "Do not include \"DisableStupidWarnings.h\" recursively more than twice!"
+# endif
 
 #endif // not EIGEN_WARNINGS_DISABLED

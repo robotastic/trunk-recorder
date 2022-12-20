@@ -193,8 +193,9 @@ if(NOT Boost_FOUND)
 endif()
 
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
+ADD_DEFINITIONS(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 if(NOT EXISTS /usr/include/spdlog/fmt/bundled)
-  ADD_DEFINITIONS(-DSPDLOG_FMT_EXTERNAL=ON)
+  ADD_DEFINITIONS(-DSPDLOG_FMT_EXTERNAL)
 endif()
 add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
 message(STATUS "Gnuradio Version is: " ${Gnuradio_VERSION})
@@ -229,7 +230,7 @@ link_directories(
 
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g3")
 
-SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC")
 
