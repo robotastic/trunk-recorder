@@ -791,7 +791,7 @@ void print_status() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << call->elapsed() << " State: " << format_state(call->get_state());
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tElapsed: " << call->elapsed() << " State: " << format_state(call->get_state());
 
     if (recorder) {
       BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
