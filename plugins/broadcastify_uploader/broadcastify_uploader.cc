@@ -66,7 +66,7 @@ public:
     }
 
     CURL *curl;
-    CURLcode res;
+    CURLcode res = CURLE_FAILED_INIT;
 
     struct curl_slist *headers = NULL;
 
