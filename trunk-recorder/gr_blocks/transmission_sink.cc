@@ -120,7 +120,7 @@ bool transmission_sink::start_recording(Call *call) {
   d_current_call_recorder_num = 0; // call->get_recorder()->get_num();
   d_current_call_freq = call->get_freq();
   d_current_call_talkgroup = call->get_talkgroup();
-  d_current_call_talkgroup_display = call->get_talkgroup_displa();
+  d_current_call_talkgroup_display = call->get_talkgroup_display();
   d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
   d_prior_transmission_length = 0;
