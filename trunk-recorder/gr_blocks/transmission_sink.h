@@ -66,7 +66,7 @@ private:
   double d_current_call_freq;
   double d_prior_transmission_length;
   long d_current_call_talkgroup;
-  std::string d_current_call_talkgroup_display
+  std::string d_current_call_talkgroup_display;
   bool record_more_transmissions;
 
 protected:
