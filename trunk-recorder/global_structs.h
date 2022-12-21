@@ -84,6 +84,7 @@ struct Call_Data_t {
   std::string talkgroup_tag;
   std::string talkgroup_alpha_tag;
   std::string talkgroup_description;
+  std::string talkgroup_display;
   std::string talkgroup_group;
   long call_num;
   double freq;
