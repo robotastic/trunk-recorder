@@ -56,6 +56,8 @@ public:
   virtual bool get_sigmf_recording() = 0;
   virtual void set_state(State s) = 0;
   virtual State get_state() = 0;
+  virtual void set_monitoring_state(MonitoringState s) = 0;
+  virtual MonitoringState get_monitoring_state() = 0;
   virtual void set_phase2_tdma(bool m) = 0;
   virtual bool get_phase2_tdma() = 0;
   virtual void set_tdma_slot(int s) = 0;
