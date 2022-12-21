@@ -120,6 +120,7 @@ bool transmission_sink::start_recording(Call *call) {
   d_current_call_recorder_num = 0; // call->get_recorder()->get_num();
   d_current_call_freq = call->get_freq();
   d_current_call_talkgroup = call->get_talkgroup();
+  d_current_call_talkgroup_display = call->get_talkgroup_display();
   d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
   d_prior_transmission_length = 0;
@@ -137,10 +138,7 @@ bool transmission_sink::start_recording(Call *call) {
   state = IDLE;
   /* Should reset more variables here */
 
-  char formattedTalkgroup[62];
-  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-  BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink SRC ID: " << curr_src_id;
+  BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting wavfile sink SRC ID: " << curr_src_id;
 
   return true;
 }
@@ -201,20 +199,15 @@ bool transmission_sink::open_internal(const char *filename) {
 void transmission_sink::set_source(long src) {
   gr::thread::scoped_lock guard(d_mutex);
 
-  char formattedTalkgroup[62];
-  snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-  std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-
   if (curr_src_id == -1) {
-
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call->get_talkgroup_display() << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID set via Control Channel, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID set via Control Channel, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
     curr_src_id = src;
   }
   /* else if (src != curr_src_id) {
     if (state == RECORDING) {
 
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
 
       BOOST_LOG_TRIVIAL(info) << "Voice Channel mismatch source id - current: " << curr_src_id << " new: " << src;
@@ -302,10 +295,15 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   if (!d_current_call) {
     time_t now = time(NULL);
     double its_been = difftime(now, d_stop_time);
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+
+    // It is possible the P25 Frame Assembler passes a TDU after the call has timed out.
+    // In this case, the termination tag will be transferred on a blank sample and can safely be ignored.
+    if(noutput_items == 1){
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+    }
+    else{
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+    }
 
     return noutput_items;
   }
@@ -313,10 +311,8 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if ((state == STOPPED) || (state == AVAILABLE)) {
     if (noutput_items > 1) {
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - Recorder state is: " << format_state(this->state);
+
+      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - Recorder state is: " << format_state(this->state);
 
       // BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
@@ -370,11 +366,8 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     if (pmt::eq(terminate_key, tags[i].key)) {
       d_termination_flag = true;
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
-      // BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTermination - rec sample count " << d_sample_count << " pos: " << pos << " offset: " << tags[i].offset;
+      // BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTermination - rec sample count " << d_sample_count << " pos: " << pos << " offset: " << tags[i].offset;
 
       // BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
     }
@@ -384,11 +377,8 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
         d_termination_flag = true;
         next_src_id = src_id;
         pos = d_sample_count + (tags[i].offset - nitems_read(0));
-        char formattedTalkgroup[62];
-        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
-        //BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tPTT Termination - rec sample count " << d_sample_count << " pos: " << pos << " offset: " << tags[i].offset;
+        //BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tPTT Termination - rec sample count " << d_sample_count << " pos: " << pos << " offset: " << tags[i].offset;
       }
       // BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
     }
@@ -396,19 +386,13 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     if (state == RECORDING) {
       if (pmt::eq(spike_count_key, tags[i].key)) {
         d_spike_count = pmt::to_long(tags[i].value);
-        char formattedTalkgroup[62];
-        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
-        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tSpike Count: " << d_spike_count << " pos: " << pos << " offset: " << tags[i].offset;
+        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tSpike Count: " << d_spike_count << " pos: " << pos << " offset: " << tags[i].offset;
       }
       if (pmt::eq(error_count_key, tags[i].key)) {
         d_error_count = pmt::to_long(tags[i].value);
-        char formattedTalkgroup[62];
-        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
 
-        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tError Count: " << d_error_count << " pos: " << pos << " offset: " << tags[i].offset;
+        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tError Count: " << d_error_count << " pos: " << pos << " offset: " << tags[i].offset;
       }
     }
   }
@@ -465,10 +449,6 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   if (d_termination_flag) {
     d_termination_flag = false;
 
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-
     if (d_current_call == NULL) {
       BOOST_LOG_TRIVIAL(error) << "wav - no current call, but in temination loop";
       state = STOPPED;
@@ -477,7 +457,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     }
 
     if (d_sample_count > 0) {
-      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
 
       end_transmission();
 
@@ -490,10 +470,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       }
 
       if (noutput_items > 1) {
-        char formattedTalkgroup[62];
-        snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-        std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped: " << noutput_items;
+        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped: " << noutput_items;
       }
     }
     // In order to actually transmit the Tag, you need to attach it to a sample. An empty sample is used and it should be discarded.
@@ -502,11 +479,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
 
   if (state == IDLE) {
     if (!record_more_transmissions) {
-      char formattedTalkgroup[62];
-      snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-      std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-
-      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tWAV - Weird! State was IDLE but record_more_transmissions was FALSE - count: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tWAV - Weird! State was IDLE but record_more_transmissions was FALSE - count: " << d_sample_count;
     }
     if (d_fp) {
       // if we are already recording a file for this call, close it before starting a new one.
@@ -530,10 +503,8 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       BOOST_LOG_TRIVIAL(error) << "can't open file";
       return noutput_items;
     }
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
+
+    BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
 
     // curr_src_id = d_current_call->get_current_source_id();
     record_more_transmissions = false;
@@ -566,10 +537,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   }
 
   if (nwritten < noutput_items) {
-    char formattedTalkgroup[62];
-    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, d_current_call_talkgroup, 0x1B);
-    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << formattedTalkgroup << "\tFreq: " << format_freq(d_current_call_freq) << "\tFailed to Write! Wrote: " << nwritten << " of " << noutput_items;
+    BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tFailed to Write! Wrote: " << nwritten << " of " << noutput_items;
   }
   return noutput_items;
 }

@@ -133,23 +133,6 @@ static const int MAX_IN = 1;	// maximum number of input streams
     }
 
 
-void
-p25_frame_assembler_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
-{
-   // for do_imbe=false: we output packed bytes (4:1 ratio)
-   // for do_imbe=true: input rate= 4800, output rate= 1600 = 32 * 50 (3:1)
-   // for do_audio_output: output rate=8000 (ratio 0.6:1)
-   const size_t nof_inputs = nof_input_items_reqd.size();
-   int nof_samples_reqd = 4.0 * nof_output_items;
-   if (d_do_imbe)
-     nof_samples_reqd = 3.0 * nof_output_items;
-   nof_samples_reqd = nof_output_items;
-   if (d_do_audio_output)
-     nof_samples_reqd = 0.6 * nof_output_items;
-   nof_samples_reqd = std::max(nof_samples_reqd, 256);
-   std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
-}
-
     void p25_frame_assembler_impl::clear() {
       p1fdma.clear();
     }
@@ -165,6 +148,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
   bool terminate_call = false;
   long p2_ptt_src_id = -1;
+  long p2_ptt_grp_id = -1;
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
 	for (int i = 0; i < ninput_items[0]; i++) {
@@ -173,9 +157,10 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       if (p2tdma.get_call_terminated()) {
         terminate_call = true;
       }
-      if (p2tdma.get_ptt_src_id() > 0) {
-        p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
-      }
+
+      p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
+      p2_ptt_grp_id = p2tdma.get_ptt_grp_id(); 
+      
 			if (rc > -1) {
         p25p2_queue_msg(rc);
 				p1fdma.reset_timer(); // prevent P1 timeouts due to long TDMA transmissions
@@ -190,31 +175,30 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
   int amt_produce = 0;
 
+      // If this block is being used for Trunking, then you want to skip all of this.
       if (d_do_audio_output) {
-        amt_produce = noutput_items;
+        amt_produce = output_queue.size();
         int16_t *out = (int16_t *)output_items[0];
 
-        //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler - Amt Prod: " << amt_produce << " output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items;
-          
-        // output_queue.size() is the number of samples that were actually generated
-        // amt_produce just defaults to the standard amount expected for the block  
-        if (amt_produce > (int)output_queue.size()) {
-          amt_produce = output_queue.size();
-        } 
+        //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
 
-    if (p2_ptt_src_id > 0) {
-      add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
-       //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
-       std::fill(out, out + 1, 0);
-       amt_produce = 1;
-    } else  if (amt_produce > 0) {
+      if (amt_produce > 0) {
           long src_id = p1fdma.get_curr_src_id();
-
+          long grp_id = p1fdma.get_curr_grp_id();
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
           if (src_id > 0) {
             add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
           }
-          
+
+          if (p2_ptt_src_id > 0) {
+            add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
+            //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
+          }
+
+          if (grp_id > 0) {
+            add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
+          }
+
           for (int i = 0; i < amt_produce; i++) {
             out[i] = output_queue[i];
           }

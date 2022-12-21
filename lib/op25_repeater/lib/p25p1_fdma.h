@@ -95,6 +95,7 @@ namespace gr {
                 p25p1_voice_decode p1voice_decode;
                 double error_history[20];
                 long curr_src_id;
+                long curr_grp_id;
                 bool terminate_call;
                 const char *d_udp_host;
                 int  d_sys_num;
@@ -130,6 +131,7 @@ namespace gr {
                 
 
                 long get_curr_src_id();
+                long get_curr_grp_id();
                 void reset_rx_status();
                 bool get_call_terminated();
                 Rx_Status get_rx_status();

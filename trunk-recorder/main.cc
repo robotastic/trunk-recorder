@@ -189,16 +189,16 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
     config.record_uu_v_calls = pt.get<bool>("recordUUVCalls", true);
     BOOST_LOG_TRIVIAL(info) << "Record Unit to Unit Voice Calls: " << config.record_uu_v_calls;
-    std::string frequencyFormatString = pt.get<std::string>("frequencyFormat", "exp");
+    std::string frequency_format_string = pt.get<std::string>("frequencyFormat", "mhz");
 
-    if (boost::iequals(frequencyFormatString, "mhz")) {
-      frequencyFormat = 1;
-    } else if (boost::iequals(frequencyFormatString, "hz")) {
-      frequencyFormat = 2;
+    if (boost::iequals(frequency_format_string, "mhz")) {
+      frequency_format = 1;
+    } else if (boost::iequals(frequency_format_string, "hz")) {
+      frequency_format = 2;
     } else {
-      frequencyFormat = 0;
+      frequency_format = 0;
     }
-
+    config.frequency_format = frequency_format;
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
 
     statusAsString = pt.get<bool>("statusAsString", statusAsString);
@@ -456,7 +456,6 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
       BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("silenceFrame", 0);
       BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
-      BOOST_LOG_TRIVIAL(info) << "Debug Recorder: " << node.second.get<bool>("debugRecorder", 0);
       BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
       BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
 
@@ -711,7 +710,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
         plugman_setup_recorder(sigmf_recorder);
         recorder_found = true;
       } else {
-        // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
+        // BOOST_LOG_TRIVIAL(info) << "\tNot SIGMF recording call";
       }
 
       if (recorder_found) {
@@ -797,10 +796,11 @@ void print_status() {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
+
     if (call->get_state() == MONITORING) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(3) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
     } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(3) << call->elapsed() << " State: " << format_state(call->get_state());
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
     }
 
     if (recorder) {

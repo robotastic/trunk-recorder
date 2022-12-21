@@ -61,7 +61,7 @@ COPY . .
 
 WORKDIR /src/build
 
-RUN cmake .. && make && make install
+RUN cmake .. && make -j$(nproc) && make install
 
 #USER nobody
 

@@ -123,6 +123,7 @@ bool p25p2_tdma::rx_sym(uint8_t sym)
 	symbols_received++;
 	terminate_call = false;
 	src_id = -1;
+	grp_id = -1;
 	return p2framer.rx_sym(sym);
 }
 
@@ -138,6 +139,10 @@ bool p25p2_tdma::get_call_terminated() {
 
 long p25p2_tdma::get_ptt_src_id() {
 	return src_id;
+}
+
+long p25p2_tdma::get_ptt_grp_id() {
+	return grp_id;
 }
 
 p25p2_tdma::~p25p2_tdma()	// destructor
@@ -220,6 +225,7 @@ void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
 		src_id = srcaddr;
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
+		grp_id = grpaddr;
         std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
         send_msg(s, -3);
 

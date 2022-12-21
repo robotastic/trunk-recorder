@@ -151,8 +151,6 @@ Here is a map of the different sections of the *config.json* file:
 | vga1Gain         |          |               | number                                                       | [bladeRF only] sets the **VGA1** gain.                       |
 | vga2Gain         |          |               | number                                                       | [bladeRF only] sets the **VGA2** gain.                       |
 | antenna          |          |               | string, e.g.: **"TX/RX"**                                    | [usrp] selects which antenna jack to use                     |
-| debugRecorders   |          |               | number                                                       | the number of Debug Recorder to have attached to this source. Debug Recorders capture a raw sample that you can examine later using GNURadio Companion. This is helpful if you want to fine tune your the error and gain for this Source. |
-
 
 
 #### System Object
@@ -186,6 +184,7 @@ Here is a map of the different sections of the *config.json* file:
 | hideUnknownTalkgroups  |          | false                          | **true** / **false**                                         | Hide unknown talkgroups log entries                          |
 | minDuration            |          | 0<br />(which is disabled)     | number                                                       | The minimum call duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
 | minTransmissionDuration|          | 0<br />(which is disabled)     | number                                                       | The minimum transmission duration in seconds (decimals allowed), transmissions below this number will not be added to their corresponding call. |
+| maxDuration            |          | 0<br />(which is disabled)     | number                                                       | The maximum call duration in seconds (decimals allowed), calls above this number will have recordings split into multiple parts. |
 | talkgroupDisplayFormat |          | "id"                           | **"id" "id_tag"** or **"tag_id"**                            | The display format for talkgroups in the console and log file. (*id_tag* and *tag_id* is only valid if **talkgroupsFile** is specified) |
 | bandplan               |          | "800_standard"                 | **"800_standard" "800_reband" "800_splinter"** or **"400_custom"** | [SmartNet only] this is the SmartNet bandplan that will be used. |
 | bandplanBase           |          |                                | number                                                       | [SmartNet, 400_custom only] this is for the *400_custom* bandplan only. This is the base frequency, specified in Hz. |
@@ -398,4 +397,3 @@ The **Enable** Column is optional and defaults to *True*. It only needs to be ad
 | --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
 | 300       | 462275000 | 94.8 PL  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
 | 325       | 462275000 | 151.4 PL | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
-

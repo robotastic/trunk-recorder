@@ -22,7 +22,7 @@
 ########################################################################
 
 cmake_minimum_required(VERSION 3.2)
-project(Trunk-Recorder LANGUAGES CXX C VERSION "4.4.1")
+project(Trunk-Recorder LANGUAGES CXX C VERSION "4.4.2")
 
 configure_file(cmake.h.in "${PROJECT_SOURCE_DIR}/cmake.h" @ONLY)
 ADD_COMPILE_DEFINITIONS(MANUAL_GITINFO="${MANUAL_GITINFO}")
@@ -53,7 +53,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 # Set the version information here
 set(VERSION_MAJOR 4)
 set(VERSION_API   4)
-set(VERSION_ABI   0)
+set(VERSION_ABI   2)
 set(VERSION_PATCH git)
 
 
@@ -193,8 +193,9 @@ if(NOT Boost_FOUND)
 endif()
 
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
+ADD_DEFINITIONS(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 if(NOT EXISTS /usr/include/spdlog/fmt/bundled)
-  ADD_DEFINITIONS(-DSPDLOG_FMT_EXTERNAL=ON)
+  ADD_DEFINITIONS(-DSPDLOG_FMT_EXTERNAL)
 endif()
 add_definitions(-DGNURADIO_VERSION=${GNURADIO_VERSION})
 message(STATUS "Gnuradio Version is: " ${Gnuradio_VERSION})
@@ -229,7 +230,7 @@ link_directories(
 
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g3")
 
-SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC")
 

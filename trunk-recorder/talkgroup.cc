@@ -1,6 +1,7 @@
 #include "talkgroup.h"
 
-Talkgroup::Talkgroup(long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, int prefferedNAC) {
+Talkgroup::Talkgroup(int sys_num, long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, int prefferedNAC) {
+  this->sys_num = sys_num;
   this->number = num;
   this->mode = mode;
   this->alpha_tag = alpha_tag;
@@ -14,7 +15,8 @@ Talkgroup::Talkgroup(long num, std::string mode, std::string alpha_tag, std::str
   this->prefferedNAC = prefferedNAC;
 }
 
-Talkgroup::Talkgroup(long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+Talkgroup::Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+  this->sys_num = sys_num;
   this->number = num;
   this->mode = "Z";
   this->alpha_tag = alpha_tag;

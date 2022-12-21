@@ -4,8 +4,8 @@
 #include "p25_recorder.h"
 #include <boost/log/trivial.hpp>
 
-p25_recorder_sptr make_p25_recorder(Source *src) {
-  p25_recorder *recorder = new p25_recorder_impl(src);
+p25_recorder_sptr make_p25_recorder(Source *src, Recorder_Type type) {
+  p25_recorder *recorder = new p25_recorder_impl(src, type);
 
   return gnuradio::get_initial_sptr(recorder);
 }
@@ -44,11 +44,11 @@ void p25_recorder_impl::generate_arb_taps() {
   }
 }
 
-p25_recorder_impl::p25_recorder_impl(Source *src)
+p25_recorder_impl::p25_recorder_impl(Source *src, Recorder_Type type)
     : gr::hier_block2("p25_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder("P25") {
+      Recorder(type) {
   initialize(src);
 }
 
@@ -103,25 +103,38 @@ void p25_recorder_impl::initialize_prefilter() {
     fb = if2 / 2;
     BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
-    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa);
+    #if GNURADIO_VERSION < 0x030900
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
+    #else
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
+    #endif
     bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   } else {
     double_decim = false;
-    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
+
+    #if GNURADIO_VERSION < 0x030900
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::filter::firdes::WIN_HANN);
+    #else
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::fft::window::WIN_HANN);
+    #endif
     decim = floor(input_rate / if_rate);
     resampled_rate = input_rate / decim;
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
+    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
   }
 
   // Cut-Off Filter
   fa = 6250;
-  fb = fa + 625;
-  cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa);
+  fb = fa + 1250;
+  #if GNURADIO_VERSION < 0x030900
+      cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HANN);
+  #else
+      cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HANN);
+  #endif
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
@@ -156,8 +169,12 @@ void p25_recorder_impl::initialize_prefilter() {
     connect(lo, 0, mixer, 1);
   }
   connect(mixer, 0, lowpass_filter, 0);
-  connect(lowpass_filter, 0, arb_resampler, 0);
-  connect(arb_resampler, 0, cutoff_filter, 0);
+  if (arb_rate == 1.0) {
+    connect(lowpass_filter, 0, cutoff_filter, 0);
+  } else {
+    connect(lowpass_filter, 0, arb_resampler, 0);
+    connect(arb_resampler, 0, cutoff_filter, 0);
+  }
   connect(cutoff_filter,0, squelch, 0);
   connect(squelch, 0, rms_agc, 0);
   connect(rms_agc,0, fll_band_edge, 0);
@@ -413,7 +430,8 @@ void p25_recorder_impl::stop() {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
     clear();
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\033[0m\tStopping P25 Recorder Num [" << rec_num << "]\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot <<  "\tQPSK: " << qpsk_mod << "\tHz Error: " << this->get_freq_error();
+    
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
     state = INACTIVE;
     valve->set_enabled(false);

@@ -243,6 +243,12 @@ namespace gr {
 		bool p25p1_fdma::get_call_terminated() {
 			return terminate_call;
 		}
+        long p25p1_fdma::get_curr_grp_id() {
+            long addr = curr_grp_id;
+            curr_grp_id = -1;
+            // This makes it easy to tell when a new Src Address has been received, all other times it will be -1
+			return addr;
+		}
 
 		long p25p1_fdma::get_curr_src_id() {
             long addr = curr_src_id;
@@ -467,6 +473,7 @@ namespace gr {
                             uint32_t srcaddr = (lcw[6] << 16) + (lcw[7] << 8) + lcw[8];
 
                             curr_src_id = srcaddr;
+                            curr_grp_id = grpaddr;
                             s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
                             send_msg(s, -3);
                             if (d_debug >= 10)
@@ -500,6 +507,8 @@ namespace gr {
                             uint16_t grpaddr = (lcw[3] << 8) + lcw[4];
                             uint16_t ch_T    = (lcw[5] << 8) + lcw[6];
                             uint16_t ch_R    = (lcw[7] << 8) + lcw[8];
+
+                            curr_grp_id = grpaddr;
                             if (d_debug >= 10)
                                 fprintf(stderr, ", svcopts=0x%02x, grpaddr=%d, ch_T=%d, ch_R=%d", svcopts, grpaddr, ch_T, ch_R);
                             tsbk[0] = 0xff; tsbk[1] = 0xff;

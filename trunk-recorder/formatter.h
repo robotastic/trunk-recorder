@@ -10,7 +10,7 @@ extern boost::format FormatSamplingRate(float f);
 extern std::string format_state(State state);
 extern std::string format_state(State state, MonitoringState monitoringState);
 std::string get_frequency_format();
-extern int frequencyFormat;
+extern int frequency_format;
 extern bool statusAsString;
 
 #endif // FORMATTER_H
