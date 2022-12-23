@@ -475,6 +475,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
     osmo_src->set_sample_rate(rate);
     actual_rate = osmo_src->get_sample_rate();
+    rate = round(actual_rate);
     BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
     BOOST_LOG_TRIVIAL(info) << "Tuning to " << format_freq(center + error);
     osmo_src->set_center_freq(center + error, 0);
