@@ -22,11 +22,11 @@
 ########################################################################
 
 cmake_minimum_required(VERSION 3.2)
-project(Trunk-Recorder LANGUAGES CXX C VERSION "4.4.2")
+project(Trunk-Recorder LANGUAGES CXX C VERSION "4.5.0")
 
-configure_file(cmake.h.in "${PROJECT_SOURCE_DIR}/cmake.h" @ONLY)
+configure_file(cmake.h.in "${PROJECT_BINARY_DIR}/cmake.h" @ONLY)
 ADD_COMPILE_DEFINITIONS(MANUAL_GITINFO="${MANUAL_GITINFO}")
-
+include_directories("${PROJECT_BINARY_DIR}")
 
 # Define the two required variables before including
 # the source code for watching a git repository.
@@ -46,17 +46,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
-
 # Make sure our local CMake Modules path comes first
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
-
-# Set the version information here
-set(VERSION_MAJOR 4)
-set(VERSION_API   5)
-set(VERSION_ABI   0)
-set(VERSION_PATCH git)
-
-
 
 ########################################################################
 # Compiler specific setup
