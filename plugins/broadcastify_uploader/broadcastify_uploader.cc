@@ -18,6 +18,7 @@ struct Broadcastify_System_Key {
 struct Broadcastify_Uploader_Data {
   std::vector<Broadcastify_System_Key> keys;
   std::string bcfy_calls_server;
+  bool ssl_verify_disable;
 };
 
 class Broadcastify_Uploader : public Plugin_Api {
@@ -181,6 +182,12 @@ public:
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
 
+      // broadcastify seems to make a habit out of letting their ssl certs expire
+      if (this->data.ssl_verify_disable) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+      }
+
       curl_multi_add_handle(multi_handle, curl);
 
       curl_multi_perform(multi_handle, &still_running);
@@ -332,6 +339,11 @@ public:
     if (!regex_match(this->data.bcfy_calls_server.c_str(), what, ex)) {
       BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
       return 1;
+    }
+
+    this->data.ssl_verify_disable = cfg.get<bool>("broadcastifySslVerifyDisable", false);
+    if (this->data.ssl_verify_disable) {
+      BOOST_LOG_TRIVIAL(info) << "Broadcastify SSL Verify Disabled";
     }
 
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
