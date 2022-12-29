@@ -369,7 +369,7 @@ Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call 
 
   if(talkgroup && (priority == -1)){
     call->set_state(MONITORING);
-    call->set_monitoring_state(NO_RECORDER);
+    call->set_monitoring_state(IGNORED_TG);
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
     return NULL;
   }
