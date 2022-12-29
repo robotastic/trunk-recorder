@@ -1,6 +1,24 @@
 Trunk Recorder ChangeLog
 ========================
 
+### Version 4.5.0
+* Set d_call to null to prevent potential use after free by @galenguyer in https://github.com/robotastic/trunk-recorder/pull/739
+* Documenting maxDuration config param by @EricTendian in https://github.com/robotastic/trunk-recorder/pull/741
+* Conventional recorder info for MQTT and status-server plugins by @taclane in https://github.com/robotastic/trunk-recorder/pull/744
+* Cleanup dropped samples logging. by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/745
+* Multiple CMake fixes and version updates to resolve compiler warnings by @galenguyer in https://github.com/robotastic/trunk-recorder/pull/738
+* Log cleanup by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/749
+
+### Version 4.4.2
+* Fix logging when all transmissions are removed. by @tadscottsmith in #735
+* Fixes issue mentioned in #691 by @Dygear in #733
+* Improve CSV parsing to allow quoted and escaped fields by @EricTendian in #734
+* Updated Broadcastify Uploader to make it more robust by @robotastic in #736
+
+### Version 4.4.1
+* Fix for #606 by @JoeGilkey in #721
+* Improved Talkgroup Priority Logging by @tadscottsmith in #700
+* Build gr-osmosdr in Docker with multiple Airspy source patch by @EricTendian in #727
 
 ### Version 4.4.0
 * Add support for using a .csv file for adding for conventional channels
