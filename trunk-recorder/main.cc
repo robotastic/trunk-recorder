@@ -797,7 +797,7 @@ void manage_conventional_call(Call *call) {
 }
 
 void print_status() {
-  BOOST_LOG_TRIVIAL(info) << "nCurrently Active Calls: " << calls.size();
+  BOOST_LOG_TRIVIAL(info) << "Currently Active Calls: " << calls.size();
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
