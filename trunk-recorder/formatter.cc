@@ -56,6 +56,8 @@ std::string format_state(State state, MonitoringState monitoringState) {
         return "monitoring";
       else if(monitoringState == UNKNOWN_TG)
         return "monitoring : UNKNOWN TG";
+      else if(monitoringState == IGNORED_TG)
+        return "monitoring : IGNORED TG";
       else if(monitoringState == NO_SOURCE)
         return "monitoring : NO SOURCE COVERING FREQ";
       else if(monitoringState == NO_RECORDER)
