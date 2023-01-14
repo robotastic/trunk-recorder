@@ -149,7 +149,18 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "After you have made these updates, make sure you add \"ver\": 2, to the top.\n\n";
       return false;
     }
-
+    config.log_file = pt.get<bool>("logFile", false);
+    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    config.log_dir = pt.get<std::string>("logDir", "logs");
+    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
+    if (config.log_file) {
+      logging::add_file_log(
+        keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
+        keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
+        keywords::rotation_size = 100 * 1024 * 1024,
+        keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
+        keywords::auto_flush = true);
+    }
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
@@ -177,10 +188,6 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << default_mode;
     config.call_timeout = pt.get<int>("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
-    config.log_file = pt.get<bool>("logFile", false);
-    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
-    config.log_dir = pt.get<std::string>("logDir", "logs");
-    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
     config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
