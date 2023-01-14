@@ -41,9 +41,11 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::v
     BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
       std::string plugin_lib = node.second.get<std::string>("library", "");
       std::string plugin_name = node.second.get<std::string>("name", "");
-
-      Plugin *plugin = setup_plugin(plugin_lib, plugin_name);
-      plugin->api->parse_config(node.second);
+      bool plugin_enabled = node.second.get<bool>("enabled", true);
+      if (plugin_enabled) {
+        Plugin *plugin = setup_plugin(plugin_lib, plugin_name);
+        plugin->api->parse_config(node.second);
+      }
     }
 
     if (plugins.size() == 1) {

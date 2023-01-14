@@ -151,6 +151,7 @@ Here is a map of the different sections of the *config.json* file:
 | vga1Gain         |          |               | number                                                       | [bladeRF only] sets the **VGA1** gain.                       |
 | vga2Gain         |          |               | number                                                       | [bladeRF only] sets the **VGA2** gain.                       |
 | antenna          |          |               | string, e.g.: **"TX/RX"**                                    | [usrp] selects which antenna jack to use                     |
+| enabled          |          |     true      | **true** / **false**                                         | control whether a configured source is enabled or disabled   |
 
 
 #### System Object
@@ -195,6 +196,7 @@ Here is a map of the different sections of the *config.json* file:
 | decodeFSync            |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the Fleet Sync signaling decoder. |
 | decodeStar             |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the Star signaling decoder. |
 | decodeTPS              |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. |
+| enabled                |          | true                           | **true** / **false**                                         | control whether a configured system is enabled or disabled                 |
 
 
 
@@ -204,6 +206,7 @@ Here is a map of the different sections of the *config.json* file:
 | ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
 | library |    ✓     |               | string | the name of the library that contains the plugin.            |
 | name    |    ✓     |               | string | the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin. |
+| enabled |          | true          | **true** / **false**    | control whether a configured plugin is enabled or disabled                 |
 |         |          |               |        | *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.* |
 
 ##### Rdio Scanner Plugin
