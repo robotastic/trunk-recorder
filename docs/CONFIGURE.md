@@ -26,31 +26,31 @@ The amount of tuning error is -14500Hz, so that would go under **error:** for th
 
 **NOTE:** In some instances, an alternative is to use `ppm` correction rather than the `error` configuration option.
 
-Alternatively, you can use this tool here: http://garvas.org/trunk-recorder/ to obtain RTL-SDR dongle/array configurations. 
+Alternatively, you can use this tool here: http://garvas.org/trunk-recorder/ to obtain RTL-SDR dongle/array configurations.
 
 ### Gain
 
-After you have figured out the amount of tuning error, you now need to find the optimal amount of receiver gain to use. 
+After you have figured out the amount of tuning error, you now need to find the optimal amount of receiver gain to use.
 
-Gain is a measure of how much amplification is required for the received signal, and on some SDRs, there are multiple places along the receive path where a signal can be amplified. 
+Gain is a measure of how much amplification is required for the received signal, and on some SDRs, there are multiple places along the receive path where a signal can be amplified.
 
-If there is not enough gain, the signal will not be strong enough to decode, and Trunk-Recorder will fail to lock to the control channel. If there is too much gain, it can distort the signal, there is also the chance you might be causing harm to your SDR reception device. Setting the gain too high will result in amplification of the background RF and create noise. 
+If there is not enough gain, the signal will not be strong enough to decode, and Trunk-Recorder will fail to lock to the control channel. If there is too much gain, it can distort the signal, there is also the chance you might be causing harm to your SDR reception device. Setting the gain too high will result in amplification of the background RF and create noise.
 
-Generally, you can mess around with the gain slider in GQRX until the signal looks well defined and there isn't too much noise. If it is impossible to get a well-defined signal, it could be a sign that you have one or more issues: a better antenna that is tuned to the needed frequency range, moving the antenna to a new location, or using a different SDR device. There could also be some strong interference nearby, which can introduce a lot of background noise making it tough to distinguish the signal. Various computer hardware, poorly grounded hardware, and cheaply made USB hubs can be notorious for producing RF noise across the entire spectrum. 
+Generally, you can mess around with the gain slider in GQRX until the signal looks well defined and there isn't too much noise. If it is impossible to get a well-defined signal, it could be a sign that you have one or more issues: a better antenna that is tuned to the needed frequency range, moving the antenna to a new location, or using a different SDR device. There could also be some strong interference nearby, which can introduce a lot of background noise making it tough to distinguish the signal. Various computer hardware, poorly grounded hardware, and cheaply made USB hubs can be notorious for producing RF noise across the entire spectrum.
 
 Once you find the correct gain settings, use them for this source in the `config.json` file.
 
 ### Center Frequency
-When you set the center frequency for a source, **you are picking the frequency that will be in the _middle_ of the block of spectrum that you are recording**. Half of the bandwidth for the device will be above that frequency and the other half below. 
+When you set the center frequency for a source, **you are picking the frequency that will be in the _middle_ of the block of spectrum that you are recording**. Half of the bandwidth for the device will be above that frequency and the other half below.
 
-For example, if you are using a HackRF, with 8MHz of bandwidth, and you tune the center frequency to 854MHz, it would cover from 850.0MHz to 858.0MHz. 
+For example, if you are using a HackRF, with 8MHz of bandwidth, and you tune the center frequency to 854MHz, it would cover from 850.0MHz to 858.0MHz.
 
 To find your ideal center frequency, look at what the lowest frequency you want to cover is and what the highest is. You need to need to be able cover slightly beyond the frequncy of a channel. This is because the frequency is for the center of the channel and the actual channel is wider and a bit of filtering is done to receive it. The sample rate should be higher than the difference between the low and high frequency. Most SDRs do not perform as well right at the beginnging and end of the frequency range they are set to. It is best to set a slightly higher sample rate than needed, to avoid those spots. Also, some SDRs have some artifacts right at there center frequency, so ensure that center frequency doesn't land on the frequency of a channel you are trying to record.
 
 ### Multiple Sources
-If the low frequency and high frequency of the system you are trying to capture is greater than the amount of bandwidth your SDR can capture, you need to use multiple SDRs. 
+If the low frequency and high frequency of the system you are trying to capture is greater than the amount of bandwidth your SDR can capture, you need to use multiple SDRs.
 
-In addition to being able to use a cheaper SDR, it also helps with general performance of the devices. When a single SDR is used, each of the Recorders gets fed all of the sampled signals. Each Recorder needs to cut down the multi-mega samples per second into a small 12.5Khz or even 6.25Khz(!) slivers. 
+In addition to being able to use a cheaper SDR, it also helps with general performance of the devices. When a single SDR is used, each of the Recorders gets fed all of the sampled signals. Each Recorder needs to cut down the multi-mega samples per second into a small 12.5Khz or even 6.25Khz(!) slivers.
 
 When you use multiple SDRs, each SDR is capturing only a partial slice of the system so the recorders have to cut down a much smaller amount of sample to get to the sliver they are interested in. This ultimately denotes that you can have a lot more recorders running!
 
@@ -91,11 +91,11 @@ Here is a map of the different sections of the *config.json* file:
 
 ```json
 {
-	Global Configs
-	
-	"sources": [{ Source Object }, { Source Object }],
-	"systems": [{ System Object }, { System Object }],
-	"plugins": [{ Plugin Object }]
+  Global Configs
+
+  "sources": [{ Source Object }, { Source Object }],
+  "systems": [{ System Object }, { System Object }],
+  "plugins": [{ Plugin Object }]
 }
 ```
 
@@ -179,9 +179,9 @@ Here is a map of the different sections of the *config.json* file:
 | analogLevels           |          | 8                              | number (1-32)                                                | The amount of amplification that will be applied to the analog audio. |
 | maxDev                 |          | 4000                           | number                                                       | Allows you to set the maximum deviation for analog channels. If you analog recordings sound good or if you have a completely digital system, then there is no need to touch this. |
 | digitalLevels          |          | 1                              | number (1-16)                                                | The amount of amplification that will be applied to the digital audio. |
-| unitTagsFile           |          |                                | string                                                       | This is the filename of a CSV files that provides information about the unit tags. It allows a Unit ID to be assigned a name. This file should be located in the same directory as the trunk-recorder executable. The format is 2 columns, the first being the decimal number of the Unit ID, the second is the Unit Name, |
+| unitTagsFile           |          |                                | string                                                       | This is the filename of a CSV file that provides information about the unit tags. The format for the file is described below. |
 | recordUnknown          |          | true                           | **true** / **false**                                         | Record talkgroups if they are not listed in the Talkgroups File. |
-| recordUUVCalls         |          | true                           | **true** / **false**                                         | [ P25 only ] Record Unit to Unit Voice calls. 		     |
+| recordUUVCalls         |          | true                           | **true** / **false**                                         | [ P25 only ] Record Unit to Unit Voice calls.        |
 | hideEncrypted          |          | false                          | **true** / **false**                                         | Hide encrypted talkgroups log entries                        |
 | hideUnknownTalkgroups  |          | false                          | **true** / **false**                                         | Hide unknown talkgroups log entries                          |
 | minDuration            |          | 0<br />(which is disabled)     | number                                                       | The minimum call duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
@@ -251,9 +251,9 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 **Name:** simplestream
 **Library:** libsimplestream.so
 
-This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.  
+This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.
 
-This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.  
+This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.
 
 **NOTE 1: In order for this plugin to work, the audioStreaming option in the Global Configs section (see above) must be set to true.**
 
@@ -271,11 +271,11 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | port      |    ✓     |               | number | UDP or TCP port that this stream will send audio to. |
 | TGID      |    ✓     |               | number | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
 | sendTGID  |           |    false     | boolean | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
-| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.  
+| shortName |          |              |string  | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.
 |  useTCP   |        |   false     |boolean | When set to true, TCP will be used instead of UDP.
 
 ###### Plugin Object Example #1:
-This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.  
+This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.
 ```yaml
         {
           "name":"simplestream",
@@ -347,11 +347,11 @@ pulseaudio is the default sound system on many Linux computers, including the Ra
 
 An example command to set up pulseaudio to receive 8 kHz audio (digital audio) from simplestream on TCP port 9125:
 ```
-pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16le rate=8000 channels=1 
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16le rate=8000 channels=1
 ```
 An example command to set up pulseaudio to receive 16 kHz audio (analog audio) from simplestream on TCP port 9125:
 ```
-pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16le rate=16000 channels=1 
+pacmd load-module module-simple-protocol-tcp sink=1 playback=true port=9125 format=s16le rate=16000 channels=1
 ```
 The matching simplestream config to send audio from talkgroup 58918 to TCP port 9125 would then be something like this:
 ```yaml
@@ -382,16 +382,16 @@ The Trunk Record program really only uses the priority information and the Dec T
 
 Here are the column headers and some sample data: NOTE: If you are adding the Priority to a RR csv, as well as changing order you must use a heading for the first column other than "Decimal" eg DEC for TR to detect you are supplying this layout.
 
-| DEC |	HEX |	Mode |	Alpha Tag	| Description	| Tag |	Group | Priority |
-|-----|-----|------|-----------|-------------|-----|-------|----------|
-|101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 |
-|2227 |	8b3	| D	| DC StcarYard	| Streetcar Yard |	Transportation |	Services | 3 |
+| DEC  | HEX | Mode | Alpha Tag    | Description    | Tag            | Group    | Priority |
+|------|-----|------|--------------|----------------|----------------|----------|----------|
+| 101  | 065 | D    | DCFD 01 Disp | 01 Dispatch    | Fire Dispatch  | Fire     | 1        |
+| 2227 | 8b3 | D    | DC StcarYard | Streetcar Yard | Transportation | Services | 3        |
 
 
 
 ## channelFile
 
-This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A *Conventional* system would have Analog Recorders, while a *ConventionalP25* or *ConventionalDMR* would have digital recorders. 
+This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A *Conventional* system would have Analog Recorders, while a *ConventionalP25* or *ConventionalDMR* would have digital recorders.
 
 *Tone based squelch is currently not supported.*
 
@@ -401,3 +401,18 @@ The **Enable** Column is optional and defaults to *True*. It only needs to be ad
 | --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
 | 300       | 462275000 | 94.8 PL  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
 | 325       | 462275000 | 151.4 PL | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
+
+
+## unitTagsFile
+
+This file allows for Unit IDs to be assigned a name. The format is 2 columns, the first being the decimal number of the Unit ID, the second is the Unit Name.
+
+Regex is also supported for the Unit ID, which can be used to match radio IDs of a specific pattern. By default, the regex must match the full string (`^pattern$`), however putting the pattern within `/` will allow partial matches. Within the unit name, `$1`, `$2`, etc. will be replaced by the corresponding capture group. For large radio systems, regex may be better instead of specifying a long list of radio IDs. In case a Unit ID will be matched by regex but you do not want to use the associated unit name, you can put the specific unit ID and unit name before the regex, so it will be chosen before reaching the regex.
+
+In the second row of the example below, the first capture group `([0-9]{2})` becomes `$1` for the unit name, so an ID like 1210207 gets translated to Engine 20. In the third row, only the start of the string is being matched, so an ID of 173102555 is translated into Ambulance 102.
+
+| Unit ID                  | Unit Name    |
+| ---------                | ---------    |
+| 911000                   | Dispatch     |
+| 1[1245]10([0-9]{2})[127] | Engine $1    |
+| /^1[78]3(1[0-9]{2})/     | Ambulance $1 |

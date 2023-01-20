@@ -166,7 +166,7 @@ public:
   void set_source(Source *);
   Talkgroup *find_talkgroup(long tg);
   Talkgroup *find_talkgroup_by_freq(double freq);
-  UnitTag *find_unit_tag(long unitID);
+  std::string find_unit_tag(long unitID);
   void set_talkgroups_file(std::string);
   void set_channel_file(std::string channel_file);
   bool has_channel_file();

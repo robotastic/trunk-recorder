@@ -1,6 +1,7 @@
 #include "unit_tag.h"
+#include <boost/regex.hpp>
 
-UnitTag::UnitTag(long num, std::string t) {
-  number = num;
+UnitTag::UnitTag(std::string p, std::string t) {
+  pattern = p;
   tag = t;
 }

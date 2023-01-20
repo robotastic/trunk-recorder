@@ -12,7 +12,7 @@ class UnitTags {
 public:
   UnitTags();
   void load_unit_tags(std::string filename);
-  UnitTag *find_unit_tag(long unitID);
-  void add(long num, std::string tag);
+  std::string find_unit_tag(long unitID);
+  void add(std::string pattern, std::string tag);
 };
 #endif // UNIT_TAGS_H
