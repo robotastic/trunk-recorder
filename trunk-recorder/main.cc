@@ -155,11 +155,11 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
     if (config.log_file) {
       logging::add_file_log(
-        keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
-        keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
-        keywords::rotation_size = 100 * 1024 * 1024,
-        keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
-        keywords::auto_flush = true);
+          keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
+          keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
+          keywords::rotation_size = 100 * 1024 * 1024,
+          keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
+          keywords::auto_flush = true);
     }
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
 
@@ -730,7 +730,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   }
 
   if (!source_found) {
-      BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -1577,7 +1577,7 @@ int main(int argc, char **argv) {
   // std::locale::global(std::locale("C"));
 
   boost::program_options::options_description desc("Options");
-  desc.add_options()("help,h", "Help screen")("config", boost::program_options::value<string>()->default_value("./config.json"), "Config File")("version", "Version Informaiotn");
+  desc.add_options()("help,h", "Help screen")("config,c", boost::program_options::value<string>()->default_value("./config.json"), "Config File")("version,v", "Version Information");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(parse_command_line(argc, argv, desc), vm);
@@ -1589,7 +1589,7 @@ int main(int argc, char **argv) {
   }
 
   if (vm.count("help")) {
-    std::cout << "Usage: options_description [options]\n";
+    std::cout << "Usage: trunk-recorder [options]\n";
     std::cout << desc;
     exit(0);
   }
