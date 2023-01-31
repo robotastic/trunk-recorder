@@ -306,7 +306,7 @@ Talkgroup *System_impl::find_talkgroup(long tg_number) {
 Talkgroup *System_impl::find_talkgroup_by_freq(double freq) {
   return talkgroups->find_talkgroup_by_freq(sys_num, freq);
 }
-UnitTag *System_impl::find_unit_tag(long unitID) {
+std::string System_impl::find_unit_tag(long unitID) {
   return unit_tags->find_unit_tag(unitID);
 }
 

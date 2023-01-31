@@ -4,14 +4,14 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
-//#include <sstream>
+#include <boost/regex.hpp>
 
 class UnitTag {
 public:
-  long number;
+  boost::regex pattern;
   std::string tag;
 
-  UnitTag(long num, std::string t);
+  UnitTag(std::string p, std::string t);
 };
 
 #endif // UNIT_TAG_H

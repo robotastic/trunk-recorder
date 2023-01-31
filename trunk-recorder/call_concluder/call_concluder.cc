@@ -287,8 +287,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
       call_info.stop_time = t.stop_time;
     }
 
-    UnitTag *unit_tag = sys->find_unit_tag(t.source);
-    std::string tag = (unit_tag == NULL || unit_tag->tag.empty() ? "" : unit_tag->tag);
+    std::string tag = sys->find_unit_tag(t.source);
     Call_Source call_source = {t.source, t.start_time, total_length, false, "", tag};
     Call_Error call_error = {t.start_time, total_length, t.length, t.error_count, t.spike_count};
     call_info.transmission_source_list.push_back(call_source);

@@ -5,6 +5,7 @@
 #include <boost/intrusive_ptr.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/regex.hpp>
 
 #include "csv_helper.h"
 #include <cstdio>
@@ -60,7 +61,7 @@ void UnitTags::load_unit_tags(std::string filename) {
       continue;
     }
 
-    add(atoi(vec[0].c_str()), vec[1].c_str());
+    add(vec[0].c_str(), vec[1].c_str());
 
     lines_pushed++;
   }
@@ -75,21 +76,31 @@ void UnitTags::load_unit_tags(std::string filename) {
   }
 }
 
-UnitTag *UnitTags::find_unit_tag(long tg_number) {
-  UnitTag *tg_match = NULL;
+std::string UnitTags::find_unit_tag(long tg_number) {
+  std::string tg_num_str = std::to_string(tg_number);
+  std::string tag = "";
 
   for (std::vector<UnitTag *>::iterator it = unit_tags.begin(); it != unit_tags.end(); ++it) {
     UnitTag *tg = (UnitTag *)*it;
 
-    if (tg->number == tg_number) {
-      tg_match = tg;
+    if (regex_match(tg_num_str, tg->pattern)) {
+      tag = regex_replace(tg_num_str, tg->pattern, tg->tag, boost::regex_constants::format_no_copy);
       break;
     }
   }
-  return tg_match;
+
+  return tag;
 }
 
-void UnitTags::add(long num, std::string tag) {
-  UnitTag *unit_tag = new UnitTag(num, tag);
+void UnitTags::add(std::string pattern, std::string tag) {
+  // If the pattern is like /someregex/
+  if (pattern.substr(0, 1).compare("/") == 0 && pattern.substr(pattern.length()-1, 1).compare("/") == 0) {
+    // then remove the / at the beginning and end
+    pattern = pattern.substr(1, pattern.length()-2);
+  } else {
+    // otherwise add ^ and $ to the pattern e.g. ^123$ to make a regex for simple IDs
+    pattern = "^" + pattern + "$";
+  }
+  UnitTag *unit_tag = new UnitTag(pattern, tag);
   unit_tags.push_back(unit_tag);
 }
