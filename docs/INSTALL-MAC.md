@@ -40,8 +40,10 @@ At this point, proceed to the [build instructions](#building-trunk-recorder).
 
 Note that you will need to provide the flag `-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl` to the invocation of `cmake` in the [Build Instructions](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder) or you will receive an error from CMake about not finding libssl or a linking error from `make` about not having a library for `-lssl`:
 ```bash
-cmake ../trunk-recorder -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+cmake ../trunk-recorder -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3
 ```
+
+
 
 ## Using MacPorts
 ### These instructions should work on OS X 10.10, OS X 10.11, and macOS 10.12.

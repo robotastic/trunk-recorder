@@ -137,6 +137,32 @@ make
 sudo make install
 ```
 
+## Configuring the UHD for Ettus SDRs
+
+If you haven't setup UHD yet there are a few extra steps you need to take:
+
+Install the UHD drivers:
+
+```bash
+sudo apt-get install libuhd-dev uhd-host
+```
+
+Download the firmware images. The location of the downloader is different than the error message:
+
+```bash
+cd /lib/uhd/utils/
+sudo ./uhd_images_downloader.py
+```
+
+Setup the udev rules so any user can access the USB, as documented [here](https://files.ettus.com/manual/page_transport.html#transport_usb_udev):
+
+```bash
+cd /usr/lib/uhd/utils
+sudo cp uhd-usrp.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
 ## Configuring Trunk Recorder
 
 The next step is to [configure Trunk Recorder](CONFIGURE.md) for the system you are trying to capture.

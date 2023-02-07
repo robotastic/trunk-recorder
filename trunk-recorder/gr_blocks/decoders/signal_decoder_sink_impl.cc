@@ -91,7 +91,7 @@ void mdc_callback(int frameCount, // 1 or 2 - if 2 then extra0-3 are valid
                                              "\"ex3\":\"%02x\"}\n",
            (int)time(NULL), op, arg, unitID, extra0, extra1, extra2, extra3);
 
-  fprintf(stdout, "%s\n", json_buffer);
+  BOOST_LOG_TRIVIAL(info) << json_buffer;
 
   signal_decoder_sink_impl *decoder = (signal_decoder_sink_impl *)context;
 
@@ -116,7 +116,8 @@ void fsync_callback(int cmd, int subcmd, int from_fleet, int from_unit, int to_f
            to_fleet, to_unit, allflag,
            payload_len, payload,
            is_fsync2, is_2400);
-  fprintf(stdout, "%s\n", json_buffer);
+
+  BOOST_LOG_TRIVIAL(info) << json_buffer;
 
   signal_decoder_sink_impl *decoder = (signal_decoder_sink_impl *)context;
   decoder->log_decoder_msg(from_unit, "FLEETSYNC", SignalType::Normal);
@@ -131,7 +132,8 @@ void star_callback(int unitID, int tag, int status, int message, void *context) 
                                              "\"status\":\"%d\","
                                              "\"message\":\"%d\"}\n",
            (int)time(NULL), unitID, tag, status, message);
-  fprintf(stdout, "%s\n", json_buffer);
+
+  BOOST_LOG_TRIVIAL(info) << json_buffer;
 
   signal_decoder_sink_impl *decoder = (signal_decoder_sink_impl *)context;
   decoder->log_decoder_msg(unitID, "STAR", SignalType::Normal);

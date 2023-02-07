@@ -29,7 +29,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <deque>
-
+#include <array>
 #include "rx_base.h"
 
 typedef std::deque<uint8_t> dibit_queue;
