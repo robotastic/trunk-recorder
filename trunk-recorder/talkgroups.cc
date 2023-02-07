@@ -95,7 +95,7 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
       }
       // TODO(nkw): more sanity checking here.
       priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
-      int preferredNAC = (vec.size() == 9) ? atoi(vec[8].c_str()) : 0;
+      unsigned long preferredNAC = (vec.size() == 9) ? atoi(vec[8].c_str()) : 0;
 
       tg = new Talkgroup(sys_num, atoi(vec[0].c_str()), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority, preferredNAC);
 
