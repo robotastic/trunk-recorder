@@ -25,7 +25,7 @@ cmake_minimum_required(VERSION 3.2)
 project(Trunk-Recorder LANGUAGES CXX C VERSION "4.5.0")
 
 configure_file(cmake.h.in "${PROJECT_BINARY_DIR}/cmake.h" @ONLY)
-ADD_COMPILE_DEFINITIONS(MANUAL_GITINFO="${MANUAL_GITINFO}")
+add_definitions(-DMANUAL_GITINFO="${MANUAL_GITINFO}")
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Define the two required variables before including
