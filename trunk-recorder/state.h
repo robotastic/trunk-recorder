@@ -10,4 +10,14 @@ enum State { MONITORING = 0,
              STOPPED = 6,
              AVAILABLE = 7 };
 
+enum MonitoringState {
+             UNSPECIFIED = 0, 
+             UNKNOWN_TG = 1,
+             IGNORED_TG = 2,
+             NO_SOURCE = 3,
+             NO_RECORDER = 4,
+             ENCRYPTED = 5,
+             DUPLICATE = 6,
+             SUPERSEDED = 7};
+
 #endif

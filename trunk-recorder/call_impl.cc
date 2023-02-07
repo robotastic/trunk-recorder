@@ -35,6 +35,7 @@ Call_impl::Call_impl(long t, double f, System *s, Config c) {
   stop_time = time(NULL);
   last_update = time(NULL);
   state = MONITORING;
+  monitoringState = UNSPECIFIED;
   debug_recording = false;
   sigmf_recording = false;
   recorder = NULL;
@@ -63,6 +64,7 @@ Call_impl::Call_impl(TrunkMessage message, System *s, Config c) {
   stop_time = time(NULL);
   last_update = time(NULL);
   state = MONITORING;
+  monitoringState = UNSPECIFIED;
   debug_recording = false;
   sigmf_recording = false;
   recorder = NULL;
@@ -126,7 +128,7 @@ void Call_impl::conclude_call() {
   // BOOST_LOG_TRIVIAL(info) << "conclude_call()";
   stop_time = time(NULL);
 
-  if (state == COMPLETED) {
+  if (state == COMPLETED || (state == MONITORING && monitoringState == SUPERSEDED)) {
     final_length = recorder->get_current_length();
 
     if (!recorder) {
@@ -145,7 +147,8 @@ void Call_impl::conclude_call() {
     }
 
     Call_Concluder::conclude_call(this, sys, config);
-  } else {
+  }
+   else {
     BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "Concluding call, but call state is not COMPLETED!";
   }
 }
@@ -253,6 +256,14 @@ void Call_impl::set_state(State s) {
 
 State Call_impl::get_state() {
   return state;
+}
+
+void Call_impl::set_monitoring_state(MonitoringState s) {
+  monitoringState = s;
+}
+
+MonitoringState Call_impl::get_monitoring_state() {
+  return monitoringState;
 }
 
 void Call_impl::set_encrypted(bool m) {

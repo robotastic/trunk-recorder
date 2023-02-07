@@ -58,6 +58,8 @@ public:
   bool get_sigmf_recording();
   void set_state(State s);
   State get_state();
+  void set_monitoring_state(MonitoringState s);
+  MonitoringState get_monitoring_state();
   void set_phase2_tdma(bool m);
   bool get_phase2_tdma();
   void set_tdma_slot(int s);
@@ -86,6 +88,7 @@ public:
 
 protected:
   State state;
+  MonitoringState monitoringState;
   static long call_counter;
   long call_num;
   long talkgroup;

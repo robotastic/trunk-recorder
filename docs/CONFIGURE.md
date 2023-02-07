@@ -199,7 +199,14 @@ Here is a map of the different sections of the *config.json* file:
 | decodeTPS              |          | false                          | **true** / **false**                                         | [ Conventional systems only ] enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. |
 | enabled                |          | true                           | **true** / **false**                                         | control whether a configured system is enabled or disabled                 |
 
+#### System Object - Experimental Options
 
+| Key                    | Required | Default Value                  | Type                                                         | Description                                                  |
+| ---------------------- | :------: | ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| multiSite              |          | false                          | **true** / **false**                                         | Enables multiSite mode for this system                       |
+| multiSiteSystemName    |          |                                | string                                                       | The name of the system that this site belongs to. **This is required for SmartNet in Multi-Site mode.** |  
+
+Multi-Site mode attempts to avoid recording duplicate calls being broadcasted on multiple sites. Trunk recorder will not record duplicate calls on the same talkgroup for systems that have multiSite enabled. To ensure that both calls belong to the same system, Trunk Recorder will verify that both sites have the same WACN for P25, or the same multiSiteSystemName for SmartNet. By default, trunk-recorder will record the call from the first site that it receives the grant on, and any additional grants for the same call on other sites will be ignored. If you want to to specify the preferred site for a specific talk group, you can specify the preffered NAC in decimal format in the talk group CSV file.
 
 #### Plugin Object
 
@@ -382,12 +389,12 @@ The Trunk Record program really only uses the priority information and the Dec T
 
 Here are the column headers and some sample data: NOTE: If you are adding the Priority to a RR csv, as well as changing order you must use a heading for the first column other than "Decimal" eg DEC for TR to detect you are supplying this layout.
 
-| DEC  | HEX | Mode | Alpha Tag    | Description    | Tag            | Group    | Priority |
-|------|-----|------|--------------|----------------|----------------|----------|----------|
-| 101  | 065 | D    | DCFD 01 Disp | 01 Dispatch    | Fire Dispatch  | Fire     | 1        |
-| 2227 | 8b3 | D    | DC StcarYard | Streetcar Yard | Transportation | Services | 3        |
+| DEC |	HEX |	Mode |	Alpha Tag	| Description	| Tag |	Group | Priority | PreferredNAC (optional) |
+|-----|-----|------|-----------|-------------|-----|-------|----------|----------|
+|101	| 065	| D	| DCFD 01 Disp	| 01 Dispatch |	Fire Dispatch |	Fire | 1 | 1000 |
+|2227 |	8b3	| D	| DC StcarYard	| Streetcar Yard |	Transportation |	Services | 3 | 1001 |
 
-
+ In Multi-Site mode, the preferred NAC for a specific talk group is used to specify the site you prefer the talk group to be recorded from.
 
 ## channelFile
 
