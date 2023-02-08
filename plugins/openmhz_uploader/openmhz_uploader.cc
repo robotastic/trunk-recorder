@@ -64,7 +64,7 @@ public:
 
 
     if (call_info.transmission_source_list.size() != 0) {
-      for (int i = 0; i < call_info.transmission_source_list.size(); i++) {
+      for (unsigned long i = 0; i < call_info.transmission_source_list.size(); i++) {
         source_list << "{ \"pos\": " << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"src\": " << std::setprecision(0) << call_info.transmission_source_list[i].source << " }";
 
         if (i < (call_info.transmission_source_list.size() - 1)) {
