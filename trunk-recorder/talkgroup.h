@@ -22,18 +22,18 @@ public:
   double freq;
   double tone;
 
-  Talkgroup(int sys_num, long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, int preferredNAC);
+  Talkgroup(int sys_num, long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, unsigned long preferredNAC);
   Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group);
 
   bool is_active();
   int get_priority();
-  int get_preferredNAC();
+  unsigned long get_preferredNAC();
   void set_priority(int new_priority);
   void set_active(bool a);
   std::string menu_string();
 
 private:
-  int prefferedNAC;
+  unsigned long preferredNAC;
   bool active;
 };
 

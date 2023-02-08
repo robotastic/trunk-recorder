@@ -35,6 +35,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include <utility>
 
 #include "./global_structs.h"
 #include "recorder_globals.h"
@@ -399,6 +400,8 @@ bool load_config(string config_file) {
         BOOST_LOG_TRIVIAL(info) << "Multiple Site System: " << system->get_multiSite();
         system->set_multiSiteSystemName(node.second.get<std::string>("multiSiteSystemName", ""));
         BOOST_LOG_TRIVIAL(info) << "Multiple Site System Name: " << system->get_multiSiteSystemName();
+        system->set_multiSiteSystemNumber(node.second.get<unsigned long>("multiSiteSystemNumber", 0));
+        BOOST_LOG_TRIVIAL(info) << "Multiple Site System Number: " << system->get_multiSiteSystemNumber();
 
         if (!system->get_compress_wav()) {
           if ((system->get_api_key().length() > 0) || (system->get_bcfy_api_key().length() > 0)) {
@@ -995,12 +998,11 @@ void handle_call_grant(TrunkMessage message, System *sys) {
 
   //BOOST_LOG_TRIVIAL(info) << "TG: " << message.talkgroup << " sys num: " << message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
 
-  int message_prefferedNAC = 0;
+  unsigned long message_preferredNAC = 0;
   Talkgroup *message_talkgroup = sys->find_talkgroup(message.talkgroup);
   if (message_talkgroup) {
-     message_prefferedNAC = message_talkgroup->get_preferredNAC();
+     message_preferredNAC = message_talkgroup->get_preferredNAC();
   }
-  //BOOST_LOG_TRIVIAL(info) << "TG: " << message.talkgroup << " Preferred NAC: " << message_prefferedNAC << ".";
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
@@ -1022,13 +1024,14 @@ void handle_call_grant(TrunkMessage message, System *sys) {
                 duplicate_grant = true;
                 original_call = call;
 
-                int call_prefferedNAC = 0;
+                unsigned long call_preferredNAC = 0;
                 Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
                 if (call_talkgroup) {
-                  call_prefferedNAC = message_talkgroup->get_preferredNAC();
+                  call_preferredNAC = call_talkgroup->get_preferredNAC();
+          
                 }
 
-                if ((call_prefferedNAC != call->get_system()->get_nac()) && (message_prefferedNAC == sys->get_nac())) {
+                if ((call_preferredNAC != call->get_system()->get_nac() ) && (message_preferredNAC == sys->get_nac())) {
                   superseding_grant = true;
                 }
 
@@ -1043,17 +1046,18 @@ void handle_call_grant(TrunkMessage message, System *sys) {
                 duplicate_grant = true;
                 original_call = call;
 
-                // This is a hack to use the preferred Sytem Number as the preferredNAC.
-                // Should investiage a method to add a preferred Site name when manually specifcying mutliSiteSystemName
-                int call_prefferedNAC = 0;
+                unsigned long call_preferredNAC = 0;
                 Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
                 if (call_talkgroup) {
-                  call_prefferedNAC = message_talkgroup->get_preferredNAC();
-                }
-                if ((call_prefferedNAC != call->get_sys_num()) && (message_prefferedNAC == sys->get_sys_num())) {
-                  superseding_grant = true;
+                  call_preferredNAC = call_talkgroup->get_preferredNAC();
                 }
 
+                if((call->get_system()->get_multiSiteSystemNumber() != 0 ) && (sys->get_multiSiteSystemNumber() != 0 ))
+                {
+                  if ((call_preferredNAC != call->get_system()->get_multiSiteSystemNumber()) && (message_preferredNAC == sys->get_multiSiteSystemNumber())) {
+                    superseding_grant = true;
+                  }
+                }
               }
             }
           }

@@ -166,5 +166,8 @@ public:
   virtual std::string get_multiSiteSystemName() = 0;
   virtual void set_multiSiteSystemName(std::string multiSiteSystemName) = 0;
 
+  virtual unsigned long get_multiSiteSystemNumber() = 0;
+  virtual void set_multiSiteSystemNumber(unsigned long multiSiteSystemName) = 0;
+
 };
 #endif

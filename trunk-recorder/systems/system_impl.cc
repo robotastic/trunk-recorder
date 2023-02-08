@@ -606,3 +606,11 @@ std::string System_impl::get_multiSiteSystemName() {
 void System_impl::set_multiSiteSystemName(std::string multiSiteSystemName) {
   d_multiSiteSystemName = multiSiteSystemName;
 }
+
+unsigned long System_impl::get_multiSiteSystemNumber() {
+  return d_multiSiteSystemNumber;
+}
+
+void System_impl::set_multiSiteSystemNumber(unsigned long multiSiteSystemNumber) {
+  d_multiSiteSystemNumber = multiSiteSystemNumber;
+}

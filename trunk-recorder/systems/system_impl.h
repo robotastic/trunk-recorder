@@ -224,12 +224,16 @@ public:
   std::string get_multiSiteSystemName();
   void set_multiSiteSystemName(std::string multiSiteSystemName);
 
+  unsigned long get_multiSiteSystemNumber();
+  void set_multiSiteSystemNumber(unsigned long multiSiteSystemNumber);
+
 private:
   TalkgroupDisplayFormat talkgroup_display_format;
   bool d_hideEncrypted;
   bool d_hideUnknown;
   bool d_multiSite;
   std::string d_multiSiteSystemName;
+  unsigned long d_multiSiteSystemNumber;
 
   bool d_mdc_enabled;
   bool d_fsync_enabled;
