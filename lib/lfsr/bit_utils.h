@@ -76,7 +76,7 @@ std::string mk_str(Eigen::VectorXi a) {
   std::string res = "";
   char buffer[10];
   for (unsigned i=0; i<a.size(); i++) {
-    sprintf(buffer, "%d", (a(i) & 1));
+    snprintf(buffer, 10, "%d", (a(i) & 1));
     res.append(buffer);
   }
   return res;

@@ -27,7 +27,7 @@ int unit_registration(System *sys, long source_id) {
   std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li on &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    snprintf(shell_command, 200, "%s %s %li on &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }
@@ -39,7 +39,7 @@ int unit_deregistration(System *sys, long source_id) {
   std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li off &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    snprintf(shell_command, 200, "%s %s %li off &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }
@@ -49,7 +49,7 @@ int unit_acknowledge_response(System *sys, long source_id) {
   std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li ackresp &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    snprintf(shell_command,200, "%s %s %li ackresp &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }
@@ -69,7 +69,7 @@ int unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
       first = false;
       patch_string += std::to_string(TGID);
     }
-    sprintf(shell_command, "%s %s %li join %li %s &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup_num, patch_string.c_str());
+    snprintf(shell_command, 200, "%s %s %li join %li %s &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup_num, patch_string.c_str());
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }
@@ -80,7 +80,7 @@ int unit_data_grant(System *sys, long source_id) {
     std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li data &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
+    snprintf(shell_command, 200, "%s %s %li data &", system_script.c_str(), sys->get_short_name().c_str(), source_id);
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }
@@ -91,7 +91,7 @@ int unit_answer_request(System *sys, long source_id, long talkgroup) {
     std::string system_script = get_system_script(sys->get_short_name());
   if ((system_script != "") && (source_id != 0)) {
     char shell_command[200];
-    sprintf(shell_command, "%s %s %li ans_req %li &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup);
+    snprintf(shell_command, 200, "%s %s %li ans_req %li &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup);
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }
@@ -111,7 +111,7 @@ int unit_location(System *sys, long source_id, long talkgroup_num) {
       first = false;
       patch_string += std::to_string(TGID);
     }
-    sprintf(shell_command, "%s %s %li location %li %s &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup_num, patch_string.c_str());
+    snprintf(shell_command, 200, "%s %s %li location %li %s &", system_script.c_str(), sys->get_short_name().c_str(), source_id, talkgroup_num, patch_string.c_str());
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }
@@ -133,7 +133,7 @@ int call_start(Call *call) {
       first = false;
       patch_string += std::to_string(TGID);
     }
-    sprintf(shell_command, "%s %s %li call %li %s &", system_script.c_str(), short_name.c_str(), source_id, talkgroup_num, patch_string.c_str());
+    snprintf(shell_command, 200, "%s %s %li call %li %s &", system_script.c_str(), short_name.c_str(), source_id, talkgroup_num, patch_string.c_str());
     int rc __attribute__((unused)) =  system(shell_command);
     return 0;
   }

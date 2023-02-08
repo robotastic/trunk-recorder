@@ -35,7 +35,7 @@ std::string Talkgroup::menu_string() {
 
   // std::ostringstream oss;
 
-  sprintf(buff, "%5lu - %-15s %-20s %-15s %-40s", number, alpha_tag.c_str(), tag.c_str(), group.c_str(), description.c_str());
+  snprintf(buff, 150, "%5lu - %-15s %-20s %-15s %-40s", number, alpha_tag.c_str(), tag.c_str(), group.c_str(), description.c_str());
 
   // sprintf(buff, "%5lu - %s", number, alpha_tag.c_str());
 
