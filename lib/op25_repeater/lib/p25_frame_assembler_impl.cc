@@ -232,7 +232,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       }
   consume_each(ninput_items[0]);
   // Tell runtime system how many output items we actually produced.
-  return amt_produce;
+  return noutput_items;
 }
 
     void p25_frame_assembler_impl::clear_silence_frame_count() {
