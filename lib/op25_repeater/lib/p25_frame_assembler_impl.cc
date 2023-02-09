@@ -151,7 +151,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
   long p2_ptt_grp_id = -1;
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
-	for (int i = 0; i < ninput_items[0]; i++) {
+	for (size_t i = 0; i < ninput_items[0]; i++) {
 		if(p2tdma.rx_sym(in[i])) {
 			int rc = p2tdma.handle_frame();
       if (p2tdma.get_call_terminated()) {
@@ -182,7 +182,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
         //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
 
-      if (amt_produce > 0) {
+      if (amt_produce > 0 && terminate_call !== true) {
           long src_id = p1fdma.get_curr_src_id();
           long grp_id = p1fdma.get_curr_grp_id();
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
@@ -199,7 +199,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
           }
 
-          for (int i = 0; i < amt_produce; i++) {
+          for (size_t i = 0; i < amt_produce; i++) {
             out[i] = output_queue[i];
           }
           output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
@@ -232,7 +232,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       }
   consume_each(ninput_items[0]);
   // Tell runtime system how many output items we actually produced.
-  return noutput_items;
+  return amt_produce;
 }
 
     void p25_frame_assembler_impl::clear_silence_frame_count() {
