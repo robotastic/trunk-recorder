@@ -151,7 +151,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
   long p2_ptt_grp_id = -1;
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
-	for (size_t i = 0; i < ninput_items[0]; i++) {
+	for (int i = 0; i < ninput_items[0]; i++) {
 		if(p2tdma.rx_sym(in[i])) {
 			int rc = p2tdma.handle_frame();
       if (p2tdma.get_call_terminated()) {
@@ -199,7 +199,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
           }
 
-          for (size_t i = 0; i < amt_produce; i++) {
+          for (int i = 0; i < amt_produce; i++) {
             out[i] = output_queue[i];
           }
           output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
