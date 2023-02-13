@@ -157,11 +157,41 @@ sudo ./uhd_images_downloader.py
 Setup the udev rules so any user can access the USB, as documented [here](https://files.ettus.com/manual/page_transport.html#transport_usb_udev):
 
 ```bash
-cd /usr/lib/uhd/utils
+cd /lib/uhd/utils
 sudo cp uhd-usrp.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
+
+## Configure the RTL-SDR drivers
+
+RTL-SDR dongles were originally meant to be used for DTV reception. There are default drivers that sometimes get loaded up for this and need to be blocked so you can use the SDR functionality. 
+
+Edit the blocklist:
+```bash
+sudo nano /etc/modprobe.d/blocklist-rtlsdr.conf
+```
+
+and add in the following:
+
+```bash
+# Blacklist host from loading modules for RTL-SDRs to ensure they
+# are left available for the Docker guest.
+blacklist dvb_core
+blacklist dvb_usb_rtl2832u
+blacklist dvb_usb_rtl28xxu
+blacklist dvb_usb_v2
+blacklist r820t
+blacklist rtl2830
+blacklist rtl2832
+blacklist rtl2832_sdr
+blacklist rtl2838
+blacklist rtl8192cu
+blacklist rtl8xxxu
+```
+
+Now restart to make sure these drivers are not loaded.
+
 
 ## Configuring Trunk Recorder
 
