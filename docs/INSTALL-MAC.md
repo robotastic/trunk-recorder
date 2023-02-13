@@ -1,31 +1,31 @@
 # MacOS
-There are two main "package managers" used on MacOS: Homebrew and MacPorts. Trunk-recorder can be installed with dependencies from one or the other
+There are two main "package managers" used on MacOS: [Homebrew](#using-homebrew) and [MacPorts](#using-macports). Trunk-recorder can be installed with dependencies from one or the other
 
 ## Using Homebrew
-Tested on macOS Catalina 10.15.7 with the following packages:
+Tested on macOS Ventura 13.2 with the following packages:
 
-- homebrew 3.4.10
-- cmake 3.23.1
-- gnuradio 3.9.3.0
-- uhd 4.2.0.0
+- homebrew 3.6.21
+- cmake 3.25.2
+- gnuradio 3.10.5.1
+- uhd 4.4.0.0
 - pkgconfig 0.29.2
 - cppunit 1.15.1
-- openssl 3.0.3
-- fdk-aac-encoder 1.0.2
+- openssl 3.0.7
+- fdk-aac-encoder 1.0.3
 - sox 14.4.2
-- pybind11 2.9.2
+- pybind11 2.10.3
 
-### Install Homebrew
+#### Install Homebrew
 See [the Brew homepage](https://brew.sh) for more information.
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
 
-### Install GNURadio and other dependencies
+#### Install GNURadio and other dependencies
 ```bash
 brew install gnuradio uhd cmake pkgconfig cppunit openssl fdk-aac-encoder sox pybind11
 ```
-### Install the OsmoSDR Package for GNURadio
+#### Install the OsmoSDR Package for GNURadio
 See the gr-osmosdr [homepage](https://osmocom.org/projects/gr-osmosdr/wiki/GrOsmoSDR) for more information.
 ```bash
 git clone git://git.osmocom.org/gr-osmosdr
@@ -36,14 +36,20 @@ make -j
 sudo make install
 sudo update_dyld_shared_cache
 ```
-At this point, proceed to the [build instructions](#building-trunk-recorder).
+Before continuing with the build instructions, note that you will need to specify the location of the Homebrew libssl libraries during `cmake` with `-DOPENSSL_ROOT_DIR=`, or you will receive an error from CMake about not finding libssl, or a linking error from `make` about not having a library for `-lssl`.  
 
-Note that you will need to provide the flag `-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl` to the invocation of `cmake` in the [Build Instructions](https://github.com/robotastic/trunk-recorder/wiki/Building-Trunk-Recorder) or you will receive an error from CMake about not finding libssl or a linking error from `make` about not having a library for `-lssl`:
+This path in Homebrew will differ by system (Apple Silicon:`/opt/homebrew/opt/openssl@3` or macOS Intel:`/usr/local/opt/openssl@3`), but it can be located automatically as used below:
+
+#### Building Trunk Recorder
 ```bash
-cmake ../trunk-recorder -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3
+mkdir trunk-recorder && cd trunk-recorder
+git clone https://github.com/robotastic/trunk-recorder.git source
+mkdir build && cd build
+cmake ../source -DOPENSSL_ROOT_DIR=$(brew --prefix openssl@3)
+make -j
+sudo make install
 ```
-
-
+Continue to [Configuring Trunk Recorder](#configuring-trunk-recorder).
 
 ## Using MacPorts
 ### These instructions should work on OS X 10.10, OS X 10.11, and macOS 10.12.
@@ -98,7 +104,7 @@ make
 sudo make install
 ```
 
-## Building Trunk Recorder
+#### Building Trunk Recorder
 ```bash
 mkdir trunk-recorder && cd trunk-recorder
 git clone https://github.com/robotastic/trunk-recorder.git source
