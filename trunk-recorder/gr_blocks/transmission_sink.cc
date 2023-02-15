@@ -310,7 +310,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   }
 
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
-  if ((state == STOPPED) || (state == AVAILABLE)) {
+  if ((state == STOPPED && record_more_transmissions == false) || (state == AVAILABLE)) {
     if (noutput_items > 1) {
 
       BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - Recorder state is: " << format_state(this->state);
