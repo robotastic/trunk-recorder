@@ -85,6 +85,7 @@ gr::top_block_sptr tb;
 gr::msg_queue::sptr msg_queue;
 
 volatile sig_atomic_t exit_flag = 0;
+int exit_code = EXIT_SUCCESS;
 SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 Config config;
@@ -1383,19 +1384,23 @@ void check_message_count(float timeDiff) {
 
       if (msgs_decoded_per_second < 2) {
 
+        // if it loses track of the control channel, quit after a while
+        if (config.control_retune_limit > 0) {
+          sys->retune_attempts++;
+          if (sys->retune_attempts > config.control_retune_limit) {
+            BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t" << "Control channel retune limit exceeded after " << sys->retune_attempts << " tries - Terminating trunk recorder";
+            exit_flag = 1;
+            exit_code = EXIT_FAILURE;
+            return;
+          }
+        }
         if (sys->control_channel_count() > 1) {
           retune_system(sys);
         } else {
           BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tThere is only one control channel defined";
         }
 
-        // if it loses track of the control channel, quit after a while
-        if (config.control_retune_limit > 0) {
-          sys->retune_attempts++;
-          if (sys->retune_attempts > config.control_retune_limit) {
-            exit_flag = 1;
-          }
-        }
+
       } else {
         sys->retune_attempts = 0;
       }
@@ -1422,7 +1427,7 @@ void monitor_messages() {
   while (1) {
 
     if (exit_flag) { // my action when signal set it 1
-      BOOST_LOG_TRIVIAL(info) << "Caught Exit Signal...";
+      BOOST_LOG_TRIVIAL(info) << "Caught an Exit Signal...";
       for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
         Call *call = *it;
 
@@ -1763,5 +1768,5 @@ int main(int argc, char **argv) {
     BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." << std::endl;
   }
 
-  return 1;
+  return exit_code;
 }
