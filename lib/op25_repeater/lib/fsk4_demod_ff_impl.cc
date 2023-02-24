@@ -220,7 +220,7 @@ namespace gr {
     fsk4_demod_ff_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
       const int nof_samples_reqd = static_cast<int>(ceil(d_block_rate * noutput_items));
-      std::fill(&ninput_items_required[0], &ninput_items_required[ninput_items_required.size()], nof_samples_reqd);
+      std::fill(ninput_items_required.begin(), ninput_items_required.end(), nof_samples_reqd);
     }
 
     int
