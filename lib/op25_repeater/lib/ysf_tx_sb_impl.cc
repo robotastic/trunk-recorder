@@ -378,10 +378,9 @@ void
 ysf_tx_sb_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
 {
    // each 480-dibit output frame contains five voice code words=800 samples
-   const size_t nof_inputs = nof_input_items_reqd.size();
    const int nof_vcw = nof_output_items / 480.0;
    const int nof_samples_reqd = nof_vcw * 5 * 160;
-   std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
+   std::fill(nof_input_items_reqd.begin(), nof_input_items_reqd.end(), nof_samples_reqd);
 }
 
 int 

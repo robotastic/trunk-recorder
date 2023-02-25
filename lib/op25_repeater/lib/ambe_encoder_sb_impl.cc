@@ -79,9 +79,8 @@ ambe_encoder_sb_impl::forecast(int nof_output_items, gr_vector_int &nof_input_it
 {
    /* produces 1 36-byte-block sample per 160 samples input
     */
-   const size_t nof_inputs = nof_input_items_reqd.size();
    const int nof_samples_reqd = 160.0 * (nof_output_items);
-   std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
+   std::fill(nof_input_items_reqd.begin(), nof_input_items_reqd.end(), nof_samples_reqd);
 }
 
 int 

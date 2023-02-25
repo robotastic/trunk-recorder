@@ -368,10 +368,9 @@ dmr_bs_tx_bb_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items
 {
    // reads three ambe codewords (216 bits = 108 dibits) for each 144 dibit output burst
    // the three codewords though are only read from one of the two inputs per burst
-   const size_t nof_inputs = nof_input_items_reqd.size();
    const int nof_bursts = nof_output_items / 144.0;
    const int nof_samples_reqd = 3 * ((nof_bursts+1)>>1);
-   std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
+   std::fill(nof_input_items_reqd.begin(), nof_input_items_reqd.end(), nof_samples_reqd);
 }
 
 int 

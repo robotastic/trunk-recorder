@@ -152,10 +152,9 @@ void
 dstar_tx_sb_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
 {
    // each 96-bit output frame contains one voice code word=160 samples input
-   const size_t nof_inputs = nof_input_items_reqd.size();
    const int nof_vcw = nof_output_items / 96.0;
    const int nof_samples_reqd = nof_vcw * 160;
-   std::fill(&nof_input_items_reqd[0], &nof_input_items_reqd[nof_inputs], nof_samples_reqd);
+   std::fill(nof_input_items_reqd.begin(), nof_input_items_reqd.end(), nof_samples_reqd);
 }
 
 int 
