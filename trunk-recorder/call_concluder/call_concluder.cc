@@ -304,8 +304,6 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 }
 
 void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
-  char formattedTalkgroup[62];
-
   Call_Data_t call_info = create_call_data(call, sys, config);
 
   if(call->get_state() == MONITORING && call->get_monitoring_state() == SUPERSEDED){
