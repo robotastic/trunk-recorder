@@ -277,12 +277,13 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
     }
 
     std::string tag = sys->find_unit_tag(t.source);
+    std::string display_tag = "";
     if (tag != "") {
-      tag = " (\033[0;34m" + tag + "\033[0m)";
+      display_tag = " (\033[0;34m" + tag + "\033[0m)";
     }
 
     std::stringstream transmission_info;
-    transmission_info << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << tag << " pos: " << format_time(total_length) << " length: " << format_time(t.length);
+    transmission_info << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << display_tag << " pos: " << format_time(total_length) << " length: " << format_time(t.length);
 
     if (t.error_count < 1) {
       BOOST_LOG_TRIVIAL(info) << transmission_info.str();
