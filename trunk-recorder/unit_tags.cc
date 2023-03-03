@@ -84,7 +84,7 @@ std::string UnitTags::find_unit_tag(long tg_number) {
     UnitTag *tg = (UnitTag *)*it;
 
     if (regex_match(tg_num_str, tg->pattern)) {
-      tag = regex_replace(tg_num_str, tg->pattern, tg->tag, boost::regex_constants::format_no_copy);
+      tag = regex_replace(tg_num_str, tg->pattern, tg->tag, boost::regex_constants::format_no_copy | boost::regex_constants::format_all);
       break;
     }
   }

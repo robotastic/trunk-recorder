@@ -276,7 +276,20 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
       continue;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << " pos: " << total_length << " length: " << t.length;
+    std::string tag = sys->find_unit_tag(t.source);
+    if (tag != "") {
+      tag = " (\033[0;34m" + tag + "\033[0m)";
+    }
+
+    std::stringstream transmission_info;
+    transmission_info << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << tag << " pos: " << format_time(total_length) << " length: " << format_time(t.length);
+
+    if (t.error_count < 1) {
+      BOOST_LOG_TRIVIAL(info) << transmission_info.str();
+    } else {
+      BOOST_LOG_TRIVIAL(error) << transmission_info.str() << "\033[0;31m errors: " << t.error_count << " spikes: " << t.spike_count << "\033[0m";
+    }
+
     if (it == call_info.transmission_list.begin()) {
       call_info.start_time = t.start_time;
       snprintf(call_info.filename, 300, "%s-call_%lu.wav", t.base_filename, call_info.call_num);
@@ -288,7 +301,6 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
       call_info.stop_time = t.stop_time;
     }
 
-    std::string tag = sys->find_unit_tag(t.source);
     Call_Source call_source = {t.source, t.start_time, total_length, false, "", tag};
     Call_Error call_error = {t.start_time, total_length, t.length, t.error_count, t.spike_count};
     call_info.transmission_source_list.push_back(call_source);

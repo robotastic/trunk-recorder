@@ -26,6 +26,10 @@ boost::format FormatSamplingRate(float f) {
   return boost::format("%.0f") % f;
 }
 
+boost::format format_time(float f) {
+  return boost::format("%5.2f") % f;
+}
+
 std::string format_state(State state) {
   if (statusAsString) {
     if (state == MONITORING)
