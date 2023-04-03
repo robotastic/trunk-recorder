@@ -122,7 +122,7 @@ bool System_impl::update_status(TrunkMessage message) {
     sys_id = message.sys_id;
     wacn = message.wacn;
     nac = message.nac;
-    BOOST_LOG_TRIVIAL(info) << "[" << short_name << "]\tDecoding System_impl ID "
+    BOOST_LOG_TRIVIAL(info) << "[" << short_name << "]\tDecoding System ID "
                             << std::hex << std::uppercase << message.sys_id << " WACN: "
                             << std::hex << std::uppercase << message.wacn << " NAC: " << std::hex << std::uppercase << message.nac;
     if (sys_id && wacn && nac) {

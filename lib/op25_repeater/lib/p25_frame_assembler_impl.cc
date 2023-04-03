@@ -242,7 +242,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
     void p25_frame_assembler_impl::set_phase2_tdma(bool p) {
       d_do_phase2_tdma = p;
 
-      BOOST_LOG_TRIVIAL(info) << "Setting TDMA to: " << p;
+      BOOST_LOG_TRIVIAL(debug) << "Setting TDMA to: " << p;
       if (d_do_audio_output) {
         if (d_do_phase2_tdma) {
           d_input_rate = 6000;
