@@ -52,6 +52,16 @@ public:
     freq << std::fixed << std::setprecision(0);
     freq << call_info.freq;
 
+    std::ostringstream error_count;
+    std::string error_count_string;
+    error_count << std::fixed << std::setprecision(0);
+    error_count << call_info.error_count;
+
+    std::ostringstream spike_count;
+    std::string spike_count_string;
+    spike_count << std::fixed << std::setprecision(0);
+    spike_count << call_info.spike_count;
+
     std::ostringstream call_length;
     std::string call_length_string;
     call_length << std::fixed << std::setprecision(0);
@@ -77,28 +87,6 @@ public:
       source_list << "]";
     }
 
-
-    std::ostringstream freq_list;
-    std::string freq_list_string;
-    freq_list << std::fixed << std::setprecision(2);
-    freq_list << "[";
-
-    if (call_info.transmission_error_list.size() != 0) {
-      for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
-          freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"error_count\": \"" << std::setprecision(0) <<call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}"; 
-  
-        if (i < (call_info.transmission_error_list.size() - 1)) {
-          freq_list << ", ";
-        } else {
-          freq_list << "]";
-        }
-      }
-    }else {
-      freq_list << "]";
-    }
-
-
-
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
@@ -108,9 +96,10 @@ public:
     int still_running = 0;
     std::string response_buffer;
     freq_string = freq.str();
+    error_count_string = error_count.str();
+    spike_count_string = spike_count.str();
 
     source_list_string = source_list.str();
-    freq_list_string = freq_list.str();
     call_length_string = call_length.str();
 
     struct curl_httppost *formpost = NULL;
@@ -130,6 +119,18 @@ public:
                  &lastptr,
                  CURLFORM_COPYNAME, "freq",
                  CURLFORM_COPYCONTENTS, freq_string.c_str(),
+                 CURLFORM_END);
+
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "error_count",
+                 CURLFORM_COPYCONTENTS, error_count_string.c_str(),
+                 CURLFORM_END);
+
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "spike_count",
+                 CURLFORM_COPYCONTENTS, spike_count_string.c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
@@ -172,11 +173,6 @@ public:
                  &lastptr,
                  CURLFORM_COPYNAME, "source_list",
                  CURLFORM_COPYCONTENTS, source_list_string.c_str(),
-                 CURLFORM_END);
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "freq_list",
-                 CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
                  CURLFORM_END);
 
     curl = curl_easy_init();

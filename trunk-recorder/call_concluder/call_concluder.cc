@@ -216,6 +216,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.status = INITIAL;
   call_info.process_call_time = time(0);
   call_info.retry_attempt = 0;
+  call_info.error_count = 0;
+  call_info.spike_count = 0;
   call_info.freq = call->get_freq();
   call_info.encrypted = call->get_encrypted();
   call_info.emergency = call->get_emergency();
@@ -291,6 +293,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
     std::string tag = sys->find_unit_tag(t.source);
     Call_Source call_source = {t.source, t.start_time, total_length, false, "", tag};
     Call_Error call_error = {t.start_time, total_length, t.length, t.error_count, t.spike_count};
+    call_info.error_count = call_info.error_count + t.error_count;
+    call_info.spike_count = call_info.spike_count + t.spike_count;
     call_info.transmission_source_list.push_back(call_source);
     call_info.transmission_error_list.push_back(call_error);
 
