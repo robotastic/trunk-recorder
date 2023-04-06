@@ -120,6 +120,8 @@ public:
   virtual int channel_count() = 0;
   virtual int get_message_count() = 0;
   virtual void set_message_count(int count) = 0;
+  virtual void set_decode_rate(int rate) = 0;
+  virtual int get_decode_rate() = 0;
   virtual void add_channel(double channel) = 0;
   virtual void add_conventional_recorder(analog_recorder_sptr rec) = 0;
   virtual std::vector<analog_recorder_sptr> get_conventional_recorders() = 0;
