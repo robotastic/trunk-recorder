@@ -62,6 +62,7 @@ public:
   std::string upload_script;
   int bcfy_system_id;
   int message_count;
+  int decode_rate;
   int retune_attempts;
   time_t last_message_time;
   std::string bandplan;
@@ -174,6 +175,8 @@ public:
   int control_channel_count();
   int get_message_count();
   void set_message_count(int count);
+  int get_decode_rate();
+  void set_decode_rate(int rate);
   void add_control_channel(double channel);
   double get_next_control_channel();
   double get_current_control_channel();

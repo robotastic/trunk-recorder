@@ -36,6 +36,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <utility>
+#include <cmath>
 
 #include "./global_structs.h"
 #include "recorder_globals.h"
@@ -837,6 +838,15 @@ void print_status() {
     Source *source = *it;
     source->print_recorders();
   }
+
+    BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
+      for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
+    System_impl *sys = (System_impl *)*it;
+
+      if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR")) {
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
+      }
+      }
 }
 
 void manage_calls() {
@@ -1380,7 +1390,8 @@ void check_message_count(float timeDiff) {
     System_impl *sys = (System_impl *)*it;
 
     if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR")) {
-      float msgs_decoded_per_second = sys->message_count / timeDiff;
+      int msgs_decoded_per_second = std::floor(sys->message_count / timeDiff);
+      sys->set_decode_rate(msgs_decoded_per_second);
 
       if (msgs_decoded_per_second < 2) {
 
@@ -1418,8 +1429,8 @@ void monitor_messages() {
   int sys_num;
   System *sys;
 
-  time_t lastStatusTime = time(NULL);
-  time_t lastMsgCountTime = time(NULL);
+  time_t last_status_time = time(NULL);
+  time_t last_decode_rate_check = time(NULL);
   time_t management_timestamp = time(NULL);
   time_t current_time = time(NULL);
   std::vector<TrunkMessage> trunk_messages;
@@ -1491,11 +1502,11 @@ void monitor_messages() {
 
     current_time = time(NULL);
 
-    float timeDiff = current_time - lastMsgCountTime;
+    float decode_rate_check_time_diff = current_time - last_decode_rate_check;
 
-    if (timeDiff >= 3.0) {
-      check_message_count(timeDiff);
-      lastMsgCountTime = current_time;
+    if (decode_rate_check_time_diff >= 3.0) {
+      check_message_count(decode_rate_check_time_diff);
+      last_decode_rate_check = current_time;
       for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
         System *system = *sys_it;
         if (system->get_system_type() == "p25") {
@@ -1504,10 +1515,10 @@ void monitor_messages() {
       }
     }
 
-    float statusTimeDiff = current_time - lastStatusTime;
+    float print_status_time_diff = current_time - last_status_time;
 
-    if (statusTimeDiff > 200) {
-      lastStatusTime = current_time;
+    if (print_status_time_diff > 200) {
+      last_status_time = current_time;
       print_status();
     }
   }
