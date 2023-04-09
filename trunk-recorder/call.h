@@ -70,6 +70,9 @@ public:
   virtual bool get_encrypted() = 0;
   virtual void set_emergency(bool m) = 0;
   virtual bool get_emergency() = 0;
+  virtual int get_priority() = 0;
+  virtual bool get_mode() = 0;
+  virtual bool get_duplex() = 0;
   virtual std::string get_talkgroup_display() = 0;
   virtual void set_talkgroup_tag(std::string tag) = 0;
   virtual void clear_transmission_list() = 0;

@@ -266,6 +266,18 @@ bool Call_impl::get_emergency() {
   return emergency;
 }
 
+int Call_impl::get_priority() {
+  return priority;
+}
+
+bool Call_impl::get_mode() {
+  return mode;
+}
+
+bool Call_impl::get_duplex() {
+  return duplex;
+}
+
 void Call_impl::set_tdma_slot(int m) {
   tdma_slot = m;
   if (!phase2_tdma && tdma_slot) {
@@ -425,6 +437,9 @@ boost::property_tree::ptree Call_impl::get_stats() {
   call_node.put("conventional", this->is_conventional());
   call_node.put("encrypted", this->get_encrypted());
   call_node.put("emergency", this->get_emergency());
+  call_node.put("priority", this->get_priority());
+  call_node.put("mode", this->get_mode());
+  call_node.put("duplex", this->get_duplex());
   call_node.put("startTime", this->get_start_time());
   call_node.put("stopTime", this->get_stop_time());
   call_node.put("srcId", this->get_current_source_id());
