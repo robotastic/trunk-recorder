@@ -156,13 +156,21 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     std::string shell_command_string;
     std::string files;
 
+    struct stat statbuf;
     // loop through the transmission list, pull in things to fill in totals for call_info
     // Using a for loop with iterator
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
 
-      files.append(t.filename);
-      files.append(" ");
+      if (stat(t.filename, &statbuf) == 0)
+      {
+          files.append(t.filename);
+          files.append(" ");
+      }
+      else
+      {
+          BOOST_LOG_TRIVIAL(error) << "Somehow, " << t.filename << " doesn't exist, not attempting to provide it to sox";
+      }
     }
 
     combine_wav(files, call_info.filename);
