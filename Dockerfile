@@ -26,6 +26,7 @@ RUN apt-get update && \
     libfreesrp-dev \
     libgmp-dev \
     libhackrf-dev \
+    libmirisdr-dev \
     liborc-0.4-dev \
     libpthread-stubs0-dev \
     librtlsdr-dev \
@@ -41,17 +42,14 @@ RUN apt-get update && \
     wget && \
   rm -rf /var/lib/apt/lists/*
 
-COPY lib/gr-osmosdr/airspy_source_c.cc.patch /tmp/airspy_source_c.cc.patch
-
 # Fix the error message level for SmartNet
 
 RUN sed -i 's/log_level = debug/log_level = info/g' /etc/gnuradio/conf.d/gnuradio-runtime.conf
 
-# Compile gr-osmosdr ourselves so we can install the Airspy serial number patch
+# Compile gr-osmosdr ourselves using a fork with various patches included
 RUN cd /tmp && \
-  git clone https://git.osmocom.org/gr-osmosdr && \
+  git clone https://github.com/racerxdl/gr-osmosdr.git && \
   cd gr-osmosdr && \
-  git apply ../airspy_source_c.cc.patch && \
   mkdir build && \
   cd build && \
   cmake -DENABLE_NONFREE=TRUE .. && \
@@ -59,7 +57,7 @@ RUN cd /tmp && \
   make install && \
   ldconfig && \
   cd /tmp && \
-  rm -rf gr-osmosdr airspy_source_c.cc.patch
+  rm -rf gr-osmosdr
 
 WORKDIR /src
 
