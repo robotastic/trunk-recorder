@@ -134,7 +134,7 @@ void Call_impl::conclude_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call_impl::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\t\u001b[33mConcluding Recorded Call\u001b[0m - Last Update: " << this->since_last_update() << "s\tCall_impl Elapsed: " << this->elapsed();
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\t\u001b[33mConcluding Recorded Call\u001b[0m - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
     this->get_recorder()->stop();
     transmission_list = this->get_recorder()->get_transmission_list();
@@ -417,17 +417,19 @@ boost::property_tree::ptree Call_impl::get_stats() {
   boost::property_tree::ptree freq_list_node;
   boost::property_tree::ptree source_list_node;
   call_node.put("id", boost::lexical_cast<std::string>(this->get_sys_num()) + "_" + boost::lexical_cast<std::string>(this->get_talkgroup()) + "_" + boost::lexical_cast<std::string>(this->get_start_time()));
+  call_node.put("callNum", this->get_call_num());
   call_node.put("freq", this->get_freq());
   call_node.put("sysNum", this->get_sys_num());
   call_node.put("shortName", this->get_short_name());
   call_node.put("talkgroup", this->get_talkgroup());
   call_node.put("talkgrouptag", this->get_talkgroup_tag());
-  call_node.put("elasped", this->elapsed());
+  call_node.put("elapsed", this->elapsed());
   if (get_state() == RECORDING)
     call_node.put("length", this->get_current_length());
   else
     call_node.put("length", this->get_final_length());
   call_node.put("state", this->get_state());
+  call_node.put("monState", this->get_monitoring_state());
   call_node.put("phase2", this->get_phase2_tdma());
   call_node.put("conventional", this->is_conventional());
   call_node.put("encrypted", this->get_encrypted());
