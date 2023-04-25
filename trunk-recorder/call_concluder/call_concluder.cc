@@ -238,10 +238,10 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 
   Talkgroup *tg = sys->find_talkgroup(call->get_talkgroup());
   if (tg != NULL) {
-    call_info.talkgroup_tag = tg->tag;
-    call_info.talkgroup_alpha_tag = tg->alpha_tag;
-    call_info.talkgroup_description = tg->description;
-    call_info.talkgroup_group = tg->group;
+    call_info.talkgroup_tag = tg->get_tag();
+    call_info.talkgroup_alpha_tag = tg->get_alpha_tag();
+    call_info.talkgroup_description = tg->get_description();
+    call_info.talkgroup_group = tg->get_group();
   } else {
     call_info.talkgroup_tag = "";
     call_info.talkgroup_alpha_tag = "";

@@ -201,7 +201,7 @@ Talkgroup *Talkgroups::find_talkgroup(int sys_num, long tg_number) {
   for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
     Talkgroup *tg = (Talkgroup *)*it;
 
-    if ((tg->sys_num == sys_num) && (tg->number == tg_number)) {
+    if ((tg->get_sys_num() == sys_num) && (tg->get_number() == tg_number)) {
       tg_match = tg;
       break;
     }
@@ -215,7 +215,7 @@ Talkgroup *Talkgroups::find_talkgroup_by_freq(int sys_num, double freq) {
   for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
     Talkgroup *tg = (Talkgroup *)*it;
 
-    if ((tg->sys_num == sys_num) && (tg->freq == freq)) {
+    if ((tg->get_sys_num() == sys_num) && (tg->get_freq() == freq)) {
       tg_match = tg;
       break;
     }
