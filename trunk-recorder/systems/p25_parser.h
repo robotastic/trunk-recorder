@@ -12,7 +12,7 @@
 
 struct Channel {
   unsigned long id;
-  unsigned long offset;
+  long offset;
   unsigned long step;
   unsigned long frequency;
   bool phase2_tdma;

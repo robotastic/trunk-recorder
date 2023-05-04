@@ -847,7 +847,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long spac = bitset_shift_mask(tsbk, 48, 0x3ff);
     unsigned long freq = bitset_shift_mask(tsbk, 16, 0xffffffff);
     unsigned long toff_sign = (toff0 >> 8) & 1;
-    unsigned long toff = toff0 & 0xff;
+    long toff = toff0 & 0xff;
 
     if (toff_sign == 0) {
       toff = 0 - toff;
