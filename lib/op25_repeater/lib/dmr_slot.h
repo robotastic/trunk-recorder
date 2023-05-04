@@ -65,7 +65,7 @@ static const unsigned int SLOT_R                   = 156;
 
 class dmr_slot {
 public:
-	dmr_slot(const int chan, const int debug, int msgq_id, gr::msg_queue::sptr queue);
+	dmr_slot(const int chan, log_ts& logger, const int debug, int msgq_id, gr::msg_queue::sptr queue);
 	~dmr_slot();
 	inline void set_debug(const int debug) { d_debug = debug; };
 	bool load_slot(const uint8_t slot[], uint64_t sl_type);

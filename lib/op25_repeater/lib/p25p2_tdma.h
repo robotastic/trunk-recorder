@@ -1,4 +1,5 @@
 // P25 TDMA Decoder (C) Copyright 2013, 2014 Max H. Parke KA1RBI
+// P25 TDMA Decoder (C) Copyright 2017-2022 Graham J. Norbury
 // 
 // This file is part of OP25
 // 
@@ -31,6 +32,7 @@
 #include "p25p2_sync.h"
 #include "p25p2_vf.h"
 #include "p25p2_framer.h"
+#include "p25_crypt_algs.h"
 #include "op25_audio.h"
 #include "log_ts.h"
 
@@ -40,9 +42,11 @@
 class p25p2_tdma
 {
 public:
-	p25p2_tdma(const op25_audio& udp, int slotid, int debug, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &qptr, bool do_audio_output, bool do_nocrypt, int msgq_id = 0) ;	// constructor
+	p25p2_tdma(const op25_audio& udp, log_ts& logger, int slotid, int debug, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &qptr, bool do_audio_output, int msgq_id = 0) ;	// constructor
 	int handle_packet(uint8_t dibits[], const uint64_t fs) ;
 	void set_slotid(int slotid);
+	void crypt_reset();
+	void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key);
 	uint8_t* tdma_xormask;
 	uint32_t symbols_received;
 	uint32_t packets;
@@ -75,16 +79,14 @@ private:
 	bool d_do_msgq;
 	int d_msgq_id;
 	bool d_do_audio_output;
-        bool d_do_nocrypt;
-		bool terminate_call;
-		long src_id;
-		long grp_id;
-        const op25_audio& op25audio;
-	log_ts logts;
+	bool terminate_call;
+	long src_id;
+	long grp_id;
+	const op25_audio& op25audio;
+    log_ts& logts;
     int d_nac;
 	int d_debug;
 	int burst_id;
-	//inline int track_vb(int burst_type) { return burst_id = (burst_type == 0) ? (++burst_id % 5) : 4; }
 	inline int track_vb(int burst_type) { burst_id++; return burst_id = (burst_type == 0) ? (burst_id % 5) : 4; }
 	inline void reset_vb(void) { burst_id = -1; }
 
@@ -95,8 +97,12 @@ private:
 	uint16_t ess_keyid;
 	uint8_t ess_algid;
 	uint8_t ess_mi[9] = {0};
+	uint16_t next_keyid;
+	uint8_t next_algid;
+	uint8_t next_mi[9] = {0};
 
 	p25p2_framer p2framer;
+    p25_crypt_algs crypt_algs;
 
 	int handle_acch_frame(const uint8_t dibits[], bool fast, bool is_lcch) ;
 	void handle_voice_frame(const uint8_t dibits[]) ;

@@ -348,7 +348,7 @@ imbe_header_decode(const voice_codeword& cw, uint32_t& u0, uint32_t& u1, uint32_
 static inline void
 imbe_pack(packed_codeword& cw, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3, uint32_t u4, uint32_t u5, uint32_t u6, uint32_t u7)
 {
-	cw.empty();
+	cw.clear();
 	cw.push_back(u0 >> 4);
 	cw.push_back(((u0 & 0xf) << 4) + (u1 >> 8));
 	cw.push_back(u1 & 0xff);
@@ -360,6 +360,19 @@ imbe_pack(packed_codeword& cw, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u
 	cw.push_back(((u5 & 0x3f) << 2) + (u6 >> 9));
 	cw.push_back(u6 >> 1);
 	cw.push_back(((u6 & 0x1) << 7) + (u7 >> 1));
+}
+
+static inline void
+imbe_unpack(packed_codeword& cw, uint32_t& u0, uint32_t& u1, uint32_t& u2, uint32_t& u3, uint32_t& u4, uint32_t& u5, uint32_t& u6, uint32_t& u7)
+{
+    u0 = (cw[0] << 4) | ((cw[1] & 0xf0) >> 4);
+    u1 = ((cw[1] & 0xf) << 8) | (cw[2]);
+    u2 = (cw[3] << 4) | ((cw[4] & 0xf0) >> 4);
+    u3 = ((cw[4] & 0xf) << 8) | (cw[5]);
+    u4 = (cw[6] << 3) | ((cw[7] & 0xe0) >> 5);
+    u5 = ((cw[7] & 0x1f) << 6) | (cw[8] >> 2);
+    u6 = ((cw[8] & 0x3) << 9) | (cw[9] << 1) | ((cw[10] & 0x80) >> 7);
+    u7 = (cw[10] & 0x7f);
 }
 
 /* APCO IMBE header encoder.

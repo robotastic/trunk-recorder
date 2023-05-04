@@ -63,12 +63,14 @@ namespace gr{
                 void rx_sym(const uint8_t sym);
                 void sync_reset(void);
                 void reset_timer(void);
+                void crypt_reset(void) { };
+                void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key) { };
                 void set_nac(int nac) { };
                 void set_slot_mask(int mask) { };
                 void set_slot_key(int mask) { };
                 void set_xormask(const char* p) { };
                 void set_debug(int debug);
-                rx_smartnet(const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue);
+                rx_smartnet(const char * options, log_ts& logger, int debug, int msgq_id, gr::msg_queue::sptr queue);
                 ~rx_smartnet();
 
             private:
@@ -96,7 +98,7 @@ namespace gr{
                 unsigned int d_expires;
                 int d_shift_reg;
                 std::deque<int16_t> d_output_queue[2];
-                log_ts logts;
+                log_ts& logts;
 
         };
 

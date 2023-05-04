@@ -321,26 +321,26 @@ int iqfile_source_impl::work(int noutput_items,
             throw std::runtime_error("fread error");
 
         // Convert each pair of samples to complex float and output
-        for (int i = 0; i < (nitems_to_read * d_itemsize); i+= (d_itemsize * 2)) {
+        for (uint64_t i = 0; i < (nitems_to_read * d_itemsize); i+= (d_itemsize * 2)) {
             if (d_signed) {
                 s_real = *(int16_t*)&fbuf[i];
                 s_imag = *(int16_t*)&fbuf[i+d_itemsize];
                 f_real = s_real / d_scale;
                 f_imag = s_imag / d_scale;
 #if 0
-                fprintf(stderr, "[%d] (sr, si) = (fr, fi) : (%x, %x) = (%f, %f)\n", i, s_real, s_imag, f_real, f_imag);
+                fprintf(stderr, "[%lu] (sr, si) = (fr, fi) : (%x, %x) = (%f, %f)\n", i, s_real, s_imag, f_real, f_imag);
 #endif
             } else {
                 u_real = 0;
                 u_imag = 0;
-                for (int j = 0; j < d_itemsize; j++) {
+                for (size_t j = 0; j < d_itemsize; j++) {
                     u_real = (u_real << 8) + (fbuf[i+j] & 0xff);
                     u_imag = (u_imag << 8) + (fbuf[i+j+d_itemsize] & 0xff);
                 }
                 f_real = (u_real - d_scale) / d_scale;
                 f_imag = (u_imag - d_scale) / d_scale;
 #if 0
-                fprintf(stderr, "[%d] (sr, si) = (fr, fi) : (%x, %x) = (%f, %f)\n", i, u_real, u_imag, f_real, f_imag);
+                fprintf(stderr, "[%lu] (sr, si) = (fr, fi) : (%x, %x) = (%f, %f)\n", i, u_real, u_imag, f_real, f_imag);
 #endif
             }
             

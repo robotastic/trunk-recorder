@@ -115,6 +115,8 @@ public:
 	void rx_sym(const uint8_t sym);
 	void sync_reset(void);
 	void reset_timer(void);
+	void crypt_reset(void);
+	void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key);
 	void set_slot_mask(int mask);
 	void set_slot_key(int mask);
 	void set_xormask(const char* p);
@@ -122,7 +124,7 @@ public:
 	void set_debug(int debug);
 	int get_src_id(int slot);
 	bool get_terminated(int slot);
-	rx_sync(int sys_num, const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue, std::array<std::deque<int16_t>, 2> &output_queue);
+	rx_sync(int sys_num, const char * options, log_ts& logger, int debug, int msgq_id, gr::msg_queue::sptr queue, std::array<std::deque<int16_t>, 2> &output_queue);
 	~rx_sync();
 
 private:
@@ -163,15 +165,14 @@ private:
 	std::deque<int16_t> d_output_queue[2];
 	dmr_cai dmr;
 	int d_msgq_id;
-	int src_id[2];
 	gr::msg_queue::sptr d_msg_queue;
 	bool d_stereo;
 	int d_debug;
 	op25_audio d_audio;
-	log_ts logts;
+	log_ts& logts;
 	std::array<std::deque<int16_t>, 2> &output_queue;
-	//std::deque<int16_t> &output_queue[];
 	int d_sys_num;
+	int src_id[2];
 };
 
     } // end namespace op25_repeater

@@ -30,10 +30,10 @@ class p25_framer
         int d_msgq_id;
         uint32_t d_expected_nac;
         int d_unexpected_nac;
-        log_ts logts;
+        log_ts& logts;
 
     public:
-        p25_framer(int debug = 0, int msgq_id = 0);
+        p25_framer(log_ts& logger, int debug = 0, int msgq_id = 0);
         ~p25_framer ();	// destructor
         void set_nac(uint32_t nac) { d_expected_nac = nac; }
         void set_debug(int debug) { d_debug = debug; }
