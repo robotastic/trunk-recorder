@@ -7,6 +7,7 @@
 
 extern boost::format format_freq(double f);
 extern boost::format FormatSamplingRate(float f);
+extern boost::format format_time(float f);
 extern std::string format_state(State state);
 extern std::string format_state(State state, MonitoringState monitoringState);
 std::string get_frequency_format();
