@@ -98,7 +98,6 @@ namespace gr {
                 long curr_grp_id;
                 bool terminate_call;
                 const char *d_udp_host;
-                int  d_sys_num;
                 int  d_port;
 
                 ezpwd::RS<63,55> rs8;  // Reed-Solomon decoders for 8, 12 and 16 bit parity
@@ -119,7 +118,7 @@ namespace gr {
                 void crypt_reset();
                 void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key);
                 void rx_sym (const uint8_t *syms, int nsyms);
-                p25p1_fdma(int sys_num, const op25_audio& udp,  log_ts& logger, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, int msgq_id = 0);
+                p25p1_fdma(const op25_audio& udp,  log_ts& logger, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, int msgq_id = 0);
                 ~p25p1_fdma();
                 uint32_t load_nid(const uint8_t *syms, int nsyms, const uint64_t fs);
                 bool load_body(const uint8_t * syms, int nsyms);

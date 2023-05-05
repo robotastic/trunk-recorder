@@ -44,7 +44,7 @@ namespace gr {
         return;
       if (d_msg_queue->full_p())
         return;
-      gr::message::sptr msg = gr::message::make_from_string(std::string((const char *)wbuf, 2), duid, d_sys_num, 0);
+      gr::message::sptr msg = gr::message::make_from_string(std::string((const char *)wbuf, 2), duid, 0);
       d_msg_queue->insert_tail(msg);
     }
 
@@ -75,8 +75,8 @@ namespace gr {
     }
 
     p25_frame_assembler::sptr
-    p25_frame_assembler::make(int sys_num, int silence_frames, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt) {
-      return gnuradio::get_initial_sptr(new p25_frame_assembler_impl(sys_num, silence_frames, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma, do_nocrypt));
+    p25_frame_assembler::make(int silence_frames, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt) {
+      return gnuradio::get_initial_sptr(new p25_frame_assembler_impl(silence_frames, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma, do_nocrypt));
     }
 
     /*
@@ -96,13 +96,13 @@ static const int MAX_IN = 1;	// maximum number of input streams
 /*
  * The private constructor
  */
-  p25_frame_assembler_impl::p25_frame_assembler_impl(int sys_num, int silence_frames, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt)
+  p25_frame_assembler_impl::p25_frame_assembler_impl(int silence_frames, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt)
       : gr::block("p25_frame_assembler",
 		   gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
 		   gr::io_signature::make ((do_output) ? 1 : 0, (do_output) ? 1 : 0, (do_audio_output && do_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0 ))),
 	d_do_imbe(do_imbe),
 	d_do_output(do_output),
-  p1fdma(sys_num, op25audio, logts, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output, do_nocrypt),
+  p1fdma(op25audio, logts, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output, do_nocrypt),
 	d_do_audio_output(do_audio_output),
 	d_do_phase2_tdma(do_phase2_tdma),
 	d_do_nocrypt(do_nocrypt),

@@ -40,17 +40,17 @@ namespace gr {
 namespace blocks {
 
 decoder_wrapper_impl::sptr
-decoder_wrapper_impl::make(unsigned int sample_rate, int src_num, decoder_callback callback) {
-  return gnuradio::get_initial_sptr(new decoder_wrapper_impl(sample_rate, src_num, callback));
+decoder_wrapper_impl::make(unsigned int sample_rate, decoder_callback callback) {
+  return gnuradio::get_initial_sptr(new decoder_wrapper_impl(sample_rate, callback));
 }
 
-decoder_wrapper_impl::decoder_wrapper_impl(unsigned int sample_rate, int src_num, decoder_callback callback)
+decoder_wrapper_impl::decoder_wrapper_impl(unsigned int sample_rate, decoder_callback callback)
     : hier_block2("decoder_wrapper_impl",
                   io_signature::make(1, 1, sizeof(float)),
                   io_signature::make(0, 0, 0)),
       d_callback(callback) {
   d_signal_decoder_sink = gr::blocks::signal_decoder_sink_impl::make(sample_rate, callback);
-  d_tps_decoder_sink = gr::blocks::tps_decoder_sink_impl::make(sample_rate, src_num, callback);
+  d_tps_decoder_sink = gr::blocks::tps_decoder_sink_impl::make(sample_rate, callback);
 
   connect(self(), 0, d_signal_decoder_sink, 0);
   connect(self(), 0, d_tps_decoder_sink, 0);

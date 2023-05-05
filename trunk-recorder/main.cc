@@ -62,7 +62,6 @@
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/gr_complex.h>
 #include <gnuradio/message.h>
-#include <gnuradio/msg_queue.h>
 #include <gnuradio/top_block.h>
 #include <gnuradio/uhd/usrp_source.h>
 
@@ -83,7 +82,7 @@ std::map<long, long> unit_affiliations;
 std::vector<Call *> calls;
 
 gr::top_block_sptr tb;
-gr::msg_queue::sptr msg_queue;
+
 
 volatile sig_atomic_t exit_flag = 0;
 int exit_code = EXIT_SUCCESS;
@@ -1467,9 +1466,13 @@ void monitor_messages() {
 
     plugman_poll_one();
 
-    msg = msg_queue->delete_head_nowait();
 
-    if (msg != 0) {
+for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+    System_impl *system = (System_impl *)*sys_it;
+
+    if ((system->get_system_type() == "P25") || (system->get_system_type() == "smartnet") ) {
+
+    while ((msg = system->get_msg_queue()->delete_head_nowait()) != 0) {
       sys_num = msg->arg1();
       sys = find_system(sys_num);
 
@@ -1482,7 +1485,7 @@ void monitor_messages() {
         }
 
         if (sys->get_system_type() == "p25") {
-          trunk_messages = p25_parser->parse_message(msg);
+          trunk_messages = p25_parser->parse_message(msg, sys);
           handle_message(trunk_messages, sys);
         }
       }
@@ -1492,7 +1495,9 @@ void monitor_messages() {
       }
 
       msg.reset();
-    } else {
+    } 
+    }
+}
       current_time = time(NULL);
 
       if ((current_time - management_timestamp) >= 1.0) {
@@ -1503,9 +1508,7 @@ void monitor_messages() {
 
       boost::this_thread::sleep(boost::posix_time::milliseconds(10));
       // usleep(1000 * 10);
-    }
-
-    current_time = time(NULL);
+    
 
     float decode_rate_check_time_diff = current_time - last_decode_rate_check;
 
@@ -1657,7 +1660,7 @@ bool setup_systems() {
             system->smartnet_trunking = make_smartnet_trunking(control_channel_freq,
                                                                source->get_center(),
                                                                source->get_rate(),
-                                                               msg_queue,
+                                                               system->get_msg_queue(),
                                                                system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
           }
@@ -1668,7 +1671,7 @@ bool setup_systems() {
             system->p25_trunking = make_p25_trunking(control_channel_freq,
                                                      source->get_center(),
                                                      source->get_rate(),
-                                                     msg_queue,
+                                                     system->get_msg_queue(),
                                                      system->get_qpsk_mod(),
                                                      system->get_sys_num());
             tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
@@ -1741,7 +1744,7 @@ int main(int argc, char **argv) {
   tb = gr::make_top_block("Trunking");
   tb->start();
   tb->lock();
-  msg_queue = gr::msg_queue::make(100);
+  
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
   p25_parser = new P25Parser();
 

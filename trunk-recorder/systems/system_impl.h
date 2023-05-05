@@ -151,7 +151,7 @@ public:
   int get_max_dev();
   void set_filter_width(double f);
   double get_filter_width();
-
+  gr::msg_queue::sptr get_msg_queue();
   std::string get_system_type();
   unsigned long get_sys_id();
   unsigned long get_wacn();
@@ -191,6 +191,7 @@ public:
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();
   std::vector<Talkgroup *> get_talkgroups();
+  gr::msg_queue::sptr msg_queue;
   System_impl(int sys_id);
   void set_bandplan(std::string);
   std::string get_bandplan();

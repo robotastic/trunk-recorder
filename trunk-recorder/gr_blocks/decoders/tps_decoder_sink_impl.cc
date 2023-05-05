@@ -47,15 +47,14 @@ namespace gr {
 namespace blocks {
 
 tps_decoder_sink_impl::sptr
-tps_decoder_sink_impl::make(unsigned int sample_rate, int src_num, decoder_callback callback) {
-  return gnuradio::get_initial_sptr(new tps_decoder_sink_impl(sample_rate, src_num, callback));
+tps_decoder_sink_impl::make(unsigned int sample_rate, decoder_callback callback) {
+  return gnuradio::get_initial_sptr(new tps_decoder_sink_impl(sample_rate, callback));
 }
 
-tps_decoder_sink_impl::tps_decoder_sink_impl(unsigned int sample_rate, int src_num, decoder_callback callback)
+tps_decoder_sink_impl::tps_decoder_sink_impl(unsigned int sample_rate, decoder_callback callback)
     : hier_block2("tps_decoder_sink_impl",
                   io_signature::make(1, 1, sizeof(float)),
                   io_signature::make(0, 0, 0)),
-      d_src_num(src_num),
       d_callback(callback) {
   rx_queue = gr::msg_queue::make(100);
 
@@ -80,7 +79,7 @@ std::string tps_decoder_sink_impl::to_hex(const std::string &s, bool upper, bool
   return result.str();
 }
 
-void tps_decoder_sink_impl::parse_p25_json(int src_num, std::string json) {
+void tps_decoder_sink_impl::parse_p25_json(std::string json) {
   try {
 
     if (json.empty() || json.length() < 3)
@@ -97,7 +96,7 @@ void tps_decoder_sink_impl::parse_p25_json(int src_num, std::string json) {
       log_decoder_msg(srcaddr, "TPS", SignalType::Normal);
     }
   } catch (std::exception const &e) {
-    BOOST_LOG_TRIVIAL(error) << "[" << std::dec << src_num << "] TPS: ERROR PROCESSING JSON: " << e.what();
+    BOOST_LOG_TRIVIAL(error) << "TPS: ERROR PROCESSING JSON: " << e.what();
   }
 }
 
@@ -106,12 +105,11 @@ void tps_decoder_sink_impl::process_message(gr::message::sptr msg) {
     return;
 
   long type = msg->type();
-  int src_num = msg->arg1();
 
-  BOOST_LOG_TRIVIAL(trace) << "[" << std::dec << src_num << "] TPS MESSAGE " << std::dec << type << ": " << to_hex(msg->to_string());
+  BOOST_LOG_TRIVIAL(trace) << "TPS MESSAGE " << std::dec << type << ": " << to_hex(msg->to_string());
 
   if (type == M_P25_JSON_DATA) {
-    parse_p25_json(src_num, msg->to_string());
+    parse_p25_json(msg->to_string());
     return;
   }
 
@@ -151,7 +149,7 @@ void tps_decoder_sink_impl::process_message(gr::message::sptr msg) {
     }
     b <<= 16; // for missing crc
 
-    decode_tsbk(b, nac, src_num);
+    decode_tsbk(b, nac);
   } else if (type == 12) { // # trunk: MBT
     std::string s1 = s.substr(0, 10);
     std::string s2 = s.substr(10);
@@ -189,7 +187,7 @@ void tps_decoder_sink_impl::process_message(gr::message::sptr msg) {
     mbt_data <<= 32; // for missing crc
     unsigned long opcode = bitset_shift_mask(header, 32, 0x3f);
     unsigned long link_id = bitset_shift_mask(header, 48, 0xffffff);
-    decode_mbt_data(opcode, header, mbt_data, link_id, nac, src_num);
+    decode_mbt_data(opcode, header, mbt_data, link_id, nac);
   } else {
     // Not supported yet...
   }
@@ -226,7 +224,7 @@ void tps_decoder_sink_impl::initialize_p25() {
   bool do_audio_output = 0;
   bool do_tdma = 0;
   bool do_crypt = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(d_src_num, silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
 
   connect(self(), 0, valve, 0);
   connect(valve, 0, slicer, 0);
@@ -243,7 +241,7 @@ unsigned long tps_decoder_sink_impl::bitset_shift_mask(boost::dynamic_bitset<> &
   return result;
 }
 
-void tps_decoder_sink_impl::decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<> &header, boost::dynamic_bitset<> &mbt_data, unsigned long sa, unsigned long nac, int sys_num) {
+void tps_decoder_sink_impl::decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<> &header, boost::dynamic_bitset<> &mbt_data, unsigned long sa, unsigned long nac) {
   long unit_id = 0;
   bool emergency = false;
 
@@ -262,7 +260,7 @@ void tps_decoder_sink_impl::decode_mbt_data(unsigned long opcode, boost::dynamic
   }
 }
 
-void tps_decoder_sink_impl::decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac, int sys_num) {
+void tps_decoder_sink_impl::decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac) {
   long unit_id = 0;
   bool emergency = false;
 

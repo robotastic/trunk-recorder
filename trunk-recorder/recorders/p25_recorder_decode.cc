@@ -93,7 +93,7 @@ void p25_recorder_decode::initialize(int silence_frames) {
   bool do_tdma = 0;
   bool do_nocrypt = 1;
 
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
 
   levels = gr::blocks::multiply_const_ss::make(1);
 

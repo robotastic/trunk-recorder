@@ -99,6 +99,7 @@ System_impl::System_impl(int sys_num) {
   retune_attempts = 0;
   message_count = 0;
   decode_rate = 0;
+  msg_queue = gr::msg_queue::make(100);
 }
 
 void System_impl::set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac) {
@@ -140,6 +141,10 @@ bool System_impl::update_status(TrunkMessage message) {
   return false;
 }
 
+ gr::msg_queue::sptr System_impl::get_msg_queue() {
+  return msg_queue;
+ }
+ 
 const char *System_impl::get_xor_mask() {
   return xor_mask;
 }

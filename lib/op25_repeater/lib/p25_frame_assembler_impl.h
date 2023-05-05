@@ -54,7 +54,6 @@ namespace gr {
 	gr::msg_queue::sptr d_msg_queue;
 
   int d_input_rate;
-  int d_sys_num;
   int d_silence_frames;
   int silence_frame_count;
   long total_produced;
@@ -76,7 +75,7 @@ namespace gr {
   void set_phase2_tdma(bool p);
 
 public:
-      p25_frame_assembler_impl(int sys_num, int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt);
+      p25_frame_assembler_impl(int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt);
       ~p25_frame_assembler_impl();
 
       op25_audio op25audio;
