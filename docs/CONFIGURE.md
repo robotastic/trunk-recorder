@@ -91,11 +91,11 @@ Here is a map of the different sections of the *config.json* file:
 
 ```json
 {
-	Global Configs
+  Global Configs
 
-	"sources": [{ Source Object }, { Source Object }],
-	"systems": [{ System Object }, { System Object }],
-	"plugins": [{ Plugin Object }]
+  "sources": [{ Source Object }, { Source Object }],
+  "systems": [{ System Object }, { System Object }],
+  "plugins": [{ Plugin Object }]
 }
 ```
 

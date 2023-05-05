@@ -14,7 +14,7 @@ public:
 
   int system_rates(std::vector<System *> systems, float timeDiff) override {
     time_t now = time(NULL);
-    if (now-lastTime > freq) { 
+    if (now-lastTime > freq) {
       myfile.open(decode_rates_file, std::ofstream::app);
       if (myfile.is_open()) {
         myfile.fill('0');
