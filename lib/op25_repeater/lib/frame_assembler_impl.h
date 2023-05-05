@@ -60,7 +60,7 @@ namespace gr {
             public:
 
             public:
-                frame_assembler_impl(int sys_num, const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue);
+                frame_assembler_impl(const char* options, int debug, int msgq_id, gr::msg_queue::sptr queue);
                 ~frame_assembler_impl();
 
                 // Where all the action really happens

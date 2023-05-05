@@ -40,7 +40,6 @@ namespace blocks {
 
 class tps_decoder_sink_impl : public tps_decoder_sink {
 private:
-  int d_src_num;
   decoder_callback d_callback;
 
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
@@ -50,9 +49,9 @@ private:
 
   void initialize_p25(void);
   void process_message(gr::message::sptr msg);
-  void parse_p25_json(int src_num, std::string json);
-  void decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<> &header, boost::dynamic_bitset<> &mbt_data, unsigned long link_id, unsigned long nac, int sys_num);
-  void decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac, int sys_num);
+  void parse_p25_json(std::string json);
+  void decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<> &header, boost::dynamic_bitset<> &mbt_data, unsigned long link_id, unsigned long nac);
+  void decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac);
 
   unsigned long bitset_shift_mask(boost::dynamic_bitset<> &tsbk, int shift, unsigned long long mask);
 
@@ -67,9 +66,9 @@ public:
 
   gr::msg_queue::sptr rx_queue;
 
-  static sptr make(unsigned int sample_rate, int src_num, decoder_callback callback);
+  static sptr make(unsigned int sample_rate, decoder_callback callback);
 
-  tps_decoder_sink_impl(unsigned int sample_rate, int src_num, decoder_callback callback);
+  tps_decoder_sink_impl(unsigned int sample_rate, decoder_callback callback);
 
   void set_enabled(bool b);
 

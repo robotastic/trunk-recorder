@@ -50,9 +50,9 @@ public:
    * \param sample_rate Sample rate [S/s]
    * \param bits_per_sample 16 or 8 bit, default is 16
    */
-  static sptr make(unsigned int sample_rate, int src_num, decoder_callback callback);
+  static sptr make(unsigned int sample_rate, decoder_callback callback);
 
-  decoder_wrapper_impl(unsigned int sample_rate, int src_num, decoder_callback callback);
+  decoder_wrapper_impl(unsigned int sample_rate, decoder_callback callback);
   ~decoder_wrapper_impl();
 
   void set_mdc_enabled(bool b);

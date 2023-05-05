@@ -122,7 +122,7 @@ public:
 	void set_debug(int debug);
 	int get_src_id(int slot);
 	bool get_terminated(int slot);
-	rx_sync(int sys_num, const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue, std::array<std::deque<int16_t>, 2> &output_queue);
+	rx_sync(const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue, std::array<std::deque<int16_t>, 2> &output_queue);
 	~rx_sync();
 
 private:
@@ -171,7 +171,6 @@ private:
 	log_ts logts;
 	std::array<std::deque<int16_t>, 2> &output_queue;
 	//std::deque<int16_t> &output_queue[];
-	int d_sys_num;
 };
 
     } // end namespace op25_repeater
