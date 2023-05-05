@@ -183,6 +183,11 @@ p25_frame_assembler_impl::general_work (int noutput_items,
         //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
 
       if (amt_produce > 0) {
+          if (amt_produce >= 32768) {
+            BOOST_LOG_TRIVIAL(error) << "P25 Frame Assembler -  output_queue size: " << output_queue.size() << " max size: " << output_queue.max_size() << " limiting amt_produce to  32767 ";
+            
+            amt_produce = 32767; // buffer limit is 32768, see gnuradio/gnuradio-runtime/lib/../include/gnuradio/buffer.h:186
+          }
           long src_id = p1fdma.get_curr_src_id();
           long grp_id = p1fdma.get_curr_grp_id();
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
