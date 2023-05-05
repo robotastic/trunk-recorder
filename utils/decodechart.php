@@ -1,4 +1,10 @@
 <?php //created by Jason McHuff, http://www.rosecitytransit.org/
+//this version greps the log files for "Control Channel Message Decode Rate" lines,
+//and therefore requires controlWarnRate config option to be set to -1.
+//In addition, you may want to modify trunk-recorder to only output the rate(s)
+//once a minute (can also modify this script to load more than one point per minute).
+//A version that uses the plugin is in /plugins/decode_rates
+
 //style from: Topnew CMS Chart v5.5.5 - Released on 2016.05.05
 // The MIT License (MIT) Copyright (c) 1998-2015, Topnew Geo, http://topnew.net/chart
 
@@ -6,8 +12,7 @@
 //however each data point always takes up 1 px width (no adjustment based on amount)
 
 //SET THESE:
-//default amount of data points to include if no files specified
-//I set controlWarnUpdate/controlWarnRate in config.json so rates always output once/minute  
+//default amount of data points to include if no files specified 
 $datapoints = 1440;
 
 $chartwidth = 1500;
