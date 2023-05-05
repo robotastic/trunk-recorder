@@ -24,6 +24,25 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
+#include <string>
+#include <vector>
+
+// helper for logging support
+inline std::string uint8_vector_to_hex_string(const std::vector<uint8_t>& v)
+{
+    std::string result;
+    result.reserve(v.size() * 2);   // two digits per character
+
+    static constexpr char hex[] = "0123456789ABCDEF";
+
+    for (uint8_t c : v)
+    {
+        result.push_back(hex[c / 16]);
+        result.push_back(hex[c % 16]);
+    }
+
+    return result;
+}
 
 class log_ts
 {

@@ -34,7 +34,7 @@ static const unsigned int slot_ids[] = {0, 1, 0, 0, 1, 1, 0, 1};
 
 class dmr_cai {
 public:
-	dmr_cai(int debug, int msgq_id, gr::msg_queue::sptr queue);
+	dmr_cai(log_ts& logger, int debug, int msgq_id, gr::msg_queue::sptr queue);
 	~dmr_cai();
 	bool load_frame(const uint8_t fr_sym[], bool& unmute);
     void set_debug(int debug);
@@ -56,7 +56,7 @@ private:
 	int d_debug;
 	int d_msgq_id;
 	gr::msg_queue::sptr d_msg_queue;
-	log_ts logts;
+	log_ts& logts;
 
 	void extract_cach_fragment();
 	bool decode_shortLC();

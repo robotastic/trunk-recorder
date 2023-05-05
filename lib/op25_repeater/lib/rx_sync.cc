@@ -1,5 +1,5 @@
 // P25 Decoder (C) Copyright 2013, 2014, 2015, 2016, 2017 Max H. Parke KA1RBI
-//             (C) Copyright 2019, 2020 Graham J. Norbury (DMR & P25 additions)
+//             (C) Copyright 2019, 2020, 2021, 2022 Graham J. Norbury (DMR & P25 additions)
 // 
 // This file is part of OP25
 // 
@@ -93,6 +93,16 @@ void rx_sync::sync_reset(void) {
 
 	// Timers reset
 	reset_timer();
+}
+
+void rx_sync::crypt_reset(void) {
+	p25fdma.crypt_reset();
+	p25tdma.crypt_reset();
+}
+
+void rx_sync::crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key) {
+	p25fdma.crypt_key(keyid, algid, key);
+	p25tdma.crypt_key(keyid, algid, key);
 }
 
 void rx_sync::set_nac(int nac) {
@@ -204,7 +214,7 @@ void rx_sync::ysf_sync(const uint8_t dibitbuf[], bool& ysf_fullrate, bool& unmut
 		fprintf(stderr, "%s ysf_sync: muting audio: dt: %d, rc: %d\n", logts.get(d_msgq_id), d_shift_reg, rc);
 }
 
-rx_sync::rx_sync(int sys_num, const char * options, int debug, int msgq_id, gr::msg_queue::sptr queue, std::array<std::deque<int16_t>, 2> &output_queue) :	// constructor
+rx_sync::rx_sync(int sys_num, const char * options, log_ts& logger, int debug, int msgq_id, gr::msg_queue::sptr queue, std::array<std::deque<int16_t>, 2> &output_queue) :	// constructor
 	sync_timer(op25_timer(1000000)),
 	d_symbol_count(0),
 	d_sync_reg(0),
@@ -216,15 +226,15 @@ rx_sync::rx_sync(int sys_num, const char * options, int debug, int msgq_id, gr::
 	d_slot_mask(3),
 	d_slot_key(0),
 	output_queue(output_queue),
-	p25fdma(sys_num, d_audio, debug, true, false, true, queue, d_output_queue[0], true, true, msgq_id),
-	p25tdma( d_audio, 0, debug, true, queue, d_output_queue[0], true, true, msgq_id),
-	dmr(debug, msgq_id, queue),
+	p25fdma(sys_num, d_audio, logger, debug, true, false, true, queue, d_output_queue[0], true, msgq_id),
+	p25tdma(d_audio, logger, 0, debug, true, queue, d_output_queue[0], true, msgq_id),
+	dmr(logger, debug, msgq_id, queue),
 	d_msgq_id(msgq_id),
 	d_msg_queue(queue),
-
 	d_stereo(true),
 	d_debug(debug),
 	d_audio(options, debug),
+	logts(logger),
 	d_sys_num(sys_num)
 {
 	if (msgq_id >= 0)
@@ -258,11 +268,13 @@ void rx_sync::sync_timeout(rx_types proto)
 		case RX_TYPE_P25P1:
 		case RX_TYPE_P25P2:
 			msg = gr::message::make_from_string(m_buf, get_msg_type(PROTOCOL_P25, M_P25_TIMEOUT), (d_msgq_id << 1), logts.get_ts());
-			d_msg_queue->insert_tail(msg);
+            if (!d_msg_queue->full_p())
+				d_msg_queue->insert_tail(msg);
 			break;
 		case RX_TYPE_DMR:
 			msg = gr::message::make_from_string(m_buf, get_msg_type(PROTOCOL_DMR, M_DMR_TIMEOUT), (d_msgq_id << 1), logts.get_ts());
-			d_msg_queue->insert_tail(msg);
+            if (!d_msg_queue->full_p())
+				d_msg_queue->insert_tail(msg);
 			break;
 		default:
 			break;
@@ -285,7 +297,8 @@ void rx_sync::sync_established(rx_types proto)
 		case RX_TYPE_P25P1:
 		case RX_TYPE_P25P2:
 			msg = gr::message::make_from_string(m_buf, get_msg_type(PROTOCOL_P25, M_P25_SYNC_ESTAB), (d_msgq_id << 1), logts.get_ts());
-			d_msg_queue->insert_tail(msg);
+            if (!d_msg_queue->full_p())
+				d_msg_queue->insert_tail(msg);
 			break;
 		case RX_TYPE_DMR:
 			break;

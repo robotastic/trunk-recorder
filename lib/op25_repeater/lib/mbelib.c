@@ -14,7 +14,7 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include "mbelib.h"
 #include "mbelib_const.h"

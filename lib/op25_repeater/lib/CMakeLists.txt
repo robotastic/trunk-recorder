@@ -29,6 +29,15 @@ else()
 endif()
 unset(AMBE_TONES CACHE)
 
+option(NID_PARITY_CHECK "Enable NID Parity Check" OFF)
+if (NID_PARITY_CHECK)
+  message(STATUS "NID Parity Check Enabled")
+else()
+  message(STATUS "NID Parity Check Disabled")
+  add_definitions(-DDISABLE_NID_PARITY_CHECK)
+endif()
+unset(NID_PARITY_CHECK CACHE)
+
 add_definitions(-DEZPWD_NO_EXCEPTS)
 
 include(GrPlatform) #define LIB_SUFFIX
@@ -56,6 +65,7 @@ list(APPEND op25_repeater_sources
     rs.cc
     p25_framer.cc
     p25p1_fdma.cc
+    p25_crypt_algs.cc
     p25p1_voice_encode.cc
     p25p1_voice_decode.cc
     p25p2_framer.cc
