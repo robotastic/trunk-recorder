@@ -321,8 +321,9 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   }
 
   std::vector<gr::tag_t> tags;
-  pmt::pmt_t src_id_key(pmt::intern("src_id"));
-  pmt::pmt_t ptt_src_id_key(pmt::intern("ptt_src_id"));
+  pmt::pmt_t src_id_key(pmt::intern("src_id")); // This is the src id from Phase 1 and DMR
+  pmt::pmt_t grp_id_key(pmt::intern("grp_id")); // This is the src id from Phase 1 and DMR
+  pmt::pmt_t ptt_src_id_key(pmt::intern("ptt_src_id"));  // This is the src id from Phase 2
   pmt::pmt_t terminate_key(pmt::intern("terminate"));
   pmt::pmt_t spike_count_key(pmt::intern("spike_count"));
   pmt::pmt_t error_count_key(pmt::intern("error_count"));
@@ -335,6 +336,14 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
   for (unsigned int i = 0; i < tags.size(); i++) {
     // BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
+    if (pmt::eq(grp_id_key, tags[i].key)) {
+      long grp_id = pmt::to_long(tags[i].value);
+      if ((state == STOPPED) || (state == RECORDING)) {
+        if(d_current_call_talkgroup != grp_id) {
+          BOOST_LOG_TRIVIAL(info) << "GROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup << " Voice Channel: " << grp_id;
+        }
+      }
+    }
     if (pmt::eq(src_id_key, tags[i].key)) {
       long src_id = pmt::to_long(tags[i].value);
       pos = d_sample_count + (tags[i].offset - nitems_read(0));
