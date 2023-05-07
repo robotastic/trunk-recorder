@@ -12,6 +12,10 @@
 std::string Call_impl::get_capture_dir() {
   return this->config.capture_dir;
 }
+
+int Call_impl::get_instance_id() {
+    return this->config.instance_id;
+}
 /*
 Call * Call::make(long t, double f, System *s, Config c) {
 
@@ -417,33 +421,33 @@ boost::property_tree::ptree Call_impl::get_stats() {
   boost::property_tree::ptree freq_list_node;
   boost::property_tree::ptree source_list_node;
   call_node.put("id", boost::lexical_cast<std::string>(this->get_sys_num()) + "_" + boost::lexical_cast<std::string>(this->get_talkgroup()) + "_" + boost::lexical_cast<std::string>(this->get_start_time()));
-  call_node.put("callNum", this->get_call_num());
+  call_node.put("instance_id", this->get_instance_id());
+  call_node.put("call_num", this->get_call_num());
   call_node.put("freq", this->get_freq());
-  call_node.put("sysNum", this->get_sys_num());
-  call_node.put("shortName", this->get_short_name());
+  call_node.put("sys_num", this->get_sys_num());
+  call_node.put("short_name", this->get_short_name());
   call_node.put("talkgroup", this->get_talkgroup());
-  call_node.put("talkgrouptag", this->get_talkgroup_tag());
+  call_node.put("talkgroup_alpha_tag", this->get_talkgroup_tag());
   call_node.put("elapsed", this->elapsed());
   if (get_state() == RECORDING)
-    call_node.put("length", this->get_current_length());
+    call_node.put("duration", this->get_current_length());
   else
-    call_node.put("length", this->get_final_length());
-  call_node.put("state", this->get_state());
-  call_node.put("monState", this->get_monitoring_state());
-  call_node.put("phase2", this->get_phase2_tdma());
+    call_node.put("duration", this->get_final_length());
+  call_node.put("call_state", this->get_state());
+  call_node.put("monitor_state", this->get_monitoring_state());
+  call_node.put("phase_2", this->get_phase2_tdma());
   call_node.put("conventional", this->is_conventional());
   call_node.put("encrypted", this->get_encrypted());
   call_node.put("emergency", this->get_emergency());
-  call_node.put("startTime", this->get_start_time());
-  call_node.put("stopTime", this->get_stop_time());
-  call_node.put("srcId", this->get_current_source_id());
-
+  call_node.put("start_time", this->get_start_time());
+  call_node.put("stop_time", this->get_stop_time());
+  call_node.put("src_id", this->get_current_source_id());
   Recorder *recorder = this->get_recorder();
 
   if (recorder) {
-    call_node.put("recNum", recorder->get_num());
-    call_node.put("srcNum", recorder->get_source()->get_num());
-    call_node.put("recState", recorder->get_state());
+    call_node.put("rec_num", recorder->get_num());
+    call_node.put("src_num", recorder->get_source()->get_num());
+    call_node.put("rec_state", recorder->get_state());
     call_node.put("analog", recorder->is_analog());
   }
 
