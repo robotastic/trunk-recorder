@@ -865,8 +865,12 @@ void manage_calls() {
       continue;
     }
 
+    if (call->since_last_voice_update() > 0){
+      BOOST_LOG_TRIVIAL(info) << " Since Last Voice Update: " << call->since_last_voice_update();
+    }
+
     // Handle Trunked Calls
-    BOOST_LOG_TRIVIAL(info) << " Since Last Voice Update: " << call->since_last_voice_update();
+
     if ((call->since_last_update() > 1.0 /*config.call_timeout*/) && ((state == RECORDING) || (state == MONITORING))) {
       if (state == RECORDING) {
         ended_call = true;
