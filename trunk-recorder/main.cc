@@ -1472,7 +1472,7 @@ for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(
 
     if ((system->get_system_type() == "p25") || (system->get_system_type() == "smartnet") ) {
       msg.reset();
-      msg = system->get_msg_queue()->delete_head_nowait()
+      msg = system->get_msg_queue()->delete_head_nowait();
     while (msg != 0) {
 
 
@@ -1495,7 +1495,7 @@ for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(
       }
 
       msg.reset();
-      msg = system->get_msg_queue()->delete_head_nowait()
+      msg = system->get_msg_queue()->delete_head_nowait();
     } 
     }
 }
