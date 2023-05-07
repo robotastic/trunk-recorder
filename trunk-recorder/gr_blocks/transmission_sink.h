@@ -52,6 +52,7 @@ private:
   bool d_termination_flag;
   time_t d_start_time;
   time_t d_stop_time;
+   std::chrono::time_point<std::chrono::steady_clock> d_last_write_time;
   long d_spike_count;
   long d_error_count;
   long curr_src_id;
@@ -143,6 +144,7 @@ public:
   State get_state();
   time_t get_start_time();
   time_t get_stop_time();
+   std::chrono::time_point<std::chrono::steady_clock> get_last_write_time();
 };
 
 } /* namespace blocks */
