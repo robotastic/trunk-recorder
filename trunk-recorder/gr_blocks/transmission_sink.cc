@@ -423,7 +423,7 @@ time_t transmission_sink::get_stop_time() {
   return d_stop_time;
 }
 
-auto transsmission_sink::get_last_write_time() {
+std::chrono::time_point<std::chrono::steady_clock> transmission_sink::get_last_write_time() {
   return d_last_write_time;
 }
 
