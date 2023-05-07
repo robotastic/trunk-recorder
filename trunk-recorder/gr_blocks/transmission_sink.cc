@@ -346,7 +346,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
                 BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and STOPping - setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
                 end_transmission();
               }
-          state == STOPPED;
+          state = STOPPED;
         }
       }
     }
@@ -416,8 +416,11 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
   int nwritten = dowork(noutput_items, input_items, output_items);
-  d_stop_time = time(NULL);
-  d_last_write_time = std::chrono::steady_clock::now();
+
+  if (nwritten > 1) {
+    d_stop_time = time(NULL);
+    d_last_write_time = std::chrono::steady_clock::now();
+  }
   return nwritten;
 }
 
@@ -489,7 +492,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       } else {
         state = STOPPED;
       }*/
-      state = IDLE;
+      
 
       if (noutput_items > 1) {
         BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped: " << noutput_items;
