@@ -871,24 +871,24 @@ void manage_calls() {
 
     // Handle Trunked Calls
 
-    if ((call->since_last_update() > 1.0 /*config.call_timeout*/) && ((state == RECORDING) || (state == MONITORING))) {
-      if (state == RECORDING) {
-        ended_call = true;
-        call->set_record_more_transmissions(false);
-        call->set_state(INACTIVE);
-        // set the call state to inactive
-
-        // If the call is being recorded and the wav_sink is already hit a termination flag, the call state is set to COMPLETED
-        // call->stop_call();
-      }
-      // we do not need to stop Monitoring Calls, we can just delete them
-      if (state == MONITORING) {
+    if ((state == MONITORING) && (call->since_last_update() > 1.0)) {
         ended_call = true;
         it = calls.erase(it);
         delete call;
         continue;
-      }
     }
+
+    if ((state == RECORDING) && (call->since_last_voice_update() > 1.0)) {
+          call->set_state(COMPLETED);
+          call->conclude_call();
+          // The State of the Recorders has changed, so lets send an update
+          ended_call = true;
+
+          it = calls.erase(it);
+          delete call;
+          continue;
+    }
+
 
     // If a call's state has been set to COMPLETED, we can conclude the call and delete it
     // we need to check the Call State again because it could have been updated by the previous command.

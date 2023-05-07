@@ -339,9 +339,14 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     if (pmt::eq(grp_id_key, tags[i].key)) {
       long grp_id = pmt::to_long(tags[i].value);
       BOOST_LOG_TRIVIAL(info) << " Group id tag: " << grp_id;
-      if ((state == STOPPED) || (state == RECORDING)) {
-        if(d_current_call_talkgroup != grp_id) {
+      if ((state == IDLE) || (state == RECORDING)) {
+        if(d_current_call_talkgroup != (grp_id<<4)) {
           BOOST_LOG_TRIVIAL(info) << "GROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup << " Voice Channel: " << grp_id;
+              if (d_sample_count > 0) {
+                BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and STOPping - setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
+                end_transmission();
+              }
+          state == STOPPED;
         }
       }
     }
@@ -433,6 +438,7 @@ void transmission_sink::add_transmission(Transmission t) {
 }
 
 void transmission_sink::set_record_more_transmissions(bool more) {
+  /*
   if (record_more_transmissions != more) {
     BOOST_LOG_TRIVIAL(trace) << "wav - setting record_more to: " << more << ", State: " << format_state(state) << " sample count: " << d_sample_count;
   }
@@ -442,7 +448,7 @@ void transmission_sink::set_record_more_transmissions(bool more) {
     state = IDLE;
   }
 
-  record_more_transmissions = more;
+  record_more_transmissions = more;*/
 }
 
 void transmission_sink::clear_transmission_list() {
@@ -478,11 +484,12 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
 
       // If it is a conventional call or an UPDATE or GRANT message has been received recently,
       // then set it in IDLE state, which allows a new transmission to start.
-      if (d_conventional || (record_more_transmissions == true)) {
+      /*if (d_conventional || (record_more_transmissions == true)) {
         state = IDLE;
       } else {
         state = STOPPED;
-      }
+      }*/
+      state = IDLE;
 
       if (noutput_items > 1) {
         BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped: " << noutput_items;
