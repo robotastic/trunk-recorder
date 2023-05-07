@@ -5,6 +5,8 @@
 #include <boost/dynamic_bitset.hpp>
 #include <boost/log/trivial.hpp>
 #include <gnuradio/message.h>
+#include "system.h"
+#include "system_impl.h"
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -35,7 +37,7 @@ public:
   void print_bitset(boost::dynamic_bitset<> &tsbk);
   void add_channel(int chan_id, Channel chan, int sys_num);
   double channel_id_to_frequency(int chan_id, int sys_num);
-  std::vector<TrunkMessage> parse_message(gr::message::sptr msg);
+  std::vector<TrunkMessage> parse_message(gr::message::sptr msg, System *system);
 };
 
 #endif

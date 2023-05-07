@@ -198,7 +198,7 @@ namespace gr {
                 fprintf(stderr, "%s p25p1_fdma::set_nac: 0x%03x\n", logts.get(d_msgq_id), d_nac);
         }
 
-        p25p1_fdma::p25p1_fdma(int sys_num,const op25_audio& udp, log_ts& logger, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, int msgq_id) :
+        p25p1_fdma::p25p1_fdma(const op25_audio& udp, log_ts& logger, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &output_queue, bool do_audio_output, int msgq_id) :
             write_bufp(0),
             d_debug(debug),
             d_do_imbe(do_imbe),
@@ -218,7 +218,6 @@ namespace gr {
             ess_algid(0x80),
             vf_tgid(0),
 			terminate_call(false),
-			d_sys_num(sys_num),
             p1voice_decode((debug > 0), udp, output_queue)
         {
 			rx_status.error_count = 0;
@@ -782,8 +781,8 @@ namespace gr {
         void p25p1_fdma::send_msg(const std::string msg_str, long msg_type) {
             if (!d_do_msgq)
                 return;
-            
-            gr::message::sptr msg = gr::message::make_from_string(msg_str, msg_type, d_sys_num, 0);     
+
+            gr::message::sptr msg = gr::message::make_from_string(msg_str, msg_type, 0);     
             //gr::message::sptr msg = gr::message::make_from_string(msg_str, get_msg_type(PROTOCOL_P25, msg_type), d_sys_num, 0);
             if (!d_msg_queue->full_p())
                 d_msg_queue->insert_tail(msg);

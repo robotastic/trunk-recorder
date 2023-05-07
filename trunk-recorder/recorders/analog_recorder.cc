@@ -207,7 +207,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   }
 
   BOOST_LOG_TRIVIAL(info) << "\t Creating decoder sink..." << std::endl;
-  decoder_sink = gr::blocks::decoder_wrapper_impl::make(wav_sample_rate, src->get_num(), std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  decoder_sink = gr::blocks::decoder_wrapper_impl::make(wav_sample_rate, std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   BOOST_LOG_TRIVIAL(info) << "\t Decoder sink created!" << std::endl;
 
   // Analog audio band pass from 300 to 3000 Hz
