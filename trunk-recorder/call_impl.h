@@ -47,6 +47,7 @@ public:
   int get_idle_count();
   void increase_idle_count();
   void reset_idle_count();
+  double since_last_voice_update();
   int since_last_update();
   long elapsed();
 

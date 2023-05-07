@@ -350,6 +350,17 @@ int Call_impl::since_last_update() {
   return time(NULL) - last_update;
 }
 
+double Call_impl::since_last_voice_update() {
+    if (state == RECORDING) {
+    Recorder *rec = this->get_recorder();
+    if (rec != NULL) {
+      return rec->since_last_write();
+    }
+  }
+  return -1;
+}
+
+
 long Call_impl::elapsed() {
   return time(NULL) - start_time;
 }
