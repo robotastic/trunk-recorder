@@ -266,8 +266,6 @@ namespace gr {
             int p = 0;
             if (!d_do_msgq)
                 return;
-            if (d_msg_queue->full_p())
-                return;
             assert (len+2 <= (int)sizeof(wbuf));
             wbuf[p++] = (nac >> 8) & 0xff;
             wbuf[p++] = nac & 0xff;
@@ -752,7 +750,7 @@ namespace gr {
                             }
                         } else {
                             std::string encr = "{\"encrypted\": " + std::to_string(1) + ", \"algid\": " + std::to_string(ess_algid) + ", \"keyid\": " + std::to_string(ess_keyid) + "}";
-                            send_msg(encr, M_P25_JSON_DATA);
+                            //send_msg(encr, M_P25_JSON_DATA);
                         }
                     }
 
@@ -782,8 +780,8 @@ namespace gr {
             if (!d_do_msgq)
                 return;
 
-            gr::message::sptr msg = gr::message::make_from_string(msg_str, msg_type, 0);     
-            //gr::message::sptr msg = gr::message::make_from_string(msg_str, get_msg_type(PROTOCOL_P25, msg_type), d_sys_num, 0);
+            gr::message::sptr msg = gr::message::make_from_string(msg_str, msg_type);     
+
             if (!d_msg_queue->full_p())
                 d_msg_queue->insert_tail(msg);
         }

@@ -34,6 +34,7 @@
 #include "p25p1_fdma.h"
 #include "p25p2_tdma.h"
 #include "op25_audio.h"
+#include "log_ts.h"
 
 typedef std::deque<uint8_t> dibit_queue;
 
