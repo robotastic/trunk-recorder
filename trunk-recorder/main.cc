@@ -1470,13 +1470,11 @@ void monitor_messages() {
 for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
     System_impl *system = (System_impl *)*sys_it;
 
+
     if ((system->get_system_type() == "p25") || (system->get_system_type() == "smartnet") ) {
       msg.reset();
       msg = system->get_msg_queue()->delete_head_nowait();
     while (msg != 0) {
-
-
-
         system->set_message_count(system->get_message_count() + 1);
 
         if (system->get_system_type() == "smartnet") {
