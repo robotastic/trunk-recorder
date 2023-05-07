@@ -36,7 +36,7 @@ struct Config {
   bool enable_audio_streaming;
   bool record_uu_v_calls;
   int frequency_format;
-  int instance_id;
+  std::string instance_id;
 };
 
 struct Call_Source {

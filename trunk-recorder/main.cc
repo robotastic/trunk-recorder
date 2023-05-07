@@ -182,7 +182,7 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
     config.instance_key = pt.get<std::string>("instanceKey", "");
     BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
-    config.instance_id = pt.get<std::string>("instanceId", "");
+    config.instance_id = pt.get<std::string>("instanceId", "trunk-recorder");
     BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
     config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
     BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
@@ -1389,6 +1389,7 @@ void retune_system(System *sys) {
 void check_message_count(float timeDiff) {
   plugman_setup_config(sources, systems);
   plugman_system_rates(systems, timeDiff);
+  plugman_calls_active(calls);
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;
