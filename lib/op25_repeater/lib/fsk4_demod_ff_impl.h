@@ -60,7 +60,7 @@ namespace gr {
       ~fsk4_demod_ff_impl();
 
       // Where all the action really happens
-      //void forecast (int noutput_items, gr_vector_int &ninput_items_required);
+      void forecast (int noutput_items, gr_vector_int &ninput_items_required);
       void reset();
       int general_work(int noutput_items,
 		       gr_vector_int &ninput_items,

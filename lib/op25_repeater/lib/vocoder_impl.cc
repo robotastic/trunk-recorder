@@ -87,6 +87,9 @@ namespace gr {
     {
     }
 
+void
+vocoder_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
+{
    /* When encoding, this block consumes 8000 symbols/s and produces 4800
     * samples/s. That's a sampling rate of 5/3 or 1.66667.
     *
@@ -96,14 +99,9 @@ namespace gr {
     *
     * Thanks to Matt Mills for catching a bug where this value wasn't set correctly
     */
-/*
-void
-vocoder_impl::forecast(int nof_output_items, gr_vector_int &nof_input_items_reqd)
-{
-
    const int nof_samples_reqd = (opt_encode_flag) ? (1.66667 * nof_output_items) : (0.2 * nof_output_items);
    std::fill(nof_input_items_reqd.begin(), nof_input_items_reqd.end(), nof_samples_reqd);
-}*/
+}
 
 int 
 vocoder_impl::general_work_decode (int noutput_items,

@@ -120,7 +120,7 @@ gardner_cc_impl::set_omega (float omega)
         fprintf(stderr, "gardner_cc: warning omega %f size %d exceeds NUM_COMPLEX %d\n", omega, num_complex, NUM_COMPLEX);
     *d_dl = gr_complex(0,0); //memset(d_dl, 0, NUM_COMPLEX * sizeof(gr_complex));
 }
-/*
+
 void
 gardner_cc_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required)
 {
@@ -128,7 +128,7 @@ gardner_cc_impl::forecast(int noutput_items, gr_vector_int &ninput_items_require
     for (unsigned i=0; i < ninputs; i++)
         ninput_items_required[i] =
     (int) ceil((noutput_items * d_omega) + d_interp->ntaps());
-}*/
+}
 
 int
 gardner_cc_impl::general_work (int noutput_items,
