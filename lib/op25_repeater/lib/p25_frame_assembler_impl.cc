@@ -45,7 +45,9 @@ namespace gr {
       if (d_msg_queue->full_p())
         return;
       gr::message::sptr msg = gr::message::make_from_string(std::string((const char *)wbuf, 2), duid, 0);
+     fprintf(stderr, "Message count: %d", d_msg_queue->count());
       d_msg_queue->insert_tail(msg);
+      fprintf(stderr, "Message count now: %d", d_msg_queue->count());
     }
 
     void p25_frame_assembler_impl::set_xormask(const char*p) {
@@ -102,11 +104,10 @@ static const int MAX_IN = 1;	// maximum number of input streams
 		   gr::io_signature::make ((do_output) ? 1 : 0, (do_output) ? 1 : 0, (do_audio_output && do_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0 ))),
 	d_do_imbe(do_imbe),
 	d_do_output(do_output),
-  p1fdma(op25audio, logts, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output, do_nocrypt),
+  p1fdma(op25audio, logts, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
 	d_do_audio_output(do_audio_output),
 	d_do_phase2_tdma(do_phase2_tdma),
-	d_do_nocrypt(do_nocrypt),
-	p2tdma(op25audio, logts,  0, debug, do_msgq, queue, output_queue, do_audio_output, do_nocrypt),
+	p2tdma(op25audio, logts,  0, debug, do_msgq, queue, output_queue, do_audio_output),
 	d_do_msgq(do_msgq),
 	d_msg_queue(queue),
 	output_queue(),
