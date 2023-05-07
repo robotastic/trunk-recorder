@@ -60,7 +60,7 @@ State p25_recorder_decode::get_state() {
 
 double p25_recorder_decode::since_last_write() {
   time_t now = time(NULL);
-  return now - wav_sink->get_stop_time();
+  return difftime(now, wav_sink->get_stop_time());
 }
 
 void p25_recorder_decode::switch_tdma(bool phase2_tdma) {
@@ -72,7 +72,7 @@ void p25_recorder_decode::initialize(int silence_frames) {
   const float l[] = {-2.0, 0.0, 2.0, 4.0};
   std::vector<float> slices(l, l + sizeof(l) / sizeof(l[0]));
   const int msgq_id = 0;
-  const int debug = 10;
+  const int debug = 0;
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(msgq_id, debug, slices);
   wav_sink = gr::blocks::transmission_sink::make(1, 8000, 16);
   // recorder->initialize(src);
@@ -84,7 +84,7 @@ void p25_recorder_decode::initialize(int silence_frames) {
   rx_queue = gr::msg_queue::make(100);
 
   int udp_port = 0;
-  int verbosity = 0; // 10 = lots of debug messages
+  int verbosity = 10; // 10 = lots of debug messages
   const char *udp_host = "127.0.0.1";
   bool do_imbe = 1;
   bool do_output = 1;
