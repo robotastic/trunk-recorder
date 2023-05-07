@@ -782,10 +782,10 @@ namespace gr {
 
             gr::message::sptr msg = gr::message::make_from_string(msg_str, msg_type);     
             //gr::message::sptr msg = gr::message::make_from_string(msg_str, get_msg_type(PROTOCOL_P25, msg_type), d_sys_num, 0);
-                 fprintf(stderr, "Message count: %d", d_msg_queue->count());
+                 fprintf(stderr, "Message count: %d\n", d_msg_queue->count());
             if (!d_msg_queue->full_p())
                 d_msg_queue->insert_tail(msg);
-                fprintf(stderr, "Now Message count: %d", d_msg_queue->count());
+                fprintf(stderr, "Now Message count: %d\n", d_msg_queue->count());
         }
 
         void p25p1_fdma::process_frame() {
