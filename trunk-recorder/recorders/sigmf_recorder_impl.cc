@@ -14,7 +14,7 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
     : gr::hier_block2("sigmf_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder(SIGMF) {
+      Recorder(SIGMF,src->get_config()) {
   source = src;
   freq = source->get_center();
   center = source->get_center();

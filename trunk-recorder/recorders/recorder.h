@@ -70,7 +70,7 @@ public:
     long decim2;
   };
 
-  Recorder(Recorder_Type  type);
+  Recorder(Recorder_Type  type, Config* config);
   virtual void tune_offset(double f){};
   virtual void tune_freq(double f){};
   virtual bool start(Call *call) { return false; };
@@ -106,12 +106,15 @@ public:
   virtual int get_output_channels() { return 1; }
   virtual bool get_enable_audio_streaming() { return d_enable_audio_streaming; };
   virtual void set_enable_audio_streaming(bool enable_audio_streaming) { d_enable_audio_streaming = enable_audio_streaming; };
+  int get_instance_id();
 
 protected:
   int recording_count;
   bool d_enable_audio_streaming;
   double recording_duration;
-  Recorder_Type  type;
+  Recorder_Type type;
+  Config config;
+
 };
 
 #endif

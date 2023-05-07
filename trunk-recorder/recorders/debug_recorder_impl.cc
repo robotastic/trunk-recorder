@@ -148,7 +148,7 @@ debug_recorder_impl::debug_recorder_impl(Source *src, std::string address, int p
     : gr::hier_block2("debug_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder(DEBUG) {
+      Recorder(DEBUG, src->get_config()) {
   source = src;
   chan_freq = source->get_center();
   center_freq = source->get_center();
