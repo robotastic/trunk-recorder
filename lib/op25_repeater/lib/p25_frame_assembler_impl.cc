@@ -45,9 +45,7 @@ namespace gr {
       if (d_msg_queue->full_p())
         return;
       gr::message::sptr msg = gr::message::make_from_string(std::string((const char *)wbuf, 2), duid, 0);
-     fprintf(stderr, "Message count: %d", d_msg_queue->count());
       d_msg_queue->insert_tail(msg);
-      fprintf(stderr, "Message count now: %d", d_msg_queue->count());
     }
 
     void p25_frame_assembler_impl::set_xormask(const char*p) {
