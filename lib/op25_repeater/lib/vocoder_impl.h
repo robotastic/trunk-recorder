@@ -45,7 +45,7 @@ namespace gr {
       vocoder_impl(bool encode_flag, bool verbose_flag, int stretch_amt, char* udp_host, int udp_port, bool raw_vectors_flag);
       ~vocoder_impl();
 
-      void forecast (int noutput_items, gr_vector_int &ninput_items_required);
+      //void forecast (int noutput_items, gr_vector_int &ninput_items_required);
       void set_gain_adjust(float gain_adjust);
 
       int general_work(int noutput_items,
