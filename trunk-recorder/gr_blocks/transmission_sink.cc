@@ -338,6 +338,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     // BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
     if (pmt::eq(grp_id_key, tags[i].key)) {
       long grp_id = pmt::to_long(tags[i].value);
+      BOOST_LOG_TRIVIAL(info) << " Group id tag: " << grp_id;
       if ((state == STOPPED) || (state == RECORDING)) {
         if(d_current_call_talkgroup != grp_id) {
           BOOST_LOG_TRIVIAL(info) << "GROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup << " Voice Channel: " << grp_id;
