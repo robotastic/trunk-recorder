@@ -38,7 +38,7 @@ public:
   Recorder *get_recorder();
   double get_freq();
   int get_sys_num();
-  int get_instance_id();
+  std::string get_instance_id();
   std::string get_short_name();
   std::string get_capture_dir();
   void set_freq(double f);

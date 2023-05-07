@@ -7,7 +7,7 @@ Recorder::Recorder(Recorder_Type type, Config* config) {
   this->config = *config;
 }
 
-int Recorder::get_instance_id() {
+std::string Recorder::get_instance_id() {
     return config.instance_id;
 }
 

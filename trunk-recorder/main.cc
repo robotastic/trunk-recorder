@@ -182,7 +182,7 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
     config.instance_key = pt.get<std::string>("instanceKey", "");
     BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
-    config.instance_id = pt.get<int>("instanceId", 0);
+    config.instance_id = pt.get<std::string>("instanceId", "");
     BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
     config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
     BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;

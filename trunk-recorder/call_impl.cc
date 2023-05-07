@@ -13,7 +13,7 @@ std::string Call_impl::get_capture_dir() {
   return this->config.capture_dir;
 }
 
-int Call_impl::get_instance_id() {
+std::string Call_impl::get_instance_id() {
     return this->config.instance_id;
 }
 /*

@@ -106,7 +106,7 @@ public:
   virtual int get_output_channels() { return 1; }
   virtual bool get_enable_audio_streaming() { return d_enable_audio_streaming; };
   virtual void set_enable_audio_streaming(bool enable_audio_streaming) { d_enable_audio_streaming = enable_audio_streaming; };
-  int get_instance_id();
+  std::string get_instance_id();
 
 protected:
   int recording_count;
