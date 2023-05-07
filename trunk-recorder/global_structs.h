@@ -23,7 +23,6 @@ struct Config {
   std::string bcfy_calls_server;
   std::string status_server;
   std::string instance_key;
-  std::string instance_id;
   std::string capture_dir;
   std::string debug_recorder_address;
   std::string log_dir;
@@ -37,6 +36,7 @@ struct Config {
   bool enable_audio_streaming;
   bool record_uu_v_calls;
   int frequency_format;
+  int instance_id;
 };
 
 struct Call_Source {
