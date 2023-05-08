@@ -122,7 +122,7 @@ bool transmission_sink::start_recording(Call *call) {
   d_current_call_talkgroup = call->get_talkgroup();
   d_current_call_talkgroup_display = call->get_talkgroup_display();
   if (call->get_system_type() == "smartnet") {
-    d_current_call_talkgroup_encoded = (call->get_talkgroup() << 4);
+    d_current_call_talkgroup_encoded = (call->get_talkgroup() >> 4);
     BOOST_LOG_TRIVIAL(info) << "Start() - Smartnet call, talkgroup encoded: " << d_current_call_talkgroup_encoded << " talkgroup: " << call->get_talkgroup() << std::endl;
   } else {
     d_current_call_talkgroup_encoded = call->get_talkgroup();
@@ -352,7 +352,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
       BOOST_LOG_TRIVIAL(info) << " Group id tag: " << grp_id;
       if ((state == IDLE) || (state == RECORDING)) {
         if(d_current_call_talkgroup_encoded != grp_id) {
-          BOOST_LOG_TRIVIAL(info) << "GROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup << " Voice Channel: " << grp_id;
+          BOOST_LOG_TRIVIAL(info) << "GROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup_encoded << " Voice Channel: " << grp_id;
               if (d_sample_count > 0) {
                 BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and STOPping - count: " << d_sample_count;
                 end_transmission();
