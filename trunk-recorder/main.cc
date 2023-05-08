@@ -1398,31 +1398,30 @@ void monitor_messages() {
 for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
     System_impl *system = (System_impl *)*sys_it;
 
-    if ((system->get_system_type() == "P25") || (system->get_system_type() == "smartnet") ) {
 
-    while ((msg = system->get_msg_queue()->delete_head_nowait()) != 0) {
-      sys_num = msg->arg1();
-      sys = find_system(sys_num);
+    if ((system->get_system_type() == "p25") || (system->get_system_type() == "smartnet") ) {
+      msg.reset();
+      msg = system->get_msg_queue()->delete_head_nowait();
+    while (msg != 0) {
+        system->set_message_count(system->get_message_count() + 1);
 
-      if (sys) {
-        sys->set_message_count(sys->get_message_count() + 1);
-
-        if (sys->get_system_type() == "smartnet") {
-          trunk_messages = smartnet_parser->parse_message(msg->to_string(), sys);
-          handle_message(trunk_messages, sys);
+        if (system->get_system_type() == "smartnet") {
+          trunk_messages = smartnet_parser->parse_message(msg->to_string(), system);
+          handle_message(trunk_messages, system);
         }
 
-        if (sys->get_system_type() == "p25") {
-          trunk_messages = p25_parser->parse_message(msg, sys);
-          handle_message(trunk_messages, sys);
+        if (system->get_system_type() == "p25") {
+          trunk_messages = p25_parser->parse_message(msg, system);
+          handle_message(trunk_messages, system);
         }
-      }
+      
 
       if (msg->type() == -1) {
-        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t process_data_unit timeout";
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t process_data_unit timeout";
       }
 
       msg.reset();
+      msg = system->get_msg_queue()->delete_head_nowait();
     } 
     }
 }
