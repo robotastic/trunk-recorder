@@ -96,10 +96,7 @@ void Call_impl::stop_call() {
     if ((state == RECORDING) && this->get_recorder()->is_idle()) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call_impl, setting call state to COMPLETED - Last Update: " << this->since_last_update() << "s";
       this->set_state(COMPLETED);
-    } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tTrying to COMPLETE, Recorder still active, setting call state to INACTIVE - Last Update: " << this->since_last_update() << "s";
-      this->set_state(INACTIVE);
-    }
+    } 
   }
 }
 long Call_impl::get_call_num() {
