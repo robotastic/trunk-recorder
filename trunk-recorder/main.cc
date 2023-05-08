@@ -881,7 +881,7 @@ void manage_calls() {
     if (state == RECORDING)  {
       Recorder *recorder = call->get_recorder();
 
-      if ((recorder->since_last_write() > 1.0) || (recorder->get_state() == STOPPED)) {
+      if ((recorder->since_last_write() > config.call_timeout) || (recorder->get_state() == STOPPED)) {
           BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
           call->set_state(COMPLETED);
