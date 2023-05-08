@@ -122,9 +122,11 @@ bool transmission_sink::start_recording(Call *call) {
   d_current_call_talkgroup = call->get_talkgroup();
   d_current_call_talkgroup_display = call->get_talkgroup_display();
   if (call->get_system_type() == "smartnet") {
-    d_current_call_talkgroup_encoded = call->get_talkgroup() << 4;
+    d_current_call_talkgroup_encoded = (call->get_talkgroup() << 4);
+    BOOST_LOG_TRIVIAL(info) << "Start() - Smartnet call, talkgroup encoded: " << d_current_call_talkgroup_encoded << " talkgroup: " << call->get_talkgroup() << std::endl;
   } else {
     d_current_call_talkgroup_encoded = call->get_talkgroup();
+    BOOST_LOG_TRIVIAL(info) << "Start() - Smartnet call, talkgroup encoded: " << d_current_call_talkgroup_encoded << " type: " << call->get_system_type();
   }
   d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
