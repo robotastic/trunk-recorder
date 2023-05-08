@@ -398,13 +398,6 @@ void p25_recorder_impl::tune_offset(double f) {
   }*/
 }
 
-void p25_recorder_impl::set_record_more_transmissions(bool more) {
-  if (qpsk_mod) {
-    return qpsk_p25_decode->set_record_more_transmissions(more);
-  } else {
-    return fsk4_p25_decode->set_record_more_transmissions(more);
-  }
-}
 
 void p25_recorder_impl::set_source(long src) {
   if (qpsk_mod) {

@@ -68,7 +68,7 @@ private:
   double d_prior_transmission_length;
   long d_current_call_talkgroup;
   std::string d_current_call_talkgroup_display;
-  bool record_more_transmissions;
+
 
 protected:
   unsigned d_sample_count;
@@ -128,7 +128,6 @@ public:
   void set_source(long src);
   void set_sample_rate(unsigned int sample_rate);
   void set_bits_per_sample(int bits_per_sample);
-  void set_record_more_transmissions(bool more);
   void clear_transmission_list();
   std::vector<Transmission> get_transmission_list();
   void add_transmission(Transmission t);

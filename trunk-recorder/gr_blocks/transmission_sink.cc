@@ -126,7 +126,8 @@ bool transmission_sink::start_recording(Call *call) {
   d_prior_transmission_length = 0;
   d_error_count = 0;
   d_spike_count = 0;
-  record_more_transmissions = true;
+  d_last_write_time = std::chrono::steady_clock::now(); // we want to make sure the call doesn't get cleaned up before data starts coming in. 
+
 
   this->clear_transmission_list();
   d_conventional = call->is_conventional();
@@ -346,7 +347,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
         if(d_current_call_talkgroup != (grp_id<<4)) {
           BOOST_LOG_TRIVIAL(info) << "GROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup << " Voice Channel: " << grp_id;
               if (d_sample_count > 0) {
-                BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and STOPping - setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
+                BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and STOPping - count: " << d_sample_count;
                 end_transmission();
               }
           state = STOPPED;
@@ -392,7 +393,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
       // BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
     }
-    
+
     if (pmt::eq(ptt_src_id_key, tags[i].key)) {
       long src_id = pmt::to_long(tags[i].value);
       if (src_id != curr_src_id) {
@@ -402,7 +403,6 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
         //BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tPTT Termination - rec sample count " << d_sample_count << " pos: " << pos << " offset: " << tags[i].offset;
       }
-      // BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
     }
     // Only process Spike and Error Count tags if the sink is currently recording
     if (state == RECORDING) {
@@ -446,20 +446,6 @@ void transmission_sink::add_transmission(Transmission t) {
   transmission_list.push_back(t);
 }
 
-void transmission_sink::set_record_more_transmissions(bool more) {
-  /*
-  if (record_more_transmissions != more) {
-    BOOST_LOG_TRIVIAL(trace) << "wav - setting record_more to: " << more << ", State: " << format_state(state) << " sample count: " << d_sample_count;
-  }
-  // If a Recorder is STOPPED and record_more_transmissions is false, prep it so it is ready to go.
-  if ((record_more_transmissions == false) && (more == true) && (state == STOPPED)) {
-    d_sample_count = 0;
-    state = IDLE;
-  }
-
-  record_more_transmissions = more;*/
-}
-
 void transmission_sink::clear_transmission_list() {
   transmission_list.clear();
   transmission_list.shrink_to_fit();
@@ -487,23 +473,14 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     }
 
     if (d_sample_count > 0) {
-      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - record_more_transmissions = false, setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERMINATING! - count: " << d_sample_count;
       end_transmission();
-
-      // If it is a conventional call or an UPDATE or GRANT message has been received recently,
-      // then set it in IDLE state, which allows a new transmission to start.
-      /*if (d_conventional || (record_more_transmissions == true)) {
-        state = IDLE;
-      } else {
-        state = STOPPED;
-      }*/
       
-
       if (noutput_items > 1) {
         BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped: " << noutput_items;
       }
     } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped....   record_more_transmissions = false, setting Recorder More: " << record_more_transmissions << " - count: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped....   - count: " << d_sample_count;
     }
     // In order to actually transmit the Tag, you need to attach it to a sample. An empty sample is used and it should be discarded.
     return noutput_items;

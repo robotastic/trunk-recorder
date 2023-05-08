@@ -33,9 +33,6 @@ void p25_recorder_decode::start(Call *call) {
 void p25_recorder_decode::set_xor_mask(const char *mask) {
   op25_frame_assembler->set_xormask(mask);
 }
-void p25_recorder_decode::set_record_more_transmissions(bool more) {
-  wav_sink->set_record_more_transmissions(more);
-}
 
 void p25_recorder_decode::set_source(long src) {
   wav_sink->set_source(src);
