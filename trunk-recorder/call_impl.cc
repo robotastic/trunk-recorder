@@ -361,7 +361,7 @@ long Call_impl::get_stop_time() {
 }
 
 std::string Call_impl::get_system_type() {
-  return sys->get_system_type().c_str();
+  return sys->get_system_type();
 }
 
 void Call_impl::set_talkgroup_tag(std::string tag) {
