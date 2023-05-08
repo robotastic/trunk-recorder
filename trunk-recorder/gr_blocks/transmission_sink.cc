@@ -349,10 +349,10 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     // BOOST_LOG_TRIVIAL(info) << "TAG! " << tags[i].key;
     if (pmt::eq(grp_id_key, tags[i].key)) {
       long grp_id = pmt::to_long(tags[i].value);
-      BOOST_LOG_TRIVIAL(info) << " Group id tag: " << grp_id;
+
       if ((state == IDLE) || (state == RECORDING)) {
         if(d_current_call_talkgroup_encoded != grp_id) {
-          BOOST_LOG_TRIVIAL(info) << "GROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup_encoded << " Voice Channel: " << grp_id << " Recorder state: " << format_state(state);
+          BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tGROUP MISMATCH - Trunk Channel Call: " << d_current_call_talkgroup_encoded << " Voice Channel: " << grp_id << " Recorder state: " << format_state(state);
               if (d_sample_count > 0) {
                 BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and STOPping - count: " << d_sample_count;
                 end_transmission();
