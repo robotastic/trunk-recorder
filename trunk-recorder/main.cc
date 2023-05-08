@@ -80,6 +80,7 @@ std::vector<System *> systems;
 std::map<long, long> unit_affiliations;
 
 std::vector<Call *> calls;
+std::vector<Call *> active_calls;
 
 gr::top_block_sptr tb;
 
@@ -768,12 +769,32 @@ void process_message_queues() {
   }
 }
 
+void add_active_call(Call* call) {
+  // check if the call is already in the active_calls vector
+  auto it = std::find(active_calls.begin(), active_calls.end(), call);
+
+  if (it == active_calls.end()) {
+    // if the call is not in the vector, add it
+    active_calls.push_back(call);
+  }
+}
+
+void remove_active_call(Call* call) {
+    for (auto it = active_calls.begin(); it != active_calls.end(); ++it) {
+        if (*it == call) {
+            active_calls.erase(it);
+            break;
+        }
+    }
+}
+
 void manage_conventional_call(Call *call) {
   if (call->get_recorder()) {
     // if any recording has happened
 
     if (call->get_current_length() > 0) {
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Call Length: " << call->get_current_length() << "s\t Idle: " << call->get_recorder()->is_idle() << "\t Idle Count: " << call->get_idle_count();
+
 
       // means that the squelch is on and it has stopped recording
       if (call->get_recorder()->is_squelched()) {
@@ -784,8 +805,15 @@ void manage_conventional_call(Call *call) {
         call->reset_idle_count();
       }
 
+      // if length > 0 and squelch open
+      if (!call->get_recorder()->is_squelched()){
+          add_active_call(call);
+      }
+
       // if no additional recording has happened in the past X periods, stop and open new file
       if (call->get_idle_count() > config.call_timeout) {
+        remove_active_call(call);
+
         Recorder *recorder = call->get_recorder();
         call->set_state(COMPLETED);
         call->conclude_call();
@@ -795,6 +823,7 @@ void manage_conventional_call(Call *call) {
           plugman_call_start(call);
         }
       } else if ((call->get_current_length() > call->get_system()->get_max_duration()) && (call->get_system()->get_max_duration() > 0)) {
+        remove_active_call(call);
         Recorder *recorder = call->get_recorder();
         call->set_state(COMPLETED);
         call->conclude_call();
@@ -810,7 +839,7 @@ void manage_conventional_call(Call *call) {
       recorder->start(call);
       call->set_state(RECORDING);
       plugman_call_start(call);
-      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Starting P25 Convetional Recorder ";
+      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Starting P25 Conventional Recorder ";
 
       // plugman_setup_recorder((Recorder *)recorder->get());
     }
@@ -881,6 +910,7 @@ void manage_calls() {
         ended_call = true;
         it = calls.erase(it);
         delete call;
+        remove_active_call(call);
         continue;
       }
     }
@@ -899,6 +929,7 @@ void manage_calls() {
       }
       it = calls.erase(it);
       delete call;
+      remove_active_call(call);
       continue;
     }
 
@@ -924,6 +955,7 @@ void manage_calls() {
           }
           it = calls.erase(it);
           delete call;
+          remove_active_call(call);
           continue;
         }
 
@@ -955,10 +987,6 @@ void manage_calls() {
     ++it;
     // if rx is active
   } // foreach loggers
-
-  if (ended_call) {
-    plugman_calls_active(calls);
-  }
 }
 
 void current_system_status(TrunkMessage message, System *sys) {
@@ -1094,6 +1122,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       }
       bool source_updated = call->update(message);
       if (source_updated) {
+        add_active_call(call);
         plugman_call_start(call);
       }
     }
@@ -1112,6 +1141,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       call->conclude_call();
       it = calls.erase(it);
       delete call;
+      remove_active_call(call);
       continue;
     }
 
@@ -1129,6 +1159,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       call->conclude_call();
       it = calls.erase(it);
       delete call;
+      remove_active_call(call);
       continue;
     }
     it++;
@@ -1172,8 +1203,8 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     }
       
     calls.push_back(call);
+    add_active_call(call);
     plugman_call_start(call);
-    plugman_calls_active(calls);
   }
 }
 
@@ -1215,6 +1246,7 @@ void handle_call_update(TrunkMessage message, System *sys) {
 
       bool source_updated = call->update(message);
       if (source_updated) {
+        add_active_call(call);
         plugman_call_start(call);
       }
     }
@@ -1389,7 +1421,7 @@ void retune_system(System *sys) {
 void check_message_count(float timeDiff) {
   plugman_setup_config(sources, systems);
   plugman_system_rates(systems, timeDiff);
-  plugman_calls_active(calls);
+  plugman_calls_active(active_calls);
 
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;

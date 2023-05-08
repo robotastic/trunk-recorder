@@ -429,14 +429,21 @@ boost::property_tree::ptree Call_impl::get_stats() {
   call_node.put("talkgroup", this->get_talkgroup());
   call_node.put("talkgrouptag", this->get_talkgroup_tag());
   call_node.put("elapsed", this->elapsed());
-  if (get_state() == RECORDING)
+  if (get_state() == RECORDING){
+//    if(recorder){
+//      if(recorder->get_state() != 1){
+//          call_node.put("length", this->get_final_length());
+//      } else{
     call_node.put("length", this->get_current_length());
-  else
+//          }
+  } else {
     call_node.put("length", this->get_final_length());
+  }
   call_node.put("state", this->get_state());
   call_node.put("monState", this->get_monitoring_state());
   call_node.put("phase2", this->get_phase2_tdma());
   call_node.put("conventional", this->is_conventional());
+  call_node.put("idle_count", this->get_idle_count());
   call_node.put("encrypted", this->get_encrypted());
   call_node.put("emergency", this->get_emergency());
   call_node.put("startTime", this->get_start_time());
@@ -445,6 +452,9 @@ boost::property_tree::ptree Call_impl::get_stats() {
   Recorder *recorder = this->get_recorder();
 
   if (recorder) {
+    if(is_conventional()){
+        call_node.put("squelched", recorder->is_squelched());
+    }
     call_node.put("recNum", recorder->get_num());
     call_node.put("srcNum", recorder->get_source()->get_num());
     call_node.put("recState", recorder->get_state());
@@ -453,5 +463,10 @@ boost::property_tree::ptree Call_impl::get_stats() {
 
   return call_node;
 }
+
+
+
+
+
 
 long Call_impl::call_counter = 0;
