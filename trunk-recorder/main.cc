@@ -871,7 +871,7 @@ void manage_calls() {
 
     // Handle Trunked Calls
 
-    if ((state == MONITORING) && (call->since_last_update() > 1.0)) {
+    if ((state == MONITORING) && (call->since_last_update() > config.call_timeout)) {
         ended_call = true;
         it = calls.erase(it);
         delete call;
@@ -1067,8 +1067,8 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       call->set_state(COMPLETED);
       call->conclude_call();
       it = calls.erase(it);
-      delete call;*/
-      continue;
+      delete call;
+      continue;*/
     }
 
     it++;
@@ -1148,6 +1148,7 @@ void handle_call_update(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
+    // Note: some calls maybe removed before the UPDATEs stop on the trunking channel if there is some GAP in the updates.
      BOOST_LOG_TRIVIAL(info) << "Weird - call not found for UPDATE\tFreq: " << format_freq(message.freq) << "\tTG:" << message.talkgroup << "\tSource: " << message.source << "\tSys Num: " << message.sys_num << "\tTDMA Slot: " << message.tdma_slot << "\tTDMA: " << message.phase2_tdma;
   }
 }
