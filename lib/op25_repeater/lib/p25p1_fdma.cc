@@ -241,6 +241,9 @@ namespace gr {
 			return rx_status;
 		}
 
+        void p25p1_fdma::reset_call_terminated() {
+            terminate_call = false;
+        }
 		bool p25p1_fdma::get_call_terminated() {
 			return terminate_call;
 		}

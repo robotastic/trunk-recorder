@@ -155,6 +155,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 			int rc = p2tdma.handle_frame();
       if (p2tdma.get_call_terminated()) {
         terminate_call = true;
+        p2tdma.reset_call_terminated();
       }
 
       p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
@@ -169,6 +170,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
   } else {
     if (p1fdma.get_call_terminated()) {
       terminate_call = true;
+      p1fdma.reset_call_terminated();
     }
   }
 

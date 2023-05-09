@@ -135,6 +135,7 @@ namespace gr {
                 long get_curr_grp_id();
                 void reset_rx_status();
                 bool get_call_terminated();
+                void reset_call_terminated();
                 Rx_Status get_rx_status();
                 void clear();
 
