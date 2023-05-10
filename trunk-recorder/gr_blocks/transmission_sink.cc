@@ -123,10 +123,8 @@ bool transmission_sink::start_recording(Call *call) {
   d_current_call_talkgroup_display = call->get_talkgroup_display();
   if (call->get_system_type() == "smartnet") {
     d_current_call_talkgroup_encoded = (call->get_talkgroup() >> 4);
-    BOOST_LOG_TRIVIAL(info) << "Start() - Smartnet call, talkgroup encoded: " << d_current_call_talkgroup_encoded << " talkgroup: " << call->get_talkgroup() << std::endl;
   } else {
     d_current_call_talkgroup_encoded = call->get_talkgroup();
-    BOOST_LOG_TRIVIAL(info) << "Start() - Smartnet call, talkgroup encoded: " << d_current_call_talkgroup_encoded << " type: " << call->get_system_type();
   }
   d_current_call_short_name = call->get_short_name();
   d_current_call_capture_dir = call->get_capture_dir();
@@ -484,10 +482,10 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       end_transmission();
       
       if (noutput_items > 1) {
-        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped: " << noutput_items;
+        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - there were some items to output: " << noutput_items;
       }
     } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped....   - count: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped....   - count: " << d_sample_count;
     }
     // In order to actually transmit the Tag, you need to attach it to a sample. An empty sample is used and it should be discarded.
     return noutput_items;
@@ -552,7 +550,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   if (nwritten < noutput_items) {
     BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tFailed to Write! Wrote: " << nwritten << " of " << noutput_items;
   } else {
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\t Wrote: " << nwritten << " of " << noutput_items;
+    BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\t Wrote: " << nwritten << " of " << noutput_items;
   }
   return noutput_items;
 }
