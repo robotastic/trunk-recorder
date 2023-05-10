@@ -1082,10 +1082,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     Call *call = Call::make(message, sys, config);
 
     Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
-    if (message.message_type == UPDATE) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDAT \u001b[0m";
 
-    }
     if (talkgroup) {
       call->set_talkgroup_tag(talkgroup->alpha_tag);
     } else {
@@ -1117,7 +1114,9 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     else {
       recording_started = start_recorder(call, message, sys);
     }
-      
+    if (message.message_type == UPDATE) {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE \u001b[0m";
+    }  
     calls.push_back(call);
     plugman_call_start(call);
     plugman_calls_active(calls);
