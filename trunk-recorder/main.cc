@@ -865,10 +865,6 @@ void manage_calls() {
       continue;
     }
 
-    if (call->since_last_voice_update() > 0){
-      BOOST_LOG_TRIVIAL(info) << " Since Last Voice Update: " << call->since_last_voice_update();
-    }
-
     // Handle Trunked Calls
 
     if ((state == MONITORING) && (call->since_last_update() > config.call_timeout)) {
@@ -881,7 +877,11 @@ void manage_calls() {
     if (state == RECORDING)  {
       Recorder *recorder = call->get_recorder();
 
-      if ((recorder->since_last_write() > config.call_timeout) || (recorder->get_state() == STOPPED)) {
+      // Stop the call if:
+      // - there hasn't been an UPDATE for it on the Control Channel in X seconds AND the recorder hasn't written anything in X seconds
+      // OR
+      // - the recorder has been stopped
+      if (((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) || (recorder->get_state() == STOPPED)) {
           BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
           call->set_state(COMPLETED);
@@ -897,7 +897,7 @@ void manage_calls() {
     } else if (call->since_last_update() > config.call_timeout) {
           Recorder *recorder = call->get_recorder();
           // BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
-          BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Removing call that has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+          BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
           // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
           // set the Call state to COMPLETED
