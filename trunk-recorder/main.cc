@@ -868,7 +868,7 @@ void manage_calls() {
     // Handle Trunked Calls
 
     if ((state == MONITORING) && (call->since_last_update() > config.call_timeout)) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping  MONITORED Call \u001b[0m since last update: " << call->since_last_update());
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping  MONITORED Call \u001b[0m since last update: " << call->since_last_update();
 
         ended_call = true;
         it = calls.erase(it);
