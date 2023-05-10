@@ -993,7 +993,8 @@ void handle_call_grant(TrunkMessage message, System *sys) {
       continue;
     }
 
-    if ((call->get_talkgroup() == message.talkgroup) && (call->get_phase2_tdma() == message.phase2_tdma)) {
+    if (call->get_talkgroup() == message.talkgroup) {
+      if ((call->get_phase2_tdma() == message.phase2_tdma) && (call->get_tdma_slot() == message.tdma_slot) ) {
       if (call->get_sys_num() != message.sys_num) {
         if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
           if (call->get_system()->get_wacn() == sys->get_wacn()) {
