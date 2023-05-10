@@ -1082,7 +1082,10 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     Call *call = Call::make(message, sys, config);
 
     Talkgroup *talkgroup = sys->find_talkgroup(call->get_talkgroup());
+    if (message.message_type == UPDATE) {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDAT \u001b[0m";
 
+    }
     if (talkgroup) {
       call->set_talkgroup_tag(talkgroup->alpha_tag);
     } else {
@@ -1167,6 +1170,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UPDATE:
+      //handle_call_update(message, sys);
       handle_call_grant(message, sys);
       break;
 
