@@ -1043,6 +1043,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
             }
           }
         }
+        }
       }
     }
 
