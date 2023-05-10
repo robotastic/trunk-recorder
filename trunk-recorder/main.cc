@@ -883,7 +883,7 @@ void manage_calls() {
       // - there hasn't been an UPDATE for it on the Control Channel in X seconds AND the recorder hasn't written anything in X seconds
       // OR
       // - the recorder has been stopped
-      if (((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) || (recorder->get_state() == STOPPED)) {
+      if (((recorder->since_last_write() > config.call_timeout) /*&& (call->since_last_update() > config.call_timeout)*/) || (recorder->get_state() == STOPPED)) {
           BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
           call->set_state(COMPLETED);
@@ -1166,7 +1166,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UPDATE:
-      handle_call_update(message, sys);
+      handle_call_grant(message, sys);
       break;
 
     case UU_V_GRANT:
