@@ -65,6 +65,12 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 * [Broadcastify via Liquidsoap](https://github.com/robotastic/trunk-recorder/wiki/Streaming-online-to-Broadcastify-with-Liquid-Soap)
 * [audioplayer.php](https://github.com/robotastic/trunk-recorder/wiki/Using-audioplayer.php)
 
+### Plugins
+
+* [MQTT Status](https://github.com/robotastic/trunk-recorder-mqtt-statistics) -  Publishes the current status of a Trunk Recorder instance over MQTT
+* [MQTT Stastics](https://github.com/robotastic/trunk-recorder-mqtt-statistics) - Publishe statistics about a Trunk Recorder instance over MQTT
+
+
 ### Troubleshooting
 
 If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on the [Discord Server](Https://discord.gg/trunk-recorder) 
