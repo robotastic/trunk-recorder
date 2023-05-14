@@ -146,6 +146,17 @@ int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalTy
   return error;
 }
 
+int plugman_trunk_message(std::vector<TrunkMessage> messages, System *system) {
+  int error = 0;
+  for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {
+    Plugin *plugin = *it;
+    if (plugin->state == PLUGIN_RUNNING) {
+      plugin->api->trunk_message(messages, system);
+    }
+  }
+  return error;
+}
+
 int plugman_call_start(Call *call) {
   int error = 0;
   for (std::vector<Plugin *>::iterator it = plugins.begin(); it != plugins.end(); it++) {

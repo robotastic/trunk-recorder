@@ -1472,15 +1472,17 @@ for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(
       msg = system->get_msg_queue()->delete_head_nowait();
     while (msg != 0) {
         system->set_message_count(system->get_message_count() + 1);
-
+        
         if (system->get_system_type() == "smartnet") {
           trunk_messages = smartnet_parser->parse_message(msg->to_string(), system);
           handle_message(trunk_messages, system);
+          plugman_trunk_message(trunk_messages, system);
         }
 
         if (system->get_system_type() == "p25") {
           trunk_messages = p25_parser->parse_message(msg, system);
           handle_message(trunk_messages, system);
+          plugman_trunk_message(trunk_messages, system);
         }
       
 
