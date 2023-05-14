@@ -428,7 +428,10 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
   int nwritten = dowork(noutput_items, input_items, output_items);
 
-  if (nwritten > 1) {
+
+  // if nwritten is greater than 0, then either TDUs or Voice Frames were received
+  // if nwritten is greater than 1, the Voice Frames were received
+  if (nwritten > 0) {
     d_stop_time = time(NULL);
     d_last_write_time = std::chrono::steady_clock::now();
   }
