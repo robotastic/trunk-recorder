@@ -1047,9 +1047,6 @@ void handle_call_grant(TrunkMessage message, System *sys) {
 
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
-      if (call->get_state() == RECORDING) {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m GRANT Message for existing Call\u001b[0m";
-      }
       bool source_updated = call->update(message);
       if (source_updated) {
         plugman_call_start(call);
@@ -1167,8 +1164,8 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UPDATE:
-      //handle_call_update(message, sys);
-      handle_call_grant(message, sys);
+      handle_call_update(message, sys);
+      //handle_call_grant(message, sys);
       break;
 
     case UU_V_GRANT:
