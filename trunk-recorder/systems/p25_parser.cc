@@ -214,6 +214,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   TrunkMessage message;
   std::ostringstream os;
 
+  unsigned long opcode = bitset_shift_mask(tsbk, 88, 0x3f); // x3f
+
   message.message_type = UNKNOWN;
   message.source = -1;
   message.wacn = 0;
@@ -225,8 +227,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   message.phase2_tdma = false;
   message.tdma_slot = 0;
   message.freq = 0;
-
-  unsigned long opcode = bitset_shift_mask(tsbk, 88, 0x3f); // x3f
+  message.opcode = opcode;
 
   BOOST_LOG_TRIVIAL(trace) << "TSBK: opcode: $" << std::hex << opcode;
   if (opcode == 0x00) { // group voice chan grant
