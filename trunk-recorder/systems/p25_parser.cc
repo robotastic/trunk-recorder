@@ -97,6 +97,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   message.phase2_tdma = false;
   message.tdma_slot = 0;
   message.freq = 0;
+  message.opcode = opcode;
 
   BOOST_LOG_TRIVIAL(trace) << "decode_mbt_data: $" << opcode;
   if (opcode == 0x0) { // grp voice channel grant

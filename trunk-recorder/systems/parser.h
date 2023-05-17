@@ -48,6 +48,8 @@ struct TrunkMessage {
   unsigned long nac;
   unsigned long wacn;
   PatchData patch_data;
+  unsigned long opcode;
+  
 };
 
 class TrunkParser {
