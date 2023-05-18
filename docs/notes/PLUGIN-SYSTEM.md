@@ -32,6 +32,9 @@ Plugins can *optionally* implement the following methods, based on usage, or set
 * `call_end(plugin_t * const plugin, Call_Data_t call_info)`
   * Called when a call has ended.
 
+* `trunk_message(std::vector<TrunkMessage> messages, System *system)`
+  * Called when a new message is received from the control channel of a Trunk system
+
 * `setup_recorder(plugin_t * const plugin, Recorder *recorder)`
   * Called when a new recorder has been created.
 
@@ -41,7 +44,7 @@ Plugins can *optionally* implement the following methods, based on usage, or set
 * `setup_systems(plugin_t * const plugin, std::vector<System *> systems)`
   * Called during startup when the initial systems have been created.
 
-* `**`setup_sources(plugin_t * const plugin, std::vector<Source *> sources)`
+* `setup_sources(plugin_t * const plugin, std::vector<Source *> sources)`
   * Called during startup when the initial sources have been created.
     
 * `signal(plugin_t * const plugin, long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder)`
@@ -50,3 +53,24 @@ Plugins can *optionally* implement the following methods, based on usage, or set
 * `audio_stream(plugin_t * const plugin, Call *call, Recorder *recorder, float *samples, int sampleCount)`
   * Called when a set of audio samples that would be written out to the wav file writer is available.
   * Useful to implement live audio streaming.
+
+*  `unit_registration(System *sys, long source_id)`
+  * Called when a Subscriber Unit (radio) registers with a Trunk System
+
+*  `unit_deregistration(System *sys, long source_id)`
+  * Called when a Subscriber Unit (radio) deregisters from a Trunk System
+
+*  `unit_acknowledge_response(System *sys, long source_id)`
+  * Called for the Unit Ack Trunk message
+
+*  `unit_group_affiliation(System *sys, long source_id, long talkgroup_num)`
+  * Called when a new Subscriber Unit (radio) selects a Talkgroup on a Trunk System
+
+*  `unit_data_grant(System *sys, long source_id)`
+  * Called for the Unit Data Grant Trunk Message
+
+*  `unit_answer_request(System *sys, long source_id, long talkgroup)`
+  * Called for the Unit Answer Request Trunk Message
+
+*  `unit_location(System *sys, long source_id, long talkgroup_num)`
+  * Called for the Unit Location Trunk Message
