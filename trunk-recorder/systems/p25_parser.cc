@@ -894,7 +894,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   int sys_num = system->get_sys_num();
   TrunkMessage message;
   message.message_type = UNKNOWN;
-  message.opcode = 0;
+  message.opcode = 255;
   message.source = -1;
   message.sys_num = sys_num;
   if (type == -2) { // # request from gui
