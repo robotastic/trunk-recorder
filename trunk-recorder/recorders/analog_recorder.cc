@@ -70,7 +70,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
     : gr::hier_block2("analog_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder(type) {
+      Recorder(type, src->get_config()) {
   // int nchars;
 
   source = src;
