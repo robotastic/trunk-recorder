@@ -525,7 +525,7 @@ namespace gr {
                             uint16_t ch_T    = (lcw[5] << 8) + lcw[6];
                             uint16_t ch_R    = (lcw[7] << 8) + lcw[8];
 
-                            curr_grp_id = grpaddr;
+                            // curr_grp_id = grpaddr; // you can get Updates for Talkgroups that are on other frequencies, the GRP here may not be the one the being recordered
                             if (d_debug >= 10)
                                 fprintf(stderr, ", svcopts=0x%02x, grpaddr=%d, ch_T=%d, ch_R=%d", svcopts, grpaddr, ch_T, ch_R);
                             tsbk[0] = 0xff; tsbk[1] = 0xff;
