@@ -431,7 +431,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
   // if nwritten is greater than 0, then either TDUs or Voice Frames were received
   // if nwritten is greater than 1, the Voice Frames were received
-  if (nwritten > 0) {
+  if (nwritten > 1) {
     d_stop_time = time(NULL);
     d_last_write_time = std::chrono::steady_clock::now();
   }
