@@ -46,6 +46,7 @@ Call_impl::Call_impl(long t, double f, System *s, Config c) {
   duplex = false;
   mode = false;
   is_analog = false;
+  was_update = false;
   priority = 0;
   set_freq(f);
   this->update_talkgroup_display();
@@ -76,6 +77,11 @@ Call_impl::Call_impl(TrunkMessage message, System *s, Config c) {
   mode = message.mode;
   is_analog = false;
   priority = message.priority;
+  if (message.message_type == GRANT) {
+    was_update = false;
+  } else {
+    was_update = true;
+  }
   set_freq(message.freq);
   add_source(message.source);
   this->update_talkgroup_display();
@@ -115,6 +121,9 @@ void Call_impl::conclude_call() {
     }
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\t\u001b[33mConcluding Recorded Call\u001b[0m - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();
 
+    if (was_update) {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\t\u001b[33mCall was UPDATE not GRANT";
+    }
     this->get_recorder()->stop();
     transmission_list = this->get_recorder()->get_transmission_list();
     if (this->get_sigmf_recording() == true) {

@@ -958,7 +958,7 @@ void unit_location(System *sys, long source_id, long talkgroup_num) {
   plugman_unit_location(sys, source_id, talkgroup_num);
 }
 
-void handle_call_grant(TrunkMessage message, System *sys) {
+void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
   bool call_found = false;
   bool duplicate_grant = false;
   bool superseding_grant = false;
@@ -1108,7 +1108,7 @@ void handle_call_grant(TrunkMessage message, System *sys) {
     }
     else {
       recording_started = start_recorder(call, message, sys);
-      if (message.message_type == UPDATE) {
+      if (!grant_message) {
         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE \u001b[0m";
       }
     }  
@@ -1160,17 +1160,17 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
 
     switch (message.message_type) {
     case GRANT:
-      handle_call_grant(message, sys);
+      handle_call_grant(message, sys, true);
       break;
 
     case UPDATE:
-      handle_call_update(message, sys);
-      //handle_call_grant(message, sys);
+      //handle_call_update(message, sys);
+      handle_call_grant(message, sys, false);
       break;
 
     case UU_V_GRANT:
       if (config.record_uu_v_calls) {
-        handle_call_grant(message, sys);
+        handle_call_grant(message, sys, true);
       }
       break;
 

@@ -104,6 +104,7 @@ protected:
   time_t start_time;
   bool debug_recording;
   bool sigmf_recording;
+  bool was_update;
   bool encrypted;
   bool emergency;
   bool mode;
