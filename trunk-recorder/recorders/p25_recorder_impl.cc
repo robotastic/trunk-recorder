@@ -267,6 +267,7 @@ void p25_recorder_impl::reset_block(gr::basic_block_sptr block) {
   detail->reset_nitem_counters();
 }
 void p25_recorder_impl::clear() {
+  /*
   reset_block(bandpass_filter);
   reset_block(mixer);
   reset_block(bfo);
@@ -276,7 +277,8 @@ void p25_recorder_impl::clear() {
   reset_block(cutoff_filter);
   reset_block(squelch);
   reset_block(rms_agc);
-  reset_block(fll_band_edge);
+  reset_block(fll_band_edge);*/
+
 
   //op25_frame_assembler->clear();
 
