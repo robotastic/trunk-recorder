@@ -260,8 +260,47 @@ void p25_recorder_impl::set_tdma(bool phase2) {
   }
 }
 
+void p25_recorder_impl::reset_block(gr::basic_block_sptr block) {
+  gr::block_detail_sptr detail;
+  gr::block_sptr grblock = cast_to_block_sptr(block);
+  detail = grblock->detail();
+  detail->reset_nitem_counters();
+}
 void p25_recorder_impl::clear() {
-  // op25_frame_assembler->clear();
+  reset_block(bandpass_filter);
+  reset_block(mixer);
+  reset_block(bfo);
+  reset_block(lo);
+  reset_block(lowpass_filter);
+  reset_block(arb_resampler);
+  reset_block(cutoff_filter);
+  reset_block(squelch);
+  reset_block(rms_agc);
+  reset_block(fll_band_edge);
+
+  //op25_frame_assembler->clear();
+
+  /*
+    connect(self(), 0, valve, 0);
+  if (double_decim) {
+    connect(valve, 0, bandpass_filter, 0);
+    connect(bandpass_filter, 0, mixer, 0);
+    connect(bfo, 0, mixer, 1);
+  } else {
+    connect(valve, 0, mixer, 0);
+    connect(lo, 0, mixer, 1);
+  }
+  connect(mixer, 0, lowpass_filter, 0);
+  if (arb_rate == 1.0) {
+    connect(lowpass_filter, 0, cutoff_filter, 0);
+  } else {
+    connect(lowpass_filter, 0, arb_resampler, 0);
+    connect(arb_resampler, 0, cutoff_filter, 0);
+  }
+  connect(cutoff_filter,0, squelch, 0);
+  connect(squelch, 0, rms_agc, 0);
+  connect(rms_agc,0, fll_band_edge, 0);
+}*/
 }
 
 void p25_recorder_impl::autotune() {

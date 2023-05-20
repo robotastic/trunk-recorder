@@ -44,8 +44,10 @@
 #endif
 
 #include <gnuradio/digital/fll_band_edge_cc.h>
+#include <gnuradio/runtime_types.h>
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/blocks/head.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
@@ -168,6 +170,7 @@ private:
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
   gr::blocks::multiply_const_ff::sptr rescale;
+  void reset_block(gr::basic_block_sptr block);
 };
 
 #endif // ifndef P25_RECORDER_H
