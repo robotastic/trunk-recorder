@@ -356,6 +356,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
                 end_transmission();
               }
           state = STOPPED;
+
         }
       }
     }
@@ -468,6 +469,10 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   int n_in_chans = input_items.size();
   int16_t sample_buf_s;
   int nwritten = 0;
+
+  if (state == STOPPED) {
+    return noutput_items;
+  }
 
   // A Termination Tag was receive
   if (d_termination_flag) {
