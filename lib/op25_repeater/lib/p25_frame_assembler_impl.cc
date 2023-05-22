@@ -253,10 +253,10 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       if (d_do_audio_output) {
         if (d_do_phase2_tdma) {
           d_input_rate = 6000;
-          set_output_multiple(640);
+          //set_output_multiple(640);
         } else {
           d_input_rate = 4800;
-          set_output_multiple(864);
+          //set_output_multiple(864);
         }
       }
     }
