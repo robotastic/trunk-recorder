@@ -65,6 +65,8 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
       d_sample_rate(sample_rate), 
       d_nchans(n_channels),
       d_current_call(NULL), 
+      d_display(true),
+      d_port(pmt::mp("msg")),
       d_fp(0) {
         
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
@@ -72,10 +74,13 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
   }
   d_bytes_per_sample = bits_per_sample / 8;
   d_sample_count = 0;
+  d_filter = pmt::intern("latency_strobe");
   d_slot = -1;
   d_termination_flag = false;
   state = AVAILABLE;
+      message_port_register_out(d_port);
 }
+
 
 // static int rec_counter=0;
 void transmission_sink::create_base_filename() {
@@ -300,6 +305,67 @@ State transmission_sink::get_state() {
 int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this
+
+      //BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\t got: " << noutput_items << " samples" << std::endl;
+ 
+    bool toprint = false;
+    d_display = false;
+    std::stringstream sout;
+    if (d_display) {
+        sout << std::endl
+             << "----------------------------------------------------------------------";
+        sout << std::endl << "Tag Debug: " << d_name << std::endl;
+    }
+
+    uint64_t abs_N, end_N;
+    for (size_t i = 0; i < input_items.size(); i++) {
+        abs_N = nitems_read(i);
+        end_N = abs_N + (uint64_t)(noutput_items);
+
+        d_tags.clear();
+
+        get_tags_in_range(d_tags, i, abs_N, end_N);//, d_filter);
+
+        if (!d_tags.empty()) {
+            toprint = true;
+        }
+
+        if (d_display) {
+            sout << "Input Stream: " << std::setw(2) << std::setfill('0') << i
+                 << std::setfill(' ') << std::endl;
+            for (d_tags_itr = d_tags.begin(); d_tags_itr != d_tags.end(); d_tags_itr++) {
+                sout << std::setw(10) << "Offset: " << d_tags_itr->offset << std::setw(10)
+                     << "Source: "
+                     << (pmt::is_symbol(d_tags_itr->srcid)
+                             ? pmt::symbol_to_string(d_tags_itr->srcid)
+                             : "n/a")
+                     << std::setw(10) << "Key: " << pmt::symbol_to_string(d_tags_itr->key)
+                     << std::setw(10) << "Value: ";
+                sout << d_tags_itr->value << std::endl;
+            }
+
+        }
+
+        if (true /*d_publish_msgs*/) {
+            for (d_tags_itr = d_tags.begin(); d_tags_itr != d_tags.end(); d_tags_itr++) {
+                pmt::pmt_t d = pmt::make_dict();
+                d = pmt::dict_add(d, pmt::mp(d_tags_itr->key), pmt::mp(d_tags_itr->value));
+                message_port_pub(d_port, pmt::cons(d, pmt::PMT_NIL));
+            }
+        }
+    }
+
+    if (d_display) {
+        sout << "----------------------------------------------------------------------";
+        sout << std::endl;
+
+        if (toprint) {
+            std::cout << sout.str();
+        }
+    }
+
+
+
 
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if (!d_current_call) {

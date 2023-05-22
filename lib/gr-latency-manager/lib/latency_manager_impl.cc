@@ -39,7 +39,7 @@ namespace gr {
     void latency_manager_impl::add_token(pmt::pmt_t msg)
     {
         d_tokens++;
-//        std::cout << "Tokens: " << d_tokens << " : Added one\n";
+        //std::cout << "Tokens: " << d_tokens << " : Added one\n";
     }
 
     latency_manager_impl::latency_manager_impl(int max_tags_in_flight, int tag_interval, int itemsize)
@@ -72,11 +72,13 @@ namespace gr {
 
       int copy_count = std::min(noutput_items, d_tag_phase + d_tokens * d_tag_interval);
       std::memcpy(out, in, copy_count * d_itemsize);
-
+      //std::cout << "Copied: " << copy_count << "\n";
       int tag_loc = d_tag_phase;
       while (tag_loc < copy_count) {
+        
         d_tag.offset = nitems_written(0) + tag_loc;
         d_tag.value = pmt::from_long(tag_loc);
+        //std::cout << "Add Tag: " << tag_loc << " nitems_written: " << nitems_written(0) << "\n";
         add_item_tag(0,d_tag);
         tag_loc += d_tag_interval;
         d_tokens--;

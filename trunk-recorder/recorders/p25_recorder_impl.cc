@@ -156,16 +156,19 @@ void p25_recorder_impl::initialize_prefilter() {
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250); 
-        
-
+  latency_manager = gr::latency_manager::latency_manager::make(1000,1000,sizeof(gr_complex));      
+  tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
 
   connect(self(), 0, valve, 0);
+  connect(valve, 0, latency_manager,0);
   if (double_decim) {
-    connect(valve, 0, bandpass_filter, 0);
+    connect(latency_manager, 0, bandpass_filter, 0);
+    //connect(valve, 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(valve, 0, mixer, 0);
+    connect(latency_manager, 0,  mixer, 0);
+    //connect(valve, 0,  mixer, 0);
     connect(lo, 0, mixer, 1);
   }
   connect(mixer, 0, lowpass_filter, 0);
@@ -177,7 +180,7 @@ void p25_recorder_impl::initialize_prefilter() {
   }
   connect(cutoff_filter,0, squelch, 0);
   connect(squelch, 0, rms_agc, 0);
-  connect(rms_agc,0, fll_band_edge, 0);
+  connect(rms_agc,0,  fll_band_edge, 0);
 }
 
 
@@ -217,12 +220,16 @@ void p25_recorder_impl::initialize(Source *src) {
   fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames);
 
   modulation_selector->set_enabled(true);
-
+        connect(fll_band_edge,0, tag_to_msg, 0);
   connect(fll_band_edge, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
+  msg_connect(tag_to_msg, "msg", latency_manager, "token" );
+  
+  //msg_connect(qpsk_p25_decode->get_transmission_sink(), "msg", latency_manager, "token" );
+  //msg_connect(fsk4_p25_decode->get_transmission_sink(), "msg", latency_manager, "token" );
 }
 
 void p25_recorder_impl::switch_tdma(bool phase2) {

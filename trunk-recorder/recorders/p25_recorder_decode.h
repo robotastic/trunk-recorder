@@ -52,6 +52,7 @@ protected:
   gr::blocks::multiply_const_ss::sptr levels;
   gr::blocks::transmission_sink::sptr wav_sink;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
+  
 
 public:
   p25_recorder_decode(Recorder *recorder);
@@ -72,5 +73,6 @@ public:
   void plugin_callback_handler(int16_t *samples, int sampleCount);
   double get_output_sample_rate();
   State get_state();
+  gr::op25_repeater::p25_frame_assembler::sptr get_transmission_sink();
 };
 #endif
