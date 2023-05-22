@@ -268,41 +268,36 @@ void p25_recorder_impl::reset_block(gr::basic_block_sptr block) {
 }
 void p25_recorder_impl::clear() {
   /*
-  reset_block(bandpass_filter);
-  reset_block(mixer);
-  reset_block(bfo);
-  reset_block(lo);
+  if (double_decim) {
+    //reset_block(bandpass_filter);
+    //reset_block(bfo);
+  } else {
+  //reset_block(lo);
+  }
   reset_block(lowpass_filter);
+  reset_block(mixer);
+
+  if (arb_rate != 1.0) {
   reset_block(arb_resampler);
+  } 
+
   reset_block(cutoff_filter);
   reset_block(squelch);
-  reset_block(rms_agc);
-  reset_block(fll_band_edge);*/
+  //reset_block(rms_agc); // RMS AGC cant be made into a basic block
+  reset_block(fll_band_edge);
+  reset_block(modulation_selector);
+ 
 
+  //reset_block(qpsk_demod); // bad - Seg Faults
+  //reset_block(qpsk_p25_decode); // bad - Seg Faults
+  //reset_block(fsk4_demod); // bad - Seg Faults
+  //reset_block(fsk4_p25_decode);  // bad - Seg Faults
 
-  //op25_frame_assembler->clear();
-
-  /*
-    connect(self(), 0, valve, 0);
-  if (double_decim) {
-    connect(valve, 0, bandpass_filter, 0);
-    connect(bandpass_filter, 0, mixer, 0);
-    connect(bfo, 0, mixer, 1);
-  } else {
-    connect(valve, 0, mixer, 0);
-    connect(lo, 0, mixer, 1);
-  }
-  connect(mixer, 0, lowpass_filter, 0);
-  if (arb_rate == 1.0) {
-    connect(lowpass_filter, 0, cutoff_filter, 0);
-  } else {
-    connect(lowpass_filter, 0, arb_resampler, 0);
-    connect(arb_resampler, 0, cutoff_filter, 0);
-  }
-  connect(cutoff_filter,0, squelch, 0);
-  connect(squelch, 0, rms_agc, 0);
-  connect(rms_agc,0, fll_band_edge, 0);
-}*/
+  
+  qpsk_demod->reset();
+  qpsk_p25_decode->reset();
+  fsk4_demod->reset();
+  fsk4_p25_decode->reset();*/
 }
 
 void p25_recorder_impl::autotune() {
@@ -463,12 +458,13 @@ void p25_recorder_impl::stop() {
     } else {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
-    clear();
+
     
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
     state = INACTIVE;
     valve->set_enabled(false);
+        clear();
     if (qpsk_mod) {
       qpsk_p25_decode->stop();
     } else {

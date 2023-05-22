@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/analog/pll_freqdet_cf.h>
 #include <gnuradio/block.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/filter/fft_filter_fff.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/hier_block2.h>
@@ -59,5 +60,7 @@ private:
   gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
+
+    void reset_block(gr::basic_block_sptr block); 
 };
 #endif

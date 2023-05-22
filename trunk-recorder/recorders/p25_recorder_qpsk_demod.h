@@ -3,6 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/block.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
@@ -68,5 +69,7 @@ private:
   gr::digital::diff_phasor_cc::sptr diffdec;
   gr::blocks::complex_to_arg::sptr to_float;
   gr::blocks::multiply_const_ff::sptr rescale;
+
+    void reset_block(gr::basic_block_sptr block); 
 };
 #endif

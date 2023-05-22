@@ -3,6 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/block.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
@@ -62,6 +63,8 @@ public:
   void start(Call *call);
   double since_last_write();
   void stop();
+  void reset();
+  void reset_block(gr::basic_block_sptr block); 
   int tdma_slot;
   bool delay_open;
   virtual ~p25_recorder_decode();

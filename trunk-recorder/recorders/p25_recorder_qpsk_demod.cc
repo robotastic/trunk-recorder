@@ -20,10 +20,23 @@ p25_recorder_qpsk_demod::p25_recorder_qpsk_demod()
 p25_recorder_qpsk_demod::~p25_recorder_qpsk_demod() {
 }
 
+void p25_recorder_qpsk_demod::reset_block(gr::basic_block_sptr block) {
+  gr::block_detail_sptr detail;
+  gr::block_sptr grblock = cast_to_block_sptr(block);
+  detail = grblock->detail();
+  detail->reset_nitem_counters();
+}
+
 void p25_recorder_qpsk_demod::reset() {
     costas->set_phase(0);
     costas->set_frequency(0);
     clock->reset();
+
+    reset_block(clock);
+    reset_block(costas);
+    reset_block(diffdec);
+    reset_block(to_float);
+    reset_block(rescale);
 }
 
 void p25_recorder_qpsk_demod::switch_tdma(bool phase2) {

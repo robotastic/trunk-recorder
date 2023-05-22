@@ -202,6 +202,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
           }
 
           if (grp_id > 0) {
+            BOOST_LOG_TRIVIAL(info) << "Sending Group ID: " << grp_id << " At: " << nitems_written(0) << std::endl;
             add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
           }
 

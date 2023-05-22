@@ -82,7 +82,7 @@ void p25_recorder_decode::initialize(int silence_frames) {
   rx_queue = gr::msg_queue::make(100);
 
   int udp_port = 0;
-  int verbosity = 0; // 10 = lots of debug messages
+  int verbosity = 10; // 10 = lots of debug messages
   const char *udp_host = "127.0.0.1";
   bool do_imbe = 1;
   bool do_output = 1;
@@ -118,4 +118,19 @@ void p25_recorder_decode::plugin_callback_handler(int16_t *samples, int sampleCo
 
 double p25_recorder_decode::get_output_sample_rate() {
   return 8000;
+}
+
+void p25_recorder_decode::reset_block(gr::basic_block_sptr block) {
+  gr::block_detail_sptr detail;
+  gr::block_sptr grblock = cast_to_block_sptr(block);
+  detail = grblock->detail();
+  detail->reset_nitem_counters();
+  detail->clear_tags();
+}
+
+void p25_recorder_decode::reset() {
+  reset_block(op25_frame_assembler);
+  reset_block(slicer);
+  reset_block(levels);
+  reset_block(wav_sink);
 }

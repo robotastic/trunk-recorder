@@ -15,8 +15,18 @@ p25_recorder_fsk4_demod::p25_recorder_fsk4_demod()
 
 p25_recorder_fsk4_demod::~p25_recorder_fsk4_demod() {
 }
-
+void p25_recorder_fsk4_demod::reset_block(gr::basic_block_sptr block) {
+  gr::block_detail_sptr detail;
+  gr::block_sptr grblock = cast_to_block_sptr(block);
+  detail = grblock->detail();
+  detail->reset_nitem_counters();
+}
 void p25_recorder_fsk4_demod::reset() {
+  reset_block(pll_freq_lock);
+  reset_block(pll_amp);
+  reset_block(noise_filter);
+  reset_block(sym_filter);
+  reset_block(fsk4_demod);
   /*
   pll_freq_lock->update_gains();
   pll_freq_lock->frequency_limit();
