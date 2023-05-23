@@ -105,6 +105,7 @@ protected:
 protected:
   bool stop();
   bool open_internal(const char *filename);
+
   std::vector<Transmission> transmission_list;
   State state;
 

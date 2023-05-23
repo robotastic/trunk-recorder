@@ -305,6 +305,57 @@ State transmission_sink::get_state() {
 int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this function
+/*
+    std::vector<tag_t> d_tags;
+    std::vector<tag_t>::iterator d_tags_itr;
+bool toprint = false;
+bool    d_display = true;
+    std::stringstream sout;
+    if (d_display) {
+        sout << std::endl
+             << "----------------------------------------------------------------------";
+        sout << std::endl << "Tag Debug: " << d_name << std::endl;
+    }
+
+    uint64_t abs_N, end_N;
+    for (size_t i = 0; i < input_items.size(); i++) {
+        abs_N = nitems_read(i);
+        end_N = abs_N + (uint64_t)(noutput_items);
+
+        d_tags.clear();
+
+            get_tags_in_range(d_tags, i, abs_N, end_N);
+
+        if (!d_tags.empty()) {
+            toprint = true;
+        }
+
+        if (d_display) {
+            sout << "Input Stream: " << std::setw(2) << std::setfill('0') << i
+                 << std::setfill(' ') << std::endl;
+            for (d_tags_itr = d_tags.begin(); d_tags_itr != d_tags.end(); d_tags_itr++) {
+                sout << std::setw(10) << "Offset: " << d_tags_itr->offset << std::setw(10)
+                     << "Source: "
+                     << (pmt::is_symbol(d_tags_itr->srcid)
+                             ? pmt::symbol_to_string(d_tags_itr->srcid)
+                             : "n/a")
+                     << std::setw(10) << "Key: " << pmt::symbol_to_string(d_tags_itr->key)
+                     << std::setw(10) << "Value: ";
+                sout << d_tags_itr->value << std::endl;
+            }
+
+        }
+    }
+
+    if (d_display) {
+        sout << "----------------------------------------------------------------------";
+        sout << std::endl;
+
+        if (toprint) {
+            std::cout << sout.str();
+        }
+    }
+*/
 
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if (!d_current_call) {
@@ -482,7 +533,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     d_termination_flag = false;
 
     if (d_current_call == NULL) {
-      BOOST_LOG_TRIVIAL(error) << "wav - no current call, but in temination loop";
+      BOOST_LOG_TRIVIAL(error) << "wav - no current call, but in termination loop";
       state = STOPPED;
 
       return noutput_items;

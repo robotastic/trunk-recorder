@@ -61,6 +61,8 @@
 #include "p25_recorder_qpsk_demod.h"
 #include "../../lib/gr-latency-manager/include/latency_manager.h"
 #include "../../lib/gr-latency-manager/include/tag_to_msg.h"
+#include "../../lib/gr-latency/latency_probe.h"
+#include "../../lib/gr-latency/latency_tagger.h"
 #include "recorder.h"
 
 class Source;
@@ -126,7 +128,9 @@ protected:
   gr::blocks::rms_agc::sptr rms_agc;
   gr::latency_manager::latency_manager::sptr latency_manager;
   gr::latency_manager::tag_to_msg::sptr tag_to_msg;
-  
+  gr::gr_latency::latency_tagger::sptr latency_tagger;
+    gr::gr_latency::latency_probe::sptr probe;
+    
   //gr::op25_repeater::rmsagc_ff::sptr rms_agc;
   // gr::blocks::multiply_const_ss::sptr levels;
 

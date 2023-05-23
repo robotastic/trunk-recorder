@@ -158,20 +158,24 @@ void p25_recorder_impl::initialize_prefilter() {
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250); 
   //latency_manager = gr::latency_manager::latency_manager::make(1000,1000,sizeof(gr_complex));      
   //tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
-
+  //latency_tagger = gr::gr_latency::latency_tagger::make(sizeof(gr_complex),500000,"recorder");
+  //probe = gr::gr_latency::latency_probe::make(sizeof(gr_complex),{"recorder"});
   connect(self(), 0, valve, 0);
+  //connect(valve, 0, latency_tagger, 0);
   //connect(valve, 0, latency_manager,0);
   if (double_decim) {
     //connect(latency_manager, 0, bandpass_filter, 0);
+    //connect(latency_tagger, 0, bandpass_filter, 0);
     connect(valve, 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
     //connect(latency_manager, 0,  mixer, 0);
+    //connect(latency_tagger, 0,  mixer, 0);
     connect(valve, 0,  mixer, 0);
     connect(lo, 0, mixer, 1);
   }
-  connect(mixer, 0, lowpass_filter, 0);
+  connect(mixer, 0,lowpass_filter, 0);
   if (arb_rate == 1.0) {
     connect(lowpass_filter, 0, cutoff_filter, 0);
   } else {

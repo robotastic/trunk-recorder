@@ -68,11 +68,11 @@ void p25_recorder_fsk4_demod::initialize() {
   // FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
   tune_queue = gr::msg_queue::make(20);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
-
+  probe = gr::gr_latency::latency_probe::make(sizeof(float),{"recorder"});
   connect(self(), 0, pll_freq_lock, 0);
   connect(pll_freq_lock, 0, pll_amp, 0);
   connect(pll_amp, 0, noise_filter, 0);
   connect(noise_filter, 0, sym_filter, 0);
-  connect(sym_filter, 0, fsk4_demod, 0);
+  connect(sym_filter, 0,fsk4_demod, 0);
   connect(fsk4_demod, 0, self(), 0);
 }

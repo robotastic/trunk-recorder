@@ -20,7 +20,7 @@
 #include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
-
+#include "../../lib/gr-latency/latency_probe.h"
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 
@@ -60,7 +60,7 @@ private:
   gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-
+    gr::gr_latency::latency_probe::sptr probe;
     void reset_block(gr::basic_block_sptr block); 
 };
 #endif
