@@ -102,11 +102,13 @@ void p25_recorder_impl::initialize_prefilter() {
     fa = 6250;
     fb = if2 / 2;
     BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
-    bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
+    
     #if GNURADIO_VERSION < 0x030900
         lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
+        bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2, gr::filter::firdes::WIN_HAMMING);
     #else
         lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
+        bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2, gr::fft::window::WIN_HAMMING);
     #endif
     bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
@@ -156,22 +158,31 @@ void p25_recorder_impl::initialize_prefilter() {
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250); 
-  //latency_manager = gr::latency_manager::latency_manager::make(1000,1000,sizeof(gr_complex));      
-  //tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
-  //latency_tagger = gr::gr_latency::latency_tagger::make(sizeof(gr_complex),500000,"recorder");
-  //probe = gr::gr_latency::latency_probe::make(sizeof(gr_complex),{"recorder"});
+
+
   connect(self(), 0, valve, 0);
-  //connect(valve, 0, latency_tagger, 0);
-  //connect(valve, 0, latency_manager,0);
+/*
+  // For Latency Probe
+  latency_tagger = gr::gr_latency::latency_tagger::make(sizeof(gr_complex),500000,"recorder");
+  probe = gr::gr_latency::latency_probe::make(sizeof(gr_complex),{"recorder"});
+  connect(valve, 0, latency_tagger, 0);
+*/
+
+/*
+  // For Latency Manager
+  latency_manager = gr::latency_manager::latency_manager::make(1000,1000,sizeof(gr_complex));      
+  tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
+  connect(latency_tagger, 0, latency_manager,0);
+  */
   if (double_decim) {
     //connect(latency_manager, 0, bandpass_filter, 0);
-    //connect(latency_tagger, 0, bandpass_filter, 0);
+
     connect(valve, 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
     //connect(latency_manager, 0,  mixer, 0);
-    //connect(latency_tagger, 0,  mixer, 0);
+
     connect(valve, 0,  mixer, 0);
     connect(lo, 0, mixer, 1);
   }
@@ -224,16 +235,23 @@ void p25_recorder_impl::initialize(Source *src) {
   fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames);
 
   modulation_selector->set_enabled(true);
+      /*
+      // For the Latency Manager
         //connect(fll_band_edge,0, tag_to_msg, 0);
-  connect(fll_band_edge, 0, modulation_selector, 0);
+          //msg_connect(tag_to_msg, "msg", latency_manager, "token" );
+          */
+         /*
+         // For the Latency Probe
+        //connect(fll_band_edge,0, probe, 0);
+  //connect(probe, 0,  modulation_selector, 0);
+  */
+  connect(fll_band_edge,0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
-  //msg_connect(tag_to_msg, "msg", latency_manager, "token" );
+
   
-  //msg_connect(qpsk_p25_decode->get_transmission_sink(), "msg", latency_manager, "token" );
-  //msg_connect(fsk4_p25_decode->get_transmission_sink(), "msg", latency_manager, "token" );
 }
 
 void p25_recorder_impl::switch_tdma(bool phase2) {

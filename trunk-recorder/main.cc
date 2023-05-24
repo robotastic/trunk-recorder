@@ -896,7 +896,7 @@ void manage_calls() {
           delete call;
           continue;
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Still good!! \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+        //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Still good!! \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
       }
     } else if (call->since_last_update() > config.call_timeout) {
@@ -1169,8 +1169,8 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UPDATE:
-      handle_call_update(message, sys);
-      //handle_call_grant(message, sys, false);
+      //handle_call_update(message, sys);
+      handle_call_grant(message, sys, false);
       break;
 
     case UU_V_GRANT:
