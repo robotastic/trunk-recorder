@@ -24,6 +24,7 @@
 #include "../gr_blocks/rms_agc.h"
 #include "../../lib/gr-latency/latency_probe.h"
 #include <op25_repeater/fsk4_slicer_fb.h>
+#include <op25_repeater/rmsagc_ff.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
 
 class p25_recorder_fsk4_demod;
@@ -56,11 +57,11 @@ private:
   std::vector<float> cutoff_filter_coeffs;
   gr::filter::fft_filter_fff::sptr noise_filter;
   gr::filter::fir_filter_fff::sptr sym_filter;
-  gr::blocks::rms_agc::sptr baseband_amp;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
   gr::blocks::multiply_const_ff::sptr pll_amp;
   gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
   gr::analog::quadrature_demod_cf::sptr fm_demod;
+  gr::op25_repeater::rmsagc_ff::sptr baseband_amp;
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
     gr::gr_latency::latency_probe::sptr probe;
