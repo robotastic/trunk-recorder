@@ -26,6 +26,7 @@
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/rmsagc_ff.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
+#include <gnuradio/digital/clock_recovery_mm_ff.h>
 
 class p25_recorder_fsk4_demod;
 
@@ -65,6 +66,7 @@ private:
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
     gr::gr_latency::latency_probe::sptr probe;
+  gr::digital::clock_recovery_mm_ff::sptr clock_recovery;
     void reset_block(gr::basic_block_sptr block); 
 };
 #endif

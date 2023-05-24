@@ -68,7 +68,12 @@ void p25_recorder_fsk4_demod::initialize() {
   sym_filter = gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
 
   // FSK4: FSK4 Demod - locked at Phase 1 rates, since it can only be Phase 1
-  tune_queue = gr::msg_queue::make(20);
+  int omega = phase1_samples_per_symbol;
+  float gain_mu = 0.175;
+  float mu = 0.5;
+  float gain_omega = .25 * gain_mu * gain_mu;        //critically damped
+  float omega_relative_limit = 0.005;
+  clock_recovery = gr::digital::clock_recovery_mm_ff::make(omega, gain_omega,  mu, gain_mu, omega_relative_limit);
   fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, phase1_channel_rate, phase1_symbol_rate);
   int def_symbol_deviation = 600.0;
   float fm_demod_gain = phase1_channel_rate / (2 * pi * def_symbol_deviation);
@@ -80,9 +85,17 @@ void p25_recorder_fsk4_demod::initialize() {
   connect(noise_filter, 0, sym_filter, 0);
   connect(sym_filter, 0,fsk4_demod, 0);
   connect(fsk4_demod, 0, self(), 0);*/
+
+/*
   connect(self(), 0, fm_demod,0);
   connect(fm_demod, 0, baseband_amp,0);
   connect(baseband_amp, 0, sym_filter, 0);
   connect(sym_filter, 0,fsk4_demod, 0);
-  connect(fsk4_demod, 0, self(), 0);
+  connect(fsk4_demod, 0, self(), 0);*/
+
+    connect(self(), 0, fm_demod,0);
+  connect(fm_demod, 0, baseband_amp,0);
+  connect(baseband_amp, 0, sym_filter, 0);
+  connect(sym_filter, 0,clock_recovery, 0);
+  connect(clock_recovery, 0, self(), 0);
 }
