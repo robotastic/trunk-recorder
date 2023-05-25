@@ -1155,7 +1155,7 @@ void handle_call_update(TrunkMessage message, System *sys) {
 
   if (!call_found) {
     // Note: some calls maybe removed before the UPDATEs stop on the trunking channel if there is some GAP in the updates.
-     BOOST_LOG_TRIVIAL(info) << "Call not found for UPDATE mesg - either we missed GRANT or removed Call too soon\tFreq: " << format_freq(message.freq) << "\tTG:" << message.talkgroup << "\tSource: " << message.source << "\tSys Num: " << message.sys_num << "\tTDMA Slot: " << message.tdma_slot << "\tTDMA: " << message.phase2_tdma;
+    // BOOST_LOG_TRIVIAL(info) << "Call not found for UPDATE mesg - either we missed GRANT or removed Call too soon\tFreq: " << format_freq(message.freq) << "\tTG:" << message.talkgroup << "\tSource: " << message.source << "\tSys Num: " << message.sys_num << "\tTDMA Slot: " << message.tdma_slot << "\tTDMA: " << message.phase2_tdma;
   }
 }
 
@@ -1169,8 +1169,8 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UPDATE:
-      handle_call_update(message, sys);
-      //handle_call_grant(message, sys, false);
+      //handle_call_update(message, sys);
+      handle_call_grant(message, sys, false);
       break;
 
     case UU_V_GRANT:
