@@ -45,17 +45,17 @@ void p25_recorder_fsk4_demod::initialize() {
   double fd = 600.0;
   double pll_demod_gain = 1.0 / (fd * freq_to_norm_radians);
   double samples_per_symbol = 5;
-  //pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
-  //pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0);
+  pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
+  pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0);
 
   // FSK4: noise filter - can only be Phase 1, so locking at that rate.
 #if GNURADIO_VERSION < 0x030900
-  //baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
+  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::filter::firdes::WIN_KAISER, 6.76);
 #else
-  //baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::fft::window::WIN_KAISER, 6.76);
+  baseband_noise_filter_taps = gr::filter::firdes::low_pass_2(1.0, phase1_channel_rate, phase1_symbol_rate / 2.0 * 1.175, phase1_symbol_rate / 2.0 * 0.125, 20.0, gr::fft::window::WIN_KAISER, 6.76);
 
 #endif
-  //noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
+  noise_filter = gr::filter::fft_filter_fff::make(1.0, baseband_noise_filter_taps);
 
   baseband_amp = gr::op25_repeater::rmsagc_ff::make(0.01, 1.00);
 
@@ -79,23 +79,27 @@ void p25_recorder_fsk4_demod::initialize() {
   float fm_demod_gain = phase1_channel_rate / (2 * pi * def_symbol_deviation);
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
   probe = gr::gr_latency::latency_probe::make(sizeof(float),{"recorder"});
-  /*connect(self(), 0, pll_freq_lock, 0);
+
+  /*
+  connect(self(), 0, pll_freq_lock, 0);
   connect(pll_freq_lock, 0, pll_amp, 0);
   connect(pll_amp, 0, noise_filter, 0);
   connect(noise_filter, 0, sym_filter, 0);
   connect(sym_filter, 0,fsk4_demod, 0);
   connect(fsk4_demod, 0, self(), 0);*/
 
-/*
+
   connect(self(), 0, fm_demod,0);
   connect(fm_demod, 0, baseband_amp,0);
   connect(baseband_amp, 0, sym_filter, 0);
   connect(sym_filter, 0,fsk4_demod, 0);
-  connect(fsk4_demod, 0, self(), 0);*/
+  connect(fsk4_demod, 0, self(), 0);
 
+  
+/*
     connect(self(), 0, fm_demod,0);
   connect(fm_demod, 0, baseband_amp,0);
   connect(baseband_amp, 0, sym_filter, 0);
   connect(sym_filter, 0,clock_recovery, 0);
-  connect(clock_recovery, 0, self(), 0);
+  connect(clock_recovery, 0, self(), 0);*/
 }
