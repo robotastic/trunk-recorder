@@ -1169,8 +1169,8 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UPDATE:
-      //handle_call_update(message, sys);
-      handle_call_grant(message, sys, false);
+      handle_call_update(message, sys);
+      //handle_call_grant(message, sys, false);
       break;
 
     case UU_V_GRANT:
