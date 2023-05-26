@@ -16,7 +16,6 @@
 #include <op25_repeater/include/op25_repeater/p25_frame_assembler.h>
 #include <op25_repeater/include/op25_repeater/rx_status.h>
 #include <op25_repeater/vocoder.h>
-#include "../../lib/gr-latency/latency_probe.h"
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/blocks/multiply_const_ss.h>
@@ -53,7 +52,6 @@ protected:
   gr::blocks::multiply_const_ss::sptr levels;
   gr::blocks::transmission_sink::sptr wav_sink;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
-  gr::gr_latency::latency_probe::sptr probe;
 
 public:
   p25_recorder_decode(Recorder *recorder);

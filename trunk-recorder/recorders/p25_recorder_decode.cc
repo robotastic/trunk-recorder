@@ -92,7 +92,6 @@ void p25_recorder_decode::initialize(int silence_frames) {
   bool do_nocrypt = 1;
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
-  //probe = gr::gr_latency::latency_probe::make(sizeof(int16_t),{"recorder"});
   levels = gr::blocks::multiply_const_ss::make(1);
 
   if (use_streaming) {
@@ -100,16 +99,12 @@ void p25_recorder_decode::initialize(int silence_frames) {
   }
 
   connect(self(), 0, slicer, 0);
- // connect(slicer,0,probe,0);
- // connect(probe, 0, op25_frame_assembler, 0);
   connect(slicer, 0, op25_frame_assembler, 0);
   connect(op25_frame_assembler, 0, levels, 0);
 
   if (use_streaming) {
     connect(levels, 0, plugin_sink, 0);
   }
-  //connect(levels, 0, probe, 0);
-  //connect(probe, 0, wav_sink, 0);
   connect(levels, 0, wav_sink, 0);
 }
 
@@ -123,6 +118,7 @@ double p25_recorder_decode::get_output_sample_rate() {
   return 8000;
 }
 
+// This lead to weird Segfaults. The concept is trying to clear out the buffers for a new call
 void p25_recorder_decode::reset_block(gr::basic_block_sptr block) {
   gr::block_detail_sptr detail;
   gr::block_sptr grblock = cast_to_block_sptr(block);

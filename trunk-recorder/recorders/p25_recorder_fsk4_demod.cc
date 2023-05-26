@@ -80,26 +80,22 @@ void p25_recorder_fsk4_demod::initialize() {
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
   probe = gr::gr_latency::latency_probe::make(sizeof(float),{"recorder"});
 
-  /*
+  
+  // This is the original Approach
   connect(self(), 0, pll_freq_lock, 0);
   connect(pll_freq_lock, 0, pll_amp, 0);
   connect(pll_amp, 0, noise_filter, 0);
   connect(noise_filter, 0, sym_filter, 0);
   connect(sym_filter, 0,fsk4_demod, 0);
-  connect(fsk4_demod, 0, self(), 0);*/
+  connect(fsk4_demod, 0, self(), 0);
 
-
+/*
+  // This is the current approch in OP25, but they generate some of the filters differently
   connect(self(), 0, fm_demod,0);
   connect(fm_demod, 0, baseband_amp,0);
   connect(baseband_amp, 0, sym_filter, 0);
   connect(sym_filter, 0,fsk4_demod, 0);
   connect(fsk4_demod, 0, self(), 0);
-
+*/
   
-/*
-    connect(self(), 0, fm_demod,0);
-  connect(fm_demod, 0, baseband_amp,0);
-  connect(baseband_amp, 0, sym_filter, 0);
-  connect(sym_filter, 0,clock_recovery, 0);
-  connect(clock_recovery, 0, self(), 0);*/
 }

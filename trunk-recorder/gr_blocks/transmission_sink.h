@@ -40,15 +40,6 @@ namespace blocks {
 
 class BLOCKS_API transmission_sink : virtual public sync_block {
 private:
-// from tag_to_msg
-    std::string d_name;
-    std::vector<tag_t> d_tags;
-    std::vector<tag_t>::iterator d_tags_itr;
-    bool d_display;
-    pmt::pmt_t d_filter;
-    const pmt::pmt_t d_port;
-
-
   unsigned d_sample_rate;
   int d_nchans;
   int d_max_sample_val;

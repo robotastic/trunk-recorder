@@ -651,7 +651,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       if (tag != "") {
         tag = " (\033[0;34m" + tag + "\033[0m)";
       }
-      //BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m - src: " << unit_id << tag;
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m - src: " << unit_id << tag;
     }
     return false;
   }
@@ -750,7 +750,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   if (!source_found) {
     call->set_state(MONITORING);
     call->set_monitoring_state(NO_SOURCE);
-    //BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -883,7 +883,7 @@ void manage_calls() {
       // - the recorder has been stopped
       // actually, we don't want to remove a recorder as soon as it is stopped because we want to drain everything from the gnuradio flowgraph
       if (recorder->since_last_write() > config.call_timeout) {
-          BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+          BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
           call->set_state(COMPLETED);
           call->conclude_call();
@@ -1066,7 +1066,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
       if (recorder != NULL) {
         recorder_state = format_state(recorder->get_state());
       }
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
 /*
       call->set_state(COMPLETED);
       call->conclude_call();
@@ -1114,7 +1114,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
     else {
       recording_started = start_recorder(call, message, sys);
       if (recording_started && !grant_message) {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE";
+        BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE";
       }
     }  
     calls.push_back(call);

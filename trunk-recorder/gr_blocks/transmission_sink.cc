@@ -65,8 +65,6 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
       d_sample_rate(sample_rate), 
       d_nchans(n_channels),
       d_current_call(NULL), 
-      d_display(true),
-      d_port(pmt::mp("msg")),
       d_fp(0) {
         
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
@@ -74,11 +72,9 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
   }
   d_bytes_per_sample = bits_per_sample / 8;
   d_sample_count = 0;
-  d_filter = pmt::intern("latency_strobe");
   d_slot = -1;
   d_termination_flag = false;
   state = AVAILABLE;
-      message_port_register_out(d_port);
 }
 
 
@@ -305,57 +301,6 @@ State transmission_sink::get_state() {
 int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items) {
 
   gr::thread::scoped_lock guard(d_mutex); // hold mutex for duration of this function
-/*
-    std::vector<tag_t> d_tags;
-    std::vector<tag_t>::iterator d_tags_itr;
-bool toprint = false;
-bool    d_display = true;
-    std::stringstream sout;
-    if (d_display) {
-        sout << std::endl
-             << "----------------------------------------------------------------------";
-        sout << std::endl << "Tag Debug: " << d_name << std::endl;
-    }
-
-    uint64_t abs_N, end_N;
-    for (size_t i = 0; i < input_items.size(); i++) {
-        abs_N = nitems_read(i);
-        end_N = abs_N + (uint64_t)(noutput_items);
-
-        d_tags.clear();
-
-            get_tags_in_range(d_tags, i, abs_N, end_N);
-
-        if (!d_tags.empty()) {
-            toprint = true;
-        }
-
-        if (d_display) {
-            sout << "Input Stream: " << std::setw(2) << std::setfill('0') << i
-                 << std::setfill(' ') << std::endl;
-            for (d_tags_itr = d_tags.begin(); d_tags_itr != d_tags.end(); d_tags_itr++) {
-                sout << std::setw(10) << "Offset: " << d_tags_itr->offset << std::setw(10)
-                     << "Source: "
-                     << (pmt::is_symbol(d_tags_itr->srcid)
-                             ? pmt::symbol_to_string(d_tags_itr->srcid)
-                             : "n/a")
-                     << std::setw(10) << "Key: " << pmt::symbol_to_string(d_tags_itr->key)
-                     << std::setw(10) << "Value: ";
-                sout << d_tags_itr->value << std::endl;
-            }
-
-        }
-    }
-
-    if (d_display) {
-        sout << "----------------------------------------------------------------------";
-        sout << std::endl;
-
-        if (toprint) {
-            std::cout << sout.str();
-        }
-    }
-*/
 
   // it is possible that we could get part of a transmission after a call has stopped. We shouldn't do any recording if this happens.... this could mean that we miss part of the recording though
   if (!d_current_call) {
@@ -484,12 +429,6 @@ bool    d_display = true;
   // if the System for this call is in Transmission Mode, and we have a recording and we got a flag that a Transmission ended...
   int nwritten = dowork(noutput_items, input_items, output_items);
 
-
-  // if nwritten is greater than 0, then either TDUs or Voice Frames were received
-  // if nwritten is greater than 1, the Voice Frames were received
-  if (nwritten > 1) {
-
-  }
   return nwritten;
 }
 
@@ -540,15 +479,15 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     }
 
     if (state == IGNORE ) {
-       BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tResetting state from IGNORE to IDLE: " << noutput_items;
+       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tResetting state from IGNORE to IDLE: " << noutput_items;
     state = IDLE;
     }
     if (d_sample_count > 0) {
-      BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERMINATING! - count: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERMINATING! - count: " << d_sample_count;
       end_transmission();
       
       if (noutput_items > 1) {
-        BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - there were some items to output: " << noutput_items;
+        BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - there were some items to output: " << noutput_items;
       }
     } else {
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped....   - count: " << d_sample_count;
@@ -558,7 +497,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   }
 
   if (state == IGNORE ) {
-    BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tIGNORE missing count: " << noutput_items;
+    BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tIGNORE missing count: " << noutput_items;
    return noutput_items;
   }
 
@@ -588,7 +527,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
             return noutput_items;
           }
 
-          BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
+          BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
 
           // curr_src_id = d_current_call->get_current_source_id();
           state = RECORDING;

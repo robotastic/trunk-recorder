@@ -22,7 +22,6 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 #include "../gr_blocks/rms_agc.h"
-#include "../../lib/gr-latency/latency_probe.h"
 #include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/rmsagc_ff.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
@@ -65,7 +64,6 @@ private:
   gr::op25_repeater::rmsagc_ff::sptr baseband_amp;
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
-    gr::gr_latency::latency_probe::sptr probe;
   gr::digital::clock_recovery_mm_ff::sptr clock_recovery;
     void reset_block(gr::basic_block_sptr block); 
 };
