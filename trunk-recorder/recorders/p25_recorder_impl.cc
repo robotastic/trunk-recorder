@@ -268,6 +268,7 @@ void p25_recorder_impl::reset_block(gr::basic_block_sptr block) {
   detail->reset_nitem_counters();
 }
 void p25_recorder_impl::clear() {
+  // This lead to weird SegFaults, but the goal was to clear out buffers inbetween transmissions.
   /*
   if (double_decim) {
     //reset_block(bandpass_filter);

@@ -78,8 +78,7 @@ void p25_recorder_fsk4_demod::initialize() {
   int def_symbol_deviation = 600.0;
   float fm_demod_gain = phase1_channel_rate / (2 * pi * def_symbol_deviation);
   fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
-  probe = gr::gr_latency::latency_probe::make(sizeof(float),{"recorder"});
-
+  
   
   // This is the original Approach
   connect(self(), 0, pll_freq_lock, 0);
