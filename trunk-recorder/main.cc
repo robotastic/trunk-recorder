@@ -200,7 +200,10 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
     config.record_uu_v_calls = pt.get<bool>("recordUUVCalls", true);
     BOOST_LOG_TRIVIAL(info) << "Record Unit to Unit Voice Calls: " << config.record_uu_v_calls;
+    config.new_call_from_update = pt.get<bool>("newCallFromUpdate", true);
+    BOOST_LOG_TRIVIAL(info) << "New Call from UPDATE Messages" << config.new_call_from_update;
     std::string frequency_format_string = pt.get<std::string>("frequencyFormat", "mhz");
+
 
     if (boost::iequals(frequency_format_string, "mhz")) {
       frequency_format = 1;
@@ -1171,8 +1174,13 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case UPDATE:
-      //handle_call_update(message, sys);
-      handle_call_grant(message, sys, false);
+      if (config.new_call_from_update) {
+        // Treat UPDATE as a GRANT and start a new call if we don't have one for this TG
+        handle_call_grant(message, sys, false);
+      } else {
+        // Treat UPDATE as an UPDATE and only update existing calls
+        handle_call_update(message, sys);
+      }
       break;
 
     case UU_V_GRANT:

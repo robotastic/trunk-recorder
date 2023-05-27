@@ -1,3 +1,5 @@
+Use [Mermaid Live](https://mermaid.live/) to edit the charts.
+
 ```mermaid
 flowchart TD
 A[Control Channel] -->|GRANT| B["handle_call_grant()"]
