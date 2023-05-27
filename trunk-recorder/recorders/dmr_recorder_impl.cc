@@ -357,11 +357,6 @@ void dmr_recorder_impl::tune_offset(double f) {
   }
 }
 
-void dmr_recorder_impl::set_record_more_transmissions(bool more) {
-
-  return wav_sink_slot0->set_record_more_transmissions(more);
-}
-
 bool compareTransmissions(Transmission t1, Transmission t2) {
   return (t1.start_time < t2.start_time);
 }

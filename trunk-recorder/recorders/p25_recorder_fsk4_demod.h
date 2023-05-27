@@ -3,7 +3,9 @@
 
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/analog/pll_freqdet_cf.h>
+#include <gnuradio/analog/quadrature_demod_cf.h>
 #include <gnuradio/block.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/filter/fft_filter_fff.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/hier_block2.h>
@@ -19,9 +21,11 @@
 #include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
-
+#include "../gr_blocks/rms_agc.h"
 #include <op25_repeater/fsk4_slicer_fb.h>
+#include <op25_repeater/rmsagc_ff.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
+#include <gnuradio/digital/clock_recovery_mm_ff.h>
 
 class p25_recorder_fsk4_demod;
 
@@ -53,11 +57,14 @@ private:
   std::vector<float> cutoff_filter_coeffs;
   gr::filter::fft_filter_fff::sptr noise_filter;
   gr::filter::fir_filter_fff::sptr sym_filter;
-
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
   gr::blocks::multiply_const_ff::sptr pll_amp;
   gr::analog::pll_freqdet_cf::sptr pll_freq_lock;
+  gr::analog::quadrature_demod_cf::sptr fm_demod;
+  gr::op25_repeater::rmsagc_ff::sptr baseband_amp;
   gr::op25_repeater::fsk4_demod_ff::sptr fsk4_demod;
   gr::op25_repeater::fsk4_slicer_fb::sptr slicer;
+  gr::digital::clock_recovery_mm_ff::sptr clock_recovery;
+    void reset_block(gr::basic_block_sptr block); 
 };
 #endif

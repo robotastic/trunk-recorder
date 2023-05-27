@@ -122,12 +122,6 @@ static const int MAX_IN = 1;	// maximum number of input streams
 
       if (d_do_phase2_tdma && !d_do_audio_output)
         fprintf(stderr, "p25_frame_assembler: error: do_audio_output must be enabled if do_phase2_tdma is enabled\n");
-
-      if (d_do_audio_output)
-        set_output_multiple(864);
-
-      if (!d_do_audio_output && !d_do_imbe)
-        set_output_multiple(160);
     }
 
 
@@ -143,7 +137,6 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 {
 
   const uint8_t *in = (const uint8_t *) input_items[0];
-
   bool terminate_call = false;
   long p2_ptt_src_id = -1;
   long p2_ptt_grp_id = -1;
@@ -154,6 +147,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 			int rc = p2tdma.handle_frame();
       if (p2tdma.get_call_terminated()) {
         terminate_call = true;
+        p2tdma.reset_call_terminated();
       }
 
       p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
@@ -168,6 +162,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
   } else {
     if (p1fdma.get_call_terminated()) {
       terminate_call = true;
+      p1fdma.reset_call_terminated();
     }
   }
 
@@ -249,10 +244,8 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       if (d_do_audio_output) {
         if (d_do_phase2_tdma) {
           d_input_rate = 6000;
-          set_output_multiple(640);
         } else {
           d_input_rate = 4800;
-          set_output_multiple(864);
         }
       }
     }

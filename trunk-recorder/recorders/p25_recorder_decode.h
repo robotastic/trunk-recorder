@@ -3,6 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/block.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/io_signature.h>
@@ -56,13 +57,14 @@ public:
   p25_recorder_decode(Recorder *recorder);
   void set_tdma_slot(int slot);
   std::vector<Transmission> get_transmission_list();
-  void set_record_more_transmissions(bool more);
   void set_source(long src);
   void set_xor_mask(const char *mask);
   void switch_tdma(bool phase2_tdma);
   void start(Call *call);
   double since_last_write();
   void stop();
+  void reset();
+  void reset_block(gr::basic_block_sptr block); 
   int tdma_slot;
   bool delay_open;
   virtual ~p25_recorder_decode();
@@ -70,5 +72,7 @@ public:
   void plugin_callback_handler(int16_t *samples, int sampleCount);
   double get_output_sample_rate();
   State get_state();
+  gr::op25_repeater::p25_frame_assembler::sptr get_transmission_sink();
+
 };
 #endif

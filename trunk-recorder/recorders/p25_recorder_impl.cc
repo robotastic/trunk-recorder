@@ -155,8 +155,7 @@ void p25_recorder_impl::initialize_prefilter() {
 
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
-  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250); 
-        
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/350); 
 
 
   connect(self(), 0, valve, 0);
@@ -165,10 +164,10 @@ void p25_recorder_impl::initialize_prefilter() {
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(valve, 0, mixer, 0);
+    connect(valve, 0,  mixer, 0);
     connect(lo, 0, mixer, 1);
   }
-  connect(mixer, 0, lowpass_filter, 0);
+  connect(mixer, 0,lowpass_filter, 0);
   if (arb_rate == 1.0) {
     connect(lowpass_filter, 0, cutoff_filter, 0);
   } else {
@@ -177,7 +176,7 @@ void p25_recorder_impl::initialize_prefilter() {
   }
   connect(cutoff_filter,0, squelch, 0);
   connect(squelch, 0, rms_agc, 0);
-  connect(rms_agc,0, fll_band_edge, 0);
+  connect(rms_agc,0,  fll_band_edge, 0);
 }
 
 
@@ -218,11 +217,13 @@ void p25_recorder_impl::initialize(Source *src) {
 
   modulation_selector->set_enabled(true);
 
-  connect(fll_band_edge, 0, modulation_selector, 0);
+  connect(fll_band_edge,0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
+
+  
 }
 
 void p25_recorder_impl::switch_tdma(bool phase2) {
@@ -260,8 +261,45 @@ void p25_recorder_impl::set_tdma(bool phase2) {
   }
 }
 
+void p25_recorder_impl::reset_block(gr::basic_block_sptr block) {
+  gr::block_detail_sptr detail;
+  gr::block_sptr grblock = cast_to_block_sptr(block);
+  detail = grblock->detail();
+  detail->reset_nitem_counters();
+}
 void p25_recorder_impl::clear() {
-  // op25_frame_assembler->clear();
+  // This lead to weird SegFaults, but the goal was to clear out buffers inbetween transmissions.
+  /*
+  if (double_decim) {
+    //reset_block(bandpass_filter);
+    //reset_block(bfo);
+  } else {
+  //reset_block(lo);
+  }
+  reset_block(lowpass_filter);
+  reset_block(mixer);
+
+  if (arb_rate != 1.0) {
+  reset_block(arb_resampler);
+  } 
+
+  reset_block(cutoff_filter);
+  reset_block(squelch);
+  //reset_block(rms_agc); // RMS AGC cant be made into a basic block
+  reset_block(fll_band_edge);
+  reset_block(modulation_selector);
+ 
+
+  //reset_block(qpsk_demod); // bad - Seg Faults
+  //reset_block(qpsk_p25_decode); // bad - Seg Faults
+  //reset_block(fsk4_demod); // bad - Seg Faults
+  //reset_block(fsk4_p25_decode);  // bad - Seg Faults
+
+  
+  qpsk_demod->reset();
+  qpsk_p25_decode->reset();
+  fsk4_demod->reset();
+  fsk4_p25_decode->reset();*/
 }
 
 void p25_recorder_impl::autotune() {
@@ -398,13 +436,6 @@ void p25_recorder_impl::tune_offset(double f) {
   }*/
 }
 
-void p25_recorder_impl::set_record_more_transmissions(bool more) {
-  if (qpsk_mod) {
-    return qpsk_p25_decode->set_record_more_transmissions(more);
-  } else {
-    return fsk4_p25_decode->set_record_more_transmissions(more);
-  }
-}
 
 void p25_recorder_impl::set_source(long src) {
   if (qpsk_mod) {
@@ -429,12 +460,13 @@ void p25_recorder_impl::stop() {
     } else {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
-    clear();
+
     
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
     state = INACTIVE;
     valve->set_enabled(false);
+        clear();
     if (qpsk_mod) {
       qpsk_p25_decode->stop();
     } else {

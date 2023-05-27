@@ -27,6 +27,7 @@ struct Config {
   std::string capture_dir;
   std::string debug_recorder_address;
   std::string log_dir;
+  bool new_call_from_update;
   bool debug_recorder;
   int debug_recorder_port;
   int call_timeout;

@@ -33,9 +33,6 @@ void p25_recorder_decode::start(Call *call) {
 void p25_recorder_decode::set_xor_mask(const char *mask) {
   op25_frame_assembler->set_xormask(mask);
 }
-void p25_recorder_decode::set_record_more_transmissions(bool more) {
-  wav_sink->set_record_more_transmissions(more);
-}
 
 void p25_recorder_decode::set_source(long src) {
   wav_sink->set_source(src);
@@ -59,8 +56,9 @@ State p25_recorder_decode::get_state() {
 }
 
 double p25_recorder_decode::since_last_write() {
-  time_t now = time(NULL);
-  return now - wav_sink->get_stop_time();
+  auto end = std::chrono::steady_clock::now();
+  std::chrono::duration<double> diff = end - wav_sink->get_last_write_time();
+  return diff.count();
 }
 
 void p25_recorder_decode::switch_tdma(bool phase2_tdma) {
@@ -94,7 +92,6 @@ void p25_recorder_decode::initialize(int silence_frames) {
   bool do_nocrypt = 1;
 
   op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
-
   levels = gr::blocks::multiply_const_ss::make(1);
 
   if (use_streaming) {
@@ -108,7 +105,6 @@ void p25_recorder_decode::initialize(int silence_frames) {
   if (use_streaming) {
     connect(levels, 0, plugin_sink, 0);
   }
-
   connect(levels, 0, wav_sink, 0);
 }
 
@@ -120,4 +116,24 @@ void p25_recorder_decode::plugin_callback_handler(int16_t *samples, int sampleCo
 
 double p25_recorder_decode::get_output_sample_rate() {
   return 8000;
+}
+
+// This lead to weird Segfaults. The concept is trying to clear out the buffers for a new call
+void p25_recorder_decode::reset_block(gr::basic_block_sptr block) {
+  gr::block_detail_sptr detail;
+  gr::block_sptr grblock = cast_to_block_sptr(block);
+  detail = grblock->detail();
+  detail->reset_nitem_counters();
+  detail->clear_tags();
+}
+
+void p25_recorder_decode::reset() {
+  reset_block(op25_frame_assembler);
+  reset_block(slicer);
+  reset_block(levels);
+  reset_block(wav_sink);
+}
+
+gr::op25_repeater::p25_frame_assembler::sptr p25_recorder_decode::get_transmission_sink() {
+  return op25_frame_assembler;
 }

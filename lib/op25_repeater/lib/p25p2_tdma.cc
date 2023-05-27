@@ -145,6 +145,10 @@ void p25p2_tdma::crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint
 	crypt_algs.key(keyid, algid, key);
 }
 
+void p25p2_tdma::reset_call_terminated() {
+	terminate_call = false;
+}
+
 bool p25p2_tdma::get_call_terminated() {
 	return terminate_call;
 }
@@ -154,6 +158,8 @@ long p25p2_tdma::get_ptt_src_id() {
 }
 
 long p25p2_tdma::get_ptt_grp_id() {
+	long addr = grp_id;
+    grp_id = -1;
 	return grp_id;
 }
 

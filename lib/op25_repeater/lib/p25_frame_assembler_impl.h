@@ -60,7 +60,6 @@ namespace gr {
   long total_produced;
   pmt::pmt_t d_tag_key;
   pmt::pmt_t d_tag_src;
-
   // internal functions
 
     void set_xormask(const char*p) ;

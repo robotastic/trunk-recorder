@@ -26,8 +26,6 @@ public:
 
   long get_call_num();
   virtual void restart_call();
-  void set_record_more_transmissions(bool more);
-  void inactive_call();
   void stop_call();
   void conclude_call();
   void set_sigmf_recorder(Recorder *r);
@@ -47,6 +45,7 @@ public:
   int get_idle_count();
   void increase_idle_count();
   void reset_idle_count();
+  double since_last_voice_update();
   int since_last_update();
   long elapsed();
 
@@ -105,6 +104,7 @@ protected:
   time_t start_time;
   bool debug_recording;
   bool sigmf_recording;
+  bool was_update;
   bool encrypted;
   bool emergency;
   bool mode;

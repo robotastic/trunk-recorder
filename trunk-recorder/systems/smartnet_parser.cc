@@ -58,7 +58,7 @@ double SmartnetParser::getfreq(int cmd, System *sys) {
       freq = sys->get_bandplan_base() +
              (sys->get_bandplan_spacing() * (cmd - sys->get_bandplan_offset()));
     }
-    // cout << "Orig: " <<fixed <<test_freq << " Freq: " << freq << endl;
+   //cout << "Orig: " <<fixed << " " << cmd << " Freq: " << freq << endl;
   }
   return freq * 1000000;
 }
@@ -194,9 +194,9 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   vector<string>().swap(x);
 
   // raw OSW stream
-  // BOOST_LOG_TRIVIAL(warning)
-  //     << "[" << system->get_short_name()
-  //     << "] [OSW!] [[["<< std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "]]]";
+   //BOOST_LOG_TRIVIAL(info)
+   //    << "[" << system->get_short_name()
+   //    << "] [OSW!] [[["<< std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "]]]";
 
   // Message parsing strategy
   // OSW stack:      [0  1  2  3  4] (consume) - consume is how many OSWs to consume. This includes the 1-OSW regular increment.
@@ -229,13 +229,13 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
     // this is a call continue
     if (stack[3].grp) {
       // this is a group call continue
-      // BOOST_LOG_TRIVIAL(warning)
-      //     << "[" << system->get_short_name() << "] [group call continue] [ "
-      //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
-      //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
-      //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
-      //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
-      //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+       BOOST_LOG_TRIVIAL(trace)
+           << "[" << system->get_short_name() << "] [group call continue] [ "
+           << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::dec << stack[0].full_address << " " << stack[0].address << " |  "
+           << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::dec << stack[1].full_address << " " << stack[1].address << "  |  "
+           << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::dec << stack[2].full_address << " " << stack[2].address << "  | >"
+           <<  getfreq(stack[3].cmd, system) << " " << std::hex << stack[3].grp << " " << std::dec << stack[3].full_address << " " << stack[3].address << "< |  "
+           << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::dec << stack[4].full_address << " " << stack[4].address << " ]";
       message.message_type = UPDATE;
       message.freq = getfreq(stack[3].cmd, system);
       message.talkgroup = stack[3].address;
@@ -252,13 +252,13 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       return messages;
     } else {
       // this is an individual call continue
-      // BOOST_LOG_TRIVIAL(warning)
-      //     << "[" << system->get_short_name() << "] [individual call continue] [ "
-      //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
-      //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
-      //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
-      //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
-      //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+       BOOST_LOG_TRIVIAL(trace)
+           << "[" << system->get_short_name() << "] [individual call continue] [ "
+           << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+           << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
+           << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
+           << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+           << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
       message.message_type = UNKNOWN;
       messages.push_back(message);
       return messages;
@@ -336,13 +336,13 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
       ++numConsumed;
       if (stack[2].grp) {
         // this is a group call grant
-        // BOOST_LOG_TRIVIAL(warning)
-        //     << "[" << system->get_short_name() << "] [group call grant] [ "
-        //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
-        //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  | >"
-        //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  |  "
-        //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
-        //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+         BOOST_LOG_TRIVIAL(trace)
+             << "[" << system->get_short_name() << "] [group call grant] [ "
+             << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+             << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  | >"
+             << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  |  "
+             << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+             << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
         message.message_type = GRANT;
         message.freq = getfreq(stack[2].cmd, system);
         message.talkgroup = stack[2].address;
@@ -360,13 +360,13 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
         return messages;
       } else {
         // this is an individual call grant
-        // BOOST_LOG_TRIVIAL(warning)
-        //     << "[" << system->get_short_name() << "] [individual call grant] [ "
-        //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
-        //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  | >"
-        //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  |  "
-        //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
-        //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+         BOOST_LOG_TRIVIAL(trace)
+             << "[" << system->get_short_name() << "] [individual call grant] [ "
+             << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+             << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  | >"
+             << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  |  "
+             << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+             << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
         message.message_type = UNKNOWN;
         messages.push_back(message);
         return messages;
@@ -488,14 +488,14 @@ std::vector<TrunkMessage> SmartnetParser::parse_message(std::string s,
   // Adding the logic to test for this might be nice to have (test could be "if we got here,
   // this OSW is is missing a header or other OSWs that comprise a valid message -
   // test if we know this OSW command though, and if we do, discard the OSW and move on")
-  // BOOST_LOG_TRIVIAL(warning)
-  //     << "[" << system->get_short_name()
-  //     << "] [Unknown OSW!] [ "
-  //     << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
-  //     << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
-  //     << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
-  //     << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
-  //     << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
+   BOOST_LOG_TRIVIAL(trace)
+       << "[" << system->get_short_name()
+       << "] [Unknown OSW!] [ "
+       << std::hex << stack[0].cmd << " " << std::hex << stack[0].grp << " " << std::hex << stack[0].full_address << "  |  "
+       << std::hex << stack[1].cmd << " " << std::hex << stack[1].grp << " " << std::hex << stack[1].full_address << "  |  "
+       << std::hex << stack[2].cmd << " " << std::hex << stack[2].grp << " " << std::hex << stack[2].full_address << "  | >"
+       << std::hex << stack[3].cmd << " " << std::hex << stack[3].grp << " " << std::hex << stack[3].full_address << "< |  "
+       << std::hex << stack[4].cmd << " " << std::hex << stack[4].grp << " " << std::hex << stack[4].full_address << " ]";
   message.message_type = UNKNOWN;
   messages.push_back(message);
   return messages;

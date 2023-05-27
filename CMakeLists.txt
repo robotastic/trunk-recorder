@@ -256,6 +256,10 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/call_concluder/call_concluder.cc
 
   lib/lfsr/lfsr.cxx
+  lib/gr-latency/latency_probe.cc
+  lib/gr-latency/latency_tagger.cc
+  lib/gr-latency-manager/lib/latency_manager_impl.cc
+  lib/gr-latency-manager/lib/tag_to_msg_impl.cc
   trunk-recorder/gr_blocks/freq_xlating_fft_filter.cc
   trunk-recorder/gr_blocks/transmission_sink.cc
   trunk-recorder/gr_blocks/decoders/fsync_decode.cc
@@ -334,7 +338,7 @@ add_subdirectory(plugins/rdioscanner_uploader)
 
 add_subdirectory(plugins/simplestream)
 
-add_executable(trunk-recorder trunk-recorder/main.cc ${trunk_recorder_sources})
+add_executable(trunk-recorder trunk-recorder/main.cc) # ${trunk_recorder_sources})
 
 target_link_libraries(trunk-recorder git trunk_recorder_library gnuradio-op25_repeater   ${CMAKE_DL_LIBS} ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GNURADIO_OSMOSDR_LIBRARIES}  ) # gRPC::grpc++_reflection protobuf::libprotobuf)
 

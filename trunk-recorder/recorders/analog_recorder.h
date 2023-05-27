@@ -91,7 +91,6 @@ public:
   int lastupdate();
   long elapsed();
   static bool logging;
-  void set_record_more_transmissions(bool more);
   void process_message_queues(void);
   void decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal);
   void plugin_callback_handler(int16_t *samples, int sampleCount);

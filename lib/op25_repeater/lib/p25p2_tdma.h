@@ -57,6 +57,7 @@ public:
 	bool rx_sym(uint8_t sym);
 	int handle_frame(void) ;
   	bool get_call_terminated();
+	void reset_call_terminated();
 	long get_ptt_src_id();
 	long get_ptt_grp_id();
 private:

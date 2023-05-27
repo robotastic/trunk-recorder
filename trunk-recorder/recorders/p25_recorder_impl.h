@@ -44,8 +44,10 @@
 #endif
 
 #include <gnuradio/digital/fll_band_edge_cc.h>
+#include <gnuradio/runtime_types.h>
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/blocks/head.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
@@ -57,6 +59,10 @@
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"
 #include "p25_recorder_qpsk_demod.h"
+#include "../../lib/gr-latency-manager/include/latency_manager.h"
+#include "../../lib/gr-latency-manager/include/tag_to_msg.h"
+#include "../../lib/gr-latency/latency_probe.h"
+#include "../../lib/gr-latency/latency_tagger.h"
 #include "recorder.h"
 
 class Source;
@@ -87,7 +93,6 @@ public:
   void set_tdma(bool phase2);
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);
-  void set_record_more_transmissions(bool more);
   void set_source(long src);
   double since_last_write();
   void generate_arb_taps();
@@ -121,6 +126,7 @@ protected:
   gr::blocks::copy::sptr valve;
   gr::digital::fll_band_edge_cc::sptr fll_band_edge;
   gr::blocks::rms_agc::sptr rms_agc;
+    
   //gr::op25_repeater::rmsagc_ff::sptr rms_agc;
   // gr::blocks::multiply_const_ss::sptr levels;
 
@@ -128,6 +134,7 @@ protected:
   p25_recorder_decode_sptr fsk4_p25_decode;
   p25_recorder_qpsk_demod_sptr qpsk_demod;
   p25_recorder_decode_sptr qpsk_p25_decode;
+
 
 
 private:
@@ -169,6 +176,7 @@ private:
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
   gr::blocks::multiply_const_ff::sptr rescale;
+  void reset_block(gr::basic_block_sptr block);
 };
 
 #endif // ifndef P25_RECORDER_H

@@ -85,7 +85,6 @@ public:
   virtual long get_source_count() { return 0; };
   virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
-  virtual void set_record_more_transmissions(bool more){};
   virtual State get_state() { return INACTIVE; };
   std::string get_type_string();
   Recorder_Type get_type() { return type; }
