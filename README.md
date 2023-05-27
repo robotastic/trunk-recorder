@@ -35,7 +35,7 @@ RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy
 ## Version Notes
 ### V4.0
 - The executable generated has changed from `recorder` to `trunk-recorder` to help differentiate it from other applications that maybe installed.
-- A new method is used to detect the end of call. Instead of waiting for a timeout after the last trunking message is recieved, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stops using a frequency.
+- A new method is used to detect the end of call. Instead of waiting for a timeout after the last trunking message is received, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stops using a frequency.
 - The format for audio filenames has changed slightly. 
   It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
 
@@ -61,25 +61,27 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 * [OpenMHz](https://github.com/robotastic/trunk-recorder/wiki/Uploading-to-OpenMHz) - This is my free hosted platform for sharing recordings
 * [Trunk Player](https://github.com/ScanOC/trunk-player) - A great Python based server, if you want to you want to run your own
 * [Rdio Scanner](https://github.com/chuot/rdio-scanner) - Provide a good looking, scanner style interface for listening to Trunk Recorder
-* [Broadcastify Calls (API)](https://forums.radioreference.com/threads/405236/)-[Wiki](https://wiki.radioreference.com/index.php/Broadcastify-Calls-Trunk-Recorder)
+* Broadcastify Calls (API): see Radio Reference [forum thread](https://forums.radioreference.com/threads/405236/) and [wiki page](https://wiki.radioreference.com/index.php/Broadcastify-Calls-Trunk-Recorder)
 * [Broadcastify via Liquidsoap](https://github.com/robotastic/trunk-recorder/wiki/Streaming-online-to-Broadcastify-with-Liquid-Soap)
 * [audioplayer.php](https://github.com/robotastic/trunk-recorder/wiki/Using-audioplayer.php)
 
 ### Plugins
 
-* [MQTT Status](https://github.com/robotastic/trunk-recorder-mqtt-statistics) -  Publishes the current status of a Trunk Recorder instance over MQTT
-* [MQTT Stastics](https://github.com/robotastic/trunk-recorder-mqtt-statistics) - Publishe statistics about a Trunk Recorder instance over MQTT
-
+* [MQTT Status](https://github.com/robotastic/trunk-recorder-mqtt-status) -  Publishes the current status of a Trunk Recorder instance over MQTT
+* [MQTT Statistics](https://github.com/robotastic/trunk-recorder-mqtt-statistics) - Publishes statistics about a Trunk Recorder instance over MQTT
+* [Decode rates logger](https://github/rosecitytransit/trunk-recorder-decode-rate) - Logs trunking control channel decode rates to a CSV file, and includes a PHP file that outputs an SVG graph
 
 ### Troubleshooting
 
-If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on the [Discord Server](Https://discord.gg/trunk-recorder) 
+If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on the [Discord Server](https://discord.gg/trunk-recorder) 
 
 ___
 
 ### How Trunking Works
-Here is a little background on trunking radio systems, for those not familiar. In a Trunking system, one of the radio channels is set aside for to manage the assignment of radio channels to talkgroups. When someone wants to talk, they send a message on the control channel. The system then assigns them a channel and sends a Channel Grant message on the control channel. This lets the talker know what channel to transmit on and anyone who is a member of the talkgroup know that they should listen to that channel.
+For those not familiar, trunking systems allow a large number of user groups to share a limited number of radio frequencies by temporarily, dynamically assigning radio frequencies to talkgroups (channels) on-demand. It is understood that most user groups actually use the radio very sporadically and don't need a dedicated frequency. 
 
-In order to follow all of the transmissions, this system constantly listens to and decodes the control channel. When a channel is granted to a talkgroup, the system creates a monitoring process. This process will start to process and decode the part of the radio spectrum for that channel which the SDR is already pulling in.
+Most trunking system types (such as SmartNet and P25) set aside one of the radio frequencies as a "control channel" that manages and broadcasts radio frequency assignments. When someone presses the Push to Talk button on their radio, the radio sends a message to the system which then assigns a voice frequency and broadcasts a Channel Grant message about it on the control channel. This lets the radio know what frequency to transmit on and tells other radios set to the same talkgroup to listen.
 
-No message is transmitted on the control channel when a talkgroup’s conversation is over. So instead the monitoring process keeps track of transmissions and if there has been no activity for 5 seconds, it ends the recording.
+In order to follow all of the transmissions, Trunk Recorder constantly listens to and decodes the control channel. When a frequency is granted to a talkgroup, Trunk Recorder creates a monitoring process which decodes the portion of the radio spectrum for that frequency from the SDR that is already pulling it in.
+
+No message is transmitted on the control channel when a conversation on a talkgroup is over. The monitoring process keeps track of transmissions and if there has been no activity for a specified period, it ends the recording.
