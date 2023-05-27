@@ -158,6 +158,8 @@ long p25p2_tdma::get_ptt_src_id() {
 }
 
 long p25p2_tdma::get_ptt_grp_id() {
+	long addr = grp_id;
+    grp_id = -1;
 	return grp_id;
 }
 
