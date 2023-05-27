@@ -31,4 +31,3 @@ top_block.py
 debug_recorder.py
 /cmake_build/
 /.cache/
-plugins/decode_rates
