@@ -97,6 +97,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   message.phase2_tdma = false;
   message.tdma_slot = 0;
   message.freq = 0;
+  message.opcode = opcode;
 
   BOOST_LOG_TRIVIAL(trace) << "decode_mbt_data: $" << opcode;
   if (opcode == 0x0) { // grp voice channel grant
@@ -213,6 +214,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   TrunkMessage message;
   std::ostringstream os;
 
+  unsigned long opcode = bitset_shift_mask(tsbk, 88, 0x3f); // x3f
+
   message.message_type = UNKNOWN;
   message.source = -1;
   message.wacn = 0;
@@ -224,8 +227,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   message.phase2_tdma = false;
   message.tdma_slot = 0;
   message.freq = 0;
-
-  unsigned long opcode = bitset_shift_mask(tsbk, 88, 0x3f); // x3f
+  message.opcode = opcode;
 
   BOOST_LOG_TRIVIAL(trace) << "TSBK: opcode: $" << std::hex << opcode;
   if (opcode == 0x00) { // group voice chan grant
@@ -308,7 +310,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         message.tdma_slot = 0;
       }
 
-      os << "tbsk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << format_freq(f) << "\tsg " << std::setw(7) << sg << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa;
+      os << "tsbk02\tMoto Patch Grant\tChannel ID: " << std::setw(5) << ch << "\tFreq: " << format_freq(f) << "\tsg " << std::setw(7) << sg << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tsa " << sa;
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
     } else {
@@ -892,6 +894,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   int sys_num = system->get_sys_num();
   TrunkMessage message;
   message.message_type = UNKNOWN;
+  message.opcode = 255;
   message.source = -1;
   message.sys_num = sys_num;
   if (type == -2) { // # request from gui

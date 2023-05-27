@@ -298,7 +298,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
     if (t.error_count < 1) {
       BOOST_LOG_TRIVIAL(info) << transmission_info.str();
     } else {
-      BOOST_LOG_TRIVIAL(error) << transmission_info.str() << "\033[0;31m errors: " << t.error_count << " spikes: " << t.spike_count << "\033[0m";
+      BOOST_LOG_TRIVIAL(info) << transmission_info.str() << "\033[0;31m errors: " << t.error_count << " spikes: " << t.spike_count << "\033[0m";
     }
 
     if (it == call_info.transmission_list.begin()) {

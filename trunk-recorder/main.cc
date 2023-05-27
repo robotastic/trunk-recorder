@@ -151,10 +151,9 @@ bool load_config(string config_file) {
       BOOST_LOG_TRIVIAL(info) << "After you have made these updates, make sure you add \"ver\": 2, to the top.\n\n";
       return false;
     }
+
     config.log_file = pt.get<bool>("logFile", false);
-    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     config.log_dir = pt.get<std::string>("logDir", "logs");
-    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
     if (config.log_file) {
       logging::add_file_log(
           keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
@@ -163,6 +162,9 @@ bool load_config(string config_file) {
           keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
           keywords::auto_flush = true);
     }
+    BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
+    BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
+
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
@@ -1291,22 +1293,18 @@ void retune_system(System *sys) {
           // We must lock the flow graph in order to disconnect and reconnect blocks
           tb->lock();
           tb->disconnect(current_source->get_src_block(), 0, system->smartnet_trunking, 0);
+          system->smartnet_trunking = make_smartnet_trunking(control_channel_freq, source->get_center(), source->get_rate(), system->get_msg_queue(), system->get_sys_num());
           tb->connect(source->get_src_block(), 0, system->smartnet_trunking, 0);
           tb->unlock();
-          system->smartnet_trunking->set_center(source->get_center());
-          system->smartnet_trunking->set_rate(source->get_rate());
-          system->smartnet_trunking->tune_freq(control_channel_freq);
           system->smartnet_trunking->reset();
         } else if (system->get_system_type() == "p25") {
           system->set_source(source);
           // We must lock the flow graph in order to disconnect and reconnect blocks
           tb->lock();
           tb->disconnect(current_source->get_src_block(), 0, system->p25_trunking, 0);
+          system->p25_trunking = make_p25_trunking(control_channel_freq, source->get_center(), source->get_rate(), system->get_msg_queue(), system->get_qpsk_mod(), system->get_sys_num());
           tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
           tb->unlock();
-          system->p25_trunking->set_center(source->get_center());
-          system->p25_trunking->set_rate(source->get_rate());
-          system->p25_trunking->tune_freq(control_channel_freq);
         } else {
           BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
         }
@@ -1411,15 +1409,17 @@ for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(
       msg = system->get_msg_queue()->delete_head_nowait();
     while (msg != 0) {
         system->set_message_count(system->get_message_count() + 1);
-
+        
         if (system->get_system_type() == "smartnet") {
           trunk_messages = smartnet_parser->parse_message(msg->to_string(), system);
           handle_message(trunk_messages, system);
+          plugman_trunk_message(trunk_messages, system);
         }
 
         if (system->get_system_type() == "p25") {
           trunk_messages = p25_parser->parse_message(msg, system);
           handle_message(trunk_messages, system);
+          plugman_trunk_message(trunk_messages, system);
         }
       
 
@@ -1692,15 +1692,6 @@ int main(int argc, char **argv) {
   }
 
   start_plugins(sources, systems);
-
-  if (config.log_file) {
-    logging::add_file_log(
-        keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
-        keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
-        keywords::rotation_size = 100 * 1024 * 1024,
-        keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
-        keywords::auto_flush = true);
-  }
 
   if (setup_systems()) {
     signal(SIGINT, exit_interupt);
