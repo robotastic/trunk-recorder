@@ -67,7 +67,7 @@ public:
   void set_is_analog(bool a);
   const char *get_xor_mask();
   virtual time_t get_start_time() { return start_time; }
-  virtual bool is_conventional() { return false; }
+  bool is_conventional() { return false; }
   void set_encrypted(bool m);
   bool get_encrypted();
   void set_emergency(bool m);
