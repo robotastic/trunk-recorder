@@ -128,6 +128,16 @@ void set_logging_level(std::string log_level) {
       boost::log::trivial::severity >= sev_level);
 }
 
+template <class F>
+void add_logs(const F &fmt) {
+  boost::shared_ptr<sinks::synchronous_sink<sinks::basic_text_ostream_backend<char>>> sink =
+      boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
+
+  std::locale loc = std::locale("C");
+
+  sink->imbue(loc);
+}
+
 /**
  * Method name: load_config()
  * Description: <#description#>
@@ -143,13 +153,10 @@ bool load_config(string config_file) {
 
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
-    double config_ver = pt.get<double>("ver", 0);
-    if (config_ver < 2) {
-      BOOST_LOG_TRIVIAL(info) << "The formatting for config files has changed.";
-      BOOST_LOG_TRIVIAL(info) << "Modulation type, Squelch and audio levels are now set in each System instead of under a Source.";
-      BOOST_LOG_TRIVIAL(info) << "See sample config files in the /example folder and look at readme.md for more details.";
-      BOOST_LOG_TRIVIAL(info) << "After you have made these updates, make sure you add \"ver\": 2, to the top.\n\n";
-      return false;
+
+    config.console_log = pt.get<bool>("consoleLog", true);
+    if (config.console_log) {
+      add_logs(boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
     }
 
     config.log_file = pt.get<bool>("logFile", false);
@@ -162,6 +169,20 @@ bool load_config(string config_file) {
           keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
           keywords::auto_flush = true);
     }
+
+    double config_ver = pt.get<double>("ver", 0);
+    if (config_ver < 2) {
+      BOOST_LOG_TRIVIAL(info) << "The formatting for config files has changed.";
+      BOOST_LOG_TRIVIAL(info) << "Modulation type, Squelch and audio levels are now set in each System instead of under a Source.";
+      BOOST_LOG_TRIVIAL(info) << "See sample config files in the /example folder and look at readme.md for more details.";
+      BOOST_LOG_TRIVIAL(info) << "After you have made these updates, make sure you add \"ver\": 2, to the top.\n\n";
+      return false;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
+    BOOST_LOG_TRIVIAL(info) << PROJECT_NAME << ": "
+                          << "Version: " << PROJECT_VER << "\n";
+
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
 
@@ -1632,16 +1653,6 @@ bool setup_systems() {
   return true;
 }
 
-template <class F>
-void add_logs(const F &fmt) {
-  boost::shared_ptr<sinks::synchronous_sink<sinks::basic_text_ostream_backend<char>>> sink =
-      boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
-
-  std::locale loc = std::locale("C");
-
-  sink->imbue(loc);
-}
-
 int main(int argc, char **argv) {
   // BOOST_STATIC_ASSERT(true) __attribute__((unused));
 
@@ -1652,8 +1663,6 @@ int main(int argc, char **argv) {
   boost::log::add_common_attributes();
   boost::log::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::info);
-
-  add_logs(boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
 
   // boost::log::sinks->imbue(std::locale("C"));
   // std::locale::global(std::locale("C"));
@@ -1676,12 +1685,6 @@ int main(int argc, char **argv) {
     exit(0);
   }
   string config_file = vm["config"].as<string>();
-
-  if (vm.count("config")) {
-    BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
-  }
-  BOOST_LOG_TRIVIAL(info) << PROJECT_NAME << ": "
-                          << "Version: " << PROJECT_VER << "\n";
 
   tb = gr::make_top_block("Trunking");
   tb->start();
