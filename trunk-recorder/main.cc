@@ -1119,7 +1119,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
     else {
       recording_started = start_recorder(call, message, sys);
       if (recording_started && !grant_message) {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE";
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE\u001b[0m";
       }
     }  
     calls.push_back(call);
