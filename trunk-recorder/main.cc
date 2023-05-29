@@ -887,7 +887,7 @@ void manage_calls() {
       // OR
       // - the recorder has been stopped
       // actually, we don't want to remove a recorder as soon as it is stopped because we want to drain everything from the gnuradio flowgraph
-      if (recorder->since_last_write() > config.call_timeout) {
+      if ((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) {
           BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
           call->set_state(COMPLETED);
