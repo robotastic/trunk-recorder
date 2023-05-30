@@ -792,7 +792,6 @@ void manage_conventional_call(Call *call) {
       // if no additional recording has happened in the past X periods, stop and open new file
       if (call->get_idle_count() > config.call_timeout) {
         Recorder *recorder = call->get_recorder();
-        call->set_state(COMPLETED);
         call->conclude_call();
         call->restart_call();
         if (recorder != NULL) {
@@ -801,7 +800,6 @@ void manage_conventional_call(Call *call) {
         }
       } else if ((call->get_current_length() > call->get_system()->get_max_duration()) && (call->get_system()->get_max_duration() > 0)) {
         Recorder *recorder = call->get_recorder();
-        call->set_state(COMPLETED);
         call->conclude_call();
         call->restart_call();
         if (recorder != NULL) {
@@ -889,8 +887,6 @@ void manage_calls() {
       // actually, we don't want to remove a recorder as soon as it is stopped because we want to drain everything from the gnuradio flowgraph
       if ((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) {
           BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
-
-          call->set_state(COMPLETED);
           call->conclude_call();
           // The State of the Recorders has changed, so lets send an update
           ended_call = true;
@@ -910,8 +906,8 @@ void manage_calls() {
           BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
           // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
-          // set the Call state to COMPLETED
-         /* call->set_state(COMPLETED);
+          //
+         /*
           call->conclude_call();
           // The State of the Recorders has changed, so lets send an update
           ended_call = true;
@@ -995,12 +991,6 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
     Call *call = *it;
 
-    /* This will skip all calls that are not currently acitve */
-    if (call->get_state() == COMPLETED) {
-      ++it;
-      continue;
-    }
-
     /* This is for Multi-Site support */
     if (call->get_talkgroup() == message.talkgroup) {
       if ((call->get_phase2_tdma() == message.phase2_tdma) && (call->get_tdma_slot() == message.tdma_slot) ) {
@@ -1074,7 +1064,6 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
       }
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
 /*
-      call->set_state(COMPLETED);
       call->conclude_call();
       it = calls.erase(it);
       delete call;
@@ -1142,11 +1131,6 @@ void handle_call_update(TrunkMessage message, System *sys) {
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); ++it) {
     Call *call = *it;
-
-    /* This will skip all calls that are not currently acitve */
-    if (call->get_state() == COMPLETED) {
-      continue;
-    }
 
     // BOOST_LOG_TRIVIAL(info) << "TG: " << call->get_talkgroup() << " | " << message.talkgroup << " sys num: " << call->get_sys_num() << " | " << message.sys_num << " freq: " << call->get_freq() << " | " << message.freq << " TDMA Slot" << call->get_tdma_slot() << " | " << message.tdma_slot << " TDMA: " << call->get_phase2_tdma() << " | " << message.phase2_tdma;
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
@@ -1389,7 +1373,6 @@ void monitor_messages() {
         Call *call = *it;
 
         if (call->get_state() != MONITORING) {
-          call->set_state(COMPLETED);
           call->conclude_call();
         }
 
