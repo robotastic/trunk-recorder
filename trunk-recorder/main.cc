@@ -1001,6 +1001,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
       continue;
     }
 
+    /* This is for Multi-Site support */
     if (call->get_talkgroup() == message.talkgroup) {
       if ((call->get_phase2_tdma() == message.phase2_tdma) && (call->get_tdma_slot() == message.tdma_slot) ) {
       if (call->get_sys_num() != message.sys_num) {
