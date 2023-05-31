@@ -209,6 +209,22 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             if (terminate_call) {
             add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
             
+	    long src_id = p1fdma.get_curr_src_id();
+            long grp_id = p1fdma.get_curr_grp_id();
+            // If a SRC wasn't received on the voice channel since the last check, it will be -1
+            if (src_id > 0) {
+              add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
+            }
+
+            if (p2_ptt_src_id > 0) {
+              add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
+              //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
+            }
+
+            if (grp_id > 0) {
+              add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
+            }
+		    
             Rx_Status status = p1fdma.get_rx_status();
             
             // If something was recorded, send the number of Errors and Spikes that were counted during that period
