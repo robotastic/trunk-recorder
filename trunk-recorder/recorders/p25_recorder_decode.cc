@@ -123,7 +123,7 @@ void p25_recorder_decode::reset_block(gr::basic_block_sptr block) {
   gr::block_detail_sptr detail;
   gr::block_sptr grblock = cast_to_block_sptr(block);
   detail = grblock->detail();
-  detail->reset_nitem_counters();
+  //detail->reset_nitem_counters();
   detail->clear_tags();
 }
 

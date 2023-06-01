@@ -31,12 +31,12 @@ void p25_recorder_qpsk_demod::reset() {
     costas->set_phase(0);
     costas->set_frequency(0);
     clock->reset();
-
+/*
     reset_block(clock);
     reset_block(costas);
     reset_block(diffdec);
     reset_block(to_float);
-    reset_block(rescale);
+    reset_block(rescale);*/
 }
 
 void p25_recorder_qpsk_demod::switch_tdma(bool phase2) {
