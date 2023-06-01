@@ -128,6 +128,7 @@ bool p25p2_tdma::rx_sym(uint8_t sym)
 	terminate_call = false;
 	src_id = -1;
 	grp_id = -1;
+	fprintf(stderr, "Setting GRP ID to -1\n");	
 	return p2framer.rx_sym(sym);
 }
 
@@ -160,7 +161,8 @@ long p25p2_tdma::get_ptt_src_id() {
 long p25p2_tdma::get_ptt_grp_id() {
 	long addr = grp_id;
     grp_id = -1;
-	return grp_id;
+	fprintf(stderr, "Getting GRP ID %ld and setting it back to -1\n", addr);
+	return addr;
 }
 
 p25p2_tdma::~p25p2_tdma()	// destructor
@@ -261,6 +263,8 @@ void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len
 
 		src_id = srcaddr;
 		grp_id = grpaddr;
+
+		fprintf(stderr, "MAC PTT src_id=%u, grp_id=%u\n", src_id, grp_id);	
 		std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
         send_msg(s, -3);
 		reset_vb();
@@ -280,6 +284,10 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
 
+		src_id = srcaddr;
+		grp_id = grpaddr;
+
+		fprintf(stderr, "MAC END PTT src_id=%u, grp_id=%u\n", src_id, grp_id);	
         if (d_debug >= 10)
                 fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u, rs_errs=%d\n", logts.get(d_msgq_id), colorcd, srcaddr, grpaddr, rs_errs);
 

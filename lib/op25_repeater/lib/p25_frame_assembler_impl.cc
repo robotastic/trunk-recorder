@@ -156,9 +156,6 @@ p25_frame_assembler_impl::general_work (int noutput_items,
         terminate_call = true;
         p2tdma.reset_call_terminated();
       }
-
-      tdma_src_id = p2tdma.get_ptt_src_id(); 
-      tdma_grp_id = p2tdma.get_ptt_grp_id(); 
       
 			if (rc > -1) {
         p25p2_queue_msg(rc);
@@ -171,9 +168,6 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       terminate_call = true;
       p1fdma.reset_call_terminated();
     }
-
-    fdma_src_id = p1fdma.get_curr_src_id();
-    fdma_grp_id = p1fdma.get_curr_grp_id();
   }
 
   int amt_produce = 0;
@@ -185,12 +179,12 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
         //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
 
-      if (amt_produce > 0) {
-          if (amt_produce >= 32768) {
-            BOOST_LOG_TRIVIAL(error) << "P25 Frame Assembler -  output_queue size: " << output_queue.size() << " max size: " << output_queue.max_size() << " limiting amt_produce to  32767 ";
-            
-            amt_produce = 32767; // buffer limit is 32768, see gnuradio/gnuradio-runtime/lib/../include/gnuradio/buffer.h:186
-          }
+          tdma_src_id = p2tdma.get_ptt_src_id(); 
+          tdma_grp_id = p2tdma.get_ptt_grp_id(); 
+          fdma_src_id = p1fdma.get_curr_src_id();
+          fdma_grp_id = p1fdma.get_curr_grp_id();
+
+          BOOST_LOG_TRIVIAL(info) << "TDMA grp id: " << tdma_grp_id;
 
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
           if (fdma_src_id > 0) {
@@ -215,6 +209,15 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
           if ((tdma_grp_id > 0) && (fdma_grp_id > 0)) {
             BOOST_LOG_TRIVIAL(info) << " Both TDMA and FDMA GRP IDs are set. TDMA: " << tdma_grp_id << " FDMA: " << fdma_grp_id;
+          }
+
+
+
+      if (amt_produce > 0) {
+          if (amt_produce >= 32768) {
+            BOOST_LOG_TRIVIAL(error) << "P25 Frame Assembler -  output_queue size: " << output_queue.size() << " max size: " << output_queue.max_size() << " limiting amt_produce to  32767 ";
+            
+            amt_produce = 32767; // buffer limit is 32768, see gnuradio/gnuradio-runtime/lib/../include/gnuradio/buffer.h:186
           }
 
           for (int i = 0; i < amt_produce; i++) {

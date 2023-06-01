@@ -132,6 +132,7 @@ void p25_recorder_decode::reset() {
   reset_block(slicer);
   reset_block(levels);
   reset_block(wav_sink);
+  op25_frame_assembler->clear();
 }
 
 gr::op25_repeater::p25_frame_assembler::sptr p25_recorder_decode::get_transmission_sink() {
