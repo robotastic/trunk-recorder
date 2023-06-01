@@ -199,6 +199,48 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   }
 }
 
+Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call) {
+  int num_available_recorders = get_num_available_digital_recorders();
+
+  if(talkgroup && (priority == -1)){
+    call->set_state(MONITORING);
+    call->set_monitoring_state(IGNORED_TG);
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
+    return NULL;
+  }
+
+  if (talkgroup && priority > num_available_recorders) { // a high priority is bad. You need at least the number of availalbe recorders to your priority
+    call->set_state(MONITORING);
+    call->set_monitoring_state(NO_RECORDER);
+    BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " <<  priority << " but only " << num_available_recorders << " recorders are available.";
+    return NULL;
+  }
+
+  return get_digital_recorder(call);
+}
+
+Recorder *Source::get_digital_recorder(Call *call) {
+  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
+       it != digital_recorders.end(); it++) {
+    p25_recorder_sptr rx = *it;
+
+    if (rx->get_state() == AVAILABLE) {
+      return (Recorder *)rx.get();
+
+      break;
+    }
+  }
+
+  BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t[ " << device << " ] No Digital Recorders Available.";
+
+  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
+       it != digital_recorders.end(); it++) {
+    p25_recorder_sptr rx = *it;
+    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << format_state(rx->get_state()) << " Freq: " << rx->get_freq();
+  }
+  return NULL;
+}
+
 p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
@@ -362,50 +404,6 @@ int Source::get_num_available_analog_recorders() {
     }
   }
   return num_available_recorders;
-}
-
-Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call) {
-  int num_available_recorders = get_num_available_digital_recorders();
-
-  if(talkgroup && (priority == -1)){
-    call->set_state(MONITORING);
-    call->set_monitoring_state(IGNORED_TG);
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
-    return NULL;
-  }
-
-  if (talkgroup && priority > num_available_recorders) { // a high priority is bad. You need at least the number of availalbe recorders to your priority
-    call->set_state(MONITORING);
-    call->set_monitoring_state(NO_RECORDER);
-    BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " <<  priority << " but only " << num_available_recorders << " recorders are available.";
-    return NULL;
-  }
-
-  return get_digital_recorder(call);
-}
-
-Recorder *Source::get_digital_recorder(Call *call) {
-  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
-       it != digital_recorders.end(); it++) {
-    p25_recorder_sptr rx = *it;
-
-    if (rx->get_state() == AVAILABLE) {
-      return (Recorder *)rx.get();
-
-      break;
-    }
-  }
-
-  return NULL;
-
-  BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t[ " << device << " ] No Digital Recorders Available.";
-
-  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
-       it != digital_recorders.end(); it++) {
-    p25_recorder_sptr rx = *it;
-    BOOST_LOG_TRIVIAL(info) << "[ " << rx->get_num() << " ] State: " << format_state(rx->get_state()) << " Freq: " << rx->get_freq();
-  }
-  return NULL;
 }
 
 gr::basic_block_sptr Source::get_src_block() {
