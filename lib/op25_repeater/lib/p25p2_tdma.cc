@@ -151,7 +151,9 @@ bool p25p2_tdma::get_call_terminated() {
 }
 
 long p25p2_tdma::get_ptt_src_id() {
-	return src_id;
+	long id = src_id;
+	src_id = -1;
+	return id;
 }
 
 long p25p2_tdma::get_ptt_grp_id() {
