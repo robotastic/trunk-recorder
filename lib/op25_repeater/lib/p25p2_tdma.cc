@@ -280,7 +280,7 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
 
-		src_id = srcaddr;
+		//src_id = srcaddr; // the decode for Source Address is not correct
 		grp_id = grpaddr;
 
         if (d_debug >= 10)
