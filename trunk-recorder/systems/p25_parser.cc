@@ -343,7 +343,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
       unsigned long f = channel_id_to_frequency(ch, sys_num);
 
-      message.message_type = UPDATE;
+      message.message_type = GRANT;
       message.freq = f;
       message.talkgroup = sg;
       message.source = sa;
