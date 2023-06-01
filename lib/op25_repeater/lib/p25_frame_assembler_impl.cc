@@ -184,8 +184,6 @@ p25_frame_assembler_impl::general_work (int noutput_items,
           fdma_src_id = p1fdma.get_curr_src_id();
           fdma_grp_id = p1fdma.get_curr_grp_id();
 
-          BOOST_LOG_TRIVIAL(info) << "TDMA grp id: " << tdma_grp_id;
-
           // If a SRC wasn't received on the voice channel since the last check, it will be -1
           if (fdma_src_id > 0) {
             add_item_tag(0, nitems_written(0), pmt::intern("src_id"), pmt::from_long(fdma_src_id), d_tag_src);
