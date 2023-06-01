@@ -125,6 +125,12 @@ static const int MAX_IN = 1;	// maximum number of input streams
 
 
     void p25_frame_assembler_impl::clear() {
+      // clear out the SRC and GRP IDs
+      long clear;
+      clear = p1fdma.get_curr_src_id();
+      clear = p1fdma.get_curr_grp_id();
+      clear = p2tdma.get_ptt_src_id(); 
+      clear = p2tdma.get_ptt_grp_id(); 
       p1fdma.clear();
     }
 
