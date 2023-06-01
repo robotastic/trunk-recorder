@@ -125,10 +125,6 @@ p25p2_tdma::p25p2_tdma(const op25_audio& udp, log_ts& logger, int slotid, int de
 bool p25p2_tdma::rx_sym(uint8_t sym)
 {
 	symbols_received++;
-	terminate_call = false;
-	src_id = -1;
-	grp_id = -1;
-	fprintf(stderr, "Setting GRP ID to -1\n");	
 	return p2framer.rx_sym(sym);
 }
 
