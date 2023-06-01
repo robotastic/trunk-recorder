@@ -332,9 +332,8 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   }
 
   std::vector<gr::tag_t> tags;
-  pmt::pmt_t src_id_key(pmt::intern("src_id")); // This is the src id from Phase 1 and DMR
-  pmt::pmt_t grp_id_key(pmt::intern("grp_id")); // This is the src id from Phase 1 and DMR
-  pmt::pmt_t ptt_src_id_key(pmt::intern("ptt_src_id"));  // This is the src id from Phase 2
+  pmt::pmt_t src_id_key(pmt::intern("src_id")); // This is the src id from Phase 1, Phase 2 and DMR
+  pmt::pmt_t grp_id_key(pmt::intern("grp_id")); // This is the src id from Phase 1, Phase 2 and DMR
   pmt::pmt_t terminate_key(pmt::intern("terminate"));
   pmt::pmt_t spike_count_key(pmt::intern("spike_count"));
   pmt::pmt_t error_count_key(pmt::intern("error_count"));
@@ -404,16 +403,6 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
       // BOOST_LOG_TRIVIAL(info) << "TERMINATOR!!";
     }
 
-    if (pmt::eq(ptt_src_id_key, tags[i].key)) {
-      long src_id = pmt::to_long(tags[i].value);
-      if (src_id != curr_src_id) {
-        d_termination_flag = true;
-        next_src_id = src_id;
-        pos = d_sample_count + (tags[i].offset - nitems_read(0));
-
-        //BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tPTT Termination - rec sample count " << d_sample_count << " pos: " << pos << " offset: " << tags[i].offset;
-      }
-    }
     // Only process Spike and Error Count tags if the sink is currently recording
     if (state == RECORDING) {
       if (pmt::eq(spike_count_key, tags[i].key)) {
