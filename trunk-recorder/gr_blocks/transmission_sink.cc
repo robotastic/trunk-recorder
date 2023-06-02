@@ -181,7 +181,9 @@ bool transmission_sink::open_internal(const char *filename) {
     BOOST_LOG_TRIVIAL(error) << "wav open failed" << std::endl;
     return false;
   }
-
+ if(std::setvbuf(d_fp, nullptr, _IOFBF, 1000000) != 0) {
+       BOOST_LOG_TRIVIAL(error) << "setvbuf failed"; // POSIX version sets errno
+    }
   d_sample_count = 0;
 
   if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
