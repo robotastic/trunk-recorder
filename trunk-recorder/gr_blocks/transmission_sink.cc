@@ -79,22 +79,22 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
 
 
 // static int rec_counter=0;
-void transmission_sink::create_base_filename() {
+void transmission_sink::create_filename() {
   time_t work_start_time = d_start_time;
-  std::stringstream path_stream;
+  std::stringstream temp_path_stream;
   tm *ltm = localtime(&work_start_time);
   // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
-  path_stream << d_current_call_capture_dir << "/" << d_current_call_short_name << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-  std::string path_string = path_stream.str();
-  boost::filesystem::create_directories(path_string);
+  temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name;
+  std::string temp_path_string = temp_path_stream.str();
+  boost::filesystem::create_directories(temp_path_string);
 
   int nchars;
 
   if (d_slot == -1) {
-    nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
+    nchars = snprintf(current_filename, 255, "%s/%ld-%ld_%.0f.wav", temp_path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
   } else {
     // this is for the case when it is a DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
-    nchars = snprintf(current_base_filename, 255, "%s/%ld-%ld_%.0f.%d", path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq, d_slot);
+    nchars = snprintf(current_filename, 255, "%s/%ld-%ld_%.0f.%d.wav", temp_path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq, d_slot);
   }
   if (nchars >= 255) {
     BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
@@ -127,9 +127,8 @@ bool transmission_sink::start_recording(Call *call) {
   } else {
     d_current_call_talkgroup_encoded = call->get_talkgroup();
   }
-
   d_current_call_short_name = call->get_short_name();
-  d_current_call_capture_dir = call->get_capture_dir();
+  d_current_call_temp_dir = call->get_temp_dir();
   d_prior_transmission_length = 0;
   d_error_count = 0;
   d_spike_count = 0;
@@ -246,7 +245,6 @@ void transmission_sink::end_transmission() {
     transmission.length = length_in_seconds(); // length in seconds
     d_prior_transmission_length = d_prior_transmission_length + transmission.length;
     strcpy(transmission.filename, current_filename); // Copy the filename
-    strcpy(transmission.base_filename, current_base_filename);
     this->add_transmission(transmission);
 
     // Reset the recorder to be ready to record the next Transmission
@@ -514,9 +512,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
           }
 
           // create a new filename, based on the current time and source.
-          create_base_filename();
-          strcpy(current_filename, current_base_filename);
-          strcat(current_filename, ".wav");
+          create_filename();
           if (!open_internal(current_filename)) {
             BOOST_LOG_TRIVIAL(error) << "can't open file";
             return noutput_items;

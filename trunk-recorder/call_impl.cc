@@ -12,6 +12,11 @@
 std::string Call_impl::get_capture_dir() {
   return this->config.capture_dir;
 }
+
+std::string Call_impl::get_temp_dir() { 
+  return this->config.temp_dir; 
+}
+
 /*
 Call * Call::make(long t, double f, System *s, Config c) {
 

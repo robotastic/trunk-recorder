@@ -58,12 +58,11 @@ private:
   long curr_src_id;
   long next_src_id;
   char current_filename[255];
-  char current_base_filename[255];
   Call *d_current_call;
   long d_current_call_num;
   long d_current_call_recorder_num;
   std::string d_current_call_short_name;
-  std::string d_current_call_capture_dir;
+  std::string d_current_call_temp_dir;
   double d_current_call_freq;
   double d_prior_transmission_length;
   long d_current_call_talkgroup;
@@ -121,7 +120,7 @@ public:
                     unsigned int sample_rate,
                     int bits_per_sample);
   virtual ~transmission_sink();
-  void create_base_filename();
+  void create_filename();
   char *get_filename();
   bool start_recording(Call *call);
   bool start_recording(Call *call, int slot);

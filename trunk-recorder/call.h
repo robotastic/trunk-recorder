@@ -36,6 +36,7 @@ public:
   virtual int get_sys_num() = 0;
   virtual std::string get_short_name() = 0;
   virtual std::string get_capture_dir() = 0;
+  virtual std::string get_temp_dir() = 0;
   virtual void set_freq(double f) = 0;
   virtual long get_talkgroup() = 0;
 

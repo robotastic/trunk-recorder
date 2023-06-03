@@ -14,7 +14,6 @@ struct Transmission {
   double freq;
   double length;
   char filename[255];
-  char base_filename[255];
 };
 
 struct Config {
