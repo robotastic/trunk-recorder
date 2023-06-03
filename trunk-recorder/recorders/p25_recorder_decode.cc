@@ -123,7 +123,7 @@ void p25_recorder_decode::reset_block(gr::basic_block_sptr block) {
   gr::block_detail_sptr detail;
   gr::block_sptr grblock = cast_to_block_sptr(block);
   detail = grblock->detail();
-  detail->reset_nitem_counters();
+  //detail->reset_nitem_counters();
   detail->clear_tags();
 }
 
@@ -132,6 +132,7 @@ void p25_recorder_decode::reset() {
   reset_block(slicer);
   reset_block(levels);
   reset_block(wav_sink);
+  op25_frame_assembler->clear();
 }
 
 gr::op25_repeater::p25_frame_assembler::sptr p25_recorder_decode::get_transmission_sink() {

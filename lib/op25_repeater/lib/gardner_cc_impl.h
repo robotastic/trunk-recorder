@@ -31,6 +31,7 @@
 #include <gnuradio/math.h>
 
 #include <gnuradio/filter/mmse_fir_interpolator_cc.h>
+#include <boost/thread/mutex.hpp>
 // class gr::filter::mmse_fir_interpolator_cc;
 
 namespace gr {
@@ -101,6 +102,7 @@ class gardner_cc_impl : public gardner_cc
         float d_gain_mu;
         float d_lock_threshold;
         id_avg d_lock_accum;
+        boost::mutex d_mutex;
 
         gr_complex d_last_sample;
         gr::filter::mmse_fir_interpolator_cc *d_interp;

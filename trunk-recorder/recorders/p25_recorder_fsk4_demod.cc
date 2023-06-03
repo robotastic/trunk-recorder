@@ -22,16 +22,16 @@ void p25_recorder_fsk4_demod::reset_block(gr::basic_block_sptr block) {
   detail->reset_nitem_counters();
 }
 void p25_recorder_fsk4_demod::reset() {
-  reset_block(pll_freq_lock);
+  /*reset_block(pll_freq_lock);
   reset_block(pll_amp);
   reset_block(noise_filter);
   reset_block(sym_filter);
-  reset_block(fsk4_demod);
+  reset_block(fsk4_demod);*/
   /*
   pll_freq_lock->update_gains();
   pll_freq_lock->frequency_limit();
-  pll_freq_lock->phase_wrap();
-  fsk4_demod->reset();*/
+  pll_freq_lock->phase_wrap();*/
+  fsk4_demod->reset();
   // pll_demod->set_phase(0);
 }
 

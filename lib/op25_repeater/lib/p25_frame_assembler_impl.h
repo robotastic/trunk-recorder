@@ -62,6 +62,7 @@ namespace gr {
   pmt::pmt_t d_tag_src;
   // internal functions
 
+    void send_grp_src_id();
     void set_xormask(const char*p) ;
     void set_nac(int nac) ;
     void set_slotid(int slotid) ;

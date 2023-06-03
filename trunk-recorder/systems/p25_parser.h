@@ -33,6 +33,7 @@ public:
   std::vector<TrunkMessage> decode_mbt_data(unsigned long opcode, boost::dynamic_bitset<> &header, boost::dynamic_bitset<> &mbt_data, unsigned long link_id, unsigned long nac, int sys_num);
   std::vector<TrunkMessage> decode_tsbk(boost::dynamic_bitset<> &tsbk, unsigned long nac, int sys_num);
   unsigned long bitset_shift_mask(boost::dynamic_bitset<> &tsbk, int shift, unsigned long long mask);
+  unsigned long bitset_shift_left_mask(boost::dynamic_bitset<> &tsbk, int shift, unsigned long long mask);
   std::string channel_id_to_string(int chan_id, int sys_num);
   void print_bitset(boost::dynamic_bitset<> &tsbk);
   void add_channel(int chan_id, Channel chan, int sys_num);

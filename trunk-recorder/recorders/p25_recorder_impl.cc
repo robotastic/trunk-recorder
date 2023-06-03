@@ -295,11 +295,11 @@ void p25_recorder_impl::clear() {
   //reset_block(fsk4_demod); // bad - Seg Faults
   //reset_block(fsk4_p25_decode);  // bad - Seg Faults
 
-  
+  */
   qpsk_demod->reset();
   qpsk_p25_decode->reset();
   fsk4_demod->reset();
-  fsk4_p25_decode->reset();*/
+  fsk4_p25_decode->reset();
 }
 
 void p25_recorder_impl::autotune() {
@@ -466,7 +466,7 @@ void p25_recorder_impl::stop() {
 
     state = INACTIVE;
     valve->set_enabled(false);
-        clear();
+    clear();
     if (qpsk_mod) {
       qpsk_p25_decode->stop();
     } else {

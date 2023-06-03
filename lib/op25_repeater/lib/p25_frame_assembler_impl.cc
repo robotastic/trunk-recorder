@@ -110,7 +110,6 @@ static const int MAX_IN = 1;	// maximum number of input streams
 	output_queue(),
 	op25audio(udp_host, port, debug),
   d_input_rate(4800),
-  d_tag_key(pmt::intern("src_id")),
   d_tag_src(pmt::intern(name())), 
   d_silence_frames(silence_frames)
 {
@@ -126,8 +125,52 @@ static const int MAX_IN = 1;	// maximum number of input streams
 
 
     void p25_frame_assembler_impl::clear() {
+      // clear out the SRC and GRP IDs
+      long clear;
+      clear = p1fdma.get_curr_src_id();
+      clear = p1fdma.get_curr_grp_id();
+      clear = p2tdma.get_ptt_src_id(); 
+      clear = p2tdma.get_ptt_grp_id(); 
       p1fdma.clear();
     }
+
+void p25_frame_assembler_impl::send_grp_src_id() {
+          long tdma_src_id = -1;
+          long tdma_grp_id = -1;
+          long fdma_src_id = -1;
+          long fdma_grp_id = -1;
+
+          tdma_src_id = p2tdma.get_ptt_src_id(); 
+          tdma_grp_id = p2tdma.get_ptt_grp_id(); 
+          fdma_src_id = p1fdma.get_curr_src_id();
+          fdma_grp_id = p1fdma.get_curr_grp_id();
+
+          // If a SRC wasn't received on the voice channel since the last check, it will be -1
+          if (fdma_src_id > 0) {
+            add_item_tag(0, nitems_written(0), pmt::intern("src_id"), pmt::from_long(fdma_src_id), d_tag_src);
+          }
+
+          if (tdma_src_id > 0) {
+            add_item_tag(0, nitems_written(0), pmt::intern("src_id"), pmt::from_long(tdma_src_id), d_tag_src);
+          }
+
+          if ((tdma_src_id > 0) && (fdma_src_id > 0)) {
+            BOOST_LOG_TRIVIAL(info) << " Both TDMA and FDMA SRC IDs are set. TDMA: " << tdma_src_id << " FDMA: " << fdma_src_id;
+          }
+
+          if (fdma_grp_id > 0) {
+            add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(fdma_grp_id), d_tag_src);
+          }
+
+          if (tdma_grp_id > 0) {
+            add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(tdma_grp_id), d_tag_src);
+          }
+
+          if ((tdma_grp_id > 0) && (fdma_grp_id > 0)) {
+            BOOST_LOG_TRIVIAL(info) << " Both TDMA and FDMA GRP IDs are set. TDMA: " << tdma_grp_id << " FDMA: " << fdma_grp_id;
+          }
+}
+
 
 int 
 p25_frame_assembler_impl::general_work (int noutput_items,
@@ -138,8 +181,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
   const uint8_t *in = (const uint8_t *) input_items[0];
   bool terminate_call = false;
-  long p2_ptt_src_id = -1;
-  long p2_ptt_grp_id = -1;
+
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
 	for (int i = 0; i < ninput_items[0]; i++) {
@@ -149,9 +191,6 @@ p25_frame_assembler_impl::general_work (int noutput_items,
         terminate_call = true;
         p2tdma.reset_call_terminated();
       }
-
-      p2_ptt_src_id = p2tdma.get_ptt_src_id(); 
-      p2_ptt_grp_id = p2tdma.get_ptt_grp_id(); 
       
 			if (rc > -1) {
         p25p2_queue_msg(rc);
@@ -181,27 +220,13 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             
             amt_produce = 32767; // buffer limit is 32768, see gnuradio/gnuradio-runtime/lib/../include/gnuradio/buffer.h:186
           }
-          long src_id = p1fdma.get_curr_src_id();
-          long grp_id = p1fdma.get_curr_grp_id();
-          // If a SRC wasn't received on the voice channel since the last check, it will be -1
-          if (src_id > 0) {
-            add_item_tag(0, nitems_written(0), d_tag_key, pmt::from_long(src_id), d_tag_src);
-          }
-
-          if (p2_ptt_src_id > 0) {
-            add_item_tag(0, nitems_written(0),  pmt::intern("ptt_src_id"), pmt::from_long(p2_ptt_src_id), d_tag_src);
-            //BOOST_LOG_TRIVIAL(info) << "PTT Src: " << p2_ptt_src_id << " amt_produced: " << amt_produce << std::endl;
-          }
-
-          if (grp_id > 0) {
-            add_item_tag(0, nitems_written(0), pmt::intern("grp_id"), pmt::from_long(grp_id), d_tag_src);
-          }
 
           for (int i = 0; i < amt_produce; i++) {
             out[i] = output_queue[i];
           }
           output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
 
+          send_grp_src_id();
 
           BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
           silence_frame_count = d_silence_frames;
@@ -218,6 +243,8 @@ p25_frame_assembler_impl::general_work (int noutput_items,
               p1fdma.reset_rx_status();
             }
             
+              send_grp_src_id();
+              
               std::fill(out, out + 1, 0);
               amt_produce = 1;
           }

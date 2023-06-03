@@ -100,6 +100,7 @@ gardner_cc_impl::~gardner_cc_impl()
 void
 gardner_cc_impl::reset()
 {
+    gr::thread::scoped_lock lock(d_mutex);
     d_phase = 0;
     d_update_request = 0;
     d_last_sample = 0;
@@ -109,6 +110,7 @@ gardner_cc_impl::reset()
 void
 gardner_cc_impl::set_omega (float omega)
 {
+    gr::thread::scoped_lock lock(d_mutex);
     assert (omega >= 2.0);
     d_omega = omega;
     d_min_omega = omega*(1.0 - d_omega_rel);
@@ -136,6 +138,7 @@ gardner_cc_impl::general_work (int noutput_items,
                                       gr_vector_const_void_star &input_items,
                                       gr_vector_void_star &output_items)
 {
+    gr::thread::scoped_lock lock(d_mutex);
     const gr_complex *in = (const gr_complex *) input_items[0];
     gr_complex *out = (gr_complex *) output_items[0];
 

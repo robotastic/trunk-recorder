@@ -125,9 +125,6 @@ p25p2_tdma::p25p2_tdma(const op25_audio& udp, log_ts& logger, int slotid, int de
 bool p25p2_tdma::rx_sym(uint8_t sym)
 {
 	symbols_received++;
-	terminate_call = false;
-	src_id = -1;
-	grp_id = -1;
 	return p2framer.rx_sym(sym);
 }
 
@@ -154,13 +151,15 @@ bool p25p2_tdma::get_call_terminated() {
 }
 
 long p25p2_tdma::get_ptt_src_id() {
-	return src_id;
+	long id = src_id;
+	src_id = -1;
+	return id;
 }
 
 long p25p2_tdma::get_ptt_grp_id() {
 	long addr = grp_id;
     grp_id = -1;
-	return grp_id;
+	return addr;
 }
 
 p25p2_tdma::~p25p2_tdma()	// destructor
@@ -261,6 +260,7 @@ void p25p2_tdma::handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len
 
 		src_id = srcaddr;
 		grp_id = grpaddr;
+
 		std::string s = "{\"srcaddr\" : " + std::to_string(srcaddr) + ", \"grpaddr\": " + std::to_string(grpaddr) + "}";
         send_msg(s, -3);
 		reset_vb();
@@ -279,6 +279,9 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
         uint16_t colorcd = ((byte_buf[1] & 0x0f) << 8) + byte_buf[2];
         uint32_t srcaddr = (byte_buf[13] << 16) + (byte_buf[14] << 8) + byte_buf[15];
         uint16_t grpaddr = (byte_buf[16] << 8) + byte_buf[17];
+
+		//src_id = srcaddr; // the decode for Source Address is not correct
+		grp_id = grpaddr;
 
         if (d_debug >= 10)
                 fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u, rs_errs=%d\n", logts.get(d_msgq_id), colorcd, srcaddr, grpaddr, rs_errs);
