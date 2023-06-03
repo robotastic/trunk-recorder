@@ -25,6 +25,7 @@ struct Config {
   std::string instance_key;
   std::string instance_id;
   std::string capture_dir;
+  std::string temp_dir;
   std::string debug_recorder_address;
   std::string log_dir;
   bool new_call_from_update;
