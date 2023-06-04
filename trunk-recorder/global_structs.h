@@ -14,7 +14,6 @@ struct Transmission {
   double freq;
   double length;
   char filename[255];
-  char base_filename[255];
 };
 
 struct Config {
@@ -25,6 +24,7 @@ struct Config {
   std::string instance_key;
   std::string instance_id;
   std::string capture_dir;
+  std::string temp_dir;
   std::string debug_recorder_address;
   std::string log_dir;
   bool new_call_from_update;

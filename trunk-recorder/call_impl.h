@@ -38,6 +38,7 @@ public:
   int get_sys_num();
   std::string get_short_name();
   std::string get_capture_dir();
+  std::string get_temp_dir();
   void set_freq(double f);
   long get_talkgroup();
 

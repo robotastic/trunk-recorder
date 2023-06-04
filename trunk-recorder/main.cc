@@ -159,6 +159,10 @@ bool load_config(string config_file) {
       add_logs(boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
     }
 
+    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
+
+    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
+
     config.log_file = pt.get<bool>("logFile", false);
     config.log_dir = pt.get<std::string>("logDir", "logs");
     if (config.log_file) {
@@ -186,16 +190,27 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
 
-    BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
+    std::string defaultTempDir = boost::filesystem::current_path().string();
 
-    BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
+    if (boost::filesystem::exists("/dev/shm")) {
+      defaultTempDir = "/dev/shm";
+    }
+    config.temp_dir = pt.get<std::string>("tempDir", defaultTempDir);
+    size_t pos = config.temp_dir.find_last_of("/");
+
+    if (pos == config.temp_dir.length() - 1) {
+      config.temp_dir.erase(config.temp_dir.length() - 1);
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Temporary Transmission Directory: " << config.temp_dir;
 
     config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
-    size_t pos = config.capture_dir.find_last_of("/");
+    pos = config.capture_dir.find_last_of("/");
 
     if (pos == config.capture_dir.length() - 1) {
       config.capture_dir.erase(config.capture_dir.length() - 1);
     }
+
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
     config.upload_server = pt.get<std::string>("uploadServer", "");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;

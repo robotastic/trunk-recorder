@@ -217,9 +217,42 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
   return call_info;
 }
 
+
+// static int rec_counter=0;
+Call_Data_t Call_Concluder::create_base_filename(Call *call, Call_Data_t call_info) {
+  char base_filename[255];
+  time_t work_start_time = call->get_start_time();
+  std::stringstream base_path_stream;
+  tm *ltm = localtime(&work_start_time);
+  // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
+  base_path_stream << call->get_capture_dir() << "/" << call->get_short_name() << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  std::string base_path_string = base_path_stream.str();
+  boost::filesystem::create_directories(base_path_string);
+
+  int nchars;
+
+  if (call->get_tdma_slot() == -1) {
+    nchars = snprintf(base_filename, 255, "%s/%ld-%ld_%.0f", base_path_string.c_str(), call->get_talkgroup(), work_start_time, call->get_freq());
+  } else {
+    // this is for the case when it is a DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
+    nchars = snprintf(base_filename, 255, "%s/%ld-%ld_%.0f.%d", base_path_string.c_str(), call->get_talkgroup(), work_start_time, call->get_freq(), call->get_tdma_slot());
+  }
+  if (nchars >= 255) {
+    BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+  }
+  snprintf(call_info.filename, 300, "%s-call_%lu.wav", base_filename, call->get_call_num());
+  snprintf(call_info.status_filename, 300, "%s-call_%lu.json", base_filename, call->get_call_num());
+  snprintf(call_info.converted, 300, "%s-call_%lu.m4a", base_filename, call->get_call_num());
+
+  return call_info;
+}
+
+
 Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config config) {
   Call_Data_t call_info;
   double total_length = 0;
+
+  call_info = create_base_filename(call, call_info);
 
   call_info.status = INITIAL;
   call_info.process_call_time = time(0);
@@ -303,9 +336,6 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 
     if (it == call_info.transmission_list.begin()) {
       call_info.start_time = t.start_time;
-      snprintf(call_info.filename, 300, "%s-call_%lu.wav", t.base_filename, call_info.call_num);
-      snprintf(call_info.status_filename, 300, "%s-call_%lu.json", t.base_filename, call_info.call_num);
-      snprintf(call_info.converted, 300, "%s-call_%lu.m4a", t.base_filename, call_info.call_num);
     }
 
     if (std::next(it) == call_info.transmission_list.end()) {
