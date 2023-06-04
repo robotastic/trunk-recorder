@@ -462,7 +462,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
 
       message.message_type = UPDATE;
-      message.freq = f2;
+      message.freq = f1;
       message.talkgroup = ga1;
       message.emergency = emergency;
       message.encrypted = encrypted;
