@@ -232,6 +232,8 @@ bool load_config(string config_file) {
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
     config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
+    config.soft_vocoder = pt.get<bool>("softVocoder", false);
+    BOOST_LOG_TRIVIAL(info) << "Phase 1 Software Vocoder: " << config.soft_vocoder;
     config.enable_audio_streaming = pt.get<bool>("audioStreaming", false);
     BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
     config.record_uu_v_calls = pt.get<bool>("recordUUVCalls", true);

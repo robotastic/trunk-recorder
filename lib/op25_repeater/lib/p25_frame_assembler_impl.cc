@@ -74,8 +74,8 @@ namespace gr {
     }
 
     p25_frame_assembler::sptr
-    p25_frame_assembler::make(int silence_frames, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt) {
-      return gnuradio::get_initial_sptr(new p25_frame_assembler_impl(silence_frames, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma, do_nocrypt));
+    p25_frame_assembler::make(int silence_frames, bool soft_vocoder, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt) {
+      return gnuradio::get_initial_sptr(new p25_frame_assembler_impl(silence_frames, soft_vocoder, udp_host, port, debug, do_imbe, do_output, do_msgq, queue, do_audio_output, do_phase2_tdma, do_nocrypt));
     }
 
     /*
@@ -95,13 +95,13 @@ static const int MAX_IN = 1;	// maximum number of input streams
 /*
  * The private constructor
  */
-  p25_frame_assembler_impl::p25_frame_assembler_impl(int silence_frames, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt)
+  p25_frame_assembler_impl::p25_frame_assembler_impl(int silence_frames,  bool soft_vocoder, const char *udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt)
       : gr::block("p25_frame_assembler",
 		   gr::io_signature::make (MIN_IN, MAX_IN, sizeof (char)),
 		   gr::io_signature::make ((do_output) ? 1 : 0, (do_output) ? 1 : 0, (do_audio_output && do_output) ? sizeof(int16_t) : ((do_output) ? sizeof(char) : 0 ))),
 	d_do_imbe(do_imbe),
 	d_do_output(do_output),
-  p1fdma(op25audio, logts, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output),
+  p1fdma(op25audio, logts, debug, do_imbe, do_output, do_msgq, queue, output_queue, do_audio_output, soft_vocoder),
 	d_do_audio_output(do_audio_output),
 	d_do_phase2_tdma(do_phase2_tdma),
 	p2tdma(op25audio, logts,  0, debug, do_msgq, queue, output_queue, do_audio_output),

@@ -185,6 +185,7 @@ void p25_recorder_impl::initialize(Source *src) {
   chan_freq = source->get_center();
   center_freq = source->get_center();
   config = source->get_config();
+  d_soft_vocoder = config->soft_vocoder;
   input_rate = source->get_rate();
   qpsk_mod = true;
   silence_frames = source->get_silence_frames();
@@ -211,9 +212,9 @@ void p25_recorder_impl::initialize(Source *src) {
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
-  qpsk_p25_decode = make_p25_recorder_decode(this, silence_frames);
+  qpsk_p25_decode = make_p25_recorder_decode(this, silence_frames, d_soft_vocoder);
   fsk4_demod = make_p25_recorder_fsk4_demod();
-  fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames);
+  fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames, d_soft_vocoder);
 
   modulation_selector->set_enabled(true);
 
