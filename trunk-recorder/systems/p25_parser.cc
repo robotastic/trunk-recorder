@@ -379,7 +379,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         message.tdma_slot = 0;
       }
 
-      if (f1 != f2) {
+      if ((f1 != f2) && (ch2 != 65535)) {
         messages.push_back(message);
         message.freq = f2;
         message.talkgroup = ga2;
@@ -474,7 +474,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         message.tdma_slot = 0;
       }
 
-      os << "tsbk03\tExplicit Grant Update\tTX Channel ID: " << std::setw(5) << ch1 << "\tFreq: " << format_freq(f1) << "\tRX Channel ID: " << std::setw(5) << ch1 << "\tFreq: " << format_freq(f1) << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1, sys_num);
+      os << "tsbk03\tExplicit Grant Update\tTX Channel ID: " << std::setw(5) << ch1 << "\tFreq: " << format_freq(f1) << "\tFNE TX Channel ID: " << std::setw(5) << ch1 << "\tFreq: " << format_freq(f1) << "\tga " << std::setw(7) << ga1 << "\tTDMA " << get_tdma_slot(ch1, sys_num);
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
     }
