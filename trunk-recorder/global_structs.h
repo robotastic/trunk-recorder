@@ -31,6 +31,7 @@ struct Config {
   bool debug_recorder;
   int debug_recorder_port;
   int call_timeout;
+  bool console_log;
   bool log_file;
   int control_message_warn_rate;
   int control_retune_limit;
