@@ -1,6 +1,8 @@
 #include "call_concluder.h"
 #include "../plugin_manager/plugin_manager.h"
 #include <boost/filesystem.hpp>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 std::list<std::future<Call_Data_t>> Call_Concluder::call_data_workers = {};
 std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
@@ -133,7 +135,20 @@ void remove_call_files(Call_Data_t call_info) {
         remove(t.filename);
       }
     }
-  } else if (!call_info.transmission_archive) {
+  } else {
+    if (call_info.transmission_archive) {
+      // if the files are being archived, move them to the capture directory
+      for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
+        Transmission t = *it;
+        boost::filesystem::path target_file = fs::path(call_info.filename ).replace_filename(fs::path(t.filename).filename());
+        boost::filesystem::path transmission_file = t.filename;
+        //boost::filesystem::path target_file = boost::filesystem::path(call_info.filename).replace_filename(transmission_file.filename()); // takes the capture dir from the call file and adds the transmission filename to it
+        boost::filesystem::copy_file(transmission_file, target_file); 
+
+      }
+    } 
+
+    // remove the transmission files from the temp directory
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
       if (checkIfFile(t.filename)) {
@@ -141,6 +156,7 @@ void remove_call_files(Call_Data_t call_info) {
       }
     }
   }
+
   if (!call_info.call_log) {
     if (checkIfFile(call_info.status_filename)) {
       remove(call_info.status_filename);
