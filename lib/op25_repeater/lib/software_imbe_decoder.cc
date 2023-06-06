@@ -1593,7 +1593,7 @@ software_imbe_decoder::synth_voiced()
    }
 
    psi1 = psi1 +(Oldw0 + w0) * 80;
-   psi1 = remainderf(psi1, 2 * M_PI); // ToDo: decide if its 2pi or pi^2
+   psi1 = remainderf(psi1, 2 * M_PI); // ToDo: decide if its 2pi or pi^2 // YEP it should be 2pi
 
    for(ell = 1; ell <= L/4; ell++) {
       phi[ell][ New] = psi1 * ell;
