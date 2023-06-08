@@ -36,7 +36,8 @@ struct key_info {
     std::vector<uint8_t> key;
 };
 
-enum frame_type { FT_UNK = 0, FT_LDU1, FT_LDU2, FT_2V, FT_4V };
+enum frame_type { FT_UNK = 0, FT_LDU1, FT_LDU2, FT_2V, FT_4V_0, FT_4V_1, FT_4V_2, FT_4V_3 };
+enum protocol_type { PT_UNK = 0, PT_P25_PHASE1, PT_P25_PHASE2 };
 
 class p25_crypt_algs
 {
@@ -44,16 +45,16 @@ class p25_crypt_algs
         log_ts& logts;
         int d_debug;
         int d_msgq_id;
-        frame_type d_fr_type;
+        protocol_type d_pr_type;
         uint8_t d_algid;
         uint16_t d_keyid;
         uint8_t d_mi[9];
         std::unordered_map<uint16_t, key_info> d_keys;
         std::unordered_map<uint16_t, key_info>::const_iterator d_key_iter;
         uint8_t adp_keystream[469];
-        int d_adp_position;
+        uint32_t d_adp_position;
 
-        bool adp_process(packed_codeword& PCW);
+        bool adp_process(packed_codeword& PCW, frame_type fr_type, int voice_subframe);
         void adp_keystream_gen();
         void adp_swap(uint8_t *S, uint32_t i, uint32_t j);
 
@@ -62,8 +63,8 @@ class p25_crypt_algs
         ~p25_crypt_algs();
 
         void key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key);
-        bool prepare(uint8_t algid, uint16_t keyid, frame_type fr_type, uint8_t *MI);
-        bool process(packed_codeword& PCW);
+        bool prepare(uint8_t algid, uint16_t keyid, protocol_type pr_type, uint8_t *MI);
+        bool process(packed_codeword& PCW, frame_type fr_type, int voice_subframe);
         void reset(void);
         inline void set_debug(int debug) {d_debug = debug;}
 };

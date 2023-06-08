@@ -117,11 +117,11 @@ namespace gr {
             output_queue(),
             d_sync(NULL)
         {
-            if (strcasecmp(options, "smartnet") == 0)
+           /* if (strcasecmp(options, "smartnet") == 0)
                 d_sync = new rx_smartnet(options, logts, debug, msgq_id, queue);
             else if (strcasecmp(options, "subchannel") == 0)
                 d_sync = new rx_subchannel(options, logts, debug, msgq_id, queue);
-            else
+            else*/
                 d_sync = new rx_sync(options, logts, debug, msgq_id, queue, output_queue);
         }
 

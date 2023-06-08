@@ -95,6 +95,11 @@ void rx_sync::sync_reset(void) {
 	reset_timer();
 }
 
+void rx_sync::call_end(void) {
+	p25fdma.call_end();
+	p25tdma.call_end();
+}
+
 void rx_sync::crypt_reset(void) {
 	p25fdma.crypt_reset();
 	p25tdma.crypt_reset();
@@ -234,7 +239,7 @@ rx_sync::rx_sync(const char * options, log_ts& logger, int debug, int msgq_id, g
 	d_stereo(true),
 	d_debug(debug),
 	d_audio(options, debug),
-	logts(logger)
+    logts(logger)
 {
 	if (msgq_id >= 0)
 		d_stereo = false; // single channel audio for trunking
