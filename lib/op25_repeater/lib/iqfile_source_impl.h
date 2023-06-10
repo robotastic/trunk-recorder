@@ -25,6 +25,7 @@
 
 #include <op25_repeater/iqfile_source.h>
 #include <boost/thread/mutex.hpp>
+#include <boost/format.hpp>
 
 namespace gr {
 namespace op25_repeater {
