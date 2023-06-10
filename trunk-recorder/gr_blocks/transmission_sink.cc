@@ -84,6 +84,8 @@ void transmission_sink::create_filename() {
   std::stringstream temp_path_stream;
   tm *ltm = localtime(&work_start_time);
   // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
+  //temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  
   temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name;
   std::string temp_path_string = temp_path_stream.str();
   boost::filesystem::create_directories(temp_path_string);
