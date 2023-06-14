@@ -1689,8 +1689,6 @@ int main(int argc, char **argv) {
   string config_file = vm["config"].as<string>();
 
   tb = gr::make_top_block("Trunking");
-  tb->start();
-  tb->lock();
   
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
   p25_parser = new P25Parser();
@@ -1698,9 +1696,6 @@ int main(int argc, char **argv) {
   std::string uri = "ws://localhost:3005";
 
   if (!load_config(config_file)) {
-    tb->unlock();
-    tb->stop();
-    tb->wait();
     exit(1);
   }
 
@@ -1708,7 +1703,7 @@ int main(int argc, char **argv) {
 
   if (setup_systems()) {
     signal(SIGINT, exit_interupt);
-    tb->unlock();
+    tb->start();
 
     monitor_messages();
 
