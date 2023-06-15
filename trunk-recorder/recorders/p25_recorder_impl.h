@@ -126,7 +126,8 @@ protected:
   gr::blocks::copy::sptr valve;
   gr::digital::fll_band_edge_cc::sptr fll_band_edge;
   gr::blocks::rms_agc::sptr rms_agc;
-    
+  gr::latency_manager::latency_manager::sptr latency_manager;
+  gr::latency_manager::tag_to_msg::sptr tag_to_msg;  
   //gr::op25_repeater::rmsagc_ff::sptr rms_agc;
   // gr::blocks::multiply_const_ss::sptr levels;
 
