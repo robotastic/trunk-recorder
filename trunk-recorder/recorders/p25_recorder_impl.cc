@@ -159,12 +159,22 @@ void p25_recorder_impl::initialize_prefilter() {
 
 
   connect(self(), 0, valve, 0);
+
+  // For Latency Manager
+  latency_manager = gr::latency_manager::latency_manager::make(10000,1000,sizeof(gr_complex));      
+  tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
+  connect(valve, 0, latency_manager,0);
+  
   if (double_decim) {
-    connect(valve, 0, bandpass_filter, 0);
+    connect(latency_manager, 0, bandpass_filter, 0);
+
+    //connect(valve, 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(valve, 0,  mixer, 0);
+    connect(latency_manager, 0,  mixer, 0);
+
+    //connect(valve, 0,  mixer, 0);
     connect(lo, 0, mixer, 1);
   }
   connect(mixer, 0,lowpass_filter, 0);
