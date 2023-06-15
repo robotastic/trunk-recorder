@@ -258,8 +258,8 @@ list(APPEND trunk_recorder_sources
   lib/lfsr/lfsr.cxx
   #lib/gr-latency/latency_probe.cc
   #lib/gr-latency/latency_tagger.cc
-  #lib/gr-latency-manager/lib/latency_manager_impl.cc
-  #lib/gr-latency-manager/lib/tag_to_msg_impl.cc
+  lib/gr-latency-manager/lib/latency_manager_impl.cc
+  lib/gr-latency-manager/lib/tag_to_msg_impl.cc
   trunk-recorder/gr_blocks/freq_xlating_fft_filter.cc
   trunk-recorder/gr_blocks/transmission_sink.cc
   trunk-recorder/gr_blocks/decoders/fsync_decode.cc
