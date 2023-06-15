@@ -222,7 +222,9 @@ void p25_recorder_impl::initialize(Source *src) {
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
-
+      // For the Latency Manager
+        //connect(fll_band_edge,0, tag_to_msg, 0);
+  msg_connect(tag_to_msg, "msg", latency_manager, "token" );
   
 }
 
