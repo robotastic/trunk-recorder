@@ -157,24 +157,26 @@ void p25_recorder_impl::initialize_prefilter() {
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/350); 
 
-
-  connect(self(), 0, valve, 0);
-
   // For Latency Manager
-  latency_manager = gr::latency_manager::latency_manager::make(10000,1000,sizeof(gr_complex));      
+  latency_manager = gr::latency_manager::latency_manager::make(10000,5000,sizeof(gr_complex));      
   tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
-  connect(valve, 0, latency_manager,0);
+
+  //connect(self(), 0, valve, 0);
+    connect(self(), 0, latency_manager, 0);
+connect( latency_manager,0, valve, 0);
+
+  //connect(valve, 0, latency_manager,0);
   
   if (double_decim) {
-    connect(latency_manager, 0, bandpass_filter, 0);
+    //connect(latency_manager, 0, bandpass_filter, 0);
 
-    //connect(valve, 0, bandpass_filter, 0);
+    connect(valve, 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(latency_manager, 0,  mixer, 0);
+    //connect(latency_manager, 0,  mixer, 0);
 
-    //connect(valve, 0,  mixer, 0);
+    connect(valve, 0,  mixer, 0);
     connect(lo, 0, mixer, 1);
   }
   connect(mixer, 0,lowpass_filter, 0);
@@ -233,7 +235,7 @@ void p25_recorder_impl::initialize(Source *src) {
   connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
       // For the Latency Manager
-        //connect(fll_band_edge,0, tag_to_msg, 0);
+  connect(fll_band_edge,0, tag_to_msg, 0);
   msg_connect(tag_to_msg, "msg", latency_manager, "token" );
   
 }
