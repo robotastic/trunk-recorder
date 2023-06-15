@@ -60,6 +60,9 @@ int create_call_json(Call_Data_t call_info) {
     json_file << "\"start_time\": " << call_info.start_time << ",\n";
     json_file << "\"stop_time\": " << call_info.stop_time << ",\n";
     json_file << "\"emergency\": " << call_info.emergency << ",\n";
+    json_file << "\"priority\": " << call_info.priority << ",\n";
+    json_file << "\"mode\": " << call_info.mode << ",\n";
+    json_file << "\"duplex\": " << call_info.duplex << ",\n";
     json_file << "\"encrypted\": " << call_info.encrypted << ",\n";
     json_file << "\"call_length\": " << call_info.length << ",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
@@ -278,6 +281,9 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.freq = call->get_freq();
   call_info.encrypted = call->get_encrypted();
   call_info.emergency = call->get_emergency();
+  call_info.priority = call->get_priority();
+  call_info.mode = call->get_mode();
+  call_info.duplex = call->get_duplex();
   call_info.tdma_slot = call->get_tdma_slot();
   call_info.phase2_tdma = call->get_phase2_tdma();
   call_info.transmission_list = call->get_transmissions();
