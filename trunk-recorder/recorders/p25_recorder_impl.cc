@@ -158,7 +158,9 @@ void p25_recorder_impl::initialize_prefilter() {
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/350); 
 
   // For Latency Manager
-  latency_manager = gr::latency_manager::latency_manager::make(10000,5000,sizeof(gr_complex));      
+  long sample_segment = (input_rate / 1000000) * 10000;
+  long tag_segment = (input_rate / 1000000) * 5000;
+  latency_manager = gr::latency_manager::latency_manager::make(sample_segment,tag_segment,sizeof(gr_complex));      
   tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
 
   //connect(self(), 0, valve, 0);
