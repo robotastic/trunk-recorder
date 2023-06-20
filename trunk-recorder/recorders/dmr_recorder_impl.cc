@@ -227,7 +227,8 @@ void dmr_recorder_impl::initialize(Source *src) {
   framer = gr::op25_repeater::frame_assembler::make("file:///tmp/out1.raw", verbosity, 1, rx_queue);
   // op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
   levels = gr::blocks::multiply_const_ff::make(1);
-  plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder_impl::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
+  plugin_sink_slot0 = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder_impl::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
+  plugin_sink_slot1 = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder_impl::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
 
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
@@ -249,7 +250,8 @@ void dmr_recorder_impl::initialize(Source *src) {
   connect(framer, 1, wav_sink_slot1, 0);
 
   if (use_streaming) {
-    connect(framer, 0, plugin_sink, 0);
+    connect(framer, 0, plugin_sink_slot0, 0);
+    connect(framer, 1, plugin_sink_slot1, 0);
   }
 }
 
