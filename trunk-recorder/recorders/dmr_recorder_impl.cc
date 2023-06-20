@@ -160,6 +160,12 @@ void dmr_recorder_impl::initialize(Source *src) {
   recording_count = 0;
   recording_duration = 0;
 
+  bool use_streaming = false;
+
+  if (config != NULL) {
+    use_streaming = config->enable_audio_streaming;
+  }
+
   state = INACTIVE;
 
   timestamp = time(NULL);
@@ -241,10 +247,14 @@ void dmr_recorder_impl::initialize(Source *src) {
   connect(slicer, 0, framer, 0);
   connect(framer, 0, wav_sink_slot0, 0);
   connect(framer, 1, wav_sink_slot1, 0);
+
+  if (use_streaming) {
+    connect(framer, 0, plugin_sink, 0);
+  }
 }
 
 void dmr_recorder_impl::plugin_callback_handler(int16_t *samples, int sampleCount) {
-  // plugman_audio_callback(_recorder, samples, sampleCount);
+  plugman_audio_callback(call, this, samples, sampleCount);
 }
 
 void dmr_recorder_impl::switch_tdma(bool phase2) {
