@@ -131,7 +131,7 @@ static const int MAX_IN = 1;	// maximum number of input streams
       clear = p1fdma.get_curr_grp_id();
       clear = p2tdma.get_ptt_src_id(); 
       clear = p2tdma.get_ptt_grp_id(); 
-      p1fdma.clear();
+      // p1fdma.clear(); //All this does is Clear the Vocoder - I am nervous about doing this because there are some memsets...
     }
 
 void p25_frame_assembler_impl::send_grp_src_id() {

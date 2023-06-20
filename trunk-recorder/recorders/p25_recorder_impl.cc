@@ -155,7 +155,7 @@ void p25_recorder_impl::initialize_prefilter() {
 
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
-  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/350); 
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250); // This is 350 in OP25
 
 
   connect(self(), 0, valve, 0);
@@ -294,8 +294,8 @@ void p25_recorder_impl::clear() {
   //reset_block(qpsk_p25_decode); // bad - Seg Faults
   //reset_block(fsk4_demod); // bad - Seg Faults
   //reset_block(fsk4_p25_decode);  // bad - Seg Faults
-
   */
+ 
   qpsk_demod->reset();
   qpsk_p25_decode->reset();
   fsk4_demod->reset();
