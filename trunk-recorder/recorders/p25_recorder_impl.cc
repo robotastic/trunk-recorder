@@ -155,7 +155,7 @@ void p25_recorder_impl::initialize_prefilter() {
 
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
-  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/350); 
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/350); // it is 350 in OP25
 
   // For Latency Manager
   long sample_segment = (input_rate / 1000000) * 10000;
@@ -164,8 +164,8 @@ void p25_recorder_impl::initialize_prefilter() {
   tag_to_msg = gr::latency_manager::tag_to_msg::make(sizeof(gr_complex), "tagger");
 
   //connect(self(), 0, valve, 0);
-    connect(self(), 0, latency_manager, 0);
-connect( latency_manager,0, valve, 0);
+  connect(self(), 0, latency_manager, 0);
+  connect( latency_manager,0, valve, 0);
 
   //connect(valve, 0, latency_manager,0);
   
