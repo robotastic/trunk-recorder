@@ -128,10 +128,10 @@ void p25_recorder_decode::reset_block(gr::basic_block_sptr block) {
 }
 
 void p25_recorder_decode::reset() {
-  /*reset_block(op25_frame_assembler);
+  reset_block(op25_frame_assembler);
   reset_block(slicer);
   reset_block(levels);
-  reset_block(wav_sink); */
+  reset_block(wav_sink);
   op25_frame_assembler->clear();
 }
 
