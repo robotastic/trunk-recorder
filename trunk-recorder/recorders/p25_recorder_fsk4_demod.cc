@@ -30,9 +30,10 @@ void p25_recorder_fsk4_demod::reset() {
   /*
   pll_freq_lock->update_gains();
   pll_freq_lock->frequency_limit();
-  pll_freq_lock->phase_wrap();*/
-  fsk4_demod->reset();
-  // pll_demod->set_phase(0);
+  pll_freq_lock->phase_wrap();
+  pll_demod->set_phase(0);*/
+
+  //  fsk4_demod->reset(); This one may have been working but removing for now to be safe
 }
 
 void p25_recorder_fsk4_demod::initialize() {
