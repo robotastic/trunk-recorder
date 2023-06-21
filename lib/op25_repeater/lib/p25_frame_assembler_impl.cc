@@ -121,6 +121,12 @@ static const int MAX_IN = 1;	// maximum number of input streams
 
       if (d_do_phase2_tdma && !d_do_audio_output)
         fprintf(stderr, "p25_frame_assembler: error: do_audio_output must be enabled if do_phase2_tdma is enabled\n");
+
+      if (d_do_audio_output)
+        set_output_multiple(864);
+
+      if (!d_do_audio_output && !d_do_imbe)
+        set_output_multiple(160);
     }
 
 
