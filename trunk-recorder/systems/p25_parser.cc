@@ -407,13 +407,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x03) { //  Group Voice Channel Update-Explicit (GRP_V_CH_GRANT_UPDT_EXP)
     // group voice chan grant update exp : TIA.102-AABC-B-2005 page 56
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
-    bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
-    bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-    bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
-    bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
-    int priority = bitset_shift_mask(tsbk, 72, 0x07);
 
-    if (mfrid == 0x90) { // MOT_GRG_CN_GRANT_UPDT
+    if (mfrid == 0x90) { // MOT_GRG_CN_GRANT_UPDT  // MOTOROLA_OSP_PATCH_GROUP_CHANNEL_GRANT_UPDATE // Service Options are not in the Moto version of the message
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
       unsigned long sg1 = bitset_shift_mask(tsbk, 48, 0xffff);
       unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
@@ -425,11 +420,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.message_type = UPDATE;
       message.freq = f1;
       message.talkgroup = sg1;
-      message.emergency = emergency;
-      message.encrypted = encrypted;
-      message.duplex = duplex;
-      message.mode = mode;
-      message.priority = priority;
 
       if (get_tdma_slot(ch1, sys_num) >= 0) {
         message.phase2_tdma = true;
@@ -458,6 +448,12 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
     } else {
+      bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+      bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+      bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
+      bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
+      int priority = bitset_shift_mask(tsbk, 72, 0x07);
+
       unsigned long ch1 = bitset_shift_mask(tsbk, 48, 0xffff);
       unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 16, 0xffff);
