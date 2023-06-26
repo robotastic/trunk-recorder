@@ -409,6 +409,21 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
 
     if (mfrid == 0x90) { // MOT_GRG_CN_GRANT_UPDT  // MOTOROLA_OSP_PATCH_GROUP_CHANNEL_GRANT_UPDATE // Service Options are not in the Moto version of the message
+     /*unsigned long sg = bitset_shift_mask(tsbk, 64, 0xffff);
+      unsigned long ga1 = bitset_shift_mask(tsbk, 48, 0xffff);
+      unsigned long ga2 = bitset_shift_mask(tsbk, 32, 0xffff);
+      unsigned long ga3 = bitset_shift_mask(tsbk, 16, 0xffff);
+      os << "MOT_GRG_CN_UPDATE_(0x03): \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3;
+      message.meta = os.str();
+      BOOST_LOG_TRIVIAL(debug) << os.str();
+      message.message_type = PATCH_ADD;
+      PatchData moto_patch_data;
+      moto_patch_data.sg = sg;
+      moto_patch_data.ga1 = ga1;
+      moto_patch_data.ga2 = ga2;
+      moto_patch_data.ga3 = ga3;
+      message.patch_data = moto_patch_data;*/
+
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
       unsigned long sg1 = bitset_shift_mask(tsbk, 48, 0xffff);
       unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
