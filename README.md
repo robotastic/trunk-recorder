@@ -9,7 +9,7 @@ Thank you to everyone who has contributed!
 ## Overview
 Need help? Got something working? Share it!
 
-[Discord Server](https://discord.gg/trunk-recorder) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
+[Discord Server](https://discord.gg/btJAhESnks) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
 Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swathes of RF and then use software to process what was received. [GNU Radio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
 
