@@ -26,7 +26,7 @@ The amount of tuning error is -14500Hz, so that would go under **error:** for th
 
 **NOTE:** In some instances, an alternative is to use `ppm` correction rather than the `error` configuration option.
 
-Alternatively, you can use this tool here: http://garvas.org/trunk-recorder/ to obtain RTL-SDR dongle/array configurations.
+Alternatively, you can use these tools here: https://webby.site/sdr/ or  http://garvas.org/trunk-recorder/ to obtain RTL-SDR dongle/array configurations.
 
 ### Gain
 
