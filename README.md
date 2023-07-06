@@ -64,14 +64,14 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 * Broadcastify Calls (API): see Radio Reference [forum thread](https://forums.radioreference.com/threads/405236/) and [wiki page](https://wiki.radioreference.com/index.php/Broadcastify-Calls-Trunk-Recorder)
 * [Broadcastify via Liquidsoap](https://github.com/robotastic/trunk-recorder/wiki/Streaming-online-to-Broadcastify-with-Liquid-Soap)
 * [audioplayer.php](https://github.com/robotastic/trunk-recorder/wiki/Using-audioplayer.php)
-* [rosecitytransit's Live Web page](https://github/rosecitytransit/trunk-recorder-daily-log)
+* [rosecitytransit's Live Web page](https://github.com/rosecitytransit/trunk-recorder-daily-log)
 
 ### Plugins
 
 * [MQTT Status](https://github.com/robotastic/trunk-recorder-mqtt-status): Publishes the current status of a Trunk Recorder instance over MQTT
 * [MQTT Statistics](https://github.com/robotastic/trunk-recorder-mqtt-statistics): Publishes statistics about a Trunk Recorder instance over MQTT
 * [Decode rates logger](https://github.com/rosecitytransit/trunk-recorder-decode-rate): Logs trunking control channel decode rates to a CSV file, and includes a PHP file that outputs an SVG graph
-* [Daily call log and live Web page]((https://github.com/rosecitytransit/trunk-recorder-daily-log): Creates a daily log of calls (instead of just individual JSON files) and includes an updating PHP Web page w/audio player
+* [Daily call log and live Web page](https://github.com/rosecitytransit/trunk-recorder-daily-log): Creates a daily log of calls (instead of just individual JSON files) and includes an updating PHP Web page w/audio player
 
 ### Troubleshooting
 
