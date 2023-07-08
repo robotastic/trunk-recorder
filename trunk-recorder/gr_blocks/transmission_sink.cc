@@ -23,8 +23,8 @@
 
 #include "transmission_sink.h"
 #include "../../trunk-recorder/call.h"
-#include <boost/math/special_functions/round.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/math/special_functions/round.hpp>
 #include <climits>
 #include <cmath>
 #include <cstring>
@@ -62,11 +62,11 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
     : sync_block("transmission_sink",
                  io_signature::make(1, n_channels, sizeof(int16_t)),
                  io_signature::make(0, 0, 0)),
-      d_sample_rate(sample_rate), 
+      d_sample_rate(sample_rate),
       d_nchans(n_channels),
-      d_current_call(NULL), 
+      d_current_call(NULL),
       d_fp(0) {
-        
+
   if ((bits_per_sample != 8) && (bits_per_sample != 16)) {
     throw std::runtime_error("Invalid bits per sample (supports 8 and 16)");
   }
@@ -77,15 +77,12 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
   state = AVAILABLE;
 }
 
-
-// static int rec_counter=0;
 void transmission_sink::create_filename() {
   time_t work_start_time = d_start_time;
   std::stringstream temp_path_stream;
   tm *ltm = localtime(&work_start_time);
   // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
-  //temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
-  
+
   temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name;
   std::string temp_path_string = temp_path_stream.str();
   boost::filesystem::create_directories(temp_path_string);
@@ -120,7 +117,6 @@ bool transmission_sink::start_recording(Call *call) {
   }
   d_current_call = call;
   d_current_call_num = call->get_call_num();
-  d_current_call_recorder_num = 0; // call->get_recorder()->get_num();
   d_current_call_freq = call->get_freq();
   d_current_call_talkgroup = call->get_talkgroup();
   d_current_call_talkgroup_display = call->get_talkgroup_display();
@@ -134,8 +130,7 @@ bool transmission_sink::start_recording(Call *call) {
   d_prior_transmission_length = 0;
   d_error_count = 0;
   d_spike_count = 0;
-  d_last_write_time = std::chrono::steady_clock::now(); // we want to make sure the call doesn't get cleaned up before data starts coming in. 
-
+  d_last_write_time = std::chrono::steady_clock::now(); // we want to make sure the call doesn't get cleaned up before data starts coming in.
 
   this->clear_transmission_list();
   d_conventional = call->is_conventional();
@@ -182,9 +177,9 @@ bool transmission_sink::open_internal(const char *filename) {
     BOOST_LOG_TRIVIAL(error) << "wav open failed" << std::endl;
     return false;
   }
- if(std::setvbuf(d_fp, nullptr, _IOFBF, 1000000) != 0) {
-       BOOST_LOG_TRIVIAL(error) << "setvbuf failed"; // POSIX version sets errno
-    }
+  if (std::setvbuf(d_fp, nullptr, _IOFBF, 1000000) != 0) {
+    BOOST_LOG_TRIVIAL(error) << "setvbuf failed"; // POSIX version sets errno
+  }
   d_sample_count = 0;
 
   if (!wavheader_write(d_fp, d_sample_rate, d_nchans, d_bytes_per_sample)) {
@@ -209,7 +204,7 @@ bool transmission_sink::open_internal(const char *filename) {
 
 void transmission_sink::set_source(long src) {
   if (curr_src_id == -1) {
-    
+
     BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID set via Control Channel, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
     curr_src_id = src;
@@ -310,10 +305,9 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
 
     // It is possible the P25 Frame Assembler passes a TDU after the call has timed out.
     // In this case, the termination tag will be transferred on a blank sample and can safely be ignored.
-    if(noutput_items == 1){
+    if (noutput_items == 1) {
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
-    }
-    else{
+    } else {
       BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
     }
 
@@ -350,19 +344,19 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
       long grp_id = pmt::to_long(tags[i].value);
 
       if ((state == RECORDING) || (state == IDLE)) {
-        if(d_current_call_talkgroup_encoded != grp_id) {
+        if (d_current_call_talkgroup_encoded != grp_id) {
           if (!d_conventional) {
             BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tGROUP MISMATCH -  Recorder TG: " << d_current_call_talkgroup_encoded << " Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming: " << noutput_items;
-              if (d_sample_count > 0) {
-                BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and IGNORING Rest - count: " << d_sample_count;
-                end_transmission();
-              }
+            if (d_sample_count > 0) {
+              BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tEnding Transmission and IGNORING Rest - count: " << d_sample_count;
+              end_transmission();
+            }
             state = IGNORE;
           } else {
             BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tGroup Mismatch - Recorder Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming samples: " << noutput_items;
           }
         }
-      } 
+      }
     }
     if (pmt::eq(src_id_key, tags[i].key)) {
       long src_id = pmt::to_long(tags[i].value);
@@ -471,14 +465,14 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       return noutput_items;
     }
 
-    if (state == IGNORE ) {
-       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tResetting state from IGNORE to IDLE: " << noutput_items;
-    state = IDLE;
+    if (state == IGNORE) {
+      BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tResetting state from IGNORE to IDLE: " << noutput_items;
+      state = IDLE;
     }
     if (d_sample_count > 0) {
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERMINATING! - count: " << d_sample_count;
       end_transmission();
-      
+
       if (noutput_items > 1) {
         BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - there were some items to output: " << noutput_items;
       }
@@ -489,42 +483,40 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     return noutput_items;
   }
 
-  if (state == IGNORE ) {
+  if (state == IGNORE) {
     BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tIGNORE missing count: " << noutput_items;
-   return noutput_items;
+    return noutput_items;
   }
 
   if (state == IDLE) {
-    //BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tIDLE but haven't seen Group ID yet, missing count: " << noutput_items;
-    //return noutput_items;
-          if (d_fp) {
-            // if we are already recording a file for this call, close it before starting a new one.
-            BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but STATE was IDLE:  " << current_filename << std::endl;
+    // BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tIDLE but haven't seen Group ID yet, missing count: " << noutput_items;
+    // return noutput_items;
+    if (d_fp) {
+      // if we are already recording a file for this call, close it before starting a new one.
+      BOOST_LOG_TRIVIAL(info) << "WAV - Weird! we have an existing FP, but STATE was IDLE:  " << current_filename << std::endl;
 
-            close_wav(false);
-          }
+      close_wav(false);
+    }
 
-          time_t current_time = time(NULL);
-          if (current_time == d_start_time) {
-            d_start_time = current_time + 1;
-          } else {
-            d_start_time = current_time;
-          }
+    time_t current_time = time(NULL);
+    if (current_time == d_start_time) {
+      d_start_time = current_time + 1;
+    } else {
+      d_start_time = current_time;
+    }
 
-          // create a new filename, based on the current time and source.
-          create_filename();
-          if (!open_internal(current_filename)) {
-            BOOST_LOG_TRIVIAL(error) << "can't open file";
-            return noutput_items;
-          }
+    // create a new filename, based on the current time and source.
+    create_filename();
+    if (!open_internal(current_filename)) {
+      BOOST_LOG_TRIVIAL(error) << "can't open file";
+      return noutput_items;
+    }
 
-          BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
+    BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
 
-          // curr_src_id = d_current_call->get_current_source_id();
-          state = RECORDING;
-        
+    // curr_src_id = d_current_call->get_current_source_id();
+    state = RECORDING;
   }
-
 
   if (!d_fp) // drop output on the floor
   {
@@ -551,8 +543,8 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     }
   }
 
-    d_stop_time = time(NULL);
-    d_last_write_time = std::chrono::steady_clock::now();
+  d_stop_time = time(NULL);
+  d_last_write_time = std::chrono::steady_clock::now();
 
   if (nwritten < noutput_items) {
     BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tFailed to Write! Wrote: " << nwritten << " of " << noutput_items;
@@ -590,13 +582,7 @@ double transmission_sink::total_length_in_seconds() {
 }
 
 double transmission_sink::length_in_seconds() {
-  // std::cout << "Filename: "<< current_filename << "Sample #: " <<
-  // d_sample_count << " rate: " << d_sample_rate << " bytes: " <<
-  // d_bytes_per_sample << "\n";
   return (double)d_sample_count / (double)d_sample_rate;
-
-  // return (double) ( d_sample_count * d_bytes_per_sample_new * 8) / (double)
-  // d_sample_rate;
 }
 
 void transmission_sink::do_update() {}

@@ -24,6 +24,7 @@
 #include <boost/tokenizer.hpp>
 
 #include <cassert>
+#include <cmath>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -36,7 +37,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <utility>
-#include <cmath>
 
 #include "./global_structs.h"
 #include "recorder_globals.h"
@@ -82,7 +82,6 @@ std::map<long, long> unit_affiliations;
 std::vector<Call *> calls;
 
 gr::top_block_sptr tb;
-
 
 volatile sig_atomic_t exit_flag = 0;
 int exit_code = EXIT_SUCCESS;
@@ -185,7 +184,7 @@ bool load_config(string config_file) {
 
     BOOST_LOG_TRIVIAL(info) << "Using Config file: " << config_file << "\n";
     BOOST_LOG_TRIVIAL(info) << PROJECT_NAME << ": "
-                          << "Version: " << PROJECT_VER << "\n";
+                            << "Version: " << PROJECT_VER << "\n";
 
     BOOST_LOG_TRIVIAL(info) << "Log to File: " << config.log_file;
     BOOST_LOG_TRIVIAL(info) << "Log Directory: " << config.log_dir;
@@ -241,7 +240,6 @@ bool load_config(string config_file) {
     config.new_call_from_update = pt.get<bool>("newCallFromUpdate", true);
     BOOST_LOG_TRIVIAL(info) << "New Call from UPDATE Messages" << config.new_call_from_update;
     std::string frequency_format_string = pt.get<std::string>("frequencyFormat", "mhz");
-
 
     if (boost::iequals(frequency_format_string, "mhz")) {
       frequency_format = 1;
@@ -320,7 +318,7 @@ bool load_config(string config_file) {
             system->add_control_channel(control_channel);
           }
           std::vector<double> control_channels = system->get_control_channels();
-          for(unsigned int i = 0; i < control_channels.size(); i++) {
+          for (unsigned int i = 0; i < control_channels.size(); i++) {
             BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channels[i]);
           }
           system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
@@ -411,10 +409,9 @@ bool load_config(string config_file) {
         system->set_xor_mask(sys_id, wacn, nac);
         system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
         system->set_bandfreq(800); // Default to 800
-        
+
         if (boost::starts_with(system->get_bandplan(), "400")) {
           system->set_bandfreq(400);
-
         }
         system->set_bandplan_base(node.second.get<double>("bandplanBase", 0.0));
         system->set_bandplan_high(node.second.get<double>("bandplanHigh", 0.0));
@@ -879,7 +876,6 @@ void print_status() {
     }
   }
 
-  
   BOOST_LOG_TRIVIAL(info) << "Recorders: ";
 
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
@@ -887,14 +883,14 @@ void print_status() {
     source->print_recorders();
   }
 
-    BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
-      for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
+  BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
+  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;
 
-      if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR")) {
-        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
-      }
-      }
+    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR")) {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
+    }
+  }
 }
 
 void manage_calls() {
@@ -912,58 +908,36 @@ void manage_calls() {
     // Handle Trunked Calls
 
     if ((state == MONITORING) && (call->since_last_update() > config.call_timeout)) {
-        ended_call = true;
-        it = calls.erase(it);
-        delete call;
-        continue;
+      ended_call = true;
+      it = calls.erase(it);
+      delete call;
+      continue;
     }
 
-    if (state == RECORDING)  {
+    if (state == RECORDING) {
       Recorder *recorder = call->get_recorder();
 
       // Stop the call if:
       // - there hasn't been an UPDATE for it on the Control Channel in X seconds AND the recorder hasn't written anything in X seconds
-      // OR
-      // - the recorder has been stopped
-      // actually, we don't want to remove a recorder as soon as it is stopped because we want to drain everything from the gnuradio flowgraph
-      if ((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) {
-          BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
-          call->conclude_call();
-          // The State of the Recorders has changed, so lets send an update
-          ended_call = true;
-          if (recorder != NULL) {
-            plugman_setup_recorder(recorder);
-          }
-          it = calls.erase(it);
-          delete call;
-          continue;
-      } else {
-        //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Still good!! \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
 
+      if ((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) {
+        BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+        call->conclude_call();
+        // The State of the Recorders has changed, so lets send an update
+        ended_call = true;
+        if (recorder != NULL) {
+          plugman_setup_recorder(recorder);
+        }
+        it = calls.erase(it);
+        delete call;
+        continue;
       }
     } else if (call->since_last_update() > config.call_timeout) {
-          Recorder *recorder = call->get_recorder();
-          // BOOST_LOG_TRIVIAL(info) << "Recorder state: " << recorder->get_state();
-          BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+      Recorder *recorder = call->get_recorder();
 
-          // since the Call state is INACTIVE and the Recorder has been going on for a while, we can now
-          //
-         /*
-          call->conclude_call();
-          // The State of the Recorders has changed, so lets send an update
-          ended_call = true;
-
-          if (recorder != NULL) {
-            plugman_setup_recorder(recorder);
-          }
-          it = calls.erase(it);
-          delete call;
-          continue;*/
+      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
     }
-    
-
     ++it;
-    // if rx is active
   } // foreach loggers
 
   if (ended_call) {
@@ -1021,12 +995,12 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
   going until it gets a termination flag.
   */
 
-  //BOOST_LOG_TRIVIAL(info) << "TG: " << message.talkgroup << " sys num: " << message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
+  // BOOST_LOG_TRIVIAL(info) << "TG: " << message.talkgroup << " sys num: " << message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
 
   unsigned long message_preferredNAC = 0;
   Talkgroup *message_talkgroup = sys->find_talkgroup(message.talkgroup);
   if (message_talkgroup) {
-     message_preferredNAC = message_talkgroup->get_preferredNAC();
+    message_preferredNAC = message_talkgroup->get_preferredNAC();
   }
 
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end();) {
@@ -1034,55 +1008,52 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
 
     /* This is for Multi-Site support */
     if (call->get_talkgroup() == message.talkgroup) {
-      if ((call->get_phase2_tdma() == message.phase2_tdma) && (call->get_tdma_slot() == message.tdma_slot) ) {
-      if (call->get_sys_num() != message.sys_num) {
-        if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
-          if (call->get_system()->get_wacn() == sys->get_wacn()) {
-            // Default mode to match WACN and NAC and use a preferred NAC;
-            if (call->get_system()->get_nac() != sys->get_nac() && (call->get_system()->get_multiSiteSystemName() == "")) {
-              if (call->get_state() == RECORDING) {
+      if ((call->get_phase2_tdma() == message.phase2_tdma) && (call->get_tdma_slot() == message.tdma_slot)) {
+        if (call->get_sys_num() != message.sys_num) {
+          if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
+            if (call->get_system()->get_wacn() == sys->get_wacn()) {
+              // Default mode to match WACN and NAC and use a preferred NAC;
+              if (call->get_system()->get_nac() != sys->get_nac() && (call->get_system()->get_multiSiteSystemName() == "")) {
+                if (call->get_state() == RECORDING) {
 
-                duplicate_grant = true;
-                original_call = call;
+                  duplicate_grant = true;
+                  original_call = call;
 
-                unsigned long call_preferredNAC = 0;
-                Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
-                if (call_talkgroup) {
-                  call_preferredNAC = call_talkgroup->get_preferredNAC();
-          
-                }
+                  unsigned long call_preferredNAC = 0;
+                  Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
+                  if (call_talkgroup) {
+                    call_preferredNAC = call_talkgroup->get_preferredNAC();
+                  }
 
-                if ((call_preferredNAC != call->get_system()->get_nac() ) && (message_preferredNAC == sys->get_nac())) {
-                  superseding_grant = true;
-                }
-
-              }
-            }
-            // If a multiSiteSystemName has been manually entered;
-            // We already know that Call's system number does not match the message system number.
-            // In this case, we check that the multiSiteSystemName is present, and that the Call and System multiSiteSystemNames are the same.
-            else if ((call->get_system()->get_multiSiteSystemName() != "")  && (call->get_system()->get_multiSiteSystemName() == sys->get_multiSiteSystemName())) {
-              if (call->get_state() == RECORDING) {
-
-                duplicate_grant = true;
-                original_call = call;
-
-                unsigned long call_preferredNAC = 0;
-                Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
-                if (call_talkgroup) {
-                  call_preferredNAC = call_talkgroup->get_preferredNAC();
-                }
-
-                if((call->get_system()->get_multiSiteSystemNumber() != 0 ) && (sys->get_multiSiteSystemNumber() != 0 ))
-                {
-                  if ((call_preferredNAC != call->get_system()->get_multiSiteSystemNumber()) && (message_preferredNAC == sys->get_multiSiteSystemNumber())) {
+                  if ((call_preferredNAC != call->get_system()->get_nac()) && (message_preferredNAC == sys->get_nac())) {
                     superseding_grant = true;
+                  }
+                }
+              }
+              // If a multiSiteSystemName has been manually entered;
+              // We already know that Call's system number does not match the message system number.
+              // In this case, we check that the multiSiteSystemName is present, and that the Call and System multiSiteSystemNames are the same.
+              else if ((call->get_system()->get_multiSiteSystemName() != "") && (call->get_system()->get_multiSiteSystemName() == sys->get_multiSiteSystemName())) {
+                if (call->get_state() == RECORDING) {
+
+                  duplicate_grant = true;
+                  original_call = call;
+
+                  unsigned long call_preferredNAC = 0;
+                  Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
+                  if (call_talkgroup) {
+                    call_preferredNAC = call_talkgroup->get_preferredNAC();
+                  }
+
+                  if ((call->get_system()->get_multiSiteSystemNumber() != 0) && (sys->get_multiSiteSystemNumber() != 0)) {
+                    if ((call_preferredNAC != call->get_system()->get_multiSiteSystemNumber()) && (message_preferredNAC == sys->get_multiSiteSystemNumber())) {
+                      superseding_grant = true;
+                    }
                   }
                 }
               }
             }
           }
-        }
         }
       }
     }
@@ -1104,11 +1075,6 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
         recorder_state = format_state(recorder->get_state());
       }
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
-/*
-      call->conclude_call();
-      it = calls.erase(it);
-      delete call;
-      continue;*/
     }
 
     it++;
@@ -1125,34 +1091,30 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
       call->set_talkgroup_tag("-");
     }
 
-    
-    if(superseding_grant) {
+    if (superseding_grant) {
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
 
       // Attempt to start a new call on the preferred NAC.
       recording_started = start_recorder(call, message, sys);
-      
-      if(recording_started) {
+
+      if (recording_started) {
         // Clean up the original call.
         original_call->set_state(MONITORING);
         original_call->set_monitoring_state(SUPERSEDED);
         original_call->conclude_call();
-      }
-      else{
+      } else {
         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder. Continuing original call: " << original_call->get_call_num() << "C\u001b[0m";
       }
-    }
-    else if (duplicate_grant) {
+    } else if (duplicate_grant) {
       call->set_state(MONITORING);
       call->set_monitoring_state(DUPLICATE);
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << " Source: " << message.source << " Call: " << original_call->get_call_num() << "C State: " << format_state(original_call->get_state()) << "\u001b[0m";
-    }
-    else {
+    } else {
       recording_started = start_recorder(call, message, sys);
       if (recording_started && !grant_message) {
         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE\u001b[0m";
       }
-    }  
+    }
     calls.push_back(call);
     plugman_call_start(call);
     plugman_calls_active(calls);
@@ -1370,7 +1332,8 @@ void check_message_count(float timeDiff) {
         if (config.control_retune_limit > 0) {
           sys->retune_attempts++;
           if (sys->retune_attempts > config.control_retune_limit) {
-            BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t" << "Control channel retune limit exceeded after " << sys->retune_attempts << " tries - Terminating trunk recorder";
+            BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t"
+                                     << "Control channel retune limit exceeded after " << sys->retune_attempts << " tries - Terminating trunk recorder";
             exit_flag = 1;
             exit_code = EXIT_FAILURE;
             return;
@@ -1381,7 +1344,6 @@ void check_message_count(float timeDiff) {
         } else {
           BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\tThere is only one control channel defined";
         }
-
 
       } else {
         sys->retune_attempts = 0;
@@ -1432,50 +1394,45 @@ void monitor_messages() {
 
     plugman_poll_one();
 
+    for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+      System_impl *system = (System_impl *)*sys_it;
 
-for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
-    System_impl *system = (System_impl *)*sys_it;
+      if ((system->get_system_type() == "p25") || (system->get_system_type() == "smartnet")) {
+        msg.reset();
+        msg = system->get_msg_queue()->delete_head_nowait();
+        while (msg != 0) {
+          system->set_message_count(system->get_message_count() + 1);
 
+          if (system->get_system_type() == "smartnet") {
+            trunk_messages = smartnet_parser->parse_message(msg->to_string(), system);
+            handle_message(trunk_messages, system);
+            plugman_trunk_message(trunk_messages, system);
+          }
 
-    if ((system->get_system_type() == "p25") || (system->get_system_type() == "smartnet") ) {
-      msg.reset();
-      msg = system->get_msg_queue()->delete_head_nowait();
-    while (msg != 0) {
-        system->set_message_count(system->get_message_count() + 1);
-        
-        if (system->get_system_type() == "smartnet") {
-          trunk_messages = smartnet_parser->parse_message(msg->to_string(), system);
-          handle_message(trunk_messages, system);
-          plugman_trunk_message(trunk_messages, system);
+          if (system->get_system_type() == "p25") {
+            trunk_messages = p25_parser->parse_message(msg, system);
+            handle_message(trunk_messages, system);
+            plugman_trunk_message(trunk_messages, system);
+          }
+
+          if (msg->type() == -1) {
+            BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t process_data_unit timeout";
+          }
+
+          msg.reset();
+          msg = system->get_msg_queue()->delete_head_nowait();
         }
-
-        if (system->get_system_type() == "p25") {
-          trunk_messages = p25_parser->parse_message(msg, system);
-          handle_message(trunk_messages, system);
-          plugman_trunk_message(trunk_messages, system);
-        }
-      
-
-      if (msg->type() == -1) {
-        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t process_data_unit timeout";
       }
-
-      msg.reset();
-      msg = system->get_msg_queue()->delete_head_nowait();
-    } 
     }
-}
-      current_time = time(NULL);
+    current_time = time(NULL);
 
-      if ((current_time - management_timestamp) >= 1.0) {
-        manage_calls();
-        Call_Concluder::manage_call_data_workers();
-        management_timestamp = current_time;
-      }
+    if ((current_time - management_timestamp) >= 1.0) {
+      manage_calls();
+      Call_Concluder::manage_call_data_workers();
+      management_timestamp = current_time;
+    }
 
-      boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-      // usleep(1000 * 10);
-    
+    boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 
     float decode_rate_check_time_diff = current_time - last_decode_rate_check;
 
@@ -1668,9 +1625,6 @@ int main(int argc, char **argv) {
   boost::log::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::info);
 
-  // boost::log::sinks->imbue(std::locale("C"));
-  // std::locale::global(std::locale("C"));
-
   boost::program_options::options_description desc("Options");
   desc.add_options()("help,h", "Help screen")("config,c", boost::program_options::value<string>()->default_value("./config.json"), "Config File")("version,v", "Version Information");
 
@@ -1691,7 +1645,7 @@ int main(int argc, char **argv) {
   string config_file = vm["config"].as<string>();
 
   tb = gr::make_top_block("Trunking");
-  
+
   smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
   p25_parser = new P25Parser();
 
