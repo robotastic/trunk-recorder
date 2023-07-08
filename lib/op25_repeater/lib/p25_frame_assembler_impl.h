@@ -76,7 +76,7 @@ namespace gr {
   void set_phase2_tdma(bool p);
 
 public:
-      p25_frame_assembler_impl(int silence_frames, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt);
+      p25_frame_assembler_impl(int silence_frames, bool soft_vocoder, const char* udp_host, int port, int debug, bool do_imbe, bool do_output, bool do_msgq, gr::msg_queue::sptr queue, bool do_audio_output, bool do_phase2_tdma, bool do_nocrypt);
       ~p25_frame_assembler_impl();
 
       op25_audio op25audio;

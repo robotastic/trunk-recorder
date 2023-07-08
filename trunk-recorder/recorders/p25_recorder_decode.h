@@ -35,13 +35,13 @@ typedef boost::shared_ptr<p25_recorder_decode> p25_recorder_decode_sptr;
 typedef std::shared_ptr<p25_recorder_decode> p25_recorder_decode_sptr;
 #endif
 
-p25_recorder_decode_sptr make_p25_recorder_decode(Recorder *recorder, int silence_frames);
+p25_recorder_decode_sptr make_p25_recorder_decode(Recorder *recorder, int silence_frames, bool d_soft_vocoder);
 
 class p25_recorder_decode : public gr::hier_block2 {
-  friend p25_recorder_decode_sptr make_p25_recorder_decode(Recorder *recorder, int silence_frames);
+  friend p25_recorder_decode_sptr make_p25_recorder_decode(Recorder *recorder, int silence_frames, bool d_soft_vocoder);
 
 protected:
-  virtual void initialize(int silence_frames);
+  virtual void initialize(int silence_frames, bool d_soft_vocoder);
   Recorder *d_recorder;
   Call *d_call;
   gr::op25_repeater::p25_frame_assembler::sptr op25_frame_assembler;

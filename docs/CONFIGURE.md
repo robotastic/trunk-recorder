@@ -103,6 +103,7 @@ Here is a map of the different sections of the *config.json* file:
 
 ### Global Configs
 
+
 | Key                          | Required | Default Value                                    | Type                                                         | Description                                                  |
 | ---------------------------- | :------: | ------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ver                          |    ✓     |                                                  | number                                                       | The version of formatting for the config file. **This should be set to 2**. Trunk Recorder will not start without this set. |
@@ -131,6 +132,8 @@ Here is a map of the different sections of the *config.json* file:
 | debugRecorderAddress         |          | "127.0.0.1"                                      | string                                                       | The network address of the computer that will be monitoring the Debug Recorders. UDP packets will be sent from Trunk Recorder to this computer. The default is *"127.0.0.1"* which is the address used for monitoring on the same computer as Trunk Recorder. |
 | audioStreaming               |          | false                                            | **true** / **false**                                         | Whether or not to enable the audio streaming callbacks for plugins. |
 | newCallFromUpdate            |          | true                                             | **true** / **false**                                         | Allow for UPDATE trunking messages to start a new Call, in addition to GRANT messages. This may result in more Calls with no transmisions, and use more Recorders. The flipside is that it may catch parts of a Call that would have otherwise been missed. Turn this off if you are running out of Recorders. |
+| softVocoder                  |          | false                                            | **true** / **false**                                         | Use the Software Decode vocoder from OP25 for Phase 1 audio. Give it a try if you are hearing weird tones in your audio. Whether it makes your audio sound better or worse is a matter of preference. |
+
 
 
 #### Source Object

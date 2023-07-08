@@ -224,7 +224,8 @@ void tps_decoder_sink_impl::initialize_p25() {
   bool do_audio_output = 0;
   bool do_tdma = 0;
   bool do_crypt = 0;
-  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(silence_frames, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
+  bool soft_vocoder = false;
+  op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(silence_frames, soft_vocoder, wireshark_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_crypt);
 
   connect(self(), 0, valve, 0);
   connect(valve, 0, slicer, 0);

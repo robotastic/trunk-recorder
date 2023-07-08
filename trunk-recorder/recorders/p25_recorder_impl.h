@@ -149,6 +149,7 @@ private:
   int silence_frames;
   int tdma_slot;
   bool d_phase2_tdma;
+  bool d_soft_vocoder;
   bool double_decim;
   long if1;
   long if2;
