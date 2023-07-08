@@ -1,4 +1,4 @@
-Trunk Recorder - v4.5.0
+Trunk Recorder - v4.6.0
 =======================
 
 ## Sponsors
