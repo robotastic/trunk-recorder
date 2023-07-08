@@ -121,6 +121,12 @@ static const int MAX_IN = 1;	// maximum number of input streams
 
       if (d_do_phase2_tdma && !d_do_audio_output)
         fprintf(stderr, "p25_frame_assembler: error: do_audio_output must be enabled if do_phase2_tdma is enabled\n");
+
+      if (d_do_audio_output)
+        set_output_multiple(864);
+
+      if (!d_do_audio_output && !d_do_imbe)
+        set_output_multiple(160);
     }
 
 
@@ -131,7 +137,7 @@ static const int MAX_IN = 1;	// maximum number of input streams
       clear = p1fdma.get_curr_grp_id();
       clear = p2tdma.get_ptt_src_id(); 
       clear = p2tdma.get_ptt_grp_id(); 
-      p1fdma.clear();
+      // p1fdma.clear(); //All this does is Clear the Vocoder - I am nervous about doing this because there are some memsets...
     }
 
 void p25_frame_assembler_impl::send_grp_src_id() {
@@ -184,20 +190,20 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
-	for (int i = 0; i < ninput_items[0]; i++) {
-		if(p2tdma.rx_sym(in[i])) {
-			int rc = p2tdma.handle_frame();
-      if (p2tdma.get_call_terminated()) {
-        terminate_call = true;
-        p2tdma.reset_call_terminated();
+    for (int i = 0; i < ninput_items[0]; i++) {
+      if(p2tdma.rx_sym(in[i])) {
+        int rc = p2tdma.handle_frame();
+        if (p2tdma.get_call_terminated()) {
+          terminate_call = true;
+          p2tdma.reset_call_terminated();
+        }
+        
+        if (rc > -1) {
+          p25p2_queue_msg(rc);
+          p1fdma.reset_timer(); // prevent P1 timeouts due to long TDMA transmissions
+        }
       }
-      
-			if (rc > -1) {
-        p25p2_queue_msg(rc);
-				p1fdma.reset_timer(); // prevent P1 timeouts due to long TDMA transmissions
-			}
-		}
-	}
+    }
   } else {
     if (p1fdma.get_call_terminated()) {
       terminate_call = true;
@@ -214,46 +220,46 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 
         //BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler -  output_queue: " << output_queue.size() << " noutput_items: " <<  noutput_items << " ninput_items: " << ninput_items[0];
 
-      if (amt_produce > 0) {
-          if (amt_produce >= 32768) {
-            BOOST_LOG_TRIVIAL(error) << "P25 Frame Assembler -  output_queue size: " << output_queue.size() << " max size: " << output_queue.max_size() << " limiting amt_produce to  32767 ";
-            
-            amt_produce = 32767; // buffer limit is 32768, see gnuradio/gnuradio-runtime/lib/../include/gnuradio/buffer.h:186
-          }
-
-          for (int i = 0; i < amt_produce; i++) {
-            out[i] = output_queue[i];
-          }
-          output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
-
-          send_grp_src_id();
-
-          BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
-          silence_frame_count = d_silence_frames;
-        } else {
-            if (terminate_call) {
-            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
-            
-            Rx_Status status = p1fdma.get_rx_status();
-            
-            // If something was recorded, send the number of Errors and Spikes that were counted during that period
-            if (status.total_len > 0 ) {
-              add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
-              add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
-              p1fdma.reset_rx_status();
-            }
-            
-              send_grp_src_id();
+        if (amt_produce > 0) {
+            if (amt_produce >= 32768) {
+              BOOST_LOG_TRIVIAL(error) << "P25 Frame Assembler -  output_queue size: " << output_queue.size() << " max size: " << output_queue.max_size() << " limiting amt_produce to  32767 ";
               
-              std::fill(out, out + 1, 0);
-              amt_produce = 1;
+              amt_produce = 32767; // buffer limit is 32768, see gnuradio/gnuradio-runtime/lib/../include/gnuradio/buffer.h:186
+            }
+
+            for (int i = 0; i < amt_produce; i++) {
+              out[i] = output_queue[i];
+            }
+            output_queue.erase(output_queue.begin(), output_queue.begin() + amt_produce);
+
+            send_grp_src_id();
+
+            BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
+            silence_frame_count = d_silence_frames;
+        } else {
+              if (terminate_call) {
+                add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
+                
+                Rx_Status status = p1fdma.get_rx_status();
+                
+                // If something was recorded, send the number of Errors and Spikes that were counted during that period
+                if (status.total_len > 0 ) {
+                  add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
+                  add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
+                  p1fdma.reset_rx_status();
+                }
+                
+                send_grp_src_id();
+                
+                std::fill(out, out + 1, 0);
+                amt_produce = 1;
+            }
+            if (silence_frame_count > 0) {
+              std::fill(out, out + noutput_items, 0);
+              amt_produce = noutput_items;
+              silence_frame_count--;
+            }
           }
-          if (silence_frame_count > 0) {
-            std::fill(out, out + noutput_items, 0);
-            amt_produce = noutput_items;
-            silence_frame_count--;
-          }
-        }
       }
   consume_each(ninput_items[0]);
   // Tell runtime system how many output items we actually produced.

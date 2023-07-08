@@ -84,6 +84,8 @@ void transmission_sink::create_filename() {
   std::stringstream temp_path_stream;
   tm *ltm = localtime(&work_start_time);
   // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
+  //temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name << "/" << 1900 + ltm->tm_year << "/" << 1 + ltm->tm_mon << "/" << ltm->tm_mday;
+  
   temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name;
   std::string temp_path_string = temp_path_stream.str();
   boost::filesystem::create_directories(temp_path_string);
@@ -206,8 +208,6 @@ bool transmission_sink::open_internal(const char *filename) {
 }
 
 void transmission_sink::set_source(long src) {
-  gr::thread::scoped_lock guard(d_mutex);
-
   if (curr_src_id == -1) {
     
     BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID set via Control Channel, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;

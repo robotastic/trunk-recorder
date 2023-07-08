@@ -73,6 +73,9 @@ public:
   bool get_encrypted();
   void set_emergency(bool m);
   bool get_emergency();
+  int get_priority();
+  bool get_mode();
+  bool get_duplex();
   std::string get_talkgroup_display();
   void set_talkgroup_tag(std::string tag);
   void clear_transmission_list();
@@ -111,7 +114,7 @@ protected:
   bool mode;
   bool duplex;
   bool is_analog;
-  long priority;
+  int priority;
   char filename[255];
   char transmission_filename[255];
   char converted_filename[255];

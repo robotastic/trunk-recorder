@@ -1,5 +1,41 @@
 Trunk Recorder ChangeLog
 ========================
+### Version 4.6.0
+* Cleaned up Rdio Scanner talkgroup display logs. by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/750
+* adjust Source sample rate to match SDR sample rate by @aaknitt in https://github.com/robotastic/trunk-recorder/pull/753
+* Create log file earlier by @aaknitt in https://github.com/robotastic/trunk-recorder/pull/754
+* Enable/Disable config sections by @taclane in https://github.com/robotastic/trunk-recorder/pull/756
+* broadcastify: add option to disable ssl certificate verification by @galenguyer in https://github.com/robotastic/trunk-recorder/pull/757
+* Update signaling decoders to print logs via boost info log instead of plain stdout by @EricTendian in https://github.com/robotastic/trunk-recorder/pull/759
+* help screen fix by @taclane in https://github.com/robotastic/trunk-recorder/pull/767
+* Adding support for regex in unitTagsFile by @EricTendian in https://github.com/robotastic/trunk-recorder/pull/764
+* Enable Multi-site mode features. by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/758
+* Use more compatible cmake command by @dotsam in https://github.com/robotastic/trunk-recorder/pull/768
+* Multi-site bug fixes and improvements. by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/770
+* Clean up a few debug warning messages. by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/771
+* Update Homebrew instructions by @taclane in https://github.com/robotastic/trunk-recorder/pull/776
+* use iterators for std::fill, fix out of bounds access by @Jannik2099 in https://github.com/robotastic/trunk-recorder/pull/782
+* Console log cleanup by @taclane in https://github.com/robotastic/trunk-recorder/pull/784
+* OpenMHz Uploader update by @robotastic in https://github.com/robotastic/trunk-recorder/pull/794
+* Spelling fixes and additional call stat reporting by @taclane in https://github.com/robotastic/trunk-recorder/pull/798
+* Ignore missing files by @devicenull in https://github.com/robotastic/trunk-recorder/pull/796
+* UnitID alpha improvements and decode error display by @taclane in https://github.com/robotastic/trunk-recorder/pull/785
+* Fix freq offset variable declarations in trunking messages by @taclane in https://github.com/robotastic/trunk-recorder/pull/802
+* Update call_concluder.h by @taclane in https://github.com/robotastic/trunk-recorder/pull/801
+* updates to the latest version of OP25 by @robotastic in https://github.com/robotastic/trunk-recorder/pull/803
+* actual crash fix this time by @gisforgirard in https://github.com/robotastic/trunk-recorder/pull/800
+* Remove sys num by @robotastic in https://github.com/robotastic/trunk-recorder/pull/805
+* Fix p25 parse by @robotastic in https://github.com/robotastic/trunk-recorder/pull/806
+* update boost log line by @taclane in https://github.com/robotastic/trunk-recorder/pull/804
+* Fixes retuning the CC when it has to move to a new source by @robotastic in https://github.com/robotastic/trunk-recorder/pull/810
+* Feature/message hook by @robotastic in https://github.com/robotastic/trunk-recorder/pull/814
+* update/edit README.md and docs/CONFIGURE.md, 3 minor fixes by @rosecitytransit in https://github.com/robotastic/trunk-recorder/pull/816
+* Release/new call mgmt by @robotastic in https://github.com/robotastic/trunk-recorder/pull/817
+* P25 Trunking Message Improvements by @robotastic in https://github.com/robotastic/trunk-recorder/pull/820
+* add option to disable output to console, docs/CONFIGURE.md formatting by @rosecitytransit in https://github.com/robotastic/trunk-recorder/pull/819
+* Feature/temp dir by @robotastic in https://github.com/robotastic/trunk-recorder/pull/823
+* correct callLog option in docs/CONFIGURE.md to true to match code by @rosecitytransit in https://github.com/robotastic/trunk-recorder/pull/824
+* Per-day call log plugin, log P25 priority/mode/duplex by @rosecitytransit in https://github.com/robotastic/trunk-recorder/pull/482
 
 ### Version 4.5.0
 * Set d_call to null to prevent potential use after free by @galenguyer in https://github.com/robotastic/trunk-recorder/pull/739

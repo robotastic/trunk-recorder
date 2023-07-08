@@ -1,6 +1,8 @@
 #include "call_concluder.h"
 #include "../plugin_manager/plugin_manager.h"
 #include <boost/filesystem.hpp>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 std::list<std::future<Call_Data_t>> Call_Concluder::call_data_workers = {};
 std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
@@ -58,6 +60,9 @@ int create_call_json(Call_Data_t call_info) {
     json_file << "\"start_time\": " << call_info.start_time << ",\n";
     json_file << "\"stop_time\": " << call_info.stop_time << ",\n";
     json_file << "\"emergency\": " << call_info.emergency << ",\n";
+    json_file << "\"priority\": " << call_info.priority << ",\n";
+    json_file << "\"mode\": " << call_info.mode << ",\n";
+    json_file << "\"duplex\": " << call_info.duplex << ",\n";
     json_file << "\"encrypted\": " << call_info.encrypted << ",\n";
     json_file << "\"call_length\": " << call_info.length << ",\n";
     json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
@@ -133,7 +138,20 @@ void remove_call_files(Call_Data_t call_info) {
         remove(t.filename);
       }
     }
-  } else if (!call_info.transmission_archive) {
+  } else {
+    if (call_info.transmission_archive) {
+      // if the files are being archived, move them to the capture directory
+      for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
+        Transmission t = *it;
+        boost::filesystem::path target_file = boost::filesystem::path(fs::path(call_info.filename ).replace_filename(fs::path(t.filename).filename()));
+        boost::filesystem::path transmission_file = t.filename;
+        //boost::filesystem::path target_file = boost::filesystem::path(call_info.filename).replace_filename(transmission_file.filename()); // takes the capture dir from the call file and adds the transmission filename to it
+        boost::filesystem::copy_file(transmission_file, target_file); 
+
+      }
+    } 
+
+    // remove the transmission files from the temp directory
     for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
       Transmission t = *it;
       if (checkIfFile(t.filename)) {
@@ -141,6 +159,7 @@ void remove_call_files(Call_Data_t call_info) {
       }
     }
   }
+
   if (!call_info.call_log) {
     if (checkIfFile(call_info.status_filename)) {
       remove(call_info.status_filename);
@@ -262,6 +281,9 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.freq = call->get_freq();
   call_info.encrypted = call->get_encrypted();
   call_info.emergency = call->get_emergency();
+  call_info.priority = call->get_priority();
+  call_info.mode = call->get_mode();
+  call_info.duplex = call->get_duplex();
   call_info.tdma_slot = call->get_tdma_slot();
   call_info.phase2_tdma = call->get_phase2_tdma();
   call_info.transmission_list = call->get_transmissions();

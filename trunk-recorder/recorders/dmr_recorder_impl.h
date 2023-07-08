@@ -195,7 +195,8 @@ private:
   gr::blocks::multiply_const_ff::sptr levels;
   gr::blocks::transmission_sink::sptr wav_sink_slot0;
   gr::blocks::transmission_sink::sptr wav_sink_slot1;
-  gr::blocks::plugin_wrapper::sptr plugin_sink;
+  gr::blocks::plugin_wrapper::sptr plugin_sink_slot0;
+  gr::blocks::plugin_wrapper::sptr plugin_sink_slot1;
 };
 
 #endif // ifndef dmr_recorder_H
