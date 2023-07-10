@@ -140,7 +140,6 @@ void remove_call_files(Call_Data_t call_info) {
     }
   } else {
     if (call_info.transmission_archive) {
-      struct stat statbuf;
       // if the files are being archived, move them to the capture directory
       for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
         Transmission t = *it;
@@ -149,9 +148,9 @@ void remove_call_files(Call_Data_t call_info) {
         //boost::filesystem::path target_file = boost::filesystem::path(call_info.filename).replace_filename(transmission_file.filename()); // takes the capture dir from the call file and adds the transmission filename to it
         
         // Only move transmission wavs if they exist
-        if (stat(t.filename, &statbuf) == 0) {
+        if (checkIfFile(t.filename)) {
           boost::filesystem::copy_file(transmission_file, target_file); 
-        } 
+        }
       }
     } 
 
