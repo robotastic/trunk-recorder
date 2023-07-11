@@ -146,8 +146,11 @@ void remove_call_files(Call_Data_t call_info) {
         boost::filesystem::path target_file = boost::filesystem::path(fs::path(call_info.filename ).replace_filename(fs::path(t.filename).filename()));
         boost::filesystem::path transmission_file = t.filename;
         //boost::filesystem::path target_file = boost::filesystem::path(call_info.filename).replace_filename(transmission_file.filename()); // takes the capture dir from the call file and adds the transmission filename to it
-        boost::filesystem::copy_file(transmission_file, target_file); 
-
+        
+        // Only move transmission wavs if they exist
+        if (checkIfFile(t.filename)) {
+          boost::filesystem::copy_file(transmission_file, target_file); 
+        }
       }
     } 
 
