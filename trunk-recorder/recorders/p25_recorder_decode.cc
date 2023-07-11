@@ -26,7 +26,13 @@ void p25_recorder_decode::stop() {
 
 void p25_recorder_decode::start(Call *call) {
   levels->set_k(call->get_system()->get_digital_levels());
-  wav_sink->start_recording(call);
+
+  if(call->get_phase2_tdma()){
+    wav_sink->start_recording(call, call->get_tdma_slot());
+  } else {
+    wav_sink->start_recording(call);
+  }
+  
   d_call = call;
 }
 
