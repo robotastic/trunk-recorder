@@ -92,7 +92,7 @@ void transmission_sink::create_filename() {
   if (d_slot == -1) {
     nchars = snprintf(current_filename, 255, "%s/%ld-%ld_%.0f.wav", temp_path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq);
   } else {
-    // this is for the case when it is a DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
+    // this is for the case when it is a P25P2 TDMA or DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
     nchars = snprintf(current_filename, 255, "%s/%ld-%ld_%.0f.%d.wav", temp_path_string.c_str(), d_current_call_talkgroup, work_start_time, d_current_call_freq, d_slot);
   }
   if (nchars >= 255) {

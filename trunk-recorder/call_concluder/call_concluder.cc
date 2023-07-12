@@ -256,7 +256,7 @@ Call_Data_t Call_Concluder::create_base_filename(Call *call, Call_Data_t call_in
   if (call->get_tdma_slot() == -1) {
     nchars = snprintf(base_filename, 255, "%s/%ld-%ld_%.0f", base_path_string.c_str(), call->get_talkgroup(), work_start_time, call->get_freq());
   } else {
-    // this is for the case when it is a DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
+    // this is for the case when it is a P25P2 TDMA or DMR recorder and 2 wav files are created, the slot is needed to keep them separate.
     nchars = snprintf(base_filename, 255, "%s/%ld-%ld_%.0f.%d", base_path_string.c_str(), call->get_talkgroup(), work_start_time, call->get_freq(), call->get_tdma_slot());
   }
   if (nchars >= 255) {
