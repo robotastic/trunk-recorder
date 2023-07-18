@@ -263,7 +263,7 @@ void transmission_sink::stop_recording() {
   gr::thread::scoped_lock guard(d_mutex);
 
   if (state == RECORDING) {
-    BOOST_LOG_TRIVIAL(trace) << "stop_recording() - stopping wavfile sink but recorder state is: " << state << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "stop_recording() - stopping wavfile sink but recorder state is: " << state << " Sample Count is: " << d_sample_count << std::endl;
   }
 
   if (d_sample_count > 0) {
