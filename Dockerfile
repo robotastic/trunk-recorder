@@ -54,7 +54,7 @@ RUN cd /tmp && \
   git apply ../airspy_source_c.cc.patch && \
   mkdir build && \
   cd build && \
-  cmake .. && \
+  cmake -DENABLE_NONFREE=TRUE .. && \
   make -j$(nproc) && \
   make install && \
   ldconfig && \
