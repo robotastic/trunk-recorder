@@ -30,7 +30,7 @@ GNU Radio 3.7 - 3.10
 
 ...and SDRs:
 
-RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy
+RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy; SDRplay
 
 ---
 
