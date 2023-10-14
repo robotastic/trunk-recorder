@@ -57,12 +57,17 @@ sudo nano /etc/apt/sources.list
 ```
 - and add this line to the end:
 ```
-deb http://www.deb-multimedia.org/ bullseye main non-free
+deb https://www.deb-multimedia.org bookworm main non-free
 ```
 - Download the keys for the apt source and install them:
 ```bash
 wget https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
 sudo dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+```
+- You can verify the package integrity with:
+```bash
+sha256sum deb-multimedia-keyring_2016.8.1_all.deb
+9faa6f6cba80aeb69c9bac139b74a3d61596d4486e2458c2c65efe9e21ff3c7d deb-multimedia-keyring_2016.8.1_all.deb
 ```
 - Update the OS:
 ```
