@@ -150,9 +150,9 @@ sudo apt-get install libuhd-dev uhd-host
 Download the firmware images. The location of the downloader is different than the error message:
 
 ```bash
-cd /lib/uhd/utils/
-sudo ./uhd_images_downloader.py
+dpkg -L uhd-host | grep "downloader"
 ```
+The run the downloader at the location identified.
 
 Setup the udev rules so any user can access the USB, as documented [here](https://files.ettus.com/manual/page_transport.html#transport_usb_udev):
 
