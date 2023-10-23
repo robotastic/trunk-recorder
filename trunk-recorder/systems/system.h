@@ -98,9 +98,12 @@ public:
   virtual unsigned long get_sys_id() = 0;
   virtual unsigned long get_wacn() = 0;
   virtual unsigned long get_nac() = 0;
+  virtual int get_sys_rfss() = 0;
+  virtual int get_sys_site_id() = 0;
   virtual void set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac) = 0;
   virtual const char *get_xor_mask() = 0;
   virtual bool update_status(TrunkMessage message) = 0;
+  virtual bool update_sysid(TrunkMessage message) = 0;
   virtual int get_sys_num() = 0;
   virtual void set_system_type(std::string) = 0;
   virtual std::string get_talkgroups_file() = 0;
