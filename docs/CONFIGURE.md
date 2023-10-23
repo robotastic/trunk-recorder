@@ -213,7 +213,36 @@ Here is a map of the different sections of the *config.json* file:
 | multiSiteSystemName    |          |               | string               | The name of the system that this site belongs to. **This is required for SmartNet in Multi-Site mode.** |
 | multiSiteSystemNumber  |          | 0             | number               | An arbitrary number used to identify this system for SmartNet in Multi-Site mode. |
 
-Multi-Site mode attempts to avoid recording duplicate calls being broadcasted on multiple sites. Trunk recorder will not record duplicate calls on the same talkgroup for systems that have multiSite enabled. To ensure that both calls belong to the same system, Trunk Recorder will verify that both sites have the same WACN for P25, or the same multiSiteSystemName for SmartNet. By default, trunk-recorder will record the call from the first site that it receives the grant on, and any additional grants for the same call on other sites will be ignored. If you want to to specify the preferred site for a specific talk group, you can specify the preferred NAC in decimal format in the talk group CSV file.
+When enabled, Multi-Site mode attempts to avoid recording duplicate calls by detecting simulcasted transmissions for the same talkgroup across multiple sites at the same time.
+
+For P25, Trunk Recorder will match calls that have the same WACN and same talkgroup number but a different NAC. For SmartNet, Trunk Recorder will match calls that have the same multiSiteSystemName and same talkgroup number but different multiSiteSystemNumber.
+
+By default, Trunk Recorder will record the call from the first site to receive the grant and ignore the duplicate grants from the other related sites. If you want to specify the preferred site for a given talkgroup number you can specify the preferred NAC (in decimal format) in the [talkgroupsFile](#talkgroupsFile).
+
+Note: While multiSiteSystemName and multiSiteSystemNumber are normally used for SmartNet systems, these settings may also be used to override the default de-duplication logic for P25 systems where the mutliSite feature may not be correctly detecting duplicates. An example would be when two or more sites within a P25 system are using the same NAC and WACN. In such a deployment as a workaround, for each related system object, set multiSiteSystemName to a shared value and multiSiteSystemNumber to a unique value:
+
+```
+{
+    ...
+    "systems": [
+        {
+            "type": "P25",
+            ...
+            "multiSite": "true",
+            "multiSiteSystemName": "somesharedname",
+            "multiSiteSystemNumber": 1
+        },
+        {
+            "type": "P25",
+            ...
+            "multiSite": "true",
+            "multiSiteSystemName": "somesharedname",
+            "multiSiteSystemNumber": 2
+        }
+    ]
+    ...
+}
+```
 
 #### Plugin Object
 
