@@ -23,6 +23,7 @@ RUN apt-get update && \
     libssl-dev \
     libuhd-dev \
     libusb-dev \
+    libsndfile1-dev \
     pkg-config \
     software-properties-common \
     cmake \
@@ -35,4 +36,4 @@ RUN apt-get update && \
 # GNURadio requires a place to store some files, can only be set via $HOME env var.
 ENV HOME=/tmp
 
-CMD ["/usr/local/bin/trunk-recorder", "--config=/app/config.json"]
+#CMD ["/usr/local/bin/trunk-recorder", "--config=/app/config.json"]
