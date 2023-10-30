@@ -5,6 +5,7 @@
  */
 #include "./config.h"
 
+using json = nlohmann::json;
 
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
@@ -12,7 +13,6 @@ namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
 
 using namespace std;
-
 
 void set_logging_level(std::string log_level) {
   boost::log::trivial::severity_level sev_level = boost::log::trivial::info;
@@ -48,11 +48,23 @@ void add_logs(const F &fmt) {
   sink->imbue(loc);
 }
 
-bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std::vector<Source *>& sources, std::vector<System *>& systems) {
-  
+bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std::vector<Source *> &sources, std::vector<System *> &systems) {
+
   string system_modulation;
+
+  json data;
   int sys_count = 0;
   int source_count = 0;
+
+  try {
+    std::ifstream f(config_file);
+    data = json::parse(f);
+  } catch (const json::parse_error &e) {
+    // output exception information
+    std::cout << "message: " << e.what() << '\n'
+              << "exception id: " << e.id << '\n'
+              << "byte position of error: " << e.byte << std::endl;
+  }
 
   try {
     // const std::string json_filename = "config.json";
@@ -60,7 +72,9 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
 
-    config.console_log = pt.get<bool>("consoleLog", true);
+
+
+    config.console_log =  data.value("consoleLog", true); 
     if (config.console_log) {
       add_logs(boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
     }
@@ -69,8 +83,8 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nINSTANCE\n-------------------------------------\n";
 
-    config.log_file = pt.get<bool>("logFile", false);
-    config.log_dir = pt.get<std::string>("logDir", "logs");
+    config.log_file = data.value("logFile", false);
+    config.log_dir = data.value("logDir", "logs");
     if (config.log_file) {
       logging::add_file_log(
           keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
@@ -80,7 +94,7 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
           keywords::auto_flush = true);
     }
 
-    double config_ver = pt.get<double>("ver", 0);
+    double config_ver = data.value("ver", 0.0);
     if (config_ver < 2) {
       BOOST_LOG_TRIVIAL(info) << "The formatting for config files has changed.";
       BOOST_LOG_TRIVIAL(info) << "Modulation type, Squelch and audio levels are now set in each System instead of under a Source.";
@@ -101,7 +115,7 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
     if (boost::filesystem::exists("/dev/shm")) {
       defaultTempDir = "/dev/shm";
     }
-    config.temp_dir = pt.get<std::string>("tempDir", defaultTempDir);
+    config.temp_dir = data.value("tempDir", defaultTempDir);
     size_t pos = config.temp_dir.find_last_of("/");
 
     if (pos == config.temp_dir.length() - 1) {
@@ -110,7 +124,7 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
 
     BOOST_LOG_TRIVIAL(info) << "Temporary Transmission Directory: " << config.temp_dir;
 
-    config.capture_dir = pt.get<std::string>("captureDir", boost::filesystem::current_path().string());
+    config.capture_dir = data.value("captureDir", boost::filesystem::current_path().string());
     pos = config.capture_dir.find_last_of("/");
 
     if (pos == config.capture_dir.length() - 1) {
@@ -118,35 +132,35 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
     }
 
     BOOST_LOG_TRIVIAL(info) << "Capture Directory: " << config.capture_dir;
-    config.upload_server = pt.get<std::string>("uploadServer", "");
+    config.upload_server = data.value("uploadServer", "");
     BOOST_LOG_TRIVIAL(info) << "Upload Server: " << config.upload_server;
-    config.bcfy_calls_server = pt.get<std::string>("broadcastifyCallsServer", "");
+    config.bcfy_calls_server = data.value("broadcastifyCallsServer", "");
     BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls Server: " << config.bcfy_calls_server;
-    config.status_server = pt.get<std::string>("statusServer", "");
+    config.status_server = data.value("statusServer", "");
     BOOST_LOG_TRIVIAL(info) << "Status Server: " << config.status_server;
-    config.instance_key = pt.get<std::string>("instanceKey", "");
+    config.instance_key = data.value("instanceKey", "");
     BOOST_LOG_TRIVIAL(info) << "Instance Key: " << config.instance_key;
-    config.instance_id = pt.get<std::string>("instanceId", "");
+    config.instance_id = data.value("instanceId", "");
     BOOST_LOG_TRIVIAL(info) << "Instance Id: " << config.instance_id;
-    config.broadcast_signals = pt.get<bool>("broadcastSignals", false);
+    config.broadcast_signals = data.value("broadcastSignals", false);
     BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
-    config.default_mode = pt.get<std::string>("defaultMode", "digital");
+    config.default_mode = data.value("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << config.default_mode;
-    config.call_timeout = pt.get<int>("callTimeout", 3);
+    config.call_timeout = data.value("callTimeout", 3);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
-    config.control_message_warn_rate = pt.get<int>("controlWarnRate", 10);
+    config.control_message_warn_rate = data.value("controlWarnRate", 10);
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
-    config.control_retune_limit = pt.get<int>("controlRetuneLimit", 0);
+    config.control_retune_limit = data.value("controlRetuneLimit", 0);
     BOOST_LOG_TRIVIAL(info) << "Control channel retune limit: " << config.control_retune_limit;
-    config.soft_vocoder = pt.get<bool>("softVocoder", false);
+    config.soft_vocoder = data.value("softVocoder", false);
     BOOST_LOG_TRIVIAL(info) << "Phase 1 Software Vocoder: " << config.soft_vocoder;
-    config.enable_audio_streaming = pt.get<bool>("audioStreaming", false);
+    config.enable_audio_streaming = data.value("audioStreaming", false);
     BOOST_LOG_TRIVIAL(info) << "Enable Audio Streaming: " << config.enable_audio_streaming;
-    config.record_uu_v_calls = pt.get<bool>("recordUUVCalls", true);
+    config.record_uu_v_calls = data.value("recordUUVCalls", true);
     BOOST_LOG_TRIVIAL(info) << "Record Unit to Unit Voice Calls: " << config.record_uu_v_calls;
-    config.new_call_from_update = pt.get<bool>("newCallFromUpdate", true);
+    config.new_call_from_update = data.value("newCallFromUpdate", true);
     BOOST_LOG_TRIVIAL(info) << "New Call from UPDATE Messages" << config.new_call_from_update;
-    std::string frequency_format_string = pt.get<std::string>("frequencyFormat", "mhz");
+    std::string frequency_format_string = data.value("frequencyFormat", "mhz");
 
     if (boost::iequals(frequency_format_string, "mhz")) {
       frequency_format = 1;
@@ -158,21 +172,21 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
     config.frequency_format = frequency_format;
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
 
-    statusAsString = pt.get<bool>("statusAsString", statusAsString);
+    statusAsString = data.value("statusAsString", statusAsString);
     BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
-    std::string log_level = pt.get<std::string>("logLevel", "info");
+    std::string log_level = data.value("logLevel", "info");
     BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
     set_logging_level(log_level);
 
+    config.debug_recorder = data.value("debugRecorder", 0);
+    config.debug_recorder_address = data.value("debugRecorderAddress", "127.0.0.1");
+    config.debug_recorder_port = data.value("debugRecorderPort", 1234);
+
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
 
-    config.debug_recorder = pt.get<bool>("debugRecorder", 0);
-    config.debug_recorder_address = pt.get<std::string>("debugRecorderAddress", "127.0.0.1");
-    config.debug_recorder_port = pt.get<int>("debugRecorderPort", 1234);
 
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
-                   pt.get_child("systems")) {
-      bool system_enabled = node.second.get<bool>("enabled", true);
+    for (json element : data["systems"]) {
+      bool system_enabled = element.value("enabled", true);
       if (system_enabled) {
         // each system should have a unique index value;
         System *system = System::make(sys_count++);
@@ -184,17 +198,17 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
         default_script << "sys_" << sys_count;
 
         BOOST_LOG_TRIVIAL(info) << "\n\nSystem Number: " << sys_count << "\n-------------------------------------\n";
-        system->set_short_name(node.second.get<std::string>("shortName", default_script.str()));
+        system->set_short_name(element.value("shortName", default_script.str()));
         BOOST_LOG_TRIVIAL(info) << "Short Name: " << system->get_short_name();
 
-        system->set_system_type(node.second.get<std::string>("type"));
+        system->set_system_type(element["type"]);
         BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
         // If it is a conventional System
         if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
 
-          boost::optional<std::string> channel_file_exist = node.second.get_optional<std::string>("channelFile");
-          boost::optional<boost::property_tree::ptree &> channels_exist = node.second.get_child_optional("channels");
+         bool channel_file_exist = element.contains("channelFile");
+         bool channels_exist = element.contains("channels");
 
           if (channel_file_exist && channels_exist) {
             BOOST_LOG_TRIVIAL(error) << "Both \"channels\" and \"channelFile\" cannot be defined for a system!";
@@ -203,14 +217,13 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
 
           if (channels_exist) {
             BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
-            BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("channels")) {
-              double channel = sub_node.second.get<double>("", 0);
-
+            std::vector<double> channels = element["channels"];
+            for (auto& channel : channels) {
               BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
               system->add_channel(channel);
             }
           } else if (channel_file_exist) {
-            std::string channel_file = node.second.get<std::string>("channelFile");
+            std::string channel_file = element["channelFile"];
             BOOST_LOG_TRIVIAL(info) << "Channel File: " << channel_file;
             system->set_channel_file(channel_file);
           } else {
@@ -220,15 +233,14 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
           // If it is a Trunked System
         } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
           BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-          BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("control_channels")) {
-            double control_channel = sub_node.second.get<double>("", 0);
+          std::vector<double> control_channels = element["control_channels"];
+          for (auto& control_channel : control_channels) {
             system->add_control_channel(control_channel);
           }
-          std::vector<double> control_channels = system->get_control_channels();
           for (unsigned int i = 0; i < control_channels.size(); i++) {
             BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channels[i]);
           }
-          system->set_talkgroups_file(node.second.get<std::string>("talkgroupsFile", ""));
+          system->set_talkgroups_file(element.value("talkgroupsFile", ""));
           BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
         } else {
           BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
@@ -236,16 +248,16 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
         }
 
         bool qpsk_mod = true;
-        double digital_levels = node.second.get<double>("digitalLevels", 1.0);
-        double analog_levels = node.second.get<double>("analogLevels", 8.0);
-        double squelch_db = node.second.get<double>("squelch", -160);
-        int max_dev = node.second.get<int>("maxDev", 4000);
-        double filter_width = node.second.get<double>("filterWidth", 1.0);
-        bool conversation_mode = node.second.get<bool>("conversationMode", true);
-        boost::optional<std::string> mod_exists = node.second.get_optional<std::string>("modulation");
+        double digital_levels = element.value("digitalLevels", 1.0);
+        double analog_levels = element.value("analogLevels", 8.0);
+        double squelch_db = element.value("squelch", -160);
+        int max_dev = element.value("maxDev", 4000);
+        double filter_width = element.value("filterWidth", 1.0);
+        bool conversation_mode = element.value("conversationMode", true);
+        bool mod_exists = element.contains("modulation");
 
         if (mod_exists) {
-          system_modulation = node.second.get<std::string>("modulation");
+          system_modulation = element["modulation"];
 
           if (boost::iequals(system_modulation, "qpsk")) {
             qpsk_mod = true;
@@ -269,38 +281,38 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
         system->set_filter_width(filter_width);
         system->set_conversation_mode(conversation_mode);
         BOOST_LOG_TRIVIAL(info) << "Conversation Mode: " << conversation_mode;
-        BOOST_LOG_TRIVIAL(info) << "Analog Recorder Maximum Deviation: " << node.second.get<int>("maxDev", 4000);
+        BOOST_LOG_TRIVIAL(info) << "Analog Recorder Maximum Deviation: " << element.value("maxDev", 4000);
         BOOST_LOG_TRIVIAL(info) << "Filter Width: " << filter_width;
-        BOOST_LOG_TRIVIAL(info) << "Squelch: " << node.second.get<double>("squelch", -160);
-        system->set_api_key(node.second.get<std::string>("apiKey", ""));
+        BOOST_LOG_TRIVIAL(info) << "Squelch: " << element.value("squelch", -160);
+        system->set_api_key(element.value("apiKey", ""));
         BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
-        system->set_bcfy_api_key(node.second.get<std::string>("broadcastifyApiKey", ""));
+        system->set_bcfy_api_key(element.value("broadcastifyApiKey", ""));
         BOOST_LOG_TRIVIAL(info) << "Broadcastify API Key: " << system->get_bcfy_api_key();
-        system->set_bcfy_system_id(node.second.get<int>("broadcastifySystemId", 0));
+        system->set_bcfy_system_id(element.value("broadcastifySystemId", 0));
         BOOST_LOG_TRIVIAL(info) << "Broadcastify Calls System ID: " << system->get_bcfy_system_id();
-        system->set_upload_script(node.second.get<std::string>("uploadScript", ""));
+        system->set_upload_script(element.value("uploadScript", ""));
         BOOST_LOG_TRIVIAL(info) << "Upload Script: " << system->get_upload_script();
-        system->set_compress_wav(node.second.get<bool>("compressWav", true));
+        system->set_compress_wav(element.value("compressWav", true));
         BOOST_LOG_TRIVIAL(info) << "Compress .wav Files: " << system->get_compress_wav();
-        system->set_call_log(node.second.get<bool>("callLog", true));
+        system->set_call_log(element.value("callLog", true));
         BOOST_LOG_TRIVIAL(info) << "Call Log: " << system->get_call_log();
-        system->set_audio_archive(node.second.get<bool>("audioArchive", true));
+        system->set_audio_archive(element.value("audioArchive", true));
         BOOST_LOG_TRIVIAL(info) << "Audio Archive: " << system->get_audio_archive();
-        system->set_transmission_archive(node.second.get<bool>("transmissionArchive", false));
+        system->set_transmission_archive(element.value("transmissionArchive", false));
         BOOST_LOG_TRIVIAL(info) << "Transmission Archive: " << system->get_transmission_archive();
-        system->set_unit_tags_file(node.second.get<std::string>("unitTagsFile", ""));
+        system->set_unit_tags_file(element.value("unitTagsFile", ""));
         BOOST_LOG_TRIVIAL(info) << "Unit Tags File: " << system->get_unit_tags_file();
-        system->set_record_unknown(node.second.get<bool>("recordUnknown", true));
+        system->set_record_unknown(element.value("recordUnknown", true));
         BOOST_LOG_TRIVIAL(info) << "Record Unknown Talkgroups: " << system->get_record_unknown();
-        system->set_mdc_enabled(node.second.get<bool>("decodeMDC", false));
+        system->set_mdc_enabled(element.value("decodeMDC", false));
         BOOST_LOG_TRIVIAL(info) << "Decode MDC: " << system->get_mdc_enabled();
-        system->set_fsync_enabled(node.second.get<bool>("decodeFSync", false));
+        system->set_fsync_enabled(element.value("decodeFSync", false));
         BOOST_LOG_TRIVIAL(info) << "Decode FSync: " << system->get_fsync_enabled();
-        system->set_star_enabled(node.second.get<bool>("decodeStar", false));
+        system->set_star_enabled(element.value("decodeStar", false));
         BOOST_LOG_TRIVIAL(info) << "Decode Star: " << system->get_star_enabled();
-        system->set_tps_enabled(node.second.get<bool>("decodeTPS", false));
+        system->set_tps_enabled(element.value("decodeTPS", false));
         BOOST_LOG_TRIVIAL(info) << "Decode TPS: " << system->get_tps_enabled();
-        std::string talkgroup_display_format_string = node.second.get<std::string>("talkgroupDisplayFormat", "Id");
+        std::string talkgroup_display_format_string = element.value("talkgroupDisplayFormat", "Id");
         if (boost::iequals(talkgroup_display_format_string, "id_tag")) {
           system->set_talkgroup_display_format(talkGroupDisplayFormat_id_tag);
         } else if (boost::iequals(talkgroup_display_format_string, "tag_id")) {
@@ -310,20 +322,20 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
         }
         BOOST_LOG_TRIVIAL(info) << "Talkgroup Display Format: " << talkgroup_display_format_string;
 
-        sys_id = node.second.get<unsigned long>("sysId", 0);
-        nac = node.second.get<unsigned long>("nac", 0);
-        wacn = node.second.get<unsigned long>("wacn", 0);
+        sys_id = element.value("sysId", 0);
+        nac = element.value("nac", 0);
+        wacn = element.value("wacn", 0);
         system->set_xor_mask(sys_id, wacn, nac);
-        system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
+        system->set_bandplan(element.value("bandplan", "800_standard"));
         system->set_bandfreq(800); // Default to 800
 
         if (boost::starts_with(system->get_bandplan(), "400")) {
           system->set_bandfreq(400);
         }
-        system->set_bandplan_base(node.second.get<double>("bandplanBase", 0.0));
-        system->set_bandplan_high(node.second.get<double>("bandplanHigh", 0.0));
-        system->set_bandplan_spacing(node.second.get<double>("bandplanSpacing", 0.0));
-        system->set_bandplan_offset(node.second.get<int>("bandplanOffset", 0));
+        system->set_bandplan_base(element.value("bandplanBase", 0.0));
+        system->set_bandplan_high(element.value("bandplanHigh", 0.0));
+        system->set_bandplan_spacing(element.value("bandplanSpacing", 0.0));
+        system->set_bandplan_offset(element.value("bandplanOffset", 0));
 
         if (system->get_system_type() == "smartnet") {
           BOOST_LOG_TRIVIAL(info) << "Smartnet bandplan: " << system->get_bandplan();
@@ -337,21 +349,21 @@ bool load_config(string config_file, Config& config, gr::top_block_sptr& tb, std
           }
         }
 
-        system->set_hideEncrypted(node.second.get<bool>("hideEncrypted", system->get_hideEncrypted()));
+        system->set_hideEncrypted(element.value("hideEncrypted", system->get_hideEncrypted()));
         BOOST_LOG_TRIVIAL(info) << "Hide Encrypted Talkgroups: " << system->get_hideEncrypted();
-        system->set_hideUnknown(node.second.get<bool>("hideUnknownTalkgroups", system->get_hideUnknown()));
+        system->set_hideUnknown(element.value("hideUnknownTalkgroups", system->get_hideUnknown()));
         BOOST_LOG_TRIVIAL(info) << "Hide Unknown Talkgroups: " << system->get_hideUnknown();
-        system->set_min_duration(node.second.get<double>("minDuration", 0));
+        system->set_min_duration(element.value("minDuration", 0));
         BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
-        system->set_max_duration(node.second.get<double>("maxDuration", 0));
+        system->set_max_duration(element.value("maxDuration", 0));
         BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (in seconds): " << system->get_max_duration();
-        system->set_min_tx_duration(node.second.get<double>("minTransmissionDuration", 0));
+        system->set_min_tx_duration(element.value("minTransmissionDuration", 0));
         BOOST_LOG_TRIVIAL(info) << "Minimum Transmission Duration (in seconds): " << system->get_min_tx_duration();
-        system->set_multiSite(node.second.get<bool>("multiSite", false));
+        system->set_multiSite(element.value("multiSite", false));
         BOOST_LOG_TRIVIAL(info) << "Multiple Site System: " << system->get_multiSite();
-        system->set_multiSiteSystemName(node.second.get<std::string>("multiSiteSystemName", ""));
+        system->set_multiSiteSystemName(element.value("multiSiteSystemName", ""));
         BOOST_LOG_TRIVIAL(info) << "Multiple Site System Name: " << system->get_multiSiteSystemName();
-        system->set_multiSiteSystemNumber(node.second.get<unsigned long>("multiSiteSystemNumber", 0));
+        system->set_multiSiteSystemNumber(element.value("multiSiteSystemNumber", 0));
         BOOST_LOG_TRIVIAL(info) << "Multiple Site System Number: " << system->get_multiSiteSystemNumber();
 
         if (!system->get_compress_wav()) {

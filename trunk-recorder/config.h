@@ -20,6 +20,8 @@
 
 #include <gnuradio/top_block.h>
 
+#include <fstream>
+
 #include "cmake.h"
 #include "git.h"
 
@@ -27,6 +29,8 @@
 #include "source.h"
 #include "systems/system.h"
 #include "plugin_manager/plugin_manager.h"
+
+#include <nlohmann/json.hpp>
 
 bool load_config(std::string config_file, Config& config, gr::top_block_sptr& tb, std::vector<Source *>& sources, std::vector<System *>& systems); 
 

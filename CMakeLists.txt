@@ -21,7 +21,7 @@
 # Project setup
 ########################################################################
 
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.12)
 project(Trunk-Recorder LANGUAGES CXX C VERSION "4.6.0")
 
 configure_file(cmake.h.in "${PROJECT_BINARY_DIR}/cmake.h" @ONLY)
@@ -280,6 +280,7 @@ list(APPEND trunk_recorder_sources
   list(APPEND trunk_recorder_headers
     trunk-recorder/call.h
     trunk-recorder/plugin_manager/plugin_api.h
+    lib/nlohmann/json.hpp
   )
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
@@ -293,6 +294,15 @@ STATIC
 include(GNUInstallDirs)
 
 add_subdirectory(lib/op25_repeater)
+
+#set(JSON_Install OFF CACHE INTERNAL "")
+
+#add_subdirectory(lib/nlohmann_json)
+
+#include(FetchContent)
+
+#FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+#FetchContent_MakeAvailable(json)
 
 #target_compile_options(
 #    imbe_vocoder PRIVATE
@@ -341,7 +351,9 @@ add_subdirectory(plugins/simplestream)
 
 add_executable(trunk-recorder trunk-recorder/main.cc) # ${trunk_recorder_sources})
 
-target_link_libraries(trunk-recorder git trunk_recorder_library gnuradio-op25_repeater   ${CMAKE_DL_LIBS} ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GNURADIO_OSMOSDR_LIBRARIES}  ) # gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(trunk-recorder git trunk_recorder_library gnuradio-op25_repeater   ${CMAKE_DL_LIBS} ssl crypto ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GNURADIO_PMT_LIBRARIES} ${GNURADIO_RUNTIME_LIBRARIES} ${GNURADIO_FILTER_LIBRARIES} ${GNURADIO_DIGITAL_LIBRARIES} ${GNURADIO_ANALOG_LIBRARIES} ${GNURADIO_AUDIO_LIBRARIES} ${GNURADIO_UHD_LIBRARIES} ${UHD_LIBRARIES} ${GNURADIO_BLOCKS_LIBRARIES} ${GNURADIO_OSMOSDR_LIBRARIES} ) # gRPC::grpc++_reflection protobuf::libprotobuf)
+
+#target_link_libraries(trunk-recorder PRIVATE nlohmann_json::nlohmann_json )
 
 message(STATUS "All libraries:" ${GNURADIO_ALL_LIBRARIES})
 if(NOT Gnuradio_VERSION VERSION_LESS "3.8")
