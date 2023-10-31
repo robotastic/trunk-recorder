@@ -320,16 +320,16 @@ public:
     return upload(call_info);
   }
 
-  int parse_config(boost::property_tree::ptree &cfg) {
+  int parse_config(json config_data) {
 
 
     // Tests to see if the uploadServer value exists in the config file
-    boost::optional<std::string> upload_server_exists = cfg.get_optional<std::string>("broadcastifyCallsServer");
+    bool upload_server_exists = config_data.contains("broadcastifyCallsServer");
     if (!upload_server_exists) {
       return 1;
     }
 
-    this->data.bcfy_calls_server = cfg.get<std::string>("broadcastifyCallsServer", "");
+    this->data.bcfy_calls_server = config_data.value("broadcastifyCallsServer", "");
     BOOST_LOG_TRIVIAL(info) << "Broadcastify Server: " << this->data.bcfy_calls_server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
@@ -341,18 +341,18 @@ public:
       return 1;
     }
 
-    this->data.ssl_verify_disable = cfg.get<bool>("broadcastifySslVerifyDisable", false);
+    this->data.ssl_verify_disable = config_data.value("broadcastifySslVerifyDisable", false);
     if (this->data.ssl_verify_disable) {
       BOOST_LOG_TRIVIAL(info) << "Broadcastify SSL Verify Disabled";
     }
 
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
-      boost::optional<boost::property_tree::ptree &> broadcastify_exists = node.second.get_child_optional("broadcastifyApiKey");
+    for (json element : config_data["systems"]) {
+      bool broadcastify_exists = element.contains("broadcastifyApiKey");
       if (broadcastify_exists) {
         Broadcastify_System_Key key;
-        key.api_key = node.second.get<std::string>("broadcastifyApiKey", "");
-        key.system_id = node.second.get<std::string>("broadcastifySystemId", "");
-        key.short_name = node.second.get<std::string>("shortName", "");
+        key.api_key = element.value("broadcastifyApiKey", "");
+        key.system_id = element.value("broadcastifySystemId", "");
+        key.short_name = element.value("shortName", "");
         BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
         this->data.keys.push_back(key);
       }

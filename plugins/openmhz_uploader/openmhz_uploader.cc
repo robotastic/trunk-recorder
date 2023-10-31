@@ -1,13 +1,13 @@
 #include <curl/curl.h>
-#include <time.h>
 #include <iomanip>
+#include <time.h>
 #include <vector>
 
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
+#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
-#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
 #include <sys/stat.h>
 
 struct Openmhz_System_Key {
@@ -21,8 +21,8 @@ struct Openmhz_Uploader_Data {
 };
 
 class Openmhz_Uploader : public Plugin_Api {
-  //float aggr_;
-  //my_plugin_aggregator() : aggr_(0) {}
+  // float aggr_;
+  // my_plugin_aggregator() : aggr_(0) {}
   Openmhz_Uploader_Data data;
 
 public:
@@ -43,10 +43,10 @@ public:
 
     std::string api_key = get_api_key(call_info.short_name);
     if (api_key.size() == 0) {
-      //BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
+      // BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
       return 0;
     }
-    
+
     std::ostringstream freq;
     std::string freq_string;
     freq << std::fixed << std::setprecision(0);
@@ -71,7 +71,6 @@ public:
     std::string source_list_string;
     source_list << std::fixed << std::setprecision(2);
     source_list << "[";
-
 
     if (call_info.transmission_source_list.size() != 0) {
       for (unsigned long i = 0; i < call_info.transmission_source_list.size(); i++) {
@@ -293,15 +292,15 @@ public:
     return upload(call_info);
   }
 
-  int parse_config(boost::property_tree::ptree &cfg) {
+  int parse_config(json config_data) {
 
     // Tests to see if the uploadServer value exists in the config file
-    boost::optional<std::string> upload_server_exists = cfg.get_optional<std::string>("uploadServer");
+    bool upload_server_exists = config_data.contains("uploadServer");
     if (!upload_server_exists) {
       return 1;
     }
 
-    this->data.openmhz_server = cfg.get<std::string>("uploadServer", "");
+    this->data.openmhz_server = config_data.value("uploadServer", "");
     BOOST_LOG_TRIVIAL(info) << "OpenMHz Server: " << this->data.openmhz_server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
@@ -311,14 +310,14 @@ public:
     if (!regex_match(this->data.openmhz_server.c_str(), what, ex)) {
       BOOST_LOG_TRIVIAL(error) << "Unable to parse Server URL\n";
       return 1;
-    } 
+    }
     // Gets the API key for each system, if defined
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
-      boost::optional<boost::property_tree::ptree &> openmhz_exists = node.second.get_child_optional("apiKey");
+    for (json element : config_data["systems"]) {
+      bool openmhz_exists = element.contains("apiKey");
       if (openmhz_exists) {
         Openmhz_System_Key key;
-        key.api_key = node.second.get<std::string>("apiKey", "");
-        key.short_name = node.second.get<std::string>("shortName", "");
+        key.api_key = element.value("apiKey", "");
+        key.short_name = element.value("shortName", "");
         BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
         this->data.keys.push_back(key);
       }

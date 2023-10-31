@@ -40,16 +40,16 @@ class Simple_Stream : public Plugin_Api {
       
   }
 
-  int parse_config(boost::property_tree::ptree &cfg) {
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("streams")) {
+ int parse_config(json config_data) {
+    for (json element : config_data["streams"]) {
       stream_t stream;
-      stream.TGID = node.second.get<unsigned long>("TGID");
-      stream.address = node.second.get<std::string>("address");
-      stream.port = node.second.get<long>("port");
+      stream.TGID = element["TGID"];
+      stream.address = element["address"];
+      stream.port = element["port"];
       stream.remote_endpoint = ip::udp::endpoint(ip::address::from_string(stream.address), stream.port);
-      stream.sendTGID = node.second.get<bool>("sendTGID",false);
-      stream.tcp = node.second.get<bool>("useTCP",false);
-      stream.short_name = node.second.get<std::string>("shortName", "");
+      stream.sendTGID = element.value("sendTGID",false);
+      stream.tcp = element.value("useTCP",false);
+      stream.short_name = element.value("shortName", "");
       BOOST_LOG_TRIVIAL(info) << "simplestreamer will stream audio from TGID " <<stream.TGID << " on System " <<stream.short_name << " to " << stream.address <<" on port " << stream.port << " tcp is "<<stream.tcp;
       streams.push_back(stream);
     }

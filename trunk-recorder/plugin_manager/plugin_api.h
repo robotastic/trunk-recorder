@@ -7,6 +7,8 @@
 #include "../systems/system.h"
 #include "../systems/parser.h"
 #include "../formatter.h"
+#include <nlohmann/json.hpp>
+
 typedef enum {
   PLUGIN_UNKNOWN,
   PLUGIN_INITIALIZED,
@@ -16,10 +18,12 @@ typedef enum {
   PLUGIN_DISABLED
 } plugin_state_t;
 
+using json = nlohmann::json;
+
 class Plugin_Api {
 public:
   virtual int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { frequency_format = config->frequency_format; return 0; };
-  virtual int parse_config(boost::property_tree::ptree &cfg) { return 0; }; // const { BOOST_LOG_TRIVIAL(info) << "plugin_api created!";return 0; };
+  virtual int parse_config(json config_data) { return 0; }; // const { BOOST_LOG_TRIVIAL(info) << "plugin_api created!";return 0; };
   virtual int start() { return 0; };
   virtual int stop() { return 0; };
   virtual int poll_one() { return 0; };

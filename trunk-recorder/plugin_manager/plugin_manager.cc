@@ -33,18 +33,18 @@ Plugin *setup_plugin(std::string plugin_lib, std::string plugin_name) {
   return plugin;
 }
 
-void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::vector<Source *> sources, std::vector<System *> systems) {
+void initialize_plugins(json config_data, Config *config, std::vector<Source *> sources, std::vector<System *> systems) {
 
-  boost::optional<boost::property_tree::ptree &> plugins_exists = cfg.get_child_optional("plugins");
+  bool plugins_exists = config_data.contains("plugins");
 
   if (plugins_exists) {
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("plugins")) {
-      std::string plugin_lib = node.second.get<std::string>("library", "");
-      std::string plugin_name = node.second.get<std::string>("name", "");
-      bool plugin_enabled = node.second.get<bool>("enabled", true);
+    for (json element : config_data["plugins"]) {
+      std::string plugin_lib = element.value("library", "");
+      std::string plugin_name = element.value("name", "");
+      bool plugin_enabled = element.value("enabled", true);
       if (plugin_enabled) {
         Plugin *plugin = setup_plugin(plugin_lib, plugin_name);
-        plugin->api->parse_config(node.second);
+        plugin->api->parse_config(element);
       }
     }
 
@@ -71,10 +71,10 @@ void initialize_plugins(boost::property_tree::ptree &cfg, Config *config, std::v
   }
 }
 
-void add_internal_plugin(std::string name, std::string library, boost::property_tree::ptree &cfg) {
+void add_internal_plugin(std::string name, std::string library, json config_data) {
 
   Plugin *plugin = setup_plugin(library, name);
-  plugin->api->parse_config(cfg);
+  plugin->api->parse_config(config_data);
 }
 
 void start_plugins(std::vector<Source *> sources, std::vector<System *> systems) {
