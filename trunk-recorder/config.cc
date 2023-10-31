@@ -379,62 +379,61 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     }
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nSOURCES\n-------------------------------------\n";
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node,
-                   pt.get_child("sources")) {
-      bool source_enabled = node.second.get<bool>("enabled", true);
+    for (json element : data["sources"]) {
+      bool source_enabled = element.value("enabled", true);
       if (source_enabled) {
         bool gain_set = false;
-        int silence_frames = node.second.get<int>("silenceFrames", 0);
-        double center = node.second.get<double>("center", 0);
-        double rate = node.second.get<double>("rate", 0);
-        double error = node.second.get<double>("error", 0);
-        double ppm = node.second.get<double>("ppm", 0);
-        bool agc = node.second.get<bool>("agc", false);
-        int gain = node.second.get<double>("gain", 0);
-        int if_gain = node.second.get<double>("ifGain", 0);
-        int bb_gain = node.second.get<double>("bbGain", 0);
-        int mix_gain = node.second.get<double>("mixGain", 0);
-        int lna_gain = node.second.get<double>("lnaGain", 0);
-        int pga_gain = node.second.get<double>("pgaGain", 0);
-        int tia_gain = node.second.get<double>("tiaGain", 0);
-        int amp_gain = node.second.get<double>("ampGain", 0);
-        int vga_gain = node.second.get<double>("vgaGain", 0);
-        int vga1_gain = node.second.get<double>("vga1Gain", 0);
-        int vga2_gain = node.second.get<double>("vga2Gain", 0);
+        int silence_frames = element.value("silenceFrames", 0);
+        double center = element.value("center", 0);
+        double rate = element.value("rate", 0);
+        double error = element.value("error", 0);
+        double ppm = element.value("ppm", 0);
+        bool agc = element.value("agc", false);
+        int gain = element.value("gain", 0);
+        int if_gain = element.value("ifGain", 0);
+        int bb_gain = element.value("bbGain", 0);
+        int mix_gain = element.value("mixGain", 0);
+        int lna_gain = element.value("lnaGain", 0);
+        int pga_gain = element.value("pgaGain", 0);
+        int tia_gain = element.value("tiaGain", 0);
+        int amp_gain = element.value("ampGain", 0);
+        int vga_gain = element.value("vgaGain", 0);
+        int vga1_gain = element.value("vga1Gain", 0);
+        int vga2_gain = element.value("vga2Gain", 0);
 
-        std::string antenna = node.second.get<string>("antenna", "");
-        int digital_recorders = node.second.get<int>("digitalRecorders", 0);
-        int sigmf_recorders = node.second.get<int>("sigmfRecorders", 0);
-        int analog_recorders = node.second.get<int>("analogRecorders", 0);
+        std::string antenna = element.value("antenna", "");
+        int digital_recorders = element.value("digitalRecorders", 0);
+        int sigmf_recorders = element.value("sigmfRecorders", 0);
+        int analog_recorders = element.value("analogRecorders", 0);
 
-        std::string driver = node.second.get<std::string>("driver", "");
+        std::string driver = element.value("driver", "");
 
         if ((driver != "osmosdr") && (driver != "usrp")) {
           BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
         }
 
-        std::string device = node.second.get<std::string>("device", "");
-        BOOST_LOG_TRIVIAL(info) << "Driver: " << node.second.get<std::string>("driver", "");
-        BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(node.second.get<double>("center", 0));
-        BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(node.second.get<double>("rate", 0));
-        BOOST_LOG_TRIVIAL(info) << "Error: " << node.second.get<double>("error", 0);
-        BOOST_LOG_TRIVIAL(info) << "PPM Error: " << node.second.get<double>("ppm", 0);
-        BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << node.second.get<bool>("agc", false);
-        BOOST_LOG_TRIVIAL(info) << "Gain: " << node.second.get<double>("gain", 0);
-        BOOST_LOG_TRIVIAL(info) << "IF Gain: " << node.second.get<double>("ifGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "BB Gain: " << node.second.get<double>("bbGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << node.second.get<double>("lnaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << node.second.get<double>("pgaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << node.second.get<double>("tiaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << node.second.get<double>("mixGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "AMP Gain: " << node.second.get<double>("ampGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << node.second.get<double>("vgaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << node.second.get<double>("vga1Gain", 0);
-        BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << node.second.get<double>("vga2Gain", 0);
-        BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << node.second.get<bool>("silenceFrame", 0);
-        BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << node.second.get<int>("digitalRecorders", 0);
-        BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << node.second.get<int>("sigmfRecorders", 0);
-        BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << node.second.get<int>("analogRecorders", 0);
+        std::string device = element.value("device", "");
+        BOOST_LOG_TRIVIAL(info) << "Driver: " << element.value("driver", "");
+        BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(element.value("center", 0));
+        BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(element.value("rate", 0));
+        BOOST_LOG_TRIVIAL(info) << "Error: " << element.value("error", 0);
+        BOOST_LOG_TRIVIAL(info) << "PPM Error: " << element.value("ppm", 0);
+        BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << element.value("agc", false);
+        BOOST_LOG_TRIVIAL(info) << "Gain: " << element.value("gain", 0);
+        BOOST_LOG_TRIVIAL(info) << "IF Gain: " << element.value("ifGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "BB Gain: " << element.value("bbGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << element.value("lnaGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << element.value("pgaGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << element.value("tiaGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << element.value("mixGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "AMP Gain: " << element.value("ampGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << element.value("vgaGain", 0);
+        BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << element.value("vga1Gain", 0);
+        BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
+        BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
+        BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << element.value("digitalRecorders", 0);
+        BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << element.value("sigmfRecorders", 0);
+        BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << element.value("analogRecorders", 0);
 
         if ((ppm != 0) && (error != 0)) {
           BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
@@ -444,10 +443,12 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         Source *source = new Source(center, rate, error, driver, device, &config);
         BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
         BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
-        if (node.second.count("gainSettings") != 0) {
-          BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("gainSettings")) {
-            source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
-            gain_set = true;
+        if (element.contains("gainSettings")) {
+          for (auto it = element["gainSettings"].begin(); it != element["gainSettings"].end(); ++it)
+          {
+              
+              source->set_gain_by_name(it.key(), it.value());
+                      gain_set = true;
           }
         }
 
