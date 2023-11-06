@@ -280,7 +280,11 @@ list(APPEND trunk_recorder_sources
   list(APPEND trunk_recorder_headers
     trunk-recorder/call.h
     trunk-recorder/plugin_manager/plugin_api.h
+  )
+
+  list(APPEND 3p_headers
     lib/nlohmann/json.hpp
+    lib/csv-parser/csv.hpp 
   )
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
@@ -323,7 +327,7 @@ set_property(
 
 set_target_properties(trunk_recorder_library PROPERTIES OUTPUT_NAME "trunk-recorder")
 set_target_properties(trunk_recorder_library PROPERTIES PUBLIC_HEADER "${trunk_recorder_headers}")
-
+set_target_properties(trunk_recorder_library PROPERTIES PRIVATE_HEADER "${3p_headers}")
 
 # Weird - when I add LIBRARY before the DESTINATION, it installs in the /usr/local/lib dir on a mac
 install(TARGETS trunk_recorder_library 

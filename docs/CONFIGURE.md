@@ -411,22 +411,33 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
 
 This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. You can also try clicking on the "List All in one table" link, selecting everything in the table and copying it into a spreadsheet program, and then exporting or saving as a CSV file.
 
-**Note:** You can use the direct CSV from Radio Reference for talk groups, but setting priority is not supported with this file format.  If you need to use the Priority field, you'll need to reorder the CSV to match the format described below.
+**Note:** You can use the direct CSV from Radio Reference for talk groups. You will need to add the Priority column if you are going to be using that.
 
-You may add an additional column that adds a priority for each talkgroup. The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed.
+A Header row is required on the first line of the CSV file. The supported column names are: "Decimal", "Mode", "Description","Alpha Tag", "Hex", "Category", "Tag", "Priority", "Preferred NAC"
 
-Talkgroups assigned a priority of -1 will never be recorded, regardless of the number of available recorders.
+The first column must be the "Decimal" column.
 
-Trunk Recorder really only uses the priority information and the decimal talkgroup ID. The Website uses the same file though to help display information about each talkgroup.
+The columns are:
 
-Here are the column headers and some sample data: NOTE: If you are adding the Priority to a RR csv, as well as changing order you must use a heading for the first column other than "Decimal" eg DEC for TR to detect you are supplying this layout.
+| Column Name | Required | Value |
+|-------------|----------|-------|
+| Decimal     | ✔️        | The Talkgroup Number formatted as a decimal number. |
+| Mode        |  ✔️       | Mode defines the type of transmission broadcast on this talkgroup. Analog transmissions are standard voice, Digital and TDMA transmissions are digitally modulated. <br />A = Analog Talkgroup<br />D = Digital Talkgroup<br />M = Mixed Analog/Digital<br />T = TDMA Capable Talkgroup<br />--<br />A trailing lowercase e represents partial encryption. A trailing uppercase E represents full encryption. |
+| Description | ✔️        | The description of the talkgroup |
+| Alpha Tag |       | A 16 character description that is intended as a shortened display on radio displays |
+| Hex       |       | The Talkgroup Number formatted as a hex number. This value is currently not used. |
+| Category |    |  The category for the Talkgroup |
+| Tag       |   |  The Service Tag for the Talkgroup |
+| Priority |    | The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed. <br/> Talkgroups assigned a priority of -1 will never be recorded, regardless of the number of available recorders. |
+| Preferred NAC |     | In Multi-Site mode, the preferred NAC for a specific talk group is used to specify the site you prefer the talk group to be recorded from.|
 
-| DEC | HEX | Mode | Alpha Tag    | Description    | Tag            | Group    | Priority | PreferredNAC (optional) |
+Here are the column headers and some sample data: 
+
+| Decimal | Hex | Mode | Alpha Tag    | Description    | Tag            | Category    | Priority | Preferred NAC (optional) |
 |-----|-----|------|--------------|----------------|----------------|----------|----------|-------------------------|
 |101  | 065 | D    | DCFD 01 Disp | 01 Dispatch    | Fire Dispatch  | Fire     | 1        | 1000                    |
 |2227 | 8b3 | D    | DC StcarYard | Streetcar Yard | Transportation | Services | 3        | 1001                    |
 
- In Multi-Site mode, the preferred NAC for a specific talk group is used to specify the site you prefer the talk group to be recorded from.
 
 ## channelFile
 
