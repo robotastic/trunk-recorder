@@ -430,10 +430,11 @@ The columns are:
 | Tag       |   |  The Service Tag for the Talkgroup |
 | Priority |    | The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed. <br/> Talkgroups assigned a priority of -1 will never be recorded, regardless of the number of available recorders. |
 | Preferred NAC |     | In Multi-Site mode, the preferred NAC for a specific talk group is used to specify the site you prefer the talk group to be recorded from.|
+| Comment |        | Use this field to capture comments about a talkgroup. It will be ignored by Trunk Recorder. |
 
 Here are the column headers and some sample data: 
 
-| Decimal | Hex | Mode | Alpha Tag    | Description    | Tag            | Category    | Priority | Preferred NAC (optional) |
+| Decimal | Hex | Mode | Alpha Tag    | Description    | Tag            | Category    | Priority | Preferred NAC |
 |-----|-----|------|--------------|----------------|----------------|----------|----------|-------------------------|
 |101  | 065 | D    | DCFD 01 Disp | 01 Dispatch    | Fire Dispatch  | Fire     | 1        | 1000                    |
 |2227 | 8b3 | D    | DC StcarYard | Streetcar Yard | Transportation | Services | 3        | 1001                    |
@@ -445,12 +446,25 @@ This file allows for you to specify additional information about conventional ch
 
 *Tone based squelch is currently not supported.*
 
+
+| Column Name | Required | Value |
+|-------------|----------|-------|
+| TG Number     | ✔️        | The Talkgroup Number formatted as a decimal number. |
+| Frequency        |  ✔️       | The frequency in Hz for the channel |
+| Tone | ✔️        | The Tone for the talkgroup. This value is not used. *Tone based squelch is currently not supported.* |
+| Alpha Tag |       | A 16 character description that is intended as a shortened display on radio displays |
+| Category |    |  The category for the Talkgroup |
+| Tag       |   |  The Service Tag for the Talkgroup |
+| Comment |        | Use this field to capture comments about a talkgroup. It will be ignored by Trunk Recorder. |
+| Enable |        | Set to 'false' if you do not want this talkgroup/channel to created |
+
+
 The **Enable** Column is optional and defaults to *True*. It only needs to be added to rows that you do not want to have recorded. For those rows, set **Enable** to *False*.
 
-| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Group  | Enable (*optional*) |
+| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Category  | Enable (*optional*) |
 | --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
-| 300       | 462275000 | 94.8 PL  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
-| 325       | 462275000 | 151.4 PL | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
+| 300       | 462275000 | 94.8  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
+| 325       | 462275000 | 151.4 | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
 
 
 ## unitTagsFile
