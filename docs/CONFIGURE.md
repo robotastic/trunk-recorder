@@ -449,7 +449,7 @@ This file allows for you to specify additional information about conventional ch
 
 | Column Name | Required | Value |
 |-------------|----------|-------|
-| TG Number     | ✔️        | The Talkgroup Number formatted as a decimal number. |
+| TG Number     | ✔️        | The Talkgroup Number formatted as a decimal number. This has to be the first column |
 | Frequency        |  ✔️       | The frequency in Hz for the channel |
 | Tone | ✔️        | The Tone for the talkgroup. This value is not used. *Tone based squelch is currently not supported.* |
 | Alpha Tag |       | A 16 character description that is intended as a shortened display on radio displays |
