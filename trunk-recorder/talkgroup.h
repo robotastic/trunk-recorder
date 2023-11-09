@@ -9,6 +9,7 @@
 class Talkgroup {
 public:
   long number;
+  unsigned long range;
   std::string mode;
   std::string alpha_tag;
   std::string description;
@@ -22,7 +23,7 @@ public:
   double freq;
   double tone;
 
-  Talkgroup(int sys_num, long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, unsigned long preferredNAC);
+  Talkgroup(int sys_num, long num, unsigned long range, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, unsigned long preferredNAC);
   Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group);
 
   bool is_active();
