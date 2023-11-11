@@ -525,6 +525,12 @@ bool load_config(string config_file) {
         Source *source = new Source(center, rate, error, driver, device, &config);
         BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
         BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
+
+        // SoapySDRPlay3 quirk: autogain must be disabled before any of the gains can be set
+        if (source->get_device().find("sdrplay") != std::string::npos) {
+          source->set_gain_mode(agc);
+        }
+
         if (node.second.count("gainSettings") != 0) {
           BOOST_FOREACH (boost::property_tree::ptree::value_type &sub_node, node.second.get_child("gainSettings")) {
             source->set_gain_by_name(sub_node.first, sub_node.second.get<double>("", 0));
