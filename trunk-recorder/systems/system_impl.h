@@ -45,6 +45,8 @@ class System_impl : public System {
   unsigned long sys_id;
   unsigned long wacn;
   unsigned long nac;
+  int sys_rfss;
+  int sys_site_id;
 
 public:
   Talkgroups *talkgroups;
@@ -156,9 +158,12 @@ public:
   unsigned long get_sys_id();
   unsigned long get_wacn();
   unsigned long get_nac();
+  int get_sys_rfss();
+  int get_sys_site_id();
   void set_xor_mask(unsigned long sys_id, unsigned long wacn, unsigned long nac);
   const char *get_xor_mask();
   bool update_status(TrunkMessage message);
+  bool update_sysid(TrunkMessage message);
   int get_sys_num();
   void set_system_type(std::string);
   std::string get_talkgroups_file();

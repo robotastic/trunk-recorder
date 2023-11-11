@@ -101,7 +101,6 @@ unsigned GCD(unsigned u, unsigned v) {
   return u;
 }
 
-
 int get_total_recorders() {
   int total_recorders = 0;
 
@@ -420,6 +419,14 @@ void current_system_status(TrunkMessage message, System *sys) {
   }
 }
 
+void current_system_sysid(TrunkMessage message, System *sys) {
+  if ((sys->get_system_type() == "p25") || (sys->get_system_type() == "conventionalP25")) {
+    if (sys->update_sysid(message)) {
+      plugman_setup_system(sys);
+    }
+  }
+}
+
 void unit_registration(System *sys, long source_id) {
   plugman_unit_registration(sys, source_id);
 }
@@ -669,6 +676,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       break;
 
     case SYSID:
+      current_system_sysid(message, sys);
       break;
 
     case STATUS:

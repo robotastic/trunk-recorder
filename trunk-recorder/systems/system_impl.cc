@@ -82,6 +82,8 @@ System_impl::System_impl(int sys_num) {
   sys_id = 0;
   wacn = 0;
   nac = 0;
+  sys_rfss = 0;
+  sys_site_id = 0;
   current_control_channel = 0;
   xor_mask_len = 0;
   xor_mask = NULL;
@@ -141,6 +143,19 @@ bool System_impl::update_status(TrunkMessage message) {
   return false;
 }
 
+bool System_impl::update_sysid(TrunkMessage message) {
+  if (!sys_rfss || !sys_site_id) {
+    sys_rfss = message.sys_rfss;
+    sys_site_id = message.sys_site_id;
+    BOOST_LOG_TRIVIAL(error) << "[" << short_name << "]\tDecoding System Site"
+                            << " RFSS: " << std::setw(3) << std::setfill('0') << message.sys_rfss
+                            << " SITE ID: " << std::setw(3) << std::setfill('0') << message.sys_site_id
+                            << " (" << std::setw(3) << std::setfill('0') << message.sys_rfss << "-" << std::setw(3) << std::setfill('0') << message.sys_site_id << ")";
+    return true;
+  }
+  return false;
+}
+
  gr::msg_queue::sptr System_impl::get_msg_queue() {
   return msg_queue;
  }
@@ -163,6 +178,14 @@ unsigned long System_impl::get_nac() {
 
 unsigned long System_impl::get_wacn() {
   return this->wacn;
+}
+
+int System_impl::get_sys_rfss(){
+  return this->sys_rfss;
+}
+
+int System_impl::get_sys_site_id(){
+  return this->sys_site_id;
 }
 
 bool System_impl::get_call_log() {
