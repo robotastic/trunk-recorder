@@ -74,13 +74,12 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
         BOOST_LOG_TRIVIAL(error) << "Malformed radioreference talkgroup entry at line " << lines_read << ".";
         continue;
       }
-
-      tg = new Talkgroup(sys_num, atoi(vec[0].c_str()), vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1, 0);
+      tg = new Talkgroup(sys_num, atoi(vec[0].c_str()), 1, vec[3].c_str(), vec[2].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), 1, 0);
 
     } else {
       // Talkgroup configuration columns:
       //
-      // [0] - talkgroup number
+      // [0] - talkgroup number, or talkgroup range min:max
       // [1] - unused
       // [2] - mode
       // [3] - alpha_tag
@@ -97,8 +96,38 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
       priority = (vec.size() == 8) ? atoi(vec[7].c_str()) : 1;
       unsigned long preferredNAC = (vec.size() == 9) ? atoi(vec[8].c_str()) : 0;
 
-      tg = new Talkgroup(sys_num, atoi(vec[0].c_str()), vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority, preferredNAC);
+      // parse talkgroup range as tokens
+      boost::escaped_list_separator<char> range_sep("", ":", "");
+      t_tokenizer tg_range(vec[0], range_sep);
+      std::vector<std::string> tgvec;
+      tgvec.assign(tg_range.begin(), tg_range.end());
 
+      // Assert single talkgroup or range min:max
+      if ((tgvec.size() < 1) || (tgvec.size() > 2)) {
+        BOOST_LOG_TRIVIAL(error) << "Malformed talkgroup range entry at line " << lines_read << ".";
+        continue;
+      }
+
+      long tgnum = atoi(tgvec[0].c_str());
+
+      if (tgnum < 0) {
+        BOOST_LOG_TRIVIAL(error) << "Talkgroup " << tgnum << " invalid: Cannot be negative";
+        continue;
+      }
+      unsigned long tgnum_range = 1;
+
+      // handle talkgroup range
+      if ((tgvec.size() == 2)) {
+
+        long tg_max = atoi(tgvec[1].c_str());
+
+        if (tg_max > tgnum) {
+          tgnum_range = tg_max - tgnum;
+          BOOST_LOG_TRIVIAL(info) << "Talkgroup range: " << tgnum << ":" << tg_max << " [" << tgnum_range << "]";
+        }
+        else BOOST_LOG_TRIVIAL(error) << "Talkgroup range " << tgnum << ":" << tg_max << " invalid";
+      }
+      tg = new Talkgroup(sys_num, tgnum, tgnum_range, vec[2].c_str(), vec[3].c_str(), vec[4].c_str(), vec[5].c_str(), vec[6].c_str(), priority, preferredNAC);
     }
     talkgroups.push_back(tg);
     lines_pushed++;
@@ -198,12 +227,21 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
 Talkgroup *Talkgroups::find_talkgroup(int sys_num, long tg_number) {
   Talkgroup *tg_match = NULL;
 
+  // Return first matching talkgroup by number or within range of talkgroups. Prioritise individual talkgroups.
   for (std::vector<Talkgroup *>::iterator it = talkgroups.begin(); it != talkgroups.end(); ++it) {
     Talkgroup *tg = (Talkgroup *)*it;
 
     if ((tg->sys_num == sys_num) && (tg->number == tg_number)) {
       tg_match = tg;
       break;
+    }
+
+    else if (tg->range > 1) {
+      long tg_range = (long)tg->range; // talkgroups must be >=0, so will be within bounds
+      if ((tg->sys_num == sys_num) && (tg->number >= tg_number) && (tg_number <= (tg->number + tg_range - 1))) {
+        tg_match = tg;
+        BOOST_LOG_TRIVIAL(debug) << "Range Match " << tg_number << " in " << tg->number << ":" << tg->number + tg_range;
+      }
     }
   }
   return tg_match;

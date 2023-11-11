@@ -411,22 +411,28 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
 
 This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. You can also try clicking on the "List All in one table" link, selecting everything in the table and copying it into a spreadsheet program, and then exporting or saving as a CSV file.
 
-**Note:** You can use the direct CSV from Radio Reference for talk groups, but setting priority is not supported with this file format.  If you need to use the Priority field, you'll need to reorder the CSV to match the format described below.
-
 You may add an additional column that adds a priority for each talkgroup. The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed.
+
+Talkgroups matching a range of decimal numbers may also be defined. In this case the channel numbers should take the form <min>:<max>. The hex
+value is not used. Note that this formatting will not be detected if the radio reference style. This is useful when receiving a system with a range of talkgroups in use by a agency using encryption, for which no further details are available. This is doubly problematic for P25 phase 2 talkgroups, where the trunking system does not flag calls as encrypted before Trunk Recorder attempts to record them. Rather than enter every unknown talkgroup as it is discovered, the entire range can be set to a priority of -1 and ignored.
+
+When Trunk Recorder looks up a talkgroup, it does so by its decimal number. The first talkgroup in the list with a single matching number will be used. If there is no match, then the first talkgroup specified by a range that includes the supplied talkgroup number will be returned, if one exists.
 
 Talkgroups assigned a priority of -1 will never be recorded, regardless of the number of available recorders.
 
 Trunk Recorder really only uses the priority information and the decimal talkgroup ID. The Website uses the same file though to help display information about each talkgroup.
 
+**Note:** You can use the direct CSV from Radio Reference for talk groups, but talkgroup priority and talkgroup ranges are not supported with this file format. If you need to use either or these features, you'll need to reorder the CSV to match the format described below.
+
 Here are the column headers and some sample data: NOTE: If you are adding the Priority to a RR csv, as well as changing order you must use a heading for the first column other than "Decimal" eg DEC for TR to detect you are supplying this layout.
 
-| DEC | HEX | Mode | Alpha Tag    | Description    | Tag            | Group    | Priority | PreferredNAC (optional) |
-|-----|-----|------|--------------|----------------|----------------|----------|----------|-------------------------|
-|101  | 065 | D    | DCFD 01 Disp | 01 Dispatch    | Fire Dispatch  | Fire     | 1        | 1000                    |
-|2227 | 8b3 | D    | DC StcarYard | Streetcar Yard | Transportation | Services | 3        | 1001                    |
+| DEC  | HEX | Mode | Alpha Tag    | Description    | Tag            | Group    | Priority | PreferredNAC (optional) |
+|------|-----|------|--------------|----------------|----------------|----------|----------|-------------------------|
+|101   | 065 | D    | DCFD 01 Disp | 01 Dispatch    | Fire Dispatch  | Fire     | 1        | 1000                    |
+|2227  | 8b3 | D    | DC StcarYard | Streetcar Yard | Transportation | Services | 3        | 1001                    |
+|1:100 | 0   | D    | Police       | Encrypted      | Encrypted      | Law      | -1       |                         |
 
- In Multi-Site mode, the preferred NAC for a specific talk group is used to specify the site you prefer the talk group to be recorded from.
+In Multi-Site mode, the preferred NAC for a specific talk group is used to specify the site you prefer the talk group to be recorded from.
 
 ## channelFile
 
