@@ -28,6 +28,8 @@ This maps in the current directory, so you can try building files from you local
 
 `docker run -v ${PWD}:/src -it tr-debian /bin/bash`  
 
+`docker run -v ${PWD}:/src -it tr-ubuntu /bin/bash`  
+
 `docker run --privileged --ulimit core=-1 -v ${PWD}:/src -v /dev/bus/usb:/dev/bus/usb  -v /var/run/dbus:/var/run/dbus -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket -v /home/luke/trunk-recorder-docker:/app -it tr-arch-aur /bin/bash`
 
 `docker run --privileged --ulimit core=-1 -v ${PWD}:/src -v /dev/bus/usb:/dev/bus/usb  -v /var/run/dbus:/var/run/dbus -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket -v /home/luke/trunk-recorder-docker:/app -it tr-fedora /bin/bash`
