@@ -7,7 +7,7 @@
 #include "../systems/system.h"
 #include "../systems/parser.h"
 #include "../formatter.h"
-#include <nlohmann/json.hpp>
+#include <json.hpp>
 
 typedef enum {
   PLUGIN_UNKNOWN,

@@ -280,11 +280,11 @@ list(APPEND trunk_recorder_sources
   list(APPEND trunk_recorder_headers
     trunk-recorder/call.h
     trunk-recorder/plugin_manager/plugin_api.h
+    #lib/nlohmann/json.hpp
   )
 
   list(APPEND 3p_headers
-    lib/nlohmann/json.hpp
-    lib/csv-parser/csv.hpp 
+    #lib/csv-parser/csv.hpp 
   )
 set_source_files_properties(lib/lfsr/lfsr.cxx COMPILE_FLAGS "-w")
 
@@ -298,15 +298,6 @@ STATIC
 include(GNUInstallDirs)
 
 add_subdirectory(lib/op25_repeater)
-
-#set(JSON_Install OFF CACHE INTERNAL "")
-
-#add_subdirectory(lib/nlohmann_json)
-
-#include(FetchContent)
-
-#FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
-#FetchContent_MakeAvailable(json)
 
 #target_compile_options(
 #    imbe_vocoder PRIVATE
@@ -326,18 +317,23 @@ set_property(
 
 
 set_target_properties(trunk_recorder_library PROPERTIES OUTPUT_NAME "trunk-recorder")
-set_target_properties(trunk_recorder_library PROPERTIES PUBLIC_HEADER "${trunk_recorder_headers}")
-set_target_properties(trunk_recorder_library PROPERTIES PRIVATE_HEADER "${3p_headers}")
+#set_target_properties(trunk_recorder_library PROPERTIES PUBLIC_HEADER "${trunk_recorder_headers}")
+#set_target_properties(trunk_recorder_library PROPERTIES PRIVATE_HEADER "${3p_headers}")
 
 # Weird - when I add LIBRARY before the DESTINATION, it installs in the /usr/local/lib dir on a mac
 install(TARGETS trunk_recorder_library 
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/trunk-recorder
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/trunk-recorder
+    #PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder
 )
     
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/trunk-recorder/" # source directory
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder" # target directory
     FILES_MATCHING # install only matched files
     PATTERN "*.h" # select header files
+)
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/json.hpp" # source file
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder" # target directory
 )
 
 
