@@ -194,6 +194,8 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     // unsigned long f2   = channel_id_to_frequency(ch2, sys_num);
     message.message_type = SYSID;
     message.sys_id = syid;
+    message.sys_rfss = rfid;
+    message.sys_site_id = stid;
     os << "mbt3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ")";
     message.meta = os.str();
     BOOST_LOG_TRIVIAL(debug) << os.str();
@@ -856,6 +858,8 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long chan = bitset_shift_mask(tsbk, 24, 0xffff);
     message.message_type = SYSID;
     message.sys_id = syid;
+    message.sys_rfss = rfid;
+    message.sys_site_id = stid;
     os << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan, sys_num) << ")";
     message.meta = os.str();
     BOOST_LOG_TRIVIAL(debug) << os.str();
