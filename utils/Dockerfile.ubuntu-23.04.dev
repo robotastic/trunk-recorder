@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:23.04 AS base
 
 # Install everything except cmake
 RUN apt-get update && \

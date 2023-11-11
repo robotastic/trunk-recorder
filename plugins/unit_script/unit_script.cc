@@ -3,6 +3,7 @@
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
 
+
 struct Unit_Script_System_Script {
   std::string script;
   std::string short_name;
@@ -140,12 +141,12 @@ int call_start(Call *call) {
     return 1;
 }
 
-  int parse_config(boost::property_tree::ptree &cfg) {
+  int parse_config(json config_data) {
 
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
+    for (json element : config_data["systems"]) {
       Unit_Script_System_Script system_script;
-      system_script.script = node.second.get<std::string>("unitScript", "");
-      system_script.short_name = node.second.get<std::string>("shortName", "");
+      system_script.script = element.value("unitScript", "");
+      system_script.short_name = element.value("shortName", "");
       if (system_script.script != "") {
         BOOST_LOG_TRIVIAL(info) << "\t- [" << system_script.short_name << "]: " << system_script.script ;
         this->system_scripts.push_back(system_script);

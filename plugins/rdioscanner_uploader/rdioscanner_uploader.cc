@@ -373,7 +373,7 @@ public:
     return upload(call_info);
   }
 
-  int parse_config(boost::property_tree::ptree &cfg) {
+ int parse_config(json config_data) {
     /*
           system->set_rdioscanner_api_key(node.second.get<std::string>("rdioscannerApiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "Rdio Scanner API Key: " << system->get_rdioscanner_api_key();
@@ -384,12 +384,12 @@ public:
     BOOST_LOG_TRIVIAL(info) << "Rdio Scanner Server: " << config.rdioscanner_server;*/
 
     // Tests to see if the rdioscannerServer value exists in the config file
-    boost::optional<std::string> upload_server_exists = cfg.get_optional<std::string>("server");
+    bool upload_server_exists = config_data.contains("server");
     if (!upload_server_exists) {
       return 1;
     }
 
-    this->data.server = cfg.get<std::string>("server", "");
+    this->data.server = config_data.value("server", "");
     BOOST_LOG_TRIVIAL(info) << "Rdio Scanner Server: " << this->data.server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
@@ -400,25 +400,6 @@ public:
       BOOST_LOG_TRIVIAL(error) << "Unable to parse Rdio Scanner Server URL\n";
       return 1;
     } 
-
-    // Gets the API key for each system, if defined
-    BOOST_FOREACH (boost::property_tree::ptree::value_type &node, cfg.get_child("systems")) {
-      boost::optional<boost::property_tree::ptree &> rdioscanner_exists = node.second.get_child_optional("apiKey");
-      if (rdioscanner_exists) {
-        Rdio_Scanner_System sys;
-
-        sys.api_key = node.second.get<std::string>("apiKey", "");
-        sys.system_id = node.second.get<std::string>("systemId", "");
-        sys.short_name = node.second.get<std::string>("shortName", "");
-        BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << sys.short_name;
-        this->data.systems.push_back(sys);
-      }
-    }
-
-    if (this->data.systems.size() == 0) {
-      BOOST_LOG_TRIVIAL(error) << "Rdio Scanner Server set, but no Systems are configured\n";
-      return 1;
-    }
 
     return 0;
   }
