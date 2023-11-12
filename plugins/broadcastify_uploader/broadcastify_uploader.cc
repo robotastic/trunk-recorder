@@ -41,7 +41,7 @@ public:
     for (std::vector<Broadcastify_System_Key>::iterator it = data.keys.begin(); it != data.keys.end(); ++it) {
       Broadcastify_System_Key key = *it;
       if (key.short_name == short_name) {
-        return key.system_id;
+        return key.system_id; // Convert int to string for return
       }
     }
     return 0;

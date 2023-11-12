@@ -14,7 +14,7 @@
 struct Rdio_Scanner_System {
   std::string api_key;
   std::string short_name;
-  int system_id;
+  uint32_t    system_id;
   std::string talkgroupsFile;
   Talkgroups *talkgroups;
   bool compress_wav;
@@ -45,7 +45,7 @@ public:
 
   int upload(Call_Data_t call_info) {
     std::string api_key;
-    int system_id;
+    uint32_t system_id;
     std::string talkgroup_group = call_info.talkgroup_group;
     std::string talkgroup_tag = call_info.talkgroup_tag;
     std::string talkgroup_alpha_tag = call_info.talkgroup_alpha_tag;
