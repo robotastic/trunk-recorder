@@ -66,7 +66,7 @@ public:
     if (api_key.size() == 0) {
       return 0;
     }
-    
+
     std::ostringstream freq;
     std::string freq_string;
     freq << std::fixed << std::setprecision(0);
@@ -106,7 +106,7 @@ public:
 
     if (call_info.patched_talkgroups.size()>1){
       for (unsigned long i = 0; i < call_info.patched_talkgroups.size(); i++) {
-        if (i!=0) { 
+        if (i!=0) {
           patch_list << ",";
         }
         patch_list << (int)call_info.patched_talkgroups[i];
@@ -125,8 +125,8 @@ public:
 
     if (call_info.transmission_error_list.size() != 0) {
       for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
-          freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"errorCount\": " << std::setprecision(0) <<call_info.transmission_error_list[i].error_count << ", \"spikeCount\": " << call_info.transmission_error_list[i].spike_count << "}"; 
-  
+          freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"errorCount\": " << std::setprecision(0) <<call_info.transmission_error_list[i].error_count << ", \"spikeCount\": " << call_info.transmission_error_list[i].spike_count << "}";
+
         if (i < (call_info.transmission_error_list.size() - 1)) {
           freq_list << ", ";
         } else {
@@ -399,10 +399,10 @@ public:
     if (!regex_match(this->data.server.c_str(), what, ex)) {
       BOOST_LOG_TRIVIAL(error) << "Unable to parse Rdio Scanner Server URL\n";
       return 1;
-    } 
+    }
 
         // Gets the API key for each system, if defined
-      for (json element : config_data["systems"]) {  
+      for (json element : config_data["systems"]) {
         bool rdioscanner_exists = element.contains("apiKey");
        if (rdioscanner_exists) {
          Rdio_Scanner_System sys;
@@ -423,7 +423,7 @@ public:
     return 0;
   }
 
-  
+
  /*
    int start() { return 0; }
    int stop() { return 0; }

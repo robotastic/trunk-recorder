@@ -127,10 +127,10 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
   std::vector<std::string> headers = reader.get_col_names();
   std::vector<std::string> defined_headers = {"TG Number", "Tone", "Frequency", "Alpha Tag", "Description", "Category", "Tag", "Enable", "Comment"};
 
-  if (headers[0] != "Decimal") {
+  if (headers[0] != "TG Number") {
 
     BOOST_LOG_TRIVIAL(error) << "Column Headers are required for Channel CSV files";
-    BOOST_LOG_TRIVIAL(error) << "The first column must be 'Decimal'";
+    BOOST_LOG_TRIVIAL(error) << "The first column must be 'TG Number'";
     BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Tone', 'Frequency',";
     BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment'";
     exit(0);
@@ -188,8 +188,12 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
       tone = row["Tone"].get<double>();
     }
 
-    if ((reader.index_of("Frequency") >= 0) && row["Frequency"].is_float()) {
+    if ((reader.index_of("Frequency") >= 0) && row["Frequency"].is_num()) {
       freq = row["Frequency"].get<double>();
+      // If this is a float under 1000, it must be in MHz so convert to Hz
+      if (row["Frequency"].is_float() && freq < 1000.0) {
+        freq = freq * 1e+6;
+      }
     }
 
     if ((reader.index_of("Enable") >= 0) && row["Enable"].is_str()) {

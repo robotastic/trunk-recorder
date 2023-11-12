@@ -37,14 +37,14 @@ public:
     return "";
   }
 
-  std::string get_system_id(std::string short_name) {
+  int get_system_id(std::string short_name) {
     for (std::vector<Broadcastify_System_Key>::iterator it = data.keys.begin(); it != data.keys.end(); ++it) {
       Broadcastify_System_Key key = *it;
       if (key.short_name == short_name) {
-        return std::to_string(key.system_id); // Convert int to string for return
+        return key.system_id; // Convert int to string for return
       }
     }
-    return "";
+    return 0;
   }
 
   static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -122,9 +122,9 @@ public:
     std::string response_buffer;
 
     std::string api_key = get_api_key(call_info.short_name);
-    std::string system_id = get_system_id(call_info.short_name);
+    int system_id = get_system_id(call_info.short_name);
 
-    if ((api_key.size() ==0) || (system_id.size() ==0)) {
+    if ((api_key.size() == 0) || (system_id == 0)) {
       return 0;
     }
 
@@ -157,7 +157,7 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "systemId",
-                 CURLFORM_COPYCONTENTS, system_id.c_str(),
+                 CURLFORM_COPYCONTENTS, std::to_string(system_id).c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
@@ -293,7 +293,7 @@ public:
           BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload REJECTED: " << message;
           return 0;
       }
-      
+
       if (code != "0") {
         BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << message;
         return 1;
