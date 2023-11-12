@@ -22,7 +22,7 @@
 ########################################################################
 
 cmake_minimum_required(VERSION 3.12)
-project(Trunk-Recorder LANGUAGES CXX C VERSION "4.6.0")
+project(Trunk-Recorder LANGUAGES CXX C VERSION "4.7.0")
 
 configure_file(cmake.h.in "${PROJECT_BINARY_DIR}/cmake.h" @ONLY)
 add_definitions(-DMANUAL_GITINFO="${MANUAL_GITINFO}")

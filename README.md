@@ -1,4 +1,4 @@
-Trunk Recorder - v4.6.0
+Trunk Recorder - v4.7.0
 =======================
 
 ## Sponsors
@@ -24,7 +24,7 @@ Trunk Recorder currently supports the following:
 
 Supported platforms:
 
-**Ubuntu** (18.04,  20.04, 21.04, 22.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04, 22.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
+**Ubuntu** (18.04,  20.04, 21.04, 22.04, 23.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04, 22.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
 
 GNU Radio 3.7 - 3.10
 
@@ -32,30 +32,33 @@ GNU Radio 3.7 - 3.10
 
 RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy; SDRplay
 
----
 
 ## Version Notes
-### V4.0
+### v4.7
+- The talkgroup file format was updated and Column headers are now required. Details are [here](docs/CONFIGURE.md#talkgroupsfile).
+### v4.0
 - The executable generated has changed from `recorder` to `trunk-recorder` to help differentiate it from other applications that maybe installed.
 - A new method is used to detect the end of call. Instead of waiting for a timeout after the last trunking message is received, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stops using a frequency.
 - The format for audio filenames has changed slightly. 
   It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
 
-*[See past notes in the ChangeLog. If you upgrade and things are not working, check here](CHANGELOG.md)
-
----
 
 ## Install
 
-|              |           Docker            |                   Ubuntu                   |       RaspberryOS       |              Arch Linux               |                Homebrew                 |                MacPorts                 |
-| ------------ | :-------------------------: | :----------------------------------------: | :---------------------: | :-----------------------------------: | :-------------------------------------: | :-------------------------------------: |
-| Linux        | [📄](docs/Install/INSTALL-DOCKER.md) | [📄](docs/Install/INSTALL-LINUX.md#**ubuntu-2104**) |                         | [📄](docs/Install/INSTALL-LINUX.md#arch-linux) |                                         |                                         |
-| Raspberry Pi | [📄](docs/Install/INSTALL-DOCKER.md) |          [📄](docs/Install/INSTALL-PI.md)           | [📄](docs/Install/INSTALL-PI.md) [🎬](https://youtu.be/DizBtDZ6kE8) |                                       |                                         |                                         |
-| MacOS        |                             |                                            |                         |                                       | [📄](docs/Install/INSTALL-MAC.md#using-homebrew) | [📄](docs/Install/INSTALL-MAC.md#using-macports) |
+### Linux
+- [Docker](docs/Install/INSTALL-DOCKER.md) 
+- [From Source](docs/Install/INSTALL-LINUX.md)
+
+### Raspberry Pi
+- [Docker](docs/Install/INSTALL-DOCKER.md) 
+- [From Source](docs/Install/INSTALL-PI.md) - [Video Walkthrough](https://youtu.be/DizBtDZ6kE8)
+
+### MacOS
+- [From Source](docs/Install/INSTALL-MAC.md#using-homebrew)
 
 
 
-### Setup
+## Setup
 * [Configuring a system](docs/CONFIGURE.md)
 * [FAQ](docs/FAQ.md)
 
@@ -81,9 +84,8 @@ By default, Trunk Recorder just dumps a lot of recorded files into a directory. 
 
 If are having trouble, check out the [FAQ](docs/FAQ.md) and/or ask a question on the [Discord Server](https://discord.gg/trunk-recorder) 
 
-___
 
-### How Trunking Works
+## How Trunking Works
 For those not familiar, trunking systems allow a large number of user groups to share a limited number of radio frequencies by temporarily, dynamically assigning radio frequencies to talkgroups (channels) on-demand. It is understood that most user groups actually use the radio very sporadically and don't need a dedicated frequency. 
 
 Most trunking system types (such as SmartNet and P25) set aside one of the radio frequencies as a "control channel" that manages and broadcasts radio frequency assignments. When someone presses the Push to Talk button on their radio, the radio sends a message to the system which then assigns a voice frequency and broadcasts a Channel Grant message about it on the control channel. This lets the radio know what frequency to transmit on and tells other radios set to the same talkgroup to listen.

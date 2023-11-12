@@ -25,7 +25,7 @@ Trunk Recorder currently supports the following:
 
 Supported platforms:
 
-**Ubuntu** (18.04,  20.04, 21.04, 22.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04, 22.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
+**Ubuntu** (18.04,  20.04, 21.04, 22.04, 23.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04, 22.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
 
 GNU Radio 3.7 - 3.10
 
@@ -34,28 +34,30 @@ GNU Radio 3.7 - 3.10
 RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy
 
 
----
-
 ## Install
 
-|              |           Docker            |                   Ubuntu                   |       RaspberryOS       |              Arch Linux               |                Homebrew                 |                MacPorts                 |
-| ------------ | :-------------------------: | :----------------------------------------: | :---------------------: | :-----------------------------------: | :-------------------------------------: | :-------------------------------------: |
-| Linux        | [📄](./Install/INSTALL-DOCKER.md) | [📄](./Install/INSTALL-LINUX.md#**ubuntu-2104**) |                         | [📄](./Install/INSTALL-LINUX.md#arch-linux) |                                         |                                         |
-| Raspberry Pi | [📄](./Install/INSTALL-DOCKER.md) |          [📄](./Install/INSTALL-PI.md)           | [📄](./Install/INSTALL-PI.md) [🎬](https://youtu.be/DizBtDZ6kE8) |                                       |                                         |                                         |
-| MacOS        |                             |                                            |                         |                                       | [📄](./Install/INSTALL-MAC.md#using-homebrew) | [📄](./Install/INSTALL-MAC.md#using-macports) |
+### Linux
+- [Docker](docs/Install/INSTALL-DOCKER.md) 
+- [From Source](docs/Install/INSTALL-LINUX.md)
+
+### Raspberry Pi
+- [Docker](docs/Install/INSTALL-DOCKER.md) 
+- [From Source](docs/Install/INSTALL-PI.md) - [Video Walkthrough](https://youtu.be/DizBtDZ6kE8)
+
+### MacOS
+- [From Source](docs/Install/INSTALL-MAC.md#using-homebrew)
 
 
 
-### Setup
-* [Configuring a system](./CONFIGURE.md)
+## Setup
+* [Configuring a system](docs/CONFIGURE.md)
+* [FAQ](docs/FAQ.md)
 
 ### Troubleshooting
 
 If are having trouble, check out the [FAQ](./FAQ.md) and/or ask a question on the [Discord Server](https://discord.gg/btJAhESnks) 
 
-___
-
-### How Trunking Works
+## How Trunking Works
 For those not familiar, trunking systems allow a large number of user groups to share a limited number of radio frequencies by temporarily, dynamically assigning radio frequencies to talkgroups (channels) on-demand. It is understood that most user groups actually use the radio very sporadically and don't need a dedicated frequency. 
 
 Most trunking system types (such as SmartNet and P25) set aside one of the radio frequencies as a "control channel" that manages and broadcasts radio frequency assignments. When someone presses the Push to Talk button on their radio, the radio sends a message to the system which then assigns a voice frequency and broadcasts a Channel Grant message about it on the control channel. This lets the radio know what frequency to transmit on and tells other radios set to the same talkgroup to listen.
