@@ -11,7 +11,7 @@
 
 struct Broadcastify_System_Key {
   std::string api_key;
-  std::string system_id;
+  int system_id;
   std::string short_name;
 };
 
@@ -37,14 +37,14 @@ public:
     return "";
   }
 
-  std::string get_system_id(std::string short_name) {
+  int get_system_id(std::string short_name) {
     for (std::vector<Broadcastify_System_Key>::iterator it = data.keys.begin(); it != data.keys.end(); ++it) {
       Broadcastify_System_Key key = *it;
       if (key.short_name == short_name) {
         return key.system_id;
       }
     }
-    return "";
+    return 0;
   }
 
   static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -122,9 +122,9 @@ public:
     std::string response_buffer;
 
     std::string api_key = get_api_key(call_info.short_name);
-    std::string system_id = get_system_id(call_info.short_name);
+    int system_id = get_system_id(call_info.short_name);
 
-    if ((api_key.size() ==0) || (system_id.size() ==0)) {
+    if ((api_key.size() == 0) || (system_id == 0)) {
       return 0;
     }
 
@@ -157,7 +157,7 @@ public:
     curl_formadd(&formpost,
                  &lastptr,
                  CURLFORM_COPYNAME, "systemId",
-                 CURLFORM_COPYCONTENTS, system_id.c_str(),
+                 CURLFORM_COPYCONTENTS, std::to_string(system_id).c_str(),
                  CURLFORM_END);
 
     curl_formadd(&formpost,
@@ -293,7 +293,7 @@ public:
           BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload REJECTED: " << message;
           return 0;
       }
-      
+
       if (code != "0") {
         BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Metadata Upload Error: " << message;
         return 1;
@@ -351,7 +351,7 @@ public:
       if (broadcastify_exists) {
         Broadcastify_System_Key key;
         key.api_key = element.value("broadcastifyApiKey", "");
-        key.system_id = element.value("broadcastifySystemId", "");
+        key.system_id = element.value("broadcastifySystemId", 0);
         key.short_name = element.value("shortName", "");
         BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
         this->data.keys.push_back(key);
