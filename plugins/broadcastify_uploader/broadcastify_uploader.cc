@@ -11,7 +11,7 @@
 
 struct Broadcastify_System_Key {
   std::string api_key;
-  std::string system_id;
+  int system_id;
   std::string short_name;
 };
 
@@ -41,7 +41,7 @@ public:
     for (std::vector<Broadcastify_System_Key>::iterator it = data.keys.begin(); it != data.keys.end(); ++it) {
       Broadcastify_System_Key key = *it;
       if (key.short_name == short_name) {
-        return key.system_id;
+        return std::to_string(key.system_id); // Convert int to string for return
       }
     }
     return "";
@@ -351,7 +351,7 @@ public:
       if (broadcastify_exists) {
         Broadcastify_System_Key key;
         key.api_key = element.value("broadcastifyApiKey", "");
-        key.system_id = element.value("broadcastifySystemId", "");
+        key.system_id = element.value("broadcastifySystemId", 0);
         key.short_name = element.value("shortName", "");
         BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
         this->data.keys.push_back(key);
