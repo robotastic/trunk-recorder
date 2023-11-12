@@ -1,3 +1,8 @@
+---
+sidebar_label: 'Configure'
+sidebar_position: 3
+---
+
 # Configuring Trunk Recorder
 
 It takes a little bit of work to correctly configure Trunk Recorder, but once you get everything working you will not have to touch it again.
@@ -8,9 +13,9 @@ Before you can start entering values, you will need to do a little research abou
 
 ### Frequency
 
-![](media/gqrx.png)
+![](./media/gqrx.png)
 
-The next step is to try and receive the control channel for the trunked system, using [http://gqrx.dk/](GQRX). GQRX visualizes what your SDR is receiving and makes it easy to fine-tune the system and associated spectrum. While the system you are trying to tune in may have a lot of control channels, it is generally only transmitting on one. Type in the different frequencies to look for the active control channel. Control channels are always broadcasting, and show up as a persistent line on the waterfall graph.
+The next step is to try and receive the control channel for the trunked system, using [GQRX](http://gqrx.dk/). GQRX visualizes what your SDR is receiving and makes it easy to fine-tune the system and associated spectrum. While the system you are trying to tune in may have a lot of control channels, it is generally only transmitting on one. Type in the different frequencies to look for the active control channel. Control channels are always broadcasting, and show up as a persistent line on the waterfall graph.
 
 There is a chance that when you tune to the active control channel, it will actually be a few thousand Hz above or below the frequency you tuned to. This is because the tuners on some SDRs are not super accurate and have frequency drifting. Click on the transmission to get the frequency that your SDR thinks it is at.
 
@@ -99,7 +104,7 @@ Here is a map of the different sections of the *config.json* file:
 }
 ```
 
-
+There is a list of available Plugins [here](./Plugins.md).
 
 ### Global Configs
 

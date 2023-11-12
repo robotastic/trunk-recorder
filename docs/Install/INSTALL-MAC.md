@@ -1,3 +1,7 @@
+---
+sidebar_label: 'Mac Install'
+sidebar_position: 4
+---
 # MacOS
 There are two main "package managers" used on MacOS: [Homebrew](#using-homebrew) and [MacPorts](#using-macports). Trunk-recorder can be installed with dependencies from one or the other
 

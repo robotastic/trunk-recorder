@@ -1,3 +1,7 @@
+---
+sidebar_label: 'Debugging'
+sidebar_position: 6
+---
 # How to Debug a Seg Fault
 
 When Trunk Recorder crashes and give a Segmentation Fault error (a SegFault), there are some steps you can take to figure out what is causing it. Pulling this information makes it a lot easier to figure what is going wrong.
@@ -63,13 +67,13 @@ Use the settings from the source you are interested in from your config.json fil
 
 you would use: `rtl_sdr -f 855700000 -s 2048000 -g 39 -d 41 debug.iq`
 
-The file that rtl_sdr generates is in a compact format... which is great but it can't easily be opened by other program. There is a good write-up on it from here (from 2014!). Luckily, some wrote a small program to convert it into a more standard format (complex IQ). I have included it in the /utils folder: [rtlsdr-to-iq.c]("../utils/rtl-to-iq.c"). Compile the program and then copy it to the directory with your recordings and run it against them. Note - the conversion will cause the filesize to increase 4x, so make sure you have enough space.
+The file that rtl_sdr generates is in a compact format... which is great but it can't easily be opened by other program. There is a good write-up on it from here (from 2014!). Luckily, some wrote a small program to convert it into a more standard format (complex IQ). I have included it in the /utils folder: [rtlsdr-to-iq.c](https://github.com/robotastic/trunk-recorder/blob/master/utils/rtlsdr-to-iq.c). Compile the program and then copy it to the directory with your recordings and run it against them. Note - the conversion will cause the filesize to increase 4x, so make sure you have enough space.
 
 
 ## Playback in GQRX
 
 GQRX can playback files that are in the IQ Complex format. In GQRX, select IQ File as the source:
-![gqrx file]("media/gqrx-file.png")
+![gqrx file](./media/gqrx-file.png)
 
 You are then going to need a device string with the correct options. Update this to match where your file is and its parameters:
 
@@ -77,4 +81,4 @@ You are then going to need a device string with the correct options. Update this
 
 ## Playing an IQ File as a Source in Trunk Recorder
 
-Check out the [config-iq-file.json]("../examples/config-iq-file.json") config as an example of how to playback an IQ file as a Source. You will probably need to have the `repeat` parameter turned on, unless you have a really long file. 
+Check out the [config-iq-file.json](https://github.com/robotastic/trunk-recorder/blob/master/examples/config-iq-file.json) config as an example of how to playback an IQ file as a Source. You will probably need to have the `repeat` parameter turned on, unless you have a really long file. 

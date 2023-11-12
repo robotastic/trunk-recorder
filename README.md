@@ -49,14 +49,15 @@ RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy; SDRplay
 
 |              |           Docker            |                   Ubuntu                   |       RaspberryOS       |              Arch Linux               |                Homebrew                 |                MacPorts                 |
 | ------------ | :-------------------------: | :----------------------------------------: | :---------------------: | :-----------------------------------: | :-------------------------------------: | :-------------------------------------: |
-| Linux        | [📄](docs/INSTALL-DOCKER.md) | [📄](docs/INSTALL-LINUX.md#**ubuntu-2104**) |                         | [📄](docs/INSTALL-LINUX.md#arch-linux) |                                         |                                         |
-| Raspberry Pi | [📄](docs/INSTALL-DOCKER.md) |          [📄](docs/INSTALL-PI.md)           | [📄](docs/INSTALL-PI.md) [🎬](https://youtu.be/DizBtDZ6kE8) |                                       |                                         |                                         |
-| MacOS        |                             |                                            |                         |                                       | [📄](docs/INSTALL-MAC.md#using-homebrew) | [📄](docs/INSTALL-MAC.md#using-macports) |
+| Linux        | [📄](docs/Install/INSTALL-DOCKER.md) | [📄](docs/Install/INSTALL-LINUX.md#**ubuntu-2104**) |                         | [📄](docs/Install/INSTALL-LINUX.md#arch-linux) |                                         |                                         |
+| Raspberry Pi | [📄](docs/Install/INSTALL-DOCKER.md) |          [📄](docs/Install/INSTALL-PI.md)           | [📄](docs/Install/INSTALL-PI.md) [🎬](https://youtu.be/DizBtDZ6kE8) |                                       |                                         |                                         |
+| MacOS        |                             |                                            |                         |                                       | [📄](docs/Install/INSTALL-MAC.md#using-homebrew) | [📄](docs/Install/INSTALL-MAC.md#using-macports) |
 
 
 
 ### Setup
 * [Configuring a system](docs/CONFIGURE.md)
+* [FAQ](docs/FAQ.md)
 
 ### Playback & Sharing
 By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.

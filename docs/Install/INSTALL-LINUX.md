@@ -1,9 +1,27 @@
+---
+sidebar_label: 'Linux Install'
+sidebar_position: 1
+---
+
 # Linux Installs
 
 This page covers installing Trunk Recorder on a Linux box. I test everything on Ubuntu, but other flavors of Linux are supported. Instructions are also included for Arch Linux.
 
 ## Install Prerequistes
 To get started, install all of the required packages. Instructions for different versions are below:
+
+
+### Ubuntu 23.04
+
+```bash
+sudo   apt-get install -y apt-transport-https build-essential ca-certificates fdkaac git gnupg gnuradio gnuradio-dev gr-osmosdr libuhd-dev libboost-all-dev libcurl4-openssl-dev libgmp-dev libhackrf-dev liborc-0.4-dev libpthread-stubs0-dev libssl-dev libuhd-dev libusb-dev pkg-config software-properties-common cmake libsndfile1-dev sox
+```
+
+If you are using a HackRF:
+
+```bash
+sudo apt install -y hackrf libhackrf-dev libhackrf0
+```
 
 
 ### Ubuntu 22.04

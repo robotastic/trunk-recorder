@@ -1,3 +1,8 @@
+---
+sidebar_label: 'FAQ'
+sidebar_position: 7
+---
+
 # Ugh! Why is it doing that thing
 
 ## Common Error Messages and What to Do

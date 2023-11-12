@@ -1,3 +1,8 @@
+---
+sidebar_label: 'Docker Install'
+sidebar_position: 2
+---
+
 # Docker
 If you are not going to be modifying the source code, **a [Docker](https://www.docker.com/) based install is the easiest way to get started.** Images are published frequently to  [Docker Hub](https://hub.docker.com/r/robotastic/trunk-recorder). The images have GNURadio 3.8 and all other required dependencies built into it, so it should be ready to go and be a much faster solution than compiling. Images have been built for amd64 (amd64 is used by all modern Intel and AMD CPUs) and most popular flavors of ARM.
 

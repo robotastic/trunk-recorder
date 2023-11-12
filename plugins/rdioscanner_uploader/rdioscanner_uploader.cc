@@ -401,6 +401,25 @@ public:
       return 1;
     } 
 
+        // Gets the API key for each system, if defined
+      for (json element : config_data["systems"]) {  
+        bool rdioscanner_exists = element.contains("apiKey");
+       if (rdioscanner_exists) {
+         Rdio_Scanner_System sys;
+
+         sys.api_key = element.value("apiKey", "");
+         sys.system_id = element.value("systemId", "");
+         sys.short_name = element.value("shortName", "");
+         BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << sys.short_name;
+         this->data.systems.push_back(sys);
+       }
+     }
+
+     if (this->data.systems.size() == 0) {
+       BOOST_LOG_TRIVIAL(error) << "Rdio Scanner Server set, but no Systems are configured\n";
+       return 1;
+     }
+
     return 0;
   }
 
