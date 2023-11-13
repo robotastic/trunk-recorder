@@ -577,9 +577,16 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
       call->set_talkgroup_tag("-");
     }
 
-    if (superseding_grant) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
+    boost::format original_call_data;
+    boost::format grant_call_data;
+    
+    if ((superseding_grant) || (duplicate_grant)){
+      original_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % original_call->get_call_num() % original_call->get_system()->get_wacn() % original_call->get_system()->get_sys_rfss() % original_call->get_system()->get_sys_site_id();
+      grant_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % + sys->get_sys_site_id();
+    }
 
+    if (superseding_grant) {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant\u001b[0m -" << original_call_data << grant_call_data << "\t State: " << format_state(original_call->get_state());
       // Attempt to start a new call on the preferred NAC.
       recording_started = start_recorder(call, message, sys);
 
@@ -589,12 +596,12 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
         original_call->set_monitoring_state(SUPERSEDED);
         original_call->conclude_call();
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder. Continuing original call: " << original_call->get_call_num() << "C\u001b[0m";
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder.\u001b[0m Continuing original call: " << original_call->get_call_num() << "C";
       }
     } else if (duplicate_grant) {
       call->set_state(MONITORING);
       call->set_monitoring_state(DUPLICATE);
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << " Source: " << message.source << " Call: " << original_call->get_call_num() << "C State: " << format_state(original_call->get_state()) << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant\u001b[0m - " << original_call_data << grant_call_data << " Source: " << message.source << " Call: " << original_call->get_call_num() << "C State: " << format_state(original_call->get_state());
     } else {
       recording_started = start_recorder(call, message, sys);
       if (recording_started && !grant_message) {
