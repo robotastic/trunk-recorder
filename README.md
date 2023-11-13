@@ -60,7 +60,9 @@ RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy; SDRplay
 
 ## Setup
 * [Configuring a system](docs/CONFIGURE.md)
+* [Uploading to OpenMHz](./docs/OpenMHz.md)
 * [FAQ](docs/FAQ.md)
+
 
 ### Playback & Sharing
 By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.
