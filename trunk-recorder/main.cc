@@ -515,7 +515,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
                 }
               }
 
-              // Secondary mode to match multiSiteSystemName and use 
+              // Secondary mode to match multiSiteSystemName and use multiSiteSystemNumber.
               // If a multiSiteSystemName has been manually entered;
               // We already know that Call's system number does not match the message system number.
               // In this case, we check that the multiSiteSystemName is present, and that the Call and System multiSiteSystemNames are the same.
