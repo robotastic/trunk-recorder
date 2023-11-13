@@ -581,8 +581,13 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
     boost::format grant_call_data;
     
     if ((superseding_grant) || (duplicate_grant)){
-      original_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % original_call->get_call_num() % original_call->get_system()->get_wacn() % original_call->get_system()->get_sys_rfss() % original_call->get_system()->get_sys_site_id();
-      grant_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % + sys->get_sys_site_id();
+      if (original_call->get_system()->get_multiSiteSystemName() == "") {
+        original_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % original_call->get_call_num() % original_call->get_system()->get_wacn() % original_call->get_system()->get_sys_rfss() % original_call->get_system()->get_sys_site_id();
+        grant_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % + sys->get_sys_site_id();
+      } else {
+        original_call_data = boost::format("\u001b[36m%sC\u001b[0m: %s/%s ") % original_call->get_call_num() % original_call->get_system()->get_multiSiteSystemName() % original_call->get_system()->get_multiSiteSystemNumber();
+        grant_call_data = boost::format("\u001b[36m%sC\u001b[0m: %s/%s ") % call->get_call_num() % sys->get_multiSiteSystemName() % sys->get_multiSiteSystemNumber();        
+      }
     }
 
     if (superseding_grant) {
