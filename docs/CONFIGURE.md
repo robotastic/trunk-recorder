@@ -220,9 +220,9 @@ There is a list of available Plugins [here](./Plugins.md).
 
 When enabled, Multi-Site mode attempts to avoid recording duplicate calls by detecting simulcasted transmissions for the same talkgroup across multiple sites at the same time.
 
-For P25, Trunk Recorder will match calls that have the same WACN and same talkgroup number but a different NAC. For SmartNet, Trunk Recorder will match calls that have the same multiSiteSystemName and same talkgroup number but different multiSiteSystemNumber.
+For P25, Trunk Recorder will match calls that have the same WACN and talkgroup number but a different RFSS/SiteID. For SmartNet, Trunk Recorder will match calls that have the same multiSiteSystemName and same talkgroup number but different multiSiteSystemNumber.
 
-By default, Trunk Recorder will record the call from the first site to receive the grant and ignore the duplicate grants from the other related sites. If you want to specify the preferred site for a given talkgroup number you can specify the preferred NAC (in decimal format) in the [talkgroupsFile](#talkgroupsFile).
+By default, Trunk Recorder will record the call from the first site to receive the grant and ignore the duplicate grants from the other related sites. If you want to specify the preferred site for a given talkgroup number you can add a preferred NAC (in decimal format) or RFSS/SiteID (`RRRRssss`, e.g. `00010026`) to the [talkgroupsFile](#talkgroupsFile).
 
 Note: While multiSiteSystemName and multiSiteSystemNumber are normally used for SmartNet systems, these settings may also be used to override the default de-duplication logic for P25 systems where the mutliSite feature may not be correctly detecting duplicates. An example would be when two or more sites within a P25 system are using the same NAC and WACN. In such a deployment as a workaround, for each related system object, set multiSiteSystemName to a shared value and multiSiteSystemNumber to a unique value:
 
@@ -434,7 +434,7 @@ The columns are:
 | Category |    |  The category for the Talkgroup |
 | Tag       |   |  The Service Tag for the Talkgroup |
 | Priority |    | The priority field specifies the number of recorders the system must have available to record a new call for the talkgroup. For example, a priority of 1, the highest means as long as at least a single recorder is available, the system will record the new call. If the priority is 2, the system would at least 2 free recorders to record the new call, and so on. If there is no priority set for a talkgroup entry, a prioity of 1 is assumed. <br/> Talkgroups assigned a priority of -1 will never be recorded, regardless of the number of available recorders. |
-| Preferred NAC |     | In Multi-Site mode, the preferred NAC for a specific talk group is used to specify the site you prefer the talk group to be recorded from.|
+| Preferred NAC |     | In Multi-Site mode, the preferred NAC (`nnnn`, e.g. `1234`) or RFSS/SiteID (`RRRRssss`, e.g. `00010023`) to record a specific talkgroup.|
 | Comment |        | Use this field to capture comments about a talkgroup. It will be ignored by Trunk Recorder. |
 
 Here are the column headers and some sample data: 
