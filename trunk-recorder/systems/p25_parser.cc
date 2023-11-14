@@ -343,15 +343,28 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     // Options are not present in an UPDATE
 
     if (mfrid == 0x90) {
-      unsigned long ch = bitset_shift_mask(tsbk, 56, 0xffff);
-      unsigned long sg = bitset_shift_mask(tsbk, 40, 0xffff);
-      unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
-      unsigned long f = channel_id_to_frequency(ch, sys_num);
+        unsigned long opts = bitset_shift_mask(tsbk, 72, 0xff);
+        bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+        bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+        bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
+        bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
+        int priority = bitset_shift_mask(tsbk, 72, 0x07);
+        
+        unsigned long ch = bitset_shift_mask(tsbk, 56, 0xffff);
+        unsigned long sg = bitset_shift_mask(tsbk, 40, 0xffff);
+        unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+        unsigned long f = channel_id_to_frequency(ch, sys_num);
 
-      message.message_type = GRANT;
-      message.freq = f;
-      message.talkgroup = sg;
-      message.source = sa;
+        message.message_type = GRANT;
+        message.freq = f;
+        message.talkgroup = sg;
+        message.source = sa;
+        
+        message.encrypted = encrypted;
+        message.emergency = emergency;
+        message.duplex = duplex;
+        message.mode = mode;
+        message.priority = priority;
 
       if (get_tdma_slot(ch, sys_num) >= 0) {
         message.phase2_tdma = true;
@@ -411,20 +424,6 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
 
     if (mfrid == 0x90) { // MOT_GRG_CN_GRANT_UPDT  // MOTOROLA_OSP_PATCH_GROUP_CHANNEL_GRANT_UPDATE // Service Options are not in the Moto version of the message
-     /*unsigned long sg = bitset_shift_mask(tsbk, 64, 0xffff);
-      unsigned long ga1 = bitset_shift_mask(tsbk, 48, 0xffff);
-      unsigned long ga2 = bitset_shift_mask(tsbk, 32, 0xffff);
-      unsigned long ga3 = bitset_shift_mask(tsbk, 16, 0xffff);
-      os << "MOT_GRG_CN_UPDATE_(0x03): \tsg: " << sg << "\tga1: " << ga1 << "\tga2: " << ga2 << "\tga3: " << ga3;
-      message.meta = os.str();
-      BOOST_LOG_TRIVIAL(debug) << os.str();
-      message.message_type = PATCH_ADD;
-      PatchData moto_patch_data;
-      moto_patch_data.sg = sg;
-      moto_patch_data.ga1 = ga1;
-      moto_patch_data.ga2 = ga2;
-      moto_patch_data.ga3 = ga3;
-      message.patch_data = moto_patch_data;*/
 
       unsigned long ch1 = bitset_shift_mask(tsbk, 64, 0xffff);
       unsigned long sg1 = bitset_shift_mask(tsbk, 48, 0xffff);
