@@ -474,6 +474,9 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
   // BOOST_LOG_TRIVIAL(info) << "TG: " << message.talkgroup << " sys num: " << message.sys_num << " freq: " << message.freq << " TDMA Slot" << message.tdma_slot << " TDMA: " << message.phase2_tdma;
 
   unsigned long message_preferredNAC = 0;
+  unsigned long call_rfss_site = 0;
+  unsigned long sys_rfss_site = 0;
+
   Talkgroup *message_talkgroup = sys->find_talkgroup(message.talkgroup);
   if (message_talkgroup) {
     message_preferredNAC = message_talkgroup->get_preferredNAC();
@@ -488,8 +491,10 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
         if (call->get_sys_num() != message.sys_num) {
           if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
             if (call->get_system()->get_wacn() == sys->get_wacn()) {
-              // Default mode to match WACN and NAC and use a preferred NAC;
-              if (call->get_system()->get_nac() != sys->get_nac() && (call->get_system()->get_multiSiteSystemName() == "")) {
+              // Default mode to match WACN and use RFSS/Site to identify duplicate calls
+              sys_rfss_site = sys->get_sys_rfss() * 10000 + sys->get_sys_site_id();
+              call_rfss_site = call->get_system()->get_sys_rfss() * 10000 + call->get_system()->get_sys_site_id();
+              if ((sys_rfss_site != call_rfss_site) && (call->get_system()->get_multiSiteSystemName() == "")) {
                 if (call->get_state() == RECORDING) {
 
                   duplicate_grant = true;
@@ -501,11 +506,16 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
                     call_preferredNAC = call_talkgroup->get_preferredNAC();
                   }
 
+                  // Evaluate superseding grants by comparing call NAC or RFSS-Site against preferred NAC/site in talkgroup .csv
                   if ((call_preferredNAC != call->get_system()->get_nac()) && (message_preferredNAC == sys->get_nac())) {
+                    superseding_grant = true;
+                  } else if ((call_preferredNAC != call_rfss_site) && (message_preferredNAC == sys_rfss_site)) {
                     superseding_grant = true;
                   }
                 }
               }
+
+              // Secondary mode to match multiSiteSystemName and use multiSiteSystemNumber.
               // If a multiSiteSystemName has been manually entered;
               // We already know that Call's system number does not match the message system number.
               // In this case, we check that the multiSiteSystemName is present, and that the Call and System multiSiteSystemNames are the same.
@@ -567,9 +577,21 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
       call->set_talkgroup_tag("-");
     }
 
-    if (superseding_grant) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << "\t State: " << format_state(original_call->get_state()) << "\u001b[0m";
+    boost::format original_call_data;
+    boost::format grant_call_data;
+    
+    if ((superseding_grant) || (duplicate_grant)){
+      if (original_call->get_system()->get_multiSiteSystemName() == "") {
+        original_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % original_call->get_call_num() % original_call->get_system()->get_wacn() % original_call->get_system()->get_sys_rfss() % original_call->get_system()->get_sys_site_id();
+        grant_call_data = boost::format("\u001b[36m%sC\u001b[0m: %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % + sys->get_sys_site_id();
+      } else {
+        original_call_data = boost::format("\u001b[36m%sC\u001b[0m: %s/%s ") % original_call->get_call_num() % original_call->get_system()->get_multiSiteSystemName() % original_call->get_system()->get_multiSiteSystemNumber();
+        grant_call_data = boost::format("\u001b[36m%sC\u001b[0m: %s/%s ") % call->get_call_num() % sys->get_multiSiteSystemName() % sys->get_multiSiteSystemNumber();        
+      }
+    }
 
+    if (superseding_grant) {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant\u001b[0m -" << original_call_data << grant_call_data << "\t State: " << format_state(original_call->get_state());
       // Attempt to start a new call on the preferred NAC.
       recording_started = start_recorder(call, message, sys);
 
@@ -579,12 +601,12 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
         original_call->set_monitoring_state(SUPERSEDED);
         original_call->conclude_call();
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder. Continuing original call: " << original_call->get_call_num() << "C\u001b[0m";
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder.\u001b[0m Continuing original call: " << original_call->get_call_num() << "C";
       }
     } else if (duplicate_grant) {
       call->set_state(MONITORING);
       call->set_monitoring_state(DUPLICATE);
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant. Original Call NAC: " << original_call->get_system()->get_nac() << " Grant Message NAC: " << sys->get_nac() << " Source: " << message.source << " Call: " << original_call->get_call_num() << "C State: " << format_state(original_call->get_state()) << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant\u001b[0m - " << original_call_data << grant_call_data << " Source: " << message.source << " Call: " << original_call->get_call_num() << "C State: " << format_state(original_call->get_state());
     } else {
       recording_started = start_recorder(call, message, sys);
       if (recording_started && !grant_message) {
