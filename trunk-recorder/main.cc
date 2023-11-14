@@ -486,55 +486,54 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
     Call *call = *it;
 
     /* This is for Multi-Site support */
+    // Find candidate dublicate calls with the same talkgroup and different multisite-enabled systems
     if (call->get_talkgroup() == message.talkgroup) {
-      if ((call->get_phase2_tdma() == message.phase2_tdma) && (call->get_tdma_slot() == message.tdma_slot)) {
-        if (call->get_sys_num() != message.sys_num) {
-          if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
-            if (call->get_system()->get_wacn() == sys->get_wacn()) {
-              // Default mode to match WACN and use RFSS/Site to identify duplicate calls
-              sys_rfss_site = sys->get_sys_rfss() * 10000 + sys->get_sys_site_id();
-              call_rfss_site = call->get_system()->get_sys_rfss() * 10000 + call->get_system()->get_sys_site_id();
-              if ((sys_rfss_site != call_rfss_site) && (call->get_system()->get_multiSiteSystemName() == "")) {
-                if (call->get_state() == RECORDING) {
+      if (call->get_sys_num() != message.sys_num) {
+        if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
+          if (call->get_system()->get_wacn() == sys->get_wacn()) {
+            // Default mode to match WACN and use RFSS/Site to identify duplicate calls
+            sys_rfss_site = sys->get_sys_rfss() * 10000 + sys->get_sys_site_id();
+            call_rfss_site = call->get_system()->get_sys_rfss() * 10000 + call->get_system()->get_sys_site_id();
+            if ((sys_rfss_site != call_rfss_site) && (call->get_system()->get_multiSiteSystemName() == "")) {
+              if (call->get_state() == RECORDING) {
 
-                  duplicate_grant = true;
-                  original_call = call;
+                duplicate_grant = true;
+                original_call = call;
 
-                  unsigned long call_preferredNAC = 0;
-                  Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
-                  if (call_talkgroup) {
-                    call_preferredNAC = call_talkgroup->get_preferredNAC();
-                  }
+                unsigned long call_preferredNAC = 0;
+                Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
+                if (call_talkgroup) {
+                  call_preferredNAC = call_talkgroup->get_preferredNAC();
+                }
 
-                  // Evaluate superseding grants by comparing call NAC or RFSS-Site against preferred NAC/site in talkgroup .csv
-                  if ((call_preferredNAC != call->get_system()->get_nac()) && (message_preferredNAC == sys->get_nac())) {
-                    superseding_grant = true;
-                  } else if ((call_preferredNAC != call_rfss_site) && (message_preferredNAC == sys_rfss_site)) {
-                    superseding_grant = true;
-                  }
+                // Evaluate superseding grants by comparing call NAC or RFSS-Site against preferred NAC/site in talkgroup .csv
+                if ((call_preferredNAC != call->get_system()->get_nac()) && (message_preferredNAC == sys->get_nac())) {
+                  superseding_grant = true;
+                } else if ((call_preferredNAC != call_rfss_site) && (message_preferredNAC == sys_rfss_site)) {
+                  superseding_grant = true;
                 }
               }
+            }
 
-              // Secondary mode to match multiSiteSystemName and use multiSiteSystemNumber.
-              // If a multiSiteSystemName has been manually entered;
-              // We already know that Call's system number does not match the message system number.
-              // In this case, we check that the multiSiteSystemName is present, and that the Call and System multiSiteSystemNames are the same.
-              else if ((call->get_system()->get_multiSiteSystemName() != "") && (call->get_system()->get_multiSiteSystemName() == sys->get_multiSiteSystemName())) {
-                if (call->get_state() == RECORDING) {
+            // Secondary mode to match multiSiteSystemName and use multiSiteSystemNumber.
+            // If a multiSiteSystemName has been manually entered;
+            // We already know that Call's system number does not match the message system number.
+            // In this case, we check that the multiSiteSystemName is present, and that the Call and System multiSiteSystemNames are the same.
+            else if ((call->get_system()->get_multiSiteSystemName() != "") && (call->get_system()->get_multiSiteSystemName() == sys->get_multiSiteSystemName())) {
+              if (call->get_state() == RECORDING) {
 
-                  duplicate_grant = true;
-                  original_call = call;
+                duplicate_grant = true;
+                original_call = call;
 
-                  unsigned long call_preferredNAC = 0;
-                  Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
-                  if (call_talkgroup) {
-                    call_preferredNAC = call_talkgroup->get_preferredNAC();
-                  }
+                unsigned long call_preferredNAC = 0;
+                Talkgroup *call_talkgroup = call->get_system()->find_talkgroup(message.talkgroup);
+                if (call_talkgroup) {
+                  call_preferredNAC = call_talkgroup->get_preferredNAC();
+                }
 
-                  if ((call->get_system()->get_multiSiteSystemNumber() != 0) && (sys->get_multiSiteSystemNumber() != 0)) {
-                    if ((call_preferredNAC != call->get_system()->get_multiSiteSystemNumber()) && (message_preferredNAC == sys->get_multiSiteSystemNumber())) {
-                      superseding_grant = true;
-                    }
+                if ((call->get_system()->get_multiSiteSystemNumber() != 0) && (sys->get_multiSiteSystemNumber() != 0)) {
+                  if ((call_preferredNAC != call->get_system()->get_multiSiteSystemNumber()) && (message_preferredNAC == sys->get_multiSiteSystemNumber())) {
+                    superseding_grant = true;
                   }
                 }
               }
