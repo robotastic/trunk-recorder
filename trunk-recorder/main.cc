@@ -486,7 +486,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
     Call *call = *it;
 
     /* This is for Multi-Site support */
-    // Find candidate dublicate calls with the same talkgroup and different multisite-enabled systems
+    // Find candidate duplicate calls with the same talkgroup and different multisite-enabled systems
     if (call->get_talkgroup() == message.talkgroup) {
       if (call->get_sys_num() != message.sys_num) {
         if (call->get_system()->get_multiSite() && sys->get_multiSite()) {
