@@ -298,6 +298,9 @@ void System_impl::set_channel_file(std::string channel_file) {
   BOOST_LOG_TRIVIAL(info) << "Loading Talkgroups...";
   this->channel_file = channel_file;
   this->talkgroups->load_channels(sys_num, channel_file);
+  for (auto& tg : this->get_talkgroups()) {
+    this->add_channel(tg->freq);
+  }
 }
 
 bool System_impl::has_channel_file() {
