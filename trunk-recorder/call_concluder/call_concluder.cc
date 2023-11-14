@@ -290,6 +290,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.tdma_slot = call->get_tdma_slot();
   call_info.phase2_tdma = call->get_phase2_tdma();
   call_info.transmission_list = call->get_transmissions();
+  call_info.sys_num = sys->get_sys_num();
   call_info.short_name = sys->get_short_name();
   call_info.upload_script = sys->get_upload_script();
   call_info.audio_archive = sys->get_audio_archive();
