@@ -110,6 +110,7 @@ struct Call_Data_t {
   char converted[300];
   int min_transmissions_removed;
 
+  int sys_num;
   std::string short_name;
   std::string upload_script;
   std::string audio_type;
