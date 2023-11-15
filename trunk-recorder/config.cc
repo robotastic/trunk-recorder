@@ -353,11 +353,11 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         BOOST_LOG_TRIVIAL(info) << "Hide Encrypted Talkgroups: " << system->get_hideEncrypted();
         system->set_hideUnknown(element.value("hideUnknownTalkgroups", system->get_hideUnknown()));
         BOOST_LOG_TRIVIAL(info) << "Hide Unknown Talkgroups: " << system->get_hideUnknown();
-        system->set_min_duration(element.value("minDuration", 0));
+        system->set_min_duration(element.value("minDuration", 0.0));
         BOOST_LOG_TRIVIAL(info) << "Minimum Call Duration (in seconds): " << system->get_min_duration();
-        system->set_max_duration(element.value("maxDuration", 0));
+        system->set_max_duration(element.value("maxDuration", 0.0));
         BOOST_LOG_TRIVIAL(info) << "Maximum Call Duration (in seconds): " << system->get_max_duration();
-        system->set_min_tx_duration(element.value("minTransmissionDuration", 0));
+        system->set_min_tx_duration(element.value("minTransmissionDuration", 0.0));
         BOOST_LOG_TRIVIAL(info) << "Minimum Transmission Duration (in seconds): " << system->get_min_tx_duration();
         system->set_multiSite(element.value("multiSite", false));
         BOOST_LOG_TRIVIAL(info) << "Multiple Site System: " << system->get_multiSite();
@@ -384,10 +384,10 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
       if (source_enabled) {
         bool gain_set = false;
         int silence_frames = element.value("silenceFrames", 0);
-        double center = element.value("center", 0);
-        double rate = element.value("rate", 0);
-        double error = element.value("error", 0);
-        double ppm = element.value("ppm", 0);
+        double center = element.value("center", 0.0);
+        double rate = element.value("rate", 0.0);
+        double error = element.value("error", 0.0);
+        double ppm = element.value("ppm", 0.0);
         bool agc = element.value("agc", false);
         int gain = element.value("gain", 0);
         int if_gain = element.value("ifGain", 0);
@@ -414,10 +414,10 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
 
         std::string device = element.value("device", "");
         BOOST_LOG_TRIVIAL(info) << "Driver: " << element.value("driver", "");
-        BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(element.value("center", 0));
-        BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(element.value("rate", 0));
-        BOOST_LOG_TRIVIAL(info) << "Error: " << element.value("error", 0);
-        BOOST_LOG_TRIVIAL(info) << "PPM Error: " << element.value("ppm", 0);
+        BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(element.value("center", 0.0));
+        BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(element.value("rate", 0.0));
+        BOOST_LOG_TRIVIAL(info) << "Error: " << element.value("error", 0.0);
+        BOOST_LOG_TRIVIAL(info) << "PPM Error: " << element.value("ppm", 0.0);
         BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << element.value("agc", false);
         BOOST_LOG_TRIVIAL(info) << "Gain: " << element.value("gain", 0);
         BOOST_LOG_TRIVIAL(info) << "IF Gain: " << element.value("ifGain", 0);
