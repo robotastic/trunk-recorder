@@ -46,6 +46,22 @@ void p25_recorder_fsk4_demod::initialize() {
   double fd = 600.0;
   double pll_demod_gain = 1.0 / (fd * freq_to_norm_radians);
   double samples_per_symbol = 5;
+
+
+  long _if_rate = 24000;
+  double _gain_mu = 0.025;
+  double _costas_alpha = 0.008;
+  long _symbol_rate = 4800;
+  double _symbol_deviation = 600.0;
+  double _bb_gain = 1.0;
+  double excess_bw = 0.2;
+  double usable_bw = 1.0;
+  double _mu = 0.5;
+  double _freq_error = 0.0;
+  double _omega_relative_limit = 0.005;
+
+
+
   pll_freq_lock = gr::analog::pll_freqdet_cf::make((phase1_symbol_rate / 2.0 * 1.2) * freq_to_norm_radians, (fc + (3 * fd * 1.9)) * freq_to_norm_radians, (fc + (-3 * fd * 1.9)) * freq_to_norm_radians);
   pll_amp = gr::blocks::multiply_const_ff::make(pll_demod_gain * 1.0);
 

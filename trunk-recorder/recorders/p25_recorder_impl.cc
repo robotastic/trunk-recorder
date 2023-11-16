@@ -128,8 +128,8 @@ void p25_recorder_impl::initialize_prefilter() {
   }
 
   // Cut-Off Filter
-  fa = 6250;
-  fb = fa + 1250;
+  fa = 3200; //6250;
+  fb = fa + 800; //1250;
   #if GNURADIO_VERSION < 0x030900
       cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HANN);
   #else
