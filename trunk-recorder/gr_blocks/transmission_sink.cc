@@ -353,7 +353,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
             }
             state = IGNORE;
           } else {
-            BOOST_LOG_TRIVIAL(info) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tGroup Mismatch - Recorder Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming samples: " << noutput_items;
+            BOOST_LOG_TRIVIAL(debug) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tGroup Mismatch - Recorder Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming samples: " << noutput_items;
           }
         }
       }
