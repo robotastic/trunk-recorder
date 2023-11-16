@@ -104,7 +104,7 @@ private:
 	int         d_slot_mask;
 	int			d_src_id;
 	bool		d_terminated;
-        log_ts      logts;
+    log_ts&      logts;
 	CBPTC19696  bptc;
 	CDMRTrellis trellis;
 	ezpwd::RS<255,252> rs12;	// Reed-Solomon(12,9) object for Link Control decode

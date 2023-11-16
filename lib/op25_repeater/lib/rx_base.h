@@ -29,6 +29,7 @@ namespace gr{
             public:
                 virtual void rx_sym(const uint8_t sym) = 0;
                 virtual void sync_reset(void) = 0;
+                virtual void call_end(void) = 0;
                 virtual void crypt_reset(void) = 0;
                 virtual void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key) = 0;
                 virtual void reset_timer(void) = 0;
@@ -39,7 +40,7 @@ namespace gr{
                 virtual void set_xormask(const char* p) = 0;
                 virtual int get_src_id(int slot) { return -1;};
 	            virtual bool get_terminated(int slot) { return false;};
-                rx_base(const char * options, log_ts& logger,int debug, int msgq_id, gr::msg_queue::sptr queue) { };
+                rx_base(const char * options, log_ts& logger, int debug, int msgq_id, gr::msg_queue::sptr queue) { };
                 rx_base() {}; // default constructor called by derived classes
                 virtual ~rx_base() {};
         };

@@ -115,6 +115,7 @@ public:
 	void rx_sym(const uint8_t sym);
 	void sync_reset(void);
 	void reset_timer(void);
+	void call_end(void);
 	void crypt_reset(void);
 	void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key);
 	void set_slot_mask(int mask);

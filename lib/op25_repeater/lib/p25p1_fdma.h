@@ -69,6 +69,7 @@ namespace gr {
                 void process_frame();
                 void check_timeout();
                 inline bool encrypted() { return (ess_algid != 0x80); }
+                inline void reset_ess() { ess_algid = 0x80; memset(ess_mi, 0, sizeof(ess_mi)); }
                 void send_msg(const std::string msg_str, long msg_type);
 
                 // internal instance variables and state
@@ -116,6 +117,7 @@ namespace gr {
                 void set_debug(int debug);
                 void set_nac(int nac);
                 void reset_timer();
+                void call_end();
                 void crypt_reset();
                 void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key);
                 void rx_sym (const uint8_t *syms, int nsyms);

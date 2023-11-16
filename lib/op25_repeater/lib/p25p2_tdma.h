@@ -45,6 +45,7 @@ public:
 	p25p2_tdma(const op25_audio& udp, log_ts& logger, int slotid, int debug, bool do_msgq, gr::msg_queue::sptr queue, std::deque<int16_t> &qptr, bool do_audio_output, int msgq_id = 0) ;	// constructor
 	int handle_packet(uint8_t dibits[], const uint64_t fs) ;
 	void set_slotid(int slotid);
+	void call_end();
 	void crypt_reset();
 	void crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint8_t> &key);
 	uint8_t* tdma_xormask;
@@ -67,6 +68,7 @@ private:
 	int write_bufp;
 	char write_buf[512];
 	int d_slotid;
+	int d_tdma_slot_first_4v;
 	mbe_parms cur_mp;
 	mbe_parms prev_mp;
 	mbe_parms enh_mp;
@@ -88,7 +90,8 @@ private:
     int d_nac;
 	int d_debug;
 	int burst_id;
-	inline int track_vb(int burst_type) { burst_id++; return burst_id = (burst_type == 0) ? (burst_id % 5) : 4; }
+	int burst_type;
+	inline int track_vb(void) { burst_id++; return burst_id = (burst_type == 0) ? (burst_id % 5) : 4; }
 	inline void reset_vb(void) { burst_id = -1; }
 
 	ezpwd::RS<63,35> rs28;      // Reed-Solomon decoder object
@@ -106,7 +109,7 @@ private:
     p25_crypt_algs crypt_algs;
 
 	int handle_acch_frame(const uint8_t dibits[], bool fast, bool is_lcch) ;
-	void handle_voice_frame(const uint8_t dibits[]) ;
+	void handle_voice_frame(const uint8_t dibits[], int slot, int voice_subframe);
 	int  process_mac_pdu(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
 	void handle_mac_signal(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
 	void handle_mac_ptt(const uint8_t byte_buf[], const unsigned int len, const int rs_errs) ;
@@ -118,6 +121,7 @@ private:
     void convert_abbrev_msg(const uint8_t byte_buf[], const uint16_t nac, const uint8_t mfid = 0x00);
 	void handle_4V2V_ess(const uint8_t dibits[]);
 	inline bool encrypted() { return (ess_algid != 0x80); }
+    inline void reset_ess() { ess_algid = 0x80; memset(ess_mi, 0, sizeof(ess_mi)); }
 
 	void send_msg(const std::string msg_str, long msg_type);
 };
