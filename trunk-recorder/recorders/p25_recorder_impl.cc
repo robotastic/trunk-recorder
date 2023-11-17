@@ -90,6 +90,37 @@ void p25_recorder_impl::initialize_prefilter() {
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
+
+  int decimation = int(input_rate / if_rate);
+  double resampled_rate = float(input_rate) / float(decimation);
+
+   #if GNURADIO_VERSION < 0x030900
+        if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate/2, resampled_rate/2, gr::filter::firdes::WIN_HAMMING);
+    #else
+        if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate/2, resampled_rate/2, gr::fft::window::WIN_HAMMING);
+    #endif
+
+freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate);
+
+  connect(self(), 0, valve, 0);
+  connect(valve, 0, freq_xlat, 0);
+
+
+if (if_rate!=input_rate){
+    // ARB Resampler
+  arb_rate = if_rate / resampled_rate;
+  generate_arb_taps();
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+  connect(freq_xlat, 0, arb_resampler, 0);
+  resampled = true;
+
+}  else {
+  resampled = false;
+}
+
+/*
+
+
   lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make();
 
@@ -157,8 +188,10 @@ void p25_recorder_impl::initialize_prefilter() {
   //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250);  // OP25 has this set to 350 instead of 250
 
+*/
 
-  connect(self(), 0, valve, 0);
+  /*
+    connect(self(), 0, valve, 0);
   if (double_decim) {
     connect(valve, 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
@@ -177,6 +210,8 @@ void p25_recorder_impl::initialize_prefilter() {
   connect(cutoff_filter,0, squelch, 0);
   connect(squelch, 0, rms_agc, 0);
   connect(rms_agc,0,  fll_band_edge, 0);
+*/
+
 }
 
 
@@ -218,7 +253,13 @@ void p25_recorder_impl::initialize(Source *src) {
 
   modulation_selector->set_enabled(true);
 
-  connect(fll_band_edge,0, modulation_selector, 0);
+if (resampled) {
+  connect(arb_resampler,0, modulation_selector, 0);
+} else {
+  connect(freq_xlat, 0, modulation_selector, 0);
+}
+
+
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
@@ -232,7 +273,7 @@ void p25_recorder_impl::switch_tdma(bool phase2) {
   double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
 
   long if_rate = phase1_channel_rate;
-
+/*
   if (phase2) {
     d_phase2_tdma = true;
     if_rate = phase2_channel_rate;
@@ -247,7 +288,7 @@ void p25_recorder_impl::switch_tdma(bool phase2) {
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
   arb_resampler->set_taps(arb_taps);
-
+*/
   if (qpsk_mod) {
     qpsk_p25_decode->switch_tdma(phase2);
     qpsk_demod->switch_tdma(phase2);

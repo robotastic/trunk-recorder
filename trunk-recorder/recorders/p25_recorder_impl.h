@@ -50,7 +50,7 @@
 #include <gnuradio/block_detail.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
-
+#include <gnuradio/filter/freq_xlating_fir_filter.h>
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
 //#include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
@@ -145,6 +145,7 @@ private:
   double initial_rate;
   long decim;
   double resampled_rate;
+  bool resampled;
 
   int silence_frames;
   int tdma_slot;
@@ -164,6 +165,7 @@ private:
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
+  std::vector<float> if_coeffs;
 
   gr::analog::sig_source_c::sptr lo;
   gr::analog::sig_source_c::sptr bfo;
@@ -173,7 +175,7 @@ private:
   gr::filter::fft_filter_ccc::sptr bandpass_filter;
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
-
+  gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::sptr freq_xlat;
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
   gr::blocks::multiply_const_ff::sptr rescale;
