@@ -356,6 +356,7 @@ void p25_recorder_impl::autotune() {
 }
 
 int p25_recorder_impl::get_freq_error() {   // get frequency error from FLL and convert to Hz
+/*
   const float pi = M_PI;
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
@@ -365,7 +366,8 @@ int p25_recorder_impl::get_freq_error() {   // get frequency error from FLL and 
   } else {
     if_rate = phase1_channel_rate;
   }
-        return int((fll_band_edge->get_frequency() / (2*pi)) * if_rate);
+        return int((fll_band_edge->get_frequency() / (2*pi)) * if_rate);*/
+  return 0;
 }
 
 Source *p25_recorder_impl::get_source() {
