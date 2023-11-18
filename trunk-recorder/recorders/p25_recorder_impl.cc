@@ -451,6 +451,9 @@ void p25_recorder_impl::tune_offset(double f) {
   if (abs(freq) > ((input_rate / 2) - (if1 / 2))) {
     BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate / 2) - (if1 / 2));
   }
+
+  freq_xlat->set_center_freq(freq);
+  /*
   if (double_decim) {
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1 / 2, -freq + if1 / 2, if1 / 2);
     bandpass_filter->set_taps(bandpass_filter_coeffs);
@@ -466,7 +469,7 @@ void p25_recorder_impl::tune_offset(double f) {
 
   } else {
     lo->set_frequency(freq);
-  }
+  }*/
   /*
   if (!qpsk_mod) {
     fsk4_demod->reset();
