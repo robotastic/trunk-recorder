@@ -101,7 +101,7 @@ void p25_recorder_impl::initialize_prefilter() {
     #endif
 
 freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate);
-
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
   connect(self(), 0, valve, 0);
   connect(valve, 0, freq_xlat, 0);
 
@@ -112,9 +112,11 @@ if (if_rate!=input_rate){
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   connect(freq_xlat, 0, arb_resampler, 0);
+  connect(arb_resampler, 0, squelch, 0);
   resampled = true;
 
 }  else {
+  connect(freq_xlat, 0, squelch, 0);
   resampled = false;
 }
 
@@ -253,13 +255,8 @@ void p25_recorder_impl::initialize(Source *src) {
 
   modulation_selector->set_enabled(true);
 
-if (resampled) {
-  connect(arb_resampler,0, modulation_selector, 0);
-} else {
-  connect(freq_xlat, 0, modulation_selector, 0);
-}
 
-
+  connect(squelch, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
