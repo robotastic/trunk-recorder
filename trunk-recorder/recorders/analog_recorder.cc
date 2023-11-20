@@ -78,11 +78,12 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   center_freq = source->get_center();
   config = source->get_config();
   samp_rate = source->get_rate();
+  long if_rate = source->get_rate();
   squelch_db = 0;
   talkgroup = 0;
   recording_count = 0;
   recording_duration = 0;
-
+  std::vector<float> if_coeffs;
   rec_num = rec_counter++;
   state = INACTIVE;
 
@@ -96,29 +97,33 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
     use_streaming = config->enable_audio_streaming;
   }
 
-  // int samp_per_sym        = 10;
-  system_channel_rate = 96000; // 4800 * samp_per_sym;
-  wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
-                               /*  int decim               = floor(samp_rate / 384000);
-                             
-  double pre_channel_rate = samp_rate / decim;*/
 
+  system_channel_rate = 96000;
+  wav_sample_rate = 16000;    
   int initial_decim = floor(samp_rate / 480000);
   initial_rate = double(samp_rate) / double(initial_decim);
   int decim = floor(initial_rate / system_channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
 
 #if GNURADIO_VERSION < 0x030900
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 50, gr::filter::firdes::WIN_HANN);
 #else
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::fft::window::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 50, gr::fft::window::WIN_HANN);
 #endif
   //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 4000, 1000, 100);
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
-  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
+   #if GNURADIO_VERSION < 0x030900
+        if_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, resampled_rate/2, resampled_rate/2, gr::filter::firdes::WIN_HAMMING);
+    #else
+        if_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, resampled_rate/2, resampled_rate/2, gr::fft::window::WIN_HAMMING);
+    #endif
+
+
+  //prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
+  prefilter = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(initial_decim, inital_lpf_taps, 0, if_rate);
 
   channel_lpf = gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 

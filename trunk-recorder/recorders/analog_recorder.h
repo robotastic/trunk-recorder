@@ -30,6 +30,7 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 #include <gnuradio/filter/fft_filter_ccf.h>
+#include <gnuradio/filter/freq_xlating_fir_filter.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/iir_filter_ffd.h>
 
@@ -129,7 +130,7 @@ private:
   Config *config;
   Source *source;
   void calculate_iir_taps(double tau);
-  freq_xlating_fft_filter_sptr prefilter;
+ 
 
   /* GR blocks */
   gr::filter::iir_filter_ffd::sptr deemph;
@@ -141,6 +142,8 @@ private:
   gr::filter::fir_filter_fff::sptr decim_audio;
   gr::filter::fir_filter_fff::sptr high_f;
   gr::filter::fir_filter_fff::sptr low_f;
+  //freq_xlating_fft_filter_sptr prefilter;
+  gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::sptr prefilter;
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::analog::pwr_squelch_ff::sptr squelch_two;
   gr::analog::quadrature_demod_cf::sptr demod;
