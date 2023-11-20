@@ -103,6 +103,10 @@ BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder  - decimation: " <<  decimation << "
 
 freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate);
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
+    rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
+      double sps = floor(resampled_rate / phase1_symbol_rate);
+  double def_excess_bw = 0.2;
+    fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250);  // OP25 has this set to 350 instead of 250
   connect(self(), 0, valve, 0);
   connect(valve, 0, freq_xlat, 0);
 
@@ -256,8 +260,9 @@ void p25_recorder_impl::initialize(Source *src) {
 
   modulation_selector->set_enabled(true);
 
-
-  connect(squelch, 0, modulation_selector, 0);
+  connect(squelch, 0, rms_agc, 0);
+  connect(rms_agc,0,  fll_band_edge, 0);
+  connect(fll_band_edge, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
