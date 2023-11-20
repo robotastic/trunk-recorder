@@ -13,7 +13,7 @@ p25_recorder_sptr make_p25_recorder(Source *src, Recorder_Type type) {
 void p25_recorder_impl::generate_arb_taps() {
 
   double arb_size = 32;
-  double arb_atten = 100;
+  double arb_atten = 30; // was originally 100
   // Create a filter that covers the full bandwidth of the output signal
 
   // If rate >= 1, we need to prevent images in the output,
@@ -21,7 +21,7 @@ void p25_recorder_impl::generate_arb_taps() {
   // width of 0.5.  If rate < 1, we need to filter to less
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
-  double percent = 0.80;
+  double percent = 1;// 0.95; //0.80;
 
   if (arb_rate <= 1) {
     double halfband = 0.5 * arb_rate;
@@ -144,7 +144,7 @@ void p25_recorder_impl::initialize_prefilter() {
   double sps = floor(resampled_rate / phase1_symbol_rate);
   double def_excess_bw = 0.2;
   BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate << " SPS: " << sps;
-
+  BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Taps - lowpass: " << lowpass_filter_coeffs.size() << " bandpass: " << bandpass_filter_coeffs.size() << " cutoff: " << cutoff_filter_coeffs.size() << " arb: " << arb_taps.size();
    // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
   // power squelch works well. real FM receviers use a noise squelch, where
