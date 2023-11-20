@@ -93,7 +93,8 @@ void p25_recorder_impl::initialize_prefilter() {
 
   int decimation = int(input_rate / if_rate);
   double resampled_rate = float(input_rate) / float(decimation);
-
+BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder  - decimation: " <<  decimation << " resampled rate " << resampled_rate << " if rate: " << if_rate << " System Rate: " << input_rate;
+   
    #if GNURADIO_VERSION < 0x030900
         if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate/2, resampled_rate/2, gr::filter::firdes::WIN_HAMMING);
     #else
