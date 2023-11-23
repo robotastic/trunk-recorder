@@ -39,7 +39,7 @@ void p25_recorder_impl::generate_arb_taps() {
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
 #endif
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low, rate: " << arb_rate;
     exit(1);
   }
 }
@@ -319,11 +319,11 @@ void p25_recorder_impl::switch_tdma(bool phase2) {
     if_rate = phase1_channel_rate;
     fll_band_edge->set_samples_per_symbol(phase1_samples_per_symbol);
   }
-
+/* This shouldn't have to change....
   arb_rate = if_rate / double(resampled_rate);
   generate_arb_taps();
   arb_resampler->set_rate(arb_rate);
-  arb_resampler->set_taps(arb_taps);
+  arb_resampler->set_taps(arb_taps);*/
 
   if (qpsk_mod) {
     qpsk_p25_decode->switch_tdma(phase2);
