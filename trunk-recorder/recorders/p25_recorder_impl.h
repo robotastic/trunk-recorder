@@ -163,6 +163,8 @@ private:
   std::vector<float> arb_taps;
 
   std::vector<gr_complex> bandpass_filter_coeffs;
+  std::vector<float> inital_lpf_taps;
+  std::vector<float> channel_lpf_taps;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
   std::vector<float> if_coeffs;
@@ -172,6 +174,7 @@ private:
   gr::blocks::multiply_cc::sptr mixer;
 
   /* GR blocks */
+  gr::filter::fft_filter_ccf::sptr channel_lpf;
   gr::filter::fft_filter_ccc::sptr bandpass_filter;
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;

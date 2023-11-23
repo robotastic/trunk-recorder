@@ -96,12 +96,25 @@ void p25_recorder_impl::initialize_prefilter() {
 BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder  - decimation: " <<  decimation << " resampled rate " << resampled_rate << " if rate: " << if_rate << " System Rate: " << input_rate;
    
    #if GNURADIO_VERSION < 0x030900
+        inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, input_rate, 96000, 25000, 60, gr::filter::firdes::WIN_HANN);
         if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate/2, resampled_rate/2, gr::filter::firdes::WIN_HAMMING);
+        channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 60, gr::filter::firdes::WIN_HANN);
     #else
+        inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, input_rate, 96000, 25000, 60, gr::fft::window::WIN_HANN);
+        channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, resampled_rate, 8250, 2500, 60, gr::fft::window::WIN_HANN);
         if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate/2, resampled_rate/2, gr::fft::window::WIN_HAMMING);
     #endif
 
-freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate);
+
+
+
+
+  freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, inital_lpf_taps, 0, input_rate); 
+
+  
+  channel_lpf  =  gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps);
+
+//freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate);
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
     rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
       double sps = floor(resampled_rate / phase1_symbol_rate);
@@ -116,12 +129,14 @@ if (if_rate!=input_rate){
   arb_rate = if_rate / resampled_rate;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  connect(freq_xlat, 0, arb_resampler, 0);
-  connect(arb_resampler, 0, squelch, 0);
+  connect(freq_xlat, 0, channel_lpf, 0);
+  connect(channel_lpf, 0, arb_resampler, 0);
+  //connect(arb_resampler, 0, squelch, 0);
   resampled = true;
 
 }  else {
-  connect(freq_xlat, 0, squelch, 0);
+  connect(freq_xlat, 0,  channel_lpf, 0);
+  //connect(channel_lpf, 0, squelch, 0);
   resampled = false;
 }
 
@@ -259,10 +274,16 @@ void p25_recorder_impl::initialize(Source *src) {
   fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames, d_soft_vocoder);
 
   modulation_selector->set_enabled(true);
-
+/*
   connect(squelch, 0, rms_agc, 0);
   connect(rms_agc,0,  fll_band_edge, 0);
-  connect(fll_band_edge, 0, modulation_selector, 0);
+  connect(fll_band_edge, 0, modulation_selector, 0);*/
+  if (resampled) {
+    connect(arb_resampler, 0, modulation_selector, 0);
+  } else {
+    connect(channel_lpf, 0, modulation_selector, 0);
+  }
+  //connect(squelch, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
@@ -449,7 +470,7 @@ long p25_recorder_impl::elapsed() {
 
 void p25_recorder_impl::tune_freq(double f) {
   chan_freq = f;
-  float freq = (center_freq - f);
+  float freq = (f - center_freq);
   tune_offset(freq);
 }
 void p25_recorder_impl::tune_offset(double f) {
@@ -460,7 +481,7 @@ void p25_recorder_impl::tune_offset(double f) {
     BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate / 2) - (if1 / 2));
   }
 
-  freq_xlat->set_center_freq(freq);
+  freq_xlat->set_center_freq(-freq);
   /*
   if (double_decim) {
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1 / 2, -freq + if1 / 2, if1 / 2);
