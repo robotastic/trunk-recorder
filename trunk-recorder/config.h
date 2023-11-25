@@ -29,7 +29,7 @@
 #include "source.h"
 #include "systems/system.h"
 #include "plugin_manager/plugin_manager.h"
-
+#define JSON_DIAGNOSTICS 1
 #include <json.hpp>
 
 bool load_config(std::string config_file, Config& config, gr::top_block_sptr& tb, std::vector<Source *>& sources, std::vector<System *>& systems); 
