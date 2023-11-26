@@ -38,11 +38,10 @@ void sigmf_recorder_impl::generate_arb_taps() {
   }
 }
 
-
 void sigmf_recorder_impl::initialize_prefilter() {
   const float pi = M_PI;
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  long if_rate = phase1_channel_rate;
+  if_rate = phase1_channel_rate;
   int decimation = int(input_rate / if_rate);
   double resampled_rate = float(input_rate) / float(decimation);
 
@@ -56,8 +55,7 @@ void sigmf_recorder_impl::initialize_prefilter() {
 }
 
 void sigmf_recorder_impl::initialize_prefilter_xlat() {
-  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  long if_rate = phase1_channel_rate;
+
   int decimation = int(input_rate / if_rate);
   double resampled_rate = float(input_rate) / float(decimation);
 
@@ -77,14 +75,14 @@ void sigmf_recorder_impl::initialize_prefilter_xlat() {
   connect(self(), 0, valve, 0);
 
   if (arb_rate == 1.0) {
-    connect(freq_xlat, 0, squelch, 0); // lowpass_filter, 0, cutoff_filter, 0);
+    connect(freq_xlat, 0, squelch, 0);
   } else {
-    connect(freq_xlat, 0, arb_resampler, 0); // lowpass_filter, 0, arb_resampler, 0);
+    connect(freq_xlat, 0, arb_resampler, 0);
     connect(arb_resampler, 0, squelch, 0);
   }
-  // connect(cutoff_filter,0, squelch, 0);
-  connect(squelch, 0, rms_agc, 0);
-  connect(rms_agc, 0, fll_band_edge, 0);
+
+  /*connect(squelch, 0, rms_agc, 0);
+  connect(rms_agc, 0, fll_band_edge, 0);*/
 }
 
 sigmf_recorder_impl::DecimSettings sigmf_recorder_impl::get_decim(long speed) {
@@ -116,8 +114,6 @@ sigmf_recorder_impl::DecimSettings sigmf_recorder_impl::get_decim(long speed) {
 }
 
 void sigmf_recorder_impl::initialize_prefilter_decim() {
-  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
-  long if_rate = phase1_channel_rate;
   long fa = 0;
   long fb = 0;
   const float pi = M_PI;
@@ -136,43 +132,42 @@ void sigmf_recorder_impl::initialize_prefilter_decim() {
   if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate / 2, resampled_rate / 2, gr::fft::window::WIN_HAMMING);
 #endif
 
+  lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
+  mixer = gr::blocks::multiply_cc::make();
 
+  sigmf_recorder_impl::DecimSettings decim_settings = get_decim(input_rate);
+  if (decim_settings.decim != -1) {
+    double_decim = true;
+    decim = decim_settings.decim;
+    if1 = input_rate / decim_settings.decim;
+    if2 = if1 / decim_settings.decim2;
+    fa = 6250;
+    fb = if2 / 2;
+    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
+    bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
+#if GNURADIO_VERSION < 0x030900
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
+#else
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
+#endif
+    bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
+    lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
+    resampled_rate = if2;
+    bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
+  } else {
+    double_decim = false;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-    mixer = gr::blocks::multiply_cc::make();
 
-    sigmf_recorder_impl::DecimSettings decim_settings = get_decim(input_rate);
-    if (decim_settings.decim != -1) {
-      double_decim = true;
-      decim = decim_settings.decim;
-      if1 = input_rate / decim_settings.decim;
-      if2 = if1 / decim_settings.decim2;
-      fa = 6250;
-      fb = if2 / 2;
-      BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
-      bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
-      #if GNURADIO_VERSION < 0x030900
-          lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
-      #else
-          lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
-      #endif
-      bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
-      lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
-      resampled_rate = if2;
-      bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-    } else {
-      double_decim = false;
-      lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-
-      #if GNURADIO_VERSION < 0x030900
-          lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::filter::firdes::WIN_HANN);
-      #else
-          lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::fft::window::WIN_HANN);
-      #endif
-      decim = floor(input_rate / if_rate);
-      resampled_rate = input_rate / decim;
-      lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
-      BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
-    }
+#if GNURADIO_VERSION < 0x030900
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::filter::firdes::WIN_HANN);
+#else
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450, gr::fft::window::WIN_HANN);
+#endif
+    decim = floor(input_rate / if_rate);
+    resampled_rate = input_rate / decim;
+    lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
+    BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
+  }
 
   // Cut-Off Filter
   fa = 6250;      // 3200; // sounds bad with FSK4 - WMATA
@@ -195,19 +190,19 @@ void sigmf_recorder_impl::initialize_prefilter_decim() {
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(valve, 0,  mixer, 0);
+    connect(valve, 0, mixer, 0);
     connect(lo, 0, mixer, 1);
   }
-  connect(mixer, 0,lowpass_filter, 0);
+  connect(mixer, 0, lowpass_filter, 0);
   if (arb_rate == 1.0) {
     connect(lowpass_filter, 0, cutoff_filter, 0);
   } else {
     connect(lowpass_filter, 0, arb_resampler, 0);
     connect(arb_resampler, 0, cutoff_filter, 0);
   }
-  connect(cutoff_filter,0, squelch, 0);
-  connect(squelch, 0, rms_agc, 0);
-  connect(rms_agc,0,  fll_band_edge, 0);
+  connect(cutoff_filter, 0, squelch, 0);
+  /*connect(squelch, 0, rms_agc, 0);
+  connect(rms_agc, 0, fll_band_edge, 0);*/
 }
 
 sigmf_recorder_sptr make_sigmf_recorder(Source *src) {
@@ -241,8 +236,7 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  initialize_prefilter();
-  initialize_prefilter_xlat();
+
 
   // tm *ltm = localtime(&starttime);
 
@@ -253,7 +247,10 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
   }
   raw_sink = gr::blocks::file_sink::make(sizeof(gr_complex), filename);
 
-  connect(fll_band_edge, 0, raw_sink, 0);
+  initialize_prefilter();
+  initialize_prefilter_xlat();
+  
+  connect(squelch, 0, raw_sink, 0);
 }
 
 int sigmf_recorder_impl::get_num() {
@@ -288,7 +285,7 @@ void sigmf_recorder_impl::tune_offset(double f) {
   // have to flip this for 3.7
   // BOOST_LOG_TRIVIAL(info) << "Offset set to: " << offset_amount << " Freq: "
   //  << freq;
-    freq_xlat->set_center_freq(-f);
+  freq_xlat->set_center_freq(-f);
 }
 
 State sigmf_recorder_impl::get_state() {
@@ -297,7 +294,8 @@ State sigmf_recorder_impl::get_state() {
 
 void sigmf_recorder_impl::stop() {
   if (state == ACTIVE) {
-    BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Stopping Logger \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
+
     state = INACTIVE;
     valve->set_enabled(false);
     raw_sink->close();
@@ -312,12 +310,15 @@ bool sigmf_recorder_impl::start(Call *call) {
     starttime = time(NULL);
     int nchars;
     tm *ltm = localtime(&starttime);
-
+    this->call = call;
+    System *system = call->get_system();
     talkgroup = call->get_talkgroup();
     freq = call->get_freq();
-    int offset_amount = (center_freq - chan_freq);
+    squelch_db = system->get_squelch_db();
+    squelch->set_threshold(squelch_db);
+    int offset_amount = (center - freq);
     tune_offset(offset_amount);
-    BOOST_LOG_TRIVIAL(info) << "sigmf_recorder.cc: Starting Logger   \t[ " << rec_num << " ] - freq[ " << freq << "] \t talkgroup[ " << talkgroup << " ]";
+    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     std::stringstream path_stream;
 
@@ -326,14 +327,47 @@ bool sigmf_recorder_impl::start(Call *call) {
     std::string path_string = path_stream.str();
     boost::filesystem::create_directories(path_string);
 
-    nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f.raw", path_string.c_str(), talkgroup, starttime, call->get_freq());
+    nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f-call_%lu.sigmf-data", path_string.c_str(), talkgroup, starttime, call->get_freq(), call->get_call_num());
     if (nchars >= 255) {
-      BOOST_LOG_TRIVIAL(error) << "Call: Path longer than 255 charecters";
+      BOOST_LOG_TRIVIAL(error) << "SigMF-meta: Path longer than 255 charecters";
     }
 
     raw_sink->open(filename);
     state = ACTIVE;
     valve->set_enabled(true);
+    std::string src_description = source->get_driver() + ": " + source->get_device() + " - " + source->get_antenna();
+    time_t now;
+    time(&now);
+    char buf[sizeof "2011-10-08T07:07:09Z"];
+    strftime(buf, sizeof buf, "%FT%TZ", gmtime(&now));
+    std::string start_time(buf);
+    nlohmann::json j = {
+      {"global", {
+        {"core:datatype", "cf32_le"},
+        {"core:sample_rate", if_rate},
+        {"core:hw", src_description},
+        {"core:recorder", "Trunk Recorder"},
+        {"core:version", "1.0.0"}
+      }},
+      {"captures", nlohmann::json::array(
+        { nlohmann::json::object({
+          {"core:sample_start", 0},
+          {"core:frequency", freq},
+          {"core:datetime", start_time}
+        })
+        }
+      )},
+      {"annotations", nlohmann::json::array({})}
+    };
+
+    nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f-call_%lu.sigmf-meta", path_string.c_str(), talkgroup, starttime, call->get_freq(), call->get_call_num());
+    if (nchars >= 255) {
+      BOOST_LOG_TRIVIAL(error) << "SigMF-meta: Path longer than 255 charecters";
+    }
+    std::ofstream o(filename);
+    o << std::setw(4) << j << std::endl;
+    o.close();
+
   } else {
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Trying to Start an already Active Logger!!!";
   }

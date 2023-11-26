@@ -67,6 +67,7 @@
 #include <gnuradio/blocks/head.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
+#include <json.hpp>
 #include "../gr_blocks/rms_agc.h"
 #include "recorder.h"
 
@@ -107,6 +108,7 @@ private:
     double arb_rate;
       long input_rate;
         long decim;
+        long if_rate;
   double resampled_rate;
         long if1;
   long if2;
@@ -119,6 +121,7 @@ private:
 
   Config *config;
   Source *source;
+  Call *call;
   char filename[255];
   // int num;
   State state;
