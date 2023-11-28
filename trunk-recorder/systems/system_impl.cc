@@ -147,7 +147,7 @@ bool System_impl::update_sysid(TrunkMessage message) {
   if (!sys_rfss || !sys_site_id) {
     sys_rfss = message.sys_rfss;
     sys_site_id = message.sys_site_id;
-    BOOST_LOG_TRIVIAL(error) << "[" << short_name << "]\tDecoding System Site"
+    BOOST_LOG_TRIVIAL(info) << "[" << short_name << "]\tDecoding System Site"
                             << " RFSS: " << std::setw(3) << std::setfill('0') << message.sys_rfss
                             << " SITE ID: " << std::setw(3) << std::setfill('0') << message.sys_site_id
                             << " (" << std::setw(3) << std::setfill('0') << message.sys_rfss << "-" << std::setw(3) << std::setfill('0') << message.sys_site_id << ")";
