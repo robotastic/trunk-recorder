@@ -146,7 +146,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     BOOST_LOG_TRIVIAL(info) << "Broadcast Signals: " << config.broadcast_signals;
     config.default_mode = data.value("defaultMode", "digital");
     BOOST_LOG_TRIVIAL(info) << "Default Mode: " << config.default_mode;
-    config.call_timeout = data.value("callTimeout", 3);
+    config.call_timeout = data.value("callTimeout", 3.0);
     BOOST_LOG_TRIVIAL(info) << "Call Timeout (seconds): " << config.call_timeout;
     config.control_message_warn_rate = data.value("controlWarnRate", 10);
     BOOST_LOG_TRIVIAL(info) << "Control channel warning rate: " << config.control_message_warn_rate;
@@ -250,7 +250,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         bool qpsk_mod = true;
         double digital_levels = element.value("digitalLevels", 1.0);
         double analog_levels = element.value("analogLevels", 8.0);
-        double squelch_db = element.value("squelch", -160);
+        double squelch_db = element.value("squelch", -160.0);
         int max_dev = element.value("maxDev", 4000);
         double filter_width = element.value("filterWidth", 1.0);
         bool conversation_mode = element.value("conversationMode", true);
