@@ -31,7 +31,7 @@ struct Config {
   bool new_call_from_update;
   bool debug_recorder;
   int debug_recorder_port;
-  int call_timeout;
+  double call_timeout;
   bool console_log;
   bool log_file;
   std::string log_color;
