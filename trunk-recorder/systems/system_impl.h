@@ -5,6 +5,7 @@
 #include <boost/foreach.hpp>
 #include <boost/log/trivial.hpp>
 #include <stdio.h>
+#include <iomanip>
 //#include "../source.h"
 #include "p25_trunking.h"
 #include "parser.h"
