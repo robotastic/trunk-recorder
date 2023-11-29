@@ -34,6 +34,7 @@ struct Config {
   int call_timeout;
   bool console_log;
   bool log_file;
+  std::string log_color;
   int control_message_warn_rate;
   int control_retune_limit;
   bool broadcast_signals;

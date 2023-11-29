@@ -21,6 +21,7 @@
 #include <gnuradio/top_block.h>
 
 #include <fstream>
+#include <regex>
 
 #include "cmake.h"
 #include "git.h"

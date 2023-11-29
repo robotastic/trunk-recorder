@@ -38,14 +38,53 @@ void set_logging_level(std::string log_level) {
       boost::log::trivial::severity >= sev_level);
 }
 
-template <class F>
-void add_logs(const F &fmt) {
-  boost::shared_ptr<sinks::synchronous_sink<sinks::basic_text_ostream_backend<char>>> sink =
-      boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
+struct NoColorLoggingFormatter {
+    void operator()(logging::record_view const& rec, logging::formatting_ostream& strm) const {
+        auto message = rec.attribute_values()[logging::aux::default_attribute_names::message()];
+        auto message_str = message.extract<std::string>().get();
+
+        std::regex escape_seq_regex("\u001B\\[[0-9;]+m");
+        strm << std::regex_replace(message_str, escape_seq_regex, "");
+    }
+};
+
+void setup_console_log(std::string log_color, std::string time_fmt) {
+  boost::shared_ptr<sinks::synchronous_sink<sinks::basic_text_ostream_backend<char>>> console_sink = logging::add_console_log(std::clog);
+  
+  if ((log_color == "console" ) || (log_color == "all")) {
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
+                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
+                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+                        logging::expressions::smessage);
+  } else {
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
+                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
+                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+                        logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
+  }
 
   std::locale loc = std::locale("C");
+  console_sink->imbue(loc);
+}
 
-  sink->imbue(loc);
+void setup_file_log(std::string log_dir, std::string log_color, std::string time_fmt) {
+  boost::shared_ptr<sinks::synchronous_sink<sinks::text_file_backend>> log_sink = logging::add_file_log(
+      keywords::file_name = log_dir + "/%m-%d-%Y_%H%M_%2N.log",
+      keywords::rotation_size = 100 * 1024 * 1024,
+      keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
+      keywords::auto_flush = true);
+
+  if ((log_color == "logfile" ) || (log_color == "all")) {
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+                            logging::expressions::smessage);
+  } else {
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+                            logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
+  }
 }
 
 bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std::vector<Source *> &sources, std::vector<System *> &systems) {
@@ -72,11 +111,19 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(config_file, pt);
 
+    // Set NO_COLOR options for console and log files
+    // Default is [color console, no_color logfile] unless NO_COLOR env var is set.  config.json overrides NO_COLOR use.
+    char *no_color = getenv("NO_COLOR");
+    bool color = true;
 
+    if (no_color != NULL && no_color[0] != '\0')
+      color = false;
+
+    config.log_color = data.value("logColor", (color ? "console" : "none"));
 
     config.console_log =  data.value("consoleLog", true); 
     if (config.console_log) {
-      add_logs(boost::log::expressions::format("[%1%] (%2%)   %3%") % boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") % boost::log::expressions::attr<boost::log::trivial::severity_level>("Severity") % boost::log::expressions::smessage);
+      setup_console_log(config.log_color, "%Y-%m-%d %H:%M:%S.%f");
     }
 
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\n     Trunk Recorder\n-------------------------------------\n";
@@ -86,12 +133,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     config.log_file = data.value("logFile", false);
     config.log_dir = data.value("logDir", "logs");
     if (config.log_file) {
-      logging::add_file_log(
-          keywords::file_name = config.log_dir + "/%m-%d-%Y_%H%M_%2N.log",
-          keywords::format = "[%TimeStamp%] (%Severity%)   %Message%",
-          keywords::rotation_size = 100 * 1024 * 1024,
-          keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
-          keywords::auto_flush = true);
+      setup_file_log(config.log_dir, config.log_color, "%Y-%m-%d %H:%M:%S.%f");
     }
 
     double config_ver = data.value("ver", 0.0);
@@ -177,6 +219,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     std::string log_level = data.value("logLevel", "info");
     BOOST_LOG_TRIVIAL(info) << "Log Level: " << log_level;
     set_logging_level(log_level);
+    BOOST_LOG_TRIVIAL(info) << "Color Console/Logfile Output: " << config.log_color;
 
     config.debug_recorder = data.value("debugRecorder", 0);
     config.debug_recorder_address = data.value("debugRecorderAddress", "127.0.0.1");
