@@ -426,6 +426,16 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
       bool source_enabled = element.value("enabled", true);
       if (source_enabled) {
         bool gain_set = false;
+        std::string driver = element.value("driver", "");
+
+        if ((driver != "osmosdr") && (driver != "usrp") && (driver != "sigmf")) {
+          BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
+          return false;
+        }
+
+        std::string device = element.value("device", "");
+        BOOST_LOG_TRIVIAL(info) << "Driver: " << element.value("driver", "");
+        BOOST_LOG_TRIVIAL(info) << "Device: " << device;
         int silence_frames = element.value("silenceFrames", 0);
         double center = element.value("center", 0.0);
         double rate = element.value("rate", 0.0);
@@ -449,14 +459,6 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         int sigmf_recorders = element.value("sigmfRecorders", 0);
         int analog_recorders = element.value("analogRecorders", 0);
 
-        std::string driver = element.value("driver", "");
-
-        if ((driver != "osmosdr") && (driver != "usrp")) {
-          BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
-        }
-
-        std::string device = element.value("device", "");
-        BOOST_LOG_TRIVIAL(info) << "Driver: " << element.value("driver", "");
         BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(element.value("center", 0.0));
         BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(element.value("rate", 0.0));
         BOOST_LOG_TRIVIAL(info) << "Error: " << element.value("error", 0.0);
