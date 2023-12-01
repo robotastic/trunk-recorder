@@ -1,6 +1,8 @@
 #include "source.h"
 #include "formatter.h"
 
+using json = nlohmann::json;
+
 static int src_counter = 0;
 
 void Source::set_antenna(std::string ant) {
@@ -525,6 +527,62 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     source_block = usrp_src;
   }
 }
+
+  Source::Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg) {
+     json data;
+
+      try {
+    std::ifstream f(sigmf_meta);
+      data = json::parse(f);
+    } catch (const json::parse_error &e) {
+      // output exception information
+      std::cout << "message: " << e.what() << '\n'
+                << "exception id: " << e.id << '\n'
+                << "byte position of error: " << e.byte << std::endl;
+    }
+    json global = data["global"];
+
+    this->rate = global["core:sample_rate"];
+
+    json capture = data["captures"][0];
+    this->center = capture["core:frequency"];
+
+    Source(sigmf_data, repeat, center, rate, cfg );
+  }
+
+
+  Source::Source(std::string iq_file, bool repeat, double center, double rate, Config *cfg) {
+      this->rate = rate;
+  this->center = center;
+  error = 0;
+  set_min_max();
+  driver = "iqfile";
+  device = "";
+  config = cfg;
+  gain = 0;
+  lna_gain = 0;
+  tia_gain = 0;
+  pga_gain = 0;
+  mix_gain = 0;
+  if_gain = 0;
+  src_num = src_counter++;
+  max_digital_recorders = 0;
+  max_debug_recorders = 0;
+  max_sigmf_recorders = 0;
+  max_analog_recorders = 0;
+  debug_recorder_port = 0;
+
+      iq_file_source::sptr iq_file_src;
+    iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);
+
+    BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE IQ FILE";
+
+    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
+
+
+    source_block = iq_file_src;
+  }
+
 
 std::vector<Recorder *> Source::get_recorders() {
 
