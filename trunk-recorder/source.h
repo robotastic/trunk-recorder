@@ -14,7 +14,7 @@
 #include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 #include "sources/iq_file_source.h"
-
+#define JSON_DIAGNOSTICS 1
 #include <json.hpp>
 
 struct Gain_Stage_t {
@@ -73,6 +73,7 @@ public:
   Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
   Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg);
   Source(std::string iq_file, bool repeat, double center, double rate, Config *cfg);
+  void set_iq_source(std::string iq_file, bool repeat, double center, double rate);
   gr::basic_block_sptr get_src_block();
   double get_min_hz();
   double get_max_hz();

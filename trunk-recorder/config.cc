@@ -442,7 +442,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           string sigmf_data = element.value("sigmfData", "");
           string sigmf_meta = element.value("sigmfMeta", "");
           bool repeat = element.value("repeat", false);
-          source = new Source(sigmf_data, sigmf_meta, repeat, &config);
+          source = new Source(sigmf_meta, sigmf_data, repeat, &config);
         } else if (driver == "iqfile") {
           string iq_file = element.value("iqFile", "");
           string iq_type = element.value("iqType", "");
