@@ -14,11 +14,11 @@ public:
 #else
   typedef std::shared_ptr<iq_file_source> sptr;
 #endif
-  static sptr make(std::string filename,  double rate, bool repeat = false);
+  static sptr make(std::string filename,  double rate, bool repeat);
          
 
-  iq_file_source(std::string filename,  double rate, bool repeat = false);
-  virtual ~iq_file_source();
+  iq_file_source(std::string filename,  double rate, bool repeat);
+
 
   private:
   double d_rate;
