@@ -106,7 +106,7 @@ Here is a map of the different sections of the *config.json* file:
 
 There is a list of available Plugins [here](./Plugins.md).
 
-### Global Configs
+## Global Configs
 
 
 | Key                          | Required | Default Value                                    | Type                                                         | Description                                                  |
@@ -142,18 +142,20 @@ There is a list of available Plugins [here](./Plugins.md).
 
 
 
-#### Source Object
+## Source Object
+
+### USRP or OSMOSDR Sources
 
 | Key              | Required | Default Value | Type                        | Description                                                  |
 | :--------------- | :------: | :-----------: | --------------------------- | ------------------------------------------------------------ |
+| driver           |    ✓     |               | **"usrp"**,  **"osmosdr"** | The GNURadio block you wish to use for the SDR.              |
+| device           |          |               | **string**<br /> See the [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for supported devices and parameters. | Osmosdr device name and possibly serial number or index of the device. <br /> You only need to do add this key if there are more than one osmosdr devices being used.<br /> Example: `bladerf=00001` for BladeRF with serial 00001 or `rtl=00923838` for RTL-SDR with serial 00923838, just `airspy` for an airspy.<br />It seems that when you have 5 or more RTLSDRs on one system you need to decrease the buffer size. I think it has something to do with the driver. Try adding buflen: `"device": "rtl=serial_num,buflen=65536"`, there should be no space between the comma and `buflen`. |
 | center           |    ✓     |               | number                      | The center frequency in Hz to tune the SDR to                |
 | rate             |    ✓     |               | number                      | The sampling rate to set the SDR to, in samples / second     |
 | error            |          |       0       | number                      | The tuning error for the SDR, in Hz. This is the difference between the target value and the actual value. So if you wanted to recv 856MHz but you had to tune your SDR to 855MHz (when set to 0ppm)  to actually receive it, you would set this to -1000000. You should also probably get a new SDR if it is off by this much. |
 | gain             |    ✓     |               | number                      | The RF gain setting for the SDR. Use a program like GQRX to find a good value. |
 | digitalRecorders |          |               | number                      | The number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
 | analogRecorders  |          |               | number                      | The number of Analog Recorder to have attached to this source. The same as Digital Recorders except for Analog Voice channels. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
-| driver           |    ✓     |               | **"usrp"** or **"osmosdr"** | The GNURadio block you wish to use for the SDR.              |
-| device           |          |               | **string**<br /> See the [osmosdr page](http://sdr.osmocom.org/trac/wiki/GrOsmoSDR) for supported devices and parameters. | Osmosdr device name and possibly serial number or index of the device. <br /> You only need to do add this key if there are more than one osmosdr devices being used.<br /> Example: `bladerf=00001` for BladeRF with serial 00001 or `rtl=00923838` for RTL-SDR with serial 00923838, just `airspy` for an airspy.<br />It seems that when you have 5 or more RTLSDRs on one system you need to decrease the buffer size. I think it has something to do with the driver. Try adding buflen: `"device": "rtl=serial_num,buflen=65536"`, there should be no space between the comma and `buflen`. |
 | ppm              |          |       0       | number                      | The tuning error for the SDR in ppm (parts per million), as an alternative to `error` above. Use a program like GQRX to find an accurate value. |
 | agc              |          |     false     | **true** / **false**        | Whether or not to enable the SDR's automatic gain control (if supported). This is false by default. It is not recommended to set this as it often yields worse performance compared to a manual gain setting. |
 | gainSettings     |          |               | { "stageName": value}       | Set the gain for any stage. The value for this setting should be passed as an object, where the key specifies the name of the gain stage and the value is the amount of gain, as an int. For example:<br /> ````"gainSettings": { "IF": 10, "BB": 11},```` |
@@ -166,8 +168,37 @@ There is a list of available Plugins [here](./Plugins.md).
 | antenna          |          |               | string, e.g.: **"TX/RX"**   | *usrp only* selects which antenna jack to use                |
 | enabled          |          |     true      | **true** / **false**        | control whether a configured source is enabled or disabled   |
 
+***
+### SigMF Sources
 
-#### System Object
+| Key              | Required | Default Value | Type                        | Description                                                  |
+| :--------------- | :------: | :-----------: | --------------------------- | ------------------------------------------------------------ |
+| driver           |    ✓     |               | **"sigmffile"**| Specify that you wish to use a SigMF based source block              |
+| sigmfMeta          |    ✓     |               | string                      | Path and filenme for the SigMF metadata File                            |
+| sigmfData          |    ✓     |               | string                      | Path and filenme for the SigMF data File                            |
+| repeat           |          |     false     | **true** / **false**        | whether to repeat playback of the IQ file when it reaches the end |
+| digitalRecorders |          |               | number                      | The number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
+| analogRecorders  |          |               | number                      | The number of Analog Recorder to have attached to this source. The same as Digital Recorders except for Analog Voice channels. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
+| enabled          |          |     true      | **true** / **false**        | control whether a configured source is enabled or disabled   |
+
+***
+
+### IQ File Sources
+
+| Key              | Required | Default Value | Type                        | Description                                                  |
+| :--------------- | :------: | :-----------: | --------------------------- | ------------------------------------------------------------ |
+| driver           |    ✓     |               | **"iqfile"**| Specify that you wish to use an IQ File based source block              |
+| iqfile           |    ✓     |               | string                      | Path and filenme for the IQ File                            |
+| repeat           |          |     false     | **true** / **false**        | whether to repeat playback of the IQ file when it reaches the end |
+| center           |    ✓     |               | number                      | The center frequency in Hz to tune the SDR to                |
+| rate             |    ✓     |               | number                      | The sampling rate to set the SDR to, in samples / second     |
+| digitalRecorders |          |               | number                      | The number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
+| analogRecorders  |          |               | number                      | The number of Analog Recorder to have attached to this source. The same as Digital Recorders except for Analog Voice channels. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
+| enabled          |          |     true      | **true** / **false**        | control whether a configured source is enabled or disabled   |
+
+
+
+## System Object
 
 | Key                    | Required | Default Value              | Type                                                                         | Description                                                  |
 | ---------------------- | :------: | -------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -211,7 +242,9 @@ There is a list of available Plugins [here](./Plugins.md).
 | decodeTPS              |          | false                      | **true** / **false**                                                         | *Conventional systems only* enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. |
 | enabled                |          | true                       | **true** / **false**                                                         | control whether a configured system is enabled or disabled                 |
 
-#### System Object - Experimental Options
+***
+
+### System Object - Experimental Options
 
 | Key                    | Required | Default Value | Type                 | Description                                                                       |
 | ---------------------- | :------: | --------------| ---------------------| --------------------------------------------------------------------------------- |
@@ -248,7 +281,7 @@ By default, Trunk Recorder will record the call from the first site to receive t
 }
 ```
 
-#### Plugin Object
+## Plugin Object
 
 | Key     | Required | Default Value | Type                 | Description                                                  |
 | ------- | :------: | ------------- | -------------------- | ------------------------------------------------------------ |
