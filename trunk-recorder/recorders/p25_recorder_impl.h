@@ -160,7 +160,6 @@ private:
   const double phase2_symbol_rate = 6000;
 
   std::vector<float> arb_taps;
-
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;

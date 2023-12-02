@@ -404,6 +404,7 @@ namespace gr {
 
         void p25p1_fdma::process_TTDU() {
             process_duid(framer->duid, framer->nac, NULL, 0);
+            reset_ess();
 
             if ((d_do_imbe || d_do_audio_output) && (framer->duid == 0x3 || framer->duid == 0xf)) {  // voice termination
                 op25audio.send_audio_flag(op25_audio::DRAIN);
@@ -654,7 +655,7 @@ namespace gr {
         void p25p1_fdma::process_voice(const bit_vector& A, const frame_type fr_type) {
             if (d_do_imbe || d_do_audio_output) {
                 if (encrypted())
-                    crypt_algs.prepare(ess_algid, ess_keyid, fr_type, ess_mi);
+                    crypt_algs.prepare(ess_algid, ess_keyid, PT_P25_PHASE1, ess_mi);
 
                 for(size_t i = 0; i < nof_voice_codewords; ++i) {
                     voice_codeword cw(voice_codeword_sz);
@@ -680,7 +681,7 @@ namespace gr {
                     if (encrypted()) {
                         packed_codeword ciphertext;
                         imbe_pack(ciphertext, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
-                        audio_valid = crypt_algs.process(ciphertext);
+                        audio_valid = crypt_algs.process(ciphertext, fr_type, i);
                         imbe_unpack(ciphertext, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7]);
                     }
 
@@ -775,6 +776,12 @@ namespace gr {
 
         void p25p1_fdma::reset_timer() {
             qtimer.reset();
+        }
+
+        void p25p1_fdma::call_end() {
+            if (d_do_audio_output)
+                op25audio.send_audio_flag(op25_audio::DRAIN);
+            reset_ess();
         }
 
         void p25p1_fdma::crypt_reset() {

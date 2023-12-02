@@ -28,7 +28,8 @@
 p25p2_sync::p25p2_sync(void) :	// constructor
 	sync_confidence(0),
 	_tdma_slotid(0),
-	packets(0)
+	packets(0),
+    d_last_rc(0)
 {
 }
 
@@ -46,7 +47,7 @@ void p25p2_sync::check_confidence (const uint8_t dibits[])
 		_tdma_slotid = 0;
 	int rc, cnt, fr, loc, chn, checkval;
 	rc = isch.isch_lookup(dibits);
-	checkval = cnt = fr = loc = chn = rc;
+	checkval = cnt = fr = loc = chn = d_last_rc = rc;
 	if (rc >= 0) {                      // I-ISCH (informational)
 		cnt = rc & 3;
 		rc = rc >> 2;

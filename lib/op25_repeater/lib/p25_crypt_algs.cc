@@ -33,7 +33,7 @@ p25_crypt_algs::p25_crypt_algs(log_ts& logger, int debug, int msgq_id) :
     logts(logger),
     d_debug(debug),
     d_msgq_id(msgq_id),
-    d_fr_type(FT_UNK),
+    d_pr_type(PT_UNK),
     d_algid(0x80),
     d_keyid(0),
     d_mi{0},
@@ -59,7 +59,7 @@ void p25_crypt_algs::key(uint16_t keyid, uint8_t algid, const std::vector<uint8_
 }
 
 // generic entry point to prepare for decryption
-bool p25_crypt_algs::prepare(uint8_t algid, uint16_t keyid, frame_type fr_type, uint8_t *MI) {
+bool p25_crypt_algs::prepare(uint8_t algid, uint16_t keyid, protocol_type pr_type, uint8_t *MI) {
     bool rc = false;
     d_algid = algid;
     d_keyid = keyid;
@@ -79,7 +79,7 @@ bool p25_crypt_algs::prepare(uint8_t algid, uint16_t keyid, frame_type fr_type, 
     switch (algid) {
         case 0xaa: // ADP RC4
             d_adp_position = 0;
-            d_fr_type = fr_type;
+            d_pr_type = pr_type;
             adp_keystream_gen();
             rc = true;
             break;
@@ -91,7 +91,7 @@ bool p25_crypt_algs::prepare(uint8_t algid, uint16_t keyid, frame_type fr_type, 
 }
 
 // generic entry point to perform decryption
-bool p25_crypt_algs::process(packed_codeword& PCW) {
+bool p25_crypt_algs::process(packed_codeword& PCW, frame_type fr_type, int voice_subframe) {
     bool rc = false;
 
     if (d_key_iter == d_keys.end())
@@ -99,7 +99,7 @@ bool p25_crypt_algs::process(packed_codeword& PCW) {
 
     switch (d_algid) {
         case 0xaa: // ADP RC4
-            rc = adp_process(PCW);
+            rc = adp_process(PCW, fr_type, voice_subframe);
             break;
     
         default:
@@ -110,39 +110,48 @@ bool p25_crypt_algs::process(packed_codeword& PCW) {
 }
 
 // ADP RC4 decryption
-bool p25_crypt_algs::adp_process(packed_codeword& PCW) {
+bool p25_crypt_algs::adp_process(packed_codeword& PCW, frame_type fr_type, int voice_subframe) {
     bool rc = true;
-    size_t offset = 0;
+    size_t offset = 256;
 
     if (d_key_iter == d_keys.end())
         return false;
 
-    switch (d_fr_type) {
+    switch (fr_type) {
         case FT_LDU1:
             offset = 0;
             break;
         case FT_LDU2:
             offset = 101;
             break;
+        case FT_4V_0:
+            offset += 7 * voice_subframe;
+            break;
+        case FT_4V_1:
+            offset += 7 * (voice_subframe + 4);
+            break;
+        case FT_4V_2:
+            offset += 7 * (voice_subframe + 8);
+            break;
+        case FT_4V_3:
+            offset += 7 * (voice_subframe + 12);
+            break;
         case FT_2V:
-        case FT_4V:
-            offset = 0;
+            offset += 7 * (voice_subframe + 16);
             break;
         default:
             rc = false;
             break;
     }
-    if ((d_fr_type == FT_LDU1) || (d_fr_type == FT_LDU2)) {
+    if (d_pr_type == PT_P25_PHASE1) {
         //FDMA
         offset += (d_adp_position * 11) + 267 + ((d_adp_position < 8) ? 0 : 2); // voice only; skip LCW and LSD
         d_adp_position = (d_adp_position + 1) % 9;
         for (int j = 0; j < 11; ++j) {
             PCW[j] = adp_keystream[j + offset] ^ PCW[j];
         }
-    } else if ((d_fr_type == FT_2V) || (d_fr_type == FT_4V)) {
+    } else if (d_pr_type == PT_P25_PHASE2) {
         //TDMA
-        offset += (d_adp_position * 7) + 256;
-        d_adp_position = (d_adp_position + 1) % 18;
         for (int j = 0; j < 7; ++j) {
             PCW[j] = adp_keystream[j + offset] ^ PCW[j];
         }
