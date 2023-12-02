@@ -21,7 +21,7 @@ void p25_recorder_impl::generate_arb_taps() {
   // width of 0.5.  If rate < 1, we need to filter to less
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
-  double percent = 1;// 0.95; //0.80;
+  double percent = 0.80;
 
   if (arb_rate <= 1) {
     double halfband = 0.5 * arb_rate;
