@@ -3,6 +3,7 @@
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
 #include <boost/asio.hpp>
+#include <boost/array.hpp>
 
 using namespace boost::asio;
 
