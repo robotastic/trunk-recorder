@@ -1,6 +1,8 @@
 #include "source.h"
 #include "formatter.h"
 
+using json = nlohmann::json;
+
 static int src_counter = 0;
 
 void Source::set_antenna(std::string ant) {
@@ -28,7 +30,6 @@ void Source::set_silence_frames(int m) {
 int Source::get_silence_frames() {
   return silence_frames;
 }
-
 
 double Source::get_min_hz() {
   return min_hz;
@@ -158,7 +159,7 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 Recorder *Source::get_analog_recorder(Talkgroup *talkgroup, int priority, Call *call) {
   int num_available_recorders = get_num_available_analog_recorders();
 
-  if(talkgroup && (priority == -1)){
+  if (talkgroup && (priority == -1)) {
     call->set_state(MONITORING);
     call->set_monitoring_state(IGNORED_TG);
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
@@ -168,7 +169,7 @@ Recorder *Source::get_analog_recorder(Talkgroup *talkgroup, int priority, Call *
   if (talkgroup && priority > num_available_recorders) { // a high priority is bad. You need at least the number of availalbe recorders to your priority
     call->set_state(MONITORING);
     call->set_monitoring_state(NO_RECORDER);
-    BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " <<  priority << " but only " << num_available_recorders << " recorders are available.";
+    BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " << priority << " but only " << num_available_recorders << " recorders are available.";
     return NULL;
   }
 
@@ -203,7 +204,7 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call) {
   int num_available_recorders = get_num_available_digital_recorders();
 
-  if(talkgroup && (priority == -1)){
+  if (talkgroup && (priority == -1)) {
     call->set_state(MONITORING);
     call->set_monitoring_state(IGNORED_TG);
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is -1.";
@@ -213,7 +214,7 @@ Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call 
   if (talkgroup && priority > num_available_recorders) { // a high priority is bad. You need at least the number of availalbe recorders to your priority
     call->set_state(MONITORING);
     call->set_monitoring_state(NO_RECORDER);
-    BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " <<  priority << " but only " << num_available_recorders << " recorders are available.";
+    BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tNot recording talkgroup. Priority is " << priority << " but only " << num_available_recorders << " recorders are available.";
     return NULL;
   }
 
@@ -312,7 +313,7 @@ Recorder *Source::get_sigmf_recorder() {
 }
 
 void Source::print_recorders() {
-  BOOST_LOG_TRIVIAL(info) << "[ Source " << src_num << ": " << format_freq(center) << " ] " << device ;
+  BOOST_LOG_TRIVIAL(info) << "[ Source " << src_num << ": " << format_freq(center) << " ] " << device;
 
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
        it != digital_recorders.end(); it++) {
@@ -524,6 +525,68 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
     source_block = usrp_src;
   }
+}
+
+void Source::set_iq_source(std::string iq_file, bool repeat, double center, double rate) {
+  this->rate = rate;
+  this->center = center;
+  error = 0;
+  min_hz = center - ((rate / 2));
+  max_hz = center + ((rate / 2));
+  driver = "iqfile";
+  device = "";
+  gain = 0;
+  lna_gain = 0;
+  tia_gain = 0;
+  pga_gain = 0;
+  mix_gain = 0;
+  if_gain = 0;
+  src_num = src_counter++;
+  max_digital_recorders = 0;
+  max_debug_recorders = 0;
+  max_sigmf_recorders = 0;
+  max_analog_recorders = 0;
+  debug_recorder_port = 0;
+
+  iq_file_source::sptr iq_file_src;
+  iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);
+
+  BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE IQ FILE";
+  BOOST_LOG_TRIVIAL(info) << "Setting Center to: " << FormatSamplingRate(center);
+  BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
+
+  source_block = iq_file_src;
+}
+
+Source::Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg) {
+  json data;
+  std::cout << sigmf_meta << std::endl;
+  try {
+    std::ifstream f(sigmf_meta);
+    data = json::parse(f);
+  } catch (const json::parse_error &e) {
+    // output exception information
+    std::cout << "message: " << e.what() << '\n'
+              << "exception id: " << e.id << '\n'
+              << "byte position of error: " << e.byte << std::endl;
+    exit(1);
+  }
+
+  std::cout << data.dump(4) << std::endl;
+  json global = data["global"];
+
+  config = cfg;
+  this->rate = global["core:sample_rate"];
+
+  json capture = data["captures"][0];
+  this->center = capture["core:frequency"];
+  std::cout << "Rate: " << rate << "Center: " << center << std::endl;
+  set_iq_source(sigmf_data, repeat, center, rate);
+}
+
+Source::Source(std::string iq_file, bool repeat, double center, double rate, Config *cfg) {
+  config = cfg;
+  set_iq_source(iq_file, repeat, center, rate);
 }
 
 std::vector<Recorder *> Source::get_recorders() {

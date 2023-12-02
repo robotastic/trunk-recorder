@@ -227,7 +227,6 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
 
     BOOST_LOG_TRIVIAL(info) << "\n-------------------------------------\nSYSTEMS\n-------------------------------------\n";
 
-
     for (json element : data["systems"]) {
       bool system_enabled = element.value("enabled", true);
       if (system_enabled) {
@@ -250,8 +249,8 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         // If it is a conventional System
         if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
 
-         bool channel_file_exist = element.contains("channelFile");
-         bool channels_exist = element.contains("channels");
+          bool channel_file_exist = element.contains("channelFile");
+          bool channels_exist = element.contains("channels");
 
           if (channel_file_exist && channels_exist) {
             BOOST_LOG_TRIVIAL(error) << "Both \"channels\" and \"channelFile\" cannot be defined for a system!";
@@ -261,7 +260,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           if (channels_exist) {
             BOOST_LOG_TRIVIAL(info) << "Conventional Channels: ";
             std::vector<double> channels = element["channels"];
-            for (auto& channel : channels) {
+            for (auto &channel : channels) {
               BOOST_LOG_TRIVIAL(info) << "  " << format_freq(channel);
               system->add_channel(channel);
             }
@@ -277,7 +276,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
           BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
           std::vector<double> control_channels = element["control_channels"];
-          for (auto& control_channel : control_channels) {
+          for (auto &control_channel : control_channels) {
             system->add_control_channel(control_channel);
           }
           for (unsigned int i = 0; i < control_channels.size(); i++) {
@@ -423,150 +422,173 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nSOURCES\n-------------------------------------\n";
     for (json element : data["sources"]) {
+
       bool source_enabled = element.value("enabled", true);
       if (source_enabled) {
+        Source *source;
         bool gain_set = false;
-        int silence_frames = element.value("silenceFrames", 0);
-        double center = element.value("center", 0.0);
-        double rate = element.value("rate", 0.0);
-        double error = element.value("error", 0.0);
-        double ppm = element.value("ppm", 0.0);
-        bool agc = element.value("agc", false);
-        int gain = element.value("gain", 0);
-        int if_gain = element.value("ifGain", 0);
-        int bb_gain = element.value("bbGain", 0);
-        int mix_gain = element.value("mixGain", 0);
-        int lna_gain = element.value("lnaGain", 0);
-        int pga_gain = element.value("pgaGain", 0);
-        int tia_gain = element.value("tiaGain", 0);
-        int amp_gain = element.value("ampGain", 0);
-        int vga_gain = element.value("vgaGain", 0);
-        int vga1_gain = element.value("vga1Gain", 0);
-        int vga2_gain = element.value("vga2Gain", 0);
+        std::string driver = element.value("driver", "");
 
-        std::string antenna = element.value("antenna", "");
+        if ((driver != "osmosdr") && (driver != "usrp") && (driver != "sigmf") && (driver != "iqfile")) {
+          BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr, sigmf, iqfile or usrp";
+          return false;
+        }
+
         int digital_recorders = element.value("digitalRecorders", 0);
         int sigmf_recorders = element.value("sigmfRecorders", 0);
         int analog_recorders = element.value("analogRecorders", 0);
 
-        std::string driver = element.value("driver", "");
+        if (driver == "sigmf") {
+          string sigmf_data = element.value("sigmfData", "");
+          string sigmf_meta = element.value("sigmfMeta", "");
+          bool repeat = element.value("repeat", false);
+          source = new Source(sigmf_meta, sigmf_data, repeat, &config);
+        } else if (driver == "iqfile") {
+          string iq_file = element.value("iqFile", "");
+          string iq_type = element.value("iqType", "");
+          double center = element.value("center", 0.0);
+          double rate = element.value("rate", 0.0);
+          bool repeat = element.value("repeat", false);
+          if ((iq_type != "complex") && (iq_type != "float")) {
+            BOOST_LOG_TRIVIAL(error) << "IQ Type specified in config.json not recognized, needs to be complex or float";
+            return false;
+          }
+          source = new Source(iq_file, center, rate, repeat, &config);
+        } else {
 
-        if ((driver != "osmosdr") && (driver != "usrp")) {
-          BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr or usrp";
+          std::string device = element.value("device", "");
+          BOOST_LOG_TRIVIAL(info) << "Driver: " << element.value("driver", "");
+          BOOST_LOG_TRIVIAL(info) << "Device: " << device;
+
+          int silence_frames = element.value("silenceFrames", 0);
+          double center = element.value("center", 0.0);
+          double rate = element.value("rate", 0.0);
+          double error = element.value("error", 0.0);
+          double ppm = element.value("ppm", 0.0);
+          bool agc = element.value("agc", false);
+          int gain = element.value("gain", 0);
+          int if_gain = element.value("ifGain", 0);
+          int bb_gain = element.value("bbGain", 0);
+          int mix_gain = element.value("mixGain", 0);
+          int lna_gain = element.value("lnaGain", 0);
+          int pga_gain = element.value("pgaGain", 0);
+          int tia_gain = element.value("tiaGain", 0);
+          int amp_gain = element.value("ampGain", 0);
+          int vga_gain = element.value("vgaGain", 0);
+          int vga1_gain = element.value("vga1Gain", 0);
+          int vga2_gain = element.value("vga2Gain", 0);
+
+          std::string antenna = element.value("antenna", "");
+
+          BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(element.value("center", 0.0));
+          BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(element.value("rate", 0.0));
+          BOOST_LOG_TRIVIAL(info) << "Error: " << element.value("error", 0.0);
+          BOOST_LOG_TRIVIAL(info) << "PPM Error: " << element.value("ppm", 0.0);
+          BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << element.value("agc", false);
+          BOOST_LOG_TRIVIAL(info) << "Gain: " << element.value("gain", 0);
+          BOOST_LOG_TRIVIAL(info) << "IF Gain: " << element.value("ifGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "BB Gain: " << element.value("bbGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << element.value("lnaGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << element.value("pgaGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << element.value("tiaGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << element.value("mixGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "AMP Gain: " << element.value("ampGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << element.value("vgaGain", 0);
+          BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << element.value("vga1Gain", 0);
+          BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
+          BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
+
+          if ((ppm != 0) && (error != 0)) {
+            BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
+            error = 0;
+          }
+          source = new Source(center, rate, error, driver, device, &config);
+
+          // SoapySDRPlay3 quirk: autogain must be disabled before any of the gains can be set
+          if (source->get_device().find("sdrplay") != std::string::npos) {
+            source->set_gain_mode(agc);
+          }
+
+          if (element.contains("gainSettings")) {
+            for (auto it = element["gainSettings"].begin(); it != element["gainSettings"].end(); ++it) {
+
+              source->set_gain_by_name(it.key(), it.value());
+              gain_set = true;
+            }
+          }
+
+          if (if_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("IF", if_gain);
+          }
+
+          if (bb_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("BB", bb_gain);
+          }
+
+          if (mix_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("MIX", mix_gain);
+          }
+
+          if (lna_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("LNA", lna_gain);
+          }
+
+          if (tia_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("TIA", tia_gain);
+          }
+
+          if (pga_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("PGA", pga_gain);
+          }
+
+          if (amp_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("AMP", amp_gain);
+          }
+
+          if (vga_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("VGA", vga_gain);
+          }
+
+          if (vga1_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("VGA1", vga1_gain);
+          }
+
+          if (vga2_gain != 0) {
+            gain_set = true;
+            source->set_gain_by_name("VGA2", vga2_gain);
+          }
+
+          if (gain != 0) {
+            gain_set = true;
+            source->set_gain(gain);
+          }
+
+          if (!gain_set) {
+            BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
+          }
+
+          source->set_gain_mode(agc);
+          source->set_antenna(antenna);
+          source->set_silence_frames(silence_frames);
+
+          if (ppm != 0) {
+            source->set_freq_corr(ppm);
+          }
         }
-
-        std::string device = element.value("device", "");
-        BOOST_LOG_TRIVIAL(info) << "Driver: " << element.value("driver", "");
-        BOOST_LOG_TRIVIAL(info) << "Center: " << format_freq(element.value("center", 0.0));
-        BOOST_LOG_TRIVIAL(info) << "Rate: " << FormatSamplingRate(element.value("rate", 0.0));
-        BOOST_LOG_TRIVIAL(info) << "Error: " << element.value("error", 0.0);
-        BOOST_LOG_TRIVIAL(info) << "PPM Error: " << element.value("ppm", 0.0);
-        BOOST_LOG_TRIVIAL(info) << "Auto gain control: " << element.value("agc", false);
-        BOOST_LOG_TRIVIAL(info) << "Gain: " << element.value("gain", 0);
-        BOOST_LOG_TRIVIAL(info) << "IF Gain: " << element.value("ifGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "BB Gain: " << element.value("bbGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "LNA Gain: " << element.value("lnaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "PGA Gain: " << element.value("pgaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "TIA Gain: " << element.value("tiaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "MIX Gain: " << element.value("mixGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "AMP Gain: " << element.value("ampGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "VGA Gain: " << element.value("vgaGain", 0);
-        BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << element.value("vga1Gain", 0);
-        BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
-        BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
+        BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
+        BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
         BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << element.value("digitalRecorders", 0);
         BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << element.value("sigmfRecorders", 0);
         BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << element.value("analogRecorders", 0);
-
-        if ((ppm != 0) && (error != 0)) {
-          BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
-          error = 0;
-        }
-
-        Source *source = new Source(center, rate, error, driver, device, &config);
-        BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
-        BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
-
-        // SoapySDRPlay3 quirk: autogain must be disabled before any of the gains can be set
-         if (source->get_device().find("sdrplay") != std::string::npos) {
-           source->set_gain_mode(agc);
-         }
-
-        if (element.contains("gainSettings")) {
-          for (auto it = element["gainSettings"].begin(); it != element["gainSettings"].end(); ++it)
-          {
-              
-              source->set_gain_by_name(it.key(), it.value());
-                      gain_set = true;
-          }
-        }
-
-        if (if_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("IF", if_gain);
-        }
-
-        if (bb_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("BB", bb_gain);
-        }
-
-        if (mix_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("MIX", mix_gain);
-        }
-
-        if (lna_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("LNA", lna_gain);
-        }
-
-        if (tia_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("TIA", tia_gain);
-        }
-
-        if (pga_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("PGA", pga_gain);
-        }
-
-        if (amp_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("AMP", amp_gain);
-        }
-
-        if (vga_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("VGA", vga_gain);
-        }
-
-        if (vga1_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("VGA1", vga1_gain);
-        }
-
-        if (vga2_gain != 0) {
-          gain_set = true;
-          source->set_gain_by_name("VGA2", vga2_gain);
-        }
-
-        if (gain != 0) {
-          gain_set = true;
-          source->set_gain(gain);
-        }
-
-        if (!gain_set) {
-          BOOST_LOG_TRIVIAL(error) << "! No Gain was specified! Things will probably not work";
-        }
-
-        source->set_gain_mode(agc);
-        source->set_antenna(antenna);
-        source->set_silence_frames(silence_frames);
-
-        if (ppm != 0) {
-          source->set_freq_corr(ppm);
-        }
         source->create_digital_recorders(tb, digital_recorders);
         source->create_analog_recorders(tb, analog_recorders);
         source->create_sigmf_recorders(tb, sigmf_recorders);
