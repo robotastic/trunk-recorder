@@ -109,12 +109,12 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   double resampled_rate = double(initial_rate) / double(decim);
 
 #if GNURADIO_VERSION < 0x030900
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 30, gr::filter::firdes::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
 #else
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 30, gr::fft::window::WIN_HANN);
+  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::fft::window::WIN_HANN);
 #endif
   //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 4000, 1000, 30);
+  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 4000, 1000, 100);
 
   std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
 
