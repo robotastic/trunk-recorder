@@ -143,16 +143,24 @@ void remove_call_files(Call_Data_t call_info) {
       // if the files are being archived, move them to the capture directory
       for (std::vector<Transmission>::iterator it = call_info.transmission_list.begin(); it != call_info.transmission_list.end(); ++it) {
         Transmission t = *it;
-        // Prevent "boost::filesystem::copy_file: Invalid cross-device link" errors by using std::filesystem instead.
-        fs::path target_file = fs::path(fs::path(call_info.filename ).replace_filename(fs::path(t.filename).filename()));
-        fs::path transmission_file = t.filename;
 
-        //boost::filesystem::path target_file = boost::filesystem::path(call_info.filename).replace_filename(transmission_file.filename()); // takes the capture dir from the call file and adds the transmission filename to it
-        
         // Only move transmission wavs if they exist
         if (checkIfFile(t.filename)) {
-          fs::copy_file(transmission_file, target_file); 
+          
+          // Prevent "boost::filesystem::copy_file: Invalid cross-device link" errors by using std::filesystem if boost < 1.76
+          // This issue exists for old boost versions OR 5.x kernels
+          #if (BOOST_VERSION/100000) == 1 && ((BOOST_VERSION/100)%1000) < 76
+            fs::path target_file = fs::path(fs::path(call_info.filename ).replace_filename(fs::path(t.filename).filename()));
+            fs::path transmission_file = t.filename;      
+            fs::copy_file(transmission_file, target_file); 
+          #else
+            boost::filesystem::path target_file = boost::filesystem::path(call_info.filename ).replace_filename(boost::filesystem::path(t.filename).filename());
+            boost::filesystem::path transmission_file = t.filename;
+            boost::filesystem::copy_file(transmission_file, target_file); 
+          #endif
+        //boost::filesystem::path target_file = boost::filesystem::path(call_info.filename).replace_filename(transmission_file.filename()); // takes the capture dir from the call file and adds the transmission filename to it
         }
+
       }
     } 
 
