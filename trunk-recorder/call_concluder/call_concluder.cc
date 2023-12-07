@@ -154,7 +154,7 @@ void remove_call_files(Call_Data_t call_info) {
             fs::path transmission_file = t.filename;      
             fs::copy_file(transmission_file, target_file); 
           #else
-            boost::filesystem::path target_file = boost::filesystem::path(call_info.filename ).replace_filename(boost::filesystem::path(t.filename).filename());
+            boost::filesystem::path target_file = boost::filesystem::path(fs::path(call_info.filename ).replace_filename(fs::path(t.filename).filename()));
             boost::filesystem::path transmission_file = t.filename;
             boost::filesystem::copy_file(transmission_file, target_file); 
           #endif
