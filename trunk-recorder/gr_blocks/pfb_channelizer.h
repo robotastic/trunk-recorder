@@ -1,6 +1,7 @@
 #ifndef PFB_CHANNELIZER_H
 #define PFB_CHANNELIZER_H
 
+#include <gnuradio/block.h>
 #include <gnuradio/blocks/file_source.h>
 #include <gnuradio/blocks/throttle.h>
 #include <gnuradio/hier_block2.h>
@@ -8,6 +9,7 @@
 #include <gnuradio/blocks/vector_map.h>
 #include <gnuradio/filter/filterbank_vcvcf.h>
 #include <gnuradio/fft/fft_v.h>
+#include <gnuradio/filter/firdes.h>
 #include <gnuradio/blocks/vector_to_streams.h>
 
 class pfb_channelizer : public gr::hier_block2 {
@@ -19,15 +21,16 @@ public:
 #endif
 
   static sptr make(double center, double rate, int n_chans, int n_filterbanks, std::vector<float> taps,
-             int atten, float bw, float tb, float ripple);
+             int atten, float channel_bw, float transition_bw);
          
 
   pfb_channelizer(double center, double rate, int n_chans, int n_filterbanks, std::vector<float> taps,
-             int atten, float bw, float tb, float ripple);
+             int atten, float channel_bw, float transition_bw);
 
 
 private:
-  std::vector<float> create_taps(int n_chans, int atten, float bw, float tb, float ripple);
+  std::vector<float> create_taps(int n_chans, int atten, float channel_bw, float transition_bw);
+
   double d_rate;
   double d_center;
 private:
