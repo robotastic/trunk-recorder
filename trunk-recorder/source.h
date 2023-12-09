@@ -57,9 +57,9 @@ class Source {
 
   int silence_frames;
   Config *config;
-  gr::filter::pfb_channelizer_ccf::sptr channelizer;
+  //gr::filter::pfb_channelizer_ccf::sptr channelizer;
   gr::blocks::stream_to_streams::sptr s2s;
-  //pfb_channelizer::sptr channelizer;
+  pfb_channelizer::sptr channelizer;
   std::vector<double> channel_freqs;
   std::vector<gr::blocks::null_sink::sptr> null_sinks;
   std::vector<p25_recorder_sptr> digital_recorders;

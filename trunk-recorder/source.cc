@@ -242,10 +242,12 @@ void Source::create_digital_channel_recorders(gr::top_block_sptr tb, std::vector
     */
 }
 void Source:: create_null_channels(gr::top_block_sptr tb) {
+  /*
     tb->connect(source_block, 0, s2s,0);
   for (int i = 0; i < n_chans; i++) {
     tb->connect(s2s, i, channelizer, i);
-  }
+  }*/
+  tb->connect(source_block, 0, channelizer, 0); 
   for (int i = 0; i < n_chans; i++ ){
         gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
         null_sinks.push_back(null_sink);
@@ -676,13 +678,13 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     exit(1);
   }
   n_chans = rate / 25000;
-  s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
+  //s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
   
-  channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
+  //channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
   
   //channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1, rate, 12500,1250, 60, gr::fft::window::win_type::WIN_HAMMING),1);
   build_channel_freqs();
-  //channelizer = pfb_channelizer::make(center, rate, n_chans, 1, std::vector<float>(), 60, 12500, 1250);
+  channelizer = pfb_channelizer::make(center, rate, n_chans, 1, std::vector<float>(), 60, 7250, 1450);
 
 }
 
