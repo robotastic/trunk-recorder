@@ -242,6 +242,10 @@ void Source::create_digital_channel_recorders(gr::top_block_sptr tb, std::vector
     */
 }
 void Source:: create_null_channels(gr::top_block_sptr tb) {
+    tb->connect(source_block, 0, s2s,0);
+  for (int i = 0; i < n_chans; i++) {
+    tb->connect(s2s, i, channelizer, i);
+  }
   for (int i = 0; i < n_chans; i++ ){
         gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
         null_sinks.push_back(null_sink);
