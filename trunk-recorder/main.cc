@@ -1037,6 +1037,8 @@ bool setup_conventional_system(System *system) {
   } else {
     std::vector<double> channels = system->get_channels();
     int channel_index = 0;
+
+    
     for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
       double channel = *chan_it;
       ++channel_index;
@@ -1159,13 +1161,14 @@ int main(int argc, char **argv) {
 
   if (setup_systems()) {
     signal(SIGINT, exit_interupt);
-    tb->start();
-    /*
-        for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+    for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
         Source *source = *src_it;
-        source->start_digital_channel_recorders();
+        source->create_null_channels(tb);
 
-        }*/
+        }
+    tb->start();
+    
+
     monitor_messages();
 
     // ------------------------------------------------------------------

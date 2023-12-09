@@ -241,6 +241,13 @@ void Source::create_digital_channel_recorders(gr::top_block_sptr tb, std::vector
     }
     */
 }
+void Source:: create_null_channels(gr::top_block_sptr tb) {
+  for (int i = 0; i < n_chans; i++ ){
+        gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
+        null_sinks.push_back(null_sink);
+        tb->connect(channelizer, i, null_sink, 0);
+    }
+}
 void Source::stop_digital_channel_recorders() {
 
   for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin();
@@ -338,6 +345,37 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
   //tb->connect(source_block, 0, log, 0);
   return log;
 }
+
+
+void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freqs) {
+  // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
+  // Conventional recorders are tracked seperately in digital_conv_recorders
+  std::vector<int> channels;
+  for (int i = 0; i < freqs.size(); i++) {
+    double freq = freqs[i];
+    int channel = find_channel_number(freq);
+
+    if (channel == -1) {
+      BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision (15) << freq;
+      exit(1);
+    }
+    channels.push_back(channel);
+    p25_recorder_sptr log = make_p25_recorder(this, P25C);
+  digital_conv_recorders.push_back(log);
+
+    tb->connect(channelizer, channel, log, 0);
+  }
+  for (int i = 0; i < n_chans; i++ ){
+      if (std::find(channels.begin(), channels.end(), i) == channels.end()) {
+        gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
+        null_sinks.push_back(null_sink);
+        tb->connect(channelizer, i, null_sink, 0);
+      }
+    }
+
+}
+
+
 
 dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
@@ -638,14 +676,6 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   
   channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
   
-
-    for (int i = 0; i < n_chans; i++ ){
-
-        gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
-        null_sinks.push_back(null_sink);
-        tb->connect(channelizer, i, null_sink, 0);
-      
-    }
   //channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1, rate, 12500,1250, 60, gr::fft::window::win_type::WIN_HAMMING),1);
   build_channel_freqs();
   //channelizer = pfb_channelizer::make(center, rate, n_chans, 1, std::vector<float>(), 60, 12500, 1250);
