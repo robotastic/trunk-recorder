@@ -595,7 +595,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         source->create_digital_recorders(tb, digital_recorders);
         source->create_analog_recorders(tb, analog_recorders);
         source->create_sigmf_recorders(tb, sigmf_recorders);
-        source->create_digital_channel_recorders(tb, std::vector<double> {855462500});
+        //source->create_digital_channel_recorders(tb, std::vector<double> {855462500});
         if (config.debug_recorder) {
           source->create_debug_recorder(tb, source_count);
         }

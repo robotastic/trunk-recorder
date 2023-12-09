@@ -638,6 +638,14 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   
   channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
   
+
+    for (int i = 0; i < n_chans; i++ ){
+
+        gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
+        null_sinks.push_back(null_sink);
+        tb->connect(channelizer, i, null_sink, 0);
+      
+    }
   //channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1, rate, 12500,1250, 60, gr::fft::window::win_type::WIN_HAMMING),1);
   build_channel_freqs();
   //channelizer = pfb_channelizer::make(center, rate, n_chans, 1, std::vector<float>(), 60, 12500, 1250);
