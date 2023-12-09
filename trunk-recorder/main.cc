@@ -42,6 +42,7 @@
 #include "recorders/analog_recorder.h"
 #include "recorders/p25_recorder.h"
 #include "recorders/recorder.h"
+#include "gr_blocks/pfb_channelizer.h"
 
 #include "call.h"
 #include "call_conventional.h"
@@ -1003,7 +1004,7 @@ bool setup_convetional_channel(System *system, double frequency, long channel_in
         // This has something to do with the way the Selector block works.
         // the manage_conventional_calls() function handles adding and starting the P25 Recorder
         p25_recorder_sptr rec;
-        rec = source->create_digital_conventional_recorder(tb);
+        rec = source->create_digital_conventional_recorder(tb,frequency);
         call->set_recorder((Recorder *)rec.get());
         system->add_conventionalP25_recorder(rec);
         calls.push_back(call);
@@ -1140,6 +1141,7 @@ int main(int argc, char **argv) {
     std::cout << desc;
     exit(0);
   }
+
   string config_file = vm["config"].as<string>();
 
   tb = gr::make_top_block("Trunking");
@@ -1158,13 +1160,23 @@ int main(int argc, char **argv) {
   if (setup_systems()) {
     signal(SIGINT, exit_interupt);
     tb->start();
+    /*
+        for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+        Source *source = *src_it;
+        source->start_digital_channel_recorders();
 
+        }*/
     monitor_messages();
 
     // ------------------------------------------------------------------
     // -- stop flow graph execution
     // ------------------------------------------------------------------
     BOOST_LOG_TRIVIAL(info) << "stopping flow graph" << std::endl;
+       /*     for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+        Source *source = *src_it;
+        source->stop_digital_channel_recorders();
+
+        }*/
     tb->stop();
     tb->wait();
 

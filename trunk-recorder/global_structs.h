@@ -42,6 +42,7 @@ struct Config {
   bool soft_vocoder;
   bool record_uu_v_calls;
   int frequency_format;
+  int split;
 };
 
 struct Call_Source {

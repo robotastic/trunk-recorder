@@ -211,6 +211,58 @@ sigmf_recorder_sptr make_sigmf_recorder(Source *src) {
   return gnuradio::get_initial_sptr(recorder);
 }
 
+
+sigmf_recorder_sptr make_sigmf_recorder(double freq, double rate) {
+  sigmf_recorder *recorder = new sigmf_recorder_impl(freq, rate);
+
+  return gnuradio::get_initial_sptr(recorder);
+}
+
+sigmf_recorder_impl::sigmf_recorder_impl(double freq, double rate)
+    : gr::hier_block2("sigmf_recorder",
+                      gr::io_signature::make(1, 1, sizeof(gr_complex)),
+                      gr::io_signature::make(0, 0, sizeof(float))),
+      Recorder(SIGMF) {
+  source = NULL;
+  this->freq = freq; 
+  center = 0;
+  config = NULL;
+  silence_frames = 0;
+  squelch_db = 0;
+  this->input_rate = rate;
+  talkgroup = 0;
+  recording_count = 0;
+  recording_duration = 0;
+
+  rec_num = rec_counter++;
+
+  state = INACTIVE;
+
+  // double symbol_rate         = 4800;
+
+  timestamp = time(NULL);
+  starttime = time(NULL);
+
+
+
+  // tm *ltm = localtime(&starttime);
+
+  int nchars = snprintf(filename, 160, "%d-%ld_%g.raw", rec_num, starttime, freq);
+
+  if (nchars >= 160) {
+    BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";
+  }
+  raw_sink = gr::blocks::file_sink::make(sizeof(gr_complex), filename);
+  valve = gr::blocks::copy::make(sizeof(gr_complex));
+  valve->set_enabled(false);
+  //initialize_prefilter();
+  //initialize_prefilter_xlat();
+  
+  //connect(self(), 0, valve, 0);
+  //connect(valve, 0, raw_sink, 0);
+  connect(self(), 0, raw_sink, 0);
+}
+
 sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
     : gr::hier_block2("sigmf_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -240,7 +292,7 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
 
   // tm *ltm = localtime(&starttime);
 
-  int nchars = snprintf(filename, 160, "%ld-%ld_%g.raw", talkgroup, starttime, freq);
+  int nchars = snprintf(filename, 160, "%ld-%ld_%.0f.raw", rec_num, starttime, freq);
 
   if (nchars >= 160) {
     BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Path longer than 160 charecters";
@@ -294,7 +346,7 @@ State sigmf_recorder_impl::get_state() {
 
 void sigmf_recorder_impl::stop() {
   if (state == ACTIVE) {
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
+    //BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     state = INACTIVE;
     valve->set_enabled(false);
@@ -367,6 +419,67 @@ bool sigmf_recorder_impl::start(Call *call) {
     std::ofstream o(filename);
     o << std::setw(4) << j << std::endl;
     o.close();
+
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Trying to Start an already Active Logger!!!";
+  }
+  return true;
+}
+
+bool sigmf_recorder_impl::start() {
+  if (state == INACTIVE) {
+    timestamp = time(NULL);
+    starttime = time(NULL);
+    int nchars;
+    tm *ltm = localtime(&starttime);
+
+
+
+    BOOST_LOG_TRIVIAL(info) << "\t\033[0;34m"  << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m";
+
+    std::stringstream path_stream;
+  
+   
+    nchars = snprintf(filename, 160, "%d-%ld_%.0f.sigmf-data", rec_num, starttime, freq);
+    if (nchars >= 255) {
+      BOOST_LOG_TRIVIAL(error) << "SigMF-meta: Path longer than 255 charecters";
+    }
+
+    raw_sink->open(filename);
+    state = ACTIVE;
+    valve->set_enabled(true);
+    /*std::string src_description = source->get_driver() + ": " + source->get_device() + " - " + source->get_antenna();
+    time_t now;
+    time(&now);
+    char buf[sizeof "2011-10-08T07:07:09Z"];
+    strftime(buf, sizeof buf, "%FT%TZ", gmtime(&now));
+    std::string start_time(buf);
+    nlohmann::json j = {
+      {"global", {
+        {"core:datatype", "cf32_le"},
+        {"core:sample_rate", if_rate},
+        {"core:hw", src_description},
+        {"core:recorder", "Trunk Recorder"},
+        {"core:version", "1.0.0"}
+      }},
+      {"captures", nlohmann::json::array(
+        { nlohmann::json::object({
+          {"core:sample_start", 0},
+          {"core:frequency", freq},
+          {"core:datetime", start_time}
+        })
+        }
+      )},
+      {"annotations", nlohmann::json::array({})}
+    };
+
+    nchars = snprintf(filename, 255, "%s/%ld-%ld_%.0f-call_%lu.sigmf-meta", path_string.c_str(), talkgroup, starttime, call->get_freq(), call->get_call_num());
+    if (nchars >= 255) {
+      BOOST_LOG_TRIVIAL(error) << "SigMF-meta: Path longer than 255 charecters";
+    }
+    std::ofstream o(filename);
+    o << std::setw(4) << j << std::endl;
+    o.close();*/
 
   } else {
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Trying to Start an already Active Logger!!!";

@@ -20,12 +20,12 @@ public:
   typedef std::shared_ptr<pfb_channelizer> sptr;
 #endif
 
-  static sptr make(double center, double rate, int n_chans, int n_filterbanks, std::vector<float> taps,
-             int atten, float channel_bw, float transition_bw);
+  static sptr make(double center, double rate, int n_chans, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
+                      int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2);
          
 
-  pfb_channelizer(double center, double rate, int n_chans, int n_filterbanks, std::vector<float> taps,
-             int atten, float channel_bw, float transition_bw);
+  pfb_channelizer(double center, double rate, int n_chans, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
+                                 int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2);
 
 
 private:

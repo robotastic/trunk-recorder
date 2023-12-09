@@ -477,6 +477,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           int vga_gain = element.value("vgaGain", 0);
           int vga1_gain = element.value("vga1Gain", 0);
           int vga2_gain = element.value("vga2Gain", 0);
+          int split = element.value("split", 0);
 
           std::string antenna = element.value("antenna", "");
 
@@ -497,6 +498,8 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(info) << "VGA1 Gain: " << element.value("vga1Gain", 0);
           BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
           BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
+          BOOST_LOG_TRIVIAL(info) << "Antenna: " << element.value("antenna", "");
+          BOOST_LOG_TRIVIAL(info) << "Split: " << element.value("split", 0);
 
           if ((ppm != 0) && (error != 0)) {
             BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
@@ -592,6 +595,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         source->create_digital_recorders(tb, digital_recorders);
         source->create_analog_recorders(tb, analog_recorders);
         source->create_sigmf_recorders(tb, sigmf_recorders);
+        source->create_digital_channel_recorders(tb, std::vector<double> {855462500});
         if (config.debug_recorder) {
           source->create_debug_recorder(tb, source_count);
         }

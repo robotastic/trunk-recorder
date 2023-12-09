@@ -77,9 +77,10 @@ class sigmf_recorder_impl : public sigmf_recorder {
 
 public:
   sigmf_recorder_impl(Source *src);
-
+  sigmf_recorder_impl(double freq, double rate);
   void tune_offset(double f);
   bool start(Call *call);
+   bool start();
   void stop();
   double get_freq();
   int get_num();

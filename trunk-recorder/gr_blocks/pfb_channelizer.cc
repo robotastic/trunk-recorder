@@ -1,13 +1,13 @@
 #include "pfb_channelizer.h"
 
 pfb_channelizer::sptr
-pfb_channelizer::make(double center, double rate, int n_chans, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
-                      int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2) {
+pfb_channelizer::make(double center, double rate, int n_chans, int n_filterbanks, std::vector<float> taps,
+             int atten, float channel_bw, float transition_bw) {
   return gnuradio::get_initial_sptr(new pfb_channelizer(center, rate, n_chans, n_filterbanks, taps, atten, channel_bw, transition_bw));
 }
 
-pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
-                                 int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2)
+pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, int n_filterbanks, std::vector<float> taps,
+             int atten, float channel_bw, float transition_bw)
     : gr::hier_block2("pfb_channelizer_hier_ccf",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(n_chans, n_chans, sizeof(gr_complex))),
@@ -18,17 +18,19 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, int n_
 
   std::vector<int> outchans;
   for (int i = 0; i < n_chans; i++)
+  {
     outchans.push_back(i);
-
+  }
   if (taps.empty()) {
     taps = create_taps(n_chans, atten, channel_bw, transition_bw);
   }
 
   std::cout << "Tap Size: " << taps.size() << std::endl;
+  std::cout << "Number of Channels: " << n_chans << std::endl;
   int extra_taps = std::ceil(1.0 * taps.size() / n_chans) * n_chans - taps.size();
-  std::cout << "Extra: " << extra_taps << std::endl;
+  std::cout << "Extra Taps: " << extra_taps << std::endl;
   taps.resize(taps.size() + extra_taps, 0);
-  std::cout << "Tap + Extra Size: " << taps.size() << std::endl;
+  std::cout << "Taps + Extra Size: " << taps.size() << std::endl;
 
   std::vector<std::vector<float>> chantaps;
   for (int i = 0; i < n_chans; i++)
@@ -144,6 +146,7 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, int n_
         {
             connect(fft,0, v2ss,0);
         }
+        std::cout << "Outchans Size: " << outchans.size() << std::endl;
         for (int i = 0; i < outchans.size(); i++)
         {
             connect(v2ss, i, self(), i);
@@ -151,6 +154,9 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, int n_
 }
 
 std::vector<float> pfb_channelizer::create_taps(int n_chans, int atten = 100, float channel_bw = 1.0, float transition_bw = 1.2) {
+    std::cout << "Create Taps" << std::endl;
+  return gr::filter::firdes::low_pass_2(1, n_chans, 1.0,0.2, atten, gr::fft::window::win_type::WIN_HAMMING);
+  
   return gr::filter::firdes::low_pass_2(1, n_chans, channel_bw, transition_bw, atten, gr::fft::window::win_type::WIN_HAMMING);
   //return gr::filter::optfir::low_pass::make(1, n_chans, bw, bw + tb, ripple, atten);
 }

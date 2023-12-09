@@ -7,6 +7,9 @@
 #include <iostream>
 #include <numeric>
 #include <osmosdr/source.h>
+#include <gnuradio/blocks/null_sink.h>
+#include <gnuradio/filter/pfb_channelizer_ccf.h>
+#include <gnuradio/blocks/stream_to_streams.h>
 //#include "recorders/recorder.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
@@ -14,6 +17,8 @@
 #include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 #include "sources/iq_file_source.h"
+#include "gr_blocks/pfb_channelizer.h"
+
 #define JSON_DIAGNOSTICS 1
 #include <json.hpp>
 
@@ -48,11 +53,17 @@ class Source {
   int max_sigmf_recorders;
   int max_analog_recorders;
   int debug_recorder_port;
+  int n_chans;
 
   int silence_frames;
   Config *config;
-
+  gr::filter::pfb_channelizer_ccf::sptr channelizer;
+  gr::blocks::stream_to_streams::sptr s2s;
+  //pfb_channelizer::sptr channelizer;
+  std::vector<double> channel_freqs;
+  std::vector<gr::blocks::null_sink::sptr> null_sinks;
   std::vector<p25_recorder_sptr> digital_recorders;
+  std::vector<sigmf_recorder_sptr> digital_channel_recorders;
   std::vector<p25_recorder_sptr> digital_conv_recorders;
   std::vector<debug_recorder_sptr> debug_recorders;
   std::vector<sigmf_recorder_sptr> sigmf_recorders;
@@ -65,7 +76,8 @@ class Source {
   std::string antenna;
   gr::basic_block_sptr source_block;
   void add_gain_stage(std::string stage_name, int value);
-
+int find_channel_number(double freq);
+  void build_channel_freqs();
 public:
   int get_num_available_digital_recorders();
   int get_num_available_analog_recorders();
@@ -73,6 +85,8 @@ public:
   Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
   Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg);
   Source(std::string iq_file, bool repeat, double center, double rate, Config *cfg);
+  void start_digital_channel_recorders();
+  void stop_digital_channel_recorders();
   void set_iq_source(std::string iq_file, bool repeat, double center, double rate);
   gr::basic_block_sptr get_src_block();
   double get_min_hz();
@@ -115,13 +129,13 @@ public:
   int digital_recorder_count();
   int analog_recorder_count();
   Config *get_config();
-
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);
   void create_analog_recorders(gr::top_block_sptr tb, int r);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
+  void create_digital_channel_recorders(gr::top_block_sptr tb, std::vector<double> channels);
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
-  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
+  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb);
 
   Recorder *get_digital_recorder(Call *call);

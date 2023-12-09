@@ -74,7 +74,7 @@ class p25_recorder_impl : public p25_recorder {
 
 protected:
   void initialize(Source *src);
-
+  void initialize_conventional(Source *src); 
 public:
   p25_recorder_impl(Source *src, Recorder_Type type);
   DecimSettings get_decim(long speed);
@@ -82,6 +82,7 @@ public:
   void initialize_qpsk();
   void initialize_fsk4();
   void initialize_p25();
+
   void tune_offset(double f);
   void tune_freq(double f);
   bool start(Call *call);

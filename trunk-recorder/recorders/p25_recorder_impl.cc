@@ -49,7 +49,11 @@ p25_recorder_impl::p25_recorder_impl(Source *src, Recorder_Type type)
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder(type) {
-  initialize(src);
+        if (type == P25C) {
+          initialize_conventional(src);
+        } else {
+          initialize(src);
+        }
 }
 
 p25_recorder_impl::DecimSettings p25_recorder_impl::get_decim(long speed) {
@@ -179,7 +183,68 @@ void p25_recorder_impl::initialize_prefilter() {
   connect(rms_agc,0,  fll_band_edge, 0);
 }
 
+void p25_recorder_impl::initialize_conventional(Source *src) {
+    const float pi = M_PI;
+  source = src;
+  chan_freq = source->get_center();
+  center_freq = source->get_center();
+  config = source->get_config();
+  d_soft_vocoder = config->soft_vocoder;
+  input_rate = source->get_rate();
+  qpsk_mod = true;
+  silence_frames = source->get_silence_frames();
+  squelch_db = 0;
+  talkgroup = 0;
+  d_phase2_tdma = false;
+  rec_num = rec_counter++;
+  recording_count = 0;
+  recording_duration = 0;
 
+  state = INACTIVE;
+
+  timestamp = time(NULL);
+  starttime = time(NULL);
+
+  if (config == NULL) {
+    this->set_enable_audio_streaming(false);
+  } else {
+    this->set_enable_audio_streaming(config->enable_audio_streaming);
+  }
+
+  valve = gr::blocks::copy::make(sizeof(gr_complex));
+  valve->set_enabled(false);
+    double sps = floor(24000 / phase1_symbol_rate);
+  double def_excess_bw = 0.2;
+   // Squelch DB
+  // on a trunked network where you know you will have good signal, a carrier
+  // power squelch works well. real FM receviers use a noise squelch, where
+  // the received audio is high-passed above the cutoff and then fed to a
+  // reverse squelch. If the power is then BELOW a threshold, open the squelch.
+
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
+
+  rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
+  //rms_agc = gr::op25_repeater::rmsagc_ff::make(0.45, 0.85);
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250);  // OP25 has this set to 350 instead of 250
+  modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
+
+  qpsk_demod = make_p25_recorder_qpsk_demod();
+  qpsk_p25_decode = make_p25_recorder_decode(this, silence_frames, d_soft_vocoder);
+  fsk4_demod = make_p25_recorder_fsk4_demod();
+  fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames, d_soft_vocoder);
+
+  modulation_selector->set_enabled(true);
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
+  connect(self(), 0, valve, 0);
+  connect(valve, 0, squelch, 0);
+  connect(squelch, 0, rms_agc, 0);
+  connect(rms_agc,0,  fll_band_edge, 0);
+  connect(fll_band_edge,0, modulation_selector, 0);
+  connect(modulation_selector, 0, fsk4_demod, 0);
+  connect(fsk4_demod, 0, fsk4_p25_decode, 0);
+  connect(modulation_selector, 1, qpsk_demod, 0);
+  connect(qpsk_demod, 0, qpsk_p25_decode, 0);
+}
 void p25_recorder_impl::initialize(Source *src) {
   source = src;
   chan_freq = source->get_center();
@@ -524,7 +589,10 @@ bool p25_recorder_impl::start(Call *call) {
 
     int offset_amount = (center_freq - chan_freq);
 
-    tune_offset(offset_amount);
+    if (type != P25C) {
+      tune_offset(offset_amount);
+    }
+
     if (qpsk_mod) {
       modulation_selector->set_output_index(1);
       qpsk_p25_decode->start(call);
