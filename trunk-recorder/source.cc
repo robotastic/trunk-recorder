@@ -201,21 +201,19 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   }
 }
 
-
 void Source::create_digital_channel_recorders(gr::top_block_sptr tb, std::vector<double> freqs) {
   std::vector<int> channels;
-  tb->connect(source_block, 0, s2s,0);
+  tb->connect(source_block, 0, s2s, 0);
   for (int i = 0; i < n_chans; i++) {
     tb->connect(s2s, i, channelizer, i);
   }
 
-  for (int i = 0; i < n_chans; i++ ){
+  for (int i = 0; i < n_chans; i++) {
     double freq = channel_freqs[i];
     sigmf_recorder_sptr log = make_sigmf_recorder(freq, rate);
 
     digital_channel_recorders.push_back(log);
     tb->connect(channelizer, i, log, 0);
-
   }
   /*
   for (int i = 0; i < freqs.size(); i++) {
@@ -241,24 +239,24 @@ void Source::create_digital_channel_recorders(gr::top_block_sptr tb, std::vector
     }
     */
 }
-void Source:: create_null_channels(gr::top_block_sptr tb) {
+void Source::create_null_channels(gr::top_block_sptr tb) {
   /*
     tb->connect(source_block, 0, s2s,0);
   for (int i = 0; i < n_chans; i++) {
     tb->connect(s2s, i, channelizer, i);
   }*/
-  tb->connect(source_block, 0, channelizer, 0); 
-  for (int i = 0; i < n_chans; i++ ){
-        gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
-        null_sinks.push_back(null_sink);
-        tb->connect(channelizer, i, null_sink, 0);
-    }
+  tb->connect(source_block, 0, channelizer, 0);
+  for (int i = 0; i < n_chans; i++) {
+    gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
+    null_sinks.push_back(null_sink);
+    tb->connect(channelizer, i, null_sink, 0);
+  }
 }
 void Source::stop_digital_channel_recorders() {
 
   for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin();
        it != sigmf_recorders.end(); it++) {
-       sigmf_recorder_sptr rx = *it;
+    sigmf_recorder_sptr rx = *it;
 
     if (rx->get_state() == ACTIVE) {
       rx->stop();
@@ -270,7 +268,7 @@ void Source::start_digital_channel_recorders() {
 
   for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin();
        it != sigmf_recorders.end(); it++) {
-       sigmf_recorder_sptr rx = *it;
+    sigmf_recorder_sptr rx = *it;
 
     if (rx->get_state() == INACTIVE) {
       rx->start();
@@ -321,50 +319,52 @@ Recorder *Source::get_digital_recorder(Call *call) {
 }
 
 int Source::find_channel_number(double freq) {
-  std::cout << "Looking for freq: " << std::setprecision (15) << freq << std::endl;
+  std::cout << "Looking for freq: " << std::setprecision(15) << freq << std::endl;
 
   for (int i = 0; i < channel_freqs.size(); i++) {
     double channel_freq = channel_freqs[i];
-    
+
     if (channel_freq == freq) {
-      std::cout << i << " -> Channel Freq: " << std::setprecision (15) << channel_freq << std::endl;
+      std::cout << i << " -> Channel Freq: " << std::setprecision(15) << channel_freq << std::endl;
       return i;
     }
   }
   return -1;
-
 }
-
 
 p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb, double freq) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
+
   p25_recorder_sptr log = make_p25_recorder(this, P25C);
+  tb->connect(channelizer, digital_conv_recorders.size(), log, 0);
+  digital_conv_recorders.push_back(log);
+  /*
   digital_conv_recorders.push_back(log);
   int channel = find_channel_number(freq);
   if (channel == -1) {
-    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision (15) << freq;
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
     exit(1);
-
   }
-    tb->connect(channelizer, channel, log, 0);
-  //tb->connect(source_block, 0, log, 0);
+  tb->connect(channelizer, channel, log, 0);
+*/
+
+  // tb->connect(source_block, 0, log, 0);
   return log;
 }
-
 
 void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freqs) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
   std::vector<int> channels;
-  if (freqs.size() == 4){
+  if (freqs.size() == 4) {
     for (int i = 0; i < freqs.size(); i++) {
 
-    p25_recorder_sptr log = make_p25_recorder(this, P25C);
-  digital_conv_recorders.push_back(log);
+      p25_recorder_sptr log = make_p25_recorder(this, P25C);
+      digital_conv_recorders.push_back(log);
 
-    tb->connect(channelizer, i, log, 0);
-  }
+      tb->connect(channelizer, i, log, 0);
+    }
   }
   /*
   for (int i = 0; i < freqs.size(); i++) {
@@ -388,10 +388,7 @@ void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::ve
         tb->connect(channelizer, i, null_sink, 0);
       }
     }*/
-
 }
-
-
 
 dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
@@ -584,10 +581,10 @@ void Source::set_min_max() {
 
 void Source::build_channel_freqs() {
 
-  double freq = center; 
-  int rollover = (n_chans / 2) -1;
+  double freq = center;
+  int rollover = (n_chans / 2) - 1;
   for (int i = 0; i < n_chans; i++) {
-    //std::cout << "[ " << i << " ] Freq: " << std::setprecision (15) << freq << std::endl;
+    // std::cout << "[ " << i << " ] Freq: " << std::setprecision (15) << freq << std::endl;
     channel_freqs.push_back(freq);
     if (i == rollover) {
       freq = center - (rate / 2);
@@ -596,7 +593,6 @@ void Source::build_channel_freqs() {
     }
   }
 }
-
 
 Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg) {
   rate = r;
@@ -688,14 +684,13 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     exit(1);
   }
   n_chans = rate / 25000;
-  //s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
-  
-  //channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
-  
-  //channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1, rate, 12500,1250, 60, gr::fft::window::win_type::WIN_HAMMING),1);
+  // s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
+
+  // channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
+
+  // channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1, rate, 12500,1250, 60, gr::fft::window::win_type::WIN_HAMMING),1);
   build_channel_freqs();
   channelizer = pfb_channelizer::make(center, rate, n_chans, 1, std::vector<float>(), 60, 7250, 1450);
-
 }
 
 void Source::set_iq_source(std::string iq_file, bool repeat, double center, double rate) {
