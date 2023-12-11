@@ -10,17 +10,18 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, int n_
              int atten, float channel_bw, float transition_bw)
     : gr::hier_block2("pfb_channelizer_hier_ccf",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                      gr::io_signature::make(n_chans, n_chans, sizeof(gr_complex))),
+                      gr::io_signature::make(4, 4, sizeof(gr_complex))),
+                      //gr::io_signature::make(n_chans, n_chans, sizeof(gr_complex))),
       d_center(center),
       d_rate(rate) {
   if (n_filterbanks > n_chans)
     n_filterbanks = n_chans;
 
-  std::vector<int> outchans;
-  for (int i = 0; i < n_chans; i++)
+  std::vector<int> outchans={0,1,2,3};
+  /*for (int i = 0; i < n_chans; i++)
   {
     outchans.push_back(i);
-  }
+  }*/
   if (taps.empty()) {
     taps = create_taps(n_chans, atten, channel_bw, transition_bw);
   }

@@ -357,6 +357,16 @@ void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::ve
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
   std::vector<int> channels;
+  if (freqs.size() == 4){
+    for (int i = 0; i < freqs.size(); i++) {
+
+    p25_recorder_sptr log = make_p25_recorder(this, P25C);
+  digital_conv_recorders.push_back(log);
+
+    tb->connect(channelizer, i, log, 0);
+  }
+  }
+  /*
   for (int i = 0; i < freqs.size(); i++) {
     double freq = freqs[i];
     int channel = find_channel_number(freq);
@@ -377,7 +387,7 @@ void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::ve
         null_sinks.push_back(null_sink);
         tb->connect(channelizer, i, null_sink, 0);
       }
-    }
+    }*/
 
 }
 
