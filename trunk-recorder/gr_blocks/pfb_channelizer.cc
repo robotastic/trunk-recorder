@@ -190,7 +190,7 @@ int pfb_channelizer::find_channel_id(double freq) {
     int channel = -1;
     for (int i = 0; i < d_outchans.size(); i++) {
         if (d_outchans[i].second == freq) {
-            channel = d_outchans[i].first;
+            channel = i;
             break;
         }
     }

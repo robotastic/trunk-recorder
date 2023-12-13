@@ -973,7 +973,7 @@ bool add_source_freq_list(double freq) {
         if (src_freq.source == source) {
           src_freq.freqs.push_back(freq);
           freq_added = true;
-          BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source";
+          BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source - total freqs: " << src_freq.freqs.size();
         }
       }
       if (!freq_added) {
@@ -981,7 +981,7 @@ bool add_source_freq_list(double freq) {
         src_freq.source = source;
         src_freq.freqs.push_back(freq);
         source_freq_list.push_back(src_freq);
-        BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source";
+        BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source - total freqs: " << src_freq.freqs.size();
       }
     }
   }
@@ -1119,6 +1119,7 @@ bool setup_systems() {
       setup_source_channels(system);
      }
   }
+  BOOST_LOG_TRIVIAL(info) << "Finished setting up Source Freq List - Total Sources: " << source_freq_list.size();
   for (vector<Source_Freq>::iterator src_freq_it = source_freq_list.begin(); src_freq_it != source_freq_list.end(); src_freq_it++) {
     Source_Freq src_freq = *src_freq_it;
     src_freq.source->create_channelizer(tb, src_freq.freqs);
