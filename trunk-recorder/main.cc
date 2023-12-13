@@ -967,7 +967,7 @@ bool add_source_freq_list(double freq) {
     source = *src_it;
 
     if ((source->get_min_hz() <= freq) && (source->get_max_hz() >= freq)) {
-
+      /*
       for (vector<Source_Freq>::iterator src_freq_it = source_freq_list.begin(); src_freq_it != source_freq_list.end(); src_freq_it++) {
         Source_Freq src_freq = *src_freq_it;
         if (src_freq.source == source) {
@@ -975,14 +975,23 @@ bool add_source_freq_list(double freq) {
           freq_added = true;
           BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source - total freqs: " << src_freq.freqs.size();
         }
+      }*/
+      for (int i=0; i<source_freq_list.size(); i++) {
+        if (source_freq_list[i].source == source) {
+          source_freq_list[i].freqs.push_back(freq);
+          freq_added = true;
+          BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source - total freqs: " << source_freq_list[i].freqs.size();
+        }
       }
       if (!freq_added) {
         Source_Freq src_freq;
         src_freq.source = source;
         src_freq.freqs.push_back(freq);
         source_freq_list.push_back(src_freq);
-        BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source - total freqs: " << src_freq.freqs.size();
+        BOOST_LOG_TRIVIAL(info) << "Added Source to List, Added Freq: " << format_freq(freq) << " to Source - total freqs: " << src_freq.freqs.size();
       }
+    } else {
+      BOOST_LOG_TRIVIAL(info) << "Freq: " << format_freq(freq) << " not in Source - Min Freq: " << format_freq(source->get_min_hz()) << " Max Freq: " << format_freq(source->get_max_hz());
     }
   }
   return freq_added;
