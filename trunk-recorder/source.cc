@@ -240,8 +240,8 @@ void Source::create_digital_channel_recorders(gr::top_block_sptr tb, std::vector
     */
 }
 void Source::create_null_channels(gr::top_block_sptr tb) {
-  tb->connect(source_block, 0, channelizer, 0);
-  /*
+  /*tb->connect(source_block, 0, channelizer, 0);
+  
     tb->connect(source_block, 0, s2s,0);
   for (int i = 0; i < n_chans; i++) {
     tb->connect(s2s, i, channelizer, i);
@@ -319,26 +319,23 @@ Recorder *Source::get_digital_recorder(Call *call) {
   return NULL;
 }
 
-int Source::find_channel_number(double freq) {
+int Source::find_channel_id(double freq) {
   std::cout << "Looking for freq: " << std::setprecision(15) << freq << std::endl;
 
-  for (int i = 0; i < channel_freqs.size(); i++) {
-    double channel_freq = channel_freqs[i];
-
-    if (channel_freq == freq) {
-      std::cout << i << " -> Channel Freq: " << std::setprecision(15) << channel_freq << std::endl;
-      return i;
-    }
-  }
-  return -1;
+  return channelizer->find_channel_id(freq);
 }
 
 p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb, double freq) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
 
+  int channel = find_channel_id(freq);
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
   p25_recorder_sptr log = make_p25_recorder(this, P25C);
-  tb->connect(channelizer, digital_conv_recorders.size(), log, 0);
+  tb->connect(channelizer, channel, log, 0);
   digital_conv_recorders.push_back(log);
   /*
   digital_conv_recorders.push_back(log);
@@ -354,11 +351,20 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
   return log;
 }
 
+
+void Source::create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs) {
+  BOOST_LOG_TRIVIAL(info) << "Creating Channelizer for " << freqs.size() << " channels";
+  channelizer = pfb_channelizer::make(center, rate, n_chans, freqs, 1, std::vector<float>(), 60, 7250, 1450);
+
+  tb->connect(source_block, 0, channelizer, 0);
+}
+
 void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freqs) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
-  std::vector<int> channels;
-  if (freqs.size() == 4) {
+
+
+
     for (int i = 0; i < freqs.size(); i++) {
 
       p25_recorder_sptr log = make_p25_recorder(this, P25C);
@@ -366,7 +372,7 @@ void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::ve
 
       tb->connect(channelizer, i, log, 0);
     }
-  }
+  
   /*
   for (int i = 0; i < freqs.size(); i++) {
     double freq = freqs[i];
@@ -691,7 +697,6 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
   // channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1, rate, 12500,1250, 60, gr::fft::window::win_type::WIN_HAMMING),1);
   build_channel_freqs();
-  channelizer = pfb_channelizer::make(center, rate, n_chans, 1, std::vector<float>(), 60, 7250, 1450);
 }
 
 void Source::set_iq_source(std::string iq_file, bool repeat, double center, double rate) {

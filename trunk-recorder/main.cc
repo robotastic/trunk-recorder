@@ -4,7 +4,6 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/foreach.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/math/constants/constants.hpp>
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
@@ -17,6 +16,7 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/file.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/tokenizer.hpp>
 
 #include <cassert>
@@ -39,10 +39,10 @@
 #include "recorder_globals.h"
 #include "source.h"
 
+#include "gr_blocks/pfb_channelizer.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/p25_recorder.h"
 #include "recorders/recorder.h"
-#include "gr_blocks/pfb_channelizer.h"
 
 #include "call.h"
 #include "call_conventional.h"
@@ -82,12 +82,17 @@ std::vector<Call *> calls;
 
 gr::top_block_sptr tb;
 
+struct Source_Freq {
+  Source *source;
+  std::vector<double> freqs;
+};
+std::vector<Source_Freq> source_freq_list;
+
 volatile sig_atomic_t exit_flag = 0;
 int exit_code = EXIT_SUCCESS;
 SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 Config config;
-
 
 void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
@@ -579,14 +584,14 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
 
     boost::format original_call_data;
     boost::format grant_call_data;
-    
-    if ((superseding_grant) || (duplicate_grant)){
+
+    if ((superseding_grant) || (duplicate_grant)) {
       if (original_call->get_system()->get_multiSiteSystemName() == "") {
         original_call_data = boost::format("\u001b[34m%sC\u001b[0m %X/%s-%s ") % original_call->get_call_num() % original_call->get_system()->get_wacn() % original_call->get_system()->get_sys_rfss() % original_call->get_system()->get_sys_site_id();
-        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % + sys->get_sys_site_id();
+        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % +sys->get_sys_site_id();
       } else {
         original_call_data = boost::format("\u001b[34m%sC\u001b[0m %s/%s ") % original_call->get_call_num() % original_call->get_system()->get_multiSiteSystemName() % original_call->get_system()->get_multiSiteSystemNumber();
-        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %s/%s ") % call->get_call_num() % sys->get_multiSiteSystemName() % sys->get_multiSiteSystemNumber();        
+        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %s/%s ") % call->get_call_num() % sys->get_multiSiteSystemName() % sys->get_multiSiteSystemNumber();
       }
     }
 
@@ -955,9 +960,58 @@ void monitor_messages() {
   }
 }
 
+bool add_source_freq_list(double freq) {
+  bool freq_added = false;
+  Source *source = NULL;
+  for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+    source = *src_it;
+
+    if ((source->get_min_hz() <= freq) && (source->get_max_hz() >= freq)) {
+
+      for (vector<Source_Freq>::iterator src_freq_it = source_freq_list.begin(); src_freq_it != source_freq_list.end(); src_freq_it++) {
+        Source_Freq src_freq = *src_freq_it;
+        if (src_freq.source == source) {
+          src_freq.freqs.push_back(freq);
+          freq_added = true;
+          BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source";
+        }
+      }
+      if (!freq_added) {
+        Source_Freq src_freq;
+        src_freq.source = source;
+        src_freq.freqs.push_back(freq);
+        source_freq_list.push_back(src_freq);
+        BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source";
+      }
+    }
+  }
+  return freq_added;
+}
+
+void setup_source_channels(System *system) {
+  if (system->has_channel_file()) {
+    std::vector<Talkgroup *> talkgroups = system->get_talkgroups();
+    for (vector<Talkgroup *>::iterator tg_it = talkgroups.begin(); tg_it != talkgroups.end(); tg_it++) {
+      Talkgroup *tg = *tg_it;
+
+      bool channel_added = add_source_freq_list(tg->freq);
+    }
+  } else {
+    std::vector<double> channels = system->get_channels();
+    for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
+      double channel = *chan_it;
+
+      bool channel_added = add_source_freq_list(channel);
+    }
+  }
+}
+
 bool setup_convetional_channel(System *system, double frequency, long channel_index) {
   bool channel_added = false;
   Source *source = NULL;
+
+
+
   for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
     source = *src_it;
 
@@ -1004,7 +1058,7 @@ bool setup_convetional_channel(System *system, double frequency, long channel_in
         // This has something to do with the way the Selector block works.
         // the manage_conventional_calls() function handles adding and starting the P25 Recorder
         p25_recorder_sptr rec;
-        rec = source->create_digital_conventional_recorder(tb,frequency);
+        rec = source->create_digital_conventional_recorder(tb, frequency);
         call->set_recorder((Recorder *)rec.get());
         system->add_conventionalP25_recorder(rec);
         calls.push_back(call);
@@ -1038,7 +1092,6 @@ bool setup_conventional_system(System *system) {
     std::vector<double> channels = system->get_channels();
     int channel_index = 0;
 
-    
     for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
       double channel = *chan_it;
       ++channel_index;
@@ -1058,6 +1111,19 @@ bool setup_conventional_system(System *system) {
 bool setup_systems() {
 
   Source *source = NULL;
+
+// Setup the Channels on the Sources for the Conventional Systems
+  for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+    System_impl *system = (System_impl *)*sys_it;
+     if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
+      setup_source_channels(system);
+     }
+  }
+  for (vector<Source_Freq>::iterator src_freq_it = source_freq_list.begin(); src_freq_it != source_freq_list.end(); src_freq_it++) {
+    Source_Freq src_freq = *src_freq_it;
+    src_freq.source->create_channelizer(tb, src_freq.freqs);
+  }
+
 
   for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
     System_impl *system = (System_impl *)*sys_it;
@@ -1162,12 +1228,10 @@ int main(int argc, char **argv) {
   if (setup_systems()) {
     signal(SIGINT, exit_interupt);
     for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
-        Source *source = *src_it;
-        source->create_null_channels(tb);
-
-        }
+      Source *source = *src_it;
+      source->create_null_channels(tb);
+    }
     tb->start();
-    
 
     monitor_messages();
 
@@ -1175,11 +1239,11 @@ int main(int argc, char **argv) {
     // -- stop flow graph execution
     // ------------------------------------------------------------------
     BOOST_LOG_TRIVIAL(info) << "stopping flow graph" << std::endl;
-       /*     for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
-        Source *source = *src_it;
-        source->stop_digital_channel_recorders();
+    /*     for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+     Source *source = *src_it;
+     source->stop_digital_channel_recorders();
 
-        }*/
+     }*/
     tb->stop();
     tb->wait();
 

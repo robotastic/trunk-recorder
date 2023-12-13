@@ -2,22 +2,22 @@
 #define SOURCE_H
 #include "./global_structs.h"
 #include <gnuradio/basic_block.h>
+#include <gnuradio/blocks/null_sink.h>
+#include <gnuradio/blocks/stream_to_streams.h>
+#include <gnuradio/filter/pfb_channelizer_ccf.h>
 #include <gnuradio/top_block.h>
 #include <gnuradio/uhd/usrp_source.h>
 #include <iostream>
 #include <numeric>
 #include <osmosdr/source.h>
-#include <gnuradio/blocks/null_sink.h>
-#include <gnuradio/filter/pfb_channelizer_ccf.h>
-#include <gnuradio/blocks/stream_to_streams.h>
-//#include "recorders/recorder.h"
+// #include "recorders/recorder.h"
+#include "gr_blocks/pfb_channelizer.h"
 #include "recorders/analog_recorder.h"
 #include "recorders/debug_recorder.h"
 #include "recorders/dmr_recorder.h"
 #include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 #include "sources/iq_file_source.h"
-#include "gr_blocks/pfb_channelizer.h"
 
 #define JSON_DIAGNOSTICS 1
 #include <json.hpp>
@@ -57,7 +57,7 @@ class Source {
 
   int silence_frames;
   Config *config;
-  //gr::filter::pfb_channelizer_ccf::sptr channelizer;
+  // gr::filter::pfb_channelizer_ccf::sptr channelizer;
   gr::blocks::stream_to_streams::sptr s2s;
   pfb_channelizer::sptr channelizer;
   std::vector<double> channel_freqs;
@@ -76,8 +76,9 @@ class Source {
   std::string antenna;
   gr::basic_block_sptr source_block;
   void add_gain_stage(std::string stage_name, int value);
-int find_channel_number(double freq);
+  int find_channel_id(double freq);
   void build_channel_freqs();
+
 public:
   int get_num_available_digital_recorders();
   int get_num_available_analog_recorders();
@@ -135,8 +136,9 @@ public:
   void create_digital_recorders(gr::top_block_sptr tb, int r);
   void create_digital_channel_recorders(gr::top_block_sptr tb, std::vector<double> channels);
   void create_null_channels(gr::top_block_sptr tb);
+  void create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs);
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
-    p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq);
+  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq);
   void create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freq);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb);
 

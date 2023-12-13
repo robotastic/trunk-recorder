@@ -3,14 +3,14 @@
 
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/file_source.h>
-#include <gnuradio/blocks/throttle.h>
-#include <gnuradio/hier_block2.h>
 #include <gnuradio/blocks/stream_to_vector.h>
+#include <gnuradio/blocks/throttle.h>
 #include <gnuradio/blocks/vector_map.h>
-#include <gnuradio/filter/filterbank_vcvcf.h>
-#include <gnuradio/fft/fft_v.h>
-#include <gnuradio/filter/firdes.h>
 #include <gnuradio/blocks/vector_to_streams.h>
+#include <gnuradio/fft/fft_v.h>
+#include <gnuradio/filter/filterbank_vcvcf.h>
+#include <gnuradio/filter/firdes.h>
+#include <gnuradio/hier_block2.h>
 
 class pfb_channelizer : public gr::hier_block2 {
 public:
@@ -20,20 +20,22 @@ public:
   typedef std::shared_ptr<pfb_channelizer> sptr;
 #endif
 
-  static sptr make(double center, double rate, int n_chans, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
-                      int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2);
-         
+  static sptr make(double center, double rate, int n_chans, std::vector<double> channel_freqs, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
+                   int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2);
 
-  pfb_channelizer(double center, double rate, int n_chans, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
-                                 int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2);
+  pfb_channelizer(double center, double rate, int n_chans, std::vector<std::pair<int, double>> outchans, int n_filterbanks = 1, std::vector<float> taps = std::vector<float>(),
+                  int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2);
 
+  int find_channel_id(double freq);
 
 private:
   std::vector<float> create_taps(int n_chans, int atten, float channel_bw, float transition_bw);
-
+  static int find_channel_number(double freq, double center, double rate, int n_chans);
   double d_rate;
   double d_center;
+
 private:
+  std::vector<std::pair<int, double>> d_outchans;
   gr::blocks::stream_to_vector::sptr s2v;
   gr::blocks::vector_map::sptr splitter;
   std::vector<gr::filter::filterbank_vcvcf::sptr> fbs;
