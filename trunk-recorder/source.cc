@@ -330,6 +330,7 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
   // Conventional recorders are tracked seperately in digital_conv_recorders
 
   int channel = find_channel_id(freq);
+
   if (channel == -1) {
     BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
     exit(1);
@@ -357,6 +358,7 @@ void Source::create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs
   channelizer = pfb_channelizer::make(center, rate, n_chans, freqs, 1, std::vector<float>(), 60, 7250, 1450);
 
   tb->connect(source_block, 0, channelizer, 0);
+    channelizer->print_channel_freqs();
 }
 
 void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freqs) {

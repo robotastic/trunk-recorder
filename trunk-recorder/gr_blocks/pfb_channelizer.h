@@ -27,13 +27,14 @@ public:
                   int atten = 100, float channel_bw = 1.0, float transition_bw = 0.2);
 
   int find_channel_id(double freq);
-
+void print_channel_freqs(); 
+static void print_channel_freqs(double center, double rate, int n_chans); 
 private:
   std::vector<float> create_taps(int n_chans, int atten, float channel_bw, float transition_bw);
   static int find_channel_number(double freq, double center, double rate, int n_chans);
   double d_rate;
   double d_center;
-
+  int d_n_chans;
 private:
   std::vector<std::pair<int, double>> d_outchans;
   gr::blocks::stream_to_vector::sptr s2v;

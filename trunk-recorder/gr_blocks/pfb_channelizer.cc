@@ -1,7 +1,22 @@
 #include "pfb_channelizer.h"
 
+void pfb_channelizer::print_channel_freqs(double center, double rate, int n_chans) {
+std::cout << "Channel Freqs Map" << std::endl;
+    int rollover = (n_chans / 2) - 1;
+    double channel_freq = center;
+  for (int i = 0; i < n_chans; i++) {
+    std::cout << "[ " << i << " ] Channel Freq: " << channel_freq << std::endl;
+    if (i == rollover) {
+      channel_freq = center - (rate / 2);
+    } else {
+      channel_freq += 25000;
+    }
+  }
+}
 
-
+void pfb_channelizer::print_channel_freqs() {
+    print_channel_freqs(d_center, d_rate, d_n_chans);
+}
 
 int pfb_channelizer::find_channel_number(double freq, double center, double rate, int n_chans) {
     int channel = -1;
@@ -12,6 +27,7 @@ int pfb_channelizer::find_channel_number(double freq, double center, double rate
       channel = i;
       break;
     }
+    std::cout << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
     if (i == rollover) {
       channel_freq = center - (rate / 2);
     } else {
@@ -34,7 +50,7 @@ pfb_channelizer::make(double center, double rate, int n_chans,std::vector<double
                     {
                         outchans.push_back( std::make_pair(channel,channel_freqs[i]));
                     } else{
-                        std::cout << "Channel not found" << std::endl;
+                        std::cout << "Channel not found: " << channel_freqs[i] << std::endl;
                         exit(1);
                     }
                 }
@@ -49,6 +65,7 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
                       gr::io_signature::make(outchans.size(), outchans.size(), sizeof(gr_complex))),
       d_center(center),
       d_rate(rate),
+      d_n_chans(n_chans),
       d_outchans(outchans) {
   if (n_filterbanks > n_chans)
     n_filterbanks = n_chans;

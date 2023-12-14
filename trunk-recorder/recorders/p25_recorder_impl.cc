@@ -33,6 +33,7 @@ void p25_recorder_impl::generate_arb_taps() {
 
 // As we drop the bw factor, the optfir filter has a harder time converging;
 // using the firdes method here for better results.
+std::cout << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " << tb << std::endl;
 #if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
 #else
@@ -185,6 +186,10 @@ void p25_recorder_impl::initialize_prefilter() {
 
 void p25_recorder_impl::initialize_conventional(Source *src) {
     const float pi = M_PI;
+      double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  long if_rate = 24000;//phase1_channel_rate;
+  long fa = 0;
+  long fb = 0;
   source = src;
   chan_freq = source->get_center();
   center_freq = source->get_center();
@@ -213,6 +218,25 @@ void p25_recorder_impl::initialize_conventional(Source *src) {
 
   valve = gr::blocks::copy::make(sizeof(gr_complex));
   valve->set_enabled(false);
+
+  // Cut-Off Filter
+  fa = 6250;
+  fb = fa + 1250;
+  std::cout<< "IF Rate: " << if_rate << " fa: " << fa << " fb: " << fb << std::endl;
+  #if GNURADIO_VERSION < 0x030900
+      cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HANN);
+  #else
+      cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HANN);
+  #endif
+  std::cout<< "Cutoff Filter Coeffs: " << cutoff_filter_coeffs.size() << std::endl;
+  cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
+  std::cout<< "Cutoff Filter Made" << std::endl;
+  // ARB Resampler
+  arb_rate = if_rate / 25000.0;
+  generate_arb_taps();
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+
+
     double sps = floor(24000 / phase1_symbol_rate);
   double def_excess_bw = 0.2;
    // Squelch DB
@@ -236,7 +260,9 @@ void p25_recorder_impl::initialize_conventional(Source *src) {
   modulation_selector->set_enabled(true);
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
   connect(self(), 0, valve, 0);
-  connect(valve, 0, squelch, 0);
+  connect(valve,0,arb_resampler, 0);
+    connect(arb_resampler, 0, cutoff_filter, 0);
+   connect(cutoff_filter, 0, squelch, 0);
   connect(squelch, 0, rms_agc, 0);
   connect(rms_agc,0,  fll_band_edge, 0);
   connect(fll_band_edge,0, modulation_selector, 0);
