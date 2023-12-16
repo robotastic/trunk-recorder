@@ -134,10 +134,8 @@ public:
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);
   void create_analog_recorders(gr::top_block_sptr tb, int r);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
-  void create_digital_channel_recorders(gr::top_block_sptr tb, std::vector<double> channels);
-  void create_null_channels(gr::top_block_sptr tb);
   void create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs);
-  analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
+  analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb, double freq);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq);
   void create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freq);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb);

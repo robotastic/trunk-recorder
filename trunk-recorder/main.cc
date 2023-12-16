@@ -967,15 +967,6 @@ bool add_source_freq_list(double freq) {
     source = *src_it;
 
     if ((source->get_min_hz() <= freq) && (source->get_max_hz() >= freq)) {
-      /*
-      for (vector<Source_Freq>::iterator src_freq_it = source_freq_list.begin(); src_freq_it != source_freq_list.end(); src_freq_it++) {
-        Source_Freq src_freq = *src_freq_it;
-        if (src_freq.source == source) {
-          src_freq.freqs.push_back(freq);
-          freq_added = true;
-          BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source - total freqs: " << src_freq.freqs.size();
-        }
-      }*/
       for (int i=0; i<source_freq_list.size(); i++) {
         if (source_freq_list[i].source == source) {
           source_freq_list[i].freqs.push_back(freq);
@@ -1044,7 +1035,7 @@ bool setup_convetional_channel(System *system, double frequency, long channel_in
       BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
       if (system->get_system_type() == "conventional") {
         analog_recorder_sptr rec;
-        rec = source->create_conventional_recorder(tb);
+        rec = source->create_conventional_recorder(tb,frequency);
         rec->start(call);
         call->set_is_analog(true);
         call->set_recorder((Recorder *)rec.get());
@@ -1237,10 +1228,7 @@ int main(int argc, char **argv) {
 
   if (setup_systems()) {
     signal(SIGINT, exit_interupt);
-    for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
-      Source *source = *src_it;
-      source->create_null_channels(tb);
-    }
+
     tb->start();
 
     monitor_messages();

@@ -137,12 +137,18 @@ int Source::get_if_gain() {
   return if_gain;
 }
 
-analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
+analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb, double freq) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in analog_conv_recorders
+    int channel = find_channel_id(freq);
+
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
   analog_recorder_sptr log = make_analog_recorder(this, ANALOGC);
+  tb->connect(channelizer, channel, log, 0);
   analog_conv_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
   return log;
 }
 
@@ -201,81 +207,6 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   }
 }
 
-void Source::create_digital_channel_recorders(gr::top_block_sptr tb, std::vector<double> freqs) {
-  std::vector<int> channels;
-  tb->connect(source_block, 0, s2s, 0);
-  for (int i = 0; i < n_chans; i++) {
-    tb->connect(s2s, i, channelizer, i);
-  }
-
-  for (int i = 0; i < n_chans; i++) {
-    double freq = channel_freqs[i];
-    sigmf_recorder_sptr log = make_sigmf_recorder(freq, rate);
-
-    digital_channel_recorders.push_back(log);
-    tb->connect(channelizer, i, log, 0);
-  }
-  /*
-  for (int i = 0; i < freqs.size(); i++) {
-    double freq = freqs[i];
-    int channel = find_channel_number(freq);
-
-    if (channel == -1) {
-      BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision (15) << freq;
-      exit(1);
-    }
-    channels.push_back(channel);
-    sigmf_recorder_sptr log = make_sigmf_recorder(freq, rate);
-
-    digital_channel_recorders.push_back(log);
-    tb->connect(channelizer, channel, log, 0);
-  }
-  for (int i = 0; i < n_chans; i++ ){
-      if (std::find(channels.begin(), channels.end(), i) == channels.end()) {
-        gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
-        null_sinks.push_back(null_sink);
-        tb->connect(channelizer, i, null_sink, 0);
-      }
-    }
-    */
-}
-void Source::create_null_channels(gr::top_block_sptr tb) {
-  /*tb->connect(source_block, 0, channelizer, 0);
-  
-    tb->connect(source_block, 0, s2s,0);
-  for (int i = 0; i < n_chans; i++) {
-    tb->connect(s2s, i, channelizer, i);
-  }*/
- /* tb->connect(source_block, 0, channelizer, 0);
-  for (int i = 0; i < n_chans; i++) {
-    gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
-    null_sinks.push_back(null_sink);
-    tb->connect(channelizer, i, null_sink, 0);
-  }*/
-}
-void Source::stop_digital_channel_recorders() {
-
-  for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin();
-       it != sigmf_recorders.end(); it++) {
-    sigmf_recorder_sptr rx = *it;
-
-    if (rx->get_state() == ACTIVE) {
-      rx->stop();
-    }
-  }
-}
-
-void Source::start_digital_channel_recorders() {
-
-  for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin();
-       it != sigmf_recorders.end(); it++) {
-    sigmf_recorder_sptr rx = *it;
-
-    if (rx->get_state() == INACTIVE) {
-      rx->start();
-    }
-  }
-}
 
 Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call) {
   int num_available_recorders = get_num_available_digital_recorders();
@@ -358,7 +289,7 @@ void Source::create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs
   channelizer = pfb_channelizer::make(center, rate, n_chans, freqs, 1, std::vector<float>(), 60, 7250, 1450);
 
   tb->connect(source_block, 0, channelizer, 0);
-    channelizer->print_channel_freqs();
+    //channelizer->print_channel_freqs();
 }
 
 void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freqs) {
