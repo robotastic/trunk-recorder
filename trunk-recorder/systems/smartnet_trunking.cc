@@ -3,7 +3,7 @@
 
 using namespace std;
 
-smartnet_trunking_sptr make_smartnet_trunking(float freq,
+smartnet_trunking_sptr make_smartnet_trunking(double freq,
                                               gr::msg_queue::sptr queue,
                                               int sys_num) {
   return gnuradio::get_initial_sptr(new smartnet_trunking(freq,
@@ -62,7 +62,7 @@ void smartnet_trunking::initialize_prefilter() {
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
-  arb_rate = if_rate / 25000;
+  arb_rate = if_rate / 25000.0;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
@@ -72,7 +72,7 @@ void smartnet_trunking::initialize_prefilter() {
   connect(arb_resampler, 0, cutoff_filter, 0);
 }
 
-smartnet_trunking::smartnet_trunking(float f,
+smartnet_trunking::smartnet_trunking(double f,
                                      gr::msg_queue::sptr queue,
                                      int sys_num)
     : gr::hier_block2("smartnet_trunking",

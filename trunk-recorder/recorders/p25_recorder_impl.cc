@@ -270,10 +270,11 @@ void p25_recorder_impl::initialize_conventional(double chan_freq, bool qpsk_mod,
 }*/
 void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *config) {
     const double pi = M_PI;
+    double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   long if_rate = 24000; // phase1_channel_rate;
   long fa = 0;
   long fb = 0;
-  chan_freq = chan_freq;
+  this->chan_freq = chan_freq;
   this->config = config;
   d_soft_vocoder = config->soft_vocoder;
   input_rate = 25000;
@@ -316,7 +317,7 @@ void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *conf
   arb_rate = if_rate / 25000.0;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-
+std::cout << "Arb Rate: " << arb_rate << std::endl;
   double sps = floor(24000 / phase1_symbol_rate);
   double def_excess_bw = 0.2;
   // Squelch DB
@@ -514,41 +515,6 @@ long p25_recorder_impl::elapsed() {
   return time(NULL) - starttime;
 }
 
-void p25_recorder_impl::tune_freq(double f) {
-  chan_freq = f;
-  float freq = (center_freq - f);
-  tune_offset(freq);
-}
-void p25_recorder_impl::tune_offset(double f) {
-
-  float freq = static_cast<float>(f);
-
-  if (abs(freq) > ((input_rate / 2) - (if1 / 2))) {
-    BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate / 2) - (if1 / 2));
-  }
-  if (double_decim) {
-    bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1 / 2, -freq + if1 / 2, if1 / 2);
-    bandpass_filter->set_taps(bandpass_filter_coeffs);
-    float bfz = (static_cast<float>(decim) * -freq) / (float)input_rate;
-    bfz = bfz - static_cast<int>(bfz);
-    if (bfz < -0.5) {
-      bfz = bfz + 1.0;
-    }
-    if (bfz > 0.5) {
-      bfz = bfz - 1.0;
-    }
-    bfo->set_frequency(-bfz * if1);
-
-  } else {
-    lo->set_frequency(freq);
-  }
-  /*
-  if (!qpsk_mod) {
-    fsk4_demod->reset();
-  } else {
-    qpsk_demod->reset();
-  }*/
-}
 
 void p25_recorder_impl::set_source(long src) {
     return p25_decode->set_source(src);

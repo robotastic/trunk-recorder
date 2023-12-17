@@ -1081,6 +1081,7 @@ bool setup_trunking_system(System *system) {
   for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
     double control_channel_freq = *chan_it;
     bool channel_added = false;
+    BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Control Channel Freq: " << format_freq(control_channel_freq);
     for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
       Source *source = *src_it;
 
@@ -1114,8 +1115,15 @@ bool setup_trunking_system(System *system) {
 
       if ((source->get_min_hz() <= voice_channel_freq) &&
           (source->get_max_hz() >= voice_channel_freq)) {
-        channel_added = true;
+        
         p25_recorder_sptr rec = source->create_digital_recorder(tb, voice_channel_freq, system->get_qpsk_mod());
+        if (rec == NULL) {
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Control Channel Freq: " << format_freq(voice_channel_freq);
+        } else {
+          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Found source for Voice Channel Freq: " << format_freq(voice_channel_freq);
+        
+          channel_added = true;
+        }
         system->add_digital_recorder(rec);
         if (system->get_system_type() == "smartnet") {
           analog_recorder_sptr rec = source->create_analog_recorder(tb, voice_channel_freq);
@@ -1124,7 +1132,7 @@ bool setup_trunking_system(System *system) {
       }
     }
     if (!channel_added) {
-      BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Control Channel Freq: " << format_freq(voice_channel_freq);
+      BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Voice Channel Freq: " << format_freq(voice_channel_freq);
       return false;
     }
   }

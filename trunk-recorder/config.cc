@@ -285,7 +285,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(info) << "Voice Channels: ";
           std::vector<double> voice_channels = element["voiceChannels"];
           for (auto &voice_channel : voice_channels) {
-            system->add_control_channel(voice_channel);
+            system->add_voice_channel(voice_channel);
           }
           for (unsigned int i = 0; i < voice_channels.size(); i++) {
             BOOST_LOG_TRIVIAL(info) << "  " << format_freq(voice_channels[i]);

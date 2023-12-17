@@ -83,8 +83,6 @@ public:
   void initialize_fsk4();
   void initialize_p25();
 
-  void tune_offset(double f);
-  void tune_freq(double f);
   bool start(Call *call);
   void stop();
   void clear();

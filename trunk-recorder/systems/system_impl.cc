@@ -389,7 +389,6 @@ void System_impl::add_p25_trunking_recorder(p25_trunking_sptr rec) {
 p25_recorder_sptr System_impl::get_digital_recorder(double freq) {
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); ++it) {
      p25_recorder_sptr recorder = *it;
-
     if (recorder->get_freq() == freq) {
       return recorder;
     }

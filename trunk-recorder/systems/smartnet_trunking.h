@@ -41,12 +41,12 @@ typedef boost::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
 #else
 typedef std::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
 #endif
-smartnet_trunking_sptr make_smartnet_trunking(float f,
+smartnet_trunking_sptr make_smartnet_trunking(double f,
                                               gr::msg_queue::sptr queue,
                                               int sys_num);
 
 class smartnet_trunking : public gr::hier_block2 {
-  friend smartnet_trunking_sptr make_smartnet_trunking(float f,
+  friend smartnet_trunking_sptr make_smartnet_trunking(double f,
                                                        gr::msg_queue::sptr queue,
                                                        int sys_num);
 
@@ -83,7 +83,7 @@ protected:
   gr::digital::binary_slicer_fb::sptr slicer;
   gr::digital::correlate_access_code_tag_bb::sptr start_correlator;
 
-  smartnet_trunking(float f,
+  smartnet_trunking(double f,
                     gr::msg_queue::sptr queue,
                     int sys_num);
   double chan_freq, center_freq;
