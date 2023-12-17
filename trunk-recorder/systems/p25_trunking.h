@@ -19,6 +19,7 @@
 #include <gnuradio/io_signature.h>
 
 #include <gnuradio/block.h>
+#include <gnuradio/blocks/copy.h>
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/analog/sig_source_c.h>
@@ -69,28 +70,19 @@ typedef std::shared_ptr<p25_trunking> p25_trunking_sptr;
 #endif
 
 p25_trunking_sptr make_p25_trunking(double f,
-                                    double c,
-                                    long s,
                                     gr::msg_queue::sptr queue,
                                     bool qpsk,
                                     int sys_num);
 
 class p25_trunking : public gr::hier_block2 {
-  struct DecimSettings {
-    long decim;
-    long decim2;
-  };
+
   friend p25_trunking_sptr make_p25_trunking(double f,
-                                             double c,
-                                             long s,
                                              gr::msg_queue::sptr queue,
                                              bool qpsk,
                                              int sys_num);
 
 protected:
   p25_trunking(double f,
-               double c,
-               long s,
                gr::msg_queue::sptr queue,
                bool qpsk,
                int sys_num);
@@ -98,19 +90,18 @@ protected:
 public:
   ~p25_trunking();
 
-  void set_center(double c);
-  void set_rate(long s);
-  void tune_offset(double f);
-  void tune_freq(double f);
   double get_freq();
   void enable();
 
   gr::msg_queue::sptr tune_queue;
   gr::msg_queue::sptr traffic_queue;
   gr::msg_queue::sptr rx_queue;
+  void start();
+  void stop();
+  
 
 private:
-  p25_trunking::DecimSettings get_decim(long speed);
+
   void generate_arb_taps();
   void initialize_prefilter();
   void initialize_qpsk();
@@ -145,7 +136,7 @@ private:
   gr::analog::sig_source_c::sptr lo;
   gr::analog::sig_source_c::sptr bfo;
   gr::blocks::multiply_cc::sptr mixer;
-
+  gr::blocks::copy::sptr valve;
   gr::filter::fft_filter_ccc::sptr bandpass_filter;
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;

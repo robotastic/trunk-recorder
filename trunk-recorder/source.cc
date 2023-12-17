@@ -137,10 +137,25 @@ int Source::get_if_gain() {
   return if_gain;
 }
 
-analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb, double freq) {
+
+analog_recorder_sptr Source::create_analog_recorder(gr::top_block_sptr tb, double freq) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in analog_conv_recorders
-    int channel = find_channel_id(freq);
+  int channel = find_channel_id(freq);
+
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
+  analog_recorder_sptr log = make_analog_recorder(this, ANALOG);
+  tb->connect(channelizer, channel, log, 0);
+  return log;
+}
+
+analog_recorder_sptr Source::create_analog_conventional_recorder(gr::top_block_sptr tb, double freq) {
+  // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
+  // Conventional recorders are tracked seperately in analog_conv_recorders
+  int channel = find_channel_id(freq);
 
   if (channel == -1) {
     BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
@@ -152,15 +167,7 @@ analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb,
   return log;
 }
 
-void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
-  max_analog_recorders = r;
 
-  for (int i = 0; i < max_analog_recorders; i++) {
-    analog_recorder_sptr log = make_analog_recorder(this, ANALOG);
-    analog_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
-  }
-}
 
 Recorder *Source::get_analog_recorder(Talkgroup *talkgroup, int priority, Call *call) {
   int num_available_recorders = get_num_available_analog_recorders();
@@ -195,16 +202,6 @@ Recorder *Source::get_analog_recorder(Call *call) {
   }
   BOOST_LOG_TRIVIAL(error) << "[" << call->get_system()->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t[ " << device << " ] No Analog Recorders Available.";
   return NULL;
-}
-
-void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
-  max_digital_recorders = r;
-
-  for (int i = 0; i < max_digital_recorders; i++) {
-    p25_recorder_sptr log = make_p25_recorder(this, P25);
-    digital_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
-  }
 }
 
 
@@ -256,7 +253,34 @@ int Source::find_channel_id(double freq) {
   return channelizer->find_channel_id(freq);
 }
 
-p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb, double freq) {
+sigmf_recorder_sptr Source::create_sigmf_recorder(gr::top_block_sptr tb, double freq) {
+  int channel = find_channel_id(freq);
+
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
+  sigmf_recorder_sptr log = make_sigmf_recorder(freq, this->rate);
+  tb->connect(channelizer, channel, log, 0);
+
+  return log;
+}
+
+
+p25_recorder_sptr Source::create_digital_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod) {
+  int channel = find_channel_id(freq);
+
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
+  p25_recorder_sptr log = make_p25_recorder(freq, qpsk_mod, this->config, P25);
+  tb->connect(channelizer, channel, log, 0);
+
+  return log;
+}
+
+p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
 
@@ -266,38 +290,21 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
     BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
     exit(1);
   }
-  p25_recorder_sptr log = make_p25_recorder(this, P25C);
+  p25_recorder_sptr log = make_p25_recorder(freq, qpsk_mod, this->config, P25C);
   tb->connect(channelizer, channel, log, 0);
   digital_conv_recorders.push_back(log);
 
   return log;
 }
 
-
 void Source::create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs) {
   BOOST_LOG_TRIVIAL(info) << "Creating Channelizer for " << freqs.size() << " channels";
   channelizer = pfb_channelizer::make(center, rate, n_chans, freqs, 1, std::vector<float>(), 60, 7250, 1450);
 
   tb->connect(source_block, 0, channelizer, 0);
-    //channelizer->print_channel_freqs();
+  // channelizer->print_channel_freqs();
 }
 
-void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freqs) {
-  // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
-  // Conventional recorders are tracked seperately in digital_conv_recorders
-
-
-
-    for (int i = 0; i < freqs.size(); i++) {
-
-      p25_recorder_sptr log = make_p25_recorder(this, P25C);
-      digital_conv_recorders.push_back(log);
-
-      tb->connect(channelizer, i, log, 0);
-    }
-  
- 
-}
 
 dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb, double freq) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
@@ -312,6 +319,37 @@ dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb
   dmr_conv_recorders.push_back(log);
   tb->connect(channelizer, channel, log, 0);
   return log;
+}
+
+smartnet_trunking_sptr Source::create_smartnet_trunking_recorder(gr::top_block_sptr tb, System *system, double freq) {
+  int channel = find_channel_id(freq);
+
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
+  smartnet_trunking_sptr smartnet_trunking = make_smartnet_trunking(freq,
+                                                                    system->get_msg_queue(),
+                                                                    system->get_sys_num());
+  tb->connect(channelizer, channel, smartnet_trunking, 0);
+
+  return smartnet_trunking;
+}
+
+p25_trunking_sptr Source::create_p25_trunking_recorder(gr::top_block_sptr tb, System *system, double freq) {
+  int channel = find_channel_id(freq);
+
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
+  p25_trunking_sptr p25_trunking = make_p25_trunking(freq,
+                                                     system->get_msg_queue(),
+                                                     system->get_qpsk_mod(),
+                                                     system->get_sys_num());
+  tb->connect(channelizer, channel, p25_trunking, 0);
+
+  return p25_trunking;
 }
 
 void Source::create_debug_recorder(gr::top_block_sptr tb, int source_num) {
@@ -338,17 +376,6 @@ Recorder *Source::get_debug_recorder() {
 
 int Source::get_debug_recorder_port() {
   return debug_recorder_port;
-}
-
-void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
-  max_sigmf_recorders = r;
-
-  for (int i = 0; i < max_sigmf_recorders; i++) {
-    sigmf_recorder_sptr log = make_sigmf_recorder(this);
-
-    sigmf_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
-  }
 }
 
 Recorder *Source::get_sigmf_recorder() {
@@ -414,20 +441,8 @@ void Source::tune_digital_recorders() {
   }
 }
 
-int Source::digital_recorder_count() {
-  return digital_recorders.size() + digital_conv_recorders.size() + dmr_conv_recorders.size();
-}
-
-int Source::analog_recorder_count() {
-  return analog_recorders.size() + analog_conv_recorders.size();
-}
-
 int Source::debug_recorder_count() {
   return debug_recorders.size();
-}
-
-int Source::sigmf_recorder_count() {
-  return sigmf_recorders.size();
 }
 
 int Source::get_num() {

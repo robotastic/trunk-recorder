@@ -73,10 +73,10 @@ class p25_recorder;
 class p25_recorder_impl : public p25_recorder {
 
 protected:
-  void initialize(Source *src);
-  void initialize_conventional(Source *src); 
+  void initialize(double freq, bool qpsk_mod, Config *config);
+  //void initialize_conventional(Source *src); 
 public:
-  p25_recorder_impl(Source *src, Recorder_Type type);
+  p25_recorder_impl(double freq, bool qpsk_mod, Config *config, Recorder_Type type);
   DecimSettings get_decim(long speed);
   void initialize_prefilter();
   void initialize_qpsk();
@@ -132,9 +132,8 @@ protected:
   // gr::blocks::multiply_const_ss::sptr levels;
 
   p25_recorder_fsk4_demod_sptr fsk4_demod;
-  p25_recorder_decode_sptr fsk4_p25_decode;
+  p25_recorder_decode_sptr p25_decode;
   p25_recorder_qpsk_demod_sptr qpsk_demod;
-  p25_recorder_decode_sptr qpsk_p25_decode;
 
 
 

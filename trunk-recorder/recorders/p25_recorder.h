@@ -25,11 +25,11 @@ typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
 #endif
 
-p25_recorder_sptr make_p25_recorder(Source *src, Recorder_Type type);
+p25_recorder_sptr make_p25_recorder(double freq, bool qpsk_mod, Config *config, Recorder_Type type);
 #include "../source.h"
 
 class p25_recorder : virtual public gr::hier_block2, virtual public Recorder {
-  static p25_recorder_sptr make_p25_recorder(Source *src);
+  static p25_recorder_sptr make_p25_recorder(double freq, bool qpsk_mod, Config *config, Recorder_Type type);
 
 public:
   p25_recorder(){};

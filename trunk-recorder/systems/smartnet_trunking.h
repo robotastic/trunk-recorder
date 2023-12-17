@@ -8,6 +8,7 @@
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
+#include <gnuradio/blocks/copy.h>
 
 #include <gnuradio/filter/firdes.h>
 
@@ -41,31 +42,22 @@ typedef boost::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
 typedef std::shared_ptr<smartnet_trunking> smartnet_trunking_sptr;
 #endif
 smartnet_trunking_sptr make_smartnet_trunking(float f,
-                                              float c,
-                                              long s,
                                               gr::msg_queue::sptr queue,
                                               int sys_num);
 
 class smartnet_trunking : public gr::hier_block2 {
   friend smartnet_trunking_sptr make_smartnet_trunking(float f,
-                                                       float c,
-                                                       long s,
                                                        gr::msg_queue::sptr queue,
                                                        int sys_num);
 
 public:
-  struct DecimSettings {
-    long decim;
-    long decim2;
-  };
-  void set_center(double c);
-  void set_rate(long s);
-  void tune_offset(double f);
-  void tune_freq(double f);
+  void stop();
+  void start();
   void reset();
+  double get_freq();
 
 protected:
-  smartnet_trunking::DecimSettings get_decim(long speed);
+
   void generate_arb_taps();
   void initialize_prefilter();
 
@@ -78,6 +70,7 @@ protected:
   gr::analog::sig_source_c::sptr lo;
   gr::analog::sig_source_c::sptr bfo;
   gr::blocks::multiply_cc::sptr mixer;
+  gr::blocks::copy::sptr valve;
 
   gr::filter::fft_filter_ccc::sptr bandpass_filter;
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
@@ -91,8 +84,6 @@ protected:
   gr::digital::correlate_access_code_tag_bb::sptr start_correlator;
 
   smartnet_trunking(float f,
-                    float c,
-                    long s,
                     gr::msg_queue::sptr queue,
                     int sys_num);
   double chan_freq, center_freq;

@@ -275,12 +275,20 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           // If it is a Trunked System
         } else if ((system->get_system_type() == "smartnet") || (system->get_system_type() == "p25")) {
           BOOST_LOG_TRIVIAL(info) << "Control Channels: ";
-          std::vector<double> control_channels = element["control_channels"];
+          std::vector<double> control_channels = element["controlChannels"];
           for (auto &control_channel : control_channels) {
             system->add_control_channel(control_channel);
           }
           for (unsigned int i = 0; i < control_channels.size(); i++) {
             BOOST_LOG_TRIVIAL(info) << "  " << format_freq(control_channels[i]);
+          }
+          BOOST_LOG_TRIVIAL(info) << "Voice Channels: ";
+          std::vector<double> voice_channels = element["voiceChannels"];
+          for (auto &voice_channel : voice_channels) {
+            system->add_control_channel(voice_channel);
+          }
+          for (unsigned int i = 0; i < voice_channels.size(); i++) {
+            BOOST_LOG_TRIVIAL(info) << "  " << format_freq(voice_channels[i]);
           }
           system->set_talkgroups_file(element.value("talkgroupsFile", ""));
           BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
@@ -434,9 +442,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           return false;
         }
 
-        int digital_recorders = element.value("digitalRecorders", 0);
-        int sigmf_recorders = element.value("sigmfRecorders", 0);
-        int analog_recorders = element.value("analogRecorders", 0);
+
 
         if (driver == "sigmf") {
           string sigmf_data = element.value("sigmfData", "");
@@ -589,12 +595,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         }
         BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
         BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
-        BOOST_LOG_TRIVIAL(info) << "Digital Recorders: " << element.value("digitalRecorders", 0);
-        BOOST_LOG_TRIVIAL(info) << "SigMF Recorders: " << element.value("sigmfRecorders", 0);
-        BOOST_LOG_TRIVIAL(info) << "Analog Recorders: " << element.value("analogRecorders", 0);
-        source->create_digital_recorders(tb, digital_recorders);
-        source->create_analog_recorders(tb, analog_recorders);
-        source->create_sigmf_recorders(tb, sigmf_recorders);
+
         //source->create_digital_channel_recorders(tb, std::vector<double> {855462500});
         if (config.debug_recorder) {
           source->create_debug_recorder(tb, source_count);

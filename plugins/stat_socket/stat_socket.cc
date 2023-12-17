@@ -119,10 +119,7 @@ public:
         source_node.put(gain_it->stage_name + "_gain", gain_it->value);
       }
       source_node.put("antenna", source->get_antenna());
-      source_node.put("analog_recorders", source->analog_recorder_count());
-      source_node.put("digital_recorders", source->digital_recorder_count());
       source_node.put("debug_recorders", source->debug_recorder_count());
-      source_node.put("sigmf_recorders", source->sigmf_recorder_count());
       sources_node.push_back(std::make_pair("", source_node));
     }
 

@@ -4,11 +4,9 @@
 using namespace std;
 
 smartnet_trunking_sptr make_smartnet_trunking(float freq,
-                                              float center,
-                                              long samp,
                                               gr::msg_queue::sptr queue,
                                               int sys_num) {
-  return gnuradio::get_initial_sptr(new smartnet_trunking(freq, center, samp,
+  return gnuradio::get_initial_sptr(new smartnet_trunking(freq,
                                                           queue, sys_num));
 }
 
@@ -46,33 +44,6 @@ void smartnet_trunking::generate_arb_taps() {
   }
 }
 
-smartnet_trunking::DecimSettings smartnet_trunking::get_decim(long speed) {
-  long s = speed;
-  long if_freqs[] = {18000, 24000, 25000, 32000};
-  DecimSettings decim_settings = {-1, -1};
-  for (int i = 0; i < 3; i++) {
-    long if_freq = if_freqs[i];
-    if (s % if_freq != 0) {
-      continue;
-    }
-    long q = s / if_freq;
-    if (q & 1) {
-      continue;
-    }
-
-    if ((q >= 40) && ((q & 3) == 0)) {
-      decim_settings.decim = q / 4;
-      decim_settings.decim2 = 4;
-    } else {
-      decim_settings.decim = q / 2;
-      decim_settings.decim2 = 2;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "SmartNet trunking Decim: " << decim_settings.decim << " Decim2:  " << decim_settings.decim2;
-    return decim_settings;
-  }
-  BOOST_LOG_TRIVIAL(error) << "SmartNet trunking Decim: Nothing found";
-  return decim_settings;
-}
 void smartnet_trunking::initialize_prefilter() {
   symbol_rate = 3600;
   samples_per_symbol = 5; // was 10
@@ -80,38 +51,9 @@ void smartnet_trunking::initialize_prefilter() {
   long if_rate = system_channel_rate;
   long fa = 0;
   long fb = 0;
-  if1 = 0;
-  if2 = 0;
 
-  lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-  mixer = gr::blocks::multiply_cc::make();
-
-  DecimSettings decim_settings = get_decim(input_rate);
-  if (decim_settings.decim != -1) {
-    double_decim = true;
-    decim = decim_settings.decim;
-    if1 = input_rate / decim_settings.decim;
-    if2 = if1 / decim_settings.decim2;
-    fa = 6250;
-    fb = if2 / 2;
-    BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
-    bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
-    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa);
-    bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
-    lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
-    resampled_rate = if2;
-    bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-  } else {
-    double_decim = false;
-    BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
-    lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
-    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, 7250, 1450);
-    decim = floor(input_rate / if_rate);
-    resampled_rate = input_rate / decim;
-
-    lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
-    resampled_rate = input_rate / decim;
-  }
+  valve = gr::blocks::copy::make(sizeof(gr_complex));
+  valve->set_enabled(false);
 
   // Cut-Off Filter
   fa = 6250;
@@ -120,35 +62,24 @@ void smartnet_trunking::initialize_prefilter() {
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
-  arb_rate = if_rate / resampled_rate;
+  arb_rate = if_rate / 25000;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
 
-  if (double_decim) {
-    connect(self(), 0, bandpass_filter, 0);
-    connect(bandpass_filter, 0, mixer, 0);
-    connect(bfo, 0, mixer, 1);
-  } else {
-    connect(self(), 0, mixer, 0);
-    connect(lo, 0, mixer, 1);
-  }
-  connect(mixer, 0, lowpass_filter, 0);
-  connect(lowpass_filter, 0, arb_resampler, 0);
+  connect(self(), 0, valve, 0);
+  connect(valve, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
 }
 
 smartnet_trunking::smartnet_trunking(float f,
-                                     float c,
-                                     long s,
                                      gr::msg_queue::sptr queue,
                                      int sys_num)
     : gr::hier_block2("smartnet_trunking",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))) {
-  center_freq = c;
+
   chan_freq = f;
-  input_rate = s;
 
   this->sys_num = sys_num;
 
@@ -188,7 +119,6 @@ smartnet_trunking::smartnet_trunking(float f,
   connect(softbits, 0, slicer, 0);
   connect(slicer, 0, start_correlator, 0);
   connect(start_correlator, 0, decode, 0);
-  tune_freq(chan_freq);
 }
 
 void smartnet_trunking::reset() {
@@ -201,41 +131,15 @@ void smartnet_trunking::reset() {
   // pll_demod->set_phase(0);
 }
 
-void smartnet_trunking::set_center(double c) {
-  center_freq = c;
+
+double smartnet_trunking::get_freq() {
+  return chan_freq;
 }
 
-void smartnet_trunking::set_rate(long s) {
-  input_rate = s;
-  // TODO: Update/remake blocks that depend on input_rate
+void smartnet_trunking::start() {
+  valve->set_enabled(true);
 }
 
-void smartnet_trunking::tune_freq(double f) {
-  chan_freq = f;
-  int offset_amount = (center_freq - f);
-  tune_offset(offset_amount);
-}
-
-void smartnet_trunking::tune_offset(double f) {
-
-  float freq = static_cast<float>(f);
-
-  if (abs(freq) > ((input_rate / 2) - (if1 / 2))) {
-    BOOST_LOG_TRIVIAL(info) << "Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((input_rate / 2) - (if1 / 2));
-  }
-  if (double_decim) {
-    bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -freq - if1 / 2, -freq + if1 / 2, if1 / 2);
-    bandpass_filter->set_taps(bandpass_filter_coeffs);
-    float bfz = (static_cast<float>(decim) * -freq) / (float)input_rate;
-    bfz = bfz - static_cast<int>(bfz);
-    if (bfz < -0.5) {
-      bfz = bfz + 1.0;
-    }
-    if (bfz > 0.5) {
-      bfz = bfz - 1.0;
-    }
-    bfo->set_frequency(-bfz * if1);
-  } else {
-    lo->set_frequency(freq);
-  }
-}
+void smartnet_trunking::stop() {
+  valve->set_enabled(false);
+} 

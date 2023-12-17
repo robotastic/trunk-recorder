@@ -18,6 +18,8 @@
 #include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 #include "sources/iq_file_source.h"
+#include "systems/smartnet_trunking.h"
+#include "systems/p25_trunking.h"
 
 #define JSON_DIAGNOSTICS 1
 #include <json.hpp>
@@ -76,7 +78,7 @@ class Source {
   std::string antenna;
   gr::basic_block_sptr source_block;
   void add_gain_stage(std::string stage_name, int value);
-  int find_channel_id(double freq);
+
   void build_channel_freqs();
 
 public:
@@ -86,8 +88,7 @@ public:
   Source(double c, double r, double e, std::string driver, std::string device, Config *cfg);
   Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg);
   Source(std::string iq_file, bool repeat, double center, double rate, Config *cfg);
-  void start_digital_channel_recorders();
-  void stop_digital_channel_recorders();
+  int find_channel_id(double freq);
   void set_iq_source(std::string iq_file, bool repeat, double center, double rate);
   gr::basic_block_sptr get_src_block();
   double get_min_hz();
@@ -126,20 +127,21 @@ public:
   void tune_digital_recorders();
   int debug_recorder_count();
   int get_debug_recorder_port();
-  int sigmf_recorder_count();
-  int digital_recorder_count();
-  int analog_recorder_count();
   Config *get_config();
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
-  void create_sigmf_recorders(gr::top_block_sptr tb, int r);
-  void create_analog_recorders(gr::top_block_sptr tb, int r);
-  void create_digital_recorders(gr::top_block_sptr tb, int r);
   void create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs);
-  analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb, double freq);
-  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq);
-  void create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freq);
-  dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb, double freq);
 
+
+  sigmf_recorder_sptr create_sigmf_recorder(gr::top_block_sptr tb, double freq);
+
+  analog_recorder_sptr create_analog_recorder(gr::top_block_sptr tb, double freq);
+  analog_recorder_sptr create_analog_conventional_recorder(gr::top_block_sptr tb, double freq);
+
+  p25_recorder_sptr create_digital_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod);
+  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod);
+  dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb, double freq);
+  smartnet_trunking_sptr create_smartnet_trunking_recorder(gr::top_block_sptr tb, System *system, double freq);
+  p25_trunking_sptr create_p25_trunking_recorder(gr::top_block_sptr tb, System *system, double freq); 
   Recorder *get_digital_recorder(Call *call);
   Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call);
   Recorder *get_analog_recorder(Call *call);
