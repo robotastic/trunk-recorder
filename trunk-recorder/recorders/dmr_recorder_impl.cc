@@ -146,6 +146,7 @@ void dmr_recorder_impl::initialize_prefilter() {
 }
 
 void dmr_recorder_impl::initialize(Source *src) {
+    long if_rate = 24000;
   source = src;
   chan_freq = source->get_center();
   center_freq = source->get_center();
@@ -153,7 +154,8 @@ void dmr_recorder_impl::initialize(Source *src) {
   input_rate = source->get_rate();
   silence_frames = source->get_silence_frames();
   squelch_db = 0;
-
+  long fa = 0;
+  long fb = 0;
   talkgroup = 0;
   d_phase2_tdma = true;
   rec_num = rec_counter++;
@@ -171,7 +173,24 @@ void dmr_recorder_impl::initialize(Source *src) {
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  initialize_prefilter();
+
+  valve = gr::blocks::copy::make(sizeof(gr_complex));
+  valve->set_enabled(false);
+
+  // Cut-Off Filter
+  fa = 6250;
+  fb = fa + 625;
+  cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa);
+  cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
+
+  // ARB Resampler
+  arb_rate = if_rate / 25000.0;
+  generate_arb_taps();
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+  
+
+
+  //initialize_prefilter();
   // initialize_p25();
 
   /* FSK4 Demod */
@@ -237,7 +256,8 @@ void dmr_recorder_impl::initialize(Source *src) {
   // reverse squelch. If the power is then BELOW a threshold, open the squelch.
 
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
-
+  connect(self(), 0, valve, 0);
+  connect(valve, 0, cutoff_filter, 0);
   connect(cutoff_filter, 0, squelch, 0);
   connect(squelch, 0, pll_freq_lock, 0);
   connect(pll_freq_lock, 0, pll_amp, 0);
@@ -345,7 +365,7 @@ void dmr_recorder_impl::tune_freq(double f) {
   tune_offset(freq);
 }
 void dmr_recorder_impl::tune_offset(double f) {
-
+/*
   float freq = static_cast<float>(f);
 
   if (abs(freq) > ((input_rate / 2) - (if1 / 2))) {
@@ -366,7 +386,7 @@ void dmr_recorder_impl::tune_offset(double f) {
 
   } else {
     lo->set_frequency(freq);
-  }
+  }*/
 }
 
 bool compareTransmissions(Transmission t1, Transmission t2) {
@@ -430,9 +450,9 @@ bool dmr_recorder_impl::start(Call *call) {
 
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
-    int offset_amount = (center_freq - chan_freq);
+    //int offset_amount = (center_freq - chan_freq);
 
-    tune_offset(offset_amount);
+    //tune_offset(offset_amount);
     levels->set_k(call->get_system()->get_digital_levels());
     wav_sink_slot0->start_recording(call, 0);
     wav_sink_slot1->start_recording(call, 1);

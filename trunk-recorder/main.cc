@@ -1049,7 +1049,7 @@ bool setup_convetional_channel(System *system, double frequency, long channel_in
         // This has something to do with the way the Selector block works.
         // the manage_conventional_calls() function handles adding and starting the P25 Recorder
         dmr_recorder_sptr rec;
-        rec = source->create_dmr_conventional_recorder(tb);
+        rec = source->create_dmr_conventional_recorder(tb,frequency);
         call->set_recorder((Recorder *)rec.get());
         system->add_conventionalDMR_recorder(rec);
         calls.push_back(call);

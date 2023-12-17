@@ -88,7 +88,7 @@ void p25_recorder_decode::initialize(int silence_frames, bool d_soft_vocoder) {
   rx_queue = gr::msg_queue::make(100);
 
   int udp_port = 0;
-  int verbosity = 10; // 10 = lots of debug messages
+  int verbosity = 1; // 10 = lots of debug messages
   const char *udp_host = "127.0.0.1";
   bool do_imbe = 1;
   bool do_output = 1;

@@ -138,7 +138,7 @@ public:
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb, double freq);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq);
   void create_digital_conventional_recorder(gr::top_block_sptr tb, std::vector<double> freq);
-  dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb);
+  dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb, double freq);
 
   Recorder *get_digital_recorder(Call *call);
   Recorder *get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call);

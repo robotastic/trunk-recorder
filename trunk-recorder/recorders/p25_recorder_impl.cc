@@ -185,8 +185,8 @@ void p25_recorder_impl::initialize_prefilter() {
 }
 
 void p25_recorder_impl::initialize_conventional(Source *src) {
-    const float pi = M_PI;
-      double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  const float pi = M_PI;
+  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   long if_rate = 24000;//phase1_channel_rate;
   long fa = 0;
   long fb = 0;

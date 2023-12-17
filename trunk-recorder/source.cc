@@ -269,17 +269,7 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
   p25_recorder_sptr log = make_p25_recorder(this, P25C);
   tb->connect(channelizer, channel, log, 0);
   digital_conv_recorders.push_back(log);
-  /*
-  digital_conv_recorders.push_back(log);
-  int channel = find_channel_number(freq);
-  if (channel == -1) {
-    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
-    exit(1);
-  }
-  tb->connect(channelizer, channel, log, 0);
-*/
 
-  // tb->connect(source_block, 0, log, 0);
   return log;
 }
 
@@ -306,36 +296,21 @@ void Source::create_digital_conventional_recorder(gr::top_block_sptr tb, std::ve
       tb->connect(channelizer, i, log, 0);
     }
   
-  /*
-  for (int i = 0; i < freqs.size(); i++) {
-    double freq = freqs[i];
-    int channel = find_channel_number(freq);
-
-    if (channel == -1) {
-      BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision (15) << freq;
-      exit(1);
-    }
-    channels.push_back(channel);
-    p25_recorder_sptr log = make_p25_recorder(this, P25C);
-  digital_conv_recorders.push_back(log);
-
-    tb->connect(channelizer, channel, log, 0);
-  }
-  for (int i = 0; i < n_chans; i++ ){
-      if (std::find(channels.begin(), channels.end(), i) == channels.end()) {
-        gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
-        null_sinks.push_back(null_sink);
-        tb->connect(channelizer, i, null_sink, 0);
-      }
-    }*/
+ 
 }
 
-dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb) {
+dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb, double freq) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
+  int channel = find_channel_id(freq);
+
+  if (channel == -1) {
+    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
+    exit(1);
+  }
   dmr_recorder_sptr log = make_dmr_recorder(this, DMR);
   dmr_conv_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
+  tb->connect(channelizer, channel, log, 0);
   return log;
 }
 
