@@ -248,8 +248,6 @@ Recorder *Source::get_digital_recorder(Call *call) {
 }
 
 int Source::find_channel_id(double freq) {
-  std::cout << "Looking for freq: " << std::setprecision(15) << freq << std::endl;
-
   return channelizer->find_channel_id(freq);
 }
 
@@ -298,11 +296,10 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
 }
 
 void Source::create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs) {
-  BOOST_LOG_TRIVIAL(info) << "Creating Channelizer for " << freqs.size() << " channels";
+  BOOST_LOG_TRIVIAL(info) << "Creating Channelizer which divides " << format_freq(rate) << " into " << n_chans << " x 25000Hz internal channels and outputs "  << freqs.size() << " channels";
   channelizer = pfb_channelizer::make(center, rate, n_chans, freqs, 1, std::vector<float>(), 60, 7250, 1450);
 
   tb->connect(source_block, 0, channelizer, 0);
-  // channelizer->print_channel_freqs();
 }
 
 
@@ -655,7 +652,6 @@ void Source::set_iq_source(std::string iq_file, bool repeat, double center, doub
 
 Source::Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg) {
   json data;
-  std::cout << sigmf_meta << std::endl;
   try {
     std::ifstream f(sigmf_meta);
     data = json::parse(f);

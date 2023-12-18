@@ -33,7 +33,7 @@ void p25_recorder_impl::generate_arb_taps() {
 
     // As we drop the bw factor, the optfir filter has a harder time converging;
     // using the firdes method here for better results.
-    std::cout << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " << tb << std::endl;
+
 #if GNURADIO_VERSION < 0x030900
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
 #else
@@ -220,7 +220,6 @@ void p25_recorder_impl::initialize_conventional(double chan_freq, bool qpsk_mod,
   // Cut-Off Filter
   fa = 6250;
   fb = fa + 1250;
-  std::cout << "IF Rate: " << if_rate << " fa: " << fa << " fb: " << fb << std::endl;
 #if GNURADIO_VERSION < 0x030900
   cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HANN);
 #else
@@ -269,8 +268,8 @@ void p25_recorder_impl::initialize_conventional(double chan_freq, bool qpsk_mod,
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
 }*/
 void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *config) {
-    const double pi = M_PI;
-    double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  const double pi = M_PI;
+  double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
   long if_rate = 24000; // phase1_channel_rate;
   long fa = 0;
   long fb = 0;
@@ -280,7 +279,7 @@ void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *conf
   input_rate = 25000;
   this->qpsk_mod = qpsk_mod;
   silence_frames = false; // source->get_silence_frames();
-  
+
   squelch_db = 0;
   talkgroup = 0;
   d_phase2_tdma = false;
@@ -305,7 +304,6 @@ void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *conf
   // Cut-Off Filter
   fa = 6250;
   fb = fa + 1250;
-  std::cout << "IF Rate: " << if_rate << " fa: " << fa << " fb: " << fb << std::endl;
 #if GNURADIO_VERSION < 0x030900
   cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HANN);
 #else
@@ -317,7 +315,7 @@ void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *conf
   arb_rate = if_rate / 25000.0;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-std::cout << "Arb Rate: " << arb_rate << std::endl;
+
   double sps = floor(24000 / phase1_symbol_rate);
   double def_excess_bw = 0.2;
   // Squelch DB
@@ -469,11 +467,11 @@ int p25_recorder_impl::get_num() {
 }
 
 double p25_recorder_impl::since_last_write() {
-    return p25_decode->since_last_write();
+  return p25_decode->since_last_write();
 }
 
 State p25_recorder_impl::get_state() {
-    return p25_decode->get_state();
+  return p25_decode->get_state();
 }
 
 bool p25_recorder_impl::is_active() {
@@ -492,11 +490,11 @@ bool p25_recorder_impl::is_squelched() {
 }
 bool p25_recorder_impl::is_idle() {
 
-    if ((p25_decode->get_state() == IDLE) || (p25_decode->get_state() == STOPPED)) {
-      return true;
-    } else {
-  return false;
-    }
+  if ((p25_decode->get_state() == IDLE) || (p25_decode->get_state() == STOPPED)) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 double p25_recorder_impl::get_freq() {
@@ -515,22 +513,19 @@ long p25_recorder_impl::elapsed() {
   return time(NULL) - starttime;
 }
 
-
 void p25_recorder_impl::set_source(long src) {
-    return p25_decode->set_source(src);
+  return p25_decode->set_source(src);
 }
 
 std::vector<Transmission> p25_recorder_impl::get_transmission_list() {
 
-    return p25_decode->get_transmission_list();
-
+  return p25_decode->get_transmission_list();
 }
 
 void p25_recorder_impl::stop() {
   if (state == ACTIVE) {
 
-      recording_duration += p25_decode->get_current_length();
-
+    recording_duration += p25_decode->get_current_length();
 
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
@@ -591,7 +586,6 @@ bool p25_recorder_impl::start(Call *call) {
     if (type != P25C) {
       tune_offset(offset_amount);
     }
-
 
     p25_decode->start(call);
     state = ACTIVE;

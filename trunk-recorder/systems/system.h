@@ -153,6 +153,7 @@ public:
   virtual std::vector<double> get_channels() = 0;
   virtual std::vector<double> get_control_channels() = 0;
   virtual std::vector<double> get_voice_channels() = 0;
+  virtual void print_missing_voice_channels() = 0;
   virtual std::vector<Talkgroup *> get_talkgroups() = 0;
   virtual void set_bandplan(std::string) = 0;
   virtual std::string get_bandplan() = 0;

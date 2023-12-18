@@ -393,10 +393,18 @@ p25_recorder_sptr System_impl::get_digital_recorder(double freq) {
       return recorder;
     }
   }
-
+  missing_voice_channels.insert(freq);
 
   return NULL;
 }
+
+void System_impl::print_missing_voice_channels() {
+  BOOST_LOG_TRIVIAL(info) << "[ " << short_name << " ] " << system_type << " Missing Voice Channels: " << missing_voice_channels.size();
+  for (std::unordered_set<double>::iterator it = missing_voice_channels.begin(); it != missing_voice_channels.end(); ++it) {
+
+    BOOST_LOG_TRIVIAL(info) << " " << format_freq(*it);
+  }
+} 
 
 analog_recorder_sptr System_impl::get_analog_recorder(double freq) {
   for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); ++it) {

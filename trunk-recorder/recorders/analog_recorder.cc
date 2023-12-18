@@ -152,7 +152,6 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
 #endif
     double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
-    BOOST_LOG_TRIVIAL(info) << "\t Analog Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
@@ -201,14 +200,12 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   wav_sink = gr::blocks::transmission_sink::make(1, wav_sample_rate, 16); //  Configurable
 
   if (use_streaming) {
-    BOOST_LOG_TRIVIAL(info) << "\t Creating plugin sink..." << std::endl;
     plugin_sink = gr::blocks::plugin_wrapper_impl::make(std::bind(&analog_recorder::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
-    BOOST_LOG_TRIVIAL(info) << "\t Plugin sink created!" << std::endl;
   }
 
-  BOOST_LOG_TRIVIAL(info) << "\t Creating decoder sink..." << std::endl;
+
   decoder_sink = gr::blocks::decoder_wrapper_impl::make(wav_sample_rate, std::bind(&analog_recorder::decoder_callback_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  BOOST_LOG_TRIVIAL(info) << "\t Decoder sink created!" << std::endl;
+
 
   // Analog audio band pass from 300 to 3000 Hz
   // can't use gnuradio.filter.firdes.band_pass since we have different transition widths

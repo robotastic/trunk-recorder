@@ -192,10 +192,10 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
       }
     }*/
     if (talkgroup->mode.compare("A") == 0) {
-      recorder = (Recorder *) sys->get_analog_recorder(call->get_freq()).get();
+      recorder = (Recorder *)sys->get_analog_recorder(call->get_freq()).get();
       call->set_is_analog(true);
     } else {
-      recorder = (Recorder *) sys->get_digital_recorder(call->get_freq()).get();
+      recorder = (Recorder *)sys->get_digital_recorder(call->get_freq()).get();
     }
   } else {
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tTG not in Talkgroup File ";
@@ -204,10 +204,10 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     // Use an analog recorder if this is a Type II trunk and defaultMode is analog.
     // All other cases use a digital recorder.
     if ((config.default_mode == "analog") && (sys->get_system_type() == "smartnet")) {
-      recorder = (Recorder *) sys->get_analog_recorder(call->get_freq()).get();
+      recorder = (Recorder *)sys->get_analog_recorder(call->get_freq()).get();
       call->set_is_analog(true);
     } else {
-      recorder = (Recorder *) sys->get_digital_recorder(call->get_freq()).get();
+      recorder = (Recorder *)sys->get_digital_recorder(call->get_freq()).get();
     }
   }
 
@@ -234,7 +234,7 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
     call->set_monitoring_state(NO_SOURCE);
 
     BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no recorder covering Freq\u001b[0m";
-    
+
     return false;
   }
 
@@ -264,7 +264,6 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
           // BOOST_LOG_TRIVIAL(info) << "\tNot SIGMF recording call";
         }*/
 
- 
   /*
     if (!source_found) {
       call->set_state(MONITORING);
@@ -914,26 +913,30 @@ void monitor_messages() {
 bool add_source_freq_list(double freq) {
   bool freq_added = false;
   Source *source = NULL;
+
+  // Go through all of the Sources
   for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
     source = *src_it;
 
+    // If the freq is within the range of the Source, add it to the list of freqs for that Source
     if ((source->get_min_hz() <= freq) && (source->get_max_hz() >= freq)) {
+
+      // check to see if the source is already in the list
       for (int i = 0; i < source_freq_list.size(); i++) {
         if (source_freq_list[i].source == source) {
           source_freq_list[i].freqs.push_back(freq);
           freq_added = true;
-          BOOST_LOG_TRIVIAL(info) << "Added Freq: " << format_freq(freq) << " to Source - total freqs: " << source_freq_list[i].freqs.size();
         }
       }
+
+      // if the source is not in the list, add it, along with the freq
       if (!freq_added) {
         Source_Freq src_freq;
         src_freq.source = source;
         src_freq.freqs.push_back(freq);
         source_freq_list.push_back(src_freq);
-        BOOST_LOG_TRIVIAL(info) << "Added Source to List, Added Freq: " << format_freq(freq) << " to Source - total freqs: " << src_freq.freqs.size();
+        freq_added = true;
       }
-    } else {
-      BOOST_LOG_TRIVIAL(info) << "Freq: " << format_freq(freq) << " not in Source - Min Freq: " << format_freq(source->get_min_hz()) << " Max Freq: " << format_freq(source->get_max_hz());
     }
   }
   return freq_added;
@@ -946,6 +949,10 @@ void setup_source_channels_conventional(System *system) {
       Talkgroup *tg = *tg_it;
 
       bool channel_added = add_source_freq_list(tg->freq);
+      if (!channel_added) {
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(tg->freq) << " Talkgroup: " << tg->number;
+        exit(1);
+      }
     }
   } else {
     std::vector<double> channels = system->get_channels();
@@ -953,6 +960,10 @@ void setup_source_channels_conventional(System *system) {
       double channel = *chan_it;
 
       bool channel_added = add_source_freq_list(channel);
+      if (!channel_added) {
+        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel);
+        exit(1);
+      }
     }
   }
 }
@@ -1115,13 +1126,13 @@ bool setup_trunking_system(System *system) {
 
       if ((source->get_min_hz() <= voice_channel_freq) &&
           (source->get_max_hz() >= voice_channel_freq)) {
-        
+
         p25_recorder_sptr rec = source->create_digital_recorder(tb, voice_channel_freq, system->get_qpsk_mod());
         if (rec == NULL) {
-        BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Control Channel Freq: " << format_freq(voice_channel_freq);
+          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Control Channel Freq: " << format_freq(voice_channel_freq);
         } else {
           BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Found source for Voice Channel Freq: " << format_freq(voice_channel_freq);
-        
+
           channel_added = true;
         }
         system->add_digital_recorder(rec);
@@ -1154,7 +1165,7 @@ bool setup_systems() {
       setup_source_channels(system);
     }
   }
-  BOOST_LOG_TRIVIAL(info) << "Finished setting up Source Freq List - Total Sources: " << source_freq_list.size();
+  
   for (vector<Source_Freq>::iterator src_freq_it = source_freq_list.begin(); src_freq_it != source_freq_list.end(); src_freq_it++) {
     Source_Freq src_freq = *src_freq_it;
     src_freq.source->create_channelizer(tb, src_freq.freqs);
@@ -1243,6 +1254,14 @@ int main(int argc, char **argv) {
 
     BOOST_LOG_TRIVIAL(info) << "stopping plugins" << std::endl;
     stop_plugins();
+    BOOST_LOG_TRIVIAL(info) << "--------------------------------\n";
+
+    for (vector<System *>::iterator sys_it = systems.begin(); sys_it != systems.end(); sys_it++) {
+      System_impl *system = (System_impl *)*sys_it;
+      system->print_missing_voice_channels();
+      BOOST_LOG_TRIVIAL(info) << "--------------------------------\n";
+    }
+
   } else {
     BOOST_LOG_TRIVIAL(error) << "Unable to setup a System to record, exiting..." << std::endl;
   }

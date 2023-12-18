@@ -1,6 +1,8 @@
 #ifndef PFB_CHANNELIZER_H
 #define PFB_CHANNELIZER_H
 
+#include <boost/log/trivial.hpp>
+
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/file_source.h>
 #include <gnuradio/blocks/stream_to_vector.h>
@@ -11,6 +13,8 @@
 #include <gnuradio/filter/filterbank_vcvcf.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/hier_block2.h>
+
+#include "../formatter.h"
 
 class pfb_channelizer : public gr::hier_block2 {
 public:
@@ -29,6 +33,7 @@ public:
   int find_channel_id(double freq);
 void print_channel_freqs(); 
 static void print_channel_freqs(double center, double rate, int n_chans); 
+static void print_closest_channel_freqs(double freq, double center, double rate, int n_chans);
 private:
   std::vector<float> create_taps(int n_chans, int atten, float channel_bw, float transition_bw);
   static int find_channel_number(double freq, double center, double rate, int n_chans);

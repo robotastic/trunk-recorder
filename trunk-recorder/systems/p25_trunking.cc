@@ -57,7 +57,6 @@ void p25_trunking::initialize_prefilter() {
   // Cut-Off Filter
   fa = 6250;
   fb = fa + 1250;
-  std::cout<< "IF Rate: " << if_rate << " fa: " << fa << " fb: " << fb << std::endl;
   
   #if GNURADIO_VERSION < 0x030900
       cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HANN);

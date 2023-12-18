@@ -107,6 +107,7 @@ public:
   std::vector<smartnet_trunking_sptr> smartnet_trunking_recorders;
   std::vector<p25_trunking_sptr> p25_trunking_recorders;
   std::vector<sigmf_recorder_sptr> sigmf_recorders;
+  std::unordered_set<double> missing_voice_channels;
 void print_recorders();
   int control_channel_index;
   int trunking_recorder_index;
@@ -216,6 +217,7 @@ void print_recorders();
   void add_p25_trunking_recorder(p25_trunking_sptr rec);
   p25_recorder_sptr get_digital_recorder(double freq);
   analog_recorder_sptr get_analog_recorder(double freq);
+  void print_missing_voice_channels();
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();
   std::vector<double> get_voice_channels();
