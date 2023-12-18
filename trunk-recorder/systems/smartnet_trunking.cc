@@ -65,8 +65,7 @@ void smartnet_trunking::initialize_prefilter() {
   arb_rate = if_rate / 25000.0;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  BOOST_LOG_TRIVIAL(info) << "\t smartnet Trunking ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
-
+  
   connect(self(), 0, valve, 0);
   connect(valve, 0, arb_resampler, 0);
   connect(arb_resampler, 0, cutoff_filter, 0);
@@ -88,9 +87,6 @@ smartnet_trunking::smartnet_trunking(double f,
   float omega_relative_limit = 0.3;
 
   const double pi = boost::math::constants::pi<double>();
-  BOOST_LOG_TRIVIAL(info) << "SmartNet Trunking - SysNum: " << sys_num;
-
-  BOOST_LOG_TRIVIAL(info) << "Control channel: " << format_freq(chan_freq);
 
   initialize_prefilter();
 
