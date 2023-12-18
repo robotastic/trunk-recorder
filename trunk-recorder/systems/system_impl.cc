@@ -362,8 +362,8 @@ void System_impl::add_analog_recorder(analog_recorder_sptr rec) {
   analog_recorders.push_back(rec);
 }
 
-std::vector<analog_recorder_sptr> System_impl::get_conventional_recorders() {
-  return analog_conventional_recorders;
+std::vector<sigmf_recorder_sptr> System_impl::get_sigmf_conventional_recorders() {
+  return sigmf_conventional_recorders;
 }
 
 void System_impl::add_digital_conventional_recorder(p25_recorder_sptr rec) {
@@ -374,8 +374,16 @@ void System_impl::add_digital_recorder(p25_recorder_sptr rec) {
   digital_recorders.push_back(rec);
 }
 
-void System_impl::add_conventionalDMR_recorder(dmr_recorder_sptr rec) {
-  conventionalDMR_recorders.push_back(rec);
+void System_impl::add_dmr_conventional_recorder(dmr_recorder_sptr rec) {
+  dmr_conventional_recorders.push_back(rec);
+}
+
+void System_impl::add_sigmf_conventional_recorder(sigmf_recorder_sptr rec) {
+  sigmf_conventional_recorders.push_back(rec);
+}
+
+void System_impl::add_sigmf_recorder(sigmf_recorder_sptr rec) {
+  sigmf_recorders.push_back(rec);
 }
 
 void System_impl::add_smartnet_trunking_recorder(smartnet_trunking_sptr rec) {
@@ -384,6 +392,17 @@ void System_impl::add_smartnet_trunking_recorder(smartnet_trunking_sptr rec) {
 
 void System_impl::add_p25_trunking_recorder(p25_trunking_sptr rec) {
   p25_trunking_recorders.push_back(rec);
+}
+
+sigmf_recorder_sptr System_impl::get_sigmf_recorder(double freq) {
+  for (std::vector<sigmf_recorder_sptr>::iterator it = sigmf_recorders.begin(); it != sigmf_recorders.end(); ++it) {
+     sigmf_recorder_sptr recorder = *it;
+    if (recorder->get_freq() == freq) {
+      return recorder;
+    }
+  }
+
+  return NULL;
 }
 
 p25_recorder_sptr System_impl::get_digital_recorder(double freq) {
@@ -398,14 +417,6 @@ p25_recorder_sptr System_impl::get_digital_recorder(double freq) {
   return NULL;
 }
 
-void System_impl::print_missing_voice_channels() {
-  BOOST_LOG_TRIVIAL(info) << "[ " << short_name << " ] " << system_type << " Missing Voice Channels: " << missing_voice_channels.size();
-  for (std::unordered_set<double>::iterator it = missing_voice_channels.begin(); it != missing_voice_channels.end(); ++it) {
-
-    BOOST_LOG_TRIVIAL(info) << " " << format_freq(*it);
-  }
-} 
-
 analog_recorder_sptr System_impl::get_analog_recorder(double freq) {
   for (std::vector<analog_recorder_sptr>::iterator it = analog_recorders.begin(); it != analog_recorders.end(); ++it) {
      analog_recorder_sptr recorder = *it;
@@ -416,18 +427,17 @@ analog_recorder_sptr System_impl::get_analog_recorder(double freq) {
   return NULL;
 }
 
+void System_impl::print_missing_voice_channels() {
+  BOOST_LOG_TRIVIAL(info) << "[ " << short_name << " ] " << system_type << " Missing Voice Channels: " << missing_voice_channels.size();
+  for (std::unordered_set<double>::iterator it = missing_voice_channels.begin(); it != missing_voice_channels.end(); ++it) {
+
+    BOOST_LOG_TRIVIAL(info) << " " << format_freq(*it);
+  }
+} 
 
 
 int System_impl::control_channel_count() {
   return control_channels.size();
-}
-
-std::vector<double> System_impl::get_control_channels() {
-  return control_channels;
-}
-
-std::vector<double> System_impl::get_voice_channels() {
-  return voice_channels;
 }
 
 int System_impl::get_message_count() {
@@ -467,6 +477,29 @@ void System_impl::add_voice_channel(double voice_channel) {
   }
 }
 
+void System_impl::add_sigmf_channel(double sigmf_channel) {
+  if (sigmf_channels.size() == 0) {
+    sigmf_channels.push_back(sigmf_channel);
+  } else {
+    if (std::find(sigmf_channels.begin(), sigmf_channels.end(),
+                  sigmf_channel) == sigmf_channels.end()) {
+      sigmf_channels.push_back(sigmf_channel);
+    }
+  }
+}
+
+void System_impl::add_sigmf_conventional_channel(double sigmf_conventional_channel) {
+  if (sigmf_conventional_channels.size() == 0) {
+    sigmf_conventional_channels.push_back(sigmf_conventional_channel);
+  } else {
+    if (std::find(sigmf_conventional_channels.begin(), sigmf_conventional_channels.end(),
+                  sigmf_conventional_channel) == sigmf_conventional_channels.end()) {
+      sigmf_conventional_channels.push_back(sigmf_conventional_channel);
+    }
+  }
+}
+
+
 void System_impl::add_channel(double channel) {
   if (channels.size() == 0) {
     channels.push_back(channel);
@@ -475,6 +508,24 @@ void System_impl::add_channel(double channel) {
       channels.push_back(channel);
     }
   }
+}
+
+
+
+std::vector<double> System_impl::get_control_channels() {
+  return control_channels;
+}
+
+std::vector<double> System_impl::get_voice_channels() {
+  return voice_channels;
+}
+
+std::vector<double> System_impl::get_sigmf_channels() {
+  return sigmf_channels;
+}
+
+std::vector<double> System_impl::get_sigmf_conventional_channels() {
+  return sigmf_conventional_channels;
 }
 
 double System_impl::get_current_control_channel() {
@@ -487,8 +538,6 @@ double System_impl::get_current_control_channel() {
   }
   return -1;
 }
-
-
 
 void System_impl::enable_first_trunking_recorder() {
 
@@ -536,7 +585,7 @@ void System_impl::print_recorders() {
     BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type_string() << "\tFreq: " << rx->get_freq() << "\tState: " << format_state(rx->get_state());
   }
 
-  for (std::vector<dmr_recorder_sptr>::iterator it = conventionalDMR_recorders.begin(); it != conventionalDMR_recorders.end(); it++) {
+  for (std::vector<dmr_recorder_sptr>::iterator it = dmr_conventional_recorders.begin(); it != dmr_conventional_recorders.end(); it++) {
     dmr_recorder_sptr rx = *it;
 
     BOOST_LOG_TRIVIAL(info) << "\t[ " << rx->get_num() << " ] " << rx->get_type_string() << "\tFreq: " << rx->get_freq() << "\tState: " << format_state(rx->get_state());

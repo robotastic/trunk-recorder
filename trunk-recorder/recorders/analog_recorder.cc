@@ -37,8 +37,8 @@ std::vector<float> design_filter(double interpolation, double deci) {
   return result;
 }
 
-analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type) {
-  return gnuradio::get_initial_sptr(new analog_recorder(src, type));
+analog_recorder_sptr make_analog_recorder(Source *src, double freq, Recorder_Type type) {
+  return gnuradio::get_initial_sptr(new analog_recorder(src, freq, type));
 }
 
 /*! \brief Calculate taps for FM de-emph IIR filter. */
@@ -66,7 +66,7 @@ void analog_recorder::calculate_iir_taps(double tau) {
   d_fbtaps[1] = -p1;
 }
 
-analog_recorder::analog_recorder(Source *src, Recorder_Type type)
+analog_recorder::analog_recorder(Source *src, double freq, Recorder_Type type)
     : gr::hier_block2("analog_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
@@ -74,10 +74,8 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   // int nchars;
 
   source = src;
-  chan_freq = source->get_center();
-  center_freq = source->get_center();
+  chan_freq = freq;
   config = source->get_config();
-  samp_rate = source->get_rate();
   squelch_db = 0;
   talkgroup = 0;
   recording_count = 0;
@@ -96,31 +94,11 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
     use_streaming = config->enable_audio_streaming;
   }
 
-  // int samp_per_sym        = 10;
   system_channel_rate = 96000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
-                               /*  int decim               = floor(samp_rate / 384000);
-                             
-  double pre_channel_rate = samp_rate / decim;*/
 
-  int initial_decim = floor(samp_rate / 480000);
-  initial_rate = 25000;//double(samp_rate) / double(initial_decim);
-  int decim = floor(initial_rate / system_channel_rate);
-  double resampled_rate = double(initial_rate) / double(decim);
 
-#if GNURADIO_VERSION < 0x030900
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 30, gr::filter::firdes::WIN_HANN);
-#else
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 30, gr::fft::window::WIN_HANN);
-#endif
-  //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 5000, 2000, 30);
 
-  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
-
-  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
-
-  channel_lpf = gr::filter::fft_filter_ccf::make(1.0, channel_lpf_taps); //decim, channel_lpf_taps);
 
   double arb_rate =(double(wav_sample_rate) / initial_rate); // (double(system_channel_rate) / resampled_rate);
   double arb_size = 32;
@@ -151,7 +129,6 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
 #else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
 #endif
-    double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
   } else {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
@@ -340,12 +317,6 @@ double analog_recorder::get_current_length() {
   return wav_sink->total_length_in_seconds();
 }
 
-void analog_recorder::tune_offset(double f) {
-  chan_freq = f;
-  int offset_amount = (f - center_freq);
-  prefilter->set_center_freq(offset_amount);
-}
-
 void analog_recorder::decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal) {
   if (call != NULL) {
     wav_sink->set_source(unitId);
@@ -374,7 +345,6 @@ bool analog_recorder::start(Call *call) {
   setup_decoders_for_system(call->get_system());
 
   talkgroup = call->get_talkgroup();
-  chan_freq = call->get_freq();
 
   squelch_db = system->get_squelch_db();
   squelch->set_threshold(squelch_db);

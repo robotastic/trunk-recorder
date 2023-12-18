@@ -61,17 +61,16 @@ typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
 
 int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 
-analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type);
+analog_recorder_sptr make_analog_recorder(Source *src, double freq, Recorder_Type type);
 
 class analog_recorder : public gr::hier_block2, public Recorder {
-  friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type);
+  friend analog_recorder_sptr make_analog_recorder(Source *src, double freq, Recorder_Type type);
 
 protected:
-  analog_recorder(Source *src, Recorder_Type type);
+  analog_recorder(Source *src, double freq, Recorder_Type type);
 
 public:
   ~analog_recorder();
-  void tune_offset(double f);
   bool start(Call *call);
   void stop();
   double get_freq();

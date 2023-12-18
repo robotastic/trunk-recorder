@@ -138,7 +138,7 @@ int Source::get_if_gain() {
 }
 
 
-analog_recorder_sptr Source::create_analog_recorder(gr::top_block_sptr tb, double freq) {
+analog_recorder_sptr Source::create_analog_recorder(gr::top_block_sptr tb, double freq, bool conventional) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in analog_conv_recorders
   int channel = find_channel_id(freq);
@@ -147,25 +147,17 @@ analog_recorder_sptr Source::create_analog_recorder(gr::top_block_sptr tb, doubl
     BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
     exit(1);
   }
-  analog_recorder_sptr log = make_analog_recorder(this, ANALOG);
-  tb->connect(channelizer, channel, log, 0);
-  return log;
-}
-
-analog_recorder_sptr Source::create_analog_conventional_recorder(gr::top_block_sptr tb, double freq) {
-  // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
-  // Conventional recorders are tracked seperately in analog_conv_recorders
-  int channel = find_channel_id(freq);
-
-  if (channel == -1) {
-    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
-    exit(1);
+  analog_recorder_sptr log;
+  if (conventional){
+    log = make_analog_recorder(this, freq, ANALOGC);
+  } else {
+    log = make_analog_recorder(this, freq, ANALOG);
   }
-  analog_recorder_sptr log = make_analog_recorder(this, ANALOGC);
   tb->connect(channelizer, channel, log, 0);
-  analog_conv_recorders.push_back(log);
   return log;
 }
+
+
 
 
 
@@ -251,49 +243,39 @@ int Source::find_channel_id(double freq) {
   return channelizer->find_channel_id(freq);
 }
 
-sigmf_recorder_sptr Source::create_sigmf_recorder(gr::top_block_sptr tb, double freq) {
+sigmf_recorder_sptr Source::create_sigmf_recorder(gr::top_block_sptr tb, double freq, bool conventional) {
   int channel = find_channel_id(freq);
 
   if (channel == -1) {
     BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
     exit(1);
   }
-  sigmf_recorder_sptr log = make_sigmf_recorder(freq, this->rate);
+  sigmf_recorder_sptr log = make_sigmf_recorder(this, freq, 25000, conventional);
   tb->connect(channelizer, channel, log, 0);
 
   return log;
 }
 
 
-p25_recorder_sptr Source::create_digital_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod) {
+p25_recorder_sptr Source::create_digital_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod, bool conventional) {
   int channel = find_channel_id(freq);
 
   if (channel == -1) {
     BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
     exit(1);
   }
-  p25_recorder_sptr log = make_p25_recorder(freq, qpsk_mod, this->config, P25);
-  tb->connect(channelizer, channel, log, 0);
-
-  return log;
-}
-
-p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod) {
-  // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
-  // Conventional recorders are tracked seperately in digital_conv_recorders
-
-  int channel = find_channel_id(freq);
-
-  if (channel == -1) {
-    BOOST_LOG_TRIVIAL(error) << "Unable to find channel number for freq: " << std::setprecision(15) << freq;
-    exit(1);
+  p25_recorder_sptr log;
+  if (conventional) {
+    log = make_p25_recorder(freq, qpsk_mod, this->config, P25C);
+  } else {
+    log = make_p25_recorder(freq, qpsk_mod, this->config, P25);
   }
-  p25_recorder_sptr log = make_p25_recorder(freq, qpsk_mod, this->config, P25C);
   tb->connect(channelizer, channel, log, 0);
-  digital_conv_recorders.push_back(log);
 
   return log;
 }
+
+
 
 void Source::create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs) {
   BOOST_LOG_TRIVIAL(info) << "Creating Channelizer which divides " << format_freq(rate) << " into " << n_chans << " x 25000Hz internal channels and outputs "  << freqs.size() << " channels";

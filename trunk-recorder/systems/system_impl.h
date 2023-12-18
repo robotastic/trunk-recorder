@@ -5,21 +5,21 @@
 #include <boost/foreach.hpp>
 #include <boost/log/trivial.hpp>
 #include <stdio.h>
-//#include "../source.h"
-#include "p25_trunking.h"
-#include "parser.h"
-#include "smartnet_trunking.h"
-#include "system.h"
+// #include "../source.h"
 #include "../recorders/analog_recorder.h"
 #include "../recorders/debug_recorder.h"
 #include "../recorders/dmr_recorder.h"
 #include "../recorders/p25_recorder.h"
 #include "../recorders/sigmf_recorder.h"
+#include "p25_trunking.h"
+#include "parser.h"
+#include "smartnet_trunking.h"
+#include "system.h"
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wint-in-bool-context"
-//#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+// #pragma GCC diagnostic ignored "-Wint-in-bool-context"
+// #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif
 
 #include <lfsr/lfsr.h>
@@ -99,16 +99,20 @@ public:
   std::vector<double> voice_channels;
   unsigned int current_control_channel;
   std::vector<double> channels;
+  std::vector<double> sigmf_channels;
+  std::vector<double> sigmf_conventional_channels;
   std::vector<analog_recorder_sptr> analog_conventional_recorders;
   std::vector<analog_recorder_sptr> analog_recorders;
   std::vector<p25_recorder_sptr> digital_conventional_recorders;
   std::vector<p25_recorder_sptr> digital_recorders;
-  std::vector<dmr_recorder_sptr> conventionalDMR_recorders;
+  std::vector<dmr_recorder_sptr> dmr_conventional_recorders;
   std::vector<smartnet_trunking_sptr> smartnet_trunking_recorders;
   std::vector<p25_trunking_sptr> p25_trunking_recorders;
   std::vector<sigmf_recorder_sptr> sigmf_recorders;
+  std::vector<sigmf_recorder_sptr> sigmf_conventional_recorders;
   std::unordered_set<double> missing_voice_channels;
-void print_recorders();
+
+  void print_recorders();
   int control_channel_index;
   int trunking_recorder_index;
   bool transmission_archive;
@@ -200,27 +204,35 @@ void print_recorders();
   void set_message_count(int count);
   int get_decode_rate();
   void set_decode_rate(int rate);
+    void add_channel(double channel);
   void add_control_channel(double channel);
   void add_voice_channel(double channel);
+  void add_sigmf_channel(double channel);
+  void add_sigmf_conventional_channel(double channel);
   double get_current_control_channel();
   void enable_first_trunking_recorder();
   void enable_next_trunking_recorder();
   int channel_count();
-  void add_channel(double channel);
+
   void add_analog_conventional_recorder(analog_recorder_sptr rec);
   void add_analog_recorder(analog_recorder_sptr rec);
-  std::vector<analog_recorder_sptr> get_conventional_recorders();
+  std::vector<sigmf_recorder_sptr> get_sigmf_conventional_recorders();
   void add_digital_conventional_recorder(p25_recorder_sptr rec);
   void add_digital_recorder(p25_recorder_sptr rec);
-  void add_conventionalDMR_recorder(dmr_recorder_sptr rec);
+  void add_sigmf_recorder(sigmf_recorder_sptr rec);
+  void add_sigmf_conventional_recorder(sigmf_recorder_sptr rec);
+  void add_dmr_conventional_recorder(dmr_recorder_sptr rec);
   void add_smartnet_trunking_recorder(smartnet_trunking_sptr rec);
   void add_p25_trunking_recorder(p25_trunking_sptr rec);
   p25_recorder_sptr get_digital_recorder(double freq);
   analog_recorder_sptr get_analog_recorder(double freq);
+  sigmf_recorder_sptr get_sigmf_recorder(double freq);
   void print_missing_voice_channels();
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();
   std::vector<double> get_voice_channels();
+  std::vector<double> get_sigmf_channels();
+  std::vector<double> get_sigmf_conventional_channels();
   std::vector<Talkgroup *> get_talkgroups();
   gr::msg_queue::sptr msg_queue;
   System_impl(int sys_id);

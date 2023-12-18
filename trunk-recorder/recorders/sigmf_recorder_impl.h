@@ -76,76 +76,49 @@
 class sigmf_recorder_impl : public sigmf_recorder {
 
 public:
-  sigmf_recorder_impl(Source *src);
-  sigmf_recorder_impl(double freq, double rate);
-  void tune_offset(double f);
+  sigmf_recorder_impl(Source * source, double freq, double rate, bool conventional);
+
   bool start(Call *call);
+  bool start(System *sys, Config *config); 
    bool start();
   void stop();
   double get_freq();
   int get_num();
-  double get_current_length();
-  bool is_active();
-  State get_state();
-  int lastupdate();
   long elapsed();
+  void increment_active_cycles();
+  long get_active_cycles();
+  void increment_idle_cycles();
+  long get_idle_cycles();
+  void reset_idle_cycles();
+  bool is_active();
+  bool is_squelched();
+  State get_state();
 
-  gr::msg_queue::sptr tune_queue;
-  gr::msg_queue::sptr traffic_queue;
-  gr::msg_queue::sptr rx_queue;
-  // void forecast(int noutput_items, gr_vector_int &ninput_items_required);
+
 
 private:
-  void generate_arb_taps();
-  void initialize_prefilter();
-  void initialize_prefilter_xlat();
-  sigmf_recorder_impl::DecimSettings get_decim(long speed);
-  void initialize_prefilter_decim();
 
-  bool double_decim;
+
   double center, freq;
-  int silence_frames;
-  long talkgroup;
-    double arb_rate;
-      long input_rate;
-        long decim;
-        long if_rate;
-  double resampled_rate;
-        long if1;
-  long if2;
-  const int phase1_samples_per_symbol = 5;
-  const double phase1_symbol_rate = 4800;
 
+
+      long input_rate;
+  bool is_conventional;
   double squelch_db;
   time_t timestamp;
   time_t starttime;
+  time_t lastupdate_time;
+  long active_cycles;
+  long idle_cycles;
 
   Config *config;
   Source *source;
   Call *call;
+  long talkgroup;
   char filename[255];
   // int num;
   State state;
 
-
-  std::vector<float> arb_taps;
-  std::vector<gr_complex> bandpass_filter_coeffs;
-  std::vector<float> inital_lpf_taps;
-  std::vector<float> lowpass_filter_coeffs;
-  std::vector<float> cutoff_filter_coeffs;
-  std::vector<float> if_coeffs;
-
-  gr::analog::sig_source_c::sptr lo;
-  gr::analog::sig_source_c::sptr bfo;
-  gr::blocks::multiply_cc::sptr mixer;
-
-  gr::filter::fft_filter_ccc::sptr bandpass_filter;
-  gr::filter::fft_filter_ccf::sptr lowpass_filter;
-  gr::filter::fft_filter_ccf::sptr cutoff_filter;
-  gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::sptr freq_xlat;
-  gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-  gr::digital::fll_band_edge_cc::sptr fll_band_edge;
-  gr::blocks::rms_agc::sptr rms_agc;
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::file_sink::sptr raw_sink;
   gr::blocks::copy::sptr valve;

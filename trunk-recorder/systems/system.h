@@ -128,9 +128,20 @@ public:
   virtual bool has_channel_file() = 0;
   virtual void set_unit_tags_file(std::string) = 0;
   virtual int control_channel_count() = 0;
+
+  // System Channels
+  virtual void add_channel(double channel) = 0;
   virtual void add_control_channel(double channel) = 0;
   virtual void add_voice_channel(double channel) = 0;
+  virtual void add_sigmf_channel(double channel) = 0;
+  virtual void add_sigmf_conventional_channel(double channel) = 0;
   virtual double get_current_control_channel() = 0;
+  virtual std::vector<double> get_channels() = 0;
+  virtual std::vector<double> get_control_channels() = 0;
+  virtual std::vector<double> get_voice_channels() = 0;
+  virtual std::vector<double> get_sigmf_channels() = 0;
+  virtual std::vector<double> get_sigmf_conventional_channels() = 0;
+  virtual void print_missing_voice_channels() = 0;
   virtual void enable_first_trunking_recorder() = 0;
   virtual void enable_next_trunking_recorder() = 0;
   virtual int channel_count() = 0;
@@ -138,22 +149,23 @@ public:
   virtual void set_message_count(int count) = 0;
   virtual void set_decode_rate(int rate) = 0;
   virtual int get_decode_rate() = 0;
-  virtual void add_channel(double channel) = 0;
+
+  // System Recorders
   virtual void add_analog_conventional_recorder(analog_recorder_sptr rec) = 0;
   virtual void add_analog_recorder(analog_recorder_sptr rec) = 0;
-  virtual std::vector<analog_recorder_sptr> get_conventional_recorders() = 0;
+  virtual std::vector<sigmf_recorder_sptr> get_sigmf_conventional_recorders() = 0;
   virtual void add_digital_conventional_recorder(p25_recorder_sptr rec) = 0;
   virtual void add_digital_recorder(p25_recorder_sptr rec) = 0;
-  virtual void add_conventionalDMR_recorder(dmr_recorder_sptr rec) = 0;
+  virtual void add_sigmf_recorder(sigmf_recorder_sptr rec) = 0;
+  virtual void add_sigmf_conventional_recorder(sigmf_recorder_sptr rec) = 0;
+  virtual void add_dmr_conventional_recorder(dmr_recorder_sptr rec) = 0;
   virtual void add_smartnet_trunking_recorder(smartnet_trunking_sptr rec) = 0;
   virtual void add_p25_trunking_recorder(p25_trunking_sptr rec) = 0;
   virtual void print_recorders() = 0;
   virtual p25_recorder_sptr get_digital_recorder(double freq) = 0;
   virtual analog_recorder_sptr get_analog_recorder(double freq) = 0;
-  virtual std::vector<double> get_channels() = 0;
-  virtual std::vector<double> get_control_channels() = 0;
-  virtual std::vector<double> get_voice_channels() = 0;
-  virtual void print_missing_voice_channels() = 0;
+  virtual sigmf_recorder_sptr get_sigmf_recorder(double freq) = 0;
+
   virtual std::vector<Talkgroup *> get_talkgroups() = 0;
   virtual void set_bandplan(std::string) = 0;
   virtual std::string get_bandplan() = 0;

@@ -39,28 +39,28 @@ void set_logging_level(std::string log_level) {
 }
 
 struct NoColorLoggingFormatter {
-    void operator()(logging::record_view const& rec, logging::formatting_ostream& strm) const {
-        auto message = rec.attribute_values()[logging::aux::default_attribute_names::message()];
-        auto message_str = message.extract<std::string>().get();
+  void operator()(logging::record_view const &rec, logging::formatting_ostream &strm) const {
+    auto message = rec.attribute_values()[logging::aux::default_attribute_names::message()];
+    auto message_str = message.extract<std::string>().get();
 
-        std::regex escape_seq_regex("\u001B\\[[0-9;]+m");
-        strm << std::regex_replace(message_str, escape_seq_regex, "");
-    }
+    std::regex escape_seq_regex("\u001B\\[[0-9;]+m");
+    strm << std::regex_replace(message_str, escape_seq_regex, "");
+  }
 };
 
 void setup_console_log(std::string log_color, std::string time_fmt) {
   boost::shared_ptr<sinks::synchronous_sink<sinks::basic_text_ostream_backend<char>>> console_sink = logging::add_console_log(std::clog);
-  
-  if ((log_color == "console" ) || (log_color == "all")) {
-    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
-                        logging::expressions::smessage);
+
+  if ((log_color == "console") || (log_color == "all")) {
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                                logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                                logging::expressions::attr<logging::trivial::severity_level>("Severity") %
+                                logging::expressions::smessage);
   } else {
-    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
-                        logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                                logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                                logging::expressions::attr<logging::trivial::severity_level>("Severity") %
+                                logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
   }
 
   std::locale loc = std::locale("C");
@@ -74,15 +74,15 @@ void setup_file_log(std::string log_dir, std::string log_color, std::string time
       keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
       keywords::auto_flush = true);
 
-  if ((log_color == "logfile" ) || (log_color == "all")) {
-    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+  if ((log_color == "logfile") || (log_color == "all")) {
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") %
                             logging::expressions::smessage);
   } else {
-    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") %
                             logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
   }
 }
@@ -121,7 +121,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
 
     config.log_color = data.value("logColor", (color ? "console" : "none"));
 
-    config.console_log =  data.value("consoleLog", true); 
+    config.console_log = data.value("consoleLog", true);
     if (config.console_log) {
       setup_console_log(config.log_color, "%Y-%m-%d %H:%M:%S.%f");
     }
@@ -290,11 +290,34 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           for (unsigned int i = 0; i < voice_channels.size(); i++) {
             BOOST_LOG_TRIVIAL(info) << "  " << format_freq(voice_channels[i]);
           }
+          bool sigmf_channels_exist = element.contains("sigmfChannels");
+          if (sigmf_channels_exist) {
+            BOOST_LOG_TRIVIAL(info) << "SigMF Channels: ";
+            std::vector<double> sigmf_channels = element["sigmfChannels"];
+            for (auto &sigmf_channel : sigmf_channels) {
+              system->add_sigmf_channel(sigmf_channel);
+            }
+            for (unsigned int i = 0; i < sigmf_channels.size(); i++) {
+              BOOST_LOG_TRIVIAL(info) << "  " << format_freq(sigmf_channels[i]);
+            }
+          }
+
           system->set_talkgroups_file(element.value("talkgroupsFile", ""));
           BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
         } else {
           BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
           return false;
+        }
+        bool sigmf_conventional_channels_exist = element.contains("sigmfConventionalChannels");
+        if (sigmf_conventional_channels_exist) {
+          BOOST_LOG_TRIVIAL(info) << "SigMF Conventional Channels: ";
+          std::vector<double> sigmf_conventional_channels = element["sigmfConventionalChannels"];
+          for (auto &sigmf_conventional_channel : sigmf_conventional_channels) {
+            system->add_sigmf_conventional_channel(sigmf_conventional_channel);
+          }
+          for (unsigned int i = 0; i < sigmf_conventional_channels.size(); i++) {
+            BOOST_LOG_TRIVIAL(info) << "  " << format_freq(sigmf_conventional_channels[i]);
+          }
         }
 
         bool qpsk_mod = true;
@@ -441,8 +464,6 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr, sigmf, iqfile or usrp";
           return false;
         }
-
-
 
         if (driver == "sigmf") {
           string sigmf_data = element.value("sigmfData", "");
@@ -596,7 +617,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         BOOST_LOG_TRIVIAL(info) << "Max Frequency: " << format_freq(source->get_max_hz());
         BOOST_LOG_TRIVIAL(info) << "Min Frequency: " << format_freq(source->get_min_hz());
 
-        //source->create_digital_channel_recorders(tb, std::vector<double> {855462500});
+        // source->create_digital_channel_recorders(tb, std::vector<double> {855462500});
         if (config.debug_recorder) {
           source->create_debug_recorder(tb, source_count);
         }

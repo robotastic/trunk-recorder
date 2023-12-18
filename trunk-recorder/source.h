@@ -132,13 +132,9 @@ public:
   void create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs);
 
 
-  sigmf_recorder_sptr create_sigmf_recorder(gr::top_block_sptr tb, double freq);
-
-  analog_recorder_sptr create_analog_recorder(gr::top_block_sptr tb, double freq);
-  analog_recorder_sptr create_analog_conventional_recorder(gr::top_block_sptr tb, double freq);
-
-  p25_recorder_sptr create_digital_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod);
-  p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod);
+  sigmf_recorder_sptr create_sigmf_recorder(gr::top_block_sptr tb, double freq, bool conventional);
+  analog_recorder_sptr create_analog_recorder(gr::top_block_sptr tb, double freq, bool conventional);
+  p25_recorder_sptr create_digital_recorder(gr::top_block_sptr tb, double freq, bool qpsk_mod, bool conventional);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb, double freq);
   smartnet_trunking_sptr create_smartnet_trunking_recorder(gr::top_block_sptr tb, System *system, double freq);
   p25_trunking_sptr create_p25_trunking_recorder(gr::top_block_sptr tb, System *system, double freq); 
