@@ -489,20 +489,6 @@ void Source::set_min_max() {
   max_hz = center + ((rate / 2) - (if1 / 2));
 }
 
-void Source::build_channel_freqs() {
-
-  double freq = center;
-  int rollover = (n_chans / 2) - 1;
-  for (int i = 0; i < n_chans; i++) {
-    // std::cout << "[ " << i << " ] Freq: " << std::setprecision (15) << freq << std::endl;
-    channel_freqs.push_back(freq);
-    if (i == rollover) {
-      freq = center - (rate / 2);
-    } else {
-      freq += 25000;
-    }
-  }
-}
 
 Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg) {
   rate = r;
@@ -594,16 +580,16 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     exit(1);
   }
 
-  n_chans = rate / 25000;
+  //n_chans = rate / 25000;
 
-  //n_chans = rate / 12500;
+  n_chans = rate / 12500;
 
   // s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
 
   // channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
 
   // channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1, rate, 12500,1250, 60, gr::fft::window::win_type::WIN_HAMMING),1);
-  build_channel_freqs();
+  
 }
 
 void Source::set_iq_source(std::string iq_file, bool repeat, double center, double rate) {

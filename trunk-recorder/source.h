@@ -62,7 +62,6 @@ class Source {
   // gr::filter::pfb_channelizer_ccf::sptr channelizer;
   gr::blocks::stream_to_streams::sptr s2s;
   pfb_channelizer::sptr channelizer;
-  std::vector<double> channel_freqs;
   std::vector<gr::blocks::null_sink::sptr> null_sinks;
   std::vector<p25_recorder_sptr> digital_recorders;
   std::vector<sigmf_recorder_sptr> digital_channel_recorders;
@@ -78,8 +77,6 @@ class Source {
   std::string antenna;
   gr::basic_block_sptr source_block;
   void add_gain_stage(std::string stage_name, int value);
-
-  void build_channel_freqs();
 
 public:
   int get_num_available_digital_recorders();

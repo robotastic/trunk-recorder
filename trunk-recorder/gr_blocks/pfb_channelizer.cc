@@ -10,10 +10,10 @@ void pfb_channelizer::print_channel_freqs(double center, double rate, int n_chan
       if (n_chans % 2 == 0) {
         channel_freq = center - (rate / 2);
       } else {
-        channel_freq = center - (rate / 2) - 12500;
+        channel_freq = center - (rate / 2) - 6250;
       }
     } else {
-      channel_freq += 25000;
+      channel_freq += 12500;
     }
   }
 }
@@ -27,20 +27,20 @@ void pfb_channelizer::print_closest_channel_freqs(double freq, double center, do
   double previous_freq = center;
 
   for (int i = 0; i < n_chans; i++) {
-    
+
     if (i == rollover) {
       if (n_chans % 2 == 0) {
         channel_freq = center - (rate / 2);
       } else {
-        channel_freq = center - (rate / 2) - 12500;
+        channel_freq = center - (rate / 2) - 6250;
       }
     } else {
-      channel_freq += 25000;
+      channel_freq += 12500;
     }
     if (freq > previous_freq && freq < channel_freq) {
       BOOST_LOG_TRIVIAL(info) << "Freq: " << format_freq(freq) << " is between Channels at " << format_freq(previous_freq) << " and " << format_freq(channel_freq) << std::endl;
       BOOST_LOG_TRIVIAL(info) << "Try adding " << freq - previous_freq << "Hz to  the center frequency for this source" << std::endl;
-      BOOST_LOG_TRIVIAL(info) << "New center frequency would be: "  << std::setprecision(9) << center + (freq - previous_freq) << std::endl;
+      BOOST_LOG_TRIVIAL(info) << "New center frequency would be: " << std::setprecision(9) << center + (freq - previous_freq) << std::endl;
       break;
     }
     previous_freq = channel_freq;
@@ -52,10 +52,12 @@ int pfb_channelizer::find_channel_number(double freq, double center, double rate
   int rollover = floor(n_chans / 2) - 1;
 
   double channel_freq = center;
+  double previous_freq = center;
   for (int i = 0; i < n_chans; i++) {
-    //std::cout << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
-    if (channel_freq == freq) {
+    // std::cout << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
+    if ((freq == channel_freq) && (i != 0) && (i != rollover) && (i != n_chans - 1)) {
       channel = i;
+      BOOST_LOG_TRIVIAL(info) << "Freq: " << format_freq(freq) << " is Channel [ " << i << " ] at " << format_freq(channel_freq) << std::endl;
       break;
     }
 
@@ -63,10 +65,10 @@ int pfb_channelizer::find_channel_number(double freq, double center, double rate
       if (n_chans % 2 == 0) {
         channel_freq = center - (rate / 2);
       } else {
-        channel_freq = center - (rate / 2) - 12500;
+        channel_freq = center - (rate / 2) - 6250;
       }
     } else {
-      channel_freq += 25000;
+      channel_freq += 12500;
     }
   }
   return channel;
@@ -75,12 +77,50 @@ int pfb_channelizer::find_channel_number(double freq, double center, double rate
 pfb_channelizer::sptr
 pfb_channelizer::make(double center, double rate, int n_chans, std::vector<double> channel_freqs, int n_filterbanks, std::vector<float> taps,
                       int atten, float channel_bw, float transition_bw) {
+  /*
+    std::vector<std::pair<int, double>> outchans;
+    for (int i = 0; i < channel_freqs.size(); i++) {
+      int channel = find_channel_number(channel_freqs[i], center, rate, n_chans);
+      if (channel != -1) {
+        outchans.push_back(std::make_pair(channel, channel_freqs[i]));
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "Building Channelizer - Channel not found for freq: " << format_freq(channel_freqs[i]) << std::endl;
+        print_channel_freqs(center, rate, n_chans);
+        print_closest_channel_freqs(channel_freqs[i], center, rate, n_chans);
+        exit(1);
+      }
+    }*/
+  return gnuradio::get_initial_sptr(new pfb_channelizer(center, rate, n_chans, channel_freqs, n_filterbanks, taps, atten, channel_bw, transition_bw));
+}
 
-  std::vector<std::pair<int, double>> outchans;
+pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::vector<double> channel_freqs, int n_filterbanks, std::vector<float> taps,
+                                 int atten, float channel_bw, float transition_bw)
+    : gr::hier_block2("pfb_channelizer_hier_ccf",
+                      gr::io_signature::make(1, 1, sizeof(gr_complex)),
+                      gr::io_signature::make(channel_freqs.size(), channel_freqs.size(), sizeof(gr_complex))),
+      d_center(center),
+      d_rate(rate),
+      d_n_chans(n_chans) {
+  if (n_filterbanks > n_chans)
+    n_filterbanks = n_chans;
+
+  if (taps.empty()) {
+    taps = create_taps(n_chans, atten, channel_bw, transition_bw);
+  }
+  long channel_rate = 12500;
+  long channelizer_output_channel = 0;
+  d_synth_taps = gr::filter::firdes::low_pass_2(3, 3 * channel_rate, channel_rate/2, channel_rate/5, 80);
+
   for (int i = 0; i < channel_freqs.size(); i++) {
-    int channel = find_channel_number(channel_freqs[i], center, rate, n_chans);
-    if (channel != -1) {
-      outchans.push_back(std::make_pair(channel, channel_freqs[i]));
+    int channelizer_channel = find_channel_number(channel_freqs[i], center, rate, n_chans);
+
+    if (channelizer_channel != -1) {
+      std::vector<int> output_channels = {channelizer_output_channel, channelizer_output_channel + 1, channelizer_output_channel + 2};
+      channelizer_output_channel += 3;
+      std::vector<int> channelizer_channels = {channelizer_channel - 1, channelizer_channel, channelizer_channel + 1};
+      Channelizer_Ouput channelizer_output = {channelizer_channels, output_channels, i, channel_freqs[i], gr::filter::pfb_synthesizer_ccf::make(3, d_synth_taps, false)};
+      channelizer_output.synthesizer->set_channel_map({2, 0, 1});
+      d_outputs.push_back(channelizer_output);
     } else {
       BOOST_LOG_TRIVIAL(info) << "Building Channelizer - Channel not found for freq: " << format_freq(channel_freqs[i]) << std::endl;
       print_channel_freqs(center, rate, n_chans);
@@ -88,25 +128,8 @@ pfb_channelizer::make(double center, double rate, int n_chans, std::vector<doubl
       exit(1);
     }
   }
-  return gnuradio::get_initial_sptr(new pfb_channelizer(center, rate, n_chans, outchans, n_filterbanks, taps, atten, channel_bw, transition_bw));
-}
 
-pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::vector<std::pair<int, double>> outchans, int n_filterbanks, std::vector<float> taps,
-                                 int atten, float channel_bw, float transition_bw)
-    : gr::hier_block2("pfb_channelizer_hier_ccf",
-                      gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                      gr::io_signature::make(outchans.size(), outchans.size(), sizeof(gr_complex))),
-      d_center(center),
-      d_rate(rate),
-      d_n_chans(n_chans),
-      d_outchans(outchans) {
-  if (n_filterbanks > n_chans)
-    n_filterbanks = n_chans;
-
-  if (taps.empty()) {
-    taps = create_taps(n_chans, atten, channel_bw, transition_bw);
-  }
-
+  std::cout << "Channelizer Output Channels: " << d_outputs.size() << " freqs: " << channel_freqs.size() << std::endl;
 
   int extra_taps = std::ceil(1.0 * taps.size() / n_chans) * n_chans - taps.size();
   taps.resize(taps.size() + extra_taps, 0);
@@ -183,15 +206,18 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
   //{
   std::vector<std::vector<std::vector<size_t>>> selector_mapping;
   std::vector<std::vector<size_t>> mapping;
-  for (int i = 0; i < outchans.size(); i++) {
-    int outchan = outchans[i].first;
-    std::vector<size_t> tmp = {0, outchan};
-    mapping.push_back(tmp);
+  for (int i = 0; i < d_outputs.size(); i++) {
+    std::vector<int> outchans = d_outputs[i].channelizer_channels;
+    for (int j = 0; j < outchans.size(); j++) {
+      std::vector<size_t> tmp = {0, outchans[j]};
+      mapping.push_back(tmp);
+    }
   }
   selector_mapping.push_back(mapping);
+  std::cout << "Selector Mapping size:  " << mapping.size() << std::endl;
   selector = gr::blocks::vector_map::make(sizeof(gr_complex), std::vector<size_t>{n_chans}, selector_mapping);
   //}
-  gr::blocks::vector_to_streams::sptr v2ss = gr::blocks::vector_to_streams::make(sizeof(gr_complex), outchans.size());
+  gr::blocks::vector_to_streams::sptr v2ss = gr::blocks::vector_to_streams::make(sizeof(gr_complex), mapping.size());
 
   connect(self(), 0, s2v, 0);
   connect(s2v, 0, splitter, 0);
@@ -200,29 +226,35 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
     connect(fbs[i], 0, combiner, i);
   }
   connect(combiner, 0, fft, 0);
-  // if (outchans != std::vector<int>(n_chans))
-  //{
+
   connect(fft, 0, selector, 0);
   connect(selector, 0, v2ss, 0);
-  /* }
-   else
-   {
-       connect(fft,0, v2ss,0);
-   }*/
-  for (int i = 0; i < outchans.size(); i++) {
+
+  /*
+  for (int i = 0; i < mapping.size(); i++) {
     connect(v2ss, i, self(), i);
+  }*/
+
+  for (int i = 0; i < d_outputs.size(); i++) {
+    Channelizer_Ouput output = d_outputs[i];
+    connect(v2ss, output.output_channels[0], output.synthesizer, 0);
+    connect(v2ss, output.output_channels[1], output.synthesizer, 1);
+    connect(v2ss, output.output_channels[2], output.synthesizer, 2);
+    connect(output.synthesizer, 0, self(), output.output_channel);
   }
 }
+
 int pfb_channelizer::find_channel_id(double freq) {
   int channel = -1;
-  for (int i = 0; i < d_outchans.size(); i++) {
-    if (d_outchans[i].second == freq) {
+  for (int i = 0; i < d_outputs.size(); i++) {
+    if (d_outputs[i].freq == freq) {
       channel = i;
       break;
     }
   }
   return channel;
 }
+
 std::vector<float> pfb_channelizer::create_taps(int n_chans, int atten = 100, float channel_bw = 1.0, float transition_bw = 1.2) {
 
   return gr::filter::firdes::low_pass_2(1, n_chans, 1.0, 0.2, atten, gr::fft::window::win_type::WIN_HAMMING);
