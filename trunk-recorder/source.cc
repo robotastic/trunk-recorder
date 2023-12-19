@@ -279,6 +279,7 @@ p25_recorder_sptr Source::create_digital_recorder(gr::top_block_sptr tb, double 
 
 void Source::create_channelizer(gr::top_block_sptr tb, std::vector<double> freqs) {
   BOOST_LOG_TRIVIAL(info) << "Creating Channelizer which divides " << format_freq(rate) << " into " << n_chans << " x 25000Hz internal channels and outputs "  << freqs.size() << " channels";
+
   channelizer = pfb_channelizer::make(center, rate, n_chans, freqs, 1, std::vector<float>(), 60, 7250, 1450);
 
   tb->connect(source_block, 0, channelizer, 0);

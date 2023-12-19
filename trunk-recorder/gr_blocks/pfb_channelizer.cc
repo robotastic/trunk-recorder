@@ -2,12 +2,16 @@
 
 void pfb_channelizer::print_channel_freqs(double center, double rate, int n_chans) {
   BOOST_LOG_TRIVIAL(info) << "Channel Freqs Map" << std::endl;
-  int rollover = (n_chans / 2) - 1;
+  int rollover = floor(n_chans / 2) - 1;
   double channel_freq = center;
   for (int i = 0; i < n_chans; i++) {
-    BOOST_LOG_TRIVIAL(info) << "[ " << i << " ] Channel Freq: " << channel_freq << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
     if (i == rollover) {
-      channel_freq = center - (rate / 2);
+      if (n_chans % 2 == 0) {
+        channel_freq = center - (rate / 2);
+      } else {
+        channel_freq = center - (rate / 2) - 12500;
+      }
     } else {
       channel_freq += 25000;
     }
@@ -18,21 +22,25 @@ void pfb_channelizer::print_channel_freqs() {
   print_channel_freqs(d_center, d_rate, d_n_chans);
 }
 void pfb_channelizer::print_closest_channel_freqs(double freq, double center, double rate, int n_chans) {
-  int rollover = (n_chans / 2) - 1;
+  int rollover = floor(n_chans / 2) - 1;
   double channel_freq = center;
   double previous_freq = center;
 
   for (int i = 0; i < n_chans; i++) {
     
     if (i == rollover) {
-      channel_freq = center - (rate / 2);
+      if (n_chans % 2 == 0) {
+        channel_freq = center - (rate / 2);
+      } else {
+        channel_freq = center - (rate / 2) - 12500;
+      }
     } else {
       channel_freq += 25000;
     }
     if (freq > previous_freq && freq < channel_freq) {
       BOOST_LOG_TRIVIAL(info) << "Freq: " << format_freq(freq) << " is between Channels at " << format_freq(previous_freq) << " and " << format_freq(channel_freq) << std::endl;
       BOOST_LOG_TRIVIAL(info) << "Try adding " << freq - previous_freq << "Hz to  the center frequency for this source" << std::endl;
-      BOOST_LOG_TRIVIAL(info) << "New center frequency would be: " << format_freq(center + (freq - previous_freq)) << std::endl;
+      BOOST_LOG_TRIVIAL(info) << "New center frequency would be: "  << std::setprecision(9) << center + (freq - previous_freq) << std::endl;
       break;
     }
     previous_freq = channel_freq;
@@ -41,16 +49,22 @@ void pfb_channelizer::print_closest_channel_freqs(double freq, double center, do
 
 int pfb_channelizer::find_channel_number(double freq, double center, double rate, int n_chans) {
   int channel = -1;
-  int rollover = (n_chans / 2) - 1;
+  int rollover = floor(n_chans / 2) - 1;
+
   double channel_freq = center;
   for (int i = 0; i < n_chans; i++) {
+    std::cout << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
     if (channel_freq == freq) {
       channel = i;
-      break;
+      //break;
     }
-    // std::cout << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
+
     if (i == rollover) {
-      channel_freq = center - (rate / 2);
+      if (n_chans % 2 == 0) {
+        channel_freq = center - (rate / 2);
+      } else {
+        channel_freq = center - (rate / 2) - 12500;
+      }
     } else {
       channel_freq += 25000;
     }
@@ -69,11 +83,11 @@ pfb_channelizer::make(double center, double rate, int n_chans, std::vector<doubl
       outchans.push_back(std::make_pair(channel, channel_freqs[i]));
     } else {
       BOOST_LOG_TRIVIAL(info) << "Building Channelizer - Channel not found for freq: " << format_freq(channel_freqs[i]) << std::endl;
+      print_channel_freqs(center, rate, n_chans);
       print_closest_channel_freqs(channel_freqs[i], center, rate, n_chans);
       exit(1);
     }
   }
-
   return gnuradio::get_initial_sptr(new pfb_channelizer(center, rate, n_chans, outchans, n_filterbanks, taps, atten, channel_bw, transition_bw));
 }
 
