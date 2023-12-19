@@ -1285,6 +1285,7 @@ bool setup_sigmf_conventional(System *system) {
       return false;
     }
   }
+  return true;
 }
 
 bool setup_systems() {
