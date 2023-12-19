@@ -593,7 +593,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     BOOST_LOG_TRIVIAL(error) << "Sample rate must be a multiple of 25000";
     exit(1);
   }
+
   n_chans = rate / 25000;
+
+  //n_chans = rate / 12500;
+
   // s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
 
   // channelizer = gr::filter::pfb_channelizer_ccf::make(n_chans, gr::filter::firdes::low_pass_2(1.0, rate, 7250, 1450,60, gr::fft::window::win_type::WIN_HANN),1);
