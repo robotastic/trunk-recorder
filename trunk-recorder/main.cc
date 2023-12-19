@@ -1161,7 +1161,7 @@ bool setup_trunking_system(System *system) {
   for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
     double control_channel_freq = *chan_it;
     bool channel_added = false;
-    BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "] Control Channel Freq: " << format_freq(control_channel_freq);
+    BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "] Control Channel Freq: " << format_freq(control_channel_freq);
     for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
       Source *source = *src_it;
 
@@ -1208,7 +1208,7 @@ bool setup_trunking_system(System *system) {
         if (rec == NULL) {
           BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! Voice Channel Freq: " << format_freq(voice_channel_freq);
         } else {
-          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Found source for Voice Channel Freq: " << format_freq(voice_channel_freq);
+          BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\t Found source for Voice Channel Freq: " << format_freq(voice_channel_freq);
 
           channel_added = true;
         }
@@ -1240,7 +1240,7 @@ bool setup_trunking_system(System *system) {
         if (rec == NULL) {
           BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this System! sigMF Channel Freq: " << format_freq(sigmf_channel_freq);
         } else {
-          BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Found source for sigMFChannel Freq: " << format_freq(sigmf_channel_freq);
+          BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\t Found source for sigMFChannel Freq: " << format_freq(sigmf_channel_freq);
           channel_added = true;
         }
         system->add_sigmf_recorder(rec);

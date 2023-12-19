@@ -100,7 +100,7 @@ analog_recorder::analog_recorder(Source *src, double freq, Recorder_Type type)
 
 
 
-  double arb_rate =(double(wav_sample_rate) / initial_rate); // (double(system_channel_rate) / resampled_rate);
+  double arb_rate =(double(wav_sample_rate) / 25000); // (double(system_channel_rate) / resampled_rate);
   double arb_size = 32;
   double arb_atten = 100;
 
@@ -130,7 +130,7 @@ analog_recorder::analog_recorder(Source *src, double freq, Recorder_Type type)
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
 #endif
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+    BOOST_LOG_TRIVIAL(error) << "Analog Recorder: Something is probably wrong! Resampling rate too low. Arb Rate: " << arb_rate;
     exit(1);
   }
 

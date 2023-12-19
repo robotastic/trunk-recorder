@@ -40,7 +40,7 @@ void p25_recorder_impl::generate_arb_taps() {
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
 #endif
   } else {
-    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+    BOOST_LOG_TRIVIAL(error) << "P25 Recorder: Something is probably wrong! Resampling rate too low. ARB rate: " << arb_rate;
     exit(1);
   }
 }
