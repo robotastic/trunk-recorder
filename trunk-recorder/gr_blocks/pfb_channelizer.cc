@@ -53,10 +53,10 @@ int pfb_channelizer::find_channel_number(double freq, double center, double rate
 
   double channel_freq = center;
   for (int i = 0; i < n_chans; i++) {
-    std::cout << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
+    //std::cout << "[ " << i << " ] Channel Freq: " << std::setprecision(9) << channel_freq << std::endl;
     if (channel_freq == freq) {
       channel = i;
-      //break;
+      break;
     }
 
     if (i == rollover) {
