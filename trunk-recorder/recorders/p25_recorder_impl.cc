@@ -310,11 +310,11 @@ void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *conf
   cutoff_filter_coeffs = gr::filter::firdes::low_pass(1.0, if_rate, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HANN);
 #endif
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
-
+/*
   // ARB Resampler
   arb_rate = if_rate / 12500.0;
   generate_arb_taps();
-  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);*/
 
   double sps = floor(24000 / phase1_symbol_rate);
   double def_excess_bw = 0.2;

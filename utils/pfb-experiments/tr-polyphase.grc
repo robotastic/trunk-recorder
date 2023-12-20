@@ -42,7 +42,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [72, 64.0]
+    coordinate: [336, 40.0]
     rotation: 0
     state: enabled
 - name: filt_bw_0
@@ -54,19 +54,19 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 64.0]
+    coordinate: [8, 96.0]
     rotation: 0
     state: enabled
 - name: num_chans_g0
   id: variable
   parameters:
     comment: ''
-    value: '85'
+    value: '96'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [224, 120.0]
+    coordinate: [320, 120.0]
     rotation: 0
     state: enabled
 - name: ppm_g0
@@ -78,31 +78,31 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [168, 120.0]
+    coordinate: [192, 120.0]
     rotation: 0
     state: enabled
 - name: samp_rate_g0
   id: variable
   parameters:
     comment: ''
-    value: '2125000'
+    value: '2400000'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 120.0]
+    coordinate: [8, 232.0]
     rotation: 0
     state: enabled
 - name: tune_freq_g0
   id: variable
   parameters:
     comment: ''
-    value: '855462500'
+    value: '855012500'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [88, 120.0]
+    coordinate: [144, 240.0]
     rotation: 0
     state: enabled
 - name: blocks_null_sink_0
@@ -323,7 +323,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3140.0]
+    coordinate: [1712, 3104.0]
     rotation: 0
     state: enabled
 - name: blocks_null_sink_0_1
@@ -442,7 +442,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3236.0]
+    coordinate: [1792, 3120.0]
     rotation: 0
     state: enabled
 - name: blocks_null_sink_0_2
@@ -697,7 +697,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3172.0]
+    coordinate: [2024, 2904.0]
     rotation: 0
     state: enabled
 - name: blocks_null_sink_1_1
@@ -816,7 +816,194 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3268.0]
+    coordinate: [1680, 3248.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1560, 3264.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_0_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1584, 3472.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_0_0_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1656, 3576.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_0_0_0_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1632, 3664.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_0_0_1
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1568, 3560.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_0_1
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1624, 3368.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_1
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1552, 3208.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_1_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1584, 3416.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_1_0_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1656, 3520.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_1_0_0_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1632, 3608.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1_1_4_4_1_1
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1624, 3312.0]
     rotation: 0
     state: enabled
 - name: blocks_null_sink_1_2
@@ -850,7 +1037,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 2860.0]
+    coordinate: [1688, 2528.0]
     rotation: 0
     state: true
 - name: blocks_null_sink_2
@@ -986,7 +1173,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3204.0]
+    coordinate: [1968, 3040.0]
     rotation: 0
     state: enabled
 - name: blocks_null_sink_2_1
@@ -1122,7 +1309,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 2908.0]
+    coordinate: [1712, 2472.0]
     rotation: 0
     state: true
 - name: blocks_null_sink_3
@@ -1207,7 +1394,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 2940.0]
+    coordinate: [1832, 2776.0]
     rotation: 0
     state: true
 - name: blocks_null_sink_4
@@ -1292,7 +1479,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 2988.0]
+    coordinate: [1776, 2776.0]
     rotation: 0
     state: true
 - name: blocks_null_sink_5
@@ -1377,7 +1564,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3020.0]
+    coordinate: [1792, 2880.0]
     rotation: 0
     state: true
 - name: blocks_null_sink_6
@@ -1462,7 +1649,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3068.0]
+    coordinate: [1584, 3112.0]
     rotation: 0
     state: true
 - name: blocks_null_sink_7
@@ -1547,7 +1734,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1384, 3100.0]
+    coordinate: [1736, 3104.0]
     rotation: 0
     state: true
 - name: fir_filter_xxx_0
@@ -1615,7 +1802,7 @@ blocks:
     minoutbuf: '0'
     n_filterbanks: '4'
     nchans: num_chans_g0
-    outchans: None
+    outchans: '18'
     ripple: '0.1'
     taps: filter.firdes.low_pass(1.0, samp_rate_g0, 7250, 1450, window.WIN_HANN)
     tb: '0.2'
@@ -2514,7 +2701,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1504, 240.0]
+    coordinate: [1680, 144.0]
     rotation: 0
     state: true
 - name: qtgui_freq_sink_x_0_1_1_0_0_0_0_0_0_0_0_0_0
@@ -2931,7 +3118,7 @@ blocks:
     bias: 'False'
     center_freq: tune_freq_g0
     comment: ''
-    dev_args: ''
+    dev_args: rtl=200
     freq_correction: '0'
     gain: '25'
     maxoutbuf: '0'
@@ -2942,7 +3129,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [648, 288.0]
+    coordinate: [408, 464.0]
     rotation: 0
     state: true
 
@@ -2950,8 +3137,8 @@ connections:
 - [fir_filter_xxx_0, '0', qtgui_freq_sink_x_0_1_1, '0']
 - [pfb_arb_resampler_xxx_0, '0', fir_filter_xxx_0, '0']
 - [pfb_channelizer_hier_ccf_g0, '0', blocks_null_sink_0_0_4, '0']
+- [pfb_channelizer_hier_ccf_g0, '0', qtgui_freq_sink_x_0_1_1_0_0_0_0_0_0_0_0_0, '0']
 - [pfb_channelizer_hier_ccf_g0, '1', blocks_null_sink_1_0_4, '0']
-- [pfb_channelizer_hier_ccf_g0, '1', qtgui_freq_sink_x_0_1_1_0_0_0_0_0_0_0_0_0, '0']
 - [pfb_channelizer_hier_ccf_g0, '10', blocks_null_sink_2, '0']
 - [pfb_channelizer_hier_ccf_g0, '11', blocks_null_sink_3, '0']
 - [pfb_channelizer_hier_ccf_g0, '12', blocks_null_sink_4, '0']
@@ -3053,7 +3240,18 @@ connections:
 - [pfb_channelizer_hier_ccf_g0, '82', blocks_null_sink_2_0_4_4, '0']
 - [pfb_channelizer_hier_ccf_g0, '83', blocks_null_sink_0_1_4_4, '0']
 - [pfb_channelizer_hier_ccf_g0, '84', blocks_null_sink_1_1_4_4, '0']
+- [pfb_channelizer_hier_ccf_g0, '85', blocks_null_sink_1_1_4_4_1, '0']
+- [pfb_channelizer_hier_ccf_g0, '86', blocks_null_sink_1_1_4_4_0, '0']
+- [pfb_channelizer_hier_ccf_g0, '87', blocks_null_sink_1_1_4_4_1_0, '0']
+- [pfb_channelizer_hier_ccf_g0, '88', blocks_null_sink_1_1_4_4_0_0, '0']
+- [pfb_channelizer_hier_ccf_g0, '89', blocks_null_sink_1_1_4_4_1_1, '0']
 - [pfb_channelizer_hier_ccf_g0, '9', blocks_null_sink_1, '0']
+- [pfb_channelizer_hier_ccf_g0, '90', blocks_null_sink_1_1_4_4_0_1, '0']
+- [pfb_channelizer_hier_ccf_g0, '91', blocks_null_sink_1_1_4_4_1_0_0, '0']
+- [pfb_channelizer_hier_ccf_g0, '92', blocks_null_sink_1_1_4_4_0_0_0, '0']
+- [pfb_channelizer_hier_ccf_g0, '93', blocks_null_sink_1_1_4_4_0_0_1, '0']
+- [pfb_channelizer_hier_ccf_g0, '94', blocks_null_sink_1_1_4_4_1_0_0_0, '0']
+- [pfb_channelizer_hier_ccf_g0, '95', blocks_null_sink_1_1_4_4_0_0_0_0, '0']
 - [soapy_rtlsdr_source_0, '0', pfb_channelizer_hier_ccf_g0, '0']
 - [soapy_rtlsdr_source_0, '0', qtgui_freq_sink_x_0, '0']
 

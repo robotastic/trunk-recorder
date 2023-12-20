@@ -237,7 +237,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [304, 136]
+    coordinate: [296, 192.0]
     rotation: 0
     state: enabled
 - name: blocks_null_sink_0
@@ -254,7 +254,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [641, 493]
+    coordinate: [1152, 288.0]
     rotation: 0
     state: enabled
 - name: pfb_channelizer_ccf_0
@@ -276,7 +276,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [318, 322]
+    coordinate: [480, 232.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -357,7 +357,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [545, 136]
+    coordinate: [616, 104.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0_0
@@ -438,7 +438,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [606, 270]
+    coordinate: [920, 64.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0_0_0
@@ -519,7 +519,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [606, 380]
+    coordinate: [1112, 144.0]
     rotation: 0
     state: enabled
 - name: soapy_rtlsdr_source_0

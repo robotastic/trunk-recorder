@@ -130,7 +130,6 @@ bool sigmf_recorder_impl::start(System *sys, Config *config) {
     squelch_db = system->get_squelch_db();
     squelch->set_threshold(squelch_db);
 
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] C\033[0m\tFreq: " << format_freq(freq) << "\t\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     std::stringstream path_stream;
 
@@ -143,6 +142,7 @@ bool sigmf_recorder_impl::start(System *sys, Config *config) {
     if (nchars >= 255) {
       BOOST_LOG_TRIVIAL(error) << "SigMF-meta: Path longer than 255 charecters";
     }
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] C\033[0m\tFreq: " << format_freq(freq) << "\t\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m - " << filename << "\n";
 
     raw_sink->open(filename);
     state = ACTIVE;
