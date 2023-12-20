@@ -18,11 +18,12 @@
 #include "../formatter.h"
 
 struct Channelizer_Ouput {
-  std::vector<int> channelizer_channels;
-  std::vector<int> output_channels;
+  //std::vector<int> channelizer_channels;
+  //std::vector<int> output_channels;
+  int channelizer_channel;
   int output_channel;
   double freq;
-  gr::filter::pfb_synthesizer_ccf::sptr synthesizer;
+  //gr::filter::pfb_synthesizer_ccf::sptr synthesizer;
 };
 
 class pfb_channelizer : public gr::hier_block2 {

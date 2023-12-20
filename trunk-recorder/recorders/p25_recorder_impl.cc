@@ -312,7 +312,7 @@ void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *conf
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
-  arb_rate = if_rate / 37500.0;
+  arb_rate = if_rate / 12500.0;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
