@@ -109,7 +109,7 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
   }
   long channel_rate = 12500;
   long channelizer_output_channel = 0;
-  d_synth_taps = gr::filter::firdes::low_pass_2(3, 3 * channel_rate, channel_rate/2, channel_rate/5, 80);
+  d_synth_taps = gr::filter::firdes::low_pass_2(3, 3 * channel_rate, channel_rate/2, channel_rate/5, 80,gr::fft::window::win_type::WIN_BLACKMAN_HARRIS);
 
   for (int i = 0; i < channel_freqs.size(); i++) {
     int channelizer_channel = find_channel_number(channel_freqs[i], center, rate, n_chans);
@@ -256,6 +256,10 @@ int pfb_channelizer::find_channel_id(double freq) {
 }
 
 std::vector<float> pfb_channelizer::create_taps(int n_chans, int atten = 100, float channel_bw = 1.0, float transition_bw = 1.2) {
+
+double channel_rate = 12500;
+
+return gr::filter::firdes::low_pass_2(1, d_rate, channel_rate/2, channel_rate/5, 80, gr::fft::window::win_type::WIN_BLACKMAN_HARRIS);
 
   return gr::filter::firdes::low_pass_2(1, n_chans, 1.0, 0.2, atten, gr::fft::window::win_type::WIN_HAMMING);
 
