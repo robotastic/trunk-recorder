@@ -337,8 +337,10 @@ void p25_recorder_impl::initialize(double chan_freq, bool qpsk_mod, Config *conf
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
 
   connect(self(), 0, valve, 0);
+    connect(valve, 0,  cutoff_filter, 0);
+    /*
   connect(valve, 0, arb_resampler, 0);
-  connect(arb_resampler, 0, cutoff_filter, 0);
+  connect(arb_resampler, 0, cutoff_filter, 0);*/
 
   if (conventional) {
     connect(cutoff_filter, 0, squelch, 0);
