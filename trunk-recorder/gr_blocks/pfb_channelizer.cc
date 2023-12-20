@@ -133,6 +133,27 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
 
   std::cout << "Channelizer Output Channels: " << d_outputs.size() << " freqs: " << channel_freqs.size() << std::endl;
 
+  s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
+  channelizer =  gr::filter::pfb_channelizer_ccf::make(	d_n_chans,taps, 2.0 );	
+  connect(self(), 0, s2s,0);
+  for (int i = 0; i < d_n_chans; i++) {
+    connect(s2s, i, channelizer, i);
+  }
+  for (int i=0; i<d_n_chans; i++) {
+    for (int j=0; j<d_outputs.size(); j++) {
+      if (d_outputs[j].channelizer_channel == i) {
+        connect(channelizer, i, self(), d_outputs[j].output_channel);
+        BOOST_LOG_TRIVIAL(info) << "Connecting Channelizer Channel: " << i << " to Output Channel: " << d_outputs[j].output_channel << " for freq: " << format_freq(d_outputs[j].freq) << std::endl;
+      } else {
+
+        connect(channelizer, i, gr::blocks::null_sink::make(sizeof(gr_complex)), 0);
+        BOOST_LOG_TRIVIAL(info) << "Connecting Channelizer Channel: " << i << " to Null Sink "<< std::endl;
+      }
+    }
+  }
+
+
+/*
   int extra_taps = std::ceil(1.0 * taps.size() / n_chans) * n_chans - taps.size();
   taps.resize(taps.size() + extra_taps, 0);
 
@@ -209,11 +230,7 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
   std::vector<std::vector<std::vector<size_t>>> selector_mapping;
   std::vector<std::vector<size_t>> mapping;
   for (int i = 0; i < d_outputs.size(); i++) {
-    /*std::vector<int> outchans = d_outputs[i].channelizer_channels;
-    for (int j = 0; j < outchans.size(); j++) {
-      std::vector<size_t> tmp = {0, outchans[j]};
-      mapping.push_back(tmp);
-    }*/
+
     int outchan = d_outputs[i].channelizer_channel;
     std::vector<size_t> tmp = {0, outchan};
     mapping.push_back(tmp);
@@ -240,14 +257,7 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
     connect(v2ss, i, self(), i);
   }
 
-/*
-  for (int i = 0; i < d_outputs.size(); i++) {
-    Channelizer_Ouput output = d_outputs[i];
-    connect(v2ss, output.output_channels[0], output.synthesizer, 0);
-    connect(v2ss, output.output_channels[1], output.synthesizer, 1);
-    connect(v2ss, output.output_channels[2], output.synthesizer, 2);
-    connect(output.synthesizer, 0, self(), output.output_channel);
-  }*/
+*/
 }
 
 int pfb_channelizer::find_channel_id(double freq) {

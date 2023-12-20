@@ -9,11 +9,14 @@
 #include <gnuradio/blocks/throttle.h>
 #include <gnuradio/blocks/vector_map.h>
 #include <gnuradio/blocks/vector_to_streams.h>
+#include <gnuradio/blocks/null_sink.h>
+#include <gnuradio/blocks/stream_to_streams.h>
 #include <gnuradio/fft/fft_v.h>
 #include <gnuradio/filter/filterbank_vcvcf.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/filter/pfb_synthesizer_ccf.h>
+#include <gnuradio/filter/pfb_channelizer_ccf.h>
 
 #include "../formatter.h"
 
@@ -52,6 +55,7 @@ private:
   double d_rate;
   double d_center;
   int d_n_chans;
+  gr::filter::pfb_channelizer_ccf::sptr channelizer;
   std::vector<float> d_synth_taps;
   std::vector<std::pair<int, double>> d_outchans;
   std::vector<Channelizer_Ouput> d_outputs;
@@ -62,6 +66,7 @@ private:
   gr::fft::fft_v<gr_complex, true>::sptr fft;
   gr::blocks::vector_map::sptr selector;
   gr::blocks::vector_to_streams::sptr v2ss;
+  gr::blocks::stream_to_streams::sptr s2s;
 };
 
 #endif
