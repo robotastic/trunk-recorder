@@ -184,7 +184,7 @@ void dmr_recorder_impl::initialize(Source *src) {
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
-  arb_rate = if_rate / 25000.0;
+  arb_rate = if_rate / 37500.0;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   
