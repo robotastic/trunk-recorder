@@ -450,6 +450,29 @@ blocks:
     coordinate: [300, 204]
     rotation: 0
     state: enabled
+- name: pfb_channelizer_hier_ccf_0
+  id: pfb_channelizer_hier_ccf
+  parameters:
+    affinity: ''
+    alias: ''
+    atten: '100'
+    bw: '1.0'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    n_filterbanks: '4'
+    nchans: '3'
+    outchans: None
+    ripple: '0.1'
+    taps: None
+    tb: '0.2'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1112, 152.0]
+    rotation: 0
+    state: true
 - name: pfb_synthesizer_ccf_0
   id: pfb_synthesizer_ccf
   parameters:
