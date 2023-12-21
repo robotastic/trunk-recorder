@@ -27,6 +27,7 @@ struct Config {
   std::string temp_dir;
   std::string debug_recorder_address;
   std::string log_dir;
+  std::string tsbk_stream_server;
   std::string default_mode;
   bool new_call_from_update;
   bool debug_recorder;
@@ -42,6 +43,7 @@ struct Config {
   bool soft_vocoder;
   bool record_uu_v_calls;
   int frequency_format;
+  int tsbk_stream_port;
 };
 
 struct Call_Source {

@@ -45,6 +45,7 @@
 
 #include "call.h"
 #include "call_conventional.h"
+#include "tsbk_socket.h"
 #include "systems/p25_parser.h"
 #include "systems/p25_trunking.h"
 #include "systems/parser.h"
@@ -1144,14 +1145,17 @@ int main(int argc, char **argv) {
 
   tb = gr::make_top_block("Trunking");
 
-  smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
-  p25_parser = new P25Parser();
-
   std::string uri = "ws://localhost:3005";
 
   if (!load_config(config_file, config, tb, sources, systems)) {
     exit(1);
   }
+
+  // start up after config load
+  smartnet_parser = new SmartnetParser(); // this has to eventually be generic;
+  p25_parser = new P25Parser();
+
+  tsbk_socket = new TSBK_Socket(config.tsbk_stream_server, config.tsbk_stream_port);
 
   start_plugins(sources, systems);
 

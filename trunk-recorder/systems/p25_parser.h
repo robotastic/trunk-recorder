@@ -7,6 +7,7 @@
 #include <gnuradio/message.h>
 #include "system.h"
 #include "system_impl.h"
+#include "../tsbk_socket.h"
 #include <iomanip>
 #include <iostream>
 #include <map>
