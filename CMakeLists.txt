@@ -275,6 +275,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/gr_blocks/wavfile_gr3.8.cc
   trunk-recorder/gr_blocks/rms_agc.cc
   trunk-recorder/gr_blocks/pfb_channelizer.cc
+  trunk-recorder/gr_blocks/pfb_channelizer_ccf_impl.cc
   )
 
 

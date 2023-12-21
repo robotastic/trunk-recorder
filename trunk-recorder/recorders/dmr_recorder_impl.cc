@@ -184,10 +184,12 @@ void dmr_recorder_impl::initialize(Source *src) {
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
-  arb_rate = if_rate / 12500.0;
+  arb_rate = if_rate / 25000.0;
   generate_arb_taps();
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   
+
+
 
 
   //initialize_prefilter();
@@ -257,9 +259,9 @@ void dmr_recorder_impl::initialize(Source *src) {
 
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
   connect(self(), 0, valve, 0);
-  connect(valve, 0, cutoff_filter, 0);
-  connect(cutoff_filter, 0, squelch, 0);
-  connect(squelch, 0, pll_freq_lock, 0);
+  connect(valve, 0, squelch, 0);
+  connect(squelch, 0, arb_resampler, 0);
+  connect(arb_resampler, 0, pll_freq_lock, 0);
   connect(pll_freq_lock, 0, pll_amp, 0);
   connect(pll_amp, 0, noise_filter, 0);
   connect(noise_filter, 0, sym_filter, 0);

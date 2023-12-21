@@ -62,15 +62,13 @@ void smartnet_trunking::initialize_prefilter() {
   cutoff_filter = gr::filter::fft_filter_ccf::make(1.0, cutoff_filter_coeffs);
 
   // ARB Resampler
-  /*arb_rate = if_rate / 12500.0;
+  arb_rate = if_rate / 25000.0;
   generate_arb_taps();
-  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);*/
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   
   connect(self(), 0, valve, 0);
-  connect(valve, 0, cutoff_filter, 0);
-/*
   connect(valve, 0, arb_resampler, 0);
-  connect(arb_resampler, 0, cutoff_filter, 0);*/
+  //connect(arb_resampler, 0, cutoff_filter, 0);
 }
 
 smartnet_trunking::smartnet_trunking(double f,
@@ -111,7 +109,7 @@ smartnet_trunking::smartnet_trunking(double f,
 
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_num);
 
-  connect(cutoff_filter, 0, carriertrack, 0);
+  connect(arb_resampler, 0, carriertrack, 0);
   connect(carriertrack, 0, pll_demod, 0);
   connect(pll_demod, 0, softbits, 0);
   connect(softbits, 0, slicer, 0);

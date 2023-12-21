@@ -107,8 +107,9 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
   if (taps.empty()) {
     taps = create_taps(n_chans, atten, channel_bw, transition_bw);
   }
-  long channel_rate = 12500;
+  float channel_rate = rate / n_chans;
   long output_channel = 0;
+  std::vector<int> channel_map;
   //long channelizer_output_channel = 0;
   //d_synth_taps = gr::filter::firdes::low_pass_2(3, 3 * channel_rate, channel_rate/2, channel_rate/5, 80,gr::fft::window::win_type::WIN_BLACKMAN_HARRIS);
 
@@ -123,6 +124,7 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
       channelizer_output.synthesizer->set_channel_map({2, 0, 1});*/
       Channelizer_Ouput channelizer_output = {channelizer_channel, output_channel, channel_freqs[i]};
       d_outputs.push_back(channelizer_output);
+      channel_map.push_back(channelizer_channel);
     } else {
       BOOST_LOG_TRIVIAL(info) << "Building Channelizer - Channel not found for freq: " << format_freq(channel_freqs[i]) << std::endl;
       print_channel_freqs(center, rate, n_chans);
@@ -131,14 +133,23 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
     }
   }
 
-  std::cout << "Channelizer Output Channels: " << d_outputs.size() << " freqs: " << channel_freqs.size() << std::endl;
 
+  std::cout << "Channelizer Output Channels: " << d_outputs.size() << " freqs: " << channel_freqs.size() << std::endl;
+  
   s2s = gr::blocks::stream_to_streams::make(sizeof(gr_complex), n_chans);
+  
+
   channelizer =  gr::filter::pfb_channelizer_ccf::make(	d_n_chans,taps, 2.0 );	
+    channelizer->set_channel_map(channel_map);
+    channelizer->set_tag_propagation_policy(gr::block::tag_propagation_policy_t::TPP_ALL_TO_ALL);
   connect(self(), 0, s2s,0);
   for (int i = 0; i < d_n_chans; i++) {
     connect(s2s, i, channelizer, i);
   }
+for (int j=0; j<d_outputs.size(); j++) {
+  connect(channelizer, j, self(), j); 
+}
+  /*
   for (int i=0; i<d_n_chans; i++) {
     for (int j=0; j<d_outputs.size(); j++) {
       if (d_outputs[j].channelizer_channel == i) {
@@ -150,7 +161,7 @@ pfb_channelizer::pfb_channelizer(double center, double rate, int n_chans, std::v
         BOOST_LOG_TRIVIAL(info) << "Connecting Channelizer Channel: " << i << " to Null Sink "<< std::endl;
       }
     }
-  }
+  }*/
 
 
 /*
@@ -265,6 +276,7 @@ int pfb_channelizer::find_channel_id(double freq) {
   for (int i = 0; i < d_outputs.size(); i++) {
     if (d_outputs[i].freq == freq) {
       channel = i;
+      std::cout << "Freq: " << format_freq(freq) << " is Output Channel [ " << i << " ] from internal Channel [ " << d_outputs[i].channelizer_channel << " ]" << std::endl;
       break;
     }
   }
