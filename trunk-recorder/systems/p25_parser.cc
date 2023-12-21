@@ -93,8 +93,6 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   TrunkMessage message;
   std::ostringstream os;
 
-  //TODO: blast this across the UDP socket
-
   message.message_type = UNKNOWN;
   message.source = -1;
   message.wacn = 0;
@@ -1065,7 +1063,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
     }
     mbt_data <<= 32; // for missing crc
 
-    //tsbk_socket->send_tsbk(mbt_data, system);
+    tsbk_socket->send_mbt(mbt_data, system);
 
     unsigned long opcode = bitset_shift_mask(header, 32, 0x3f);
     unsigned long link_id = bitset_shift_mask(header, 48, 0xffffff);

@@ -44,3 +44,30 @@ void TSBK_Socket::send_tsbk(boost::dynamic_bitset<> &tsbk, System *system) {
          (struct sockaddr*)&m_servaddr, m_servlen);
     return 0;
   }
+
+void TSBK_Socket::send_mbt(boost::dynamic_bitset<> &tsbk, System *system) {
+
+    if (m_server.empty())
+      return;
+
+    boost::property_tree::ptree root;
+
+    root.put("version", "V1");
+    root.put("type", "mbt");
+    root.put("sysName", system->get_short_name());
+    root.put("tsbk", tsbk);
+
+    std::stringstream tsbk_str;
+    boost::property_tree::write_json(tsbk_str, root);
+
+    // std::cout << stats_str;
+    TSBK_Socket::send_msg(tsbk_str.str());
+  }
+
+  int TSBK_Socket::send_msg(std::string val) {
+    char* c = const_cast<char*>(val.c_str());
+
+    sendto(m_sockfd, c, strlen(c), 0,
+         (struct sockaddr*)&m_servaddr, m_servlen);
+    return 0;
+  }
