@@ -288,7 +288,7 @@ std::vector<float> pfb_channelizer::create_taps(int n_chans, int atten = 100, fl
 double channel_rate = 12500;
   long fa = 6250;
   long fb = fa + 625;
-  return gr::filter::firdes::low_pass_2(1.0, d_rate, (fb + fa) / 2, fb - fa, 80, gr::fft::window::win_type::WIN_BLACKMAN_HARRIS);
+  return gr::filter::firdes::low_pass_2(1.0, d_rate, (fb + fa) / 2, fb - fa, 60, gr::fft::window::win_type::WIN_BLACKMAN_HARRIS);
 return gr::filter::firdes::low_pass_2(1, d_rate, channel_rate/2, channel_rate/5, 80, gr::fft::window::win_type::WIN_BLACKMAN_HARRIS);
 
   return gr::filter::firdes::low_pass_2(1, n_chans, 1.0, 0.2, atten, gr::fft::window::win_type::WIN_HAMMING);
