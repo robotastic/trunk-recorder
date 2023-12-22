@@ -74,17 +74,18 @@ double resampled_rate;
     if2 = if1 / decim_settings.decim2;
     long fa = 6250;
     long fb = if2 / 2;
-    BOOST_LOG_TRIVIAL(info) << "\t Channelizer two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " FA: " << fa << " FB: " << fb << " System Rate: " << input_rate;
-    BOOST_LOG_TRIVIAL(info) << "\t Channelizer " << if1 << " : " << (fb + fa) / 2 << " : " << fb - fa;
+
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
     #if GNURADIO_VERSION < 0x030900
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass_2(1.0, if1, (fb + fa) / 2, fb - fa, 60, gr::filter::firdes::WIN_HAMMING);
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, 60, gr::filter::firdes::WIN_HAMMING);
     #else
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass_2(1.0, if1, (fb + fa) / 2, fb - fa, 60, gr::fft::window::WIN_HAMMING);
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, 60, gr::fft::window::WIN_HAMMING);
     #endif
     bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
+    BOOST_LOG_TRIVIAL(info) << "\t Channelizer two-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Resampled Rate: " << resampled_rate << " Bandpass Size: " << bandpass_filter_coeffs.size() << " Lowpass Size: " << lowpass_filter_coeffs.size();
+
     bfo = gr::analog::sig_source_c::make(if1, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   } else {
     double_decim = false;
@@ -93,14 +94,14 @@ double resampled_rate;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
 
     #if GNURADIO_VERSION < 0x030900
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass_2(1.0, input_rate, (fb + fa) / 2, fb - fa, 60, gr::filter::firdes::WIN_HANN);
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa,gr::fft::window::WIN_HAMMING);
     #else
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass_2(1.0, input_rate, (fb + fa) / 2, fb - fa, 60, gr::fft::window::WIN_HANN);
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa,gr::fft::window::WIN_HAMMING);
     #endif
     decim = floor(input_rate / channel_rate);
     resampled_rate = input_rate / decim;
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
-    BOOST_LOG_TRIVIAL(info) << "\t Channelizer single-stage decimator - Initial decimated rate: " << if1 << " Second decimated rate: " << if2 << " Initial Decimation: " << decim << " System Rate: " << input_rate;
+    BOOST_LOG_TRIVIAL(info) << "\t Channelizer single-stage decimator - Decim: " << decim << " Resampled Rate: " << resampled_rate << " Lowpass Size: " << lowpass_filter_coeffs.size();
   }
 
 
@@ -140,8 +141,6 @@ double resampled_rate;
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   double sps = d_samples_per_symbol;
   double def_excess_bw = 0.2;
-  BOOST_LOG_TRIVIAL(info) << "\t Channelizer ARB - Initial Rate: " << input_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << decim << " ARB Rate: " << arb_rate << " SPS: " << sps;
-  BOOST_LOG_TRIVIAL(info) << "\t Channelizer- lowpass: " << lowpass_filter_coeffs.size() << " bandpass: " << bandpass_filter_coeffs.size() << " cutoff: " << cutoff_filter_coeffs.size() << " arb: " << arb_taps.size();
    // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
   // power squelch works well. real FM receviers use a noise squelch, where
