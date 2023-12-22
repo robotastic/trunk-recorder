@@ -69,6 +69,7 @@
 #include <gnuradio/msg_queue.h>
 #include <json.hpp>
 #include "../gr_blocks/rms_agc.h"
+#include "../gr_blocks/channelizer.h"
 #include "recorder.h"
 
 #include "../source.h"
@@ -77,8 +78,6 @@ class sigmf_recorder_impl : public sigmf_recorder {
 
 public:
   sigmf_recorder_impl(Source *src);
-
-  void tune_offset(double f);
   bool start(Call *call);
   void stop();
   double get_freq();
@@ -89,17 +88,10 @@ public:
   int lastupdate();
   long elapsed();
 
-  gr::msg_queue::sptr tune_queue;
-  gr::msg_queue::sptr traffic_queue;
-  gr::msg_queue::sptr rx_queue;
-  // void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 
 private:
   void generate_arb_taps();
-  void initialize_prefilter();
   void initialize_prefilter_xlat();
-  sigmf_recorder_impl::DecimSettings get_decim(long speed);
-  void initialize_prefilter_decim();
 
   bool double_decim;
   double center, freq;
@@ -126,7 +118,7 @@ private:
   // int num;
   State state;
 
-
+  channelizer::sptr prefilter;
   std::vector<float> arb_taps;
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> inital_lpf_taps;

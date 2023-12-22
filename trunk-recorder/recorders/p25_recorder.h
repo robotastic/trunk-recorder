@@ -34,8 +34,6 @@ class p25_recorder : virtual public gr::hier_block2, virtual public Recorder {
 public:
   p25_recorder(){};
   virtual ~p25_recorder(){};
-  virtual DecimSettings get_decim(long speed) = 0;
-  virtual void tune_offset(double f) = 0;
   virtual void tune_freq(double f) = 0;
   virtual bool start(Call *call) = 0;
   virtual void stop() = 0;

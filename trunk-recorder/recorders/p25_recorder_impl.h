@@ -53,6 +53,8 @@
 
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
+#include "../gr_blocks/channelizer.h"
+
 //#include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
 #include "../gr_blocks/rms_agc.h"
 #include "p25_recorder.h"
@@ -77,12 +79,10 @@ protected:
 
 public:
   p25_recorder_impl(Source *src, Recorder_Type type);
-  DecimSettings get_decim(long speed);
-  void initialize_prefilter();
+
   void initialize_qpsk();
   void initialize_fsk4();
   void initialize_p25();
-  void tune_offset(double f);
   void tune_freq(double f);
   bool start(Call *call);
   void stop();
@@ -95,7 +95,6 @@ public:
   void set_tdma_slot(int slot);
   void set_source(long src);
   double since_last_write();
-  void generate_arb_taps();
   double get_current_length();
   bool is_active();
   bool is_idle();
@@ -121,59 +120,26 @@ protected:
   bool qpsk_mod;
   bool conventional;
   double squelch_db;
-  gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::selector::sptr modulation_selector;
-  gr::blocks::copy::sptr valve;
-  gr::digital::fll_band_edge_cc::sptr fll_band_edge;
-  gr::blocks::rms_agc::sptr rms_agc;
-    
-  //gr::op25_repeater::rmsagc_ff::sptr rms_agc;
-  // gr::blocks::multiply_const_ss::sptr levels;
+
 
   p25_recorder_fsk4_demod_sptr fsk4_demod;
   p25_recorder_decode_sptr fsk4_p25_decode;
   p25_recorder_qpsk_demod_sptr qpsk_demod;
   p25_recorder_decode_sptr qpsk_p25_decode;
-
+  channelizer::sptr prefilter;
 
 
 private:
-  double system_channel_rate;
-  double arb_rate;
-  double samples_per_symbol;
-  double symbol_rate;
-  double initial_rate;
-  long decim;
-  double resampled_rate;
-
   int silence_frames;
   int tdma_slot;
   bool d_phase2_tdma;
   bool d_soft_vocoder;
-  bool double_decim;
-  long if1;
-  long if2;
   long input_rate;
   const int phase1_samples_per_symbol = 5;
   const int phase2_samples_per_symbol = 4;
   const double phase1_symbol_rate = 4800;
   const double phase2_symbol_rate = 6000;
-
-  std::vector<float> arb_taps;
-  std::vector<gr_complex> bandpass_filter_coeffs;
-  std::vector<float> lowpass_filter_coeffs;
-  std::vector<float> cutoff_filter_coeffs;
-
-  gr::analog::sig_source_c::sptr lo;
-  gr::analog::sig_source_c::sptr bfo;
-  gr::blocks::multiply_cc::sptr mixer;
-
-  /* GR blocks */
-  gr::filter::fft_filter_ccc::sptr bandpass_filter;
-  gr::filter::fft_filter_ccf::sptr lowpass_filter;
-  gr::filter::fft_filter_ccf::sptr cutoff_filter;
-
-  gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
   gr::blocks::multiply_const_ff::sptr rescale;
   void reset_block(gr::basic_block_sptr block);

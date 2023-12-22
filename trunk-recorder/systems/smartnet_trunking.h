@@ -30,6 +30,7 @@
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 
 #include <gnuradio/analog/pll_freqdet_cf.h>
+#include "../gr_blocks/channelizer.h"
 
 #include "smartnet_decode.h"
 
@@ -65,26 +66,7 @@ public:
   void reset();
 
 protected:
-  smartnet_trunking::DecimSettings get_decim(long speed);
-  void generate_arb_taps();
-  void initialize_prefilter();
-
-  std::vector<float> arb_taps;
-  std::vector<float> baseband_noise_filter_taps;
-  std::vector<gr_complex> bandpass_filter_coeffs;
-  std::vector<float> lowpass_filter_coeffs;
-  std::vector<float> cutoff_filter_coeffs;
-
-  gr::analog::sig_source_c::sptr lo;
-  gr::analog::sig_source_c::sptr bfo;
-  gr::blocks::multiply_cc::sptr mixer;
-
-  gr::filter::fft_filter_ccc::sptr bandpass_filter;
-  gr::filter::fft_filter_ccf::sptr lowpass_filter;
-  gr::filter::fft_filter_ccf::sptr cutoff_filter;
-
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-  gr::digital::fll_band_edge_cc::sptr carriertrack;
   gr::analog::pll_freqdet_cf::sptr pll_demod;
   gr::digital::clock_recovery_mm_ff::sptr softbits;
   gr::digital::binary_slicer_fb::sptr slicer;
@@ -100,13 +82,9 @@ protected:
   double arb_rate;
   double samples_per_symbol;
   double symbol_rate;
-  double resampled_rate;
   long input_rate;
-  long decim;
-  bool double_decim;
-  long if1;
-  long if2;
   int sys_num;
+  channelizer::sptr prefilter;
 };
 
 #endif // ifndef SMARTNET_TRUNKING
