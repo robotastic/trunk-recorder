@@ -31,7 +31,7 @@
 
 #include <gnuradio/analog/pll_freqdet_cf.h>
 #include "../gr_blocks/channelizer.h"
-
+#include "../gr_blocks/xlat_channelizer.h"
 #include "smartnet_decode.h"
 
 class smartnet_trunking;
@@ -84,7 +84,8 @@ protected:
   double symbol_rate;
   long input_rate;
   int sys_num;
-  channelizer::sptr prefilter;
+  //channelizer::sptr prefilter;
+    xlat_channelizer::sptr prefilter;
 };
 
 #endif // ifndef SMARTNET_TRUNKING

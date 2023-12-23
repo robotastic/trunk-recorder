@@ -60,6 +60,7 @@
 //#include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
 #include "../gr_blocks/freq_xlating_fft_filter.h"
 #include "../gr_blocks/channelizer.h"
+#include "../gr_blocks/xlat_channelizer.h"
 
 class p25_trunking;
 
@@ -140,7 +141,8 @@ private:
   std::vector<float> cutoff_filter_coeffs;
 
 
-  channelizer::sptr prefilter;
+  //channelizer::sptr prefilter;
+  xlat_channelizer::sptr prefilter;
   gr::analog::sig_source_c::sptr lo;
   gr::analog::sig_source_c::sptr bfo;
   gr::blocks::multiply_cc::sptr mixer;

@@ -54,6 +54,7 @@
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
 #include "../gr_blocks/channelizer.h"
+#include "../gr_blocks/xlat_channelizer.h"
 
 //#include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
 #include "../gr_blocks/rms_agc.h"
@@ -127,8 +128,8 @@ protected:
   p25_recorder_decode_sptr fsk4_p25_decode;
   p25_recorder_qpsk_demod_sptr qpsk_demod;
   p25_recorder_decode_sptr qpsk_p25_decode;
-  channelizer::sptr prefilter;
-
+  //channelizer::sptr prefilter;
+    xlat_channelizer::sptr prefilter;
 
 private:
   int silence_frames;

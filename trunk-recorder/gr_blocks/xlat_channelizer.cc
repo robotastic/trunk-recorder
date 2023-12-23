@@ -1,19 +1,19 @@
-#include "channelizer.h"
+#include "xlat_channelizer.h"
 
 
-channelizer::sptr channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional){
+xlat_channelizer::sptr xlat_channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional){
 
-  return gnuradio::get_initial_sptr(new channelizer(input_rate, samples_per_symbol, symbol_rate, center_freq, conventional));
+  return gnuradio::get_initial_sptr(new xlat_channelizer(input_rate, samples_per_symbol, symbol_rate, center_freq, conventional));
 }
 
-const int channelizer::smartnet_samples_per_symbol;
-const int channelizer::phase1_samples_per_symbol;
-const int channelizer::phase2_samples_per_symbol;
-const double channelizer::phase1_symbol_rate;
-const double channelizer::phase2_symbol_rate;
-const double channelizer::smartnet_symbol_rate;
+const int xlat_channelizer::smartnet_samples_per_symbol;
+const int xlat_channelizer::phase1_samples_per_symbol;
+const int xlat_channelizer::phase2_samples_per_symbol;
+const double xlat_channelizer::phase1_symbol_rate;
+const double xlat_channelizer::phase2_symbol_rate;
+const double xlat_channelizer::smartnet_symbol_rate;
 
-channelizer::DecimSettings channelizer::get_decim(long speed) {
+xlat_channelizer::DecimSettings xlat_channelizer::get_decim(long speed) {
   long s = speed;
   long if_freqs[] = {24000, 25000, 32000};
   DecimSettings decim_settings = {-1, -1};
@@ -44,8 +44,8 @@ channelizer::DecimSettings channelizer::get_decim(long speed) {
 
 
 
-channelizer::channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional)
-    : gr::hier_block2("channelizer_ccf",
+xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional)
+    : gr::hier_block2("xlat_channelizer_ccf",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(1, 1, sizeof(gr_complex))),
       d_center_freq(center_freq),
@@ -56,12 +56,146 @@ channelizer::channelizer(double input_rate, int samples_per_symbol, double symbo
 
         long channel_rate = d_symbol_rate * d_samples_per_symbol;
         //long if_rate = 12500;
-double resampled_rate;
+
 
   const float pi = M_PI;
         valve = gr::blocks::copy::make(sizeof(gr_complex));
         valve->set_enabled(false);
 
+
+
+  int decimation = floor(input_rate / channel_rate);
+  double resampled_rate = float(input_rate) / float(decimation);
+/*
+    std::vector<float> if_coeffs;   
+#if GNURADIO_VERSION < 0x030900
+
+  if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate / 2, resampled_rate / 2, gr::filter::firdes::WIN_HAMMING);
+#else
+  if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate / 2, resampled_rate / 2, gr::fft::window::WIN_HAMMING);
+#endif
+freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
+*/
+
+    std::vector<gr_complex> if_coeffs;   
+    if_coeffs = gr::filter::firdes::complex_band_pass(1, input_rate, -resampled_rate/2, resampled_rate/2, resampled_rate/2);
+
+  freq_xlat = make_freq_xlating_fft_filter(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
+
+  
+  connect(valve, 0, freq_xlat, 0);
+
+
+
+  // ARB Resampler
+  double arb_rate = channel_rate / resampled_rate;
+  BOOST_LOG_TRIVIAL (info) << "\t Channelizer ARB - Symbol Rate: " << channel_rate << " Resampled Rate: " << resampled_rate << " ARB Rate: " << arb_rate;
+  double arb_size = 32;
+  double arb_atten = 30; // was originally 100
+  // Create a filter that covers the full bandwidth of the output signal
+
+  // If rate >= 1, we need to prevent images in the output,
+  // so we have to filter it to less than half the channel
+  // width of 0.5.  If rate < 1, we need to filter to less
+  // than half the output signal's bw to avoid aliasing, so
+  // the half-band here is 0.5*rate.
+  double percent = 0.80;
+
+  if (arb_rate <= 1) {
+    double halfband = 0.5 * arb_rate;
+    double bw = percent * halfband;
+    double tb = (percent / 2.0) * halfband;
+
+// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
+// tb;
+
+// As we drop the bw factor, the optfir filter has a harder time converging;
+// using the firdes method here for better results.
+#if GNURADIO_VERSION < 0x030900
+    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+#else
+    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
+#endif
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+    exit(1);
+  }
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+
+  double sps = d_samples_per_symbol;
+  double def_excess_bw = 0.2;
+   // Squelch DB
+  // on a trunked network where you know you will have good signal, a carrier
+  // power squelch works well. real FM receviers use a noise squelch, where
+  // the received audio is high-passed above the cutoff and then fed to a
+  // reverse squelch. If the power is then BELOW a threshold, open the squelch.
+
+  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
+
+
+  rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250);  // OP25 has this set to 350 instead of 250
+
+  connect(self(), 0, valve, 0);
+
+  if (arb_rate == 1.0) {
+    //connect(freq_xlat, 0, squelch, 0);
+    connect(freq_xlat, 0, self(), 0);
+  } else {
+    connect(freq_xlat, 0, arb_resampler, 0);
+    connect(arb_resampler, 0, self(), 0);
+    //connect(arb_resampler, 0, squelch, 0);
+  }
+
+//connect(squelch,0, self(), 0);
+/*
+
+  connect(self(), 0, valve, 0);
+  if (double_decim) {
+    connect(valve, 0, bandpass_filter, 0);
+    connect(bandpass_filter, 0, mixer, 0);
+    connect(bfo, 0, mixer, 1);
+  } else {
+    connect(valve, 0,  mixer, 0);
+    connect(lo, 0, mixer, 1);
+  }
+  connect(mixer, 0,lowpass_filter, 0);
+
+
+if (d_conventional) {
+    if (arb_rate == 1.0) {
+        connect(lowpass_filter,0, squelch, 0);
+  connect(squelch, 0, rms_agc, 0);
+  } else {
+      connect(lowpass_filter,0, squelch, 0);
+  connect(squelch, 0,arb_resampler, 0);
+    connect(arb_resampler, 0, rms_agc, 0);
+
+  }
+
+  //connect(squelch, 0, self(), 0);
+} else {
+    if (arb_rate == 1.0) {
+        connect(lowpass_filter,0, rms_agc, 0);
+  } else {
+      connect(lowpass_filter,0, arb_resampler, 0);
+    connect(arb_resampler, 0, rms_agc, 0);
+  }
+}
+
+  connect(rms_agc,0,  fll_band_edge, 0);
+  connect(fll_band_edge, 0, self(), 0);
+
+*/
+
+
+
+
+
+
+
+
+/*
   lo = gr::analog::sig_source_c::make(d_input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make();
 
@@ -186,51 +320,33 @@ if (d_conventional) {
 }
 
   connect(rms_agc,0,  fll_band_edge, 0);
-  connect(fll_band_edge, 0, self(), 0);
+  connect(fll_band_edge, 0, self(), 0);*/
       }
 
 
-int channelizer::get_freq_error() {   // get frequency error from FLL and convert to Hz
+int xlat_channelizer::get_freq_error() {   // get frequency error from FLL and convert to Hz
   const float pi = M_PI;
   long if_rate = 24000;
         return int((fll_band_edge->get_frequency() / (2*pi)) * if_rate);
 }
 
-bool channelizer::is_squelched() {
+bool xlat_channelizer::is_squelched() {
 
     return !squelch->unmuted();
 
 }
 
-void channelizer::tune_offset(double f) {
+void xlat_channelizer::tune_offset(double f) {
 
   float freq = static_cast<float>(f);
 
-  if (abs(freq) > ((d_input_rate / 2) - (if1 / 2))) {
-    BOOST_LOG_TRIVIAL(info) << "Channelizer - Tune Offset: Freq exceeds limit: " << abs(freq) << " compared to: " << ((d_input_rate / 2) - (if1 / 2));
-  }
-  if (double_decim) {
-    bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, d_input_rate, -freq - if1 / 2, -freq + if1 / 2, if1 / 2);
-    bandpass_filter->set_taps(bandpass_filter_coeffs);
-    float bfz = (static_cast<float>(decim) * -freq) / (float)d_input_rate;
-    bfz = bfz - static_cast<int>(bfz);
-    if (bfz < -0.5) {
-      bfz = bfz + 1.0;
-    }
-    if (bfz > 0.5) {
-      bfz = bfz - 1.0;
-    }
-    bfo->set_frequency(-bfz * if1);
-
-  } else {
-    lo->set_frequency(freq);
-  }
+    freq_xlat->set_center_freq(-freq);
 }
 
-void channelizer::set_enabled(bool enabled) {
+void xlat_channelizer::set_enabled(bool enabled) {
   valve->set_enabled(enabled);
 }
 
-void channelizer::set_squelch_db(double squelch_db) {
+void xlat_channelizer::set_squelch_db(double squelch_db) {
   squelch->set_threshold(squelch_db);
 }
