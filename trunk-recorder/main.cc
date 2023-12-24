@@ -33,6 +33,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <utility>
+#include <chrono>
 
 #include "./global_structs.h"
 #include "config.h"
@@ -91,6 +92,12 @@ Config config;
 void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
 }
+
+uint64_t time_since_epoch_millisec() {
+  using namespace std::chrono;
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
 
 unsigned GCD(unsigned u, unsigned v) {
   while (v != 0) {
@@ -855,6 +862,24 @@ void check_message_count(float timeDiff) {
   }
 }
 
+
+void check_conventional_channel_detection() {
+  Source *source = NULL;
+  for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
+    source = *src_it;
+    std::vector<Recorder *> recorders = source->get_detected_recorders();
+    for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
+      Recorder *recorder = *it;
+      
+      if (!recorder->is_enabled()) {
+        recorder->set_enabled(true);
+        BOOST_LOG_TRIVIAL(info) << "Enabled Freq: " << format_freq(recorder->get_freq());
+      }
+    }
+  }
+}
+
+
 void monitor_messages() {
   gr::message::sptr msg;
   int sys_num;
@@ -863,7 +888,9 @@ void monitor_messages() {
   time_t last_status_time = time(NULL);
   time_t last_decode_rate_check = time(NULL);
   time_t management_timestamp = time(NULL);
+  uint64_t last_conventional_channel_detection_check = time_since_epoch_millisec();
   time_t current_time = time(NULL);
+  uint64_t current_time_ms = time_since_epoch_millisec();
   std::vector<TrunkMessage> trunk_messages;
 
   while (1) {
@@ -887,6 +914,8 @@ void monitor_messages() {
       boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
       return;
     }
+
+
 
     process_message_queues();
 
@@ -923,6 +952,12 @@ void monitor_messages() {
       }
     }
     current_time = time(NULL);
+    current_time_ms = time_since_epoch_millisec();
+    if ((current_time_ms - last_conventional_channel_detection_check) >= 0.1) {
+      check_conventional_channel_detection();
+      last_conventional_channel_detection_check = current_time_ms;
+    }
+
 
     if ((current_time - management_timestamp) >= 1.0) {
       manage_calls();
@@ -954,7 +989,7 @@ void monitor_messages() {
   }
 }
 
-bool setup_convetional_channel(System *system, double frequency, long channel_index) {
+bool setup_conventional_channel(System *system, double frequency, long channel_index) {
   bool channel_added = false;
   Source *source = NULL;
   for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
@@ -966,6 +1001,7 @@ bool setup_convetional_channel(System *system, double frequency, long channel_in
         BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
         return false;
       } else {
+        source->set_signal_detector_threshold(system->get_squelch_db());
         channel_added = true;
       }
 
@@ -1024,7 +1060,7 @@ bool setup_conventional_system(System *system) {
     for (vector<Talkgroup *>::iterator tg_it = talkgroups.begin(); tg_it != talkgroups.end(); tg_it++) {
       Talkgroup *tg = *tg_it;
 
-      bool channel_added = setup_convetional_channel(system, tg->freq, tg->number);
+      bool channel_added = setup_conventional_channel(system, tg->freq, tg->number);
 
       if (!channel_added) {
         BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(tg->freq) << " Talkgroup: " << tg->number;
@@ -1039,7 +1075,7 @@ bool setup_conventional_system(System *system) {
     for (vector<double>::iterator chan_it = channels.begin(); chan_it != channels.end(); chan_it++) {
       double channel = *chan_it;
       ++channel_index;
-      bool channel_added = setup_convetional_channel(system, channel, channel_index);
+      bool channel_added = setup_conventional_channel(system, channel, channel_index);
 
       if (!channel_added) {
         BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\t Unable to find a source for this conventional channel! Channel not added: " << format_freq(channel) << " Talkgroup: " << channel_index;

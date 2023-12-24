@@ -307,6 +307,13 @@ bool dmr_recorder_impl::is_active() {
     return false;
   }
 }
+bool dmr_recorder_impl::is_enabled() {
+  return valve->enabled();
+}
+
+void dmr_recorder_impl::set_enabled(bool enabled) {
+  valve->set_enabled(enabled);
+}
 
 bool dmr_recorder_impl::is_squelched() {
   if (state == ACTIVE) {

@@ -276,6 +276,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/gr_blocks/rms_agc.cc
   trunk-recorder/gr_blocks/channelizer.cc
     trunk-recorder/gr_blocks/xlat_channelizer.cc
+    trunk-recorder/gr_blocks/signal_detector_cvf_impl.cc
   )
 
 

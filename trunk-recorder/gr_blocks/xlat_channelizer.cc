@@ -78,11 +78,11 @@ freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::
 */
 
     std::vector<gr_complex> if_coeffs;   
-    if_coeffs = gr::filter::firdes::complex_band_pass(1, input_rate, -resampled_rate/2, resampled_rate/2, resampled_rate/2);
+    if_coeffs = gr::filter::firdes::complex_band_pass(1, input_rate, -channel_rate/2, channel_rate/2, channel_rate/2);
 
   freq_xlat = make_freq_xlating_fft_filter(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
 
-  
+  BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Size: " << if_coeffs.size();
   connect(valve, 0, freq_xlat, 0);
 
 
@@ -341,6 +341,10 @@ void xlat_channelizer::tune_offset(double f) {
   float freq = static_cast<float>(f);
 
     freq_xlat->set_center_freq(-freq);
+}
+
+bool xlat_channelizer::is_enabled() {
+  return valve->enabled();
 }
 
 void xlat_channelizer::set_enabled(bool enabled) {

@@ -103,6 +103,8 @@ public:
   double since_last_write();
   void generate_arb_taps();
   double get_current_length();
+  void set_enabled(bool enabled);
+  bool is_enabled();
   bool is_active();
   bool is_idle();
   bool is_squelched();

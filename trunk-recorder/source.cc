@@ -133,8 +133,67 @@ void Source::set_freq_corr(double p) {
   }
 }
 
+Recorder *Source::find_conventional_recorder_by_freq(double freq) {
+  for (std::vector<p25_recorder_sptr>::iterator it = digital_conv_recorders.begin(); it != digital_conv_recorders.end(); it++) {
+    p25_recorder_sptr rx = *it;
+    double recorder_freq = rx->get_freq();
+
+    if (std::abs(freq-recorder_freq) < 5000) {
+      return (Recorder *)rx.get();
+    }
+  }
+
+  for (std::vector<dmr_recorder_sptr>::iterator it = dmr_conv_recorders.begin(); it != dmr_conv_recorders.end(); it++) {
+    dmr_recorder_sptr rx = *it;
+    double recorder_freq = rx->get_freq();
+
+    if (std::abs(freq-recorder_freq) < 5000) {
+      return (Recorder *)rx.get();
+    }
+  }
+
+  for (std::vector<analog_recorder_sptr>::iterator it = analog_conv_recorders.begin(); it != analog_conv_recorders.end(); it++) {
+    analog_recorder_sptr rx = *it;
+    double recorder_freq = rx->get_freq();
+
+    if (std::abs(freq-recorder_freq) < 5000) {
+      return (Recorder *)rx.get();
+    }
+  }
+
+
+  return NULL;
+
+}
+
+std::vector<Recorder *> Source::get_detected_recorders () {
+    std::vector<Recorder *> detected_recorders;
+    //BOOST_LOG_TRIVIAL(info) << "Getting detected freqs " << driver << " " << device << " " << signal_detector;
+    //signal_detector->print_stuff();
+ std::vector<std::vector<float>> signals = signal_detector->get_detected_freqs();
+
+  for (std::vector<std::vector<float>>::iterator it = signals.begin(); it != signals.end(); it++) {
+    std::vector<float> signal = *it;
+    if (signal.size() < 1) {
+      BOOST_LOG_TRIVIAL(info) << " Weird Less than zero";
+      continue;
+    }
+    float freq = center + signal[0];
+    Recorder * recorder = find_conventional_recorder_by_freq(freq);
+    if (recorder != NULL) {
+      detected_recorders.push_back(recorder);
+    }
+  }
+  return detected_recorders;
+}
+
 int Source::get_if_gain() {
   return if_gain;
+}
+
+
+void Source::set_signal_detector_threshold(float threshold) {
+  signal_detector->set_threshold(threshold);
 }
 
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
@@ -192,6 +251,7 @@ Recorder *Source::get_analog_recorder(Call *call) {
 }
 
 void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
+  tb->connect(source_block, 0, signal_detector, 0);
   max_digital_recorders = r;
 
   for (int i = 0; i < max_digital_recorders; i++) {
@@ -461,6 +521,11 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   max_sigmf_recorders = 0;
   max_analog_recorders = 0;
   debug_recorder_port = 0;
+
+
+
+  signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
+  BOOST_LOG_TRIVIAL(info) << "Made the Signal Detector";  
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;

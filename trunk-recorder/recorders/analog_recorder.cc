@@ -307,6 +307,15 @@ bool analog_recorder::is_active() {
   }
 }
 
+bool analog_recorder::is_enabled() {
+  return valve->enabled();
+}
+
+void analog_recorder::set_enabled(bool enabled) {
+  valve->set_enabled(enabled);
+}
+
+
 bool analog_recorder::is_squelched() {
   return is_idle();
 }

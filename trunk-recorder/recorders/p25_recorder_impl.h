@@ -97,6 +97,8 @@ public:
   void set_source(long src);
   double since_last_write();
   double get_current_length();
+  void set_enabled(bool enabled);
+  bool is_enabled();
   bool is_active();
   bool is_idle();
   bool is_squelched();

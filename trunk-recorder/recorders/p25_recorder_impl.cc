@@ -15,6 +15,11 @@ p25_recorder_impl::p25_recorder_impl(Source *src, Recorder_Type type)
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder(type) {
+   if (type == P25C) {
+    conventional = true;
+   } else {
+    conventional = false;
+    }    
   initialize(src);
 }
 
@@ -45,7 +50,7 @@ void p25_recorder_impl::initialize(Source *src) {
     this->set_enable_audio_streaming(config->enable_audio_streaming);
   }
 
-  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center_freq, false);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center_freq, conventional);
   //initialize_prefilter();
   // initialize_p25();
 
@@ -162,6 +167,14 @@ State p25_recorder_impl::get_state() {
   } else {
     return fsk4_p25_decode->get_state();
   }
+}
+
+bool p25_recorder_impl::is_enabled() {
+  return prefilter->is_enabled();
+}
+
+void p25_recorder_impl::set_enabled(bool enabled) {
+  prefilter->set_enabled(enabled);
 }
 
 bool p25_recorder_impl::is_active() {
@@ -314,7 +327,11 @@ bool p25_recorder_impl::start(Call *call) {
       fsk4_p25_decode->start(call);
     }
     state = ACTIVE;
-    prefilter->set_enabled(true);
+    if (conventional) {
+      prefilter->set_enabled(false);
+    } else {
+      prefilter->set_enabled(true);
+    }
 
     modulation_selector->set_enabled(true);
 

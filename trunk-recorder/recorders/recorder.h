@@ -88,6 +88,8 @@ public:
   virtual State get_state() { return INACTIVE; };
   std::string get_type_string();
   Recorder_Type get_type() { return type; }
+  virtual void set_enabled(bool enabled) {};
+  virtual bool is_enabled() { return false; };
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };
   virtual bool is_idle() { return true; };

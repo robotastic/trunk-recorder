@@ -14,6 +14,7 @@
 #include "recorders/p25_recorder.h"
 #include "recorders/sigmf_recorder.h"
 #include "sources/iq_file_source.h"
+#include "./gr_blocks/signal_detector_cvf.h"
 #define JSON_DIAGNOSTICS 1
 #include <json.hpp>
 
@@ -64,6 +65,8 @@ class Source {
   std::string device;
   std::string antenna;
   gr::basic_block_sptr source_block;
+  signal_detector_cvf::sptr signal_detector;
+
   void add_gain_stage(std::string stage_name, int value);
 
 public:
@@ -88,7 +91,8 @@ public:
   double get_error();
   void set_if_gain(int i);
   int get_if_gain();
-
+  Recorder *find_conventional_recorder_by_freq(double freq);
+std::vector<Recorder *> get_detected_recorders ();
   void set_gain_mode(bool m);
   bool get_gain_mode();
   void set_gain(int r);
@@ -115,7 +119,7 @@ public:
   int digital_recorder_count();
   int analog_recorder_count();
   Config *get_config();
-
+  void set_signal_detector_threshold(float t);
   void create_debug_recorder(gr::top_block_sptr tb, int source_num);
   void create_sigmf_recorders(gr::top_block_sptr tb, int r);
   void create_analog_recorders(gr::top_block_sptr tb, int r);

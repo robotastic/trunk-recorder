@@ -81,6 +81,8 @@ public:
   time_t get_start_time();
   double get_current_length();
   long get_wav_hz();
+  void set_enabled(bool enabled);
+  bool is_enabled();
   bool is_active();
   bool is_analog();
   bool is_idle();

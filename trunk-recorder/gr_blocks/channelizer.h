@@ -58,6 +58,7 @@ public:
 
 
 int get_freq_error();
+bool is_enabled();
 bool is_squelched();
 void tune_offset(double f); 
 void set_enabled(bool enabled); 
