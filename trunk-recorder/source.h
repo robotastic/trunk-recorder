@@ -33,7 +33,7 @@ class Source {
   double actual_rate;
   double error;
   double ppm;
-
+  bool attached_detector;
   bool gain_mode;
   int gain;
   int bb_gain;

@@ -199,6 +199,10 @@ void Source::set_signal_detector_threshold(float threshold) {
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in analog_conv_recorders
+  if (!attached_detector) {
+    tb->connect(source_block, 0, signal_detector, 0);
+    attached_detector = true;
+  }
   analog_recorder_sptr log = make_analog_recorder(this, ANALOGC);
   analog_conv_recorders.push_back(log);
   tb->connect(source_block, 0, log, 0);
@@ -251,7 +255,7 @@ Recorder *Source::get_analog_recorder(Call *call) {
 }
 
 void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
-  tb->connect(source_block, 0, signal_detector, 0);
+
   max_digital_recorders = r;
 
   for (int i = 0; i < max_digital_recorders; i++) {
@@ -306,6 +310,10 @@ Recorder *Source::get_digital_recorder(Call *call) {
 p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
+  if (!attached_detector) {
+    tb->connect(source_block, 0, signal_detector, 0);
+    attached_detector = true;
+  }
   p25_recorder_sptr log = make_p25_recorder(this, P25C);
   digital_conv_recorders.push_back(log);
   tb->connect(source_block, 0, log, 0);
@@ -315,6 +323,10 @@ p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_spt
 dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
+  if (!attached_detector) {
+    tb->connect(source_block, 0, signal_detector, 0);
+    attached_detector = true;
+  }
   dmr_recorder_sptr log = make_dmr_recorder(this, DMR);
   dmr_conv_recorders.push_back(log);
   tb->connect(source_block, 0, log, 0);
@@ -521,6 +533,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   max_sigmf_recorders = 0;
   max_analog_recorders = 0;
   debug_recorder_port = 0;
+  attached_detector = false;
 
 
 
