@@ -128,7 +128,6 @@ protected:
   double chan_freq;
   double center_freq;
   bool qpsk_mod;
-  bool conventional;
   double squelch_db;
   gr::analog::pwr_squelch_cc::sptr squelch;
   gr::blocks::selector::sptr modulation_selector;

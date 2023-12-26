@@ -121,7 +121,6 @@ protected:
   double chan_freq;
   double center_freq;
   bool qpsk_mod;
-  bool conventional;
   double squelch_db;
   gr::blocks::selector::sptr modulation_selector;
 

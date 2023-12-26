@@ -70,7 +70,19 @@ public:
     long decim2;
   };
 
+  int rec_num;
+  int rssi=0;
+  static int rec_counter;
+  std::string get_type_string();
+  bool conventional;
+
   Recorder(Recorder_Type  type);
+  int get_num() { return rec_num; };
+  Recorder_Type get_type() { return type; };
+  void set_rssi(int rssi) { this->rssi = rssi; };
+  int get_rssi() { return rssi; };
+  bool is_conventional() { return conventional; };
+
   virtual void tune_offset(double f){};
   virtual void tune_freq(double f){};
   virtual bool start(Call *call) { return false; };
@@ -81,13 +93,10 @@ public:
   virtual std::vector<Transmission> get_transmission_list() { return {}; };
   virtual void set_source(long src){};
   virtual Call_Source *get_source_list() { return NULL; };
-  int get_num() { return rec_num; };
   virtual long get_source_count() { return 0; };
   virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
   virtual State get_state() { return INACTIVE; };
-  std::string get_type_string();
-  Recorder_Type get_type() { return type; }
   virtual void set_enabled(bool enabled) {};
   virtual bool is_enabled() { return false; };
   virtual bool is_active() { return false; };
@@ -97,8 +106,6 @@ public:
   virtual double get_current_length() { return 0; };
   virtual double since_last_write() { return 0; };
   virtual void clear(){};
-  int rec_num;
-  static int rec_counter;
   virtual boost::property_tree::ptree get_stats();
   virtual int get_recording_count() { return recording_count; }
   virtual double get_recording_duration() { return recording_duration; }

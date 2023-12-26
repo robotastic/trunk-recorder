@@ -51,6 +51,7 @@ dmr_recorder_impl::dmr_recorder_impl(Source *src, Recorder_Type type)
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder(type) {
+  conventional = true;
   initialize(src);
 }
 

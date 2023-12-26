@@ -96,6 +96,12 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
     use_streaming = config->enable_audio_streaming;
   }
 
+  if (type == ANALOGC) {
+    conventional = true;
+  } else {
+    conventional = false;
+  }
+  
   // int samp_per_sym        = 10;
   system_channel_rate = 96000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate

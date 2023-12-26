@@ -179,8 +179,12 @@ std::vector<Recorder *> Source::get_detected_recorders () {
       continue;
     }
     float freq = center + signal[0];
+    float bandwidth = signal[1];
+    float rssi = signal[2];
+
     Recorder * recorder = find_conventional_recorder_by_freq(freq);
     if (recorder != NULL) {
+      recorder->set_rssi(rssi);
       detected_recorders.push_back(recorder);
     }
   }

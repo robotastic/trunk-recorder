@@ -347,7 +347,16 @@ void print_status() {
     }
 
     if (recorder) {
-      BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
+      if (recorder->is_conventional()) {
+        if (recorder->get_rssi() < 0) {
+        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tRSSI: " << recorder->get_rssi() << " dBm";
+        } else {
+          BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tNot Detected";
+
+        }
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
+      }
     }
   }
 

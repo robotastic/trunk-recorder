@@ -251,7 +251,10 @@ void signal_detector_cvf_impl::build_threshold()
 }
 
 // find bins above threshold and adjacent bins for each signal
-std::vector<std::vector<unsigned int>> signal_detector_cvf_impl::find_signal_edges()
+// Datastructure: vector of the detected signals, each signal is a vector that is 2 elements long. The first element is the start bin, the second element is the end bin.
+// Each Bin is stored as a pair of the bin number and the signal strength. 
+
+std::vector<std::vector<std::pair<unsigned int, int>>> signal_detector_cvf_impl::find_signal_edges()
 {
     std::vector<std::pair<unsigned int, int>> pos;
     // find values above threshold
@@ -262,31 +265,31 @@ std::vector<std::vector<unsigned int>> signal_detector_cvf_impl::find_signal_edg
             pos.push_back(std::make_pair(i, d_pxx_out[i] ));
         }
     }
-    std::vector<std::vector<unsigned int>> flanks;
+    std::vector<std::vector<std::pair<unsigned int, int>>> flanks;
     if (pos.size() == 0) {
         return flanks;
     }
 
     // check for adjacent bins to group
-    std::vector<unsigned int> curr_edges;
+    std::vector<std::pair<unsigned int, int>> curr_edges;
 
-    curr_edges.push_back(pos[0].first); // first position is signal begin
+    curr_edges.push_back(pos[0]); // first position is signal begin
     // check some special cases
     if (pos.size() == 0) {
         return flanks; // empty result
     } else if (pos.size() == 1) {
-        curr_edges.push_back(pos[0].first); // use same value for both flanks
+        curr_edges.push_back(pos[0]); // use same value for both flanks
         flanks.push_back(curr_edges);
     } else if (pos.size() == 2) {
         if (pos[0].first + 1 == pos[1].first) { // one signal with two bins
-            curr_edges.push_back(pos[1].first);
+            curr_edges.push_back(pos[1]);
             flanks.push_back(curr_edges);
         } else { // two signals with one bin each
-            curr_edges.push_back(pos[0].first);
+            curr_edges.push_back(pos[0]);
             flanks.push_back(curr_edges);
             curr_edges.clear();
-            curr_edges.push_back(pos[1].first);
-            curr_edges.push_back(pos[1].first);
+            curr_edges.push_back(pos[1]);
+            curr_edges.push_back(pos[1]);
             flanks.push_back(curr_edges);
         }
     } else {
@@ -294,15 +297,15 @@ std::vector<std::vector<unsigned int>> signal_detector_cvf_impl::find_signal_edg
             if (i == pos.size() - 1 && curr_edges.size() == 1 &&
                 pos[i - 1].first + 1 == pos[i].first) {
                 // write last flank
-                curr_edges.push_back(pos[i].first);
+                curr_edges.push_back(pos[i]);
                 flanks.push_back(curr_edges);
             } else {
                 // if not adjacent bin, write new signal
                 if (pos[i - 1].first + 1 != pos[i].first) {
-                    curr_edges.push_back(pos[i - 1].first);
+                    curr_edges.push_back(pos[i - 1]);
                     flanks.push_back(curr_edges);
                     curr_edges.clear();
-                    curr_edges.push_back(pos[i].first);
+                    curr_edges.push_back(pos[i]);
                 }
             }
         }
@@ -378,7 +381,7 @@ int signal_detector_cvf_impl::work(int noutput_items,
     periodogram(d_pxx, in);
 
     // averaging
-    for (int i = 0; i < d_fft_len; i++) {
+    for (unsigned int i = 0; i < d_fft_len; i++) {
         d_pxx_out[i] = d_avg_filter[i].filter(d_pxx[i]);
     }
 
@@ -387,7 +390,7 @@ int signal_detector_cvf_impl::work(int noutput_items,
     }
 
 
-    std::vector<std::vector<unsigned int>> flanks = find_signal_edges();
+    std::vector<std::vector<std::pair<unsigned int, int>>>  flanks = find_signal_edges();
     std::vector<std::vector<float>> rf_map;
     // rf_map = std::vector<std::vector<float>>();
     gr::thread::scoped_lock guard(d_mutex);
@@ -397,13 +400,15 @@ int signal_detector_cvf_impl::work(int noutput_items,
     int quantization = (int)floor(d_quantization * d_samp_rate);
     for (unsigned int i = 0; i < flanks.size(); i++) {
         std::vector<float> temp;
-        bandwidth = d_freq[flanks[i][1]] - d_freq[flanks[i][0]];
-        freq_c = (d_freq[flanks[i][0]] + d_freq[flanks[i][1]]) / 2;
+        int max_rrsi = std::max(flanks[i][0].second, flanks[i][1].second);
+        bandwidth = d_freq[flanks[i][1].first] - d_freq[flanks[i][0].first];
+        freq_c = (d_freq[flanks[i][0].first] + d_freq[flanks[i][1].first]) / 2;
         if (bandwidth >= d_min_bw) {
             // quantize bandwidth
             bandwidth = quantization * round(bandwidth / quantization);
             temp.push_back(freq_c);
             temp.push_back(bandwidth);
+            temp.push_back(max_rrsi);
             rf_map.push_back(temp);
             d_detected_freqs.push_back(temp);
         }

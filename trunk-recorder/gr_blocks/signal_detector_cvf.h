@@ -22,7 +22,6 @@
 #define INCLUDED_INSPECTOR_SIGNAL_DETECTOR_CVF_H
 
 #include <gnuradio/sync_decimator.h>
-#include <gnuradio/inspector/api.h>
 /*
 namespace gr {
 namespace inspector {*/
