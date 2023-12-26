@@ -56,6 +56,19 @@ namespace inspector {*/
  * block. There, a filter must be recalculated, when the bandwidth of a signal
  * changed.
  */
+
+
+struct Detected_Signal {
+  int avg_rssi;
+  int max_rssi;
+  int min_rssi;
+  std::vector<int> rssi;
+  double center_freq;
+  double bandwidth;
+  unsigned int start_bin;
+  unsigned int end_bin;
+};
+
 class signal_detector_cvf : virtual public gr::sync_decimator
 {
 public:
@@ -94,8 +107,8 @@ public:
      *  Takes integers and does internal cast to firdes::win_type
      */
     virtual void set_window_type(int d_window) = 0;
-    virtual std::vector<std::vector<float>> get_detected_freqs() = 0; 
-    virtual void print_stuff() = 0;
+    virtual std::vector<Detected_Signal> get_detected_signals() = 0; 
+
     virtual void set_threshold(float d_threshold) = 0;
     virtual void set_sensitivity(float d_sensitivity) = 0;
     virtual void set_auto_threshold(bool d_auto_threshold) = 0;

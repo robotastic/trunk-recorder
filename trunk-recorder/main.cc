@@ -891,8 +891,6 @@ void check_conventional_channel_detection() {
 
 void monitor_messages() {
   gr::message::sptr msg;
-  int sys_num;
-  System *sys;
 
   time_t last_status_time = time(NULL);
   time_t last_decode_rate_check = time(NULL);

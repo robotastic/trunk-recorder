@@ -170,18 +170,18 @@ std::vector<Recorder *> Source::get_detected_recorders () {
     std::vector<Recorder *> detected_recorders;
     //BOOST_LOG_TRIVIAL(info) << "Getting detected freqs " << driver << " " << device << " " << signal_detector;
     //signal_detector->print_stuff();
- std::vector<std::vector<float>> signals = signal_detector->get_detected_freqs();
+ std::vector<Detected_Signal> signals = signal_detector->get_detected_signals();
 
-  for (std::vector<std::vector<float>>::iterator it = signals.begin(); it != signals.end(); it++) {
-    std::vector<float> signal = *it;
-    if (signal.size() < 1) {
-      BOOST_LOG_TRIVIAL(info) << " Weird Less than zero";
-      continue;
-    }
-    float freq = center + signal[0];
-    float bandwidth = signal[1];
-    float rssi = signal[2];
+//BOOST_LOG_TRIVIAL(info) << "Detected " << signals.size() << " signals";
 
+  for (std::vector<Detected_Signal>::iterator it = signals.begin(); it != signals.end(); it++) {
+    Detected_Signal signal = *it;
+
+    float freq = center + signal.center_freq;
+    float bandwidth = signal.bandwidth;
+    float rssi = signal.max_rssi;
+
+    //BOOST_LOG_TRIVIAL(info) << "Detected Signal: " << format_freq(freq) << " Bandwidth: " << format_freq(bandwidth) << " RSSI: " << rssi;
     Recorder * recorder = find_conventional_recorder_by_freq(freq);
     if (recorder != NULL) {
       recorder->set_rssi(rssi);

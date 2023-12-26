@@ -85,7 +85,7 @@ signal_detector_cvf_impl::signal_detector_cvf_impl(double samp_rate,
     d_quantization = quantization;
     d_min_bw = min_bw;
     d_filename = filename;
-    d_detected_freqs = std::vector<std::vector<float>>();
+    d_detected_signals = std::vector<Detected_Signal>();
 
     // allocate buffers
     d_tmpbuf =
@@ -102,9 +102,8 @@ signal_detector_cvf_impl::signal_detector_cvf_impl(double samp_rate,
     for (unsigned int i = 0; i < d_fft_len; i++) {
         d_avg_filter[i].set_taps(d_average);
     }
-    //message_port_register_out(pmt::intern("map_out"));
 
-    //write_logfile_header();
+    d_freq = build_freq();
 }
 
 /*
@@ -142,6 +141,8 @@ void signal_detector_cvf_impl::set_fft_len(int fft_len)
         d_avg_filter[i].set_taps(d_average);
     }
     set_decimation(fft_len);
+
+    d_freq = build_freq();
 }
 
 void signal_detector_cvf_impl::set_window_type(int window)
@@ -151,41 +152,9 @@ void signal_detector_cvf_impl::set_window_type(int window)
     build_window();
 }
 
-//</editor-fold>
 
-//<editor-fold desc="Helpers">
 
-void signal_detector_cvf_impl::write_logfile_header()
-{
-    /*
-    if (d_filename != "") {
-        logfile.open(d_filename);
-        time_t now = time(0);
-        char timestring[80];
-        strftime(timestring, 80, "%Y-%m-%d %X", localtime(&now));
-        logfile << "# gr-inspector logfile\n";
-        logfile << "# date: " << timestring << "\n";
-        logfile << "# bandwidth: " << d_samp_rate << " Hz\n";
-        logfile << "\n";
-        logfile.close();
-    }*/
-}
 
-void signal_detector_cvf_impl::write_logfile_entry()
-{/*
-    if (d_filename != "") {
-        logfile.open(d_filename, std::ios::app);
-        time_t now = time(0);
-        char timestring[80];
-        strftime(timestring, 80, "%Y-%m-%d %X", localtime(&now));
-        for (int i = 0; i < d_signal_edges.size(); i++) {
-            logfile << timestring << " [" << i << "]"
-                    << " f=" << d_signal_edges[i][0] << " B=" << d_signal_edges[i][1]
-                    << "\n";
-        }
-        logfile.close();
-    }*/
-}
 // calculate periodogram and save in specified array
 void signal_detector_cvf_impl::periodogram(float* pxx, const gr_complex* signal)
 {
@@ -254,17 +223,65 @@ void signal_detector_cvf_impl::build_threshold()
 // Datastructure: vector of the detected signals, each signal is a vector that is 2 elements long. The first element is the start bin, the second element is the end bin.
 // Each Bin is stored as a pair of the bin number and the signal strength. 
 
-std::vector<std::vector<std::pair<unsigned int, int>>> signal_detector_cvf_impl::find_signal_edges()
+std::vector<Detected_Signal> signal_detector_cvf_impl::find_signal_edges()
 {
-    std::vector<std::pair<unsigned int, int>> pos;
-    // find values above threshold
+    Detected_Signal signal;
+    std::vector<Detected_Signal> detected_signals;
+    bool signal_started = false;
+    int quantization = (int)floor(d_quantization * d_samp_rate);
+
     for (unsigned int i = 0; i < d_fft_len; i++) {
         //std::cout << "d_pxx_out[" << i << "] = " << d_pxx_out[i] << " Threshold: " << d_threshold << std::endl;
+        
+
         if (d_pxx_out[i] > d_threshold) {
-            //std::cout << "d_pxx_out[" << i << "] = " << d_pxx_out[i] << " Threshold: " << d_threshold << std::endl;
-            pos.push_back(std::make_pair(i, d_pxx_out[i] ));
+            if (!signal_started) {
+                signal_started = true;
+                signal.avg_rssi = d_pxx_out[i];
+                signal.max_rssi = d_pxx_out[i];
+                signal.min_rssi = d_pxx_out[i];
+                signal.start_bin = i;
+                signal.end_bin = i;
+                signal.rssi.push_back(d_pxx_out[i]);
+            } else {
+                signal.avg_rssi = (signal.avg_rssi + d_pxx_out[i]) / 2;
+                signal.rssi.push_back(d_pxx_out[i]);
+                if (d_pxx_out[i] > signal.max_rssi) {
+                    signal.max_rssi = d_pxx_out[i];
+                }
+                if (d_pxx_out[i] < signal.min_rssi) {
+                    signal.min_rssi = d_pxx_out[i];
+                }
+                signal.end_bin = i;
+            }
+
+        } else{
+            if (signal_started) {
+                signal_started = false;
+
+                double bandwidth = d_freq[signal.end_bin] - d_freq[signal.start_bin];
+                signal.bandwidth = quantization * round(bandwidth / quantization);
+                signal.center_freq = (d_freq[signal.start_bin] + d_freq[signal.end_bin]) / 2;
+    
+            
+                detected_signals.push_back(signal);
+            }
         }
     }
+
+    // add last signal if it is still running
+    if (signal_started) {
+        signal_started = false;
+
+                        double bandwidth = d_freq[signal.end_bin] - d_freq[signal.start_bin];
+                signal.bandwidth = quantization * round(bandwidth / quantization);
+                signal.center_freq = (d_freq[signal.start_bin] + d_freq[signal.end_bin]) / 2;
+        detected_signals.push_back(signal);
+    }
+    return detected_signals;
+
+
+/*
     std::vector<std::vector<std::pair<unsigned int, int>>> flanks;
     if (pos.size() == 0) {
         return flanks;
@@ -311,60 +328,19 @@ std::vector<std::vector<std::pair<unsigned int, int>>> signal_detector_cvf_impl:
         }
     }
 
-    return flanks;
+    return flanks;*/
 }
 
-// pack vector in array to send with message
-pmt::pmt_t signal_detector_cvf_impl::pack_message()
-{
-    unsigned signal_count = d_signal_edges.size();
-    pmt::pmt_t msg = pmt::make_vector(signal_count, pmt::PMT_NIL);
-    for (unsigned i = 0; i < signal_count; i++) {
-        pmt::pmt_t curr_edge = pmt::make_f32vector(2, 0.0);
-        pmt::f32vector_set(curr_edge, 0, d_signal_edges.at(i).at(0));
-        pmt::f32vector_set(curr_edge, 1, d_signal_edges.at(i).at(1));
-        pmt::vector_set(msg, i, curr_edge);
-    }
-    return msg;
-}
 
-void signal_detector_cvf_impl::print_stuff()
-{
-
-
-
-}
-
-std::vector<std::vector<float>> signal_detector_cvf_impl::get_detected_freqs()
+std::vector<Detected_Signal> signal_detector_cvf_impl::get_detected_signals()
 {
     gr::thread::scoped_lock guard(d_mutex);
     //BOOST_LOG_TRIVIAL(info) << "get_detected_freqs" << std::endl;
     //BOOST_LOG_TRIVIAL(info) << "d_detected_freqs.size() = " << d_detected_freqs.size() << std::endl;
-    std::vector<std::vector<float>> safe_version = d_detected_freqs;
+    std::vector<Detected_Signal> safe_version = d_detected_signals;
     return safe_version;
 }
-// check if RF Map has changed since last detection
-bool signal_detector_cvf_impl::compare_signal_edges(
-    std::vector<std::vector<float>>* edges)
-{
-    bool change = false;
-    if (edges->size() == d_signal_edges.size()) {
-        for (unsigned i = 0; i < edges->size(); i++) {
-            // check for each signal if border changed within 1%
-            if (std::abs(edges->at(i).at(0) - d_signal_edges.at(i).at(0)) >
-                0.01 * d_signal_edges.at(i).at(0)) {
-                change = true;
-            }
-            if (std::abs(edges->at(i).at(1) - d_signal_edges.at(i).at(1)) >
-                0) { // zero tolerance because of bandwidth quantization
-                change = true;
-            }
-        }
-    } else {
-        change = true;
-    }
-    return change;
-}
+
 
 //</editor-fold>
 
@@ -377,7 +353,6 @@ int signal_detector_cvf_impl::work(int noutput_items,
     const gr_complex* in = (const gr_complex*)input_items[0];
     //float* out = (float*)output_items[0];
 
-    d_freq = build_freq();
     periodogram(d_pxx, in);
 
     // averaging
@@ -389,39 +364,9 @@ int signal_detector_cvf_impl::work(int noutput_items,
         build_threshold();
     }
 
-
-    std::vector<std::vector<std::pair<unsigned int, int>>>  flanks = find_signal_edges();
-    std::vector<std::vector<float>> rf_map;
-    // rf_map = std::vector<std::vector<float>>();
     gr::thread::scoped_lock guard(d_mutex);
-    d_detected_freqs.clear();
-    float bandwidth = 0;
-    float freq_c = 0;
-    int quantization = (int)floor(d_quantization * d_samp_rate);
-    for (unsigned int i = 0; i < flanks.size(); i++) {
-        std::vector<float> temp;
-        int max_rrsi = std::max(flanks[i][0].second, flanks[i][1].second);
-        bandwidth = d_freq[flanks[i][1].first] - d_freq[flanks[i][0].first];
-        freq_c = (d_freq[flanks[i][0].first] + d_freq[flanks[i][1].first]) / 2;
-        if (bandwidth >= d_min_bw) {
-            // quantize bandwidth
-            bandwidth = quantization * round(bandwidth / quantization);
-            temp.push_back(freq_c);
-            temp.push_back(bandwidth);
-            temp.push_back(max_rrsi);
-            rf_map.push_back(temp);
-            d_detected_freqs.push_back(temp);
-        }
-    }
-
-    //memcpy(out, d_pxx_out, d_fft_len * sizeof(float));
-
-    // spread the message
-    if (compare_signal_edges(&rf_map)) {
-        d_signal_edges = rf_map;
-        //message_port_pub(pmt::intern("map_out"), pack_message());
-        //write_logfile_entry();
-    }
+    d_detected_signals = find_signal_edges();
+    //BOOST_LOG_TRIVIAL(info) << "d_detected_signals.size() = " << d_detected_signals.size() << std::endl;
 
     return 1; // one vector has been processed
 }
