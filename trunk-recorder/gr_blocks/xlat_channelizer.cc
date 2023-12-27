@@ -83,7 +83,7 @@ freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::
   freq_xlat = make_freq_xlating_fft_filter(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
 
   BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Size: " << if_coeffs.size();
-  connect(valve, 0, freq_xlat, 0);
+
 
 
 
@@ -137,17 +137,40 @@ freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250);  // OP25 has this set to 350 instead of 250
 
   connect(self(), 0, valve, 0);
+  connect(valve, 0, freq_xlat, 0);
 
-  if (arb_rate == 1.0) {
-    //connect(freq_xlat, 0, squelch, 0);
-    connect(freq_xlat, 0, self(), 0);
+if (d_conventional) {
+  BOOST_LOG_TRIVIAL(info) << "Conventional - with Squelch";
+    if (arb_rate == 1.0) {
+      connect(freq_xlat, 0, squelch, 0);
+      
   } else {
     connect(freq_xlat, 0, arb_resampler, 0);
-    connect(arb_resampler, 0, self(), 0);
-    //connect(arb_resampler, 0, squelch, 0);
+    connect(arb_resampler, 0, squelch, 0);
   }
+  connect(squelch, 0, rms_agc, 0);
+} else {
+    if (arb_rate == 1.0) {
+        connect(freq_xlat,0, rms_agc, 0);
+  } else {
+      connect(freq_xlat, 0, arb_resampler, 0);
+    connect(arb_resampler,0,  rms_agc, 0);
+  }
+}
+
+  connect(rms_agc,0,  fll_band_edge, 0);
+  connect(fll_band_edge, 0, self(), 0);
+      
+
+
+
+
+
+
 
 //connect(squelch,0, self(), 0);
+
+
 /*
 
   connect(self(), 0, valve, 0);

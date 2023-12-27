@@ -122,8 +122,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   demod = gr::analog::quadrature_demod_cf::make(quad_gain);
   levels = gr::blocks::multiply_const_ff::make(1); // 33);
   converter = gr::blocks::float_to_short::make(1, 32767);
-  valve = gr::blocks::copy::make(sizeof(gr_complex));
-  valve->set_enabled(false);
+
 
   /* de-emphasis */
   d_tau = 0.000075; // 75us
@@ -241,11 +240,11 @@ bool analog_recorder::is_active() {
 }
 
 bool analog_recorder::is_enabled() {
-  return valve->enabled();
+  return prefilter->is_enabled();
 }
 
 void analog_recorder::set_enabled(bool enabled) {
-  valve->set_enabled(enabled);
+  prefilter->set_enabled(enabled);
 }
 
 

@@ -287,6 +287,7 @@ void process_message_queues() {
 }
 
 void manage_conventional_call(Call *call) {
+
   if (call->get_recorder()) {
     // if any recording has happened
 

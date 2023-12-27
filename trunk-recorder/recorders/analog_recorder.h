@@ -148,8 +148,6 @@ private:
   gr::blocks::float_to_short::sptr converter;
 
   gr::blocks::transmission_sink::sptr wav_sink;
-  gr::blocks::copy::sptr valve;
-
   gr::blocks::decoder_wrapper::sptr decoder_sink;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
 
