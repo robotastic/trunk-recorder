@@ -77,7 +77,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   chan_freq = source->get_center();
   center_freq = source->get_center();
   config = source->get_config();
-  samp_rate = source->get_rate();
+  input_rate = source->get_rate();
   squelch_db = 0;
   talkgroup = 0;
   recording_count = 0;
@@ -103,76 +103,11 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   }
   
   // int samp_per_sym        = 10;
-  system_channel_rate = 96000; // 4800 * samp_per_sym;
+  system_channel_rate = 16000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
-                               /*  int decim               = floor(samp_rate / 384000);
-                             
-  double pre_channel_rate = samp_rate / decim;*/
 
-  int initial_decim = floor(samp_rate / 480000);
-  initial_rate = double(samp_rate) / double(initial_decim);
-  int decim = floor(initial_rate / system_channel_rate);
-  double resampled_rate = double(initial_rate) / double(decim);
+    prefilter = xlat_channelizer::make(input_rate, 2, 8000, center_freq, conventional);
 
-#if GNURADIO_VERSION < 0x030900
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::filter::firdes::WIN_HANN);
-#else
-  inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 30000, 100, gr::fft::window::WIN_HANN);
-#endif
-  //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, 4000, 1000, 100);
-
-  std::vector<gr_complex> dest(inital_lpf_taps.begin(), inital_lpf_taps.end());
-
-  prefilter = make_freq_xlating_fft_filter(initial_decim, dest, offset, samp_rate);
-
-  channel_lpf = gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
-
-  double arb_rate = (double(system_channel_rate) / resampled_rate);
-  double arb_size = 32;
-  double arb_atten = 100;
-
-  // Create a filter that covers the full bandwidth of the output signal
-
-  // If rate >= 1, we need to prevent images in the output,
-  // so we have to filter it to less than half the channel
-  // width of 0.5.  If rate < 1, we need to filter to less
-  // than half the output signal's bw to avoid aliasing, so
-  // the half-band here is 0.5*rate.
-  // double percent = 0.80;
-  double percent = 1.00; // Slightly widening this filter helps wideband and makes the audio a little better when using a higher sample rate
-
-  if (arb_rate <= 1) {
-    double halfband = 0.5 * arb_rate;
-    double bw = percent * halfband;
-    double tb = (percent / 2.0) * halfband;
-
-// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
-// tb;
-
-// As we drop the bw factor, the optfir filter has a harder time converging;
-// using the firdes method here for better results.
-#if GNURADIO_VERSION < 0x030900
-    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-#else
-    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-#endif
-    double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
-    BOOST_LOG_TRIVIAL(info) << "\t Analog Recorder Taps - initial: " << inital_lpf_taps.size() << " channel: " << channel_lpf_taps.size() << " ARB: " << arb_taps.size() << " Total: " << tap_total;
-  } else {
-    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
-    exit(1);
-  }
-
-  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-
-  // on a trunked network where you know you will have good signal, a carrier
-  // power squelch works well. real FM receviers use a noise squelch, where
-  // the received audio is high-passed above the cutoff and then fed to a
-  // reverse squelch. If the power is then BELOW a threshold, open the squelch.
-
-  // Non-blocking as we are using squelch_two as a gate.
-  squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.01, 10, false);
 
   //  based on squelch code form ham2mon
   // set low -200 since its after demod and its just gate for previous squelch so that the audio
@@ -233,16 +168,8 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   low_f = gr::filter::fir_filter_fff::make(1, low_f_taps);
 
   // using squelch
-  connect(self(), 0, valve, 0);
-  connect(valve, 0, prefilter, 0);
-  connect(prefilter, 0, channel_lpf, 0);
-  if (arb_rate == 1) {
-    connect(channel_lpf, 0, squelch, 0);
-  } else {
-    connect(channel_lpf, 0, arb_resampler, 0);
-    connect(arb_resampler, 0, squelch, 0);
-  }
-  connect(squelch, 0, demod, 0);
+  connect(self(), 0, prefilter, 0);
+  connect(prefilter, 0, demod, 0);
   connect(demod, 0, deemph, 0);
   connect(deemph, 0, decim_audio, 0);
   connect(decim_audio, 0, high_f, 0);
@@ -284,7 +211,7 @@ void analog_recorder::stop() {
   if (state == ACTIVE) {
     recording_duration += wav_sink->length_in_seconds();
     state = INACTIVE;
-    valve->set_enabled(false);
+    prefilter->set_enabled(false);
     wav_sink->stop_recording();
   } else {
 
@@ -328,7 +255,7 @@ bool analog_recorder::is_squelched() {
 
 bool analog_recorder::is_idle() {
   if (state == ACTIVE) {
-    return !squelch->unmuted();
+    return prefilter->is_squelched();
   }
   return true;
 }
@@ -365,10 +292,11 @@ double analog_recorder::get_current_length() {
   return wav_sink->total_length_in_seconds();
 }
 
-void analog_recorder::tune_offset(double f) {
+void analog_recorder::tune_freq(double f) {
   chan_freq = f;
-  int offset_amount = (f - center_freq);
-  prefilter->set_center_freq(offset_amount);
+  int offset_amount = (center_freq - f);
+
+  prefilter->tune_offset(offset_amount);
 }
 
 void analog_recorder::decoder_callback_handler(long unitId, const char *signaling_type, gr::blocks::SignalType signal) {
@@ -401,23 +329,30 @@ bool analog_recorder::start(Call *call) {
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 
-  squelch_db = system->get_squelch_db();
-  squelch->set_threshold(squelch_db);
+    squelch_db = system->get_squelch_db();
+    prefilter->set_squelch_db(squelch_db);
   BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting Analog Recorder Num [" << rec_num << "]\u001b[0m \tSquelch: " << squelch_db;
 
   // BOOST_LOG_TRIVIAL(error) << "Setting squelch to: " << squelch_db << " block says: " << squelch->threshold();
   levels->set_k(system->get_analog_levels());
   int d_max_dev = system->get_max_dev();
+  /*
   channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, d_max_dev, 1000, 100);
-  channel_lpf->set_taps(channel_lpf_taps);
+  channel_lpf->set_taps(channel_lpf_taps);*/
   quad_gain = system_channel_rate / (2.0 * M_PI * (d_max_dev + 1000));
   demod->set_gain(quad_gain);
-  prefilter->set_center_freq(chan_freq - center_freq);
+  
+    int offset_amount = (center_freq - chan_freq);
+    prefilter->tune_offset(offset_amount);
 
   wav_sink->start_recording(call);
 
   state = ACTIVE;
-  valve->set_enabled(true);
+    if (conventional) {
+      prefilter->set_enabled(false);
+    } else {
+      prefilter->set_enabled(true);
+    }
   return true;
 }
 

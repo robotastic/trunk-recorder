@@ -78,6 +78,8 @@
 #include "../gr_blocks/plugin_wrapper_impl.h"
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
+#include "../gr_blocks/channelizer.h"
+#include "../gr_blocks/xlat_channelizer.h"
 #include "../source.h"
 #include "dmr_recorder.h"
 #include "recorder.h"
@@ -89,10 +91,7 @@ protected:
 
 public:
   dmr_recorder_impl(Source *src, Recorder_Type type);
-  DecimSettings get_decim(long speed);
-  void initialize_prefilter();
-  void tune_offset(double f);
-  void tune_freq(double f);
+void tune_freq(double f);
   bool start(Call *call);
   void stop();
   double get_freq();
@@ -101,7 +100,6 @@ public:
   void switch_tdma(bool phase2);
   void set_tdma_slot(int slot);
   double since_last_write();
-  void generate_arb_taps();
   double get_current_length();
   void set_enabled(bool enabled);
   bool is_enabled();
@@ -127,47 +125,22 @@ protected:
   Source *source;
   double chan_freq;
   double center_freq;
-  bool qpsk_mod;
   double squelch_db;
-  gr::analog::pwr_squelch_cc::sptr squelch;
-  gr::blocks::selector::sptr modulation_selector;
-  gr::blocks::copy::sptr valve;
-  // gr::blocks::multiply_const_ss::sptr levels;
 
+  // gr::blocks::multiply_const_ss::sptr levels;
+  //channelizer::sptr prefilter;
+  xlat_channelizer::sptr prefilter;
   gr::op25_repeater::gardner_cc::sptr clock;
   gr::op25_repeater::costas_loop_cc::sptr costas;
 
 private:
-  double arb_rate;
-  long decim;
-  double resampled_rate;
-
   int silence_frames;
   int tdma_slot;
   bool d_phase2_tdma;
-  bool double_decim;
-  long if1;
-  long if2;
   long input_rate;
   const int phase1_samples_per_symbol = 5;
   const double phase1_symbol_rate = 4800;
 
-  std::vector<float> arb_taps;
-
-  std::vector<gr_complex> bandpass_filter_coeffs;
-  std::vector<float> lowpass_filter_coeffs;
-  std::vector<float> cutoff_filter_coeffs;
-
-  gr::analog::sig_source_c::sptr lo;
-  gr::analog::sig_source_c::sptr bfo;
-  gr::blocks::multiply_cc::sptr mixer;
-
-  /* GR blocks */
-  gr::filter::fft_filter_ccc::sptr bandpass_filter;
-  gr::filter::fft_filter_ccf::sptr lowpass_filter;
-  gr::filter::fft_filter_ccf::sptr cutoff_filter;
-
-  gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
 
   gr::blocks::multiply_const_ff::sptr rescale;
 
