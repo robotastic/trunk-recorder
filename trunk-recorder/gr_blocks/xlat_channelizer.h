@@ -72,11 +72,12 @@ void set_squelch_db(double squelch_db);
   bool double_decim;
   long if1;
   long if2;
+    double d_center_freq;
   double d_input_rate;
   double d_system_channel_rate;
   int d_samples_per_symbol;
   double d_symbol_rate; 
-  double d_center_freq;
+
   bool d_conventional;
   long symbol_rate;
   double squelch_db;

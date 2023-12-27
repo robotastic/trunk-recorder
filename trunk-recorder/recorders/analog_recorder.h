@@ -48,6 +48,8 @@ class analog_recorder;
 #include "../gr_blocks/freq_xlating_fft_filter.h"
 #include "../gr_blocks/plugin_wrapper.h"
 #include "../gr_blocks/transmission_sink.h"
+#include "../gr_blocks/channelizer.h"
+#include "../gr_blocks/xlat_channelizer.h"
 #include "../systems/system.h"
 #include "recorder.h"
 
@@ -71,7 +73,7 @@ protected:
 
 public:
   ~analog_recorder();
-  void tune_offset(double f);
+  void tune_freq(double f);
   bool start(Call *call);
   void stop();
   double get_freq();
@@ -102,7 +104,7 @@ public:
 private:
   double center_freq, chan_freq;
   long talkgroup;
-  long samp_rate;
+  long input_rate;
 
   double system_channel_rate;
   double initial_rate;
@@ -113,15 +115,12 @@ private:
   time_t starttime;
 
   State state;
-  std::vector<float> inital_lpf_taps;
   std::vector<float> channel_lpf_taps;
   std::vector<float> lpf_taps;
-  std::vector<float> resampler_taps;
   std::vector<float> audio_resampler_taps;
   std::vector<float> sym_taps;
   std::vector<float> high_f_taps;
   std::vector<float> low_f_taps;
-  std::vector<float> arb_taps;
   /* De-emph IIR filter taps */
   std::vector<double> d_fftaps; /*! Feed forward taps. */
   std::vector<double> d_fbtaps; /*! Feed back taps. */
@@ -131,9 +130,10 @@ private:
   Config *config;
   Source *source;
   void calculate_iir_taps(double tau);
-  freq_xlating_fft_filter_sptr prefilter;
 
   /* GR blocks */
+    //channelizer::sptr prefilter;
+    xlat_channelizer::sptr prefilter;
   gr::filter::iir_filter_ffd::sptr deemph;
   gr::filter::fir_filter_fff::sptr sym_filter;
   gr::filter::fft_filter_ccf::sptr channel_lpf;
@@ -143,14 +143,11 @@ private:
   gr::filter::fir_filter_fff::sptr decim_audio;
   gr::filter::fir_filter_fff::sptr high_f;
   gr::filter::fir_filter_fff::sptr low_f;
-  gr::analog::pwr_squelch_cc::sptr squelch;
   gr::analog::pwr_squelch_ff::sptr squelch_two;
   gr::analog::quadrature_demod_cf::sptr demod;
   gr::blocks::float_to_short::sptr converter;
 
   gr::blocks::transmission_sink::sptr wav_sink;
-  gr::blocks::copy::sptr valve;
-
   gr::blocks::decoder_wrapper::sptr decoder_sink;
   gr::blocks::plugin_wrapper::sptr plugin_sink;
 
