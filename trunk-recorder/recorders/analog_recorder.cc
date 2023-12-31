@@ -188,15 +188,15 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
 
   // using squelch
   connect(self(), 0, prefilter, 0);
-  if (use_tone_squelch) {
-    connect(prefilter, 0, tone_squelch, 0);
-    connect(tone_squelch, 0, demod, 0);
+  connect(prefilter, 0, demod, 0);
+  connect(demod, 0, deemph, 0);
+    if (use_tone_squelch) {
+    connect(deemph, 0, tone_squelch, 0);
+    connect(tone_squelch, 0, decim_audio, 0);
   } else {
-    connect(prefilter, 0, demod, 0);
+    connect(deemph, 0, decim_audio, 0);
   }
 
-  connect(demod, 0, deemph, 0);
-  connect(deemph, 0, decim_audio, 0);
   connect(decim_audio, 0, high_f, 0);
   connect(decim_audio, 0, decoder_sink, 0);
 
