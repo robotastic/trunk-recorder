@@ -77,6 +77,7 @@ enum Call_Data_Status { INITIAL,
                   
 enum Recorder_Type { DEBUG,
                       SIGMF,
+                      SIGMFC,
                       ANALOG,
                       ANALOGC,
                       P25,

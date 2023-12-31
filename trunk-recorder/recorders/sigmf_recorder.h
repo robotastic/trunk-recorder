@@ -26,7 +26,7 @@ typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 typedef std::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 #endif
 
-sigmf_recorder_sptr make_sigmf_recorder(Source *src);
+sigmf_recorder_sptr make_sigmf_recorder(Source *src, Recorder_Type type);
 #include "../source.h"
 
 class sigmf_recorder : virtual public gr::hier_block2, virtual public Recorder {
@@ -39,6 +39,8 @@ public:
   virtual double get_freq() = 0;
   virtual int get_num() = 0;
   virtual double get_current_length() = 0;
+  virtual void set_enabled(bool enabled) {};
+  virtual bool is_enabled() { return false; };
   virtual bool is_active() = 0;
   virtual State get_state() = 0;
   virtual int lastupdate() = 0;

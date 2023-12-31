@@ -372,7 +372,7 @@ void print_status() {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;
 
-    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR")) {
+    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR") && (sys->get_system_type() != "conventionalSIGMF")) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
     }
   }
@@ -837,7 +837,7 @@ void check_message_count(float timeDiff) {
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;
 
-    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR")) {
+    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR") && (sys->get_system_type() != "conventionalSIGMF")) {
       int msgs_decoded_per_second = std::floor(sys->message_count / timeDiff);
       sys->set_decode_rate(msgs_decoded_per_second);
 
@@ -1042,7 +1042,7 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
         call->set_recorder((Recorder *)rec.get());
         system->add_conventionalDMR_recorder(rec);
         calls.push_back(call);
-      } else { // has to be "conventional P25"
+      } else if (system->get_system_type() == "conventionalP25") { // has to be "conventional P25"
         // Because of dynamic mod assignment we can not start the recorder until the graph has been unlocked.
         // This has something to do with the way the Selector block works.
         // the manage_conventional_calls() function handles adding and starting the P25 Recorder
@@ -1051,6 +1051,14 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
         call->set_recorder((Recorder *)rec.get());
         system->add_conventionalP25_recorder(rec);
         calls.push_back(call);
+      } else if (system->get_system_type() == "conventionalSIGMF") { 
+        sigmf_recorder_sptr rec;
+        rec = source->create_sigmf_conventional_recorder(tb);
+        call->set_recorder((Recorder *)rec.get());
+        system->add_conventionalSIGMF_recorder(rec);
+        calls.push_back(call);
+      } else {
+        BOOST_LOG_TRIVIAL(error) << "Error - Unknown system type: " << system->get_system_type();
       }
 
       // break out of the for loop

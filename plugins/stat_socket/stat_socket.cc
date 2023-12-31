@@ -145,7 +145,7 @@ public:
       sys_node.put("squelch_db", sys->get_squelch_db());
       std::vector<double> channels;
 
-      if ((sys->get_system_type() == "conventional") || (sys->get_system_type() == "conventionalP25")) {
+      if ((sys->get_system_type() == "conventional") || (sys->get_system_type() == "conventionalP25") || (sys->get_system_type() == "conventionalDMR") || (sys->get_system_type() == "conventionalSIGMF") ) {
         channels = sys->get_channels();
       } else {
         channels = sys->get_control_channels();

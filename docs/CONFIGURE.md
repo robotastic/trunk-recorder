@@ -203,7 +203,7 @@ There is a list of available Plugins [here](./Plugins.md).
 | Key                    | Required | Default Value              | Type                                                                         | Description                                                  |
 | ---------------------- | :------: | -------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | shortName              |    ✓     |                            | string                                                                       | This is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces. |
-| type                   |    ✓     |                            | **"smartnet"**, **"p25"**, **"conventional"**, **"conventionalDMR"** or **"conventionalP25"** | The type of radio system.                                    |
+| type                   |    ✓     |                            | **"smartnet"**, **"p25"**, **"conventional"**, **"conventionalDMR"** or **"conventionalP25"**, **"conventionalSIGMF"** | The type of radio system.                                    |
 | control_channels       |    ✓     |                            | array of numbers;<br />[496537500, 496437500]                                | *For trunked systems* The control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel. |
 | channels               |    ✓     |                            | array of numbers;<br />[166725000, 166925000, 167075000, 166850000]          | *For conventional systems*  The channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used. |
 | channelFile            |    ✓     |                            | string                                                                       | *For conventional systems* The filename for a CSV file that provides information about the conventional channels. The format for the file is described below. Squelch levels need to be specified for the Source(s) being used. *Use channels or channelFile, not both*. |
@@ -479,7 +479,7 @@ Here are the column headers and some sample data:
 
 ## channelFile
 
-This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A **Conventional** system would have Analog Recorders, while **ConventionalP25** or **ConventionalDMR** would have digital recorders.
+This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A **conventional** system would have Analog Recorders, while **conventionalP25** or **conventionalDMR** would have digital recorders. **conventionalSIGMF** is a conventional system with SIGMF Recorders.
 
 *Tone based squelch is currently not supported.*
 

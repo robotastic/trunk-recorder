@@ -59,6 +59,7 @@ class Source {
   std::vector<p25_recorder_sptr> digital_conv_recorders;
   std::vector<debug_recorder_sptr> debug_recorders;
   std::vector<sigmf_recorder_sptr> sigmf_recorders;
+  std::vector<sigmf_recorder_sptr> sigmf_conv_recorders;
   std::vector<analog_recorder_sptr> analog_recorders;
   std::vector<analog_recorder_sptr> analog_conv_recorders;
   std::vector<dmr_recorder_sptr> dmr_conv_recorders;
@@ -127,6 +128,8 @@ std::vector<Recorder *> get_detected_recorders ();
   void create_analog_recorders(gr::top_block_sptr tb, int r);
   void create_digital_recorders(gr::top_block_sptr tb, int r);
   analog_recorder_sptr create_conventional_recorder(gr::top_block_sptr tb);
+
+  sigmf_recorder_sptr create_sigmf_conventional_recorder(gr::top_block_sptr tb);
   p25_recorder_sptr create_digital_conventional_recorder(gr::top_block_sptr tb);
   dmr_recorder_sptr create_dmr_conventional_recorder(gr::top_block_sptr tb);
 

@@ -75,7 +75,10 @@ public:
   static int rec_counter;
   std::string get_type_string();
   bool conventional;
+  unsigned int selector_port;
 
+  int get_selector_port() { return selector_port;}
+  void set_selector_port(unsigned int port) {selector_port = port;}
   Recorder(Recorder_Type  type);
   int get_num() { return rec_num; };
   Recorder_Type get_type() { return type; };

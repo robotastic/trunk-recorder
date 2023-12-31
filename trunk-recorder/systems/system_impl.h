@@ -29,15 +29,18 @@ class Source;
 class analog_recorder;
 class p25_recorder;
 class dmr_recorder;
+class sigmf_recorder;
 
 #if GNURADIO_VERSION < 0x030900
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 #else
 typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
 typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+typedef std::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 #endif
 
 class System_impl : public System {
@@ -93,6 +96,7 @@ public:
   std::vector<analog_recorder_sptr> conventional_recorders;
   std::vector<p25_recorder_sptr> conventionalP25_recorders;
   std::vector<dmr_recorder_sptr> conventionalDMR_recorders;
+  std::vector<sigmf_recorder_sptr> conventionalSIGMF_recorders;
   bool transmission_archive;
   bool audio_archive;
   bool record_unknown;
@@ -188,10 +192,12 @@ public:
   int channel_count();
   void add_channel(double channel);
   void add_conventional_recorder(analog_recorder_sptr rec);
-  std::vector<analog_recorder_sptr> get_conventional_recorders();
   void add_conventionalP25_recorder(p25_recorder_sptr rec);
+  void add_conventionalSIGMF_recorder(sigmf_recorder_sptr rec);
   void add_conventionalDMR_recorder(dmr_recorder_sptr rec);
   std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
+  std::vector<analog_recorder_sptr> get_conventional_recorders();
+  std::vector<sigmf_recorder_sptr> get_conventionalSIGMF_recorders();
   std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders();
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();

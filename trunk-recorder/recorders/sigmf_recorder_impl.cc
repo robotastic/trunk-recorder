@@ -4,84 +4,28 @@
 
 // static int rec_counter=0;
 
-void sigmf_recorder_impl::generate_arb_taps() {
-
-  double arb_size = 32;
-  double arb_atten = 100;
-  // Create a filter that covers the full bandwidth of the output signal
-
-  // If rate >= 1, we need to prevent images in the output,
-  // so we have to filter it to less than half the channel
-  // width of 0.5.  If rate < 1, we need to filter to less
-  // than half the output signal's bw to avoid aliasing, so
-  // the half-band here is 0.5*rate.
-  double percent = 0.80;
-
-  if (arb_rate <= 1) {
-    double halfband = 0.5 * arb_rate;
-    double bw = percent * halfband;
-    double tb = (percent / 2.0) * halfband;
-
-// BOOST_LOG_TRIVIAL(info) << "Arb Rate: " << arb_rate << " Half band: " << halfband << " bw: " << bw << " tb: " <<
-// tb;
-
-// As we drop the bw factor, the optfir filter has a harder time converging;
-// using the firdes method here for better results.
-#if GNURADIO_VERSION < 0x030900
-    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-#else
-    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
-#endif
-  } else {
-    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
-    exit(1);
-  }
-}
 
 
-void sigmf_recorder_impl::initialize_prefilter_xlat() {
-
-  int decimation = int(input_rate / if_rate);
-  double resampled_rate = float(input_rate) / float(decimation);
-
-#if GNURADIO_VERSION < 0x030900
-  if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate / 2, resampled_rate / 2, gr::filter::firdes::WIN_HAMMING);
-#else
-  if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate / 2, resampled_rate / 2, gr::fft::window::WIN_HAMMING);
-#endif
-
-  freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
-  connect(valve, 0, freq_xlat, 0);
-
-  // ARB Resampler
-  arb_rate = if_rate / resampled_rate;
-  generate_arb_taps();
-  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
-  connect(self(), 0, valve, 0);
-
-  if (arb_rate == 1.0) {
-    connect(freq_xlat, 0, squelch, 0);
-  } else {
-    connect(freq_xlat, 0, arb_resampler, 0);
-    connect(arb_resampler, 0, squelch, 0);
-  }
-
-  /*connect(squelch, 0, rms_agc, 0);
-  connect(rms_agc, 0, fll_band_edge, 0);*/
-}
-
-
-sigmf_recorder_sptr make_sigmf_recorder(Source *src) {
-  sigmf_recorder *recorder = new sigmf_recorder_impl(src);
+sigmf_recorder_sptr make_sigmf_recorder(Source *src, Recorder_Type type) {
+  sigmf_recorder *recorder = new sigmf_recorder_impl(src, type);
 
   return gnuradio::get_initial_sptr(recorder);
 }
 
-sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
+sigmf_recorder_impl::sigmf_recorder_impl(Source *src, Recorder_Type type)
     : gr::hier_block2("sigmf_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
-      Recorder(SIGMF) {
+      Recorder(type) {
+
+        if (type == SIGMFC) {
+          conventional = true;
+        } else if (type == SIGMF) {
+          conventional = false;
+        } else {
+          BOOST_LOG_TRIVIAL(error) << "Trying to SIGMF Recorder to another type of recorder";
+          exit(1);
+        }
   source = src;
   freq = source->get_center();
   center = source->get_center();
@@ -116,13 +60,21 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src)
   //initialize_prefilter();
   //initialize_prefilter_xlat();
   
-  prefilter = channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center, true);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center, conventional);
   prefilter->set_enabled(false);
   connect(squelch, 0, raw_sink, 0);
 }
 
 int sigmf_recorder_impl::get_num() {
   return rec_num;
+}
+
+bool sigmf_recorder_impl::is_enabled() {
+  return prefilter->is_enabled();
+}
+
+void sigmf_recorder_impl::set_enabled(bool enabled) {
+  prefilter->set_enabled(enabled);
 }
 
 bool sigmf_recorder_impl::is_active() {
@@ -203,7 +155,11 @@ bool sigmf_recorder_impl::start(Call *call) {
 
     raw_sink->open(filename);
     state = ACTIVE;
-    prefilter->set_enabled(true);
+ if (conventional) {
+      prefilter->set_enabled(false);
+    } else {
+      prefilter->set_enabled(true);
+    }
     std::string src_description = source->get_driver() + ": " + source->get_device() + " - " + source->get_antenna();
     time_t now;
     time(&now);
@@ -213,7 +169,7 @@ bool sigmf_recorder_impl::start(Call *call) {
     nlohmann::json j = {
       {"global", {
         {"core:datatype", "cf32_le"},
-        {"core:sample_rate", if_rate},
+        {"core:sample_rate", channelizer::phase1_samples_per_symbol * channelizer::phase1_symbol_rate},
         {"core:hw", src_description},
         {"core:recorder", "Trunk Recorder"},
         {"core:version", "1.0.0"}

@@ -247,7 +247,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
         // If it is a conventional System
-        if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
+        if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR") || (system->get_system_type() == "conventionalSIGMF")) {
 
           bool channel_file_exist = element.contains("channelFile");
           bool channels_exist = element.contains("channels");

@@ -368,6 +368,14 @@ void System_impl::add_conventionalDMR_recorder(dmr_recorder_sptr rec) {
   conventionalDMR_recorders.push_back(rec);
 }
 
+void System_impl::add_conventionalSIGMF_recorder(sigmf_recorder_sptr rec) {
+  conventionalSIGMF_recorders.push_back(rec);
+}
+
+std::vector<sigmf_recorder_sptr> System_impl::get_conventionalSIGMF_recorders() {
+  return conventionalSIGMF_recorders;
+}
+
 std::vector<p25_recorder_sptr> System_impl::get_conventionalP25_recorders() {
   return conventionalP25_recorders;
 }

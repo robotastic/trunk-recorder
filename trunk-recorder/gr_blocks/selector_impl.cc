@@ -48,7 +48,7 @@ selector_impl::selector_impl(size_t itemsize,
       d_num_outputs(0) {
   message_port_register_in(pmt::mp("en"));
   set_msg_handler(pmt::mp("en"), boost::bind(&selector_impl::handle_enable, this, boost::placeholders::_1));
-
+  d_enabled_output_ports = std::vector<bool>(d_max_port, false);
   // TODO: add message ports for input_index and output_index
 }
 
@@ -108,6 +108,30 @@ bool selector_impl::check_topology(int ninputs, int noutputs) {
   }
 }
 
+void selector_impl::disable_output_port(unsigned int port) {
+  if (port >= d_max_port) {
+    BOOST_LOG_TRIVIAL(error) << "disable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
+    return;
+  }
+
+    gr::thread::scoped_lock l(d_mutex);
+  d_enabled_output_ports[port] = false;
+}
+
+
+void selector_impl::enable_output_port(unsigned int port) {
+
+    if (port >= d_max_port) {
+    BOOST_LOG_TRIVIAL(error) << "enable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
+    return;
+  }
+
+    gr::thread::scoped_lock l(d_mutex);
+  d_enabled_output_ports[port] = true;
+}
+
+void selector_impl::
+
 int selector_impl::general_work(int noutput_items,
                                 gr_vector_int &ninput_items,
                                 gr_vector_const_void_star &input_items,
@@ -116,12 +140,26 @@ int selector_impl::general_work(int noutput_items,
   uint8_t **out = (uint8_t **)&output_items[0];
 
   gr::thread::scoped_lock l(d_mutex);
-  if (d_enabled) {
+
+
+      for (size_t out_idx = 0; out_idx < output_items.size(); out_idx++) {
+        if (d_enabled_output_ports[out_idx]) {
+        std::copy(in[d_input_index],
+                      in[d_input_index] + noutput_items * d_itemsize,
+                      out[out_idx]);
+            produce(out_idx, noutput_items);
+        }
+
+        }
+
+
+
+  /*
     std::copy(in[d_input_index],
               in[d_input_index] + noutput_items * d_itemsize,
               out[d_output_index]);
-    produce(d_output_index, noutput_items);
-  }
+    produce(d_output_index, noutput_items);*/
+ 
 
   consume_each(noutput_items);
   return WORK_CALLED_PRODUCE;
