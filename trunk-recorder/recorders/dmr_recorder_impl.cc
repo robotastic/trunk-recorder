@@ -167,7 +167,6 @@ bool dmr_recorder_impl::is_enabled() {
 
 void dmr_recorder_impl::set_enabled(bool enabled) {
   source->set_selector_port_enabled(selector_port, enabled);
-  //prefilter->set_enabled(enabled);
 }
 
 bool dmr_recorder_impl::is_squelched() {
@@ -231,7 +230,7 @@ void dmr_recorder_impl::stop() {
     // BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
     state = INACTIVE;
-    prefilter->set_enabled(false);
+    set_enabled(false);
     wav_sink_slot0->stop_recording();
     wav_sink_slot1->stop_recording();
   } else {
@@ -278,9 +277,9 @@ bool dmr_recorder_impl::start(Call *call) {
     state = ACTIVE;
     
     if (conventional) {
-      prefilter->set_enabled(false);
+      set_enabled(false);
     } else {
-      prefilter->set_enabled(true);
+      set_enabled(true);
     }
 
     recording_count++;

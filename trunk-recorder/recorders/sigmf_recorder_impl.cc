@@ -61,7 +61,7 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src, Recorder_Type type)
   //initialize_prefilter_xlat();
   
   prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center, conventional);
-  prefilter->set_enabled(false);
+  set_enabled(false);
   connect(squelch, 0, raw_sink, 0);
 }
 
@@ -75,7 +75,6 @@ bool sigmf_recorder_impl::is_enabled() {
 
 void sigmf_recorder_impl::set_enabled(bool enabled) {
   source->set_selector_port_enabled(selector_port, enabled);
-  //prefilter->set_enabled(enabled);
 }
 
 bool sigmf_recorder_impl::is_active() {
@@ -118,7 +117,7 @@ void sigmf_recorder_impl::stop() {
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     state = INACTIVE;
-    prefilter->set_enabled(false);
+    set_enabled(false);
     raw_sink->close();
   } else {
     BOOST_LOG_TRIVIAL(error) << "sigmf_recorder.cc: Trying to Stop an Inactive Logger!!!";
@@ -157,9 +156,9 @@ bool sigmf_recorder_impl::start(Call *call) {
     raw_sink->open(filename);
     state = ACTIVE;
  if (conventional) {
-      prefilter->set_enabled(false);
+      set_enabled(false);
     } else {
-      prefilter->set_enabled(true);
+      set_enabled(true);
     }
     std::string src_description = source->get_driver() + ": " + source->get_device() + " - " + source->get_antenna();
     time_t now;

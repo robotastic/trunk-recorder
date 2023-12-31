@@ -175,7 +175,6 @@ bool p25_recorder_impl::is_enabled() {
 
 void p25_recorder_impl::set_enabled(bool enabled) {
   source->set_selector_port_enabled(selector_port, enabled);
-  //prefilter->set_enabled(enabled);
 }
 
 bool p25_recorder_impl::is_active() {
@@ -259,7 +258,7 @@ void p25_recorder_impl::stop() {
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
     state = INACTIVE;
-    prefilter->set_enabled(false);
+    set_enabled(false);
 
     clear();
     if (qpsk_mod) {
@@ -329,9 +328,9 @@ bool p25_recorder_impl::start(Call *call) {
     }
     state = ACTIVE;
     if (conventional) {
-      prefilter->set_enabled(false);
+      set_enabled(false);
     } else {
-      prefilter->set_enabled(true);
+      set_enabled(true);
     }
 
     modulation_selector->set_enabled(true);

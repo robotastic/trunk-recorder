@@ -268,7 +268,7 @@ void Source::set_selector_port_enabled(unsigned int port, bool enabled) {
 }
 
 bool Source::is_selector_port_enabled(unsigned int port) {
-  recorder_selector->is_port_enabled(port);
+  return recorder_selector->is_port_enabled(port);
 }
 
 
@@ -685,6 +685,11 @@ void Source::set_iq_source(std::string iq_file, bool repeat, double center, doub
   attached_detector = false;
   attached_selector = false;
   next_selector_port = 0;
+
+
+
+  recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
+  signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
 
   iq_file_source::sptr iq_file_src;
   iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);

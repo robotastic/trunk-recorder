@@ -210,7 +210,7 @@ void analog_recorder::stop() {
   if (state == ACTIVE) {
     recording_duration += wav_sink->length_in_seconds();
     state = INACTIVE;
-    prefilter->set_enabled(false);
+    set_enabled(false);
     wav_sink->stop_recording();
   } else {
 
@@ -245,7 +245,6 @@ bool analog_recorder::is_enabled() {
 
 void analog_recorder::set_enabled(bool enabled) {
   source->set_selector_port_enabled(selector_port, enabled);
-  //prefilter->set_enabled(enabled);
 }
 
 
@@ -349,9 +348,9 @@ bool analog_recorder::start(Call *call) {
 
   state = ACTIVE;
     if (conventional) {
-      prefilter->set_enabled(false);
+      set_enabled(false);
     } else {
-      prefilter->set_enabled(true);
+      set_enabled(true);
     }
   return true;
 }
