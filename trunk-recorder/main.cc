@@ -1000,6 +1000,7 @@ void monitor_messages() {
 bool setup_conventional_channel(System *system, double frequency, long channel_index) {
   bool channel_added = false;
   Source *source = NULL;
+  float tone_freq = 0.0;
   for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
     source = *src_it;
 
@@ -1016,6 +1017,7 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
       Call_conventional *call = NULL;
       if (system->has_channel_file()) {
         Talkgroup *tg = system->find_talkgroup_by_freq(frequency);
+        tone_freq = tg->tone;
         call = new Call_conventional(tg->number, tg->freq, system, config);
         call->set_talkgroup_tag(tg->alpha_tag);
       } else {
@@ -1024,6 +1026,11 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
       BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
       if (system->get_system_type() == "conventional") {
         analog_recorder_sptr rec;
+        if (tone_freq > 0.0) {
+          rec = source->create_conventional_recorder(tb, tone_freq);
+        } else {
+          rec = source->create_conventional_recorder(tb);
+        }
         rec = source->create_conventional_recorder(tb);
         rec->start(call);
         call->set_is_analog(true);

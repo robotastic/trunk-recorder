@@ -35,6 +35,7 @@
 
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/pwr_squelch_ff.h>
+#include <gnuradio/analog/ctcss_squelch_ff.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
 
 #include <gnuradio/blocks/float_to_short.h>
@@ -64,13 +65,12 @@ typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
 int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder);
 
 analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type);
-
+analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq);
 class analog_recorder : public gr::hier_block2, public Recorder {
   friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type);
-
+  friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq);
 protected:
-  analog_recorder(Source *src, Recorder_Type type);
-
+  analog_recorder(Source *src, Recorder_Type type, float tone_freq);
 public:
   ~analog_recorder();
   void tune_freq(double f);
@@ -105,7 +105,7 @@ private:
   double center_freq, chan_freq;
   long talkgroup;
   long input_rate;
-
+  float tone_freq;
   double system_channel_rate;
   double initial_rate;
   float quad_gain;
@@ -113,6 +113,7 @@ private:
   double squelch_db;
   time_t timestamp;
   time_t starttime;
+  bool use_tone_squelch;
 
   State state;
   std::vector<float> channel_lpf_taps;
@@ -144,6 +145,8 @@ private:
   gr::filter::fir_filter_fff::sptr high_f;
   gr::filter::fir_filter_fff::sptr low_f;
   gr::analog::pwr_squelch_ff::sptr squelch_two;
+  gr::analog::ctcss_squelch_ff::sptr tone_squelch;
+
   gr::analog::quadrature_demod_cf::sptr demod;
   gr::blocks::float_to_short::sptr converter;
 

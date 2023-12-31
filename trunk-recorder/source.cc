@@ -200,6 +200,20 @@ void Source::set_signal_detector_threshold(float threshold) {
   signal_detector->set_threshold(threshold);
 }
 
+analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb, float tone_freq) {
+  // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
+  // Conventional recorders are tracked seperately in analog_conv_recorders
+  attach_detector(tb);
+  attach_selector(tb);
+
+  analog_recorder_sptr log = make_analog_recorder(this, ANALOGC, tone_freq);
+  analog_conv_recorders.push_back(log);
+  log->set_selector_port(next_selector_port);
+  tb->connect(recorder_selector, next_selector_port, log, 0);
+  next_selector_port++;
+  return log;
+}
+
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in analog_conv_recorders

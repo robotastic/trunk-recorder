@@ -38,8 +38,13 @@ std::vector<float> design_filter(double interpolation, double deci) {
 }
 
 analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type) {
-  return gnuradio::get_initial_sptr(new analog_recorder(src, type));
+  return gnuradio::get_initial_sptr(new analog_recorder(src, type, -1));
 }
+
+analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq) {
+  return gnuradio::get_initial_sptr(new analog_recorder(src, type, tone_freq));
+}
+
 
 /*! \brief Calculate taps for FM de-emph IIR filter. */
 void analog_recorder::calculate_iir_taps(double tau) {
@@ -66,7 +71,10 @@ void analog_recorder::calculate_iir_taps(double tau) {
   d_fbtaps[1] = -p1;
 }
 
-analog_recorder::analog_recorder(Source *src, Recorder_Type type)
+
+
+
+analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_freq)
     : gr::hier_block2("analog_recorder",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
@@ -92,6 +100,14 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   float offset = 0;
   bool use_streaming = false;
 
+  if (tone_freq > 0) {
+    use_tone_squelch = true;
+    this->tone_freq = tone_freq;
+  } else {
+    use_tone_squelch = false;
+    this->tone_freq = 0;
+  }
+
   if (config != NULL) {
     use_streaming = config->enable_audio_streaming;
   }
@@ -114,6 +130,10 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   // recording doesn't contain blank spaces between transmissions
   squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
 
+
+  if (use_tone_squelch) {
+    tone_squelch = gr::analog::ctcss_squelch_ff::make(system_channel_rate, this->tone_freq, 0.01, 0, 0, false); 
+  }
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
 
   int d_max_dev = 5000;
@@ -168,7 +188,13 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
 
   // using squelch
   connect(self(), 0, prefilter, 0);
-  connect(prefilter, 0, demod, 0);
+  if (use_tone_squelch) {
+    connect(prefilter, 0, tone_squelch, 0);
+    connect(tone_squelch, 0, demod, 0);
+  } else {
+    connect(prefilter, 0, demod, 0);
+  }
+
   connect(demod, 0, deemph, 0);
   connect(deemph, 0, decim_audio, 0);
   connect(decim_audio, 0, high_f, 0);
