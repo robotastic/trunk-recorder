@@ -379,3 +379,15 @@ void xlat_channelizer::set_enabled(bool enabled) {
 void xlat_channelizer::set_squelch_db(double squelch_db) {
   squelch->set_threshold(squelch_db);
 }
+
+void xlat_channelizer::set_analog_squelch(bool analog_squelch) {
+  if (analog_squelch) {
+    squelch->set_alpha(0.001);
+    squelch->set_ramp(10);
+    squelch->set_gate(false);
+  } else {
+    squelch->set_alpha(0.0001);
+    squelch->set_ramp(0);
+    squelch->set_gate(true);
+  }
+}

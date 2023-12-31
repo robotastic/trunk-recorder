@@ -82,7 +82,8 @@ enum Recorder_Type { DEBUG,
                       ANALOGC,
                       P25,
                       P25C,
-                      DMR };
+                      DMR,
+                      SMARTNET };
 
 struct Call_Data_t {
   long talkgroup;

@@ -65,6 +65,7 @@ bool is_squelched();
 void tune_offset(double f); 
 void set_enabled(bool enabled); 
 void set_squelch_db(double squelch_db);
+void set_analog_squelch(bool analog_squelch);
 
  private:
 

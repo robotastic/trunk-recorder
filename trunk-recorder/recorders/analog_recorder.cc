@@ -107,7 +107,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type)
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
     prefilter = xlat_channelizer::make(input_rate, 2, 8000, center_freq, conventional);
-
+    prefilter->set_analog_squelch(true);
 
   //  based on squelch code form ham2mon
   // set low -200 since its after demod and its just gate for previous squelch so that the audio
