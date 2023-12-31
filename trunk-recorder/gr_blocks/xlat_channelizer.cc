@@ -136,8 +136,10 @@ freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250);  // OP25 has this set to 350 instead of 250
 
+/*
   connect(self(), 0, valve, 0);
-  connect(valve, 0, freq_xlat, 0);
+  connect(valve, 0, freq_xlat, 0);*/
+  connect(self(), 0, freq_xlat, 0);
 
 if (d_conventional) {
   BOOST_LOG_TRIVIAL(info) << "Conventional - with Squelch";

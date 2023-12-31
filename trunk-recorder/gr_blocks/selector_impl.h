@@ -25,6 +25,7 @@
 
 #include "selector.h"
 #include <gnuradio/thread/thread.h>
+#include <boost/log/trivial.hpp>
 
 namespace gr {
 namespace blocks {
@@ -36,7 +37,7 @@ private:
   std::vector<bool> d_enabled_output_ports;
   unsigned int d_input_index, d_output_index;
   unsigned int d_num_inputs, d_num_outputs; // keep track of the topology
-  const d_max_port = 100;
+  const unsigned int d_max_port = 100;
   gr::thread::mutex d_mutex;
 
 public:
@@ -47,8 +48,8 @@ public:
   bool check_topology(int ninputs, int noutputs);
   void setup_rpc();
   void handle_enable(pmt::pmt_t msg);
-  void disable_output_port(unsigned int port);
-  void enable_output_port(unsigned int port)
+  void set_port_enabled(unsigned int port, bool enabled);
+  bool is_port_enabled(unsigned int port);
   void set_enabled(bool enable) {
     gr::thread::scoped_lock l(d_mutex);
     d_enabled_output_ports[0] = enable;

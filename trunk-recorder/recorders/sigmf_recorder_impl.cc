@@ -70,11 +70,12 @@ int sigmf_recorder_impl::get_num() {
 }
 
 bool sigmf_recorder_impl::is_enabled() {
-  return prefilter->is_enabled();
+  return source->is_selector_port_enabled(selector_port);
 }
 
 void sigmf_recorder_impl::set_enabled(bool enabled) {
-  prefilter->set_enabled(enabled);
+  source->set_selector_port_enabled(selector_port, enabled);
+  //prefilter->set_enabled(enabled);
 }
 
 bool sigmf_recorder_impl::is_active() {

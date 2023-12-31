@@ -203,23 +203,28 @@ void Source::set_signal_detector_threshold(float threshold) {
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in analog_conv_recorders
-  if (!attached_detector) {
-    tb->connect(source_block, 0, signal_detector, 0);
-    attached_detector = true;
-  }
+  attach_detector(tb);
+  attach_selector(tb);
+
   analog_recorder_sptr log = make_analog_recorder(this, ANALOGC);
   analog_conv_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
+  log->set_selector_port(next_selector_port);
+  tb->connect(recorder_selector, next_selector_port, log, 0);
+  next_selector_port++;
   return log;
 }
 
 void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
+  attach_selector(tb);
+
   max_analog_recorders = r;
 
   for (int i = 0; i < max_analog_recorders; i++) {
     analog_recorder_sptr log = make_analog_recorder(this, ANALOG);
     analog_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
+    log->set_selector_port(next_selector_port);
+    tb->connect(recorder_selector, next_selector_port, log, 0);
+    next_selector_port++;
   }
 }
 
@@ -258,14 +263,41 @@ Recorder *Source::get_analog_recorder(Call *call) {
   return NULL;
 }
 
+void Source::set_selector_port_enabled(unsigned int port, bool enabled) {
+  recorder_selector->set_port_enabled(port, enabled);
+}
+
+bool Source::is_selector_port_enabled(unsigned int port) {
+  recorder_selector->is_port_enabled(port);
+}
+
+
+void Source::attach_selector(gr::top_block_sptr tb) {
+  if (!attached_selector) {
+    attached_selector = true;
+    tb->connect(source_block, 0, recorder_selector, 0);
+  }
+}
+
+void Source::attach_detector(gr::top_block_sptr tb) {
+  if (!attached_detector) {
+    attached_detector = true;
+    tb->connect(source_block, 0, signal_detector, 0);
+  }
+}
+
+
 void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
+  attach_selector(tb);
   max_digital_recorders = r;
 
   for (int i = 0; i < max_digital_recorders; i++) {
     p25_recorder_sptr log = make_p25_recorder(this, P25);
     digital_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
+    log->set_selector_port(next_selector_port);
+    tb->connect(recorder_selector, next_selector_port, log, 0);
+    next_selector_port++;
   }
 }
 
@@ -315,39 +347,41 @@ Recorder *Source::get_digital_recorder(Call *call) {
 sigmf_recorder_sptr Source::create_sigmf_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
-  if (!attached_detector) {
-    tb->connect(source_block, 0, signal_detector, 0);
-    attached_detector = true;
-  }
+  attach_detector(tb);
+  attach_selector(tb);
   sigmf_recorder_sptr log = make_sigmf_recorder(this, SIGMFC);
   sigmf_conv_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
+  log->set_selector_port(next_selector_port);
+  tb->connect(recorder_selector, next_selector_port, log, 0);
+  next_selector_port++;
   return log;
 }
 
 p25_recorder_sptr Source::create_digital_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
-  if (!attached_detector) {
-    tb->connect(source_block, 0, signal_detector, 0);
-    attached_detector = true;
-  }
+  attach_detector(tb);
+  attach_selector(tb);
+
   p25_recorder_sptr log = make_p25_recorder(this, P25C);
   digital_conv_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
+  log->set_selector_port(next_selector_port);
+  tb->connect(recorder_selector, next_selector_port, log, 0);
+  next_selector_port++;
   return log;
 }
 
 dmr_recorder_sptr Source::create_dmr_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
   // Conventional recorders are tracked seperately in digital_conv_recorders
-  if (!attached_detector) {
-    tb->connect(source_block, 0, signal_detector, 0);
-    attached_detector = true;
-  }
+  attach_detector(tb);
+  attach_selector(tb);
+
   dmr_recorder_sptr log = make_dmr_recorder(this, DMR);
   dmr_conv_recorders.push_back(log);
-  tb->connect(source_block, 0, log, 0);
+  log->set_selector_port(next_selector_port);
+  tb->connect(recorder_selector, next_selector_port, log, 0);
+  next_selector_port++;
   return log;
 }
 
@@ -379,6 +413,8 @@ int Source::get_debug_recorder_port() {
 
 void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
   max_sigmf_recorders = r;
+
+  attach_selector(tb);
 
   for (int i = 0; i < max_sigmf_recorders; i++) {
     sigmf_recorder_sptr log = make_sigmf_recorder(this, SIGMF);
@@ -552,9 +588,12 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   max_analog_recorders = 0;
   debug_recorder_port = 0;
   attached_detector = false;
+  attached_selector = false;
+  next_selector_port = 0;
 
 
 
+  recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
   signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
   BOOST_LOG_TRIVIAL(info) << "Made the Signal Detector";  
 
@@ -643,6 +682,9 @@ void Source::set_iq_source(std::string iq_file, bool repeat, double center, doub
   max_sigmf_recorders = 0;
   max_analog_recorders = 0;
   debug_recorder_port = 0;
+  attached_detector = false;
+  attached_selector = false;
+  next_selector_port = 0;
 
   iq_file_source::sptr iq_file_src;
   iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);

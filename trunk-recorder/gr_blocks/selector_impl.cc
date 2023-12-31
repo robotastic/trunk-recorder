@@ -108,29 +108,25 @@ bool selector_impl::check_topology(int ninputs, int noutputs) {
   }
 }
 
-void selector_impl::disable_output_port(unsigned int port) {
+void selector_impl::set_port_enabled(unsigned int port, bool enabled) {
   if (port >= d_max_port) {
-    BOOST_LOG_TRIVIAL(error) << "disable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
+    BOOST_LOG_TRIVIAL(info) << "disable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
     return;
   }
 
     gr::thread::scoped_lock l(d_mutex);
-  d_enabled_output_ports[port] = false;
+  d_enabled_output_ports[port] = enabled;
 }
 
-
-void selector_impl::enable_output_port(unsigned int port) {
-
-    if (port >= d_max_port) {
-    BOOST_LOG_TRIVIAL(error) << "enable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
-    return;
+bool selector_impl::is_port_enabled(unsigned int port) {
+  if (port >= d_max_port) {
+    BOOST_LOG_TRIVIAL(info) << "disable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
+    return false;
   }
 
     gr::thread::scoped_lock l(d_mutex);
-  d_enabled_output_ports[port] = true;
+  return d_enabled_output_ports[port];
 }
-
-void selector_impl::
 
 int selector_impl::general_work(int noutput_items,
                                 gr_vector_int &ninput_items,

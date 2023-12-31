@@ -240,11 +240,12 @@ bool analog_recorder::is_active() {
 }
 
 bool analog_recorder::is_enabled() {
-  return prefilter->is_enabled();
+  return source->is_selector_port_enabled(selector_port);
 }
 
 void analog_recorder::set_enabled(bool enabled) {
-  prefilter->set_enabled(enabled);
+  source->set_selector_port_enabled(selector_port, enabled);
+  //prefilter->set_enabled(enabled);
 }
 
 
