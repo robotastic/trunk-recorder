@@ -268,7 +268,7 @@ void analog_recorder::set_enabled(bool enabled) {
 }
 
 bool analog_recorder::is_squelched() {
-  return is_idle();
+  return prefilter->is_squelched();
 }
 
 bool analog_recorder::is_idle() {
