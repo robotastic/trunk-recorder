@@ -26,7 +26,7 @@
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
 
-//#include <gnuradio/blocks/selector.h>
+// #include <gnuradio/blocks/selector.h>
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/analog/sig_source_c.h>
@@ -43,29 +43,29 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-#include <gnuradio/digital/fll_band_edge_cc.h>
-#include <gnuradio/runtime_types.h>
+#include <gnuradio/block_detail.h>
 #include <gnuradio/blocks/file_sink.h>
 #include <gnuradio/blocks/head.h>
-#include <gnuradio/block_detail.h>
+#include <gnuradio/digital/fll_band_edge_cc.h>
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
+#include <gnuradio/runtime_types.h>
 
+#include "../gr_blocks/channelizer.h"
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
-#include "../gr_blocks/channelizer.h"
 #include "../gr_blocks/xlat_channelizer.h"
 
-//#include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
+// #include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
+#include "../../lib/gr-latency-manager/include/latency_manager.h"
+#include "../../lib/gr-latency-manager/include/tag_to_msg.h"
+#include "../../lib/gr-latency/latency_probe.h"
+#include "../../lib/gr-latency/latency_tagger.h"
 #include "../gr_blocks/rms_agc.h"
 #include "p25_recorder.h"
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"
 #include "p25_recorder_qpsk_demod.h"
-#include "../../lib/gr-latency-manager/include/latency_manager.h"
-#include "../../lib/gr-latency-manager/include/tag_to_msg.h"
-#include "../../lib/gr-latency/latency_probe.h"
-#include "../../lib/gr-latency/latency_tagger.h"
 #include "recorder.h"
 
 class Source;
@@ -124,13 +124,12 @@ protected:
   double squelch_db;
   gr::blocks::selector::sptr modulation_selector;
 
-
   p25_recorder_fsk4_demod_sptr fsk4_demod;
   p25_recorder_decode_sptr fsk4_p25_decode;
   p25_recorder_qpsk_demod_sptr qpsk_demod;
   p25_recorder_decode_sptr qpsk_p25_decode;
-  //channelizer::sptr prefilter;
-    xlat_channelizer::sptr prefilter;
+  // channelizer::sptr prefilter;
+  xlat_channelizer::sptr prefilter;
 
 private:
   int silence_frames;

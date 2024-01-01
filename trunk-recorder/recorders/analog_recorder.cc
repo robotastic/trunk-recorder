@@ -45,7 +45,6 @@ analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float
   return gnuradio::get_initial_sptr(new analog_recorder(src, type, tone_freq));
 }
 
-
 /*! \brief Calculate taps for FM de-emph IIR filter. */
 void analog_recorder::calculate_iir_taps(double tau) {
   // copied from fm_emph.py in gr-analog
@@ -70,9 +69,6 @@ void analog_recorder::calculate_iir_taps(double tau) {
   d_fbtaps[0] = 1.0;
   d_fbtaps[1] = -p1;
 }
-
-
-
 
 analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_freq)
     : gr::hier_block2("analog_recorder",
@@ -117,22 +113,21 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   } else {
     conventional = false;
   }
-  
+
   // int samp_per_sym        = 10;
   system_channel_rate = 16000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
-    prefilter = xlat_channelizer::make(input_rate, 2, 8000, center_freq, conventional);
-    prefilter->set_analog_squelch(true);
+  prefilter = xlat_channelizer::make(input_rate, 2, 8000, center_freq, conventional);
+  prefilter->set_analog_squelch(true);
 
   //  based on squelch code form ham2mon
   // set low -200 since its after demod and its just gate for previous squelch so that the audio
   // recording doesn't contain blank spaces between transmissions
   squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
 
-
   if (use_tone_squelch) {
-    tone_squelch = gr::analog::ctcss_squelch_ff::make(system_channel_rate, this->tone_freq, 0.01, 0, 0, false); 
+    tone_squelch = gr::analog::ctcss_squelch_ff::make(system_channel_rate, this->tone_freq, 0.01, 0, 0, false);
   }
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
 
@@ -142,7 +137,6 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   demod = gr::analog::quadrature_demod_cf::make(quad_gain);
   levels = gr::blocks::multiply_const_ff::make(1); // 33);
   converter = gr::blocks::float_to_short::make(1, 32767);
-
 
   /* de-emphasis */
   d_tau = 0.000075; // 75us
@@ -190,7 +184,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   connect(self(), 0, prefilter, 0);
   connect(prefilter, 0, demod, 0);
   connect(demod, 0, deemph, 0);
-    if (use_tone_squelch) {
+  if (use_tone_squelch) {
     connect(deemph, 0, tone_squelch, 0);
     connect(tone_squelch, 0, decim_audio, 0);
   } else {
@@ -273,7 +267,6 @@ void analog_recorder::set_enabled(bool enabled) {
   source->set_selector_port_enabled(selector_port, enabled);
 }
 
-
 bool analog_recorder::is_squelched() {
   return is_idle();
 }
@@ -354,8 +347,8 @@ bool analog_recorder::start(Call *call) {
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 
-    squelch_db = system->get_squelch_db();
-    prefilter->set_squelch_db(squelch_db);
+  squelch_db = system->get_squelch_db();
+  prefilter->set_squelch_db(squelch_db);
   BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting Analog Recorder Num [" << rec_num << "]\u001b[0m \tSquelch: " << squelch_db;
 
   // BOOST_LOG_TRIVIAL(error) << "Setting squelch to: " << squelch_db << " block says: " << squelch->threshold();
@@ -366,18 +359,18 @@ bool analog_recorder::start(Call *call) {
   channel_lpf->set_taps(channel_lpf_taps);*/
   quad_gain = system_channel_rate / (2.0 * M_PI * (d_max_dev + 1000));
   demod->set_gain(quad_gain);
-  
-    int offset_amount = (center_freq - chan_freq);
-    prefilter->tune_offset(offset_amount);
+
+  int offset_amount = (center_freq - chan_freq);
+  prefilter->tune_offset(offset_amount);
 
   wav_sink->start_recording(call);
 
   state = ACTIVE;
-    if (conventional) {
-      set_enabled(false);
-    } else {
-      set_enabled(true);
-    }
+  if (conventional) {
+    set_enabled(false);
+  } else {
+    set_enabled(true);
+  }
   return true;
 }
 

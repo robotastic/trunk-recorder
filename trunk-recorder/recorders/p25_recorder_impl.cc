@@ -15,11 +15,11 @@ p25_recorder_impl::p25_recorder_impl(Source *src, Recorder_Type type)
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(0, 0, sizeof(float))),
       Recorder(type) {
-   if (type == P25C) {
+  if (type == P25C) {
     conventional = true;
-   } else {
+  } else {
     conventional = false;
-    }    
+  }
   initialize(src);
 }
 
@@ -51,8 +51,8 @@ void p25_recorder_impl::initialize(Source *src) {
   }
 
   prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center_freq, conventional);
-  //initialize_prefilter();
-  // initialize_p25();
+  // initialize_prefilter();
+  //  initialize_p25();
 
   modulation_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
   qpsk_demod = make_p25_recorder_qpsk_demod();
@@ -67,8 +67,6 @@ void p25_recorder_impl::initialize(Source *src) {
   connect(fsk4_demod, 0, fsk4_p25_decode, 0);
   connect(modulation_selector, 1, qpsk_demod, 0);
   connect(qpsk_demod, 0, qpsk_p25_decode, 0);
-
-  
 }
 
 void p25_recorder_impl::switch_tdma(bool phase2) {
@@ -77,8 +75,6 @@ void p25_recorder_impl::switch_tdma(bool phase2) {
     qpsk_demod->switch_tdma(phase2);
   }
 }
-
-
 
 void p25_recorder_impl::set_tdma(bool phase2) {
   if (phase2 != d_phase2_tdma) {
@@ -106,14 +102,14 @@ void p25_recorder_impl::clear() {
 
   if (arb_rate != 1.0) {
   reset_block(arb_resampler);
-  } 
+  }
 
   reset_block(cutoff_filter);
   reset_block(squelch);
   //reset_block(rms_agc); // RMS AGC cant be made into a basic block
   reset_block(fll_band_edge);
   reset_block(modulation_selector);
- 
+
 
   //reset_block(qpsk_demod); // bad - Seg Faults
   //reset_block(qpsk_p25_decode); // bad - Seg Faults
@@ -141,7 +137,7 @@ void p25_recorder_impl::autotune() {
   }*/
 }
 
-int p25_recorder_impl::get_freq_error() {   // get frequency error from FLL and convert to Hz
+int p25_recorder_impl::get_freq_error() { // get frequency error from FLL and convert to Hz
   return prefilter->get_freq_error();
 }
 
@@ -170,7 +166,7 @@ State p25_recorder_impl::get_state() {
 }
 
 bool p25_recorder_impl::is_enabled() {
-    return source->is_selector_port_enabled(selector_port);
+  return source->is_selector_port_enabled(selector_port);
 }
 
 void p25_recorder_impl::set_enabled(bool enabled) {
@@ -254,7 +250,6 @@ void p25_recorder_impl::stop() {
       recording_duration += fsk4_p25_decode->get_current_length();
     }
 
-    
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
     state = INACTIVE;

@@ -4,7 +4,6 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/foreach.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/math/constants/constants.hpp>
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
@@ -17,9 +16,11 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/file.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/tokenizer.hpp>
 
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <exception>
 #include <fstream>
@@ -33,7 +34,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <utility>
-#include <chrono>
 
 #include "./global_structs.h"
 #include "config.h"
@@ -88,7 +88,6 @@ SmartnetParser *smartnet_parser;
 P25Parser *p25_parser;
 Config config;
 
-
 void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
 }
@@ -96,44 +95,6 @@ void exit_interupt(int sig) { // can be called asynchronously
 uint64_t time_since_epoch_millisec() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-}
-
-
-unsigned GCD(unsigned u, unsigned v) {
-  while (v != 0) {
-    unsigned r = u % v;
-    u = v;
-    v = r;
-  }
-  return u;
-}
-
-int get_total_recorders() {
-  int total_recorders = 0;
-
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
-    Call *call = *it;
-
-    if (call->get_state() == RECORDING) {
-      total_recorders++;
-    }
-  }
-  return total_recorders;
-}
-
-// This maybe needed by websocket_pp
-bool replace(std::string &str, const std::string &from, const std::string &to) {
-  size_t start_pos = str.find(from);
-
-  if (start_pos == std::string::npos)
-    return false;
-
-  str.replace(start_pos, from.length(), to);
-  return true;
-}
-
-void process_signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) {
-  plugman_signal(unitId, signaling_type, sig_type, call, system, recorder);
 }
 
 bool start_recorder(Call *call, TrunkMessage message, System *sys) {
@@ -210,7 +171,6 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
           recorder = source->get_digital_recorder(call);
         }
       }
-      // int total_recorders = get_total_recorders();
 
       if (recorder) {
         if (message.meta.length()) {
@@ -274,17 +234,50 @@ bool start_recorder(Call *call, TrunkMessage message, System *sys) {
   return false;
 }
 
-// This is to handle the messages that come off the Analog recorder.
-void process_message_queues() {
+
+void print_status() {
+  BOOST_LOG_TRIVIAL(info) << "Currently Active Calls: " << calls.size();
+
+  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
+    Call *call = *it;
+    Recorder *recorder = call->get_recorder();
+
+    if (call->get_state() == MONITORING) {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
+    } else {
+      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
+    }
+
+    if (recorder) {
+      if (recorder->is_conventional()) {
+        if (recorder->get_rssi() < 0) {
+          BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tRSSI: " << recorder->get_rssi() << " dBm";
+        } else {
+          BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tNot Detected";
+        }
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
+      }
+    }
+  }
+
+  BOOST_LOG_TRIVIAL(info) << "Recorders: ";
+
+  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
+    Source *source = *it;
+    source->print_recorders();
+  }
+
+  BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;
 
-    for (std::vector<analog_recorder_sptr>::iterator arit = sys->conventional_recorders.begin(); arit != sys->conventional_recorders.end(); ++arit) {
-      analog_recorder_sptr ar = (analog_recorder_sptr)*arit;
-      ar->process_message_queues();
+    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR") && (sys->get_system_type() != "conventionalSIGMF")) {
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
     }
   }
 }
+
 
 void manage_conventional_call(Call *call) {
 
@@ -334,49 +327,6 @@ void manage_conventional_call(Call *call) {
   }
 }
 
-void print_status() {
-  BOOST_LOG_TRIVIAL(info) << "Currently Active Calls: " << calls.size();
-
-  for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
-    Call *call = *it;
-    Recorder *recorder = call->get_recorder();
-
-    if (call->get_state() == MONITORING) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
-    } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
-    }
-
-    if (recorder) {
-      if (recorder->is_conventional()) {
-        if (recorder->get_rssi() < 0) {
-        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tRSSI: " << recorder->get_rssi() << " dBm";
-        } else {
-          BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tNot Detected";
-
-        }
-      } else {
-        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
-      }
-    }
-  }
-
-  BOOST_LOG_TRIVIAL(info) << "Recorders: ";
-
-  for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-    Source *source = *it;
-    source->print_recorders();
-  }
-
-  BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
-  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System_impl *sys = (System_impl *)*it;
-
-    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR") && (sys->get_system_type() != "conventionalSIGMF")) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
-    }
-  }
-}
 
 void manage_calls() {
   bool ended_call = false;
@@ -595,14 +545,14 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message) {
 
     boost::format original_call_data;
     boost::format grant_call_data;
-    
-    if ((superseding_grant) || (duplicate_grant)){
+
+    if ((superseding_grant) || (duplicate_grant)) {
       if (original_call->get_system()->get_multiSiteSystemName() == "") {
         original_call_data = boost::format("\u001b[34m%sC\u001b[0m %X/%s-%s ") % original_call->get_call_num() % original_call->get_system()->get_wacn() % original_call->get_system()->get_sys_rfss() % original_call->get_system()->get_sys_site_id();
-        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % + sys->get_sys_site_id();
+        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %X/%s-%s ") % call->get_call_num() % sys->get_wacn() % sys->get_sys_rfss() % +sys->get_sys_site_id();
       } else {
         original_call_data = boost::format("\u001b[34m%sC\u001b[0m %s/%s ") % original_call->get_call_num() % original_call->get_system()->get_multiSiteSystemName() % original_call->get_system()->get_multiSiteSystemNumber();
-        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %s/%s ") % call->get_call_num() % sys->get_multiSiteSystemName() % sys->get_multiSiteSystemNumber();        
+        grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %s/%s ") % call->get_call_num() % sys->get_multiSiteSystemName() % sys->get_multiSiteSystemNumber();
       }
     }
 
@@ -750,23 +700,6 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
   }
 }
 
-System *find_system(int sys_num) {
-  System *sys_match = NULL;
-
-  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System *sys = (System *)*it;
-
-    if (sys->get_sys_num() == sys_num) {
-      sys_match = sys;
-      break;
-    }
-  }
-
-  if (sys_match == NULL) {
-    BOOST_LOG_TRIVIAL(info) << "Sys is null";
-  }
-  return sys_match;
-}
 
 void retune_system(System *sys) {
   System_impl *system = (System_impl *)sys;
@@ -872,7 +805,6 @@ void check_message_count(float timeDiff) {
   }
 }
 
-
 void check_conventional_channel_detection() {
   Source *source = NULL;
   for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
@@ -880,11 +812,23 @@ void check_conventional_channel_detection() {
     std::vector<Recorder *> recorders = source->get_detected_recorders();
     for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
       Recorder *recorder = *it;
-      
+
       if (!recorder->is_enabled()) {
         recorder->set_enabled(true);
         BOOST_LOG_TRIVIAL(info) << "Enabled Freq: " << format_freq(recorder->get_freq());
       }
+    }
+  }
+}
+
+// This is to handle the messages that come off the Analog recorder.
+void process_message_queues() {
+  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
+    System_impl *sys = (System_impl *)*it;
+
+    for (std::vector<analog_recorder_sptr>::iterator arit = sys->conventional_recorders.begin(); arit != sys->conventional_recorders.end(); ++arit) {
+      analog_recorder_sptr ar = (analog_recorder_sptr)*arit;
+      ar->process_message_queues();
     }
   }
 }
@@ -922,8 +866,6 @@ void monitor_messages() {
       boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
       return;
     }
-
-
 
     process_message_queues();
 
@@ -965,7 +907,6 @@ void monitor_messages() {
       check_conventional_channel_detection();
       last_conventional_channel_detection_check = current_time_ms;
     }
-
 
     if ((current_time - management_timestamp) >= 1.0) {
       manage_calls();
@@ -1057,7 +998,7 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
         call->set_recorder((Recorder *)rec.get());
         system->add_conventionalP25_recorder(rec);
         calls.push_back(call);
-      } else if (system->get_system_type() == "conventionalSIGMF") { 
+      } else if (system->get_system_type() == "conventionalSIGMF") {
         sigmf_recorder_sptr rec;
         rec = source->create_sigmf_conventional_recorder(tb);
         call->set_recorder((Recorder *)rec.get());

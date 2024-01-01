@@ -5,6 +5,226 @@ using json = nlohmann::json;
 
 static int src_counter = 0;
 
+int Source::get_num() {
+  return src_num;
+};
+
+gr::basic_block_sptr Source::get_src_block() {
+  return source_block;
+}
+
+Config *Source::get_config() {
+  return config;
+}
+
+void Source::set_min_max() {
+  long s = rate;
+  long if_freqs[] = {24000, 25000, 32000};
+  long decim = 24000;
+  for (int i = 0; i < 3; i++) {
+    long if_freq = if_freqs[i];
+    if (s % if_freq != 0) {
+      continue;
+    }
+    long q = s / if_freq;
+    if (q & 1) {
+      continue;
+    }
+
+    if ((q >= 40) && ((q & 3) == 0)) {
+      decim = q / 4;
+    } else {
+      decim = q / 2;
+    }
+  }
+  long if1 = rate / decim;
+  min_hz = center - ((rate / 2) - (if1 / 2));
+  max_hz = center + ((rate / 2) - (if1 / 2));
+}
+
+Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg) {
+  rate = r;
+  center = c;
+  error = e;
+  set_min_max();
+  driver = drv;
+  device = dev;
+  config = cfg;
+  gain = 0;
+  lna_gain = 0;
+  tia_gain = 0;
+  pga_gain = 0;
+  mix_gain = 0;
+  if_gain = 0;
+  src_num = src_counter++;
+  max_digital_recorders = 0;
+  max_debug_recorders = 0;
+  max_sigmf_recorders = 0;
+  max_analog_recorders = 0;
+  debug_recorder_port = 0;
+  attached_detector = false;
+  attached_selector = false;
+  next_selector_port = 0;
+
+  recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
+  signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
+  BOOST_LOG_TRIVIAL(info) << "Made the Signal Detector";
+
+  if (driver == "osmosdr") {
+    osmosdr::source::sptr osmo_src;
+    std::vector<std::string> gain_names;
+    if (dev == "") {
+      BOOST_LOG_TRIVIAL(info) << "Source Device not specified";
+      osmo_src = osmosdr::source::make();
+    } else {
+      std::ostringstream msg;
+
+      if (isdigit(dev[0])) {  // Assume this is a serial number and fail back
+                              // to using rtl as default
+        msg << "rtl=" << dev; // <<  ",buflen=32764,buffers=8";
+        BOOST_LOG_TRIVIAL(info) << "Source device name missing, defaulting to rtl device";
+      } else {
+        msg << dev; // << ",buflen=32764,buffers=8";
+      }
+      BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
+      osmo_src = osmosdr::source::make(msg.str());
+    }
+    BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
+    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
+    osmo_src->set_sample_rate(rate);
+    actual_rate = osmo_src->get_sample_rate();
+    rate = round(actual_rate);
+    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
+    BOOST_LOG_TRIVIAL(info) << "Tuning to " << format_freq(center + error);
+    osmo_src->set_center_freq(center + error, 0);
+    gain_names = osmo_src->get_gain_names();
+    std::string gain_list;
+    for (std::vector<std::string>::iterator it = gain_names.begin(); it != gain_names.end(); it++) {
+      std::string gain_name = *it;
+      osmosdr::gain_range_t range = osmo_src->get_gain_range(gain_name);
+      std::vector<double> gains = range.values();
+      std::string gain_opt_str;
+      for (std::vector<double>::iterator gain_it = gains.begin(); gain_it != gains.end(); gain_it++) {
+        double gain_opt = *gain_it;
+        std::ostringstream ss;
+        // gain_opt = floor(gain_opt * 10) / 10;
+        ss << gain_opt << " ";
+
+        gain_opt_str += ss.str();
+      }
+      BOOST_LOG_TRIVIAL(info) << "Gain Stage: " << gain_name << " supported values: " << gain_opt_str;
+    }
+
+    source_block = osmo_src;
+  }
+
+  if (driver == "usrp") {
+    gr::uhd::usrp_source::sptr usrp_src;
+    usrp_src = gr::uhd::usrp_source::make(device, uhd::stream_args_t("fc32"));
+
+    BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE USRP (UHD)";
+
+    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
+    usrp_src->set_samp_rate(rate);
+    actual_rate = usrp_src->get_samp_rate();
+    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
+    BOOST_LOG_TRIVIAL(info) << "Tuning to " << format_freq(center + error);
+    usrp_src->set_center_freq(center + error, 0);
+
+    source_block = usrp_src;
+  }
+}
+
+void Source::set_iq_source(std::string iq_file, bool repeat, double center, double rate) {
+  this->rate = rate;
+  this->center = center;
+  error = 0;
+  min_hz = center - ((rate / 2));
+  max_hz = center + ((rate / 2));
+  driver = "iqfile";
+  device = "";
+  gain = 0;
+  lna_gain = 0;
+  tia_gain = 0;
+  pga_gain = 0;
+  mix_gain = 0;
+  if_gain = 0;
+  src_num = src_counter++;
+  max_digital_recorders = 0;
+  max_debug_recorders = 0;
+  max_sigmf_recorders = 0;
+  max_analog_recorders = 0;
+  debug_recorder_port = 0;
+  attached_detector = false;
+  attached_selector = false;
+  next_selector_port = 0;
+
+  recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
+  signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
+
+  iq_file_source::sptr iq_file_src;
+  iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);
+
+  BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE IQ FILE";
+  BOOST_LOG_TRIVIAL(info) << "Setting Center to: " << FormatSamplingRate(center);
+  BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
+
+  source_block = iq_file_src;
+}
+
+Source::Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg) {
+  json data;
+  std::cout << sigmf_meta << std::endl;
+  try {
+    std::ifstream f(sigmf_meta);
+    data = json::parse(f);
+  } catch (const json::parse_error &e) {
+    // output exception information
+    std::cout << "message: " << e.what() << '\n'
+              << "exception id: " << e.id << '\n'
+              << "byte position of error: " << e.byte << std::endl;
+    exit(1);
+  }
+
+  std::cout << data.dump(4) << std::endl;
+  json global = data["global"];
+
+  config = cfg;
+  this->rate = global["core:sample_rate"];
+
+  json capture = data["captures"][0];
+  this->center = capture["core:frequency"];
+  std::cout << "Rate: " << rate << "Center: " << center << std::endl;
+  set_iq_source(sigmf_data, repeat, center, rate);
+}
+
+Source::Source(std::string iq_file, bool repeat, double center, double rate, Config *cfg) {
+  config = cfg;
+  set_iq_source(iq_file, repeat, center, rate);
+}
+
+void Source::set_selector_port_enabled(unsigned int port, bool enabled) {
+  recorder_selector->set_port_enabled(port, enabled);
+}
+
+bool Source::is_selector_port_enabled(unsigned int port) {
+  return recorder_selector->is_port_enabled(port);
+}
+
+void Source::attach_selector(gr::top_block_sptr tb) {
+  if (!attached_selector) {
+    attached_selector = true;
+    tb->connect(source_block, 0, recorder_selector, 0);
+  }
+}
+
+void Source::attach_detector(gr::top_block_sptr tb) {
+  if (!attached_detector) {
+    attached_detector = true;
+    tb->connect(source_block, 0, signal_detector, 0);
+  }
+}
+
 void Source::set_antenna(std::string ant) {
   antenna = ant;
 
@@ -55,6 +275,15 @@ std::string Source::get_device() {
   return device;
 }
 
+void Source::set_freq_corr(double p) {
+  ppm = p;
+
+  if (driver == "osmosdr") {
+    cast_to_osmo_sptr(source_block)->set_freq_corr(ppm);
+    BOOST_LOG_TRIVIAL(info) << "PPM set to: " << cast_to_osmo_sptr(source_block)->get_freq_corr();
+  }
+}
+
 void Source::set_error(double e) {
   error = e;
 }
@@ -62,6 +291,8 @@ void Source::set_error(double e) {
 double Source::get_error() {
   return error;
 }
+
+/* -- Gain -- */
 
 void Source::set_gain(int r) {
   if (driver == "osmosdr") {
@@ -124,14 +355,11 @@ void Source::set_gain_mode(bool m) {
   }
 }
 
-void Source::set_freq_corr(double p) {
-  ppm = p;
-
-  if (driver == "osmosdr") {
-    cast_to_osmo_sptr(source_block)->set_freq_corr(ppm);
-    BOOST_LOG_TRIVIAL(info) << "PPM set to: " << cast_to_osmo_sptr(source_block)->get_freq_corr();
-  }
+int Source::get_if_gain() {
+  return if_gain;
 }
+
+/* -- Recorders -- */
 
 std::vector<Recorder *> Source::find_conventional_recorders_by_freq(double freq) {
   std::vector<Recorder *> recorders;
@@ -140,7 +368,7 @@ std::vector<Recorder *> Source::find_conventional_recorders_by_freq(double freq)
     p25_recorder_sptr rx = *it;
     double recorder_freq = rx->get_freq();
 
-    if (std::abs(freq-recorder_freq) < max_freq_diff) {
+    if (std::abs(freq - recorder_freq) < max_freq_diff) {
       recorders.push_back((Recorder *)rx.get());
     }
   }
@@ -149,7 +377,7 @@ std::vector<Recorder *> Source::find_conventional_recorders_by_freq(double freq)
     dmr_recorder_sptr rx = *it;
     double recorder_freq = rx->get_freq();
 
-    if (std::abs(freq-recorder_freq) < max_freq_diff) {
+    if (std::abs(freq - recorder_freq) < max_freq_diff) {
       recorders.push_back((Recorder *)rx.get());
     }
   }
@@ -158,19 +386,18 @@ std::vector<Recorder *> Source::find_conventional_recorders_by_freq(double freq)
     analog_recorder_sptr rx = *it;
     double recorder_freq = rx->get_freq();
 
-    if (std::abs(freq-recorder_freq) < max_freq_diff) {
+    if (std::abs(freq - recorder_freq) < max_freq_diff) {
       recorders.push_back((Recorder *)rx.get());
     }
   }
 
-
   return recorders;
 }
 
-std::vector<Recorder *> Source::get_detected_recorders () {
-    std::vector<Recorder *> detected_recorders;
+std::vector<Recorder *> Source::get_detected_recorders() {
+  std::vector<Recorder *> detected_recorders;
 
- std::vector<Detected_Signal> signals = signal_detector->get_detected_signals();
+  std::vector<Detected_Signal> signals = signal_detector->get_detected_signals();
 
   for (std::vector<Detected_Signal>::iterator it = signals.begin(); it != signals.end(); it++) {
     Detected_Signal signal = *it;
@@ -188,11 +415,6 @@ std::vector<Recorder *> Source::get_detected_recorders () {
   }
   return detected_recorders;
 }
-
-int Source::get_if_gain() {
-  return if_gain;
-}
-
 
 void Source::set_signal_detector_threshold(float threshold) {
   signal_detector->set_threshold(threshold);
@@ -275,30 +497,6 @@ Recorder *Source::get_analog_recorder(Call *call) {
   return NULL;
 }
 
-void Source::set_selector_port_enabled(unsigned int port, bool enabled) {
-  recorder_selector->set_port_enabled(port, enabled);
-}
-
-bool Source::is_selector_port_enabled(unsigned int port) {
-  return recorder_selector->is_port_enabled(port);
-}
-
-
-void Source::attach_selector(gr::top_block_sptr tb) {
-  if (!attached_selector) {
-    attached_selector = true;
-    tb->connect(source_block, 0, recorder_selector, 0);
-  }
-}
-
-void Source::attach_detector(gr::top_block_sptr tb) {
-  if (!attached_detector) {
-    attached_detector = true;
-    tb->connect(source_block, 0, signal_detector, 0);
-  }
-}
-
-
 void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
 
   attach_selector(tb);
@@ -354,7 +552,6 @@ Recorder *Source::get_digital_recorder(Call *call) {
   }
   return NULL;
 }
-
 
 sigmf_recorder_sptr Source::create_sigmf_conventional_recorder(gr::top_block_sptr tb) {
   // Not adding it to the vector of digital_recorders. We don't want it to be available for trunk recording.
@@ -489,15 +686,6 @@ void Source::print_recorders() {
   }
 }
 
-void Source::tune_digital_recorders() {
-  for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin(); it != digital_recorders.end(); it++) {
-    p25_recorder_sptr rx = *it;
-
-    if (rx->get_state() == ACTIVE) {
-      rx->autotune();
-    }
-  }
-}
 
 int Source::digital_recorder_count() {
   return digital_recorders.size() + digital_conv_recorders.size() + dmr_conv_recorders.size();
@@ -515,9 +703,6 @@ int Source::sigmf_recorder_count() {
   return sigmf_recorders.size();
 }
 
-int Source::get_num() {
-  return src_num;
-};
 
 int Source::get_num_available_digital_recorders() {
   int num_available_recorders = 0;
@@ -544,204 +729,6 @@ int Source::get_num_available_analog_recorders() {
     }
   }
   return num_available_recorders;
-}
-
-gr::basic_block_sptr Source::get_src_block() {
-  return source_block;
-}
-
-Config *Source::get_config() {
-  return config;
-}
-
-void Source::set_min_max() {
-  long s = rate;
-  long if_freqs[] = {24000, 25000, 32000};
-  long decim = 24000;
-  for (int i = 0; i < 3; i++) {
-    long if_freq = if_freqs[i];
-    if (s % if_freq != 0) {
-      continue;
-    }
-    long q = s / if_freq;
-    if (q & 1) {
-      continue;
-    }
-
-    if ((q >= 40) && ((q & 3) == 0)) {
-      decim = q / 4;
-    } else {
-      decim = q / 2;
-    }
-  }
-  long if1 = rate / decim;
-  min_hz = center - ((rate / 2) - (if1 / 2));
-  max_hz = center + ((rate / 2) - (if1 / 2));
-}
-
-Source::Source(double c, double r, double e, std::string drv, std::string dev, Config *cfg) {
-  rate = r;
-  center = c;
-  error = e;
-  set_min_max();
-  driver = drv;
-  device = dev;
-  config = cfg;
-  gain = 0;
-  lna_gain = 0;
-  tia_gain = 0;
-  pga_gain = 0;
-  mix_gain = 0;
-  if_gain = 0;
-  src_num = src_counter++;
-  max_digital_recorders = 0;
-  max_debug_recorders = 0;
-  max_sigmf_recorders = 0;
-  max_analog_recorders = 0;
-  debug_recorder_port = 0;
-  attached_detector = false;
-  attached_selector = false;
-  next_selector_port = 0;
-
-
-
-  recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
-  signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
-  BOOST_LOG_TRIVIAL(info) << "Made the Signal Detector";  
-
-  if (driver == "osmosdr") {
-    osmosdr::source::sptr osmo_src;
-    std::vector<std::string> gain_names;
-    if (dev == "") {
-      BOOST_LOG_TRIVIAL(info) << "Source Device not specified";
-      osmo_src = osmosdr::source::make();
-    } else {
-      std::ostringstream msg;
-
-      if (isdigit(dev[0])) {  // Assume this is a serial number and fail back
-                              // to using rtl as default
-        msg << "rtl=" << dev; // <<  ",buflen=32764,buffers=8";
-        BOOST_LOG_TRIVIAL(info) << "Source device name missing, defaulting to rtl device";
-      } else {
-        msg << dev; // << ",buflen=32764,buffers=8";
-      }
-      BOOST_LOG_TRIVIAL(info) << "Source Device: " << msg.str();
-      osmo_src = osmosdr::source::make(msg.str());
-    }
-    BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE OSMOSDR (osmosdr)";
-    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
-    osmo_src->set_sample_rate(rate);
-    actual_rate = osmo_src->get_sample_rate();
-    rate = round(actual_rate);
-    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
-    BOOST_LOG_TRIVIAL(info) << "Tuning to " << format_freq(center + error);
-    osmo_src->set_center_freq(center + error, 0);
-    gain_names = osmo_src->get_gain_names();
-    std::string gain_list;
-    for (std::vector<std::string>::iterator it = gain_names.begin(); it != gain_names.end(); it++) {
-      std::string gain_name = *it;
-      osmosdr::gain_range_t range = osmo_src->get_gain_range(gain_name);
-      std::vector<double> gains = range.values();
-      std::string gain_opt_str;
-      for (std::vector<double>::iterator gain_it = gains.begin(); gain_it != gains.end(); gain_it++) {
-        double gain_opt = *gain_it;
-        std::ostringstream ss;
-        // gain_opt = floor(gain_opt * 10) / 10;
-        ss << gain_opt << " ";
-
-        gain_opt_str += ss.str();
-      }
-      BOOST_LOG_TRIVIAL(info) << "Gain Stage: " << gain_name << " supported values: " << gain_opt_str;
-    }
-
-    source_block = osmo_src;
-  }
-
-  if (driver == "usrp") {
-    gr::uhd::usrp_source::sptr usrp_src;
-    usrp_src = gr::uhd::usrp_source::make(device, uhd::stream_args_t("fc32"));
-
-    BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE USRP (UHD)";
-
-    BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
-    usrp_src->set_samp_rate(rate);
-    actual_rate = usrp_src->get_samp_rate();
-    BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << FormatSamplingRate(actual_rate);
-    BOOST_LOG_TRIVIAL(info) << "Tuning to " << format_freq(center + error);
-    usrp_src->set_center_freq(center + error, 0);
-
-    source_block = usrp_src;
-  }
-}
-
-void Source::set_iq_source(std::string iq_file, bool repeat, double center, double rate) {
-  this->rate = rate;
-  this->center = center;
-  error = 0;
-  min_hz = center - ((rate / 2));
-  max_hz = center + ((rate / 2));
-  driver = "iqfile";
-  device = "";
-  gain = 0;
-  lna_gain = 0;
-  tia_gain = 0;
-  pga_gain = 0;
-  mix_gain = 0;
-  if_gain = 0;
-  src_num = src_counter++;
-  max_digital_recorders = 0;
-  max_debug_recorders = 0;
-  max_sigmf_recorders = 0;
-  max_analog_recorders = 0;
-  debug_recorder_port = 0;
-  attached_detector = false;
-  attached_selector = false;
-  next_selector_port = 0;
-
-
-
-  recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
-  signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
-
-  iq_file_source::sptr iq_file_src;
-  iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);
-
-  BOOST_LOG_TRIVIAL(info) << "SOURCE TYPE IQ FILE";
-  BOOST_LOG_TRIVIAL(info) << "Setting Center to: " << FormatSamplingRate(center);
-  BOOST_LOG_TRIVIAL(info) << "Setting sample rate to: " << FormatSamplingRate(rate);
-
-  source_block = iq_file_src;
-}
-
-Source::Source(std::string sigmf_meta, std::string sigmf_data, bool repeat, Config *cfg) {
-  json data;
-  std::cout << sigmf_meta << std::endl;
-  try {
-    std::ifstream f(sigmf_meta);
-    data = json::parse(f);
-  } catch (const json::parse_error &e) {
-    // output exception information
-    std::cout << "message: " << e.what() << '\n'
-              << "exception id: " << e.id << '\n'
-              << "byte position of error: " << e.byte << std::endl;
-    exit(1);
-  }
-
-  std::cout << data.dump(4) << std::endl;
-  json global = data["global"];
-
-  config = cfg;
-  this->rate = global["core:sample_rate"];
-
-  json capture = data["captures"][0];
-  this->center = capture["core:frequency"];
-  std::cout << "Rate: " << rate << "Center: " << center << std::endl;
-  set_iq_source(sigmf_data, repeat, center, rate);
-}
-
-Source::Source(std::string iq_file, bool repeat, double center, double rate, Config *cfg) {
-  config = cfg;
-  set_iq_source(iq_file, repeat, center, rate);
 }
 
 std::vector<Recorder *> Source::get_recorders() {

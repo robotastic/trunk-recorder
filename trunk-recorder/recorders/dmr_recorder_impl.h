@@ -27,8 +27,6 @@
 #include <gnuradio/block.h>
 #include <gnuradio/blocks/copy.h>
 
-//#include <gnuradio/blocks/selector.h>
-
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/analog/sig_source_c.h>
 #include <gnuradio/blocks/multiply_cc.h>
@@ -63,8 +61,8 @@
 #include <gnuradio/filter/fir_filter_blk.h>
 #endif
 
-#include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/costas_loop_cc.h>
+#include <op25_repeater/fsk4_slicer_fb.h>
 #include <op25_repeater/gardner_cc.h>
 #include <op25_repeater/include/op25_repeater/frame_assembler.h>
 #include <op25_repeater/include/op25_repeater/fsk4_demod_ff.h>
@@ -75,10 +73,10 @@
 #include <gnuradio/message.h>
 #include <gnuradio/msg_queue.h>
 
+#include "../gr_blocks/channelizer.h"
 #include "../gr_blocks/plugin_wrapper_impl.h"
 #include "../gr_blocks/selector.h"
 #include "../gr_blocks/transmission_sink.h"
-#include "../gr_blocks/channelizer.h"
 #include "../gr_blocks/xlat_channelizer.h"
 #include "../source.h"
 #include "dmr_recorder.h"
@@ -91,7 +89,7 @@ protected:
 
 public:
   dmr_recorder_impl(Source *src, Recorder_Type type);
-void tune_freq(double f);
+  void tune_freq(double f);
   bool start(Call *call);
   void stop();
   double get_freq();
@@ -128,7 +126,7 @@ protected:
   double squelch_db;
 
   // gr::blocks::multiply_const_ss::sptr levels;
-  //channelizer::sptr prefilter;
+  // channelizer::sptr prefilter;
   xlat_channelizer::sptr prefilter;
   gr::op25_repeater::gardner_cc::sptr clock;
   gr::op25_repeater::costas_loop_cc::sptr costas;
@@ -140,7 +138,6 @@ private:
   long input_rate;
   const int phase1_samples_per_symbol = 5;
   const double phase1_symbol_rate = 4800;
-
 
   gr::blocks::multiply_const_ff::sptr rescale;
 

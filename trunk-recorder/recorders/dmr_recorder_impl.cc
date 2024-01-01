@@ -92,7 +92,6 @@ void dmr_recorder_impl::initialize(Source *src) {
   slicer = gr::op25_repeater::fsk4_slicer_fb::make(msgq_id, debug, slices);
   wav_sink_slot0 = gr::blocks::transmission_sink::make(1, 8000, 16);
   wav_sink_slot1 = gr::blocks::transmission_sink::make(1, 8000, 16);
-  // recorder->initialize(src);
 
   // OP25 Frame Assembler
   traffic_queue = gr::msg_queue::make(2);
@@ -100,7 +99,6 @@ void dmr_recorder_impl::initialize(Source *src) {
   int verbosity = 0; // 10 = lots of debug messages
 
   framer = gr::op25_repeater::frame_assembler::make("file:///tmp/out1.raw", verbosity, 1, rx_queue);
-  // op25_frame_assembler = gr::op25_repeater::p25_frame_assembler::make(0, silence_frames, udp_host, udp_port, verbosity, do_imbe, do_output, do_msgq, rx_queue, do_audio_output, do_tdma, do_nocrypt);
   levels = gr::blocks::multiply_const_ff::make(1);
   plugin_sink_slot0 = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder_impl::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
   plugin_sink_slot1 = gr::blocks::plugin_wrapper_impl::make(std::bind(&dmr_recorder_impl::plugin_callback_handler, this, std::placeholders::_1, std::placeholders::_2));
@@ -127,8 +125,6 @@ void dmr_recorder_impl::plugin_callback_handler(int16_t *samples, int sampleCoun
 }
 
 void dmr_recorder_impl::switch_tdma(bool phase2) {
- 
-  // op25_frame_assembler->set_phase2_tdma(d_phase2_tdma);
 }
 
 void dmr_recorder_impl::set_tdma(bool phase2) {
@@ -162,7 +158,7 @@ bool dmr_recorder_impl::is_active() {
   }
 }
 bool dmr_recorder_impl::is_enabled() {
-    return source->is_selector_port_enabled(selector_port);
+  return source->is_selector_port_enabled(selector_port);
 }
 
 void dmr_recorder_impl::set_enabled(bool enabled) {
@@ -206,7 +202,6 @@ void dmr_recorder_impl::tune_freq(double f) {
   prefilter->tune_offset(freq);
 }
 
-
 bool compareTransmissions(Transmission t1, Transmission t2) {
   return (t1.start_time < t2.start_time);
 }
@@ -240,20 +235,12 @@ void dmr_recorder_impl::stop() {
 
 void dmr_recorder_impl::set_tdma_slot(int slot) {
   tdma_slot = slot;
-  // op25_frame_assembler->set_slotid(tdma_slot);
 }
 
 bool dmr_recorder_impl::start(Call *call) {
   if (state == INACTIVE) {
     System *system = call->get_system();
     set_tdma_slot(0);
-
-    /*if (call->get_xor_mask()) {
-      op25_frame_assembler->set_xormask(call->get_xor_mask());
-    } else {
-      BOOST_LOG_TRIVIAL(info) << "Error - can't set XOR Mask for TDMA";
-      return false;
-    }*/
 
     timestamp = time(NULL);
     starttime = time(NULL);
@@ -275,7 +262,7 @@ bool dmr_recorder_impl::start(Call *call) {
     wav_sink_slot0->start_recording(call, 0);
     wav_sink_slot1->start_recording(call, 1);
     state = ACTIVE;
-    
+
     if (conventional) {
       set_enabled(false);
     } else {

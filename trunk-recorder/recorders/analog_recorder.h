@@ -33,9 +33,9 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/iir_filter_ffd.h>
 
+#include <gnuradio/analog/ctcss_squelch_ff.h>
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/pwr_squelch_ff.h>
-#include <gnuradio/analog/ctcss_squelch_ff.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
 
 #include <gnuradio/blocks/float_to_short.h>
@@ -45,11 +45,11 @@
 class Source;
 class analog_recorder;
 
+#include "../gr_blocks/channelizer.h"
 #include "../gr_blocks/decoder_wrapper.h"
 #include "../gr_blocks/freq_xlating_fft_filter.h"
 #include "../gr_blocks/plugin_wrapper.h"
 #include "../gr_blocks/transmission_sink.h"
-#include "../gr_blocks/channelizer.h"
 #include "../gr_blocks/xlat_channelizer.h"
 #include "../systems/system.h"
 #include "recorder.h"
@@ -69,8 +69,10 @@ analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float
 class analog_recorder : public gr::hier_block2, public Recorder {
   friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type);
   friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq);
+
 protected:
   analog_recorder(Source *src, Recorder_Type type, float tone_freq);
+
 public:
   ~analog_recorder();
   void tune_freq(double f);
@@ -133,8 +135,8 @@ private:
   void calculate_iir_taps(double tau);
 
   /* GR blocks */
-    //channelizer::sptr prefilter;
-    xlat_channelizer::sptr prefilter;
+  // channelizer::sptr prefilter;
+  xlat_channelizer::sptr prefilter;
   gr::filter::iir_filter_ffd::sptr deemph;
   gr::filter::fir_filter_fff::sptr sym_filter;
   gr::filter::fft_filter_ccf::sptr channel_lpf;
