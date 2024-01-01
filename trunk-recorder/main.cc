@@ -1031,7 +1031,6 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
         } else {
           rec = source->create_conventional_recorder(tb);
         }
-        rec = source->create_conventional_recorder(tb);
         rec->start(call);
         call->set_is_analog(true);
         call->set_recorder((Recorder *)rec.get());
