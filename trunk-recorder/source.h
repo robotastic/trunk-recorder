@@ -97,7 +97,7 @@ public:
   double get_error();
   void set_if_gain(int i);
   int get_if_gain();
-  Recorder *find_conventional_recorder_by_freq(double freq);
+  std::vector<Recorder *> find_conventional_recorders_by_freq(double freq);
   std::vector<Recorder *> get_detected_recorders ();
   void attach_detector(gr::top_block_sptr tb);
   void attach_selector(gr::top_block_sptr tb);

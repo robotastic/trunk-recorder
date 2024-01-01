@@ -133,13 +133,15 @@ void Source::set_freq_corr(double p) {
   }
 }
 
-Recorder *Source::find_conventional_recorder_by_freq(double freq) {
+std::vector<Recorder *> Source::find_conventional_recorders_by_freq(double freq) {
+  std::vector<Recorder *> recorders;
+  long max_freq_diff = 5000;
   for (std::vector<p25_recorder_sptr>::iterator it = digital_conv_recorders.begin(); it != digital_conv_recorders.end(); it++) {
     p25_recorder_sptr rx = *it;
     double recorder_freq = rx->get_freq();
 
-    if (std::abs(freq-recorder_freq) < 5000) {
-      return (Recorder *)rx.get();
+    if (std::abs(freq-recorder_freq) < max_freq_diff) {
+      recorders.push_back((Recorder *)rx.get());
     }
   }
 
@@ -147,8 +149,8 @@ Recorder *Source::find_conventional_recorder_by_freq(double freq) {
     dmr_recorder_sptr rx = *it;
     double recorder_freq = rx->get_freq();
 
-    if (std::abs(freq-recorder_freq) < 5000) {
-      return (Recorder *)rx.get();
+    if (std::abs(freq-recorder_freq) < max_freq_diff) {
+      recorders.push_back((Recorder *)rx.get());
     }
   }
 
@@ -156,23 +158,19 @@ Recorder *Source::find_conventional_recorder_by_freq(double freq) {
     analog_recorder_sptr rx = *it;
     double recorder_freq = rx->get_freq();
 
-    if (std::abs(freq-recorder_freq) < 5000) {
-      return (Recorder *)rx.get();
+    if (std::abs(freq-recorder_freq) < max_freq_diff) {
+      recorders.push_back((Recorder *)rx.get());
     }
   }
 
 
-  return NULL;
-
+  return recorders;
 }
 
 std::vector<Recorder *> Source::get_detected_recorders () {
     std::vector<Recorder *> detected_recorders;
-    //BOOST_LOG_TRIVIAL(info) << "Getting detected freqs " << driver << " " << device << " " << signal_detector;
-    //signal_detector->print_stuff();
- std::vector<Detected_Signal> signals = signal_detector->get_detected_signals();
 
-//BOOST_LOG_TRIVIAL(info) << "Detected " << signals.size() << " signals";
+ std::vector<Detected_Signal> signals = signal_detector->get_detected_signals();
 
   for (std::vector<Detected_Signal>::iterator it = signals.begin(); it != signals.end(); it++) {
     Detected_Signal signal = *it;
@@ -181,9 +179,9 @@ std::vector<Recorder *> Source::get_detected_recorders () {
     float bandwidth = signal.bandwidth;
     float rssi = signal.max_rssi;
 
-    //BOOST_LOG_TRIVIAL(info) << "Detected Signal: " << format_freq(freq) << " Bandwidth: " << format_freq(bandwidth) << " RSSI: " << rssi;
-    Recorder * recorder = find_conventional_recorder_by_freq(freq);
-    if (recorder != NULL) {
+    std::vector<Recorder *> recorders = find_conventional_recorders_by_freq(freq);
+    for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
+      Recorder *recorder = *it;
       recorder->set_rssi(rssi);
       detected_recorders.push_back(recorder);
     }
