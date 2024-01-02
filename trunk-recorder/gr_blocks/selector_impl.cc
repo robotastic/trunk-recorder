@@ -46,8 +46,7 @@ selector_impl::selector_impl(size_t itemsize,
       d_output_index(output_index),
       d_num_inputs(0),
       d_num_outputs(0) {
-  message_port_register_in(pmt::mp("en"));
-  set_msg_handler(pmt::mp("en"), boost::bind(&selector_impl::handle_enable, this, boost::placeholders::_1));
+
   d_enabled_output_ports = std::vector<bool>(d_max_port, false);
   // TODO: add message ports for input_index and output_index
 }
@@ -66,28 +65,28 @@ void selector_impl::set_input_index(unsigned int input_index) {
     throw std::out_of_range("input_index must be < ninputs");
 }
 
+
+// This enables a single output port and disables all others
 void selector_impl::set_output_index(unsigned int output_index) {
   gr::thread::scoped_lock l(d_mutex);
 
   if (output_index < 0)
     throw std::out_of_range("input_index must be >= 0");
 
-  if (output_index < d_num_outputs)
+  if (output_index < d_max_port)
     d_output_index = output_index;
   else
     throw std::out_of_range("output_index must be < noutputs");
-}
 
-void selector_impl::handle_enable(pmt::pmt_t msg) {
-  if (pmt::is_bool(msg)) {
-    bool en = pmt::to_bool(msg);
-    gr::thread::scoped_lock l(d_mutex);
-    d_enabled = en;
-  } else {
-    GR_LOG_WARN(d_logger,
-                "handle_enable: Non-PMT type received, expecting Boolean PMT");
+  for (unsigned int out_idx = 0; out_idx < d_max_port; out_idx++) {
+        if (output_index == out_idx) {
+          d_enabled_output_ports[out_idx] = true;
+        } else {
+          d_enabled_output_ports[out_idx] = false;
+        }
   }
 }
+
 
 void selector_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required) {
   unsigned ninputs = ninput_items_required.size();
@@ -159,13 +158,6 @@ int selector_impl::general_work(int noutput_items,
 
   consume_each(noutput_items);
   return WORK_CALLED_PRODUCE;
-}
-
-void selector_impl::setup_rpc() {
-#ifdef GR_CTRLPORT
-  add_rpc_variable(rpcbasic_sptr(new rpcbasic_register_handler<selector>(
-      alias(), "en", "", "Enable", RPC_PRIVLVL_MIN, DISPNULL)));
-#endif /* GR_CTRLPORT */
 }
 
 } /* namespace blocks */

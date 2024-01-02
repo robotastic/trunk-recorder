@@ -46,15 +46,11 @@ public:
 
   void forecast(int noutput_items, gr_vector_int &ninput_items_required);
   bool check_topology(int ninputs, int noutputs);
-  void setup_rpc();
-  void handle_enable(pmt::pmt_t msg);
+
+
   void set_port_enabled(unsigned int port, bool enabled);
   bool is_port_enabled(unsigned int port);
-  void set_enabled(bool enable) {
-    gr::thread::scoped_lock l(d_mutex);
-    d_enabled_output_ports[0] = enable;
-    d_enabled = enable;
-  }
+
   bool enabled() const { return d_enabled; }
 
   void set_input_index(unsigned int input_index);

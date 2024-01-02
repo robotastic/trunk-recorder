@@ -93,7 +93,6 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  float offset = 0;
   bool use_streaming = false;
 
   if (tone_freq > 0) {

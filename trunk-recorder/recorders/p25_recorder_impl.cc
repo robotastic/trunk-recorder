@@ -60,7 +60,6 @@ void p25_recorder_impl::initialize(Source *src) {
   fsk4_demod = make_p25_recorder_fsk4_demod();
   fsk4_p25_decode = make_p25_recorder_decode(this, silence_frames, d_soft_vocoder);
 
-  modulation_selector->set_enabled(true);
   connect(self(), 0, prefilter, 0);
   connect(prefilter, 0, modulation_selector, 0);
   connect(modulation_selector, 0, fsk4_demod, 0);
@@ -329,7 +328,6 @@ bool p25_recorder_impl::start(Call *call) {
       set_enabled(true);
     }
 
-    modulation_selector->set_enabled(true);
 
     recording_count++;
   } else {

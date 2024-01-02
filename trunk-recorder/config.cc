@@ -309,9 +309,10 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
             BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";
           } else {
             qpsk_mod = true;
-            BOOST_LOG_TRIVIAL(error) << "! System Modulation Not Specified, could be fsk4 or qpsk, assuming qpsk";
+            BOOST_LOG_TRIVIAL(error) << "! System Modulation specified but not recognized, it needs to be either \"fsk4\" or \"qpsk\", assuming qpsk";
           }
         } else {
+          BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
           qpsk_mod = true;
         }
 
