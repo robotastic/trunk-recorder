@@ -78,17 +78,11 @@ namespace sinks = boost::log::sinks;
 
 std::vector<Source *> sources;
 std::vector<System *> systems;
-std::map<long, long> unit_affiliations;
-
 std::vector<Call *> calls;
 
 gr::top_block_sptr tb;
 
-
-
 Config config;
-
-
 
 int main(int argc, char **argv) {
   // BOOST_STATIC_ASSERT(true) __attribute__((unused));
@@ -121,10 +115,6 @@ int main(int argc, char **argv) {
   string config_file = vm["config"].as<string>();
 
   tb = gr::make_top_block("Trunking");
-
-
-
-  std::string uri = "ws://localhost:3005";
 
   if (!load_config(config_file, config, tb, sources, systems)) {
     exit(1);
