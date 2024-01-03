@@ -69,6 +69,14 @@ void p25_recorder_impl::initialize(Source *src) {
 }
 
 void p25_recorder_impl::switch_tdma(bool phase2) {
+  if (phase2) {
+    d_phase2_tdma = true;
+    prefilter->set_samples_per_symbol(phase2_samples_per_symbol);
+  } else {
+    d_phase2_tdma = false;
+    prefilter->set_samples_per_symbol(phase1_samples_per_symbol);
+  }
+
   if (qpsk_mod) {
     qpsk_p25_decode->switch_tdma(phase2);
     qpsk_demod->switch_tdma(phase2);

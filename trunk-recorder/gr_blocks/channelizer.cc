@@ -234,3 +234,19 @@ void channelizer::set_enabled(bool enabled) {
 void channelizer::set_squelch_db(double squelch_db) {
   squelch->set_threshold(squelch_db);
 }
+
+void channelizer::set_analog_squelch(bool analog_squelch) {
+  if (analog_squelch) {
+    squelch->set_alpha(0.001);
+    squelch->set_ramp(10);
+    squelch->set_gate(true);
+  } else {
+    squelch->set_alpha(0.0001);
+    squelch->set_ramp(0);
+    squelch->set_gate(true);
+  }
+}
+
+void channelizer::set_samples_per_symbol(int samples_per_symbol) {
+  fll_band_edge->set_samples_per_symbol(samples_per_symbol);
+}

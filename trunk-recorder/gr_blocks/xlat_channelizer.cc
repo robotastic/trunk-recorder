@@ -206,3 +206,7 @@ void xlat_channelizer::set_analog_squelch(bool analog_squelch) {
     squelch->set_gate(true);
   }
 }
+
+void xlat_channelizer::set_samples_per_symbol(int samples_per_symbol) {
+  fll_band_edge->set_samples_per_symbol(samples_per_symbol);
+}
