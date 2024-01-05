@@ -481,6 +481,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     } else if (d_sample_count > 0) {
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTerminator received without items. Ending transmission immediately. " << d_sample_count << " Noutput Items: " << noutput_items;
       end_transmission();
+      return noutput_items;
     } else {
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped....   - count: " << d_sample_count;
       return noutput_items;
