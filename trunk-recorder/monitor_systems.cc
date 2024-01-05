@@ -312,20 +312,35 @@ void current_system_sysid(TrunkMessage message, System *sys) {
   }
 }
 
+std::map<long, std::string> unit_registration_map;
 void unit_registration(System *sys, long source_id) {
-  plugman_unit_registration(sys, source_id);
+  std::string status = unit_registration_map[source_id];
+  if ((status == "") || (status == "unregistered")) {
+    unit_registration_map[source_id] = "registered";
+    plugman_unit_registration(sys, source_id);
+  }
 }
 
 void unit_deregistration(System *sys, long source_id) {
-  plugman_unit_deregistration(sys, source_id);
+  std::string status = unit_registration_map[source_id];
+    if ((status == "") || (status == "registered")) {
+    unit_registration_map[source_id] = "unregistered";
+    plugman_unit_deregistration(sys, source_id);
+  }
+
 }
 
 void unit_acknowledge_response(System *sys, long source_id) {
   plugman_unit_acknowledge_response(sys, source_id);
 }
 
+std::map<long, long> unit_group_affiliation_map;
 void unit_group_affiliation(System *sys, long source_id, long talkgroup_num) {
-  plugman_unit_group_affiliation(sys, source_id, talkgroup_num);
+  if (unit_group_affiliation_map[source_id] != talkgroup_num) {
+    unit_group_affiliation_map[source_id] = talkgroup_num;
+    plugman_unit_group_affiliation(sys, source_id, talkgroup_num);
+  }
+
 }
 
 void unit_data_grant(System *sys, long source_id) {
@@ -431,9 +446,9 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message, Co
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num) && (call->get_freq() == message.freq) && (call->get_tdma_slot() == message.tdma_slot) && (call->get_phase2_tdma() == message.phase2_tdma)) {
       call_found = true;
       bool source_updated = call->update(message);
-      if (source_updated) {
+      /*if (source_updated) {
         plugman_call_start(call);
-      }
+      }*/
     }
 
     // There is an existing call on freq and slot that the new call will be started on. We should stop the older call. The older recorder will
@@ -522,9 +537,9 @@ void handle_call_update(TrunkMessage message, System *sys, std::vector<Call *> &
       call_found = true;
 
       bool source_updated = call->update(message);
-      if (source_updated) {
+      /*if (source_updated) {
         plugman_call_start(call);
-      }
+      }*/
     }
   }
 
