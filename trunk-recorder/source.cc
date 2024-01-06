@@ -159,8 +159,8 @@ void Source::set_iq_source(std::string iq_file, bool repeat, double center, doub
   attached_selector = false;
   next_selector_port = 0;
 
-  recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
-  signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
+
+
 
   iq_file_source::sptr iq_file_src;
   iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);
@@ -214,6 +214,7 @@ bool Source::is_selector_port_enabled(unsigned int port) {
 void Source::attach_selector(gr::top_block_sptr tb) {
   if (!attached_selector) {
     attached_selector = true;
+      recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
     tb->connect(source_block, 0, recorder_selector, 0);
   }
 }
@@ -221,6 +222,7 @@ void Source::attach_selector(gr::top_block_sptr tb) {
 void Source::attach_detector(gr::top_block_sptr tb) {
   if (!attached_detector) {
     attached_detector = true;
+      signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
     tb->connect(source_block, 0, signal_detector, 0);
   }
 }

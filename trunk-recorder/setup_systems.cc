@@ -138,8 +138,6 @@ bool setup_systems(Config &config, gr::top_block_sptr &tb, std::vector<Source *>
           system->set_source(source);
 
           if (system->get_system_type() == "smartnet") {
-            // what you really need to do is go through all of the sources to find
-            // the one with the right frequencies
             system->smartnet_trunking = make_smartnet_trunking(control_channel_freq,
                                                                source->get_center(),
                                                                source->get_rate(),
@@ -149,8 +147,6 @@ bool setup_systems(Config &config, gr::top_block_sptr &tb, std::vector<Source *>
           }
 
           if (system->get_system_type() == "p25") {
-            // what you really need to do is go through all of the sources to find
-            // the one with the right frequencies
             system->p25_trunking = make_p25_trunking(control_channel_freq,
                                                      source->get_center(),
                                                      source->get_rate(),
@@ -160,7 +156,6 @@ bool setup_systems(Config &config, gr::top_block_sptr &tb, std::vector<Source *>
             tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
           }
 
-          // break out of the For Loop
           break;
         }
       }

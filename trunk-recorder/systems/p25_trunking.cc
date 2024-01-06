@@ -9,6 +9,9 @@ p25_trunking_sptr make_p25_trunking(double freq, double center, long s, gr::msg_
 void p25_trunking::initialize_fsk4() {
 
   double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  system_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;
+  samples_per_symbol = phase1_samples_per_symbol;
+  symbol_rate = phase1_symbol_rate;
   // double phase2_channel_rate = phase2_symbol_rate * phase2_samples_per_symbol;
   const double pi = M_PI;
 
@@ -160,10 +163,10 @@ void p25_trunking::tune_freq(double f) {
   chan_freq = f;
   int offset_amount = (center_freq - f);
   prefilter->tune_offset(offset_amount);
-    if (qpsk_mod) {
+  if (qpsk_mod) {
     costas->set_phase(0);
     costas->set_frequency(0);
   } else {
-    fsk4_demod->reset();
+    //fsk4_demod->reset();
   }
 }
