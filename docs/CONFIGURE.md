@@ -331,13 +331,13 @@ This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://
 **Name:** simplestream
 **Library:** libsimplestream.so
 
-This plugin streams uncompressed audio (16 bit Int, 8 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.
+This plugin streams uncompressed audio (16 bit Int, 8 or 16 kHz, mono) to UDP or TCP ports in real time as it is being recorded by trunk-recorder.  It can be configured to stream audio from all talkgroups and systems being recorded or only specified talkgroups and systems.  TGID information can be prepended to the audio data to allow the receiving program to take action based on the TGID.  Audio from different Systems should be streamed to different UDP/TCP ports to prevent crosstalk and interleaved audio from talkgroups with the same TGID on different systems.
 
 This plugin does not, by itself, stream audio to any online services.  Because it sends uncompressed PCM audio, it is not bandwidth efficient and is intended mostly to send audio to other programs running on the same computer as trunk-recorder or to other computers on the LAN.  The programs receiving PCM audio from this plugin may play it on speakers, compress it and stream it to an online service, etc.
 
 **NOTE 1: In order for this plugin to work, the audioStreaming option in the Global Configs section (see above) must be set to true.**
 
-**NOTE 2: trunk-recorder passes analog audio to this plugin at 16 kHz sample rate and digital audio at 8 kHz sample rate.  Since the audio data being streamed doesn't contain the sample rate, analog and digital audio should be configured to be sent to different ports to receivers that are matched to the same sample rate.**
+**NOTE 2: trunk-recorder passes analog audio to this plugin at 16 kHz sample rate and digital audio at 8 kHz sample rate.  JSON metadata (if enabled) will contain the sample rate of the audio being sent.**
 
 | Key     | Required | Default Value | Type   | Description                                                  |
 | ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
@@ -350,8 +350,17 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | address   |    ✓     |               | string               | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
 | port      |    ✓     |               | number               | UDP or TCP port that this stream will send audio to.         |
 | TGID      |    ✓     |               | number               | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
-| sendTGID  |          |     false     | **true** / **false** | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
-| shortName |          |               | string               | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.
+<<<<<<< HEAD
+<<<<<<< HEAD
+| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, patched_talkgroups, src, freq, audoi_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
+=======
+| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, src, freq, audoi_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
+>>>>>>> 0e42072 (Update CONFIGURE.md)
+=======
+| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, patched_talkgroups, src, freq, audoi_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
+>>>>>>> dcd66be (Update CONFIGURE.md)
+| sendTGID  |          |     false     | **true** / **false** | Deprecated.  Recommend using sendJSON for metadata instead.  If sendJSON is set to true, this setting will be ignored.  When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
+| shortName |          |               | string               | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, JSON metadata should be used to prevent interleaved audio for talkgroups from different Systems with the same TGID.
 |  useTCP   |          |     false     | **true** / **false** | When set to true, TCP will be used instead of UDP.
 
 ###### Plugin Object Example #1:
@@ -364,7 +373,7 @@ This example will stream audio from talkgroup 58914 on system "CountyTrunked" to
             "TGID":58914,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":false,
+            "sendJSON":false,
             "shortName":"CountyTrunked"}
         }
 ```
@@ -379,19 +388,19 @@ This example will stream audio from talkgroup 58914 from System CountyTrunked to
             "TGID":58914,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":false,
+            "sendJSON":false,
             "shortName":"CountyTrunked"},
            {"TGID":58916,
             "address":"127.0.0.1",
             "port":9124,
-            "sendTGID":false,
+            "sendJSON":false,
             "shortName":"StateTrunked"}
           ]}
         }
 ```
 
 ###### Plugin Object Example #3:
-This example will stream audio from talkgroups 58914 and 58916 from all Systems to the local machine on the same UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can differentiate the two audio streams (the receiver may decide to only play one depending on priority, mix the two streams, play one left and one right, etc.)
+This example will stream audio from talkgroups 58914 and 58916 from all Systems to the local machine on the same UDP port 9123.  It will prepend the TGID and other JSON metadata to the audio data in each UDP packet so that the receiving program can differentiate the two audio streams (the receiver may decide to only play one depending on priority, mix the two streams, play one left and one right, etc.)
 ```yaml
         {
           "name":"simplestream",
@@ -400,16 +409,16 @@ This example will stream audio from talkgroups 58914 and 58916 from all Systems 
             "TGID":58914,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":true},
+            "sendJSON":true},
            {"TGID":58916,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":true}
+            "sendJSON":true}
           ]}
         }
 ```
 ###### Plugin Object Example #4:
-This example will stream audio from all talkgroups being recorded on System CountyTrunked to the local machine on UDP port 9123.  It will prepend the TGID to the audio data in each UDP packet so that the receiving program can decide which ones to play or otherwise handle)
+This example will stream audio from all talkgroups being recorded on System CountyTrunked to the local machine on UDP port 9123.  It will prepend the TGID and other JSON metadata to the audio data in each UDP packet so that the receiving program can decide which ones to play or otherwise handle)
 ```yaml
         {
           "name":"simplestream",
@@ -418,7 +427,7 @@ This example will stream audio from all talkgroups being recorded on System Coun
             "TGID":0,
             "address":"127.0.0.1",
             "port":9123,
-            "sendTGID":true,
+            "sendJSON":true,
             "shortName":"CountyTrunked"}
         }
 ```
@@ -438,7 +447,7 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
             "TGID":58918,
             "address":"127.0.0.1",
             "port":9125,
-            "sendTGID":false,
+            "sendJSON":false,
             "shortName":"CountyTrunked",
             "useTCP":true}
         }
