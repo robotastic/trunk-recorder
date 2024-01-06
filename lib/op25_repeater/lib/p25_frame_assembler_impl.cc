@@ -243,6 +243,11 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             silence_frame_count--;
           }
         }
+        
+        if (amt_produce == 0 && terminate_call) {
+          std::fill(out, out + 1, 0);
+          amt_produce = 1;
+        }
 
         if (terminate_call) {
             BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler: Applying TDU." << " Amount: " << amt_produce << " nitems_written(0): " << nitems_written(0);
