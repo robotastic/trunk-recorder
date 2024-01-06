@@ -270,7 +270,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
               silence_frame_count--;
             }
           }
-        }
+        
         
       }
   consume_each(ninput_items[0]);
