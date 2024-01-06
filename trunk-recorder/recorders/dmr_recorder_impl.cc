@@ -172,12 +172,16 @@ bool dmr_recorder_impl::is_squelched() {
   return true;
 }
 bool dmr_recorder_impl::is_idle() {
-
+/*
   if ((wav_sink_slot0->get_state() == IDLE) || (wav_sink_slot0->get_state() == STOPPED)) {
     return true;
   }
 
-  return false;
+  return false;*/
+  if (state == ACTIVE) {
+    return prefilter->is_squelched();
+  }
+  return true;
 }
 
 double dmr_recorder_impl::get_freq() {
