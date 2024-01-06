@@ -67,12 +67,12 @@ dmr_cai::set_debug(int debug) {
     d_slot[1].set_debug(debug);
 }
 
-bool dmr_cai::get_terminated(int slot) {
+std::pair<bool,long> dmr_cai::get_terminated(int slot) {
 	if ((slot == 0) || (slot == 1)) {
 		return d_slot[slot].get_terminated();
 	}
 	fprintf(stderr, "Error, Slot given is not 0 or 1\n");
-	return false;
+	return std::make_pair(false, 0);
 }
 
 int dmr_cai::get_src_id(int slot) {
