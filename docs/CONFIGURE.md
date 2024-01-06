@@ -350,15 +350,7 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | address   |    ✓     |               | string               | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
 | port      |    ✓     |               | number               | UDP or TCP port that this stream will send audio to.         |
 | TGID      |    ✓     |               | number               | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
-<<<<<<< HEAD
-<<<<<<< HEAD
-| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, patched_talkgroups, src, freq, audoi_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
-=======
-| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, src, freq, audoi_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
->>>>>>> 0e42072 (Update CONFIGURE.md)
-=======
-| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, patched_talkgroups, src, freq, audoi_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
->>>>>>> dcd66be (Update CONFIGURE.md)
+| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, src, freq, audio_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
 | sendTGID  |          |     false     | **true** / **false** | Deprecated.  Recommend using sendJSON for metadata instead.  If sendJSON is set to true, this setting will be ignored.  When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
 | shortName |          |               | string               | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, JSON metadata should be used to prevent interleaved audio for talkgroups from different Systems with the same TGID.
 |  useTCP   |          |     false     | **true** / **false** | When set to true, TCP will be used instead of UDP.
