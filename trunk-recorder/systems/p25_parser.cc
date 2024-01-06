@@ -110,7 +110,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   message.freq = 0;
   message.opcode = opcode;
 
-  BOOST_LOG_TRIVIAL(debug) << "decode_mbt_data: $" << opcode;
+  BOOST_LOG_TRIVIAL(trace) << "decode_mbt_data: $" << opcode;
   if (opcode == 0x0) { // grp voice channel grant
     // unsigned long mfrid = bitset_shift_mask(header, 72, 0xff);
     unsigned long ch1 = bitset_shift_mask(mbt_data, 64, 0xffff);
@@ -198,7 +198,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     message.sys_site_id = stid;
     os << "mbt3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ")";
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(debug) << os.str();
+    BOOST_LOG_TRIVIAL(trace) << os.str();
   } else if (opcode == 0x3b) { // network status
     unsigned long wacn = bitset_shift_mask(mbt_data, 76, 0xfffff);
     unsigned long syid = bitset_shift_mask(header, 48, 0xfff);
@@ -213,14 +213,14 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
       message.sys_id = syid;
       message.freq = f1;
     }
-    BOOST_LOG_TRIVIAL(debug) << "mbt3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
+    BOOST_LOG_TRIVIAL(trace) << "mbt3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
   } else if (opcode == 0x3c) { // adjacent status
     unsigned long syid = bitset_shift_mask(header, 48, 0xfff);
     unsigned long rfid = bitset_shift_mask(header, 24, 0xff);
     unsigned long stid = bitset_shift_mask(header, 16, 0xff);
     unsigned long ch1 = bitset_shift_mask(mbt_data, 80, 0xffff);
     unsigned long ch2 = bitset_shift_mask(mbt_data, 64, 0xffff);
-    BOOST_LOG_TRIVIAL(debug) << "mbt3c adjacent status "
+    BOOST_LOG_TRIVIAL(trace) << "mbt3c adjacent status "
                              << "syid " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << ch1 << " ch2 " << ch2;
   } else if (opcode == 0x04) { //  Unit to Unit Voice Service Channel Grant -Extended (UU_V_CH_GRANT)
     // unsigned long mfrid = bitset_shift_mask(header, 80, 0xff);
@@ -596,7 +596,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x15) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk15: SNDCP Data Page Request";
   } else if (opcode == 0x16) {
-    BOOST_LOG_TRIVIAL(debug) << "tsbk16: SNDCP Data Channel Announcement -Explicit";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk16: SNDCP Data Channel Announcement -Explicit";
   } else if (opcode == 0x18) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk18: Status Update";
   } else if (opcode == 0x1a) {
@@ -658,7 +658,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     os << "tsbk29 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2, sys_num) << ") ";
 
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(debug) << os.str();
+    BOOST_LOG_TRIVIAL(trace) << os.str();
 
   } else if (opcode == 0x2a) { // Group Affiliation Query
     BOOST_LOG_TRIVIAL(debug) << "tsbk2a Group Affiliation Query";
@@ -750,7 +750,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         }
       }
     } else {
-      BOOST_LOG_TRIVIAL(debug) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
+      BOOST_LOG_TRIVIAL(trace) << "tsbk30 TDMA SYNCHRONIZATION BROADCAST";
     }
   } else if (opcode == 0x31) { //
     BOOST_LOG_TRIVIAL(debug) << "tsbk31 AUTHENTICATION DEMAND";
@@ -787,7 +787,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
           slots_per_carrier[channel_type], // tdma;
           6.25};
       add_channel(iden, temp_chan, sys_num);
-      BOOST_LOG_TRIVIAL(debug) << "tsbk33 iden up tdma id " << std::dec << iden << " f " << temp_chan.frequency << " offset " << temp_chan.offset << " spacing " << temp_chan.step << " slots/carrier " << temp_chan.slots_per_carrier;
+      BOOST_LOG_TRIVIAL(trace) << "tsbk33 iden up tdma id " << std::dec << iden << " f " << temp_chan.frequency << " offset " << temp_chan.offset << " spacing " << temp_chan.step << " slots/carrier " << temp_chan.slots_per_carrier;
     }
   } else if (opcode == 0x34) { // iden_up vhf uhf
     unsigned long iden = bitset_shift_mask(tsbk, 76, 0xf);
@@ -819,7 +819,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         bandwidth};
     add_channel(iden, temp_chan, sys_num);
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk34 iden vhf/uhf id " << std::dec << iden << " toff " << toff * spac * 0.125 * 1e-3 << " spac " << spac * 0.125 << " freq " << freq * 0.000005 << " [ " << txt[toff_sign] << "]";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk34 iden vhf/uhf id " << std::dec << iden << " toff " << toff * spac * 0.125 * 1e-3 << " spac " << spac * 0.125 << " freq " << freq * 0.000005 << " [ " << txt[toff_sign] << "]";
   } else if (opcode == 0x35) { // Time and Date Announcement
     BOOST_LOG_TRIVIAL(debug) << "tsbk35 Time and Date Announcement";
   } else if (opcode == 0x36) { //
@@ -827,7 +827,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x37) { //
     BOOST_LOG_TRIVIAL(debug) << "tsbk37 ROAMING ADDRESS UPDATE";
   } else if (opcode == 0x38) { //
-    BOOST_LOG_TRIVIAL(debug) << "tsbk38 SYSTEM SERVICE BROADCAST";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk38 SYSTEM SERVICE BROADCAST";
   } else if (opcode == 0x39) { // secondary cc
     unsigned long rfid = bitset_shift_mask(tsbk, 72, 0xff);
     unsigned long stid = bitset_shift_mask(tsbk, 64, 0xff);
@@ -849,7 +849,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     }
     os << "tsbk39 secondary cc: rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ch2 " << ch2 << "(" << channel_id_to_string(ch2, sys_num) << ") ";
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(debug) << os.str();
+    BOOST_LOG_TRIVIAL(trace) << os.str();
   } else if (opcode == 0x3a) { // rfss status
     unsigned long syid = bitset_shift_mask(tsbk, 56, 0xfff);
     unsigned long rfid = bitset_shift_mask(tsbk, 48, 0xff);
@@ -861,7 +861,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.sys_site_id = stid;
     os << "tsbk3a rfss status: syid: " << syid << " rfid " << rfid << " stid " << stid << " ch1 " << chan << "(" << channel_id_to_string(chan, sys_num) << ")";
     message.meta = os.str();
-    BOOST_LOG_TRIVIAL(debug) << os.str();
+    BOOST_LOG_TRIVIAL(trace) << os.str();
   } else if (opcode == 0x3b) { // network status
     unsigned long wacn = bitset_shift_mask(tsbk, 52, 0xfffff);
     unsigned long syid = bitset_shift_mask(tsbk, 40, 0xfff);
@@ -874,13 +874,13 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.sys_id = syid;
       message.freq = f1;
     }
-    BOOST_LOG_TRIVIAL(debug) << "tsbk3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk3b net stat: wacn " << std::dec << wacn << " syid " << syid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
   } else if (opcode == 0x3c) { // adjacent status
     unsigned long rfid = bitset_shift_mask(tsbk, 48, 0xff);
     unsigned long stid = bitset_shift_mask(tsbk, 40, 0xff);
     unsigned long ch1 = bitset_shift_mask(tsbk, 24, 0xffff);
     unsigned long f1 = channel_id_to_frequency(ch1, sys_num);
-    BOOST_LOG_TRIVIAL(debug) << "tsbk3c\tAdjacent Status\t rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
+    BOOST_LOG_TRIVIAL(trace) << "tsbk3c\tAdjacent Status\t rfid " << std::dec << rfid << " stid " << stid << " ch1 " << ch1 << "(" << channel_id_to_string(ch1, sys_num) << ") ";
 
     if (f1) {
       it = channels[stid].find((ch1 >> 12) & 0xf);
@@ -891,7 +891,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         //			self.adjacent[f1] = 'rfid: %d stid:%d uplink:%f
         // tbl:%d' % (rfid, stid, (f1 + self.freq_table[table]['offset']) /
         // 1000000.0, table)
-        BOOST_LOG_TRIVIAL(debug) << "\ttsbk3c Chan " << temp_chan.frequency << "  " << temp_chan.step;
+        BOOST_LOG_TRIVIAL(trace) << "\ttsbk3c Chan " << temp_chan.frequency << "  " << temp_chan.step;
       }
     }
   } else if (opcode == 0x3d) { // iden_up
@@ -916,9 +916,9 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
         1,             // slots
         bw * .125};
     add_channel(iden, temp_chan, sys_num);
-    BOOST_LOG_TRIVIAL(debug) << "tsbk3d iden id " << std::dec << iden << " toff " << toff * 0.25 << " spac " << spac * 0.125 << " freq " << freq * 0.000005;
+    BOOST_LOG_TRIVIAL(trace) << "tsbk3d iden id " << std::dec << iden << " toff " << toff * 0.25 << " spac " << spac * 0.125 << " freq " << freq * 0.000005;
   } else {
-    BOOST_LOG_TRIVIAL(debug) << "tsbk other " << std::hex << opcode;
+    BOOST_LOG_TRIVIAL(trace) << "tsbk other " << std::hex << opcode;
     return messages;
   }
   messages.push_back(message);
@@ -1075,3 +1075,4 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   messages.push_back(message);
   return messages;
 }
+
