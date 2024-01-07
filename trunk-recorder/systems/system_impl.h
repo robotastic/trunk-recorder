@@ -232,6 +232,7 @@ public:
   void update_active_talkgroup_patches(PatchData f_data);
   void delete_talkgroup_patch(PatchData f_data);
   void clear_stale_talkgroup_patches();
+  void print_active_talkgroup_patches();
 
   bool get_multiSite();
   void set_multiSite(bool multiSite);

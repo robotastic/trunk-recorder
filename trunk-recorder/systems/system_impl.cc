@@ -641,6 +641,20 @@ void System_impl::clear_stale_talkgroup_patches() {
   }
 }
 
+void System_impl::print_active_talkgroup_patches() {
+  // Print out all active patches to the console
+  BOOST_LOG_TRIVIAL(info) << "[ " << short_name << " ] " << talkgroup_patches.size() << " active talkgroup patches:";
+  BOOST_FOREACH (auto &patch, talkgroup_patches) {
+    std::string printstring = " - ";
+    BOOST_FOREACH (auto &patch_element, patch.second) {
+      printstring += " ";
+      printstring += std::to_string(patch_element.first);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Active Patch of TGIDs" << printstring;
+  }
+
+}
+
 bool System_impl::get_multiSite() {
   return d_multiSite;
 }
