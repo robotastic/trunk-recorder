@@ -568,7 +568,7 @@ void System_impl::update_active_talkgroup_patches(PatchData patch_data) {
   }
   if (new_flag == true) {
     // TGIDs from the Message were not found in an existing patch, so add them to a new one
-    // BOOST_LOG_TRIVIAL(debug) << "Adding a new patch";
+    BOOST_LOG_TRIVIAL(debug) << "tsbk00\tNew Motorola patch fround, \tsg: " << patch_data.sg << "\tga1: " << patch_data.ga1 << "\tga2: " << patch_data.ga2 << "\tga3: " << patch_data.ga3;
     std::map<unsigned long, std::time_t> new_patch;
     if (0 != patch_data.sg) {
       new_patch[patch_data.sg] = update_time;
