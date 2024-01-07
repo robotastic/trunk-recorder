@@ -254,7 +254,7 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             if ((amt_produce != 1) && (terminate_call.second < amt_produce)) {
               BOOST_LOG_TRIVIAL(info) << "P25 Frame Assembler: TDU was not at the end of the data. TDU: " << terminate_call.second << " Amount: " << amt_produce << " nitems_written(0): " << nitems_written(0);  
             }
-            add_item_tag(0, terminate_call.second, pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
+            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
             
             Rx_Status status = p1fdma.get_rx_status();
             
