@@ -237,7 +237,7 @@ void channelizer::set_squelch_db(double squelch_db) {
 
 void channelizer::set_analog_squelch(bool analog_squelch) {
   if (analog_squelch) {
-    squelch->set_alpha(0.001);
+    squelch->set_alpha(0.01);
     squelch->set_ramp(10);
     squelch->set_gate(true);
   } else {
