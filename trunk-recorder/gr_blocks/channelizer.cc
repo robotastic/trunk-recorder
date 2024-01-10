@@ -239,7 +239,7 @@ void channelizer::set_analog_squelch(bool analog_squelch) {
   if (analog_squelch) {
     squelch->set_alpha(0.01);
     squelch->set_ramp(10);
-    squelch->set_gate(true);
+    squelch->set_gate(false);
   } else {
     squelch->set_alpha(0.0001);
     squelch->set_ramp(0);
