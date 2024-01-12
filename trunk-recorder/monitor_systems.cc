@@ -186,7 +186,6 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     sys->print_active_talkgroup_patches();
   }
 
-
   BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;
@@ -196,25 +195,11 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     }
   }
 
-
-
   BOOST_LOG_TRIVIAL(info) << "Recorders: ";
-
   for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
     Source *source = *it;
     source->print_recorders();
   }
-
-  BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
-  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System_impl *sys = (System_impl *)*it;
-
-    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR") && (sys->get_system_type() != "conventionalSIGMF")) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
-    }
-  }
-
-
 }
 
 
