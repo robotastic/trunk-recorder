@@ -153,10 +153,10 @@ void p25p2_tdma::crypt_key(uint16_t keyid, uint8_t algid, const std::vector<uint
 }
 
 void p25p2_tdma::reset_call_terminated() {
-	terminate_call = false;
+	terminate_call = std::pair<bool,long>(false, 0);
 }
 
-bool p25p2_tdma::get_call_terminated() {
+std::pair<bool,long> p25p2_tdma::get_call_terminated() {
 	return terminate_call;
 }
 
@@ -303,7 +303,7 @@ void p25p2_tdma::handle_mac_end_ptt(const uint8_t byte_buf[], const unsigned int
                 fprintf(stderr, "%s MAC_END_PTT: colorcd=0x%03x, srcaddr=%u, grpaddr=%u, rs_errs=%d\n", logts.get(d_msgq_id), colorcd, srcaddr, grpaddr, rs_errs);
 
         op25audio.send_audio_flag(op25_audio::DRAIN);
-		terminate_call = true;
+		terminate_call = std::pair<bool,long>(true, output_queue_decode.size());
 		// reset crypto parameters
         reset_ess();
 }

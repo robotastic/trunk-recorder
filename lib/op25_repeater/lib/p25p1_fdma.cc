@@ -218,7 +218,7 @@ namespace gr {
             ess_keyid(0),
             ess_algid(0x80),
             vf_tgid(0),
-			terminate_call(false),
+			terminate_call(std::pair<bool,long>(false,0)),
             p1voice_decode((debug > 0), udp, output_queue)
         {
 			rx_status.error_count = 0;
@@ -243,9 +243,9 @@ namespace gr {
 		}
 
         void p25p1_fdma::reset_call_terminated() {
-            terminate_call = false;
+            terminate_call = std::pair<bool,long>(false,0);
         }
-		bool p25p1_fdma::get_call_terminated() {
+		std::pair<bool,long> p25p1_fdma::get_call_terminated() {
 			return terminate_call;
 		}
         long p25p1_fdma::get_curr_grp_id() {
@@ -408,7 +408,7 @@ namespace gr {
 
             if ((d_do_imbe || d_do_audio_output) && (framer->duid == 0x3 || framer->duid == 0xf)) {  // voice termination
                 op25audio.send_audio_flag(op25_audio::DRAIN);
-				terminate_call = true;
+				terminate_call = std::pair<bool,long>(true, output_queue.size());
             }
         }
 
@@ -864,7 +864,7 @@ namespace gr {
 					rx_status.error_count += framer->bch_errors;
 					rx_status.total_len += 64;
 					rx_status.last_update = time(NULL); //comment/remove if you don't care about non-voice frames
-					terminate_call = false;
+					terminate_call = std::pair<bool,long>(false,0);
 
                     process_frame();
                 }  // end of complete frame

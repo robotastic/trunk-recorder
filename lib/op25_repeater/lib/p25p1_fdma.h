@@ -98,7 +98,7 @@ namespace gr {
                 double error_history[20];
                 long curr_src_id;
                 long curr_grp_id;
-                bool terminate_call;
+                std::pair<bool,long> terminate_call;
                 const char *d_udp_host;
                 int  d_port;
 
@@ -137,7 +137,7 @@ namespace gr {
                 long get_curr_src_id();
                 long get_curr_grp_id();
                 void reset_rx_status();
-                bool get_call_terminated();
+                std::pair<bool,long> get_call_terminated();
                 void reset_call_terminated();
                 Rx_Status get_rx_status();
                 void clear();

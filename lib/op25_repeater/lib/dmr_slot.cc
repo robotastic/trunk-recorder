@@ -90,7 +90,7 @@ bool
 dmr_slot::load_slot(const uint8_t slot[], uint64_t sl_type) {
 	bool is_voice_frame = false;
 	d_src_id = -1;
-	d_terminated = false;
+	d_terminated = std::pair<bool,long>(false, 0);
 	memcpy(d_slot, slot, sizeof(d_slot));
 
 	// Check if fresh Sync received
@@ -719,7 +719,7 @@ dmr_slot::decode_emb() {
 			for (size_t i=0; i<32; i++)
 				d_emb.push_back(d_slot[SYNC_EMB + 8 + i]);
 			if (decode_embedded_lc()) {
-				d_terminated = true;
+				d_terminated = std::pair<bool, int>(true, 0);
 				if (d_debug >= 0) {
 					fprintf(stderr, "%s END !! Slot(%d), CC(%x), EMB LC PF(%d), FLCO(%02x), FID(%02x), SVCOPT(%02X), DSTADDR(%06x), SRCADDR(%06x)\n",  logts.get(d_msgq_id), d_chan, emb_cc, get_lc_pf(), get_lc_flco(), get_lc_fid(), get_lc_svcopt(), get_lc_dstaddr(), get_lc_srcaddr());
 				}
@@ -735,7 +735,7 @@ dmr_slot::decode_emb() {
 	return true;
 }
 
-bool dmr_slot::get_terminated() {
+std::pair<bool,long> dmr_slot::get_terminated() {
 	return d_terminated;
 }
 

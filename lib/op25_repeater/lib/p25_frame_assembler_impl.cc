@@ -186,15 +186,15 @@ p25_frame_assembler_impl::general_work (int noutput_items,
 {
 
   const uint8_t *in = (const uint8_t *) input_items[0];
-  bool terminate_call = false;
+  std::pair<bool,long> terminate_call = std::make_pair(false, 0);
 
   p1fdma.rx_sym(in, ninput_items[0]);
   if(d_do_phase2_tdma) {
     for (int i = 0; i < ninput_items[0]; i++) {
       if(p2tdma.rx_sym(in[i])) {
         int rc = p2tdma.handle_frame();
-        if (p2tdma.get_call_terminated()) {
-          terminate_call = true;
+        terminate_call = p2tdma.get_call_terminated();
+        if (terminate_call.first) {
           p2tdma.reset_call_terminated();
         }
         
@@ -205,8 +205,8 @@ p25_frame_assembler_impl::general_work (int noutput_items,
       }
     }
   } else {
-    if (p1fdma.get_call_terminated()) {
-      terminate_call = true;
+    terminate_call = p1fdma.get_call_terminated();
+    if (terminate_call.first) {
       p1fdma.reset_call_terminated();
     }
   }
@@ -237,22 +237,32 @@ p25_frame_assembler_impl::general_work (int noutput_items,
             BOOST_LOG_TRIVIAL(trace) << "setting silence_frame_count " << silence_frame_count << " to d_silence_frames: " << d_silence_frames << std::endl;
             silence_frame_count = d_silence_frames;
         } else {
-              if (terminate_call) {
-                add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
-                
-                Rx_Status status = p1fdma.get_rx_status();
-                
-                // If something was recorded, send the number of Errors and Spikes that were counted during that period
-                if (status.total_len > 0 ) {
-                  add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
-                  add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
-                  p1fdma.reset_rx_status();
-                }
-                
-                send_grp_src_id();
-                
-                std::fill(out, out + 1, 0);
-                amt_produce = 1;
+          if (silence_frame_count > 0) {
+            std::fill(out, out + noutput_items, 0);
+            amt_produce = noutput_items;
+            silence_frame_count--;
+          }
+        }
+        
+        if (amt_produce == 0 && terminate_call.first) {
+          std::fill(out, out + 1, 0);
+          amt_produce = 1;
+        }
+
+        if (terminate_call.first) {
+            BOOST_LOG_TRIVIAL(trace) << "P25 Frame Assembler: Applying TDU." << " Amount: " << amt_produce << " nitems_written(0): " << nitems_written(0);
+            if ((amt_produce != 1) && (terminate_call.second < amt_produce)) {
+              BOOST_LOG_TRIVIAL(info) << "P25 Frame Assembler: TDU was not at the end of the data. TDU: " << terminate_call.second << " Amount: " << amt_produce << " nitems_written(0): " << nitems_written(0);  
+            }
+            add_item_tag(0, nitems_written(0), pmt::intern("terminate"), pmt::from_long(1), d_tag_src );
+            
+            Rx_Status status = p1fdma.get_rx_status();
+            
+            // If something was recorded, send the number of Errors and Spikes that were counted during that period
+            if (status.total_len > 0 ) {
+              add_item_tag(0, nitems_written(0), pmt::intern("spike_count"), pmt::from_long(status.spike_count), d_tag_src);
+              add_item_tag(0, nitems_written(0), pmt::intern("error_count"), pmt::from_long(status.error_count), d_tag_src);
+              p1fdma.reset_rx_status();
             }
             if (silence_frame_count > 0) {
               std::fill(out, out + noutput_items, 0);
@@ -260,6 +270,8 @@ p25_frame_assembler_impl::general_work (int noutput_items,
               silence_frame_count--;
             }
           }
+        
+        
       }
   consume_each(ninput_items[0]);
   // Tell runtime system how many output items we actually produced.
