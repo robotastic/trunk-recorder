@@ -192,11 +192,9 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     System_impl *sys = (System_impl *)*it;
 
     if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR") && (sys->get_system_type() != "conventionalSIGMF")) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t" << format_freq(sys->get_current_control_channel()) << "\t" << sys->get_decode_rate() << " msg/sec";
     }
   }
-
-
 
   BOOST_LOG_TRIVIAL(info) << "Recorders: ";
 
@@ -205,14 +203,7 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     source->print_recorders();
   }
 
-  BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
-  for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
-    System_impl *sys = (System_impl *)*it;
 
-    if ((sys->get_system_type() != "conventional") && (sys->get_system_type() != "conventionalP25") && (sys->get_system_type() != "conventionalDMR") && (sys->get_system_type() != "conventionalSIGMF")) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "] " << sys->get_decode_rate() << " msg/sec";
-    }
-  }
 
 
 }
@@ -737,8 +728,10 @@ void check_message_count(float timeDiff, Config &config,  gr::top_block_sptr &tb
         sys->retune_attempts = 0;
       }
 
-      if (msgs_decoded_per_second < config.control_message_warn_rate || config.control_message_warn_rate == -1) {
+      if (msgs_decoded_per_second < config.control_message_warn_rate) {
         BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
+      } else if (config.control_message_warn_rate == -1) {
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t Control Channel Message Decode Rate: " << msgs_decoded_per_second << "/sec, count:  " << sys->message_count;
       }
     }
     sys->message_count = 0;
