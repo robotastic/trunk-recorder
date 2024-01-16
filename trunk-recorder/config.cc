@@ -499,6 +499,11 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
           BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
 
+          if ((driver != "osmosdr") && (long(rate) % 24000 !=0)) {
+            BOOST_LOG_TRIVIAL(error) << "OsmoSDR must have a sample rate that is a multiple of 24000, current rate: " << rate << " for device: " << device;
+            return false;
+          }
+
           if ((ppm != 0) && (error != 0)) {
             BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
             error = 0;
