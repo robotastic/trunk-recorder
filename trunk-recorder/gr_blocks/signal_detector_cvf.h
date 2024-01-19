@@ -72,7 +72,14 @@ struct Detected_Signal {
 class signal_detector_cvf : virtual public gr::sync_decimator
 {
 public:
-    typedef std::shared_ptr<signal_detector_cvf> sptr;
+
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<signal_detector_cvf> sptr;
+#else
+  typedef std::shared_ptr<signal_detector_cvf> sptr;
+#endif
+
+    
 
     /*!
      * \brief Return a signal detector block instance.

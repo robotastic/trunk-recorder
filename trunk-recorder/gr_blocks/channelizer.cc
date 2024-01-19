@@ -94,7 +94,7 @@ double resampled_rate;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
 
     #if GNURADIO_VERSION < 0x030900
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa,gr::fft::window::WIN_HAMMING);
+        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa,gr::filter::firdes::WIN_HAMMING);
     #else
         lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa,gr::fft::window::WIN_HAMMING);
     #endif
