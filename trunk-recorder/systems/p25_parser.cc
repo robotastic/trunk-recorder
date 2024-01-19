@@ -635,7 +635,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     message.source = ta;
     message.talkgroup = ga;
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk2f\tUnit Group Affiliation\tSource ID: " << std::setw(7) << ta << "\tGroup Address: " << std::dec << ga << "\tAnouncement Goup: " << aga;
+    BOOST_LOG_TRIVIAL(debug) << "tsbk28\tUnit Group Affiliation\tSource ID: " << std::setw(7) << ta << "\tGroup Address: " << std::dec << ga << "\tAnnouncement Group: " << aga;
   } else if (opcode == 0x29) { // Secondary Control Channel Broadcast - Explicit
     unsigned long rfid = bitset_shift_mask(tsbk, 72, 0xff);
     unsigned long stid = bitset_shift_mask(tsbk, 64, 0xff);
