@@ -219,7 +219,7 @@ link_directories(
     ${OPENSSL_ROOT_DIR}/lib
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g3")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g3")
 
 SET(CMAKE_CXX_STANDARD 17)
 

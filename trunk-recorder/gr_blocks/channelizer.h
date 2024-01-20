@@ -34,37 +34,12 @@
 
 class channelizer : public gr::hier_block2 {
 public:
-#if GNURADIO_VERSION < 0x030900
-  typedef boost::shared_ptr<channelizer> sptr;
-#else
-  typedef std::shared_ptr<channelizer> sptr;
-#endif
-
-  static sptr make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional);
-  channelizer(double input_rate, int samples_per_symbol, double symbol_rate,  double center_freq, bool conventional);
-
    struct DecimSettings {
     long decim;
     long decim2;
   };
 
-  static const int smartnet_samples_per_symbol = 5;
-  static const int phase1_samples_per_symbol = 5;
-  static const int phase2_samples_per_symbol = 4;
-  static constexpr double phase1_symbol_rate = 4800;
-  static constexpr double phase2_symbol_rate = 6000;
-  static constexpr double smartnet_symbol_rate = 3600;
 
-
-
-int get_freq_error();
-bool is_enabled();
-bool is_squelched();
-void tune_offset(double f); 
-void set_samples_per_symbol(int samples_per_symbol);
-void set_enabled(bool enabled); 
-void set_squelch_db(double squelch_db);
-void set_analog_squelch(bool analog_squelch);
  private:
 
 
@@ -104,6 +79,35 @@ long decim;
 
 
     static DecimSettings get_decim(long speed); 
+
+public:
+#if GNURADIO_VERSION < 0x030900
+  typedef boost::shared_ptr<channelizer> sptr;
+#else
+  typedef std::shared_ptr<channelizer> sptr;
+#endif
+
+  static sptr make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional);
+  channelizer(double input_rate, int samples_per_symbol, double symbol_rate,  double center_freq, bool conventional);
+
+  static const int smartnet_samples_per_symbol = 5;
+  static const int phase1_samples_per_symbol = 5;
+  static const int phase2_samples_per_symbol = 4;
+  static constexpr double phase1_symbol_rate = 4800;
+  static constexpr double phase2_symbol_rate = 6000;
+  static constexpr double smartnet_symbol_rate = 3600;
+
+
+
+int get_freq_error();
+bool is_enabled();
+bool is_squelched();
+void tune_offset(double f); 
+void set_samples_per_symbol(int samples_per_symbol);
+void set_enabled(bool enabled); 
+void set_squelch_db(double squelch_db);
+void set_analog_squelch(bool analog_squelch);
+
 };
 
 #endif

@@ -8,6 +8,14 @@
 
 
 class iq_file_source : public gr::hier_block2 {
+    private:
+
+  std::string d_filename;
+    double d_rate;
+    bool d_repeat;
+    gr::blocks::file_source::sptr file_source;
+    gr::blocks::throttle::sptr throttle;
+
 public:
 #if GNURADIO_VERSION < 0x030900
   typedef boost::shared_ptr<iq_file_source> sptr;
@@ -20,12 +28,7 @@ public:
   iq_file_source(std::string filename,  double rate, bool repeat);
 
 
-  private:
-  double d_rate;
-  std::string d_filename;
-    bool d_repeat;
-    gr::blocks::file_source::sptr file_source;
-    gr::blocks::throttle::sptr throttle;
+
 };
 
 

@@ -405,7 +405,7 @@ std::vector<Recorder *> Source::get_detected_recorders() {
     Detected_Signal signal = *it;
 
     float freq = center + signal.center_freq;
-    float bandwidth = signal.bandwidth;
+    //float bandwidth = signal.bandwidth; // available data but not needed for anything
     float rssi = signal.max_rssi;
 
     std::vector<Recorder *> recorders = find_conventional_recorders_by_freq(freq);

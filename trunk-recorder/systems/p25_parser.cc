@@ -181,7 +181,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     unsigned long lg = bitset_shift_mask(mbt_data, 127, 0x1);
     unsigned long gav = bitset_shift_mask(mbt_data, 120, 0x3);
 
-      os << "mbt28\tmbt(0x28) grp_aff_rsp:\tMFRID: " << mfrid <<  "\tWACN: " <<  wacn << "\tSYID: " << syid << "\tLG: " << lg << "\tGAV: " << gav << "\tADA: " << ada << "\tGA: " << ga << "\tLG: " << lg;
+      os << "mbt28\tmbt(0x28) grp_aff_rsp:\tMFRID: " << mfrid <<  "\tWACN: " <<  wacn << "\tSYID: " << syid << "\tLG: " << lg << "\tGAV: " << gav << "\tADA: " << ada << "\tGA: " << ga << "\tLG: " << lg << "\tGID: " << gid;
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
   } else if (opcode == 0x3a) { // rfss status
@@ -306,7 +306,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       moto_patch_data.ga3 = ga3;
       message.patch_data = moto_patch_data;
     } else {
-      unsigned long opts  = bitset_shift_mask(tsbk, 72, 0xff);
+      // unsigned long opts  = bitset_shift_mask(tsbk, 72, 0xff); // not required for anything 
       bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
       bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
       bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
@@ -343,7 +343,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     // Options are not present in an UPDATE
 
     if (mfrid == 0x90) {
-        unsigned long opts = bitset_shift_mask(tsbk, 72, 0xff);
+        // unsigned long opts = bitset_shift_mask(tsbk, 72, 0xff);  // not required for anything
         bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
         bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
         bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
@@ -466,15 +466,15 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     } else {
       bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
       bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-      bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
-      bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
-      int priority = bitset_shift_mask(tsbk, 72, 0x07);
+      // bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
+      // bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
+      // int priority = bitset_shift_mask(tsbk, 72, 0x07);
 
       unsigned long ch1 = bitset_shift_mask(tsbk, 48, 0xffff);
       unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 16, 0xffff);
       unsigned long f1 = channel_id_to_frequency(ch1, sys_num);
-      unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
+      // unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
 
       message.message_type = UPDATE;
       message.freq = f1;

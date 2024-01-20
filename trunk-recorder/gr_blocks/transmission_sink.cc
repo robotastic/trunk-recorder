@@ -80,7 +80,6 @@ transmission_sink::transmission_sink(int n_channels, unsigned int sample_rate, i
 void transmission_sink::create_filename() {
   time_t work_start_time = d_start_time;
   std::stringstream temp_path_stream;
-  tm *ltm = localtime(&work_start_time);
   // Found some good advice on Streams and Strings here: https://blog.sensecodons.com/2013/04/dont-let-stdstringstreamstrcstr-happen.html
 
   temp_path_stream << d_current_call_temp_dir << "/" << d_current_call_short_name;

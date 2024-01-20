@@ -48,10 +48,10 @@ channelizer::channelizer(double input_rate, int samples_per_symbol, double symbo
     : gr::hier_block2("channelizer_ccf",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(1, 1, sizeof(gr_complex))),
-      d_center_freq(center_freq),
       d_input_rate(input_rate),
       d_samples_per_symbol(samples_per_symbol),
       d_symbol_rate(symbol_rate),
+      d_center_freq(center_freq),
       d_conventional(conventional) {
 
         long channel_rate = d_symbol_rate * d_samples_per_symbol;
