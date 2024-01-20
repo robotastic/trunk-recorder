@@ -115,7 +115,7 @@ public:
   }
 
   int upload(Call_Data_t call_info) {
-    CURL *curl;
+   
     CURLMcode res;
     CURLM *multi_handle;
     int still_running = 0;
@@ -128,45 +128,38 @@ public:
       return 0;
     }
 
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
+
     struct curl_slist *headerlist = NULL;
 
-    /* Fill in the file upload field. This makes libcurl load data from
-     the given file name when curl_easy_perform() is called. */
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "metadata",
-                 CURLFORM_FILE, call_info.status_filename,
-                 CURLFORM_CONTENTTYPE, "application/json",
-                 CURLFORM_END);
+    CURL *curl = curl_easy_init();
+    curl_mime *mime;
+    curl_mimepart *part;
 
-    /* Fill in the filename field */
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "filename",
-                 CURLFORM_COPYCONTENTS, call_info.converted,
-                 CURLFORM_END);
+    mime = curl_mime_init(curl);
+    part = curl_mime_addpart(mime);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "callDuration",
-                 CURLFORM_COPYCONTENTS, std::to_string(call_info.length).c_str(),
-                 CURLFORM_END);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "systemId",
-                 CURLFORM_COPYCONTENTS, std::to_string(system_id).c_str(),
-                 CURLFORM_END);
+  curl_mime_filedata(part, call_info.converted); 
+  curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
+  curl_mime_name(part, "call");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "apiKey",
-                 CURLFORM_COPYCONTENTS, api_key.c_str(),
-                 CURLFORM_END);
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, call_info.converted, CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "filename");
 
-    curl = curl_easy_init();
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, std::to_string(call_info.length).c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "callDuration");
+
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, std::to_string(system_id).c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "systemId");
+
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "api_key");
+
+
     multi_handle = curl_multi_init();
 
     /* initialize custom header list (stating that Expect: 100-continue is not wanted */
@@ -177,7 +170,7 @@ public:
 
       curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-      curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+      curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
@@ -262,8 +255,9 @@ public:
       /* always cleanup */
       curl_easy_cleanup(curl);
 
-      /* then cleanup the formpost chain */
-      curl_formfree(formpost);
+     /* then cleanup the mime */
+      curl_mime_free(mime);
+    
 
       /* free slist */
       curl_slist_free_all(headerlist);

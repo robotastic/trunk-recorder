@@ -89,9 +89,13 @@ public:
     char formattedTalkgroup[62];
     snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
     std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
-    CURL *curl;
+    /*CURL *curl;*/
     CURLMcode res;
     CURLM *multi_handle;
+
+
+
+
     int still_running = 0;
     std::string response_buffer;
     freq_string = freq.str();
@@ -101,80 +105,68 @@ public:
     source_list_string = source_list.str();
     call_length_string = call_length.str();
 
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
     struct curl_slist *headerlist = NULL;
 
     /* Fill in the file upload field. This makes libcurl load data from
      the given file name when curl_easy_perform() is called. */
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "call",
-                 CURLFORM_FILE, call_info.converted,
-                 CURLFORM_CONTENTTYPE, "application/octet-stream",
-                 CURLFORM_END);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "freq",
-                 CURLFORM_COPYCONTENTS, freq_string.c_str(),
-                 CURLFORM_END);
+    CURL *curl = curl_easy_init();
+    curl_mime *mime;
+    curl_mimepart *part;
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "error_count",
-                 CURLFORM_COPYCONTENTS, error_count_string.c_str(),
-                 CURLFORM_END);
+    mime = curl_mime_init(curl);
+  part = curl_mime_addpart(mime);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "spike_count",
-                 CURLFORM_COPYCONTENTS, spike_count_string.c_str(),
-                 CURLFORM_END);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "start_time",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.start_time).c_str(),
-                 CURLFORM_END);
+  curl_mime_filedata(part, call_info.converted); 
+  curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
+  curl_mime_name(part, "call");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "stop_time",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.stop_time).c_str(),
-                 CURLFORM_END);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "call_length",
-                 CURLFORM_COPYCONTENTS, call_length_string.c_str(),
-                 CURLFORM_END);
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, freq_string.c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "freq");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "talkgroup_num",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(),
-                 CURLFORM_END);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "emergency",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.emergency).c_str(),
-                 CURLFORM_END);
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, error_count_string.c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "error_count");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "api_key",
-                 CURLFORM_COPYCONTENTS, api_key.c_str(),
-                 CURLFORM_END);
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, spike_count_string.c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "spike_count");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "source_list",
-                 CURLFORM_COPYCONTENTS, source_list_string.c_str(),
-                 CURLFORM_END);
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.start_time).c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "start_time");
 
-    curl = curl_easy_init();
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.stop_time).c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "stop_time");
+
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, call_length_string.c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "call_length");
+
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "talkgroup_num");
+
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.emergency).c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "emergency");
+
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "api_key");
+
+part = curl_mime_addpart(mime);
+  curl_mime_data(part, source_list_string.c_str(), CURL_ZERO_TERMINATED);
+  curl_mime_name(part, "source_list");
+
+
+
+    
     multi_handle = curl_multi_init();
 
     /* initialize custom header list (stating that Expect: 100-continue is not wanted */
@@ -187,7 +179,8 @@ public:
 
       curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-      curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+      curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
+
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
@@ -269,8 +262,8 @@ public:
       /* always cleanup */
       curl_easy_cleanup(curl);
 
-      /* then cleanup the formpost chain */
-      curl_formfree(formpost);
+      /* then cleanup the mime */
+      curl_mime_free(mime);
 
       /* free slist */
       curl_slist_free_all(headerlist);
