@@ -93,9 +93,6 @@ public:
     CURLMcode res;
     CURLM *multi_handle;
 
-
-
-
     int still_running = 0;
     std::string response_buffer;
     freq_string = freq.str();
@@ -115,58 +112,52 @@ public:
     curl_mimepart *part;
 
     mime = curl_mime_init(curl);
-  part = curl_mime_addpart(mime);
+    part = curl_mime_addpart(mime);
 
+    curl_mime_filedata(part, call_info.converted);
+    curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
+    curl_mime_name(part, "call");
 
-  curl_mime_filedata(part, call_info.converted); 
-  curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
-  curl_mime_name(part, "call");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, freq_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "freq");
 
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, error_count_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "error_count");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, freq_string.c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "freq");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, spike_count_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "spike_count");
 
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.start_time).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "start_time");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, error_count_string.c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "error_count");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.stop_time).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "stop_time");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, spike_count_string.c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "spike_count");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, call_length_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "call_length");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.start_time).c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "start_time");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "talkgroup_num");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.stop_time).c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "stop_time");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.emergency).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "emergency");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, call_length_string.c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "call_length");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "api_key");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "talkgroup_num");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, source_list_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "source_list");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, boost::lexical_cast<std::string>(call_info.emergency).c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "emergency");
-
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "api_key");
-
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, source_list_string.c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "source_list");
-
-
-
-    
     multi_handle = curl_multi_init();
 
     /* initialize custom header list (stating that Expect: 100-continue is not wanted */
@@ -180,7 +171,6 @@ part = curl_mime_addpart(mime);
       curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
       curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
-
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);

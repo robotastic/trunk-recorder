@@ -4,10 +4,10 @@
 
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
-#include <sys/stat.h>
+#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
-#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
+#include <sys/stat.h>
 
 struct Broadcastify_System_Key {
   std::string api_key;
@@ -22,8 +22,8 @@ struct Broadcastify_Uploader_Data {
 };
 
 class Broadcastify_Uploader : public Plugin_Api {
-  //float aggr_;
-  //my_plugin_aggregator() : aggr_(0) {}
+  // float aggr_;
+  // my_plugin_aggregator() : aggr_(0) {}
   Broadcastify_Uploader_Data data;
 
 public:
@@ -115,7 +115,7 @@ public:
   }
 
   int upload(Call_Data_t call_info) {
-   
+
     CURLMcode res;
     CURLM *multi_handle;
     int still_running = 0;
@@ -128,7 +128,6 @@ public:
       return 0;
     }
 
-
     struct curl_slist *headerlist = NULL;
 
     CURL *curl = curl_easy_init();
@@ -138,27 +137,25 @@ public:
     mime = curl_mime_init(curl);
     part = curl_mime_addpart(mime);
 
+    curl_mime_filedata(part, call_info.converted);
+    curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
+    curl_mime_name(part, "call");
 
-  curl_mime_filedata(part, call_info.converted); 
-  curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
-  curl_mime_name(part, "call");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, call_info.converted, CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "filename");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, call_info.converted, CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "filename");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, std::to_string(call_info.length).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "callDuration");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, std::to_string(call_info.length).c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "callDuration");
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, std::to_string(system_id).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "systemId");
 
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, std::to_string(system_id).c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "systemId");
-
-part = curl_mime_addpart(mime);
-  curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
-  curl_mime_name(part, "api_key");
-
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "api_key");
 
     multi_handle = curl_multi_init();
 
@@ -255,9 +252,8 @@ part = curl_mime_addpart(mime);
       /* always cleanup */
       curl_easy_cleanup(curl);
 
-     /* then cleanup the mime */
+      /* then cleanup the mime */
       curl_mime_free(mime);
-    
 
       /* free slist */
       curl_slist_free_all(headerlist);
@@ -280,12 +276,12 @@ part = curl_mime_addpart(mime);
       std::string message = response_buffer.substr(spacepos + 1);
 
       if (code == "1" && (message.rfind("SKIPPED", 0) == 0)) {
-          BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload Skipped: " << message;
-          return 0;
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload Skipped: " << message;
+        return 0;
       }
       if (code == "1" && (message.rfind("REJECTED", 0) == 0)) {
-          BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload REJECTED: " << message;
-          return 0;
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload REJECTED: " << message;
+        return 0;
       }
 
       if (code != "0") {
@@ -315,7 +311,6 @@ part = curl_mime_addpart(mime);
   }
 
   int parse_config(json config_data) {
-
 
     // Tests to see if the uploadServer value exists in the config file
     bool upload_server_exists = config_data.contains("broadcastifyCallsServer");
@@ -352,7 +347,7 @@ part = curl_mime_addpart(mime);
       }
     }
 
-    if (this->data.keys.size() ==0){
+    if (this->data.keys.size() == 0) {
       BOOST_LOG_TRIVIAL(error) << "Broadcastify Server set, but no Systems are configured\n";
       return 1;
     }
