@@ -24,8 +24,8 @@
 #define INCLUDED_GR_SELECTOR_IMPL_H
 
 #include "selector.h"
-#include <gnuradio/thread/thread.h>
 #include <boost/log/trivial.hpp>
+#include <gnuradio/thread/thread.h>
 
 namespace gr {
 namespace blocks {
@@ -46,7 +46,6 @@ public:
 
   void forecast(int noutput_items, gr_vector_int &ninput_items_required);
   bool check_topology(int ninputs, int noutputs);
-
 
   void set_port_enabled(unsigned int port, bool enabled);
   bool is_port_enabled(unsigned int port);

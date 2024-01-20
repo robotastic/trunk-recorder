@@ -475,8 +475,8 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     // The TDU can come in with voice samples. Write the voice samples and then end the transmission.
     if (d_sample_count > 0 && noutput_items > 1) {
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTerminator received with items. Ending transmission after writing. Sample Count: " << d_sample_count << " Noutput Items: " << noutput_items;
-     terminate_after_write = true;
-    // Handle the case of a terminator coming in without voice samples. End the transmission immediately.
+      terminate_after_write = true;
+      // Handle the case of a terminator coming in without voice samples. End the transmission immediately.
     } else if (d_sample_count > 0) {
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTerminator received without items. Ending transmission immediately. " << d_sample_count << " Noutput Items: " << noutput_items;
       end_transmission();
@@ -485,7 +485,6 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       BOOST_LOG_TRIVIAL(trace) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tTERM - skipped....   - count: " << d_sample_count;
       return noutput_items;
     }
-
   }
 
   if (state == IGNORE) {
@@ -547,10 +546,9 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       }
     }
 
-    if(terminate_after_write){
+    if (terminate_after_write) {
       end_transmission();
     }
-
   }
 
   d_stop_time = time(NULL);

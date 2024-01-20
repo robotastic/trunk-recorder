@@ -13,8 +13,8 @@ std::string Call_impl::get_capture_dir() {
   return this->config.capture_dir;
 }
 
-std::string Call_impl::get_temp_dir() { 
-  return this->config.temp_dir; 
+std::string Call_impl::get_temp_dir() {
+  return this->config.temp_dir;
 }
 
 /*
@@ -106,7 +106,7 @@ void Call_impl::stop_call() {
     // doing anything and can be stopped.
     if ((state == RECORDING) && this->get_recorder()->is_idle()) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call_impl - Last Update: " << this->since_last_update() << "s";
-    } 
+    }
   }
 }
 long Call_impl::get_call_num() {
@@ -334,12 +334,12 @@ bool Call_impl::add_source(long src) {
 }
 
 bool Call_impl::update(TrunkMessage message) {
-    last_update = time(NULL);
-    if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tCall_impl Update, message mismatch - Call_impl TG: " << get_talkgroup() << "\t Call_impl Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
-    } else {
-      return add_source(message.source);
-    }
+  last_update = time(NULL);
+  if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
+    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tCall_impl Update, message mismatch - Call_impl TG: " << get_talkgroup() << "\t Call_impl Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+  } else {
+    return add_source(message.source);
+  }
   return false;
 }
 
@@ -348,7 +348,7 @@ int Call_impl::since_last_update() {
 }
 
 double Call_impl::since_last_voice_update() {
-    if (state == RECORDING) {
+  if (state == RECORDING) {
     Recorder *rec = this->get_recorder();
     if (rec != NULL) {
       return rec->since_last_write();
@@ -356,7 +356,6 @@ double Call_impl::since_last_voice_update() {
   }
   return -1;
 }
-
 
 long Call_impl::elapsed() {
   return time(NULL) - start_time;

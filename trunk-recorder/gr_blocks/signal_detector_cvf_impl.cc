@@ -135,12 +135,9 @@ void signal_detector_cvf_impl::set_fft_len(int fft_len) {
 #else
   d_fft = new gr::fft::fft_complex_fwd(fft_len, true);
 #endif
-  d_tmpbuf =
-      static_cast<float *>(volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment()));
-  d_tmp_pxx =
-      static_cast<float *>(volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment()));
-  d_pxx =
-      static_cast<float *>(volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment()));
+  d_tmpbuf = static_cast<float *>(volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment()));
+  d_tmp_pxx = static_cast<float *>(volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment()));
+  d_pxx = static_cast<float *>(volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment()));
   d_pxx_out = (float *)volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment());
   d_avg_filter.resize(d_fft_len);
   build_window();
@@ -148,7 +145,6 @@ void signal_detector_cvf_impl::set_fft_len(int fft_len) {
     d_avg_filter[i].set_taps(d_average);
   }
   set_decimation(fft_len);
-
   d_freq = build_freq();
 }
 

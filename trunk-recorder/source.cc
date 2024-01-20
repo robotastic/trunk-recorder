@@ -159,9 +159,6 @@ void Source::set_iq_source(std::string iq_file, bool repeat, double center, doub
   attached_selector = false;
   next_selector_port = 0;
 
-
-
-
   iq_file_source::sptr iq_file_src;
   iq_file_src = iq_file_source::make(iq_file, this->rate, repeat);
 
@@ -214,7 +211,7 @@ bool Source::is_selector_port_enabled(unsigned int port) {
 void Source::attach_selector(gr::top_block_sptr tb) {
   if (!attached_selector) {
     attached_selector = true;
-      recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
+    recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
     tb->connect(source_block, 0, recorder_selector, 0);
   }
 }
@@ -222,7 +219,7 @@ void Source::attach_selector(gr::top_block_sptr tb) {
 void Source::attach_detector(gr::top_block_sptr tb) {
   if (!attached_detector) {
     attached_detector = true;
-      signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
+    signal_detector = signal_detector_cvf::make(rate, 1024, 0, -45, 0.8, false, 0.8, 0.01, 0.0, "");
     tb->connect(source_block, 0, signal_detector, 0);
   }
 }
@@ -405,7 +402,7 @@ std::vector<Recorder *> Source::get_detected_recorders() {
     Detected_Signal signal = *it;
 
     float freq = center + signal.center_freq;
-    //float bandwidth = signal.bandwidth; // available data but not needed for anything
+    // float bandwidth = signal.bandwidth; // available data but not needed for anything
     float rssi = signal.max_rssi;
 
     std::vector<Recorder *> recorders = find_conventional_recorders_by_freq(freq);
@@ -421,7 +418,6 @@ std::vector<Recorder *> Source::get_detected_recorders() {
 void Source::set_signal_detector_threshold(float threshold) {
   signal_detector->set_threshold(threshold);
 }
-
 
 void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
   if (r > 0) {
@@ -454,7 +450,6 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   }
 }
 
-
 void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
   max_sigmf_recorders = r;
 
@@ -469,7 +464,6 @@ void Source::create_sigmf_recorders(gr::top_block_sptr tb, int r) {
     tb->connect(recorder_selector, next_selector_port, log, 0);
   }
 }
-
 
 analog_recorder_sptr Source::create_conventional_recorder(gr::top_block_sptr tb, float tone_freq) {
   // Not adding it to the vector of analog_recorders. We don't want it to be available for trunk recording.
@@ -582,7 +576,6 @@ Recorder *Source::get_analog_recorder(Call *call) {
   return NULL;
 }
 
-
 Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call *call) {
   int num_available_recorders = get_num_available_digital_recorders();
 
@@ -602,7 +595,6 @@ Recorder *Source::get_digital_recorder(Talkgroup *talkgroup, int priority, Call 
 
   return get_digital_recorder(call);
 }
-
 
 Recorder *Source::get_digital_recorder(Call *call) {
   for (std::vector<p25_recorder_sptr>::iterator it = digital_recorders.begin();
@@ -697,7 +689,6 @@ void Source::print_recorders() {
   }
 }
 
-
 int Source::digital_recorder_count() {
   return digital_recorders.size() + digital_conv_recorders.size() + dmr_conv_recorders.size();
 }
@@ -713,7 +704,6 @@ int Source::debug_recorder_count() {
 int Source::sigmf_recorder_count() {
   return sigmf_recorders.size();
 }
-
 
 int Source::get_num_available_digital_recorders() {
   int num_available_recorders = 0;

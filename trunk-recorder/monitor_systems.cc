@@ -8,8 +8,6 @@ void exit_interupt(int sig) { // can be called asynchronously
   exit_flag = 1;              // set flag
 }
 
-
-
 uint64_t time_since_epoch_millisec() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -152,7 +150,6 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
   return false;
 }
 
-
 void print_status(std::vector<Source *> &sources, std::vector<System *> &systems, std::vector<Call *> &calls) {
   BOOST_LOG_TRIVIAL(info) << "Active Calls: " << calls.size();
 
@@ -186,7 +183,6 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     sys->print_active_talkgroup_patches();
   }
 
-
   BOOST_LOG_TRIVIAL(info) << "Control Channel Decode Rates: ";
   for (std::vector<System *>::iterator it = systems.begin(); it != systems.end(); ++it) {
     System_impl *sys = (System_impl *)*it;
@@ -202,21 +198,16 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     Source *source = *it;
     source->print_recorders();
   }
-
-
-
-
 }
-
 
 void manage_conventional_call(Call *call, Config &config) {
 
   if (call->get_recorder()) {
     // if any recording has happened
-    
+
     if (call->get_current_length() > 0) {
-      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Call Length: " << call->get_current_length() << "s\t Idle: " << call->get_recorder()->is_idle() << "\t Squelched: "  << call->get_recorder()->is_squelched() << " Idle Count: " << call->get_idle_count();
-  
+      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Call Length: " << call->get_current_length() << "s\t Idle: " << call->get_recorder()->is_idle() << "\t Squelched: " << call->get_recorder()->is_squelched() << " Idle Count: " << call->get_idle_count();
+
       // means that the squelch is on and it has stopped recording
       if (call->get_recorder()->is_idle()) {
         // increase the number of periods it has not been recording for
@@ -256,7 +247,6 @@ void manage_conventional_call(Call *call, Config &config) {
     }
   }
 }
-
 
 void manage_calls(Config &config, std::vector<Call *> &calls) {
   bool ended_call = false;
@@ -630,7 +620,6 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys, Config &con
   }
 }
 
-
 void retune_system(System *sys, gr::top_block_sptr &tb, std::vector<Source *> &sources) {
   System_impl *system = (System_impl *)sys;
   bool source_found = false;
@@ -693,8 +682,7 @@ void retune_system(System *sys, gr::top_block_sptr &tb, std::vector<Source *> &s
   }
 }
 
-
-void check_message_count(float timeDiff, Config &config,  gr::top_block_sptr &tb, std::vector<Source *> &sources, std::vector<System *> &systems) {
+void check_message_count(float timeDiff, Config &config, gr::top_block_sptr &tb, std::vector<Source *> &sources, std::vector<System *> &systems) {
   plugman_setup_config(sources, systems);
   plugman_system_rates(systems, timeDiff);
 
@@ -766,7 +754,6 @@ void process_message_queues(std::vector<System *> &systems) {
   }
 }
 
-
 int monitor_messages(Config &config, gr::top_block_sptr &tb, std::vector<Source *> &sources, std::vector<System *> &systems, std::vector<Call *> &calls) {
   gr::message::sptr msg;
 
@@ -777,8 +764,8 @@ int monitor_messages(Config &config, gr::top_block_sptr &tb, std::vector<Source 
   time_t current_time = time(NULL);
   uint64_t current_time_ms = time_since_epoch_millisec();
   std::vector<TrunkMessage> trunk_messages;
-SmartnetParser *smartnet_parser;
-P25Parser *p25_parser;
+  SmartnetParser *smartnet_parser;
+  P25Parser *p25_parser;
 
   signal(SIGINT, exit_interupt);
 
@@ -828,7 +815,7 @@ P25Parser *p25_parser;
 
           if (system->get_system_type() == "p25") {
             trunk_messages = p25_parser->parse_message(msg, system);
-            handle_message(trunk_messages, system, config, sources,calls);
+            handle_message(trunk_messages, system, config, sources, calls);
             plugman_trunk_message(trunk_messages, system);
           }
 

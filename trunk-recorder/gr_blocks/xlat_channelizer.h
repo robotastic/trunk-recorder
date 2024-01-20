@@ -4,17 +4,17 @@
 #include <boost/log/trivial.hpp>
 #include <iomanip>
 
-#include <gnuradio/hier_block2.h>
-#include <gnuradio/blocks/copy.h>
-#include <gnuradio/filter/firdes.h>
-#include <gnuradio/analog/pwr_squelch_cc.h>
-#include <gnuradio/filter/pfb_arb_resampler_ccf.h>
-#include <gnuradio/filter/fft_filter_ccf.h>
-#include <gnuradio/filter/fft_filter_ccc.h>
-#include <gnuradio/digital/fll_band_edge_cc.h>
 #include "../gr_blocks/rms_agc.h"
 #include "./freq_xlating_fft_filter.h"
+#include <gnuradio/analog/pwr_squelch_cc.h>
+#include <gnuradio/blocks/copy.h>
+#include <gnuradio/digital/fll_band_edge_cc.h>
+#include <gnuradio/filter/fft_filter_ccc.h>
+#include <gnuradio/filter/fft_filter_ccf.h>
+#include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/freq_xlating_fir_filter.h>
+#include <gnuradio/filter/pfb_arb_resampler_ccf.h>
+#include <gnuradio/hier_block2.h>
 
 #if GNURADIO_VERSION < 0x030800
 #include <gnuradio/analog/sig_source_c.h>
@@ -28,11 +28,7 @@
 #include <gnuradio/blocks/multiply_const.h>
 #endif
 
-
-
 #include "../formatter.h"
-
-
 
 class xlat_channelizer : public gr::hier_block2 {
 public:
@@ -43,9 +39,9 @@ public:
 #endif
 
   static sptr make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional);
-  xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate,  double center_freq, bool conventional);
+  xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional);
 
-   struct DecimSettings {
+  struct DecimSettings {
     long decim;
     long decim2;
   };
@@ -57,37 +53,33 @@ public:
   static constexpr double phase2_symbol_rate = 6000;
   static constexpr double smartnet_symbol_rate = 3600;
 
+  int get_freq_error();
+  bool is_enabled();
+  bool is_squelched();
+  void tune_offset(double f);
+  void set_samples_per_symbol(int samples_per_symbol);
+  void set_enabled(bool enabled);
+  void set_squelch_db(double squelch_db);
+  void set_analog_squelch(bool analog_squelch);
 
-
-int get_freq_error();
-bool is_enabled();
-bool is_squelched();
-void tune_offset(double f); 
-void set_samples_per_symbol(int samples_per_symbol);
-void set_enabled(bool enabled); 
-void set_squelch_db(double squelch_db);
-void set_analog_squelch(bool analog_squelch);
-
- private:
-
-
+private:
   bool double_decim;
   long if1;
   long if2;
-    double d_center_freq;
+  double d_center_freq;
   double d_input_rate;
   double d_system_channel_rate;
   int d_samples_per_symbol;
-  double d_symbol_rate; 
+  double d_symbol_rate;
 
   bool d_conventional;
   long symbol_rate;
   double squelch_db;
-long decim;
+  long decim;
 
-  //gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::sptr freq_xlat;
-freq_xlating_fft_filter_sptr freq_xlat;
-        std::vector<float> arb_taps;
+  // gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::sptr freq_xlat;
+  freq_xlating_fft_filter_sptr freq_xlat;
+  std::vector<float> arb_taps;
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
@@ -106,9 +98,8 @@ freq_xlating_fft_filter_sptr freq_xlat;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
-  
 
-    static DecimSettings get_decim(long speed); 
+  static DecimSettings get_decim(long speed);
 };
 
 #endif

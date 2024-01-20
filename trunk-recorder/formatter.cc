@@ -55,27 +55,26 @@ std::string format_state(State state) {
 
 std::string format_state(State state, MonitoringState monitoringState) {
   if (statusAsString) {
-    if (state == MONITORING){
-      if(monitoringState == UNSPECIFIED)
+    if (state == MONITORING) {
+      if (monitoringState == UNSPECIFIED)
         return "monitoring";
-      else if(monitoringState == UNKNOWN_TG)
+      else if (monitoringState == UNKNOWN_TG)
         return "monitoring : UNKNOWN TG";
-      else if(monitoringState == IGNORED_TG)
+      else if (monitoringState == IGNORED_TG)
         return "monitoring : IGNORED TG";
-      else if(monitoringState == NO_SOURCE)
+      else if (monitoringState == NO_SOURCE)
         return "monitoring : NO SOURCE COVERING FREQ";
-      else if(monitoringState == NO_RECORDER)
+      else if (monitoringState == NO_RECORDER)
         return "monitoring : NO RECORDER AVAILABLE";
-      else if(monitoringState == ENCRYPTED)
+      else if (monitoringState == ENCRYPTED)
         return "monitoring : ENCRYPTED";
-      else if(monitoringState == DUPLICATE)
+      else if (monitoringState == DUPLICATE)
         return "monitoring : DUPLICATE";
-      else if(monitoringState == SUPERSEDED)
+      else if (monitoringState == SUPERSEDED)
         return "monitoring : SUPERSEDED";
       else
         return "monitoring";
-    }
-    else if (state == RECORDING)
+    } else if (state == RECORDING)
       return "recording";
     else if (state == INACTIVE)
       return "inactive";
@@ -91,4 +90,3 @@ std::string format_state(State state, MonitoringState monitoringState) {
   }
   return boost::lexical_cast<std::string>(state);
 }
-

@@ -50,11 +50,11 @@
 #include "systems/p25_trunking.h"
 #include "systems/parser.h"
 
+#include "./setup_systems.h"
+#include "monitor_systems.h"
 #include "systems/smartnet_trunking.h"
 #include "systems/system.h"
 #include "systems/system_impl.h"
-#include "monitor_systems.h"
-#include "./setup_systems.h"
 
 #include <osmosdr/source.h>
 
@@ -123,10 +123,10 @@ int main(int argc, char **argv) {
   start_plugins(sources, systems);
 
   if (setup_systems(config, tb, sources, systems, calls)) {
-  
+
     tb->start();
 
-   exit_code = monitor_messages(config, tb, sources, systems, calls);
+    exit_code = monitor_messages(config, tb, sources, systems, calls);
 
     // ------------------------------------------------------------------
     // -- stop flow graph execution

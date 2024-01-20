@@ -39,28 +39,28 @@ void set_logging_level(std::string log_level) {
 }
 
 struct NoColorLoggingFormatter {
-    void operator()(logging::record_view const& rec, logging::formatting_ostream& strm) const {
-        auto message = rec.attribute_values()[logging::aux::default_attribute_names::message()];
-        auto message_str = message.extract<std::string>().get();
+  void operator()(logging::record_view const &rec, logging::formatting_ostream &strm) const {
+    auto message = rec.attribute_values()[logging::aux::default_attribute_names::message()];
+    auto message_str = message.extract<std::string>().get();
 
-        std::regex escape_seq_regex("\u001B\\[[0-9;]+m");
-        strm << std::regex_replace(message_str, escape_seq_regex, "");
-    }
+    std::regex escape_seq_regex("\u001B\\[[0-9;]+m");
+    strm << std::regex_replace(message_str, escape_seq_regex, "");
+  }
 };
 
 void setup_console_log(std::string log_color, std::string time_fmt) {
   boost::shared_ptr<sinks::synchronous_sink<sinks::basic_text_ostream_backend<char>>> console_sink = logging::add_console_log(std::clog);
-  
-  if ((log_color == "console" ) || (log_color == "all")) {
-    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
-                        logging::expressions::smessage);
+
+  if ((log_color == "console") || (log_color == "all")) {
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                                logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                                logging::expressions::attr<logging::trivial::severity_level>("Severity") %
+                                logging::expressions::smessage);
   } else {
-    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
-                        logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                                logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                                logging::expressions::attr<logging::trivial::severity_level>("Severity") %
+                                logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
   }
 
   std::locale loc = std::locale("C");
@@ -74,15 +74,15 @@ void setup_file_log(std::string log_dir, std::string log_color, std::string time
       keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
       keywords::auto_flush = true);
 
-  if ((log_color == "logfile" ) || (log_color == "all")) {
-    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+  if ((log_color == "logfile") || (log_color == "all")) {
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") %
                             logging::expressions::smessage);
   } else {
-    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") %
                             logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
   }
 }
@@ -121,7 +121,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
 
     config.log_color = data.value("logColor", (color ? "console" : "none"));
 
-    config.console_log =  data.value("consoleLog", true); 
+    config.console_log = data.value("consoleLog", true);
     if (config.console_log) {
       setup_console_log(config.log_color, "%Y-%m-%d %H:%M:%S.%f");
     }
@@ -499,7 +499,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
           BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
 
-          if ((driver != "osmosdr") && (long(rate) % 24000 !=0)) {
+          if ((driver != "osmosdr") && (long(rate) % 24000 != 0)) {
             BOOST_LOG_TRIVIAL(error) << "OsmoSDR must have a sample rate that is a multiple of 24000, current rate: " << rate << " for device: " << device;
             return false;
           }

@@ -77,7 +77,7 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
   return channel_added;
 }
 
-bool setup_conventional_system(System *system,Config &config, gr::top_block_sptr &tb, std::vector<Source *> &sources, std::vector<Call *> &calls) {
+bool setup_conventional_system(System *system, Config &config, gr::top_block_sptr &tb, std::vector<Source *> &sources, std::vector<Call *> &calls) {
   bool system_added = false;
 
   if (system->has_channel_file()) {

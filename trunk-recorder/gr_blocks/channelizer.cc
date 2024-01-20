@@ -1,7 +1,6 @@
 #include "channelizer.h"
 
-
-channelizer::sptr channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional){
+channelizer::sptr channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional) {
 
   return gnuradio::get_initial_sptr(new channelizer(input_rate, samples_per_symbol, symbol_rate, center_freq, conventional));
 }
@@ -41,9 +40,6 @@ channelizer::DecimSettings channelizer::get_decim(long speed) {
   return decim_settings;
 }
 
-
-
-
 channelizer::channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional)
     : gr::hier_block2("channelizer_ccf",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -54,20 +50,20 @@ channelizer::channelizer(double input_rate, int samples_per_symbol, double symbo
       d_center_freq(center_freq),
       d_conventional(conventional) {
 
-        long channel_rate = d_symbol_rate * d_samples_per_symbol;
-        //long if_rate = 12500;
-double resampled_rate;
+  long channel_rate = d_symbol_rate * d_samples_per_symbol;
+  // long if_rate = 12500;
+  double resampled_rate;
 
   const float pi = M_PI;
-        valve = gr::blocks::copy::make(sizeof(gr_complex));
-        valve->set_enabled(false);
+  valve = gr::blocks::copy::make(sizeof(gr_complex));
+  valve->set_enabled(false);
 
   lo = gr::analog::sig_source_c::make(d_input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make();
 
   DecimSettings decim_settings = get_decim(input_rate);
 
- if (decim_settings.decim != -1) {
+  if (decim_settings.decim != -1) {
     double_decim = true;
     decim = decim_settings.decim;
     if1 = input_rate / decim_settings.decim;
@@ -76,11 +72,11 @@ double resampled_rate;
     long fb = if2 / 2;
 
     bandpass_filter_coeffs = gr::filter::firdes::complex_band_pass(1.0, input_rate, -if1 / 2, if1 / 2, if1 / 2);
-    #if GNURADIO_VERSION < 0x030900
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
-    #else
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
-    #endif
+#if GNURADIO_VERSION < 0x030900
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
+#else
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, if1, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
+#endif
     bandpass_filter = gr::filter::fft_filter_ccc::make(decim_settings.decim, bandpass_filter_coeffs);
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim_settings.decim2, lowpass_filter_coeffs);
     resampled_rate = if2;
@@ -93,21 +89,20 @@ double resampled_rate;
     long fb = fa + 1250;
     lo = gr::analog::sig_source_c::make(input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
 
-    #if GNURADIO_VERSION < 0x030900
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa,gr::filter::firdes::WIN_HAMMING);
-    #else
-        lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa,gr::fft::window::WIN_HAMMING);
-    #endif
+#if GNURADIO_VERSION < 0x030900
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa, gr::filter::firdes::WIN_HAMMING);
+#else
+    lowpass_filter_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, (fb + fa) / 2, fb - fa, gr::fft::window::WIN_HAMMING);
+#endif
     decim = floor(input_rate / channel_rate);
     resampled_rate = input_rate / decim;
     lowpass_filter = gr::filter::fft_filter_ccf::make(decim, lowpass_filter_coeffs);
     BOOST_LOG_TRIVIAL(info) << "\t Channelizer single-stage decimator - Decim: " << decim << " Resampled Rate: " << resampled_rate << " Lowpass Size: " << lowpass_filter_coeffs.size();
   }
 
-
   // ARB Resampler
   double arb_rate = channel_rate / resampled_rate;
-  BOOST_LOG_TRIVIAL (info) << "\t Channelizer ARB - Symbol Rate: " << channel_rate << " Resampled Rate: " << resampled_rate << " ARB Rate: " << arb_rate;
+  BOOST_LOG_TRIVIAL(info) << "\t Channelizer ARB - Symbol Rate: " << channel_rate << " Resampled Rate: " << resampled_rate << " ARB Rate: " << arb_rate;
   double arb_size = 32;
   double arb_atten = 30; // was originally 100
   // Create a filter that covers the full bandwidth of the output signal
@@ -141,7 +136,7 @@ double resampled_rate;
   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   double sps = d_samples_per_symbol;
   double def_excess_bw = 0.2;
-   // Squelch DB
+  // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
   // power squelch works well. real FM receviers use a noise squelch, where
   // the received audio is high-passed above the cutoff and then fed to a
@@ -150,7 +145,7 @@ double resampled_rate;
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
 
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
-  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2*sps+1, (2.0*pi)/sps/250);  // OP25 has this set to 350 instead of 250
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2 * sps + 1, (2.0 * pi) / sps / 250); // OP25 has this set to 350 instead of 250
 
   connect(self(), 0, valve, 0);
   if (double_decim) {
@@ -158,48 +153,44 @@ double resampled_rate;
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(valve, 0,  mixer, 0);
+    connect(valve, 0, mixer, 0);
     connect(lo, 0, mixer, 1);
   }
-  connect(mixer, 0,lowpass_filter, 0);
+  connect(mixer, 0, lowpass_filter, 0);
 
-
-if (d_conventional) {
+  if (d_conventional) {
     if (arb_rate == 1.0) {
-        connect(lowpass_filter,0, squelch, 0);
-  connect(squelch, 0, rms_agc, 0);
-  } else {
-      connect(lowpass_filter,0, squelch, 0);
-  connect(squelch, 0,arb_resampler, 0);
-    connect(arb_resampler, 0, rms_agc, 0);
+      connect(lowpass_filter, 0, squelch, 0);
+      connect(squelch, 0, rms_agc, 0);
+    } else {
+      connect(lowpass_filter, 0, squelch, 0);
+      connect(squelch, 0, arb_resampler, 0);
+      connect(arb_resampler, 0, rms_agc, 0);
+    }
 
+    // connect(squelch, 0, self(), 0);
+  } else {
+    if (arb_rate == 1.0) {
+      connect(lowpass_filter, 0, rms_agc, 0);
+    } else {
+      connect(lowpass_filter, 0, arb_resampler, 0);
+      connect(arb_resampler, 0, rms_agc, 0);
+    }
   }
 
-  //connect(squelch, 0, self(), 0);
-} else {
-    if (arb_rate == 1.0) {
-        connect(lowpass_filter,0, rms_agc, 0);
-  } else {
-      connect(lowpass_filter,0, arb_resampler, 0);
-    connect(arb_resampler, 0, rms_agc, 0);
-  }
+  connect(rms_agc, 0, fll_band_edge, 0);
+  connect(fll_band_edge, 0, self(), 0);
 }
 
-  connect(rms_agc,0,  fll_band_edge, 0);
-  connect(fll_band_edge, 0, self(), 0);
-      }
-
-
-int channelizer::get_freq_error() {   // get frequency error from FLL and convert to Hz
+int channelizer::get_freq_error() { // get frequency error from FLL and convert to Hz
   const float pi = M_PI;
   long if_rate = 24000;
-        return int((fll_band_edge->get_frequency() / (2*pi)) * if_rate);
+  return int((fll_band_edge->get_frequency() / (2 * pi)) * if_rate);
 }
 
 bool channelizer::is_squelched() {
 
-    return !squelch->unmuted();
-
+  return !squelch->unmuted();
 }
 
 void channelizer::tune_offset(double f) {

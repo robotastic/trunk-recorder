@@ -65,7 +65,6 @@ void selector_impl::set_input_index(unsigned int input_index) {
     throw std::out_of_range("input_index must be < ninputs");
 }
 
-
 // This enables a single output port and disables all others
 void selector_impl::set_output_index(unsigned int output_index) {
   gr::thread::scoped_lock l(d_mutex);
@@ -79,14 +78,13 @@ void selector_impl::set_output_index(unsigned int output_index) {
     throw std::out_of_range("output_index must be < noutputs");
 
   for (unsigned int out_idx = 0; out_idx < d_max_port; out_idx++) {
-        if (output_index == out_idx) {
-          d_enabled_output_ports[out_idx] = true;
-        } else {
-          d_enabled_output_ports[out_idx] = false;
-        }
+    if (output_index == out_idx) {
+      d_enabled_output_ports[out_idx] = true;
+    } else {
+      d_enabled_output_ports[out_idx] = false;
+    }
   }
 }
-
 
 void selector_impl::forecast(int noutput_items, gr_vector_int &ninput_items_required) {
   unsigned ninputs = ninput_items_required.size();
@@ -113,7 +111,7 @@ void selector_impl::set_port_enabled(unsigned int port, bool enabled) {
     return;
   }
 
-    gr::thread::scoped_lock l(d_mutex);
+  gr::thread::scoped_lock l(d_mutex);
   d_enabled_output_ports[port] = enabled;
 }
 
@@ -123,7 +121,7 @@ bool selector_impl::is_port_enabled(unsigned int port) {
     return false;
   }
 
-    gr::thread::scoped_lock l(d_mutex);
+  gr::thread::scoped_lock l(d_mutex);
   return d_enabled_output_ports[port];
 }
 
@@ -136,25 +134,20 @@ int selector_impl::general_work(int noutput_items,
 
   gr::thread::scoped_lock l(d_mutex);
 
-
-      for (size_t out_idx = 0; out_idx < output_items.size(); out_idx++) {
-        if (d_enabled_output_ports[out_idx]) {
-        std::copy(in[d_input_index],
-                      in[d_input_index] + noutput_items * d_itemsize,
-                      out[out_idx]);
-            produce(out_idx, noutput_items);
-        }
-
-        }
-
-
+  for (size_t out_idx = 0; out_idx < output_items.size(); out_idx++) {
+    if (d_enabled_output_ports[out_idx]) {
+      std::copy(in[d_input_index],
+                in[d_input_index] + noutput_items * d_itemsize,
+                out[out_idx]);
+      produce(out_idx, noutput_items);
+    }
+  }
 
   /*
     std::copy(in[d_input_index],
               in[d_input_index] + noutput_items * d_itemsize,
               out[d_output_index]);
     produce(d_output_index, noutput_items);*/
- 
 
   consume_each(noutput_items);
   return WORK_CALLED_PRODUCE;
