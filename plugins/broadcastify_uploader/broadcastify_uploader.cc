@@ -79,7 +79,7 @@ public:
       curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 
       /* HTTP PUT please */
-      curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+      //curl_easy_setopt(curl, CURLOPT_PUT, 1L);
 
       /* specify target URL, and note that this URL should include a file
        name, not only a directory */
