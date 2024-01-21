@@ -320,7 +320,7 @@ public:
     }
 
     if (this->data.systems.size() == 0) {
-      BOOST_LOG_TRIVIAL(error) << log_prefix<< "OpenMHz Server set, but no Systems are configured\n";
+      BOOST_LOG_TRIVIAL(error) << log_prefix << "OpenMHz Server set, but no Systems are configured\n";
       return 1;
     }
 
