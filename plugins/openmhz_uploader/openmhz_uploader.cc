@@ -314,7 +314,7 @@ public:
         sys.openmhz_sysid = element.value("openmhzSystemId", sys.short_name);
         regex_match(sys.api_key.c_str(), what, api_regex);
         std::string redacted_api(what[2].first, what[2].second);
-        BOOST_LOG_TRIVIAL(info) << log_prefix << "Uploading calls for: " << sys.short_name << "\t OpenMhz System: " << sys.openmhz_sysid << "\t API Key: *****" << redacted_api;
+        BOOST_LOG_TRIVIAL(info) << log_prefix << "Uploading calls for: " << sys.short_name << "\t OpenMHz System: " << sys.openmhz_sysid << "\t API Key: *****" << redacted_api;
         this->data.systems.push_back(sys);
       }
     }
