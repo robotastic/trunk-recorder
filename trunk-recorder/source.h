@@ -15,7 +15,7 @@
 #include <iostream>
 #include <numeric>
 #include <osmosdr/source.h>
-#define JSON_DIAGNOSTICS 1
+
 #include <json.hpp>
 
 struct Gain_Stage_t {
