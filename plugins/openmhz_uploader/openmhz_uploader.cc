@@ -80,6 +80,11 @@ public:
     source_list << std::fixed << std::setprecision(2);
     source_list << "[";
 
+    std::ostringstream patch_list;
+    std::string patch_list_string;
+    patch_list << std::fixed << std::setprecision(2);
+    patch_list << "[";
+
     if (call_info.transmission_source_list.size() != 0) {
       for (unsigned long i = 0; i < call_info.transmission_source_list.size(); i++) {
         source_list << "{ \"pos\": " << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"src\": " << std::setprecision(0) << call_info.transmission_source_list[i].source << " }";
@@ -92,6 +97,18 @@ public:
       }
     } else {
       source_list << "]";
+    }
+
+    if (call_info.patched_talkgroups.size() > 1) {
+      for (unsigned long i = 0; i < call_info.patched_talkgroups.size(); i++) {
+        if (i != 0) {
+          patch_list << ",";
+        }
+        patch_list << (int)call_info.patched_talkgroups[i];
+      }
+      patch_list << "]";
+    } else {
+      patch_list << "]";
     }
 
     char formattedTalkgroup[62];
@@ -109,6 +126,7 @@ public:
 
     source_list_string = source_list.str();
     call_length_string = call_length.str();
+    patch_list_string = patch_list.str();
 
     struct curl_slist *headerlist = NULL;
 
@@ -161,6 +179,10 @@ public:
     part = curl_mime_addpart(mime);
     curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
     curl_mime_name(part, "api_key");
+
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, patch_list_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "patch_list");
 
     part = curl_mime_addpart(mime);
     curl_mime_data(part, source_list_string.c_str(), CURL_ZERO_TERMINATED);
