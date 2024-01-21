@@ -10,13 +10,14 @@
 #include <boost/foreach.hpp>
 #include <sys/stat.h>
 
-struct Openmhz_System_Key {
+struct Openmhz_System {
   std::string api_key;
   std::string short_name;
+  std::string openmhz_sysid;
 };
 
 struct Openmhz_Uploader_Data {
-  std::vector<Openmhz_System_Key> keys;
+  std::vector<Openmhz_System> systems;
   std::string openmhz_server;
 };
 
@@ -26,22 +27,29 @@ class Openmhz_Uploader : public Plugin_Api {
   Openmhz_Uploader_Data data;
 
 public:
-  std::string get_api_key(std::string short_name) {
-    for (std::vector<Openmhz_System_Key>::iterator it = data.keys.begin(); it != data.keys.end(); ++it) {
-      Openmhz_System_Key key = *it;
-      if (key.short_name == short_name) {
-        return key.api_key;
+  Openmhz_System *get_openmhz_system(std::string short_name) {
+    for (std::vector<Openmhz_System>::iterator it = data.systems.begin(); it != data.systems.end(); ++it) {
+      Openmhz_System sys = *it;
+      if (sys.short_name == short_name) {
+        return &(*it);
       }
     }
-    return "";
+    return NULL;
   }
   static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
     ((std::string *)userp)->append((char *)contents, size * nmemb);
     return size * nmemb;
   }
   int upload(Call_Data_t call_info) {
+    std::string api_key;
+    std::string openmhz_sysid;
+    Openmhz_System *sys = get_openmhz_system(call_info.short_name);
 
-    std::string api_key = get_api_key(call_info.short_name);
+    if (sys) {
+      api_key = sys->api_key;
+      openmhz_sysid = sys->openmhz_sysid;
+    }
+
     if (api_key.size() == 0) {
       // BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
       return 0;
@@ -163,7 +171,7 @@ public:
     /* initialize custom header list (stating that Expect: 100-continue is not wanted */
     headerlist = curl_slist_append(headerlist, "Expect:");
     if (curl && multi_handle) {
-      std::string url = data.openmhz_server + "/" + call_info.short_name + "/upload";
+      std::string url = data.openmhz_server + "/" + openmhz_sysid + "/upload";
 
       /* what URL that receives this POST */
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -276,6 +284,7 @@ public:
   }
 
   int parse_config(json config_data) {
+    std::string log_prefix = "\t[OpenMHz]\t";
 
     // Tests to see if the uploadServer value exists in the config file
     bool upload_server_exists = config_data.contains("uploadServer");
@@ -284,30 +293,34 @@ public:
     }
 
     this->data.openmhz_server = config_data.value("uploadServer", "");
-    BOOST_LOG_TRIVIAL(info) << "OpenMHz Server: " << this->data.openmhz_server;
+    BOOST_LOG_TRIVIAL(info) << log_prefix << "OpenMHz Server: " << this->data.openmhz_server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
+    boost::regex api_regex("(.{29})(.*)?");
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
 
     if (!regex_match(this->data.openmhz_server.c_str(), what, ex)) {
-      BOOST_LOG_TRIVIAL(error) << "Unable to parse Server URL\n";
+      BOOST_LOG_TRIVIAL(error) << log_prefix << "Unable to parse Server URL\n";
       return 1;
     }
     // Gets the API key for each system, if defined
     for (json element : config_data["systems"]) {
       bool openmhz_exists = element.contains("apiKey");
       if (openmhz_exists) {
-        Openmhz_System_Key key;
-        key.api_key = element.value("apiKey", "");
-        key.short_name = element.value("shortName", "");
-        BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
-        this->data.keys.push_back(key);
+        Openmhz_System sys;
+        sys.api_key = element.value("apiKey", "");
+        sys.short_name = element.value("shortName", "");
+        sys.openmhz_sysid = element.value("openmhzSystemId", sys.short_name);
+        regex_match(sys.api_key.c_str(), what, api_regex);
+        std::string redacted_api(what[2].first, what[2].second);
+        BOOST_LOG_TRIVIAL(info) << log_prefix << "Uploading calls for: " << sys.short_name << "\t OpenMHz System: " << sys.openmhz_sysid << "\t API Key: *****" << redacted_api;
+        this->data.systems.push_back(sys);
       }
     }
 
-    if (this->data.keys.size() == 0) {
-      BOOST_LOG_TRIVIAL(error) << "OpenMHz Server set, but no Systems are configured\n";
+    if (this->data.systems.size() == 0) {
+      BOOST_LOG_TRIVIAL(error) << log_prefix << "OpenMHz Server set, but no Systems are configured\n";
       return 1;
     }
 
