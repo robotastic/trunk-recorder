@@ -33,6 +33,7 @@ RUN apt-get update && \
     libsoapysdr-dev \
     libssl-dev \
     libuhd-dev \
+    libusb-dev \
     libusb-1.0-0-dev \
     libxtrx-dev \
     pkg-config \
