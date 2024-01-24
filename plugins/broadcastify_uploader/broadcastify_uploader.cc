@@ -135,11 +135,11 @@ public:
     curl_mimepart *part;
 
     mime = curl_mime_init(curl);
-    part = curl_mime_addpart(mime);
 
-    curl_mime_filedata(part, call_info.converted);
-    curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
-    curl_mime_name(part, "call");
+    part = curl_mime_addpart(mime);
+    curl_mime_filedata(part, call_info.status_filename);
+    curl_mime_type(part, "application/json");
+    curl_mime_name(part, "metadata");
 
     part = curl_mime_addpart(mime);
     curl_mime_data(part, call_info.converted, CURL_ZERO_TERMINATED);
