@@ -133,7 +133,7 @@ bool transmission_sink::start_recording(Call *call) {
 
   this->clear_transmission_list();
   d_conventional = call->is_conventional();
-  next_src_id = -1;
+
   curr_src_id = d_current_call->get_current_source_id();
   d_sample_count = 0;
 
@@ -208,17 +208,15 @@ void transmission_sink::set_source(long src) {
 
     curr_src_id = src;
   }
-  /* else if (src != curr_src_id) {
-    if (state == RECORDING) {
-
-      BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
-
-
-      BOOST_LOG_TRIVIAL(info) << "Voice Channel mismatch source id - current: " << curr_src_id << " new: " << src;
-
+  else if (d_conventional && (src != curr_src_id)) {
+    if ((state == RECORDING) && (d_sample_count > 0)) {
+        BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+        end_transmission();
+        state = IDLE;
+        curr_src_id = src;
     }
-    curr_src_id = src;
-  }*/
+
+  }
 }
 
 void transmission_sink::end_transmission() {
@@ -246,13 +244,8 @@ void transmission_sink::end_transmission() {
     d_sample_count = 0;
     d_error_count = 0;
     d_spike_count = 0;
-    if (next_src_id > 0) {
-      curr_src_id = next_src_id;
-      next_src_id = -1;
-    } else {
-      curr_src_id = -1;
-      next_src_id = -1;
-    }
+    curr_src_id = -1;
+ 
   } else {
     BOOST_LOG_TRIVIAL(error) << "Trying to end a Transmission, but the sample_count is 0" << std::endl;
   }
