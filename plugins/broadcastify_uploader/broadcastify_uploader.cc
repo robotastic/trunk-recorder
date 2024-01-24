@@ -155,7 +155,7 @@ public:
 
     part = curl_mime_addpart(mime);
     curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
-    curl_mime_name(part, "api_key");
+    curl_mime_name(part, "apiKey");
 
     multi_handle = curl_multi_init();
 
