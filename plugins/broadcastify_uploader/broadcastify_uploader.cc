@@ -311,6 +311,7 @@ public:
   }
 
   int parse_config(json config_data) {
+    std::string log_prefix = "\t[Broadcastify]\t";
 
     // Tests to see if the uploadServer value exists in the config file
     bool upload_server_exists = config_data.contains("broadcastifyCallsServer");
@@ -319,20 +320,21 @@ public:
     }
 
     this->data.bcfy_calls_server = config_data.value("broadcastifyCallsServer", "");
-    BOOST_LOG_TRIVIAL(info) << "Broadcastify Server: " << this->data.bcfy_calls_server;
+    BOOST_LOG_TRIVIAL(info) << log_prefix << "Broadcastify Server: " << this->data.bcfy_calls_server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
+    boost::regex api_regex("(.*)(.{2}$)");
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
 
     if (!regex_match(this->data.bcfy_calls_server.c_str(), what, ex)) {
-      BOOST_LOG_TRIVIAL(info) << "Unable to parse Server URL\n";
+      BOOST_LOG_TRIVIAL(info) << log_prefix << "Unable to parse Server URL\n";
       return 1;
     }
 
     this->data.ssl_verify_disable = config_data.value("broadcastifySslVerifyDisable", false);
     if (this->data.ssl_verify_disable) {
-      BOOST_LOG_TRIVIAL(info) << "Broadcastify SSL Verify Disabled";
+      BOOST_LOG_TRIVIAL(info) << log_prefix << "Broadcastify SSL Verify Disabled";
     }
 
     for (json element : config_data["systems"]) {
@@ -342,13 +344,15 @@ public:
         key.api_key = element.value("broadcastifyApiKey", "");
         key.system_id = element.value("broadcastifySystemId", 0);
         key.short_name = element.value("shortName", "");
-        BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << key.short_name;
+        regex_match(key.api_key.c_str(), what, api_regex);
+        std::string redacted_api(what[2].first, what[2].second);
+        BOOST_LOG_TRIVIAL(info) << log_prefix << "Uploading calls for: " << key.short_name << "\t Broadcastify System: " << key.system_id << "\t API Key: ******" << redacted_api;
         this->data.keys.push_back(key);
       }
     }
 
     if (this->data.keys.size() == 0) {
-      BOOST_LOG_TRIVIAL(error) << "Broadcastify Server set, but no Systems are configured\n";
+      BOOST_LOG_TRIVIAL(error) << log_prefix << "Broadcastify Server set, but no Systems are configured\n";
       return 1;
     }
 

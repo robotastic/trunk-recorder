@@ -362,7 +362,7 @@ public:
     BOOST_LOG_TRIVIAL(info) << log_prefix << "Rdio Scanner Server: " << this->data.server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
-    boost::regex api_regex("(.{33})(.*)?");
+    boost::regex api_regex("(.*)(.{2}$)");
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
 
@@ -381,7 +381,7 @@ public:
         sys.short_name = element.value("shortName", "");
         regex_match(sys.api_key.c_str(), what, api_regex);
         std::string redacted_api(what[2].first, what[2].second);
-        BOOST_LOG_TRIVIAL(info) << log_prefix << "Uploading calls for: " << sys.short_name  << "\t Rdio System: " << sys.system_id << "\t API Key: *****" << redacted_api;;
+        BOOST_LOG_TRIVIAL(info) << log_prefix << "Uploading calls for: " << sys.short_name  << "\t Rdio System: " << sys.system_id << "\t API Key: ******" << redacted_api;
         this->data.systems.push_back(sys);
       }
     }
