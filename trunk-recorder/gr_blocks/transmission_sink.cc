@@ -210,6 +210,7 @@ void transmission_sink::set_source(long src) {
   }
   else if (d_conventional && (src != curr_src_id)) {
     if ((state == RECORDING) && (d_sample_count > 0)) {
+        gr::thread::scoped_lock guard(d_mutex);
         BOOST_LOG_TRIVIAL(error) << "[" << d_current_call_short_name << "]\t\033[0;34m" << d_current_call_num << "C\033[0m\tTG: " << d_current_call_talkgroup_display << "\tFreq: " << format_freq(d_current_call_freq) << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
         end_transmission();
         state = IDLE;
