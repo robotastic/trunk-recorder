@@ -430,7 +430,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         bool gain_set = false;
         std::string driver = element.value("driver", "");
 
-        if ((driver == "osmosdr") && (driver != "usrp") && (driver != "sigmf") && (driver != "iqfile")) {
+        if ((driver != "osmosdr") && (driver != "usrp") && (driver != "sigmf") && (driver != "iqfile")) {
           BOOST_LOG_TRIVIAL(error) << "Driver specified in config.json not recognized, needs to be osmosdr, sigmf, iqfile or usrp";
           return false;
         }
@@ -499,7 +499,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
           BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
 
-          if ((driver != "osmosdr") && (long(rate) % 24000 != 0)) {
+          if ((driver == "osmosdr") && (long(rate) % 24000 != 0)) {
             BOOST_LOG_TRIVIAL(error) << "OsmoSDR must have a sample rate that is a multiple of 24000, current rate: " << rate << " for device: " << device;
             return false;
           }
