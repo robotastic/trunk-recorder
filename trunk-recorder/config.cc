@@ -501,7 +501,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
 
           if ((driver == "osmosdr") && (long(rate) % 24000 != 0)) {
             BOOST_LOG_TRIVIAL(error) << "OsmoSDR must have a sample rate that is a multiple of 24000, current rate: " << rate << " for device: " << device;
-            return false;
+            //return false;
           }
 
           if ((ppm != 0) && (error != 0)) {
