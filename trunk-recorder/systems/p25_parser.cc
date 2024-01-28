@@ -970,6 +970,12 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
 
   std::string s = msg->to_string();
 
+ if (s.length() < 2) {
+    BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " Len: " << s.length();
+    messages.push_back(message);
+    return messages;
+  }
+
   // # nac is always 1st two bytes
   // ac = (ord(s[0]) << 8) + ord(s[1])
   uint8_t s0 = (int)s[0];
@@ -977,11 +983,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   int shift = s0 << 8;
   long nac = shift + s1;
 
-  if (s.length() < 2) {
-    BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " s0: " << static_cast<int>(s0) << " s1: " << static_cast<int>(s1) << " shift: " << shift << " nac: " << nac << " type: " << type << " Len: " << s.length();
-    messages.push_back(message);
-    return messages;
-  }
+ 
 
   if (nac == 0xffff) {
     // # TDMA
