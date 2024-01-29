@@ -126,7 +126,6 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   this->sys_num = sys_num;
   chan_freq = f;
   center_freq = c;
-  // long samp_rate = s;
   input_rate = s;
   rx_queue = queue;
   qpsk_mod = qpsk;
