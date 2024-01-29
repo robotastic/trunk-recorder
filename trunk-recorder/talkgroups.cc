@@ -78,7 +78,7 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
       exit(0);
     }
 
-    if ((reader.index_of("Description") >= 0) && row["Description"].is_str()) {
+    if (reader.index_of("Description") >= 0) {
       description = row["Description"].get<std::string>();
     } else {
       BOOST_LOG_TRIVIAL(error) << "Description is required for Row: " << reader.n_rows();
@@ -86,15 +86,15 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
       exit(0);
     }
 
-    if ((reader.index_of("Alpha Tag") >= 0) && row["Alpha Tag"].is_str()) {
+    if (reader.index_of("Alpha Tag") >= 0) {
       alpha_tag = row["Alpha Tag"].get<std::string>();
     }
 
-    if ((reader.index_of("Tag") >= 0) && row["Tag"].is_str()) {
+    if (reader.index_of("Tag") >= 0) {
       tag = row["Tag"].get<std::string>();
     }
 
-    if ((reader.index_of("Category") >= 0) && row["Category"].is_str()) {
+    if (reader.index_of("Category") >= 0) {
       group = row["Category"].get<std::string>();
     }
 
