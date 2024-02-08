@@ -91,7 +91,7 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   // the half-band here is 0.5*rate.
   double percent = 0.80;
 
-  if (arb_rate <= 1) {
+  if (arb_rate < 1) {
     double halfband = 0.5 * arb_rate;
     double bw = percent * halfband;
     double tb = (percent / 2.0) * halfband;
@@ -106,11 +106,12 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
 #else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
 #endif
-  } else {
+    arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+  } else if (arb_rate > 1) {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
   }
-  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+  
 
   double sps = d_samples_per_symbol;
   double def_excess_bw = 0.2;
@@ -134,7 +135,6 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
     BOOST_LOG_TRIVIAL(info) << "Conventional - with Squelch";
     if (arb_rate == 1.0) {
       connect(freq_xlat, 0, squelch, 0);
-
     } else {
       connect(freq_xlat, 0, arb_resampler, 0);
       connect(arb_resampler, 0, squelch, 0);
