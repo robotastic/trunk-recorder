@@ -445,6 +445,33 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
         }
 ```
 
+##### Trunk Player Next Gen Plugin
+
+**Name:** tpng_uploader
+**Library:** libtpng_uploader.so
+
+This plugin makes it easy to connect Trunk Recorder with [Trunk-PlayerNG](https://github.com/Trunk-Player) an Enterprise Grade Trunking API with ACLs, notifications, User management, a filterable API, Mertics, and more... WebUI not guaranteed™ (yee ik grovl grovel). Since [Trunk-PlayerNG](https://github.com/Trunk-Player) is ACL based you dont have to worry about multiple, the server will take what you are allowed to send it. **So you only need one!** Its time to make radio analysis easy!
+
+
+
+| Key     | Required | Default Value | Type   | Description                                                  |
+| ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
+| url  |    ✓     |               | string | The base API URL for your TPNG. You need this duh 🙄|
+| token |    ✓     |               | array  | This is your recorder token, since its ACL based it can be used for any systems Trunk-Recorder can hear; TLDR ya only need one 🔥 \*\*mic drop\*\* --- END N3RD FLEX --- |
+
+###### Example Plugin Object:
+
+```json
+  { // Yeah its hard IK
+    "name": "tpng_uploader",
+    "library": "libtpng_uploader.so",
+    "url": "http://trunkplayer.io/api/v1",
+    "token": "96eae4bc-8e31-46a4-9756-66eeb2af3440"
+  }
+```
+
+
+
 ## talkgroupsFile
 
 This file provides info on the different talkgroups in a trunking system. A lot of this info can be found on the [Radio Reference](http://www.radioreference.com/) website. You need to be a Radio Reference member to download the table for your system preformatted as a CSV file. You can also try clicking on the "List All in one table" link, selecting everything in the table and copying it into a spreadsheet program, and then exporting or saving as a CSV file.

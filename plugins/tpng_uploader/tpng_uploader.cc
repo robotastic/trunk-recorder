@@ -3,7 +3,6 @@
 #include <time.h>
 #include <vector>
 #include <fstream>
-
 #include <iostream>
 
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
@@ -11,7 +10,7 @@
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
 #include "../../lib/json.hpp"
 #include "../../lib/base64.h"
-#include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
+#include <boost/dll/alias.hpp>
 #include <boost/foreach.hpp>
 #include <sys/stat.h>
 
@@ -22,9 +21,12 @@ struct TPNG_Uploader_Data {
   std::string tpng_server;
 };
 
+static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+  ((std::string *)userp)->append((char *)contents, size * nmemb);
+  return size * nmemb;
+};
+
 class TPNG_Uploader : public Plugin_Api {
-  // float aggr_;
-  // my_plugin_aggregator() : aggr_(0) {}
   TPNG_Uploader_Data data;
 
 public:
@@ -90,124 +92,146 @@ public:
     return json;
   }
 
+  std::string base64_encode_m4a(const std::string& path) {
+    std::vector<char> temp;
+
+    std::ifstream infile;
+    infile.open(path, std::ios::binary);     // Open file in binary mode
+    if (infile.is_open()) {
+        while (!infile.eof()) {
+            char c = (char)infile.get();
+            temp.push_back(c);
+        }
+        infile.close();
+    }
+    else return "File could not be opened";
+    std::string ret(temp.begin(), temp.end() - 1);
+    ret = macaron::Base64::Encode(ret);
+
+    return ret;
+}
+
   int upload(Call_Data_t call_info) {
 
     std::string token = this->data.token;
+    std::stringstream json_buffer = create_call_json(call_info);
+    nlohmann::json call_json = nlohmann::json::parse(json_buffer.str());
+    std::string base64_audio = base64_encode_m4a(call_info.converted);
+
     if (token.size() == 0) {
-      // BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << talkgroup_display << "\t " << std::put_time(std::localtime(&start_time), "%c %Z") << "\tOpenMHz Upload failed, API Key not found in config for shortName";
       return 0;
     }
 
-    std::stringstream json_buffer = create_call_json(call_info);
-    nlohmann::json call_json = nlohmann::json::parse(json_buffer.str());
-
-    std::string base64_audio = macaron::Base64::Encode(call_info.converted);
-
     nlohmann::json payload = {
-      {"recorder", this->data.token},
-      {"name", call_info.status_filename},
+      {"recorder", token},
+      {"name", call_info.filename},
       {"json", call_json},
       {"audio_file", base64_audio}
     };
+    std::string post_data = payload.dump();
    
     CURLM *multi_handle;
     CURL *curl;
     curl = curl_easy_init();
     multi_handle = curl_multi_init();
+    std::string response_buffer;
 
-    std::string url = data.tpng_server + "/radio/transmission/create";
+    if (curl && multi_handle) {
+      std::string url = data.tpng_server + "/radio/transmission/create";
 
-    /* what URL that receives this POST */
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+      curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
 
-    std::string post_data = payload.dump();
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
 
-    int still_running = 0;
-    curl_multi_add_handle(multi_handle, curl);
-    curl_multi_perform(multi_handle, &still_running);
+      int still_running = 0;
+      curl_multi_add_handle(multi_handle, curl);
+      curl_multi_perform(multi_handle, &still_running);
 
-    while (still_running) {
-      struct timeval timeout;
-      int rc;       /* select() return code */
-      CURLMcode mc; /* curl_multi_fdset() return code */
+      while (still_running) {
+        struct timeval timeout;
+        int rc;       /* select() return code */
+        CURLMcode mc; /* curl_multi_fdset() return code */
 
-      fd_set fdread;
-      fd_set fdwrite;
-      fd_set fdexcep;
-      int maxfd = -1;
+        fd_set fdread;
+        fd_set fdwrite;
+        fd_set fdexcep;
+        int maxfd = -1;
 
-      long curl_timeo = -1;
+        long curl_timeo = -1;
 
-      FD_ZERO(&fdread);
-      FD_ZERO(&fdwrite);
-      FD_ZERO(&fdexcep);
+        FD_ZERO(&fdread);
+        FD_ZERO(&fdwrite);
+        FD_ZERO(&fdexcep);
 
-      /* set a suitable timeout to play around with */
-      timeout.tv_sec = 1;
-      timeout.tv_usec = 0;
+        /* set a suitable timeout to play around with */
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
 
-      curl_multi_timeout(multi_handle, &curl_timeo);
-      if (curl_timeo >= 0) {
-        timeout.tv_sec = curl_timeo / 1000;
-        if (timeout.tv_sec > 1)
-          timeout.tv_sec = 1;
-        else
-          timeout.tv_usec = (curl_timeo % 1000) * 1000;
+        curl_multi_timeout(multi_handle, &curl_timeo);
+        if (curl_timeo >= 0) {
+          timeout.tv_sec = curl_timeo / 1000;
+          if (timeout.tv_sec > 1)
+            timeout.tv_sec = 1;
+          else
+            timeout.tv_usec = (curl_timeo % 1000) * 1000;
+        }
+
+        /* get file descriptors from the transfers */
+        mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+
+        if (mc != CURLM_OK) {
+          fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
+          break;
+        }
+
+        /* On success the value of maxfd is guaranteed to be >= -1. We call
+          select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
+          no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
+          to sleep 100ms, which is the minimum suggested value in the
+          curl_multi_fdset() doc. */
+
+        if (maxfd == -1) {
+          /* Portable sleep for platforms other than Windows. */
+          struct timeval wait = {0, 100 * 1000}; /* 100ms */
+          rc = select(0, NULL, NULL, NULL, &wait);
+        } else {
+          /* Note that on some platforms 'timeout' may be modified by select().
+            If you need access to the original value save a copy beforehand. */
+          rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+        }
+
+        switch (rc) {
+        case -1:
+          /* select error */
+          break;
+        case 0:
+        default:
+          /* timeout or readable/writable sockets */
+          curl_multi_perform(multi_handle, &still_running);
+          break;
+        }
       }
 
-      /* get file descriptors from the transfers */
-      mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+      long response_code;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 
-      if (mc != CURLM_OK) {
-        fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
-        break;
-      }
+      CURLMcode res = curl_multi_cleanup(multi_handle);
 
-      /* On success the value of maxfd is guaranteed to be >= -1. We call
-        select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
-        no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
-        to sleep 100ms, which is the minimum suggested value in the
-        curl_multi_fdset() doc. */
+      /* always cleanup */
+      curl_easy_cleanup(curl);
 
-      if (maxfd == -1) {
-        /* Portable sleep for platforms other than Windows. */
-        struct timeval wait = {0, 100 * 1000}; /* 100ms */
-        rc = select(0, NULL, NULL, NULL, &wait);
-      } else {
-        /* Note that on some platforms 'timeout' may be modified by select().
-          If you need access to the original value save a copy beforehand. */
-        rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
-      }
+      if (res == CURLM_OK) {
+        struct stat file_info;
+        stat(call_info.converted, &file_info);
 
-      switch (rc) {
-      case -1:
-        /* select error */
-        break;
-      case 0:
-      default:
-        /* timeout or readable/writable sockets */
-        curl_multi_perform(multi_handle, &still_running);
-        break;
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tTrunk-PlayerNG Upload Success - file size: " << file_info.st_size;
+        ;
+        return 0;
       }
     }
-
-    long response_code;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-
-    CURLMcode res = curl_multi_cleanup(multi_handle);
-
-    /* always cleanup */
-    curl_easy_cleanup(curl);
-
-    if (res == CURLM_OK && response_code == 200) {
-      struct stat file_info;
-      stat(call_info.converted, &file_info);
-
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tOpenMHz Upload Success - file size: " << file_info.st_size;
-      ;
-      return 0;
-    }
+    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tTrunk-PlayerNG Upload Error: " << response_buffer;
     return 1;
   }
 
@@ -217,7 +241,7 @@ public:
 
   int parse_config(json config_data) {
 
-    // Tests to see if the uploadServer value exists in the config file
+    // Tests to see if the url value exists in the config file
     bool upload_server_exists = config_data.contains("url");
     if (!upload_server_exists) {
       return 1;
@@ -227,7 +251,6 @@ public:
     this->data.token = config_data.value("token", "");
     BOOST_LOG_TRIVIAL(info) << "Trunk-PlayerNG Server: " << this->data.tpng_server;
 
-    // from: http://www.zedwood.com/article/cpp-boost-url-regex
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
 
@@ -240,27 +263,9 @@ public:
       BOOST_LOG_TRIVIAL(error) << "Trunk-PlayerNG Server set, but no token is setted\n";
       return 1;
     }
-
     return 0;
   }
 
-  /*
- int init(Config *config, std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
-   int start() { return 0; }
-   int stop() { return 0; }
-   int poll_one() { return 0; }
-   int signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) { return 0; }
-   int audio_stream(Recorder *recorder, float *samples, int sampleCount) { return 0; }
-   int call_start(Call *call) { return 0; }
-   int calls_active(std::vector<Call *> calls) { return 0; }
-   int setup_recorder(Recorder *recorder) { return 0; }
-   int setup_system(System *system) { return 0; }
-   int setup_systems(std::vector<System *> systems) { return 0; }
-   int setup_sources(std::vector<Source *> sources) { return 0; }
-   int setup_config(std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
-   int system_rates(std::vector<System *> systems, float timeDiff) { return 0; }
-*/
-  // Factory method
   static boost::shared_ptr<TPNG_Uploader> create() {
     return boost::shared_ptr<TPNG_Uploader>(
         new TPNG_Uploader());
@@ -268,6 +273,6 @@ public:
 };
 
 BOOST_DLL_ALIAS(
-    TPNG_Uploader::create, // <-- this function is exported with...
-    create_plugin             // <-- ...this alias name
+    TPNG_Uploader::create,
+    create_plugin
 )
