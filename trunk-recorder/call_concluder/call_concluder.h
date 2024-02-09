@@ -16,6 +16,7 @@
 #include "../systems/system_impl.h"
 
 Call_Data_t upload_call_worker(Call_Data_t call_info);
+int create_call_json(Call_Data_t call_info) ;
 
 class Call_Concluder {
   static const int MAX_RETRY = 2;
