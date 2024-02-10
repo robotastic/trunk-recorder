@@ -81,7 +81,7 @@ signal_detector_cvf_impl::signal_detector_cvf_impl(double samp_rate,
 #endif
   d_threshold = threshold;
   d_sensitivity = sensitivity;
-  d_auto_threshold = auto_threshold;
+  d_auto_threshold = true; //auto_threshold;
   d_average = average;
   d_quantization = quantization;
   d_min_bw = min_bw;
@@ -220,6 +220,7 @@ void signal_detector_cvf_impl::build_threshold() {
   // search specified normized jump
   for (unsigned int i = 0; i < d_fft_len; i++) {
     if ((d_tmp_pxx[i + 1] - d_tmp_pxx[i]) / range > 1 - d_sensitivity) {
+      
       d_threshold = d_tmp_pxx[i];
       break;
     }

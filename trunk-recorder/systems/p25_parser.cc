@@ -972,7 +972,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
 
  if (s.length() < 2) {
     BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " Len: " << s.length();
-    messages.push_back(message);
+    //messages.push_back(message);
     return messages;
   }
 
