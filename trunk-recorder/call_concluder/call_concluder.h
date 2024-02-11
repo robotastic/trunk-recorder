@@ -16,7 +16,6 @@
 #include "../systems/system_impl.h"
 
 Call_Data_t upload_call_worker(Call_Data_t call_info);
-int create_call_json(Call_Data_t call_info) ;
 
 class Call_Concluder {
   static const int MAX_RETRY = 2;
@@ -28,6 +27,7 @@ public:
   static Call_Data_t create_call_data(Call *call, System *sys, Config config);
   static void conclude_call(Call *call, System *sys, Config config);
   static void manage_call_data_workers();
+  static std::stringstream create_call_json_string(Call_Data_t call_info);
 
 private:
   static Call_Data_t create_base_filename(Call *call, Call_Data_t call_info);

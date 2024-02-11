@@ -35,63 +35,6 @@ public:
     return size * nmemb;
   }
 
-  std::stringstream create_call_json(Call_Data_t call_info) {
-    // Create the JSON -- Moderatly borrowed
-    std::stringstream json;
-
-    json << "{\n";
-    json << "\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ",\n";
-    json << "\"start_time\": " << call_info.start_time << ",\n";
-    json << "\"stop_time\": " << call_info.stop_time << ",\n";
-    json << "\"emergency\": " << call_info.emergency << ",\n";
-    json << "\"priority\": " << call_info.priority << ",\n";
-    json << "\"mode\": " << call_info.mode << ",\n";
-    json << "\"duplex\": " << call_info.duplex << ",\n";
-    json << "\"encrypted\": " << call_info.encrypted << ",\n";
-    json << "\"call_length\": " << call_info.length << ",\n";
-    json << "\"talkgroup\": " << call_info.talkgroup << ",\n";
-    json << "\"talkgroup_tag\": \"" << call_info.talkgroup_alpha_tag << "\",\n";
-    json << "\"talkgroup_description\": \"" << call_info.talkgroup_description << "\",\n";
-    json << "\"talkgroup_group_tag\": \"" << call_info.talkgroup_tag << "\",\n";
-    json << "\"talkgroup_group\": \"" << call_info.talkgroup_group << "\",\n";
-    json << "\"audio_type\": \"" << call_info.audio_type << "\",\n";
-    json << "\"short_name\": \"" << call_info.short_name << "\",\n";
-
-    if (call_info.patched_talkgroups.size() > 1) {
-      json << "\"patched_talkgroups\": [";
-      bool first = true;
-      BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
-        if (!first) {
-          json << ",";
-        }
-        first = false;
-        json << (int)TGID;
-      }
-      json << "],\n";
-    }
-
-    json << "\"freqList\": [ ";
-    for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
-      if (i != 0) {
-        json << ", ";
-      }
-      json << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len << ", \"error_count\": \"" << std::fixed << std::setprecision(0) << call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}";
-    }
-    json << " ],\n";
-    json << "\"srcList\": [ ";
-
-    for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
-      if (i != 0) {
-        json << ", ";
-      }
-      json << "{\"src\": " << std::fixed << call_info.transmission_source_list[i].source << ", \"time\": " << call_info.transmission_source_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"emergency\": " << call_info.transmission_source_list[i].emergency << ", \"signal_system\": \"" << call_info.transmission_source_list[i].signal_system << "\", \"tag\": \"" << call_info.transmission_source_list[i].tag << "\"}";
-    }
-    json << " ]\n";
-    json << "}\n";
-
-    return json;
-  }
-
   std::string base64_encode_m4a(const std::string& path) {
     std::vector<char> temp;
 
@@ -114,7 +57,7 @@ public:
   int upload(Call_Data_t call_info) {
 
     std::string token = this->data.token;
-    std::stringstream json_buffer = create_call_json(call_info);
+    std::stringstream json_buffer = Call_Concluder::create_call_json_string(call_info);
     nlohmann::json call_json = nlohmann::json::parse(json_buffer.str());
     std::string base64_audio = base64_encode_m4a(call_info.converted);
 
@@ -227,6 +170,10 @@ public:
         stat(call_info.converted, &file_info);
 
         BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tTrunk-PlayerNG Upload Success - file size: " << file_info.st_size;
+        ;
+        return 0;
+      }else if (response_code == 401) {
+        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tTrunk-PlayerNG Upload Denyed - CHECK TOKEN OR ACLS"
         ;
         return 0;
       }

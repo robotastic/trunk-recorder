@@ -50,58 +50,14 @@ int convert_media(char *filename, char *converted) {
   return nchars;
 }
 
+
 int create_call_json(Call_Data_t call_info) {
   // Create the JSON status file
   std::ofstream json_file(call_info.status_filename);
+  std::stringstream json_string = Call_Concluder::create_call_json_string(call_info);
 
   if (json_file.is_open()) {
-    json_file << "{\n";
-    json_file << "\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ",\n";
-    json_file << "\"start_time\": " << call_info.start_time << ",\n";
-    json_file << "\"stop_time\": " << call_info.stop_time << ",\n";
-    json_file << "\"emergency\": " << call_info.emergency << ",\n";
-    json_file << "\"priority\": " << call_info.priority << ",\n";
-    json_file << "\"mode\": " << call_info.mode << ",\n";
-    json_file << "\"duplex\": " << call_info.duplex << ",\n";
-    json_file << "\"encrypted\": " << call_info.encrypted << ",\n";
-    json_file << "\"call_length\": " << call_info.length << ",\n";
-    json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
-    json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_alpha_tag << "\",\n";
-    json_file << "\"talkgroup_description\": \"" << call_info.talkgroup_description << "\",\n";
-    json_file << "\"talkgroup_group_tag\": \"" << call_info.talkgroup_tag << "\",\n";
-    json_file << "\"talkgroup_group\": \"" << call_info.talkgroup_group << "\",\n";
-    json_file << "\"audio_type\": \"" << call_info.audio_type << "\",\n";
-    json_file << "\"short_name\": \"" << call_info.short_name << "\",\n";
-    if (call_info.patched_talkgroups.size() > 1) {
-      json_file << "\"patched_talkgroups\": [";
-      bool first = true;
-      BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
-        if (!first) {
-          json_file << ",";
-        }
-        first = false;
-        json_file << (int)TGID;
-      }
-      json_file << "],\n";
-    }
-    json_file << "\"freqList\": [ ";
-    for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
-      if (i != 0) {
-        json_file << ", ";
-      }
-      json_file << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len << ", \"error_count\": \"" << std::fixed << std::setprecision(0) << call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}";
-    }
-    json_file << " ],\n";
-    json_file << "\"srcList\": [ ";
-
-    for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
-      if (i != 0) {
-        json_file << ", ";
-      }
-      json_file << "{\"src\": " << std::fixed << call_info.transmission_source_list[i].source << ", \"time\": " << call_info.transmission_source_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"emergency\": " << call_info.transmission_source_list[i].emergency << ", \"signal_system\": \"" << call_info.transmission_source_list[i].signal_system << "\", \"tag\": \"" << call_info.transmission_source_list[i].tag << "\"}";
-    }
-    json_file << " ]\n";
-    json_file << "}\n";
+    json_file << json_string.rdbuf();
     json_file.close();
     return 0;
   } else {
@@ -249,6 +205,63 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
   return call_info;
 }
 
+
+std::stringstream Call_Concluder::create_call_json_string(Call_Data_t call_info) {
+  // Create the JSON
+  std::stringstream json;
+
+  json << "{\n";
+  json << "\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ",\n";
+  json << "\"start_time\": " << call_info.start_time << ",\n";
+  json << "\"stop_time\": " << call_info.stop_time << ",\n";
+  json << "\"emergency\": " << call_info.emergency << ",\n";
+  json << "\"priority\": " << call_info.priority << ",\n";
+  json << "\"mode\": " << call_info.mode << ",\n";
+  json << "\"duplex\": " << call_info.duplex << ",\n";
+  json << "\"encrypted\": " << call_info.encrypted << ",\n";
+  json << "\"call_length\": " << call_info.length << ",\n";
+  json << "\"talkgroup\": " << call_info.talkgroup << ",\n";
+  json << "\"talkgroup_tag\": \"" << call_info.talkgroup_alpha_tag << "\",\n";
+  json << "\"talkgroup_description\": \"" << call_info.talkgroup_description << "\",\n";
+  json << "\"talkgroup_group_tag\": \"" << call_info.talkgroup_tag << "\",\n";
+  json << "\"talkgroup_group\": \"" << call_info.talkgroup_group << "\",\n";
+  json << "\"audio_type\": \"" << call_info.audio_type << "\",\n";
+  json << "\"short_name\": \"" << call_info.short_name << "\",\n";
+
+  if (call_info.patched_talkgroups.size() > 1) {
+    json << "\"patched_talkgroups\": [";
+    bool first = true;
+    BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
+      if (!first) {
+        json << ",";
+      }
+      first = false;
+      json << (int)TGID;
+    }
+    json << "],\n";
+  }
+
+  json << "\"freqList\": [ ";
+  for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
+    if (i != 0) {
+      json << ", ";
+    }
+    json << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len << ", \"error_count\": \"" << std::fixed << std::setprecision(0) << call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}";
+  }
+  json << " ],\n";
+  json << "\"srcList\": [ ";
+
+  for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
+    if (i != 0) {
+      json << ", ";
+    }
+    json << "{\"src\": " << std::fixed << call_info.transmission_source_list[i].source << ", \"time\": " << call_info.transmission_source_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"emergency\": " << call_info.transmission_source_list[i].emergency << ", \"signal_system\": \"" << call_info.transmission_source_list[i].signal_system << "\", \"tag\": \"" << call_info.transmission_source_list[i].tag << "\"}";
+  }
+  json << " ]\n";
+  json << "}\n";
+
+  return json;
+}
 
 // static int rec_counter=0;
 Call_Data_t Call_Concluder::create_base_filename(Call *call, Call_Data_t call_info) {
