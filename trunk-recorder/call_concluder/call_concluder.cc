@@ -2,6 +2,8 @@
 #include "../plugin_manager/plugin_manager.h"
 #include <boost/filesystem.hpp>
 #include <filesystem>
+#include <iostream>
+
 namespace fs = std::filesystem;
 
 std::list<std::future<Call_Data_t>> Call_Concluder::call_data_workers = {};

@@ -172,7 +172,7 @@ public:
         BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tTrunk-PlayerNG Upload Success - file size: " << file_info.st_size;
         ;
         return 0;
-      }else if (response_code == 401) {
+      } else if (response_code == 401) {
         BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tTrunk-PlayerNG Upload Denyed - CHECK TOKEN OR ACLS"
         ;
         return 0;

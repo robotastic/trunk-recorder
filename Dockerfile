@@ -1,4 +1,4 @@
-FROM --platform=amd64 ubuntu:22.04 AS base
+FROM ubuntu:22.04 AS base
 
 # Install docker for passing the socket to allow for intercontainer exec
 RUN apt-get update && \
