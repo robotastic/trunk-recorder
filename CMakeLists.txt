@@ -342,18 +342,27 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/json.hpp" # source file
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder" # target directory
 )
 
-
+# Add built-in plugins located in /plugins
 add_subdirectory(plugins/openmhz_uploader)
-
 add_subdirectory(plugins/stat_socket)
-
 add_subdirectory(plugins/broadcastify_uploader)
-
 add_subdirectory(plugins/unit_script)
-
 add_subdirectory(plugins/rdioscanner_uploader)
-
 add_subdirectory(plugins/simplestream)
+
+# Add user plugins located in /user_plugins
+# Matching: /user_plugins/${plugin_dir}/CMakeLists.txt
+file(GLOB plugin_dirs "user_plugins/*")
+foreach(plugin_dir ${plugin_dirs})
+  if(IS_DIRECTORY ${plugin_dir})
+    file(GLOB cmakelists "${plugin_dir}/CMakeLists.txt")
+    if(cmakelists)
+      add_subdirectory(${plugin_dir})
+      get_filename_component(dir_name ${plugin_dir} NAME)
+      message(STATUS "Added user plugin: ${dir_name}")
+    endif()
+  endif()
+endforeach()
 
 add_executable(trunk-recorder trunk-recorder/main.cc) # ${trunk_recorder_sources})
 
