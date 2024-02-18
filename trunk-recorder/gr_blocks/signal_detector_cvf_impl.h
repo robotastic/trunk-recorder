@@ -37,7 +37,7 @@ private:
   bool d_auto_threshold;
   unsigned int d_fft_len;
   unsigned int d_tmpbuflen;
-  float d_threshold, d_sensitivity, d_average, d_quantization, d_min_bw;
+  float d_threshold, d_sensitivity, d_average, d_quantization, d_min_bw, d_max_bw;
   float *d_pxx, *d_tmp_pxx, *d_pxx_out, *d_tmpbuf;
   double d_samp_rate;
 
@@ -47,7 +47,7 @@ private:
 #else
   gr::fft::window::win_type d_window_type;
 #endif
-
+  uint64_t last_conventional_channel_detection_check;
   std::vector<float> d_window;
   std::vector<std::vector<float>> d_signal_edges;
   std::vector<std::vector<float>> d_rf_map;
@@ -59,6 +59,7 @@ private:
 #endif
   std::vector<float> d_freq;
   const char *d_filename;
+  uint64_t time_since_epoch_millisec();
 
 public:
   signal_detector_cvf_impl(double samp_rate,
@@ -70,6 +71,7 @@ public:
                            float average,
                            float quantization,
                            float min_bw,
+                           float max_bw,
                            const char *filename);
 
   ~signal_detector_cvf_impl();

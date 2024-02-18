@@ -565,6 +565,10 @@ dmr_slot::decode_vlch(uint8_t* vlch) {
 	// send up the stack
 	std::string lc_msg(12,0);
 	for (int i = 0; i < 12; i++) {
+		if (d_lc.size() <= i) {
+			std::cerr << "ERROR: d_lc.size()=" << d_lc.size() << " i=" << i << std::endl;
+			break;
+		}
 		lc_msg[i] = d_lc[i];
 	}
 	send_msg(lc_msg, M_DMR_SLOT_VLC);
@@ -594,6 +598,10 @@ dmr_slot::decode_tlc(uint8_t* tlc) {
 	// send up the stack
 	std::string lc_msg(12,0);
 	for (int i = 0; i < 12; i++) {
+		if (d_lc.size() <= i) {
+			std::cerr << "ERROR: d_lc.size()=" << d_lc.size() << " i=" << i << std::endl;
+			break;
+		}
 		lc_msg[i] = d_lc[i];
 	}
 	send_msg(lc_msg, M_DMR_SLOT_TLC);
@@ -754,6 +762,14 @@ dmr_slot::decode_embedded_lc() {
 	memset(data, 0, 128 * sizeof(bool));
 	unsigned int b = 0;
 	for (unsigned int a = 0; a < 128; a++) {
+		if (a >= sizeof(d_emb)) {
+			std::cerr << "EMB LC data incomplete, size: " << sizeof(d_emb) << std::endl;
+			break;
+		}
+		if (b >= 128) {
+			std::cerr << "EMB LC data overflow, b: " << b << std::endl;
+			break;
+		}
 		data[b] = d_emb[a];
 		b += 16;
 		if (b > 127)
@@ -809,6 +825,10 @@ dmr_slot::decode_embedded_lc() {
 		// send up the stack
 		std::string lc_msg(9,0);
 		for (int i = 0; i < 9; i++) {
+			if (d_lc.size() <= i) {
+				std::cerr << "EMB LC data incomplete, size: " << d_lc.size() << std::endl;
+				break;
+			}
 			lc_msg[i] = d_lc[i];
 		}
 		send_msg(lc_msg, M_DMR_SLOT_ELC);

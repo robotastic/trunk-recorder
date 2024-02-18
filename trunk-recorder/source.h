@@ -129,7 +129,7 @@ public:
   int get_num_available_analog_recorders();
   int get_num_available_digital_recorders();
   void set_signal_detector_threshold(float t);
-  std::vector<Recorder *> find_conventional_recorders_by_freq(double freq);
+  std::vector<Recorder *> find_conventional_recorders_by_freq(Detected_Signal ds);
   std::vector<Recorder *> get_detected_recorders();
   void set_selector_port_enabled(unsigned int port, bool enabled);
   bool is_selector_port_enabled(unsigned int port);

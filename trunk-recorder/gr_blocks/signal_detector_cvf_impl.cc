@@ -40,6 +40,7 @@ signal_detector_cvf::sptr signal_detector_cvf::make(double samp_rate,
                                                     float average,
                                                     float quantization,
                                                     float min_bw,
+                                                    float max_bw,
                                                     const char *filename) {
   return gnuradio::get_initial_sptr(new signal_detector_cvf_impl(samp_rate,
                                                                  fft_len,
@@ -50,7 +51,13 @@ signal_detector_cvf::sptr signal_detector_cvf::make(double samp_rate,
                                                                  average,
                                                                  quantization,
                                                                  min_bw,
+                                                                 max_bw,
                                                                  filename));
+}
+
+uint64_t signal_detector_cvf_impl::time_since_epoch_millisec() {
+  using namespace std::chrono;
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
 /*
@@ -65,6 +72,7 @@ signal_detector_cvf_impl::signal_detector_cvf_impl(double samp_rate,
                                                    float average,
                                                    float quantization,
                                                    float min_bw,
+                                                   float max_bw,
                                                    const char *filename)
     : sync_decimator("signal_detector_cvf",
                      gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -81,13 +89,18 @@ signal_detector_cvf_impl::signal_detector_cvf_impl(double samp_rate,
 #endif
   d_threshold = threshold;
   d_sensitivity = sensitivity;
-  d_auto_threshold = true; //auto_threshold;
+  d_auto_threshold = auto_threshold;
   d_average = average;
   d_quantization = quantization;
   d_min_bw = min_bw;
+  d_max_bw = max_bw;
   d_filename = filename;
   d_detected_signals = std::vector<Detected_Signal>();
+  last_conventional_channel_detection_check = time_since_epoch_millisec();
 
+
+  BOOST_LOG_TRIVIAL(info) << "signal_detector_cvf_impl: " << "samp_rate: " << samp_rate << " fft_len: " << fft_len << " window_type: " << window_type << " threshold: " << threshold << " sensitivity: " << sensitivity << " auto_threshold: " << auto_threshold << " average: " << average << " quantization: " << quantization << " min_bw: " << min_bw << " filename: " << filename;
+  BOOST_LOG_TRIVIAL(info) << "signal_detector_cvf_impl: " << "FFT Bucket Size: " << samp_rate / fft_len << " Hz Quatization: " << (int)floor(d_quantization * d_samp_rate);
   // allocate buffers
   d_tmpbuf =
       static_cast<float *>(volk_malloc(sizeof(float) * d_fft_len, volk_get_alignment()));
@@ -109,6 +122,7 @@ signal_detector_cvf_impl::signal_detector_cvf_impl(double samp_rate,
   }
 
   d_freq = build_freq();
+
 }
 
 /*
@@ -215,16 +229,33 @@ void signal_detector_cvf_impl::build_threshold() {
   memcpy(d_tmp_pxx, d_pxx_out, sizeof(float) * d_fft_len);
   // sort bins
   d_threshold = 500;
+  
   std::sort(d_tmp_pxx, d_tmp_pxx + d_fft_len);
+  
+
   float range = d_tmp_pxx[d_fft_len - 1] - d_tmp_pxx[0];
+  float median = d_tmp_pxx[d_fft_len / 2];
+
+
   // search specified normized jump
-  for (unsigned int i = 0; i < d_fft_len; i++) {
-    if ((d_tmp_pxx[i + 1] - d_tmp_pxx[i]) / range > 1 - d_sensitivity) {
+  // since we are looking one ahead we want to stop before the end.
+  for (unsigned int i = 0; i < d_fft_len-1; i++) {
       
+    if ((d_tmp_pxx[i + 1] - d_tmp_pxx[i]) / range > 1 - d_sensitivity) {
       d_threshold = d_tmp_pxx[i];
       break;
     }
   }
+  
+  if (d_threshold == 500) {
+    /*BOOST_LOG_TRIVIAL(error) << "Could not find threshold - range: " << range << " d_sensitivity: " << d_sensitivity << " Max RSSI: " << d_tmp_pxx[d_fft_len - 1] << " Min RSSI: " << d_tmp_pxx[0];
+    for (unsigned int i =0; i < 5; i++) {
+      BOOST_LOG_TRIVIAL(error) << "RSSI[" << d_tmp_pxx[d_fft_len - 1 - i] << "] change: " << (d_tmp_pxx[d_fft_len - 1 - i] - d_tmp_pxx[d_fft_len - 2 - i]) / range;
+    }*/
+    d_threshold = d_tmp_pxx[d_fft_len - 1];
+  }
+  //BOOST_LOG_TRIVIAL(info) << "Median: " << median << " Range: " << range << " Max RSSI: " << d_tmp_pxx[d_fft_len - 1] << " Min RSSI: " << d_tmp_pxx[0] << " Threshold: " << d_threshold;  
+  
 }
 
 // find bins above threshold and adjacent bins for each signal
@@ -266,10 +297,15 @@ std::vector<Detected_Signal> signal_detector_cvf_impl::find_signal_edges() {
         signal_started = false;
 
         double bandwidth = d_freq[signal.end_bin] - d_freq[signal.start_bin];
-        signal.bandwidth = quantization * round(bandwidth / quantization);
-        signal.center_freq = (d_freq[signal.start_bin] + d_freq[signal.end_bin]) / 2;
-
-        detected_signals.push_back(signal);
+        double quantized_bandwidth = quantization * round(bandwidth / quantization);
+        signal.bandwidth = quantized_bandwidth;
+           //BOOST_LOG_TRIVIAL(info) << "Bandwidth: " << bandwidth << " bins: " << d_freq[signal.end_bin] << " - " << d_freq[signal.start_bin] << " Center: " << (d_freq[signal.start_bin] + d_freq[signal.end_bin]) / 2 << " Threshold: " << d_threshold << " RSSI: " << signal.max_rssi << " Quantization: " << quantization << " Rounded Bandwidth: " << quantization * round(bandwidth / quantization) << std::endl;
+       
+        if (quantized_bandwidth >= d_min_bw && quantized_bandwidth <= d_max_bw) {
+          signal.center_freq = (d_freq[signal.start_bin] + d_freq[signal.end_bin]) / 2;
+          signal.threshold = d_threshold;
+          detected_signals.push_back(signal);
+        }
       }
     }
   }
@@ -353,19 +389,24 @@ int signal_detector_cvf_impl::work(int noutput_items,
   const gr_complex *in = (const gr_complex *)input_items[0];
   // float* out = (float*)output_items[0];
 
-  periodogram(d_pxx, in);
+    uint64_t current_time_ms = time_since_epoch_millisec();
+    if ((current_time_ms - last_conventional_channel_detection_check) >= 100.0) { //0.05) {
 
-  // averaging
-  for (unsigned int i = 0; i < d_fft_len; i++) {
-    d_pxx_out[i] = d_avg_filter[i].filter(d_pxx[i]);
-  }
+      periodogram(d_pxx, in);
 
-  if (d_auto_threshold) {
-    build_threshold();
-  }
+      // averaging
+      for (unsigned int i = 0; i < d_fft_len; i++) {
+        d_pxx_out[i] = d_avg_filter[i].filter(d_pxx[i]);
+      }
 
-  gr::thread::scoped_lock guard(d_mutex);
-  d_detected_signals = find_signal_edges();
+      if (d_auto_threshold) {
+        build_threshold();
+      }
+
+      gr::thread::scoped_lock guard(d_mutex);
+      d_detected_signals = find_signal_edges();
+      last_conventional_channel_detection_check = current_time_ms;
+    }
   // BOOST_LOG_TRIVIAL(info) << "d_detected_signals.size() = " << d_detected_signals.size() << std::endl;
 
   return 1; // one vector has been processed

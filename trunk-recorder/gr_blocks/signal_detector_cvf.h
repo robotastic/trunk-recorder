@@ -62,6 +62,7 @@ struct Detected_Signal {
   int avg_rssi;
   int max_rssi;
   int min_rssi;
+  int threshold;
   std::vector<int> rssi;
   double center_freq;
   double bandwidth;
@@ -105,6 +106,7 @@ public:
                      float average = 0.8,
                      float quantization = 0.01,
                      float min_bw = 0.0,
+                     float max_bw = 50000,
                      const char* filename = "");
 
     virtual void set_samp_rate(double d_samp_rate) = 0;
