@@ -234,10 +234,10 @@ void signal_detector_cvf_impl::build_threshold() {
   
 
   float range = d_tmp_pxx[d_fft_len - 1] - d_tmp_pxx[0];
-  float median = d_tmp_pxx[d_fft_len / 2];
+  
 
 
-  // search specified normized jump
+  // search specified normalized jump
   // since we are looking one ahead we want to stop before the end.
   for (unsigned int i = 0; i < d_fft_len-1; i++) {
       
@@ -248,6 +248,7 @@ void signal_detector_cvf_impl::build_threshold() {
   }
   
   if (d_threshold == 500) {
+    //float median = d_tmp_pxx[d_fft_len / 2];
     /*BOOST_LOG_TRIVIAL(error) << "Could not find threshold - range: " << range << " d_sensitivity: " << d_sensitivity << " Max RSSI: " << d_tmp_pxx[d_fft_len - 1] << " Min RSSI: " << d_tmp_pxx[0];
     for (unsigned int i =0; i < 5; i++) {
       BOOST_LOG_TRIVIAL(error) << "RSSI[" << d_tmp_pxx[d_fft_len - 1 - i] << "] change: " << (d_tmp_pxx[d_fft_len - 1 - i] - d_tmp_pxx[d_fft_len - 2 - i]) / range;
