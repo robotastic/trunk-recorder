@@ -270,6 +270,10 @@ bool analog_recorder::is_squelched() {
   return prefilter->is_squelched();
 }
 
+double analog_recorder::get_pwr() {
+  return prefilter->get_pwr();
+}
+
 bool analog_recorder::is_idle() {
   if (state == ACTIVE) {
     return prefilter->is_squelched();

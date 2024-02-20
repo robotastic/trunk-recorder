@@ -171,6 +171,11 @@ bool dmr_recorder_impl::is_squelched() {
   }
   return true;
 }
+
+double dmr_recorder_impl::get_pwr() {
+  return prefilter->get_pwr();
+}
+
 bool dmr_recorder_impl::is_idle() {
   /*
     if ((wav_sink_slot0->get_state() == IDLE) || (wav_sink_slot0->get_state() == STOPPED)) {

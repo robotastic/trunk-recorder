@@ -21,7 +21,7 @@ void Call_conventional::restart_call() {
   emergency = false;
   this->update_talkgroup_display();
   recorder->start(this);
-  recroder->set_rssi(0);
+  recorder->set_rssi(0);
 }
 
 time_t Call_conventional::get_start_time() {

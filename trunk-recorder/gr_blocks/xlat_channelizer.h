@@ -4,9 +4,9 @@
 #include <boost/log/trivial.hpp>
 #include <iomanip>
 
-#include "../gr_blocks/rms_agc.h"
+#include "./rms_agc.h"
 #include "./freq_xlating_fft_filter.h"
-#include <gnuradio/analog/pwr_squelch_cc.h>
+#include "./pwr_squelch_cc.h"
 #include <gnuradio/blocks/copy.h>
 #include <gnuradio/digital/fll_band_edge_cc.h>
 #include <gnuradio/filter/fft_filter_ccc.h>
@@ -56,6 +56,7 @@ public:
   int get_freq_error();
   bool is_enabled();
   bool is_squelched();
+  double get_pwr();
   void tune_offset(double f);
   void set_samples_per_symbol(int samples_per_symbol);
   void set_enabled(bool enabled);

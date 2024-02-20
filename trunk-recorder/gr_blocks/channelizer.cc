@@ -226,6 +226,14 @@ void channelizer::set_squelch_db(double squelch_db) {
   squelch->set_threshold(squelch_db);
 }
 
+double channelizer::get_pwr() {
+  if (d_conventional) {
+    return squelch->get_pwr();
+  } else {
+    return 0;
+  }
+}
+
 void channelizer::set_analog_squelch(bool analog_squelch) {
   if (analog_squelch) {
     squelch->set_alpha(0.01);

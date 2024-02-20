@@ -102,6 +102,7 @@ public:
   bool is_active();
   bool is_idle();
   bool is_squelched();
+  double get_pwr();
   std::vector<Transmission> get_transmission_list();
   State get_state();
   int lastupdate();

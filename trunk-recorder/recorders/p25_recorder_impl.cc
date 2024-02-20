@@ -195,6 +195,10 @@ bool p25_recorder_impl::is_squelched() {
   return true;
 }
 
+double p25_recorder_impl::get_pwr() {
+  return prefilter->get_pwr();
+}
+
 bool p25_recorder_impl::is_idle() {
   if (qpsk_mod) {
     if ((qpsk_p25_decode->get_state() == IDLE) || (qpsk_p25_decode->get_state() == STOPPED)) {

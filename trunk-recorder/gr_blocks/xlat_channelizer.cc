@@ -163,6 +163,15 @@ bool xlat_channelizer::is_squelched() {
   return !squelch->unmuted();
 }
 
+double xlat_channelizer::get_pwr() {
+  if (d_conventional) {
+    return squelch->get_pwr();
+  } else {
+    return 0;
+  }
+}
+
+
 void xlat_channelizer::tune_offset(double f) {
 
   float freq = static_cast<float>(f);
