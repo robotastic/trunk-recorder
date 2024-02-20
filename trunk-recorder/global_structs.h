@@ -3,6 +3,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
+#include <json.hpp>
 
 struct Transmission {
   long source;
@@ -129,6 +130,8 @@ struct Call_Data_t {
   Call_Data_Status status;
   time_t process_call_time;
   int retry_attempt;
+
+  nlohmann::ordered_json call_json;
 };
 
 #endif
