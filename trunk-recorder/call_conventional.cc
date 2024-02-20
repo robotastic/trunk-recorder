@@ -9,6 +9,8 @@ Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Ca
 
 void Call_conventional::restart_call() {
   idle_count = 0;
+  signal = 0;
+  noise = 0;
   curr_src_id = -1;
   start_time = time(NULL);
   stop_time = time(NULL);
@@ -21,7 +23,6 @@ void Call_conventional::restart_call() {
   emergency = false;
   this->update_talkgroup_display();
   recorder->start(this);
-  recorder->set_rssi(0);
 }
 
 time_t Call_conventional::get_start_time() {

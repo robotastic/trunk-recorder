@@ -11,7 +11,7 @@
 #ifndef INCLUDED_GR_SQUELCH_BASE_CC_IMPL_H
 #define INCLUDED_GR_SQUELCH_BASE_CC_IMPL_H
 
-#include <gnuradio/analog/squelch_base_cc.h>
+#include "./squelch_base_cc.h"
 
 namespace gr {
 namespace analog {

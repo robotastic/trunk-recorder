@@ -11,8 +11,8 @@
 #ifndef INCLUDED_ANALOG_PWR_SQUELCH_CC_IMPL_H
 #define INCLUDED_ANALOG_PWR_SQUELCH_CC_IMPL_H
 
-#include "squelch_base_cc_impl.h"
-#include <gnuradio/analog/pwr_squelch_cc.h>
+#include "./squelch_base_cc_impl.h"
+#include "./pwr_squelch_cc.h"
 #include <gnuradio/filter/single_pole_iir.h>
 #include <cmath>
 

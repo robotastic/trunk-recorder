@@ -12,7 +12,7 @@
 #define INCLUDED_ANALOG_PWR_SQUELCH_CC_H
 
 #include <gnuradio/analog/api.h>
-#include <gnuradio/analog/squelch_base_cc.h>
+#include "squelch_base_cc.h"
 #include <cmath>
 
 namespace gr {
@@ -51,7 +51,7 @@ public:
     std::vector<float> squelch_range() const override = 0;
 
     virtual double threshold() const = 0;
-    virtual double get_pwr() const = 0;
+    virtual double get_pwr() = 0;
     virtual void set_threshold(double db) = 0;
     virtual void set_alpha(double alpha) = 0;
 

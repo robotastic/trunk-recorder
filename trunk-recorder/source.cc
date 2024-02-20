@@ -417,9 +417,6 @@ std::vector<Recorder *> Source::get_detected_recorders() {
     std::vector<Recorder *> recorders = find_conventional_recorders_by_freq(signal);
     for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
       Recorder *recorder = *it;
-      if (!recorder->is_enabled()) {
-        recorder->set_rssi(rssi);
-      }
       detected_recorders.push_back(recorder);
     }
   }

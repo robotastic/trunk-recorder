@@ -160,19 +160,15 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     if (call->get_state() == MONITORING) {
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
     } else {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
+      if (call->is_conventional() ) {
+         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state()) << " Signal " << call->get_signal() << "dBm  Noise " << call->get_noise() << "dBm";
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
+      }
     }
 
     if (recorder) {
-      if (recorder->is_conventional()) {
-        if (recorder->get_rssi() < 0) {
-          BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tRSSI: " << recorder->get_rssi() << " dBm";
-        } else {
-          BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state()) << "\tNot Detected";
-        }
-      } else {
         BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] State: " << format_state(recorder->get_state());
-      }
     }
   }
 
@@ -211,10 +207,14 @@ void manage_conventional_call(Call *call, Config &config) {
       // means that the squelch is on and it has stopped recording
       if (call->get_recorder()->is_idle()) {
         // increase the number of periods it has not been recording for
+        call->set_noise(call->get_recorder()->get_pwr());
         call->increase_idle_count();
-      } else if (call->get_idle_count() > 0) {
-        // if it starts recording again, then reset the idle count
-        call->reset_idle_count();
+      } else {
+        call->set_signal(call->get_recorder()->get_pwr());
+        if (call->get_idle_count() > 0) {
+          // if it starts recording again, then reset the idle count
+          call->reset_idle_count();
+        }
       }
 
       // if no additional recording has happened in the past X periods, stop and open new file

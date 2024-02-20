@@ -79,8 +79,7 @@ public:
   int get_num() { return rec_num; };
   Recorder_Type get_type() { return type; };
   double get_pwr() { return 0; };
-  void set_rssi(int rssi) { this->rssi = rssi; };
-  int get_rssi() { return rssi; };
+
   bool is_conventional() { return conventional; };
 
   virtual void tune_offset(double f){};

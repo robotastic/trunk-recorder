@@ -12,7 +12,7 @@
 #include "config.h"
 #endif
 
-#include "pwr_squelch_cc_impl.h"
+#include "./pwr_squelch_cc_impl.h"
 
 namespace gr {
 namespace analog {
