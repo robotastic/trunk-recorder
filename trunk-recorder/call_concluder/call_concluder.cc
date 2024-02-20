@@ -78,7 +78,7 @@ int create_call_json(Call_Data_t& call_info) {
   // Add any patched talkgroups
   if (call_info.patched_talkgroups.size() > 1) {
     BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
-      json_data["patched_talkgroups"] += std::to_string(TGID);
+      json_data["patched_talkgroups"] += int(TGID);
     }
   }
   // Add frequencies / IMBE errors
