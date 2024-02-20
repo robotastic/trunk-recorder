@@ -78,7 +78,7 @@ public:
   Recorder(Recorder_Type  type);
   int get_num() { return rec_num; };
   Recorder_Type get_type() { return type; };
-  double get_pwr() { return 0; };
+  virtual double get_pwr() { return 0; };
 
   bool is_conventional() { return conventional; };
 
