@@ -120,7 +120,7 @@ void tps_decoder_sink_impl::process_message(gr::message::sptr msg) {
   std::string s = msg->to_string();
 
  if (s.length() < 2) {
-    BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " Len: " << s.length();
+    BOOST_LOG_TRIVIAL(error) << "TPS Decode error, Message: " << s << " Len: " << s.length() << " is < 2";
     //messages.push_back(message);
     return;
   }
