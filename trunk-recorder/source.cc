@@ -404,23 +404,25 @@ std::vector<Recorder *> Source::find_conventional_recorders_by_freq(Detected_Sig
   return recorders;
 }
 
-std::vector<Recorder *> Source::get_detected_recorders() {
-  std::vector<Recorder *> detected_recorders;
-
+void Source::enable_detected_recorders() {
   std::vector<Detected_Signal> signals = signal_detector->get_detected_signals();
 
   for (std::vector<Detected_Signal>::iterator it = signals.begin(); it != signals.end(); it++) {
     Detected_Signal signal = *it;
 
     float rssi = signal.max_rssi;
+    float threshold = signal.threshold;
 
     std::vector<Recorder *> recorders = find_conventional_recorders_by_freq(signal);
     for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
       Recorder *recorder = *it;
-      detected_recorders.push_back(recorder);
+      if (!recorder->is_enabled()) {
+        recorder->set_enabled(true);
+
+        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] " << recorder->get_type_string() << "\tEnabled - Freq: " << format_freq(recorder->get_freq()) << "\t Detected Signal: " << rssi << "dBM (Threshold: " << threshold << "dBM)";
+      }
     }
   }
-  return detected_recorders;
 }
 
 void Source::set_signal_detector_threshold(float threshold) {

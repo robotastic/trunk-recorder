@@ -190,12 +190,12 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
     connect(deemph, 0, decim_audio, 0);
   }
 
-  connect(decim_audio, 0, high_f, 0);
-  connect(decim_audio, 0, decoder_sink, 0);
 
+  connect(decim_audio, 0, squelch_two, 0);
+  connect(squelch_two, 0, decoder_sink, 0);
+  connect(squelch_two, 0, high_f, 0);
   connect(high_f, 0, low_f, 0);
-  connect(low_f, 0, squelch_two, 0);
-  connect(squelch_two, 0, levels, 0);
+  connect(low_f, 0, levels, 0);
   connect(levels, 0, converter, 0);
   connect(converter, 0, wav_sink, 0);
 

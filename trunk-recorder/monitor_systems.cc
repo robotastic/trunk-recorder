@@ -161,7 +161,8 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
       BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
     } else {
       if (call->is_conventional() ) {
-         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state()) << " Signal " << call->get_signal() << "dBm  Noise " << call->get_noise() << "dBm";
+        bool is_enabled = call->get_recorder()->is_enabled();
+         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state()) << " Enabled: " << is_enabled;
       } else {
         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
       }
@@ -730,15 +731,7 @@ void check_conventional_channel_detection(std::vector<Source *> &sources) {
   Source *source = NULL;
   for (vector<Source *>::iterator src_it = sources.begin(); src_it != sources.end(); src_it++) {
     source = *src_it;
-    std::vector<Recorder *> recorders = source->get_detected_recorders();
-    for (std::vector<Recorder *>::iterator it = recorders.begin(); it != recorders.end(); it++) {
-      Recorder *recorder = *it;
-
-      if (!recorder->is_enabled()) {
-        recorder->set_enabled(true);
-        BOOST_LOG_TRIVIAL(info) << "Enabled Freq: " << format_freq(recorder->get_freq());
-      }
-    }
+    source->enable_detected_recorders();
   }
 }
 
