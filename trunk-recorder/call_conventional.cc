@@ -9,8 +9,8 @@ Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Ca
 
 void Call_conventional::restart_call() {
   idle_count = 0;
-  signal = 0;
-  noise = 0;
+  signal = 999;
+  noise = 999;
   curr_src_id = -1;
   start_time = time(NULL);
   stop_time = time(NULL);

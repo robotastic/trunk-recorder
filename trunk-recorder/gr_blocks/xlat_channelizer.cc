@@ -167,7 +167,7 @@ double xlat_channelizer::get_pwr() {
   if (d_conventional) {
     return squelch->get_pwr();
   } else {
-    return 0;
+    return 999;
   }
 }
 
