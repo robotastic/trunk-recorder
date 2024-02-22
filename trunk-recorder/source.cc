@@ -419,7 +419,7 @@ void Source::enable_detected_recorders() {
       if (!recorder->is_enabled()) {
         recorder->set_enabled(true);
 
-        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] " << recorder->get_type_string() << "\tEnabled - Freq: " << format_freq(recorder->get_freq()) << "\t Detected Signal: " << rssi << "dBM (Threshold: " << threshold << "dBM)";
+        BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] " << recorder->get_type_string() << "\tEnabled - Freq: " << format_freq(recorder->get_freq()) << "\t Detected Signal: " << floor(rssi) << "dBM (Threshold: " << floor(threshold) << "dBM)";
       }
     }
   }
