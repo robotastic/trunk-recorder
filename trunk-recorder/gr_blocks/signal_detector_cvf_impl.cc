@@ -234,29 +234,36 @@ void signal_detector_cvf_impl::build_threshold() {
   
 
   float range = d_tmp_pxx[d_fft_len - 1] - d_tmp_pxx[0];
+  // float median = d_tmp_pxx[int(d_fft_len/2)];
+  // float mean = 0;
+  // for (unsigned int i = d_fft_len/4; i < d_fft_len*.75; i++) {
+  //   mean += d_tmp_pxx[i];
+  // }
+  // mean = mean / (d_fft_len/2);
   
 
 
   // search specified normalized jump
   // since we are looking one ahead we want to stop before the end.
-  for (unsigned int i = 0; i < d_fft_len-1; i++) {
+  // start at the middle of the array since the threshold can't be below the median
+  for (unsigned int i = d_fft_len/2; i < d_fft_len-1; i++) {
       
     if ((d_tmp_pxx[i + 1] - d_tmp_pxx[i]) / range > 1 - d_sensitivity) {
       d_threshold = d_tmp_pxx[i];
+      // BOOST_LOG_TRIVIAL(error) << "RSSI[" << d_tmp_pxx[i] << "] change: " << (d_tmp_pxx[i + 1] - d_tmp_pxx[i]) / range ;
       break;
     }
   }
   
   if (d_threshold == 500) {
     //float median = d_tmp_pxx[d_fft_len / 2];
-    /*BOOST_LOG_TRIVIAL(error) << "Could not find threshold - range: " << range << " d_sensitivity: " << d_sensitivity << " Max RSSI: " << d_tmp_pxx[d_fft_len - 1] << " Min RSSI: " << d_tmp_pxx[0];
-    for (unsigned int i =0; i < 5; i++) {
-      BOOST_LOG_TRIVIAL(error) << "RSSI[" << d_tmp_pxx[d_fft_len - 1 - i] << "] change: " << (d_tmp_pxx[d_fft_len - 1 - i] - d_tmp_pxx[d_fft_len - 2 - i]) / range;
-    }*/
+    // BOOST_LOG_TRIVIAL(error) << "Could not find threshold - range: " << range << " d_sensitivity: " << d_sensitivity << " Max RSSI: " << d_tmp_pxx[d_fft_len - 1] << " Min RSSI: " << d_tmp_pxx[0];
+    // for (unsigned int i =0; i < 5; i++) {
+    //   BOOST_LOG_TRIVIAL(error) << "RSSI[" << d_tmp_pxx[d_fft_len - 1 - i] << "] change: " << (d_tmp_pxx[d_fft_len - 1 - i] - d_tmp_pxx[d_fft_len - 2 - i]) / range;
+    // }
     d_threshold = d_tmp_pxx[d_fft_len - 1];
   }
-  //BOOST_LOG_TRIVIAL(info) << "Median: " << median << " Range: " << range << " Max RSSI: " << d_tmp_pxx[d_fft_len - 1] << " Min RSSI: " << d_tmp_pxx[0] << " Threshold: " << d_threshold;  
-  
+  //BOOST_LOG_TRIVIAL(info) << "Median: " << median << " Means: " << mean << " Range: " << range << " Max RSSI: " << d_tmp_pxx[d_fft_len - 1] << " Min RSSI: " << d_tmp_pxx[0] << " Threshold: " << d_threshold;  
 }
 
 // find bins above threshold and adjacent bins for each signal

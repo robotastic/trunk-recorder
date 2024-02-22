@@ -69,7 +69,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   recorder_selector = gr::blocks::selector::make(sizeof(gr_complex), 0, 0);
 
   // parameters for signal_detector_cvf
-  float threshold_sensitivity = 0.95;
+  float threshold_sensitivity = 0.9;
   float threshold = -45;
   int fft_len = 1024;
   float average = 0.8;
