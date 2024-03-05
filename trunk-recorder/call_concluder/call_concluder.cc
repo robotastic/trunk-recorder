@@ -50,59 +50,65 @@ int convert_media(char *filename, char *converted) {
   return nchars;
 }
 
-int create_call_json(Call_Data_t call_info) {
-  // Create the JSON status file
+int create_call_json(Call_Data_t& call_info) {
+  // Create call JSON, write it to disk, and pass back a json object to call_info
+  
+  // Using nlohmann::ordered_json to preserve the previous order
+  // Bools are stored as 0 or 1 as in previous versions
+  // Call length is rounded up to the nearest second as in previous versions
+  // Time stored in fractional seconds will omit trailing zeroes per json spec (1.20 -> 1.2) 
+  nlohmann::ordered_json json_data =
+      {
+          {"freq", int(call_info.freq)},
+          {"start_time", call_info.start_time},
+          {"stop_time", call_info.stop_time},
+          {"emergency", int(call_info.emergency)},
+          {"priority", call_info.priority},
+          {"mode", int(call_info.mode)},
+          {"duplex", int(call_info.duplex)},
+          {"encrypted",int(call_info.encrypted)},
+          {"call_length", int(std::round(call_info.length))},
+          {"talkgroup", call_info.talkgroup},
+          {"talkgroup_tag", call_info.talkgroup_alpha_tag},
+          {"talkgroup_description", call_info.talkgroup_description},
+          {"talkgroup_group_tag", call_info.talkgroup_tag},
+          {"talkgroup_group", call_info.talkgroup_group},
+          {"audio_type", call_info.audio_type},
+          {"short_name", call_info.short_name}};
+  // Add any patched talkgroups
+  if (call_info.patched_talkgroups.size() > 1) {
+    BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
+      json_data["patched_talkgroups"] += int(TGID);
+    }
+  }
+  // Add frequencies / IMBE errors
+  for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
+    json_data["freqList"] += {
+        {"freq", int(call_info.freq)},
+        {"time", call_info.transmission_error_list[i].time},
+        {"pos", call_info.transmission_error_list[i].position},
+        {"len", call_info.transmission_error_list[i].total_len},
+        {"error_count", int(call_info.transmission_error_list[i].error_count)},
+        {"spike_count", int(call_info.transmission_error_list[i].spike_count)}};
+  }
+  // Add sources / tags
+  for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
+    json_data["sourceList"] += {
+        {"src", int(call_info.transmission_source_list[i].source)},
+        {"time", call_info.transmission_source_list[i].time},
+        {"pos", call_info.transmission_source_list[i].position},
+        {"emergency", int(call_info.transmission_source_list[i].emergency)},
+        {"signal_system", call_info.transmission_source_list[i].signal_system},
+        {"tag", call_info.transmission_source_list[i].tag}};
+  }
+  // Add created JSON to call_info  
+  call_info.call_json = json_data;
+
+  // Output the JSON status file
   std::ofstream json_file(call_info.status_filename);
-
   if (json_file.is_open()) {
-    json_file << "{\n";
-    json_file << "\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ",\n";
-    json_file << "\"start_time\": " << call_info.start_time << ",\n";
-    json_file << "\"stop_time\": " << call_info.stop_time << ",\n";
-    json_file << "\"emergency\": " << call_info.emergency << ",\n";
-    json_file << "\"priority\": " << call_info.priority << ",\n";
-    json_file << "\"mode\": " << call_info.mode << ",\n";
-    json_file << "\"duplex\": " << call_info.duplex << ",\n";
-    json_file << "\"encrypted\": " << call_info.encrypted << ",\n";
-    json_file << "\"call_length\": " << call_info.length << ",\n";
-    json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
-    json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_alpha_tag << "\",\n";
-    json_file << "\"talkgroup_description\": \"" << call_info.talkgroup_description << "\",\n";
-    json_file << "\"talkgroup_group_tag\": \"" << call_info.talkgroup_tag << "\",\n";
-    json_file << "\"talkgroup_group\": \"" << call_info.talkgroup_group << "\",\n";
-    json_file << "\"audio_type\": \"" << call_info.audio_type << "\",\n";
-    json_file << "\"short_name\": \"" << call_info.short_name << "\",\n";
-    if (call_info.patched_talkgroups.size() > 1) {
-      json_file << "\"patched_talkgroups\": [";
-      bool first = true;
-      BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
-        if (!first) {
-          json_file << ",";
-        }
-        first = false;
-        json_file << (int)TGID;
-      }
-      json_file << "],\n";
-    }
-    json_file << "\"freqList\": [ ";
-    for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
-      if (i != 0) {
-        json_file << ", ";
-      }
-      json_file << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len << ", \"error_count\": \"" << std::fixed << std::setprecision(0) << call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}";
-    }
-    json_file << " ],\n";
-    json_file << "\"srcList\": [ ";
-
-    for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
-      if (i != 0) {
-        json_file << ", ";
-      }
-      json_file << "{\"src\": " << std::fixed << call_info.transmission_source_list[i].source << ", \"time\": " << call_info.transmission_source_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"emergency\": " << call_info.transmission_source_list[i].emergency << ", \"signal_system\": \"" << call_info.transmission_source_list[i].signal_system << "\", \"tag\": \"" << call_info.transmission_source_list[i].tag << "\"}";
-    }
-    json_file << " ]\n";
-    json_file << "}\n";
-    json_file.close();
+    // Write the JSON to disk, indented 2 spaces per level
+    json_file << json_data.dump(2);
     return 0;
   } else {
     BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \t Unable to create JSON file: " << call_info.status_filename;
