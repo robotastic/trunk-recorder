@@ -280,7 +280,7 @@ public:
         return 0;
       }
       if (code == "1" && (message.rfind("REJECTED", 0) == 0)) {
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload REJECTED: " << message;
+        BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\tTG: " << call_info.talkgroup << "\tFreq: " << format_freq(call_info.freq) << "\tBroadcastify Upload REJECTED: " << message;
         return 0;
       }
 
