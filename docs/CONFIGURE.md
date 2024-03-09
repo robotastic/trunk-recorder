@@ -9,7 +9,8 @@ It takes a little bit of work to correctly configure Trunk Recorder, but once yo
 
 ## Research
 
-Before you can start entering values, you will need to do a little research about the radio system you are trying to capture and the correct parameters for receiving it. [Radio Reference](http://www.radioreference.com/apps/db/?coid=1) is a great place to learn about a radio system. Search for your location and then select the system you are trying to record. Take note of the frequencies that the system uses. You will want to make sure you can cover the range of frequencies used with one or more SDRs. Also look at the System Type, which tells you if it is a Trunked system and what type it is. For Trunked systems, you will need to write down the control channels, and alternate control channels.
+Before you can start entering values, you will need to do a little research about the radio system you are trying to capture and the correct parameters for receiving it. [Radio Reference](http://www.radioreference.com/apps/db/?coid=1) is a great place to learn about a radio system. Search for your location and then select the system you are trying to record. Take note of the frequencies that the system uses. You will want to make sure you can cover the range of frequencies used with one or more SDRs. Also look at the System Type, which tells you if it is a Trunked system and what type it is. For Trunked systems, you will need to take note of the control channels, and alternate control channels.
+
 
 ### Frequency
 
@@ -31,7 +32,16 @@ The amount of tuning error is -14500Hz, so that would go under **error:** for th
 
 **NOTE:** In some instances, an alternative is to use `ppm` correction rather than the `error` configuration option.
 
-Alternatively, you can use these tools here: https://webby.site/sdr/ or  http://garvas.org/trunk-recorder/ to obtain RTL-SDR dongle/array configurations.
+
+### Helpful Tools
+Center Frequency Calculators:
+- http://alertapi.alertpage.net/sdr - Paste the frequencies from Radio Reference into this website and it will automatically calculate what center frequency you should use and how many dongles you will need. We recommend a sample rate value around 2.4 MHz for an RTL-SDR, as most can be pushed that high without stability issues.
+- https://radioetcetera.site/sdr-parameter-calculator/ - like the above, but a little more configurable.
+
+Configuration File:
+- https://www.radioetcetera.site/trunk-recorder-config-editor/ - tool for using a GUI to create config.json files
+- https://github.com/AlertPageSDR/tr_configurator - If you have a Radio Reference Premium account, you can use this tool to automatically generate a config.json based on the RR data for a given system (or systems)
+- https://github.com/robotastic/trunk-recorder-configs - example configurations for different systems
 
 ### Gain
 
