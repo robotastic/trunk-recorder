@@ -74,6 +74,7 @@
 #include "recorder.h"
 
 #include "../source.h"
+#include "../call_conventional.h"
 
 class sigmf_recorder_impl : public sigmf_recorder {
 

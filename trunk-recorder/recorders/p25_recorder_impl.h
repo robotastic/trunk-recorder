@@ -62,6 +62,7 @@
 #include "../../lib/gr-latency/latency_probe.h"
 #include "../../lib/gr-latency/latency_tagger.h"
 #include "../gr_blocks/rms_agc.h"
+#include "../call_conventional.h"
 #include "p25_recorder.h"
 #include "p25_recorder_decode.h"
 #include "p25_recorder_fsk4_demod.h"

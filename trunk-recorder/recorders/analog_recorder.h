@@ -52,6 +52,7 @@ class analog_recorder;
 #include "../gr_blocks/transmission_sink.h"
 #include "../gr_blocks/xlat_channelizer.h"
 #include "../systems/system.h"
+#include "../call_conventional.h"
 #include "recorder.h"
 
 #if GNURADIO_VERSION < 0x030900

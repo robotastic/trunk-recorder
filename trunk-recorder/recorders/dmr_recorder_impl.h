@@ -79,6 +79,7 @@
 #include "../gr_blocks/transmission_sink.h"
 #include "../gr_blocks/xlat_channelizer.h"
 #include "../source.h"
+#include "../call_conventional.h"
 #include "dmr_recorder.h"
 #include "recorder.h"
 
