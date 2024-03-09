@@ -4,7 +4,8 @@
 #include "recorders/recorder.h"
 #include <boost/algorithm/string.hpp>
 
-Call_conventional::Call_conventional(long t, double f, System *s, Config c) : Call_impl(t, f, s, c) {
+Call_conventional::Call_conventional(long t, double f, System *s, Config c, double squelch_db) : Call_impl(t, f, s, c) {
+  this->squelch_db = squelch_db;
 }
 
 void Call_conventional::restart_call() {
@@ -38,4 +39,8 @@ void Call_conventional::set_recorder(Recorder *r) {
 
 void Call_conventional::recording_started() {
   start_time = time(NULL);
+}
+
+double Call_conventional::get_squelch_db() {
+  return squelch_db;
 }

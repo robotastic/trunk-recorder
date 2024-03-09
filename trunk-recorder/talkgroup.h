@@ -16,6 +16,8 @@ public:
   std::string group;
   int priority;
   int sys_num;
+  double squelch_db;
+  bool signal_detection;
 
 
   // For Conventional
@@ -23,7 +25,7 @@ public:
   double tone;
 
   Talkgroup(int sys_num, long num, std::string mode, std::string alpha_tag, std::string description, std::string tag, std::string group, int priority, unsigned long preferredNAC);
-  Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group);
+  Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group, double squelch_db, bool signal_detection);
 
   bool is_active();
   int get_priority();

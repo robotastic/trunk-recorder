@@ -259,7 +259,8 @@ bool dmr_recorder_impl::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
 
-    squelch_db = system->get_squelch_db();
+    Call_conventional *conventional_call = dynamic_cast<Call_conventional *>(call);
+    squelch_db = conventional_call->get_squelch_db();
     prefilter->set_squelch_db(squelch_db);
 
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();

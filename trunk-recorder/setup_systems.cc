@@ -21,10 +21,15 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
       if (system->has_channel_file()) {
         Talkgroup *tg = system->find_talkgroup_by_freq(frequency);
         tone_freq = tg->tone;
-        call = new Call_conventional(tg->number, tg->freq, system, config);
+        if (tg->squelch_db != 999) {
+          call = new Call_conventional(tg->number, tg->freq, system, config, tg->squelch_db);
+        } else {
+          call = new Call_conventional(tg->number, tg->freq, system, config, system->get_squelch_db());
+        }
+        
         call->set_talkgroup_tag(tg->alpha_tag);
       } else {
-        call = new Call_conventional(channel_index, frequency, system, config);
+        call = new Call_conventional(channel_index, frequency, system, config, system->get_squelch_db());
       }
       BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
       if (system->get_system_type() == "conventional") {

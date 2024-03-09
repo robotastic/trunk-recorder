@@ -10,12 +10,17 @@ Talkgroup::Talkgroup(int sys_num, long num, std::string mode, std::string alpha_
   this->group = group;
   this->priority = priority;
   this->active = false;
+  this->preferredNAC = preferredNAC;
+
+  // This talkgroup is for a Trunked system and freq and tone are not used
   this->freq = 0;
   this->tone = 0;
-  this->preferredNAC = preferredNAC;
+  this->squelch_db = 999;
+  this->signal_detection = false;
+
 }
 
-Talkgroup::Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group) {
+Talkgroup::Talkgroup(int sys_num, long num, double freq, double tone, std::string alpha_tag, std::string description, std::string tag, std::string group, double squelch_db, bool signal_detection) {
   this->sys_num = sys_num;
   this->number = num;
   this->mode = "Z";
@@ -26,6 +31,10 @@ Talkgroup::Talkgroup(int sys_num, long num, double freq, double tone, std::strin
   this->active = false;
   this->freq = freq;
   this->tone = tone;
+  this->squelch_db = squelch_db;
+  this->signal_detection = signal_detection;
+
+  // This talkgroup is for a Conventional system and priority and preferredNAC are not used
   this->priority = 0;
   this->preferredNAC = 0;
 }
