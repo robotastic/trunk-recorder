@@ -80,6 +80,7 @@ public:
   bool start(Call *call);
   void stop();
   double get_freq();
+  int get_freq_error();
   void set_source(long src);
   Source *get_source();
   long get_talkgroup();

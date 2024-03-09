@@ -15,7 +15,7 @@ Talkgroup::Talkgroup(int sys_num, long num, std::string mode, std::string alpha_
   // This talkgroup is for a Trunked system and freq and tone are not used
   this->freq = 0;
   this->tone = 0;
-  this->squelch_db = 999;
+  this->squelch_db = DB_UNSET;
   this->signal_detection = false;
 
 }

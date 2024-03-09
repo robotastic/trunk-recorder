@@ -515,6 +515,10 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
             source->set_gain_mode(agc);
           }
 
+          if (element.contains("signalDetectorThreshold")) {
+            source->set_signal_detector_threshold(element["signalDetectorThreshold"]);
+          }
+
           if (element.contains("gainSettings")) {
             for (auto it = element["gainSettings"].begin(); it != element["gainSettings"].end(); ++it) {
 

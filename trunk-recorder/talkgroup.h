@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include "global_structs.h"
 //#include <sstream>
 
 class Talkgroup {

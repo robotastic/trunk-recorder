@@ -125,14 +125,14 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
   format.trim({' ', '\t'});
   CSVReader reader(filename, format);
   std::vector<std::string> headers = reader.get_col_names();
-  std::vector<std::string> defined_headers = {"TG Number", "Tone", "Frequency", "Alpha Tag", "Description", "Category", "Tag", "Enable", "Comment", "Signal Detection", "Squelch"};
+  std::vector<std::string> defined_headers = {"TG Number", "Tone", "Frequency", "Alpha Tag", "Description", "Category", "Tag", "Enable", "Comment", "Signal Detector", "Squelch"};
 
   if (headers[0] != "TG Number") {
 
     BOOST_LOG_TRIVIAL(error) << "Column Headers are required for Channel CSV files";
     BOOST_LOG_TRIVIAL(error) << "The first column must be 'TG Number'";
     BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Tone', 'Frequency',";
-    BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detection', 'Squelch'";
+    BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
     exit(0);
   } else {
     BOOST_LOG_TRIVIAL(info) << "Found Columns: " << internals::format_row(reader.get_col_names(), ", ");
@@ -142,7 +142,7 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
     if (find(defined_headers.begin(), defined_headers.end(), headers[i]) == defined_headers.end()) {
       BOOST_LOG_TRIVIAL(error) << "Unknown column header: " << headers[i];
       BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Tone', 'Frequency',";
-      BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detection', 'Squelch'";
+      BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
       exit(0);
     }
   }
@@ -155,8 +155,8 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
     std::string description = "";
     std::string tag = "";
     std::string group = "";
-    double squelch_db = 999;
-    bool signal_detection = true;
+    double squelch_db = DB_UNSET;
+    bool signal_detector = true;
     double freq = 0;
     double tone = 0;
     bool enable = true;
@@ -200,9 +200,9 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
       squelch_db = row["Squelch"].get<double>();
     }
 
-    if ((reader.index_of("Signal Detection") >= 0) && row["Signal Detection"].is_str()) {
-      if (boost::iequals(row["Signal Detection"].get<std::string>(), "false")) {
-        signal_detection = false;
+    if ((reader.index_of("Signal Detector") >= 0) && row["Signal Detector"].is_str()) {
+      if (boost::iequals(row["Signal Detector"].get<std::string>(), "false")) {
+        signal_detector = false;
       }
     }
 
@@ -213,7 +213,7 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
       }
     }
     if (enable) {
-      tg = new Talkgroup(sys_num, tg_number, freq, tone, alpha_tag, description, tag, group, squelch_db, signal_detection);
+      tg = new Talkgroup(sys_num, tg_number, freq, tone, alpha_tag, description, tag, group, squelch_db, signal_detector);
       talkgroups.push_back(tg);
       lines_pushed++;
     }

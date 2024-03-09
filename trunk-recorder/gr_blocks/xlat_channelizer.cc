@@ -54,8 +54,6 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   // long if_rate = 12500;
 
   const float pi = M_PI;
-  valve = gr::blocks::copy::make(sizeof(gr_complex));
-  valve->set_enabled(false);
 
   int decimation = floor(input_rate / channel_rate);
   double resampled_rate = float(input_rate) / float(decimation);
@@ -126,9 +124,6 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2 * sps + 1, (2.0 * pi) / sps / 250); // OP25 has this set to 350 instead of 250
 
-  /*
-    connect(self(), 0, valve, 0);
-    connect(valve, 0, freq_xlat, 0);*/
   connect(self(), 0, freq_xlat, 0);
 
   if (d_conventional) {
@@ -167,7 +162,7 @@ double xlat_channelizer::get_pwr() {
   if (d_conventional) {
     return squelch->get_pwr();
   } else {
-    return 999;
+    return DB_UNSET;
   }
 }
 
@@ -177,14 +172,6 @@ void xlat_channelizer::tune_offset(double f) {
   float freq = static_cast<float>(f);
 
   freq_xlat->set_center_freq(-freq);
-}
-
-bool xlat_channelizer::is_enabled() {
-  return valve->enabled();
-}
-
-void xlat_channelizer::set_enabled(bool enabled) {
-  valve->set_enabled(enabled);
 }
 
 void xlat_channelizer::set_squelch_db(double squelch_db) {

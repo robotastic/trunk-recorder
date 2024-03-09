@@ -30,11 +30,12 @@ Call *Call::make(TrunkMessage message, System *s, Config c) {
 Call_impl::Call_impl(long t, double f, System *s, Config c) {
   config = c;
   call_num = call_counter++;
-  noise = 999;
-  signal = 999;
+  noise = 
+  signal = DB_UNSET;
   final_length = 0;
   idle_count = 0;
   curr_freq = 0;
+  freq_error = 0;
   curr_src_id = -1;
   talkgroup = t;
   sys = s;
@@ -62,12 +63,13 @@ Call_impl::Call_impl(long t, double f, System *s, Config c) {
 Call_impl::Call_impl(TrunkMessage message, System *s, Config c) {
   config = c;
   call_num = call_counter++;
-  noise = 999;
-  signal = 999;
+  noise = DB_UNSET;
+  signal = DB_UNSET;
   final_length = 0;
   idle_count = 0;
   curr_src_id = -1;
   curr_freq = 0;
+  freq_error = 0;
   talkgroup = message.talkgroup;
   sys = s;
   start_time = time(NULL);
@@ -146,6 +148,7 @@ void Call_impl::conclude_call() {
     if (was_update) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\t\u001b[33mCall was UPDATE not GRANT\u001b[0m";
     }
+    freq_error = this->get_recorder()->get_freq_error();
     this->get_recorder()->stop();
     transmission_list = this->get_recorder()->get_transmission_list();
     if (this->get_sigmf_recording() == true) {
@@ -187,6 +190,10 @@ Recorder *Call_impl::get_recorder() {
 
 double Call_impl::get_freq() {
   return curr_freq;
+}
+
+int Call_impl::get_freq_error() {
+  return freq_error;
 }
 
 double Call_impl::get_final_length() {

@@ -193,6 +193,10 @@ double dmr_recorder_impl::get_freq() {
   return chan_freq;
 }
 
+int dmr_recorder_impl::get_freq_error() { // get frequency error from FLL and convert to Hz
+  return prefilter->get_freq_error();
+}
+
 double dmr_recorder_impl::get_current_length() {
   return wav_sink_slot0->total_length_in_seconds();
 }
@@ -259,10 +263,6 @@ bool dmr_recorder_impl::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
 
-    Call_conventional *conventional_call = dynamic_cast<Call_conventional *>(call);
-    squelch_db = conventional_call->get_squelch_db();
-    prefilter->set_squelch_db(squelch_db);
-
     BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
     int offset_amount = (center_freq - chan_freq);
@@ -273,11 +273,19 @@ bool dmr_recorder_impl::start(Call *call) {
     wav_sink_slot1->start_recording(call, 1);
     state = ACTIVE;
 
-    if (conventional) {
+  if (conventional) {
+    Call_conventional *conventional_call = dynamic_cast<Call_conventional *>(call);
+    squelch_db = conventional_call->get_squelch_db();
+    if (conventional_call->get_signal_detection()) {
       set_enabled(false);
     } else {
-      set_enabled(true);
+      set_enabled(true); // If signal detection is not being used, open up the Value/Selector from the start
     }
+  } else {
+    squelch_db = system->get_squelch_db();
+    set_enabled(true);
+  }
+  prefilter->set_squelch_db(squelch_db);
 
     recording_count++;
   } else {

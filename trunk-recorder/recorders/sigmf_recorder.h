@@ -37,6 +37,7 @@ public:
   virtual bool start(Call *call) = 0;
   virtual void stop() = 0;
   virtual double get_freq() = 0;
+  virtual int get_freq_error() = 0;
   virtual int get_num() = 0;
   virtual double get_current_length() = 0;
   virtual void set_enabled(bool enabled) {};

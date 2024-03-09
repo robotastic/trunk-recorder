@@ -60,6 +60,11 @@ int create_call_json(Call_Data_t& call_info) {
   nlohmann::ordered_json json_data =
       {
           {"freq", int(call_info.freq)},
+          {"freq_error", int(call_info.freq_error)},
+          {"signal", int(call_info.signal)},
+          {"noise", int(call_info.noise)},
+          {"tdma_slot", int(call_info.tdma_slot)},
+          {"phase2_tdma", int(call_info.phase2_tdma)},
           {"start_time", call_info.start_time},
           {"stop_time", call_info.stop_time},
           {"emergency", int(call_info.emergency)},
@@ -298,6 +303,9 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.error_count = 0;
   call_info.spike_count = 0;
   call_info.freq = call->get_freq();
+  call_info.freq_error = call->get_freq_error();
+  call_info.signal = call->get_signal();
+  call_info.noise = call->get_noise();
   call_info.encrypted = call->get_encrypted();
   call_info.emergency = call->get_emergency();
   call_info.priority = call->get_priority();

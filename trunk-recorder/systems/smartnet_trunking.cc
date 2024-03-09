@@ -60,14 +60,10 @@ smartnet_trunking::smartnet_trunking(float f,
 
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_num);
 
-prefilter = xlat_channelizer::make(input_rate, channelizer::smartnet_samples_per_symbol, channelizer::smartnet_symbol_rate, center_freq, false);
-prefilter->set_enabled(true);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::smartnet_samples_per_symbol, channelizer::smartnet_symbol_rate, center_freq, false);
 
   connect(self(), 0, prefilter, 0);
   connect(prefilter, 0, pll_demod, 0);
-
-  //connect(cutoff_filter, 0, carriertrack, 0);
-  //connect(carriertrack, 0, pll_demod, 0);
   connect(pll_demod, 0, softbits, 0);
   connect(softbits, 0, slicer, 0);
   connect(slicer, 0, start_correlator, 0);

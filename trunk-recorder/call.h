@@ -76,6 +76,7 @@ public:
   virtual bool get_duplex() = 0;
   virtual double get_signal() = 0;
   virtual double get_noise() = 0;
+  virtual int get_freq_error() = 0;
   virtual void set_signal(double s) = 0;
   virtual void set_noise(double n) = 0;
   virtual std::string get_talkgroup_display() = 0;

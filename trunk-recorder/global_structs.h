@@ -5,6 +5,8 @@
 #include <vector>
 #include <json.hpp>
 
+const int DB_UNSET = 999;
+
 struct Transmission {
   long source;
   long start_time;
@@ -96,6 +98,9 @@ struct Call_Data_t {
   std::string talkgroup_group;
   long call_num;
   double freq;
+  int freq_error;
+  double signal;
+  double noise;
   long start_time;
   long stop_time;
   long error_count;

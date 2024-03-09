@@ -70,6 +70,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
 
   // parameters for signal_detector_cvf
   float threshold_sensitivity = 0.9;
+  bool auto_threshold = true;
   float threshold = -45;
   int fft_len = 1024;
   float average = 0.8;
@@ -77,7 +78,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   float min_bw = 0.0;
   float max_bw = 50000;
 
-  signal_detector = signal_detector_cvf::make(rate, fft_len, 0, threshold, threshold_sensitivity, true, average, quantization, min_bw, max_bw, "");
+  signal_detector = signal_detector_cvf::make(rate, fft_len, 0, threshold, threshold_sensitivity, auto_threshold, average, quantization, min_bw, max_bw, "");
   BOOST_LOG_TRIVIAL(info) << "Made the Signal Detector";
 
   if (driver == "osmosdr") {
@@ -418,7 +419,6 @@ void Source::enable_detected_recorders() {
       Recorder *recorder = *it;
       if (!recorder->is_enabled()) {
         recorder->set_enabled(true);
-
         BOOST_LOG_TRIVIAL(info) << "\t[ " << recorder->get_num() << " ] " << recorder->get_type_string() << "\tEnabled - Freq: " << format_freq(recorder->get_freq()) << "\t Detected Signal: " << floor(rssi) << "dBM (Threshold: " << floor(threshold) << "dBM)";
       }
     }
@@ -426,6 +426,7 @@ void Source::enable_detected_recorders() {
 }
 
 void Source::set_signal_detector_threshold(float threshold) {
+  BOOST_LOG_TRIVIAL(info) << " - Setting Signal Detector Threshold to: " << threshold;
   signal_detector->set_threshold(threshold);
 }
 

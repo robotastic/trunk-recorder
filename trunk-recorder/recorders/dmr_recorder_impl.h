@@ -94,6 +94,7 @@ public:
   bool start(Call *call);
   void stop();
   double get_freq();
+  int get_freq_error();
   int get_num();
   void set_tdma(bool phase2);
   void switch_tdma(bool phase2);

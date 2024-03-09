@@ -78,6 +78,7 @@ public:
   bool get_duplex();
   double get_signal();
   double get_noise();
+  int get_freq_error();
   void set_signal(double s);
   void set_noise(double n);
   std::string get_talkgroup_display();
@@ -102,6 +103,7 @@ protected:
   double curr_freq;
   double noise;
   double signal;
+  int freq_error;
   std::vector<Transmission> transmission_list;
   System *sys;
   std::string short_name;

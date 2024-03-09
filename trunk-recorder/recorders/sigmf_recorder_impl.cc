@@ -89,6 +89,10 @@ double sigmf_recorder_impl::get_freq() {
   return freq;
 }
 
+int sigmf_recorder_impl::get_freq_error() { // get frequency error from FLL and convert to Hz
+  return prefilter->get_freq_error();
+}
+
 double sigmf_recorder_impl::get_current_length() {
   return 0;
 }
@@ -134,12 +138,6 @@ bool sigmf_recorder_impl::start(Call *call) {
     System *system = call->get_system();
     talkgroup = call->get_talkgroup();
     freq = call->get_freq();
-
-    if (conventional) {
-      Call_conventional *conventional_call = dynamic_cast<Call_conventional *>(call);
-      squelch_db = conventional_call->get_squelch_db();
-      prefilter->set_squelch_db(squelch_db);
-    }
     
     int offset_amount = (center - freq);
     prefilter->tune_offset(offset_amount);
@@ -161,11 +159,21 @@ bool sigmf_recorder_impl::start(Call *call) {
 
     raw_sink->open(filename);
     state = ACTIVE;
- if (conventional) {
+
+  if (conventional) {
+    Call_conventional *conventional_call = dynamic_cast<Call_conventional *>(call);
+    squelch_db = conventional_call->get_squelch_db();
+    if (conventional_call->get_signal_detection()) {
       set_enabled(false);
     } else {
-      set_enabled(true);
+      set_enabled(true); // If signal detection is not being used, open up the Value/Selector from the start
     }
+  } else {
+    squelch_db = system->get_squelch_db();
+    set_enabled(true);
+  }
+  prefilter->set_squelch_db(squelch_db);
+
     std::string src_description = source->get_driver() + ": " + source->get_device() + " - " + source->get_antenna();
     time_t now;
     time(&now);

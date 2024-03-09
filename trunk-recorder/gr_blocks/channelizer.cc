@@ -55,8 +55,6 @@ channelizer::channelizer(double input_rate, int samples_per_symbol, double symbo
   double resampled_rate;
 
   const float pi = M_PI;
-  valve = gr::blocks::copy::make(sizeof(gr_complex));
-  valve->set_enabled(false);
 
   lo = gr::analog::sig_source_c::make(d_input_rate, gr::analog::GR_SIN_WAVE, 0, 1.0, 0.0);
   mixer = gr::blocks::multiply_cc::make();
@@ -147,13 +145,13 @@ channelizer::channelizer(double input_rate, int samples_per_symbol, double symbo
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
   fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2 * sps + 1, (2.0 * pi) / sps / 250); // OP25 has this set to 350 instead of 250
 
-  connect(self(), 0, valve, 0);
+ 
   if (double_decim) {
-    connect(valve, 0, bandpass_filter, 0);
+    connect(self(), 0, bandpass_filter, 0);
     connect(bandpass_filter, 0, mixer, 0);
     connect(bfo, 0, mixer, 1);
   } else {
-    connect(valve, 0, mixer, 0);
+    connect(self(), 0, mixer, 0);
     connect(lo, 0, mixer, 1);
   }
   connect(mixer, 0, lowpass_filter, 0);
@@ -216,10 +214,6 @@ void channelizer::tune_offset(double f) {
   } else {
     lo->set_frequency(freq);
   }
-}
-
-void channelizer::set_enabled(bool enabled) {
-  valve->set_enabled(enabled);
 }
 
 void channelizer::set_squelch_db(double squelch_db) {

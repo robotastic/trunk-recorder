@@ -102,6 +102,7 @@ public:
   void set_window_type(int d_window);
 
   void set_threshold(float d_threshold) {
+    d_auto_threshold = false;
     signal_detector_cvf_impl::d_threshold = d_threshold;
   }
 

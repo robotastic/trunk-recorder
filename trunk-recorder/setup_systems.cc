@@ -21,16 +21,19 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
       if (system->has_channel_file()) {
         Talkgroup *tg = system->find_talkgroup_by_freq(frequency);
         tone_freq = tg->tone;
+
+        // If there is a per channel squelch setting, use it, otherwise use the system squelch setting
         if (tg->squelch_db != 999) {
-          call = new Call_conventional(tg->number, tg->freq, system, config, tg->squelch_db);
+          call = new Call_conventional(tg->number, tg->freq, system, config, tg->squelch_db, tg->signal_detection);
         } else {
-          call = new Call_conventional(tg->number, tg->freq, system, config, system->get_squelch_db());
+          call = new Call_conventional(tg->number, tg->freq, system, config, system->get_squelch_db(), tg->signal_detection);
         }
         
         call->set_talkgroup_tag(tg->alpha_tag);
       } else {
-        call = new Call_conventional(channel_index, frequency, system, config, system->get_squelch_db());
+        call = new Call_conventional(channel_index, frequency, system, config, system->get_squelch_db(), true);  // signal detection is always true when a channel file is not used
       }
+      
       BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
       if (system->get_system_type() == "conventional") {
         analog_recorder_sptr rec;

@@ -54,7 +54,6 @@ private:
   std::vector<float> cutoff_filter_coeffs;
 
   gr::analog::pwr_squelch_cc::sptr squelch;
-  gr::blocks::copy::sptr valve;
   gr::digital::fll_band_edge_cc::sptr fll_band_edge;
   gr::blocks::rms_agc::sptr rms_agc;
 
@@ -88,12 +87,10 @@ public:
   static constexpr double smartnet_symbol_rate = 3600;
 
   int get_freq_error();
-  bool is_enabled();
   bool is_squelched();
   double get_pwr();
   void tune_offset(double f);
   void set_samples_per_symbol(int samples_per_symbol);
-  void set_enabled(bool enabled);
   void set_squelch_db(double squelch_db);
   void set_analog_squelch(bool analog_squelch);
 };

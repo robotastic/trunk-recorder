@@ -102,7 +102,6 @@ public:
   /* -- Gain -- */
   void set_if_gain(int i);
   int get_if_gain();
-
   void set_gain_mode(bool m);
   bool get_gain_mode();
   void set_gain(int r);
