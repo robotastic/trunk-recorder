@@ -426,7 +426,7 @@ void Source::enable_detected_recorders() {
 }
 
 void Source::set_signal_detector_threshold(float threshold) {
-  BOOST_LOG_TRIVIAL(info) << " - Setting Signal Detector Threshold to: " << threshold;
+BOOST_LOG_TRIVIAL(info) << " - Setting Signal Detector Threshold to: " << threshold;
   signal_detector->set_threshold(threshold);
 }
 

@@ -13,7 +13,6 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
         BOOST_LOG_TRIVIAL(error) << "[" << system->get_short_name() << "]\tSquelch needs to be specified for the Source for Conventional Systems";
         return false;
       } else {
-        source->set_signal_detector_threshold(system->get_squelch_db());
         channel_added = true;
       }
 
@@ -33,7 +32,7 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
       } else {
         call = new Call_conventional(channel_index, frequency, system, config, system->get_squelch_db(), true);  // signal detection is always true when a channel file is not used
       }
-      
+
       BOOST_LOG_TRIVIAL(info) << "[" << system->get_short_name() << "]\tMonitoring " << system->get_system_type() << " channel: " << format_freq(frequency) << " Talkgroup: " << channel_index;
       if (system->get_system_type() == "conventional") {
         analog_recorder_sptr rec;
