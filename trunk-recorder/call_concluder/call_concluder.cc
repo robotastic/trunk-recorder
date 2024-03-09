@@ -93,7 +93,7 @@ int create_call_json(Call_Data_t& call_info) {
   }
   // Add sources / tags
   for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
-    json_data["sourceList"] += {
+    json_data["srcList"] += {
         {"src", int(call_info.transmission_source_list[i].source)},
         {"time", call_info.transmission_source_list[i].time},
         {"pos", call_info.transmission_source_list[i].position},
