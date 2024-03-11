@@ -214,6 +214,11 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     config.frequency_format = frequency_format;
     BOOST_LOG_TRIVIAL(info) << "Frequency format: " << get_frequency_format();
 
+    config.tsbk_stream_server = pt.get<std::string>("tsbkStreamServer", "");
+    BOOST_LOG_TRIVIAL(info) << "TSBK Stream Host: " << config.tsbk_stream_server;
+    config.tsbk_stream_port = pt.get<int>("tsbkStreamPort", 5678);
+    BOOST_LOG_TRIVIAL(info) << "TSBK Stream Port: " << config.tsbk_stream_port;
+
     statusAsString = data.value("statusAsString", statusAsString);
     BOOST_LOG_TRIVIAL(info) << "Status as String: " << statusAsString;
     std::string log_level = data.value("logLevel", "info");
