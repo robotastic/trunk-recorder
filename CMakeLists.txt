@@ -337,6 +337,10 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/json.hpp" # source file
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder" # target directory
 )
 
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/base64.h" # source file
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder" # target directory
+)
+
 
 add_subdirectory(plugins/openmhz_uploader)
 
@@ -349,6 +353,8 @@ add_subdirectory(plugins/unit_script)
 add_subdirectory(plugins/rdioscanner_uploader)
 
 add_subdirectory(plugins/simplestream)
+
+add_subdirectory(plugins/tpng_uploader)
 
 add_executable(trunk-recorder trunk-recorder/main.cc) # ${trunk_recorder_sources})
 
