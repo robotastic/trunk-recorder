@@ -99,6 +99,8 @@ struct Call_Data_t {
   long call_num;
   double freq;
   int freq_error;
+  int source_num;
+  int recorder_num;
   double signal;
   double noise;
   long start_time;
