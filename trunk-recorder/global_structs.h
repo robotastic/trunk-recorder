@@ -136,6 +136,7 @@ struct Call_Data_t {
   time_t process_call_time;
   int retry_attempt;
 
+  std::vector<int> plugin_retry_list;
   nlohmann::ordered_json call_json;
 };
 
