@@ -90,3 +90,10 @@ std::string format_state(State state, MonitoringState monitoringState) {
   }
   return boost::lexical_cast<std::string>(state);
 }
+
+std::string log_header(std::string short_name,long call_num, std::string talkgroup_display, double freq) {
+  std::stringstream ss;
+  ss << "[" << short_name << "]\t\033[0;34m" << call_num << "C\033[0m\tTG: " << talkgroup_display << "\tFreq: " << format_freq(freq) << "\t\u001b[36m";
+  std::string s = ss.str();
+  return s;      
+}
