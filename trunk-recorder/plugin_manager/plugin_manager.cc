@@ -170,6 +170,10 @@ int plugman_call_start(Call *call) {
 
 int plugman_call_end(Call_Data_t& call_info) {
   std::vector<int> plugin_retry_list;
+  
+  std::stringstream logstream;
+  logstream << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t";
+  std::string loghdr = logstream.str();
 
   // On INITIAL, run call_end for all active plugins and note failues 
   if (call_info.status == INITIAL)
@@ -179,7 +183,7 @@ int plugman_call_end(Call_Data_t& call_info) {
       if (plugin->state == PLUGIN_RUNNING) {
         int plugin_error = plugin->api->call_end(call_info);
         if (plugin_error) {
-          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tPlugin Manager: call_end -  " << plugin->name << " failed.";
+          BOOST_LOG_TRIVIAL(error) << loghdr << "Plugin Manager: call_end -  " << plugin->name << " failed.";
           int plugin_index = std::distance(plugins.begin(), it );
           plugin_retry_list.push_back(plugin_index);
         }
@@ -192,10 +196,10 @@ int plugman_call_end(Call_Data_t& call_info) {
     for (std::vector<int>::iterator it = call_info.plugin_retry_list.begin(); it != call_info.plugin_retry_list.end(); it++) {
       Plugin *plugin = plugins[*it];
       if (plugin->state == PLUGIN_RUNNING) {
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tPlugin Manager: call_end - retry (" << call_info.retry_attempt << "/" << Call_Concluder::MAX_RETRY << ") - " << plugin->name;
+        BOOST_LOG_TRIVIAL(info) << loghdr << "Plugin Manager: call_end - retry (" << call_info.retry_attempt << "/" << Call_Concluder::MAX_RETRY << ") - " << plugin->name;
         int plugin_error = plugin->api->call_end(call_info);
         if (plugin_error) {
-          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tPlugin Manager: call_end - retry (" << call_info.retry_attempt << "/" << Call_Concluder::MAX_RETRY << ") - " << plugin->name << " failed.";
+          BOOST_LOG_TRIVIAL(error) << loghdr << "Plugin Manager: call_end - retry (" << call_info.retry_attempt << "/" << Call_Concluder::MAX_RETRY << ") - " << plugin->name << " failed.";
           plugin_retry_list.push_back(*it);
         }
       }
