@@ -27,6 +27,7 @@ struct stream_t {
   ip::udp::endpoint remote_endpoint;
   ip::tcp::socket *tcp_socket;
   bool sendTGID = false;
+  bool sendJSON = false;
   bool tcp = false;
 };
 
@@ -49,6 +50,7 @@ class Simple_Stream : public Plugin_Api {
       stream.port = element["port"];
       stream.remote_endpoint = ip::udp::endpoint(ip::address::from_string(stream.address), stream.port);
       stream.sendTGID = element.value("sendTGID",false);
+      stream.sendJSON = element.value("sendJSON",false);
       stream.tcp = element.value("useTCP",false);
       stream.short_name = element.value("shortName", "");
       BOOST_LOG_TRIVIAL(info) << "simplestreamer will stream audio from TGID " <<stream.TGID << " on System " <<stream.short_name << " to " << stream.address <<" on port " << stream.port << " tcp is "<<stream.tcp;
@@ -69,27 +71,35 @@ class Simple_Stream : public Plugin_Api {
         BOOST_FOREACH (auto& TGID, patched_talkgroups){
           if ((TGID==stream.TGID || stream.TGID==0)){  //setting TGID to 0 in the config file will stream everything
             BOOST_LOG_TRIVIAL(debug) << "got " <<sampleCount <<" samples - " <<sampleCount*2<<" bytes from recorder "<<recorder_id<<" for TGID "<<TGID;
-            if (stream.sendTGID==true){
-              //prepend 4 byte long tgid to the audio data
-              boost::array<mutable_buffer, 2> buf1 = {
-                buffer(&TGID,4),
-                buffer(samples, sampleCount*2)
+            json json_object;
+            std::string json_string;
+            std::vector<boost::asio::const_buffer> send_buffer;
+            if (stream.sendJSON==true){
+              //create JSON metadata
+              json_object = {
+                 {"src", call->get_current_source_id()},
+                 {"talkgroup", TGID},
+                 {"patched_talkgroups",patched_talkgroups},
+                 {"freq", call->get_freq()},
+                 {"short_name", call->get_short_name()},
+                 {"audio_sample_rate",recorder->get_wav_hz()},
               };
-              if(stream.tcp==true){
-                stream.tcp_socket->send(buf1);
-              }
-              else{
-                my_socket.send_to(buf1, stream.remote_endpoint, 0, error);
-              }
+              json_string = json_object.dump();
+              uint32_t json_length = json_string.length();  //determine length in bytes
+              //BOOST_LOG_TRIVIAL(debug) << "json_length is " <<json_length <<" bytes";
+              send_buffer.push_back(buffer(&json_length,4));  //prepend length of the json data
+              send_buffer.push_back(buffer(json_string));  //prepend json data
+              //BOOST_LOG_TRIVIAL(debug) << "json_string is " <<json_string;
+            }
+            else if (stream.sendTGID==true){
+              send_buffer.push_back(buffer(&TGID,4));  //prepend 4 byte long tgid to the audio data
+            }
+            send_buffer.push_back(buffer(samples, sampleCount*2));
+            if(stream.tcp == true){
+              stream.tcp_socket->send(send_buffer);
             }
             else{
-              //just send the audio data
-              if(stream.tcp == true){
-                stream.tcp_socket->send(buffer(samples, sampleCount*2));
-              }
-              else{
-                my_socket.send_to(buffer(samples, sampleCount*2), stream.remote_endpoint, 0, error);
-              }
+              my_socket.send_to(send_buffer, stream.remote_endpoint, 0, error);
             }
           }
         }
