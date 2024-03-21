@@ -432,7 +432,6 @@ void Call_Concluder::manage_call_data_workers() {
         time_t start_time = call_info.start_time;
 
         if (call_info.retry_attempt > Call_Concluder::MAX_RETRY) {
-          remove_call_files(call_info);
           BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m Failed to conclude call - TG: " << call_info.talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z");
         } else {
           long jitter = rand() % 10;
