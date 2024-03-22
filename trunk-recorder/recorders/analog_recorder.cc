@@ -354,9 +354,8 @@ bool analog_recorder::start(Call *call) {
   talkgroup = call->get_talkgroup();
   chan_freq = call->get_freq();
 
-
-
-  BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting Analog Recorder Num [" << rec_num << "]\u001b[0m \tSquelch: " << squelch_db;
+  std::string loghdr = log_header(call->get_short_name(),call->get_call_num(),this->call->get_talkgroup_display(),chan_freq);
+  BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStarting Analog Recorder Num [" << rec_num << "]\u001b[0m \tSquelch: " << squelch_db;
 
   // BOOST_LOG_TRIVIAL(error) << "Setting squelch to: " << squelch_db << " block says: " << squelch->threshold();
   levels->set_k(system->get_analog_levels());
