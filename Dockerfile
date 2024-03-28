@@ -1,23 +1,16 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:22.04 AS builder
 
 # Install docker for passing the socket to allow for intercontainer exec
 RUN apt-get update && \
   apt-get -y upgrade &&\
   export DEBIAN_FRONTEND=noninteractive && \
-  apt-get install -y \
-    apt-transport-https \
+  apt-get install --no-install-recommends -y \
     build-essential \
     ca-certificates \
     cmake \
     curl \
-    docker.io \
-    fdkaac \
     git \
-    gnupg \
-    gnuradio \
     gnuradio-dev \
-    gr-funcube \
-    gr-iqbal \
     libairspy-dev \
     libairspyhf-dev \
     libbladerf-dev \
@@ -37,14 +30,8 @@ RUN apt-get update && \
     libusb-dev \
     libxtrx-dev \
     pkg-config \
-    software-properties-common \
-    sox \
-    wget && \
-  rm -rf /var/lib/apt/lists/*
-
-# Fix the error message level for SmartNet
-
-RUN sed -i 's/log_level = debug/log_level = info/g' /etc/gnuradio/conf.d/gnuradio-runtime.conf
+    wget \
+    python3-six
 
 # Compile gr-osmosdr ourselves using a fork with various patches included
 RUN cd /tmp && \
@@ -55,6 +42,9 @@ RUN cd /tmp && \
   cmake -DENABLE_NONFREE=TRUE .. && \
   make -j$(nproc) && \
   make install && \
+  # We need to install both in / and /newroot to use in this image
+  # and to copy over to the final image
+  make DESTDIR=/newroot install && \
   ldconfig && \
   cd /tmp && \
   rm -rf gr-osmosdr
@@ -65,13 +55,24 @@ COPY . .
 
 WORKDIR /src/build
 
-RUN cmake .. && make -j$(nproc) && make install
+RUN cmake .. && make -j$(nproc) && make DESTDIR=/newroot install
 
-#USER nobody
+#Stage 2 build
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates gr-funcube gr-iqbal curl wget rsync libboost-log1.74.0 \
+    libboost-chrono1.74.0 libgnuradio-digital3.10.1 libgnuradio-analog3.10.1 libgnuradio-filter3.10.1 libgnuradio-network3.10.1  \
+    libgnuradio-uhd3.10.1 libsoapysdr0.8 soapysdr0.8-module-all libairspyhf1 libfreesrp0 libxtrx0 sox fdkaac docker.io && \
+    rm -rf /var/lib/apt/lists/*
 
+COPY --from=builder /newroot /
+
+# Fix the error message level for SmartNet
+RUN mkdir -p /etc/gnuradio/conf.d/ && echo 'log_level = info' >> /etc/gnuradio/conf.d/gnuradio-runtime.conf
 WORKDIR /app
 
 # GNURadio requires a place to store some files, can only be set via $HOME env var.
 ENV HOME=/tmp
 
-CMD trunk-recorder --config=/app/config.json
+#USER nobody
+#CMD trunk-recorder --config=/app/config.json
+ENTRYPOINT ["/bin/bash"]
