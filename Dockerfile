@@ -74,5 +74,4 @@ WORKDIR /app
 ENV HOME=/tmp
 
 #USER nobody
-#CMD trunk-recorder --config=/app/config.json
-ENTRYPOINT ["/bin/bash"]
+CMD trunk-recorder --config=/app/config.json
