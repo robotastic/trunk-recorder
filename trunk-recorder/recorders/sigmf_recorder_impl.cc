@@ -118,7 +118,8 @@ State sigmf_recorder_impl::get_state() {
 
 void sigmf_recorder_impl::stop() {
   if (state == ACTIVE) {
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
+    std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),freq);
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     state = INACTIVE;
     set_enabled(false);
@@ -143,7 +144,8 @@ bool sigmf_recorder_impl::start(Call *call) {
     prefilter->tune_offset(offset_amount);
     
     //freq_xlat->set_center_freq(-offset_amount);
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(freq) << "\t\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m";
+    std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),freq);
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     std::stringstream path_stream;
 

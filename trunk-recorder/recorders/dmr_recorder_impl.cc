@@ -234,8 +234,9 @@ void dmr_recorder_impl::stop() {
   if (state == ACTIVE) {
 
     recording_duration += wav_sink_slot0->total_length_in_seconds();
-
-    // BOOST_LOG_TRIVIAL(info) << "[" << this->call->get_short_name() << "]\t\033[0;34m" << this->call->get_call_num() << "C\033[0m\t- Stopping P25 Recorder Num [" << rec_num << "]\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << " \tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
+    
+    //std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),chan_freq);
+    // BOOST_LOG_TRIVIAL(info) << loghdr << "Stopping P25 Recorder Num [" << rec_num << "]\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot;
 
     state = INACTIVE;
     set_enabled(false);
@@ -262,8 +263,8 @@ bool dmr_recorder_impl::start(Call *call) {
     short_name = call->get_short_name();
     chan_freq = call->get_freq();
     this->call = call;
-
-    BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << this->call->get_talkgroup_display() << "\tFreq: " << format_freq(chan_freq) << "\t\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+    std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),chan_freq);
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
     int offset_amount = (center_freq - chan_freq);
 

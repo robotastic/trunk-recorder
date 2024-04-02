@@ -115,7 +115,10 @@ public:
     } else {
       patch_list << "]";
     }
-
+    char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+    
     std::ostringstream freq_list;
     std::string freq_list_string;
     freq_list << std::fixed << std::setprecision(2);
@@ -327,13 +330,14 @@ public:
       if (res == CURLM_OK && response_code == 200) {
         struct stat file_info;
         stat(compress_wav ? call_info.converted : call_info.filename, &file_info);
-
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRdio Scanner Upload Success - file size: " << file_info.st_size;
+        std::string loghdr = log_header(call_info.short_name,call_info.call_num,talkgroup_display,call_info.freq);
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\tRdio Scanner Upload Success - file size: " << file_info.st_size;
         ;
         return 0;
       }
     }
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRdio Scanner Upload Error: " << response_buffer;
+    std::string loghdr = log_header(call_info.short_name,call_info.call_num,talkgroup_display,call_info.freq);
+    BOOST_LOG_TRIVIAL(error) << loghdr << "\tRdio Scanner Upload Error: " << response_buffer;
     return 1;
   }
 
