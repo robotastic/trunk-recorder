@@ -22,16 +22,33 @@ RUN apt-get update && \
     libmirisdr-dev \
     liborc-0.4-dev \
     libpthread-stubs0-dev \
-    librtlsdr-dev \
     libsndfile1-dev \
     libsoapysdr-dev \
     libssl-dev \
     libuhd-dev \
     libusb-dev \
+    libusb-1.0-0-dev \
     libxtrx-dev \
     pkg-config \
     wget \
     python3-six
+
+# Compile librtlsdr-dev 2.0 for SDR-Blog v4 support and other updates
+# Ubuntu 22.04 LTS has librtlsdr 0.6.0
+RUN cd /tmp && \
+  git clone https://github.com/steve-m/librtlsdr.git && \
+  cd librtlsdr && \
+  mkdir build && \
+  cd build && \
+  cmake .. && \
+  make -j$(nproc) && \
+  make install && \
+  # We need to install both in / and /newroot to use in this image
+  # and to copy over to the final image
+  make DESTDIR=/newroot install && \
+  ldconfig && \
+  cd /tmp && \
+  rm -rf librtlsdr
 
 # Compile gr-osmosdr ourselves using a fork with various patches included
 RUN cd /tmp && \
@@ -48,6 +65,7 @@ RUN cd /tmp && \
   ldconfig && \
   cd /tmp && \
   rm -rf gr-osmosdr
+
 
 WORKDIR /src
 
@@ -67,11 +85,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates
 COPY --from=builder /newroot /
 
 # Fix the error message level for SmartNet
-RUN mkdir -p /etc/gnuradio/conf.d/ && echo 'log_level = info' >> /etc/gnuradio/conf.d/gnuradio-runtime.conf
+RUN mkdir -p /etc/gnuradio/conf.d/ && echo 'log_level = info' >> /etc/gnuradio/conf.d/gnuradio-runtime.conf && ldconfig
 WORKDIR /app
 
 # GNURadio requires a place to store some files, can only be set via $HOME env var.
 ENV HOME=/tmp
 
 #USER nobody
-CMD trunk-recorder --config=/app/config.json
+CMD ["trunk-recorder", "--config=/app/config.json"]
