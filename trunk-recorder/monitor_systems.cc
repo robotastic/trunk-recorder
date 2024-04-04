@@ -26,7 +26,8 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
     call->set_state(MONITORING);
     call->set_monitoring_state(UNKNOWN_TG);
     if (sys->get_hideUnknown() == false) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
+      std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
     }
     return false;
   }
@@ -46,7 +47,8 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
       if (tag != "") {
         tag = " (\033[0;34m" + tag + "\033[0m)";
       }
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m - src: " << unit_id << tag;
+      std::string loghdr = log_header( sys->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m - src: " << unit_id << tag;
     }
     return false;
   }
@@ -75,7 +77,8 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
           recorder = source->get_digital_recorder(talkgroup, priority, call);
         }
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\tTG not in Talkgroup File ";
+        std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\tTG not in Talkgroup File ";
 
         // A talkgroup was not found from the talkgroup file.
         // Use an analog recorder if this is a Type II trunk and defaultMode is analog.
@@ -144,7 +147,8 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
   if (!source_found) {
     call->set_state(MONITORING);
     call->set_monitoring_state(NO_SOURCE);
-    BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+    BOOST_LOG_TRIVIAL(error) << loghdr << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -156,15 +160,15 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
   for (vector<Call *>::iterator it = calls.begin(); it != calls.end(); it++) {
     Call *call = *it;
     Recorder *recorder = call->get_recorder();
-
+    std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
     if (call->get_state() == MONITORING) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
+      BOOST_LOG_TRIVIAL(info) << loghdr << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
     } else {
       if (call->is_conventional() ) {
         bool is_enabled = call->get_recorder()->is_enabled();
-         BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state()) << " Enabled: " << is_enabled;
+         BOOST_LOG_TRIVIAL(info) << loghdr << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state()) << " Enabled: " << is_enabled;
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m TG: " << call->get_talkgroup_display() << " Freq: " << format_freq(call->get_freq()) << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
+        BOOST_LOG_TRIVIAL(info) << loghdr << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
       }
     }
 
@@ -203,6 +207,7 @@ void manage_conventional_call(Call *call, Config &config) {
     // if any recording has happened
 
     if (call->get_current_length() > 0) {
+      
       BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m Call Length: " << call->get_current_length() << "s\t Idle: " << call->get_recorder()->is_idle() << "\t Squelched: " << call->get_recorder()->is_squelched() << " Idle Count: " << call->get_idle_count();
 
       // means that the squelch is on and it has stopped recording
@@ -277,7 +282,8 @@ void manage_calls(Config &config, std::vector<Call *> &calls) {
       // - there hasn't been an UPDATE for it on the Control Channel in X seconds AND the recorder hasn't written anything in X seconds
 
       if ((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) {
-        BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+        std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+        BOOST_LOG_TRIVIAL(trace) << loghdr << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
         call->conclude_call();
         // The State of the Recorders has changed, so lets send an update
         ended_call = true;
@@ -290,8 +296,8 @@ void manage_calls(Config &config, std::vector<Call *> &calls) {
       }
     } else if (call->since_last_update() > config.call_timeout) {
       Recorder *recorder = call->get_recorder();
-
-      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+      std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "\t\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
     }
     ++it;
   } // foreach loggers
@@ -447,7 +453,8 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message, Co
       if (recorder != NULL) {
         recorder_state = format_state(recorder->get_state());
       }
-      BOOST_LOG_TRIVIAL(trace) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
+      std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "\t\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
     }
 
     it++;
@@ -476,9 +483,10 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message, Co
         grant_call_data = boost::format("\u001b[34m%sC\u001b[0m %s/%s ") % call->get_call_num() % sys->get_multiSiteSystemName() % sys->get_multiSiteSystemNumber();
       }
     }
-
+    std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
     if (superseding_grant) {
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mSuperseding Grant\u001b[0m - Stopping original call: " << original_call_data << "- Superseding call: " << grant_call_data;
+      
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mSuperseding Grant\u001b[0m - Stopping original call: " << original_call_data << "- Superseding call: " << grant_call_data;
       // Attempt to start a new call on the preferred NAC.
       recording_started = start_recorder(call, message, config, sys, sources);
 
@@ -488,16 +496,17 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message, Co
         original_call->set_monitoring_state(SUPERSEDED);
         original_call->conclude_call();
       } else {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mCould not start Superseding recorder.\u001b[0m Continuing original call: " << original_call->get_call_num() << "C";
+        
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mCould not start Superseding recorder.\u001b[0m Continuing original call: " << original_call->get_call_num() << "C";
       }
     } else if (duplicate_grant) {
       call->set_state(MONITORING);
       call->set_monitoring_state(DUPLICATE);
-      BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << original_call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mDuplicate Grant\u001b[0m - Not recording: " << grant_call_data << "- Original call: " << original_call_data;
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mDuplicate Grant\u001b[0m - Not recording: " << grant_call_data << "- Original call: " << original_call_data;
     } else {
       recording_started = start_recorder(call, message, config, sys, sources);
       if (recording_started && !grant_message) {
-        BOOST_LOG_TRIVIAL(info) << "[" << call->get_short_name() << "]\t\033[0;34m" << call->get_call_num() << "C\033[0m\tTG: " << call->get_talkgroup_display() << "\tFreq: " << format_freq(call->get_freq()) << "\t\u001b[36mThis was an UPDATE\u001b[0m";
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mThis was an UPDATE\u001b[0m";
       }
     }
     calls.push_back(call);
