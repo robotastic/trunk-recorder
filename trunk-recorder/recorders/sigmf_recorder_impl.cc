@@ -119,7 +119,7 @@ State sigmf_recorder_impl::get_state() {
 void sigmf_recorder_impl::stop() {
   if (state == ACTIVE) {
     std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),freq);
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[32mStopping SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     state = INACTIVE;
     set_enabled(false);
@@ -145,7 +145,7 @@ bool sigmf_recorder_impl::start(Call *call) {
     
     //freq_xlat->set_center_freq(-offset_amount);
     std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),freq);
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m";
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[32mStarting SigMF Recorder Num [" << rec_num << "]\u001b[0m";
 
     std::stringstream path_stream;
 

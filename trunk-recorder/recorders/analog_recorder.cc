@@ -385,7 +385,7 @@ bool analog_recorder::start(Call *call) {
   }
   
   std::string loghdr = log_header(call->get_short_name(),call->get_call_num(),this->call->get_talkgroup_display(),chan_freq);
-  BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStarting Analog Recorder Num [" << rec_num << "]\u001b[0m \tSquelch: " << squelch_db;
+  BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[32mStarting Analog Recorder Num [" << rec_num << "]\u001b[0m \tSquelch: " << squelch_db;
   prefilter->set_squelch_db(squelch_db);
   return true;
 }

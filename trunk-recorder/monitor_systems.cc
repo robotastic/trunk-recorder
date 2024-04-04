@@ -27,7 +27,7 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
     call->set_monitoring_state(UNKNOWN_TG);
     if (sys->get_hideUnknown() == false) {
       std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
-      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[33mNot Recording: TG not in Talkgroup File\u001b[0m ";
     }
     return false;
   }
@@ -48,7 +48,7 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
         tag = " (\033[0;34m" + tag + "\033[0m)";
       }
       std::string loghdr = log_header( sys->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
-      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[31mNot Recording: ENCRYPTED\u001b[0m - src: " << unit_id << tag;
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[31mNot Recording: ENCRYPTED\u001b[0m - src: " << unit_id << tag;
     }
     return false;
   }
@@ -78,7 +78,7 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
         }
       } else {
         std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
-        BOOST_LOG_TRIVIAL(info) << loghdr << "\tTG not in Talkgroup File ";
+        BOOST_LOG_TRIVIAL(info) << loghdr << "TG not in Talkgroup File ";
 
         // A talkgroup was not found from the talkgroup file.
         // Use an analog recorder if this is a Type II trunk and defaultMode is analog.
@@ -148,7 +148,7 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
     call->set_state(MONITORING);
     call->set_monitoring_state(NO_SOURCE);
     std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
-    BOOST_LOG_TRIVIAL(error) << loghdr << "\t\u001b[36mNot Recording: no source covering Freq\u001b[0m";
+    BOOST_LOG_TRIVIAL(error) << loghdr << "\u001b[36mNot Recording: no source covering Freq\u001b[0m";
     return false;
   }
   return false;
@@ -162,13 +162,13 @@ void print_status(std::vector<Source *> &sources, std::vector<System *> &systems
     Recorder *recorder = call->get_recorder();
     std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
     if (call->get_state() == MONITORING) {
-      BOOST_LOG_TRIVIAL(info) << loghdr << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
+      BOOST_LOG_TRIVIAL(info) << loghdr << "Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state(), call->get_monitoring_state());
     } else {
       if (call->is_conventional() ) {
         bool is_enabled = call->get_recorder()->is_enabled();
-         BOOST_LOG_TRIVIAL(info) << loghdr << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state()) << " Enabled: " << is_enabled;
+         BOOST_LOG_TRIVIAL(info) << loghdr << "Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state()) << " Enabled: " << is_enabled;
       } else {
-        BOOST_LOG_TRIVIAL(info) << loghdr << " Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
+        BOOST_LOG_TRIVIAL(info) << loghdr << "Elapsed: " << std::setw(4) << call->elapsed() << " State: " << format_state(call->get_state());
       }
     }
 
@@ -283,7 +283,7 @@ void manage_calls(Config &config, std::vector<Call *> &calls) {
 
       if ((recorder->since_last_write() > config.call_timeout) && (call->since_last_update() > config.call_timeout)) {
         std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
-        BOOST_LOG_TRIVIAL(trace) << loghdr << "\t\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+        BOOST_LOG_TRIVIAL(trace) << loghdr << "\u001b[36m Stopping Call because of Recorder \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
         call->conclude_call();
         // The State of the Recorders has changed, so lets send an update
         ended_call = true;
@@ -297,7 +297,7 @@ void manage_calls(Config &config, std::vector<Call *> &calls) {
     } else if (call->since_last_update() > config.call_timeout) {
       Recorder *recorder = call->get_recorder();
       std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
-      BOOST_LOG_TRIVIAL(trace) << loghdr << "\t\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "\u001b[36m  Call UPDATEs has been inactive for more than " << config.call_timeout << " Sec \u001b[0m Rec last write: " << recorder->since_last_write() << " State: " << format_state(recorder->get_state());
     }
     ++it;
   } // foreach loggers
@@ -454,7 +454,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message, Co
         recorder_state = format_state(recorder->get_state());
       }
       std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
-      BOOST_LOG_TRIVIAL(trace) << loghdr << "\t\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "\u001b[36mShould be Stopping RECORDING call, Recorder State: " << recorder_state << " RX overlapping TG message Freq, TG:" << message.talkgroup << "\u001b[0m";
     }
 
     it++;
@@ -486,7 +486,7 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message, Co
     std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
     if (superseding_grant) {
       
-      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mSuperseding Grant\u001b[0m - Stopping original call: " << original_call_data << "- Superseding call: " << grant_call_data;
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[36mSuperseding Grant\u001b[0m - Stopping original call: " << original_call_data << "- Superseding call: " << grant_call_data;
       // Attempt to start a new call on the preferred NAC.
       recording_started = start_recorder(call, message, config, sys, sources);
 
@@ -497,16 +497,16 @@ void handle_call_grant(TrunkMessage message, System *sys, bool grant_message, Co
         original_call->conclude_call();
       } else {
         
-        BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mCould not start Superseding recorder.\u001b[0m Continuing original call: " << original_call->get_call_num() << "C";
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[36mCould not start Superseding recorder.\u001b[0m Continuing original call: " << original_call->get_call_num() << "C";
       }
     } else if (duplicate_grant) {
       call->set_state(MONITORING);
       call->set_monitoring_state(DUPLICATE);
-      BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mDuplicate Grant\u001b[0m - Not recording: " << grant_call_data << "- Original call: " << original_call_data;
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[36mDuplicate Grant\u001b[0m - Not recording: " << grant_call_data << "- Original call: " << original_call_data;
     } else {
       recording_started = start_recorder(call, message, config, sys, sources);
       if (recording_started && !grant_message) {
-        BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[36mThis was an UPDATE\u001b[0m";
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[36mThis was an UPDATE\u001b[0m";
       }
     }
     calls.push_back(call);

@@ -263,7 +263,7 @@ void p25_recorder_impl::stop() {
     }
 
     std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),chan_freq);
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[33mStopping P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << d_phase2_tdma << "\tSlot: " << tdma_slot << "\tHz Error: " << this->get_freq_error();
 
     state = INACTIVE;
     set_enabled(false);
@@ -319,7 +319,7 @@ bool p25_recorder_impl::start(Call *call) {
     this->call = call;
 
     std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),chan_freq);
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStarting P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tQPSK: " << qpsk_mod;
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[32mStarting P25 Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot() << "\tQPSK: " << qpsk_mod;
 
     int offset_amount = (center_freq - chan_freq);
 
