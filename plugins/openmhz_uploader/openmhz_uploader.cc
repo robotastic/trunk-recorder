@@ -291,13 +291,13 @@ public:
       if (res == CURLM_OK && response_code == 200) {
         struct stat file_info;
         stat(call_info.converted, &file_info);
-        std::string loghdr = log_header(call_info.short_name,call_info.call_num,talkgroup_display,call_info.freq);
+        std::string loghdr = log_header(call_info.short_name,call_info.call_num,call_info.talkgroup_display,call_info.freq);
         BOOST_LOG_TRIVIAL(info) << loghdr << "\tOpenMHz Upload Success - file size: " << file_info.st_size;
         ;
         return 0;
       }
     }
-    std::string loghdr = log_header(call_info.short_name,call_info.call_num,talkgroup_display,call_info.freq);
+    std::string loghdr = log_header(call_info.short_name,call_info.call_num,call_info.talkgroup_display,call_info.freq);
     BOOST_LOG_TRIVIAL(error) << loghdr << "\tOpenMHz Upload Error: " << response_buffer;
     return 1;
   }
