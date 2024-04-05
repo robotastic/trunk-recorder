@@ -358,7 +358,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
     if (t.length < sys->get_min_tx_duration()) {
       if (!call_info.transmission_archive) {
         std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
-        BOOST_LOG_TRIVIAL(info) << loghdr << "\tRemoving transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << ".";
+        BOOST_LOG_TRIVIAL(info) << loghdr << "Removing transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << ".";
         call_info.min_transmissions_removed++;
 
         if (checkIfFile(t.filename)) {
@@ -378,7 +378,7 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 
     std::stringstream transmission_info;
     std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
-    transmission_info << loghdr << "\t- Transmission src: " << t.source << display_tag << " pos: " << format_time(total_length) << " length: " << format_time(t.length);
+    transmission_info << loghdr << "- Transmission src: " << t.source << display_tag << " pos: " << format_time(total_length) << " length: " << format_time(t.length);
 
     if (t.error_count < 1) {
       BOOST_LOG_TRIVIAL(info) << transmission_info.str();
@@ -415,21 +415,21 @@ void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
 
   std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
   if(call->get_state() == MONITORING && call->get_monitoring_state() == SUPERSEDED){
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\tCall has been superseded. Removing files.";
+    BOOST_LOG_TRIVIAL(info) << loghdr << "Call has been superseded. Removing files.";
     remove_call_files(call_info);
     return;
   }
   else if (call_info.transmission_list.size()== 0 && call_info.min_transmissions_removed == 0) {
-    BOOST_LOG_TRIVIAL(error) << loghdr << "\tNo Transmissions were recorded!";
+    BOOST_LOG_TRIVIAL(error) << loghdr << "No Transmissions were recorded!";
     return;
   }
   else if (call_info.transmission_list.size() == 0 && call_info.min_transmissions_removed > 0) {
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\tNo Transmissions were recorded! " << call_info.min_transmissions_removed << " tranmissions less than " << sys->get_min_tx_duration() << " seconds were removed.";
+    BOOST_LOG_TRIVIAL(info) << loghdr << "No Transmissions were recorded! " << call_info.min_transmissions_removed << " tranmissions less than " << sys->get_min_tx_duration() << " seconds were removed.";
     return;
   }
 
   if (call_info.length <= sys->get_min_duration()) {
-    BOOST_LOG_TRIVIAL(error) << loghdr << "\t Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
+    BOOST_LOG_TRIVIAL(error) << loghdr << "Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
     remove_call_files(call_info);
     return;
   }
@@ -451,13 +451,13 @@ void Call_Concluder::manage_call_data_workers() {
 
         if (call_info.retry_attempt > Call_Concluder::MAX_RETRY) {
           remove_call_files(call_info);
-          BOOST_LOG_TRIVIAL(error) << loghdr << " Failed to conclude call - TG: " << call_info.talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z");
+          BOOST_LOG_TRIVIAL(error) << loghdr << "Failed to conclude call - " << std::put_time(std::localtime(&start_time), "%c %Z");
         } else {
           long jitter = rand() % 10;
           long backoff = (2 ^ call_info.retry_attempt * 60) + jitter;
           call_info.process_call_time = time(0) + backoff;
           retry_call_list.push_back(call_info);
-          BOOST_LOG_TRIVIAL(error) << loghdr << " \tTG: " << call_info.talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << " retry attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
+          BOOST_LOG_TRIVIAL(error) << loghdr << std::put_time(std::localtime(&start_time), "%c %Z") << " retry attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
         }
       }
       it = call_data_workers.erase(it);

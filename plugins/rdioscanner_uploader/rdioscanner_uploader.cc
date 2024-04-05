@@ -330,14 +330,14 @@ public:
       if (res == CURLM_OK && response_code == 200) {
         struct stat file_info;
         stat(compress_wav ? call_info.converted : call_info.filename, &file_info);
-        std::string loghdr = log_header(call_info.short_name,call_info.call_num,talkgroup_display,call_info.freq);
-        BOOST_LOG_TRIVIAL(info) << loghdr << "\tRdio Scanner Upload Success - file size: " << file_info.st_size;
+        std::string loghdr = log_header(call_info.short_name,call_info.call_num,call_info.talkgroup_display,call_info.freq);
+        BOOST_LOG_TRIVIAL(info) << loghdr << "Rdio Scanner Upload Success - file size: " << file_info.st_size;
         ;
         return 0;
       }
     }
-    std::string loghdr = log_header(call_info.short_name,call_info.call_num,talkgroup_display,call_info.freq);
-    BOOST_LOG_TRIVIAL(error) << loghdr << "\tRdio Scanner Upload Error: " << response_buffer;
+    std::string loghdr = log_header(call_info.short_name,call_info.call_num,call_info.talkgroup_display,call_info.freq);
+    BOOST_LOG_TRIVIAL(error) << loghdr << "Rdio Scanner Upload Error: " << response_buffer;
     return 1;
   }
 

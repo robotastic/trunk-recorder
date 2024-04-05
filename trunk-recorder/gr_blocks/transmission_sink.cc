@@ -141,7 +141,7 @@ bool transmission_sink::start_recording(Call *call) {
   state = IDLE;
   /* Should reset more variables here */
   std::string loghdr = log_header(d_current_call_short_name,d_current_call_num,d_current_call_talkgroup_display,d_current_call_freq);
-  BOOST_LOG_TRIVIAL(trace) << loghdr << "\tStarting wavfile sink SRC ID: " << curr_src_id << " Conventional: " << d_conventional;
+  BOOST_LOG_TRIVIAL(trace) << loghdr << "Starting wavfile sink SRC ID: " << curr_src_id << " Conventional: " << d_conventional;
 
   return true;
 }
@@ -205,14 +205,14 @@ void transmission_sink::set_source(long src) {
   std::string loghdr = log_header(d_current_call_short_name,d_current_call_num,d_current_call_talkgroup_display,d_current_call_freq);
   if (curr_src_id == -1) {
 
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\tUnit ID set via Control Channel, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+    BOOST_LOG_TRIVIAL(info) << loghdr << "Unit ID set via Control Channel, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
 
     curr_src_id = src;
   }
   else if (d_conventional && (src != curr_src_id)) {
     if ((state == RECORDING) && (d_sample_count > 0)) {
         gr::thread::scoped_lock guard(d_mutex);
-        BOOST_LOG_TRIVIAL(error) << loghdr << "\tUnit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
+        BOOST_LOG_TRIVIAL(error) << loghdr << "Unit ID externally set, ext: " << src << "\tcurrent: " << curr_src_id << "\t samples: " << d_sample_count;
         end_transmission();
         state = IDLE;
         curr_src_id = src;
@@ -301,9 +301,9 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
     // It is possible the P25 Frame Assembler passes a TDU after the call has timed out.
     // In this case, the termination tag will be transferred on a blank sample and can safely be ignored.
     if (noutput_items == 1) {
-      BOOST_LOG_TRIVIAL(trace) << loghdr << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "Dropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
     } else {
-      BOOST_LOG_TRIVIAL(error) << loghdr << "\tDropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
+      BOOST_LOG_TRIVIAL(error) << loghdr << "Dropping " << noutput_items << " samples - current_call is null\t Rec State: " << format_state(this->state) << "\tSince close: " << its_been;
     }
 
     return noutput_items;
@@ -313,7 +313,7 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
   if ((state == STOPPED) || (state == AVAILABLE)) {
     if (noutput_items > 1) {
 
-      BOOST_LOG_TRIVIAL(error) << loghdr << "\tDropping " << noutput_items << " samples - Recorder state is: " << format_state(this->state);
+      BOOST_LOG_TRIVIAL(error) << loghdr << "Dropping " << noutput_items << " samples - Recorder state is: " << format_state(this->state);
 
       // BOOST_LOG_TRIVIAL(info) << "WAV - state is: " << format_state(this->state) << "\t Dropping samples: " << noutput_items << " Since close: " << its_been << std::endl;
     }
@@ -341,14 +341,14 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
       if ((state == RECORDING) || (state == IDLE)) {
         if (d_current_call_talkgroup_encoded != grp_id) {
           if (!d_conventional) {
-            BOOST_LOG_TRIVIAL(info) << loghdr << "\tGROUP MISMATCH -  Recorder TG: " << d_current_call_talkgroup_encoded << " Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming: " << noutput_items;
+            BOOST_LOG_TRIVIAL(info) << loghdr << "GROUP MISMATCH -  Recorder TG: " << d_current_call_talkgroup_encoded << " Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming: " << noutput_items;
             if (d_sample_count > 0) {
-              BOOST_LOG_TRIVIAL(info) << loghdr << "\tEnding Transmission and IGNORING Rest - count: " << d_sample_count;
+              BOOST_LOG_TRIVIAL(info) << loghdr << "Ending Transmission and IGNORING Rest - count: " << d_sample_count;
               end_transmission();
             }
             state = IGNORE;
           } else {
-            BOOST_LOG_TRIVIAL(debug) << loghdr << "\tGroup Mismatch - Recorder Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming samples: " << noutput_items;
+            BOOST_LOG_TRIVIAL(debug) << loghdr << "Group Mismatch - Recorder Received TG: " << grp_id << " Recorder state: " << format_state(state) << " incoming samples: " << noutput_items;
           }
         }
       }
@@ -397,12 +397,12 @@ int transmission_sink::work(int noutput_items, gr_vector_const_void_star &input_
       if (pmt::eq(spike_count_key, tags[i].key)) {
         d_spike_count = pmt::to_long(tags[i].value);
 
-        BOOST_LOG_TRIVIAL(trace) << loghdr << "\tSpike Count: " << d_spike_count << " pos: " << pos << " offset: " << tags[i].offset;
+        BOOST_LOG_TRIVIAL(trace) << loghdr << "Spike Count: " << d_spike_count << " pos: " << pos << " offset: " << tags[i].offset;
       }
       if (pmt::eq(error_count_key, tags[i].key)) {
         d_error_count = pmt::to_long(tags[i].value);
 
-        BOOST_LOG_TRIVIAL(trace) << loghdr << "\tError Count: " << d_error_count << " pos: " << pos << " offset: " << tags[i].offset;
+        BOOST_LOG_TRIVIAL(trace) << loghdr << "Error Count: " << d_error_count << " pos: " << pos << " offset: " << tags[i].offset;
       }
     }
   }
@@ -463,7 +463,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
     }
 
     if (state == IGNORE) {
-      BOOST_LOG_TRIVIAL(trace) << loghdr << "\tResetting state from IGNORE to IDLE: " << noutput_items;
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "Resetting state from IGNORE to IDLE: " << noutput_items;
       state = IDLE;
 
       return noutput_items;
@@ -471,26 +471,26 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
 
     // The TDU can come in with voice samples. Write the voice samples and then end the transmission.
     if (d_sample_count > 0 && noutput_items > 1) {
-      BOOST_LOG_TRIVIAL(trace) << loghdr << "\tTerminator received with items. Ending transmission after writing. Sample Count: " << d_sample_count << " Noutput Items: " << noutput_items;
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "Terminator received with items. Ending transmission after writing. Sample Count: " << d_sample_count << " Noutput Items: " << noutput_items;
       terminate_after_write = true;
       // Handle the case of a terminator coming in without voice samples. End the transmission immediately.
     } else if (d_sample_count > 0) {
-      BOOST_LOG_TRIVIAL(trace) << loghdr << "\tTerminator received without items. Ending transmission immediately. " << d_sample_count << " Noutput Items: " << noutput_items;
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "Terminator received without items. Ending transmission immediately. " << d_sample_count << " Noutput Items: " << noutput_items;
       end_transmission();
       return noutput_items;
     } else {
-      BOOST_LOG_TRIVIAL(trace) << loghdr << "\tTERM - skipped....   - count: " << d_sample_count;
+      BOOST_LOG_TRIVIAL(trace) << loghdr << "TERM - skipped....   - count: " << d_sample_count;
       return noutput_items;
     }
   }
 
   if (state == IGNORE) {
-    BOOST_LOG_TRIVIAL(trace) << loghdr << "\tIGNORE missing count: " << noutput_items;
+    BOOST_LOG_TRIVIAL(trace) << loghdr << "IGNORE missing count: " << noutput_items;
     return noutput_items;
   }
 
   if (state == IDLE) {
-    // BOOST_LOG_TRIVIAL(info) << loghdr << "\tIDLE but haven't seen Group ID yet, missing count: " << noutput_items;
+    // BOOST_LOG_TRIVIAL(info) << loghdr << "IDLE but haven't seen Group ID yet, missing count: " << noutput_items;
     // return noutput_items;
     if (d_fp) {
       // if we are already recording a file for this call, close it before starting a new one.
@@ -513,7 +513,7 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
       return noutput_items;
     }
 
-    BOOST_LOG_TRIVIAL(trace) << loghdr << "\tStarting new Transmission \tSrc ID:  " << curr_src_id;
+    BOOST_LOG_TRIVIAL(trace) << loghdr << "Starting new Transmission \tSrc ID:  " << curr_src_id;
 
     // curr_src_id = d_current_call->get_current_source_id();
     state = RECORDING;
@@ -552,9 +552,9 @@ int transmission_sink::dowork(int noutput_items, gr_vector_const_void_star &inpu
   d_last_write_time = std::chrono::steady_clock::now();
 
   if (nwritten < noutput_items) {
-    BOOST_LOG_TRIVIAL(error) << loghdr << "\tFailed to Write! Wrote: " << nwritten << " of " << noutput_items;
+    BOOST_LOG_TRIVIAL(error) << loghdr << "Failed to Write! Wrote: " << nwritten << " of " << noutput_items;
   } else {
-    BOOST_LOG_TRIVIAL(trace) << loghdr << "\t Wrote: " << nwritten << " of " << noutput_items;
+    BOOST_LOG_TRIVIAL(trace) << loghdr << "Wrote: " << nwritten << " of " << noutput_items;
   }
   return noutput_items;
 }

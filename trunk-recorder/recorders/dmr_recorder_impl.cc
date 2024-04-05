@@ -264,7 +264,7 @@ bool dmr_recorder_impl::start(Call *call) {
     chan_freq = call->get_freq();
     this->call = call;
     std::string loghdr = log_header(this->call->get_short_name(),this->call->get_call_num(),this->call->get_talkgroup_display(),chan_freq);
-    BOOST_LOG_TRIVIAL(info) << loghdr << "\t\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
+    BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[32mStarting DMR Recorder Num [" << rec_num << "]\u001b[0m\tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
 
     int offset_amount = (center_freq - chan_freq);
 
