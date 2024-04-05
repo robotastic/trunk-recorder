@@ -4,6 +4,7 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
+const int Call_Concluder::MAX_RETRY = 2;
 std::list<std::future<Call_Data_t>> Call_Concluder::call_data_workers = {};
 std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
 
