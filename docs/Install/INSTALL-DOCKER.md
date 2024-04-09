@@ -10,9 +10,8 @@ To get started, create a directory and place your **config.json** file there and
 
 ```bash
 docker run -it \
-  --privileged -e TZ=$(cat /etc/timezone) --user "$(id -u):$(id -g)" \
+  --devices "/dev/bus/usb:/dev/bus/usb:rwm" -e TZ=$(cat /etc/timezone) --user "$(id -u):$(id -g)" \
   -v $(pwd):/app \
-  -v /dev/bus/usb:/dev/bus/usb \
   -v /var/run/dbus:/var/run/dbus \
   -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket \
   robotastic/trunk-recorder:latest
@@ -21,15 +20,14 @@ docker run -it \
 To use it as part of a [Docker Compose](https://docs.docker.com/compose/) file:
 
 ```yaml
-version: '3'
 services:
   recorder:
     image: robotastic/trunk-recorder:latest
     container_name: trunk-recorder
     restart: always
-    privileged: true
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb:rwm"
     volumes:
-      - /dev/bus/usb:/dev/bus/usb
       - /var/run/dbus:/var/run/dbus 
       - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
       - ./:/app
