@@ -109,6 +109,10 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   message.tdma_slot = 0;
   message.freq = 0;
   message.opcode = opcode;
+  message.patch_data.sg = -1;
+  message.patch_data.ga1 = -1;
+  message.patch_data.ga2 = -1;
+  message.patch_data.ga3 = -1; 
 
   BOOST_LOG_TRIVIAL(debug) << "decode_mbt_data: $" << opcode;
   if (opcode == 0x0) { // grp voice channel grant
@@ -285,6 +289,10 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   message.tdma_slot = 0;
   message.freq = 0;
   message.opcode = opcode;
+  message.patch_data.sg = -1;
+  message.patch_data.ga1 = -1;
+  message.patch_data.ga2 = -1;
+  message.patch_data.ga3 = -1; 
 
   BOOST_LOG_TRIVIAL(trace) << "TSBK: opcode: $" << std::hex << opcode;
   if (opcode == 0x00) { // group voice chan grant
@@ -471,7 +479,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       // int priority = bitset_shift_mask(tsbk, 72, 0x07);
 
       unsigned long ch1 = bitset_shift_mask(tsbk, 48, 0xffff);
-      unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
+      // unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 16, 0xffff);
       unsigned long f1 = channel_id_to_frequency(ch1, sys_num);
       // unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
@@ -483,7 +491,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.encrypted = encrypted;
       if (get_tdma_slot(ch1, sys_num) >= 0) {
         message.phase2_tdma = true;
-        message.tdma_slot = get_tdma_slot(ch2, sys_num);
+        message.tdma_slot = get_tdma_slot(ch1, sys_num);
       } else {
         message.phase2_tdma = false;
         message.tdma_slot = 0;
