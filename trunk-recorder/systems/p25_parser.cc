@@ -109,10 +109,10 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   message.tdma_slot = 0;
   message.freq = 0;
   message.opcode = opcode;
-  message.patch_data.sg = -1;
-  message.patch_data.ga1 = -1;
-  message.patch_data.ga2 = -1;
-  message.patch_data.ga3 = -1; 
+  message.patch_data.sg = 0;
+  message.patch_data.ga1 = 0;
+  message.patch_data.ga2 = 0;
+  message.patch_data.ga3 = 0; 
 
   BOOST_LOG_TRIVIAL(debug) << "decode_mbt_data: $" << opcode;
   if (opcode == 0x0) { // grp voice channel grant
@@ -289,10 +289,10 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   message.tdma_slot = 0;
   message.freq = 0;
   message.opcode = opcode;
-  message.patch_data.sg = -1;
-  message.patch_data.ga1 = -1;
-  message.patch_data.ga2 = -1;
-  message.patch_data.ga3 = -1; 
+  message.patch_data.sg = 0;
+  message.patch_data.ga1 = 0;
+  message.patch_data.ga2 = 0;
+  message.patch_data.ga3 = 0; 
 
   BOOST_LOG_TRIVIAL(trace) << "TSBK: opcode: $" << std::hex << opcode;
   if (opcode == 0x00) { // group voice chan grant
