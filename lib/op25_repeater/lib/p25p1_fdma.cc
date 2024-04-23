@@ -584,7 +584,7 @@ namespace gr {
                 blks = deinterleave_buf[0][6] & 0x7f;
 
                 if ((sap == 61) && ((fmt == 0x17) || (fmt == 0x15))) { // Multi Block Trunking messages
-                    if (blks > deinterleave_buf.size())
+                    if ((blks > deinterleave_buf.size()) || (deinterleave_buf.size() == 1))
                         return; // insufficient blocks available
 
                     uint32_t crc1 = crc32(deinterleave_buf[1].data(), ((blks * 12) - 4) * 8);
