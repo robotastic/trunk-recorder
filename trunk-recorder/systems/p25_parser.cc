@@ -964,6 +964,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
     return messages;
   } else if (type < 0) {
     BOOST_LOG_TRIVIAL(debug) << "unknown message type " << type;
+    message.message_type = INVALID_CC_MESSAGE;
     messages.push_back(message);
     return messages;
   }
@@ -979,6 +980,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
 
   if (s.length() < 2) {
     BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " s0: " << static_cast<int>(s0) << " s1: " << static_cast<int>(s1) << " shift: " << shift << " nac: " << nac << " type: " << type << " Len: " << s.length();
+    message.message_type = INVALID_CC_MESSAGE;
     messages.push_back(message);
     return messages;
   }
@@ -996,7 +998,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   if ((type != 7) && (type != 12)) // and nac not in self.trunked_systems:
   {
     BOOST_LOG_TRIVIAL(debug) << std::hex << "NON TBSK: nac " << nac << std::dec << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length();
-  
+    message.message_type = INVALID_CC_MESSAGE;
     /*
        if not self.configs:
      # TODO: allow whitelist/blacklist rather than blind automatic-add
@@ -1004,11 +1006,6 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
        else:
         return
      */
-  }
-
-  if (type == 3 || type == 15)
-  {
-    message.message_type = TDU;
   }
 
   if (type == 7) { // # trunk: TSBK

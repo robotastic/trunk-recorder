@@ -727,9 +727,9 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys) {
       unit_answer_request(sys, message.source, message.talkgroup);
       break;
 
-    case TDU:
+    case INVALID_CC_MESSAGE:
     {
-      //Control Channel may have retuned to an active data channel. Do not count the message.
+      //Do not count messages that aren't valid TSBK or MBTs.
       int msg_count = sys->get_message_count();
       if(msg_count > 1){
         sys->set_message_count(msg_count - 1);
