@@ -1006,6 +1006,11 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
      */
   }
 
+  if (type == 3 || type == 15)
+  {
+    message.message_type = TDU;
+  }
+
   if (type == 7) { // # trunk: TSBK
     boost::dynamic_bitset<> b((s.length() + 2) * 8);
 
