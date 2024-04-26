@@ -1,8 +1,8 @@
 #include "xlat_channelizer.h"
 
-xlat_channelizer::sptr xlat_channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional) {
+xlat_channelizer::sptr xlat_channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool use_squelch) {
 
-  return gnuradio::get_initial_sptr(new xlat_channelizer(input_rate, samples_per_symbol, symbol_rate, center_freq, conventional));
+  return gnuradio::get_initial_sptr(new xlat_channelizer(input_rate, samples_per_symbol, symbol_rate, center_freq, use_squelch));
 }
 
 const int xlat_channelizer::smartnet_samples_per_symbol;
@@ -40,7 +40,7 @@ xlat_channelizer::DecimSettings xlat_channelizer::get_decim(long speed) {
   return decim_settings;
 }
 
-xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional)
+xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool use_squelch)
     : gr::hier_block2("xlat_channelizer_ccf",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(1, 1, sizeof(gr_complex))),
@@ -48,7 +48,7 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
       d_input_rate(input_rate),
       d_samples_per_symbol(samples_per_symbol),
       d_symbol_rate(symbol_rate),
-      d_conventional(conventional) {
+      d_use_squelch(use_squelch) {
 
   long channel_rate = d_symbol_rate * d_samples_per_symbol;
   // long if_rate = 12500;
@@ -126,7 +126,7 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
 
   connect(self(), 0, freq_xlat, 0);
 
-  if (d_conventional) {
+  if (d_use_squelch) {
     BOOST_LOG_TRIVIAL(info) << "Conventional - with Squelch";
     if (arb_rate == 1.0) {
       connect(freq_xlat, 0, squelch, 0);
@@ -159,7 +159,7 @@ bool xlat_channelizer::is_squelched() {
 }
 
 double xlat_channelizer::get_pwr() {
-  if (d_conventional) {
+  if (d_use_squelch) {
     return squelch->get_pwr();
   } else {
     return DB_UNSET;

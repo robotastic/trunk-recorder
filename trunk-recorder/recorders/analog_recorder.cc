@@ -117,7 +117,8 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   system_channel_rate = 16000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
-  prefilter = xlat_channelizer::make(input_rate, 2, 8000, center_freq, conventional);
+  // The Prefilter provides the initial squelch for the channel
+  prefilter = xlat_channelizer::make(input_rate, 2, 8000, center_freq, true);
   prefilter->set_analog_squelch(true);
 
   //  based on squelch code form ham2mon

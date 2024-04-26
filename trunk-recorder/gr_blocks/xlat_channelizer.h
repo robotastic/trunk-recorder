@@ -39,8 +39,8 @@ public:
   typedef std::shared_ptr<xlat_channelizer> sptr;
 #endif
 
-  static sptr make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional);
-  xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool conventional);
+  static sptr make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool use_squelch);
+  xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool use_squelch);
 
   struct DecimSettings {
     long decim;
@@ -72,7 +72,7 @@ private:
   int d_samples_per_symbol;
   double d_symbol_rate;
 
-  bool d_conventional;
+  bool d_use_squelch;
   long symbol_rate;
   double squelch_db;
   long decim;
