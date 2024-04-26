@@ -47,8 +47,8 @@ RUN cmake .. && make -j$(nproc) && make DESTDIR=/newroot install
 #Stage 2 build
 FROM ubuntu:24.04
 RUN apt-get update && apt-get -y upgrade && apt-get install --no-install-recommends -y ca-certificates gr-funcube gr-iqbal curl wget libboost-log1.83.0 \
-    libboost-chrono1.83.0 libgnuradio-digital3.10.9 libgnuradio-analog3.10.9 libgnuradio-filter3.10.9 libgnuradio-network3.10.9  \
-    libgnuradio-uhd3.10.9 libgnuradio-osmosdr0.2.0 libsoapysdr0.8 soapysdr0.8-module-all libairspyhf1 libfreesrp0 librtlsdr2 libxtrx0 sox fdkaac docker.io && \
+    libboost-chrono1.83.0t64 libgnuradio-digital3.10.9t64 libgnuradio-analog3.10.9t64 libgnuradio-filter3.10.9t64 libgnuradio-network3.10.9t64  \
+    libgnuradio-uhd3.10.9t64 libgnuradio-osmosdr0.2.0t64 libsoapysdr0.8 soapysdr0.8-module-all libairspyhf1 libfreesrp0 librtlsdr2 libxtrx0 sox fdkaac docker.io && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /usr/share/{doc,man,info} && rm -rf /usr/local/share/{doc,man,info}
 
