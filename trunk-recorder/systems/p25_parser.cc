@@ -964,6 +964,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
     return messages;
   } else if (type < 0) {
     BOOST_LOG_TRIVIAL(debug) << "unknown message type " << type;
+    message.message_type = INVALID_CC_MESSAGE;
     messages.push_back(message);
     return messages;
   }
@@ -979,6 +980,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
 
   if (s.length() < 2) {
     BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " s0: " << static_cast<int>(s0) << " s1: " << static_cast<int>(s1) << " shift: " << shift << " nac: " << nac << " type: " << type << " Len: " << s.length();
+    message.message_type = INVALID_CC_MESSAGE;
     messages.push_back(message);
     return messages;
   }
@@ -995,8 +997,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   // //" at %f state %d len %d" %(nac, type, time.time(), self.state, len(s))
   if ((type != 7) && (type != 12)) // and nac not in self.trunked_systems:
   {
-    BOOST_LOG_TRIVIAL(debug) << std::hex << "NON TBSK: nac " << nac << std::dec << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length();
-  
+    BOOST_LOG_TRIVIAL(debug) << std::hex << "NON TSBK: nac " << nac << std::dec << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length();
     /*
        if not self.configs:
      # TODO: allow whitelist/blacklist rather than blind automatic-add
@@ -1071,7 +1072,13 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
     return decode_mbt_data(opcode, header, mbt_data, link_id, nac, sys_num);
     // self.trunked_systems[nac].decode_mbt_data(opcode, header << 16, mbt_data
     // << 32)
+  } else if (type == 15)
+  {
+    //TDU with Link Contol. Link Control words should not be seen on an active Control Channel.
+    BOOST_LOG_TRIVIAL(debug) << "P25 Parser: TDULC on control channel. Retuning to next control channel.";
+    message.message_type = TDULC;
   }
+
   messages.push_back(message);
   return messages;
 }
