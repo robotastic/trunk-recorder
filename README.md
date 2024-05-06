@@ -68,6 +68,7 @@ RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy; SDRplay
 By default, Trunk Recorder just dumps a lot of recorded files into a directory. Here are a couple of options to make it easier to browse through recordings and share them on the Internet.
 * [OpenMHz](https://github.com/robotastic/trunk-recorder/wiki/Uploading-to-OpenMHz): This is my free hosted platform for sharing recordings
 * [Trunk Player](https://github.com/ScanOC/trunk-player): A great Python based server, if you want to you want to run your own
+* [Trunk-PlayerNG](https://github.com/Trunk-Player) an Enterprise Grade Trunking API with ACLs, notifications, User management, a filterable API, Mertics, and more... WebUI not guaranteed™ (yee ik grovl grovel). Bur since TP-NG is ACL based you dont have to worry about multiple configs. Its time to make radio analysis easy!
 * [Rdio Scanner](https://github.com/chuot/rdio-scanner): Provide a good looking, scanner style interface for listening to Trunk Recorder
 * Broadcastify Calls (API): see Radio Reference [forum thread](https://forums.radioreference.com/threads/405236/) and [wiki page](https://wiki.radioreference.com/index.php/Broadcastify-Calls-Trunk-Recorder)
 * [Broadcastify via Liquidsoap](https://github.com/robotastic/trunk-recorder/wiki/Streaming-online-to-Broadcastify-with-Liquid-Soap)
