@@ -137,7 +137,8 @@ public:
     mime = curl_mime_init(curl);
 
     part = curl_mime_addpart(mime);
-    curl_mime_filedata(part, call_info.status_filename);
+    curl_mime_data(part, call_info.call_json.dump().c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_filename(part, "call_meta.json");
     curl_mime_type(part, "application/json");
     curl_mime_name(part, "metadata");
 
