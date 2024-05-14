@@ -143,10 +143,6 @@ public:
     curl_mime_name(part, "metadata");
 
     part = curl_mime_addpart(mime);
-    curl_mime_data(part, call_info.converted, CURL_ZERO_TERMINATED);
-    curl_mime_name(part, "filename");
-
-    part = curl_mime_addpart(mime);
     curl_mime_data(part, std::to_string(call_info.length).c_str(), CURL_ZERO_TERMINATED);
     curl_mime_name(part, "callDuration");
 
