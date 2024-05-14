@@ -1024,6 +1024,8 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
     }
     b <<= 16; // for missing crc
 
+    tsbk_socket->send_tsbk(b, system);
+
     return decode_tsbk(b, nac, sys_num);
   } else if (type == 12) { // # trunk: MBT
     std::string s1 = s.substr(0, 10);
@@ -1060,6 +1062,9 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
       }
     }
     mbt_data <<= 32; // for missing crc
+
+    tsbk_socket->send_mbt(mbt_data, system);
+
     unsigned long opcode = bitset_shift_mask(header, 32, 0x3f);
     unsigned long link_id = bitset_shift_mask(header, 48, 0xffffff);
     /*BOOST_LOG_TRIVIAL(debug) << "RAW  Data    " <<b;

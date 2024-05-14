@@ -233,6 +233,7 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/formatter.cc
   trunk-recorder/source.cc
   trunk-recorder/call_conventional.cc
+  trunk-recorder/tsbk_socket.cc
   trunk-recorder/systems/smartnet_trunking.cc
   trunk-recorder/systems/p25_trunking.cc
   trunk-recorder/systems/smartnet_parser.cc
