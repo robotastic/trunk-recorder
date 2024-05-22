@@ -546,7 +546,7 @@ void handle_call_update(TrunkMessage message, System *sys, std::vector<Call *> &
   }
 }
 
-void handle_message(std::vector<TrunkMessage> messages, System *sys, Config &config, std::vector<Source *> &sources, std::vector<Call *> &calls) {
+void handle_message(std::vector<TrunkMessage> messages, System *sys, Config &config, std::vector<Source *> &sources, std::vector<Call *> &calls, gr::top_block_sptr &tb) {
   for (std::vector<TrunkMessage>::iterator it = messages.begin(); it != messages.end(); it++) {
     TrunkMessage message = *it;
 
@@ -622,6 +622,19 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys, Config &con
 
     case UU_ANS_REQ:
       unit_answer_request(sys, message.source, message.talkgroup);
+      break;
+
+    case INVALID_CC_MESSAGE:
+    {
+      //Do not count messages that aren't valid TSBK or MBTs.
+      int msg_count = sys->get_message_count();
+      if(msg_count > 1){
+        sys->set_message_count(msg_count - 1);
+      }
+    }
+
+    case TDULC:
+      retune_system(sys,tb,sources);
       break;
 
     case UNKNOWN:
@@ -811,13 +824,13 @@ int monitor_messages(Config &config, gr::top_block_sptr &tb, std::vector<Source 
 
           if (system->get_system_type() == "smartnet") {
             trunk_messages = smartnet_parser->parse_message(msg->to_string(), system);
-            handle_message(trunk_messages, system, config, sources, calls);
+            handle_message(trunk_messages, system, config, sources, calls, tb);
             plugman_trunk_message(trunk_messages, system);
           }
 
           if (system->get_system_type() == "p25") {
             trunk_messages = p25_parser->parse_message(msg, system);
-            handle_message(trunk_messages, system, config, sources, calls);
+            handle_message(trunk_messages, system, config, sources, calls, tb);
             plugman_trunk_message(trunk_messages, system);
           }
 
