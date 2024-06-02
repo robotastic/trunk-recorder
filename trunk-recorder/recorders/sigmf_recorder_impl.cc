@@ -60,7 +60,7 @@ sigmf_recorder_impl::sigmf_recorder_impl(Source *src, Recorder_Type type)
   //initialize_prefilter();
   //initialize_prefilter_xlat();
   
-  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center, conventional);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, xlat_channelizer::channel_bandwidth, center, conventional);
   set_enabled(false);
   connect(squelch, 0, raw_sink, 0);
 }

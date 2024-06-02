@@ -47,7 +47,7 @@ void dmr_recorder_impl::initialize(Source *src) {
   timestamp = time(NULL);
   starttime = time(NULL);
 
-  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center_freq, conventional);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, xlat_channelizer::channel_bandwidth, center_freq, conventional);
 
   /* FSK4 Demod */
   const double phase1_channel_rate = phase1_symbol_rate * phase1_samples_per_symbol;

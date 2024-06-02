@@ -113,12 +113,13 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
     conventional = false;
   }
 
-  // int samp_per_sym        = 10;
-  system_channel_rate = 32000; // 4800 * samp_per_sym;
+  int samp_per_sym        = 2;
+  double bandwidth = 12500;
+  system_channel_rate = 16000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
   // The Prefilter provides the initial squelch for the channel
-  prefilter = xlat_channelizer::make(input_rate, 2, 16000, center_freq, true);
+  prefilter = xlat_channelizer::make(input_rate, samp_per_sym, system_channel_rate / samp_per_sym, bandwidth, center_freq, true);
   prefilter->set_analog_squelch(true);
 
   //  based on squelch code form ham2mon
@@ -127,7 +128,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
 
   if (use_tone_squelch) {
-    tone_squelch = gr::analog::ctcss_squelch_ff::make(system_channel_rate, this->tone_freq, 0.01, 0, 0, false);
+    tone_squelch = gr::analog::ctcss_squelch_ff::make(wav_sample_rate, this->tone_freq, 0.01, 0, 0, false);
   }
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
 
@@ -185,14 +186,16 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   connect(prefilter, 0, demod, 0);
   connect(demod, 0, deemph, 0);
   if (use_tone_squelch) {
-    connect(deemph, 0, tone_squelch, 0);
-    connect(tone_squelch, 0, decim_audio, 0);
+    connect(deemph, 0,  decim_audio, 0);
+    connect(decim_audio, 0, tone_squelch, 0);
+    connect(tone_squelch, 0, squelch_two, 0);
   } else {
     connect(deemph, 0, decim_audio, 0);
+    connect(decim_audio, 0, squelch_two, 0);
   }
 
 
-  connect(decim_audio, 0, squelch_two, 0);
+
   connect(squelch_two, 0, decoder_sink, 0);
   connect(squelch_two, 0, high_f, 0);
   connect(high_f, 0, low_f, 0);

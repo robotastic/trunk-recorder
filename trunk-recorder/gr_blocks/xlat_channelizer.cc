@@ -1,8 +1,8 @@
 #include "xlat_channelizer.h"
 
-xlat_channelizer::sptr xlat_channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool use_squelch) {
+xlat_channelizer::sptr xlat_channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double bandwidth,double center_freq, bool use_squelch) {
 
-  return gnuradio::get_initial_sptr(new xlat_channelizer(input_rate, samples_per_symbol, symbol_rate, center_freq, use_squelch));
+  return gnuradio::get_initial_sptr(new xlat_channelizer(input_rate, samples_per_symbol, symbol_rate, bandwidth, center_freq, use_squelch));
 }
 
 const int xlat_channelizer::smartnet_samples_per_symbol;
@@ -40,12 +40,13 @@ xlat_channelizer::DecimSettings xlat_channelizer::get_decim(long speed) {
   return decim_settings;
 }
 
-xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double center_freq, bool use_squelch)
+xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, double symbol_rate, double bandwidth, double center_freq, bool use_squelch)
     : gr::hier_block2("xlat_channelizer_ccf",
                       gr::io_signature::make(1, 1, sizeof(gr_complex)),
                       gr::io_signature::make(1, 1, sizeof(gr_complex))),
       d_center_freq(center_freq),
       d_input_rate(input_rate),
+      d_bandwidth(bandwidth),
       d_samples_per_symbol(samples_per_symbol),
       d_symbol_rate(symbol_rate),
       d_use_squelch(use_squelch) {
@@ -69,15 +70,15 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   */
 
   std::vector<gr_complex> if_coeffs;
-  if_coeffs = gr::filter::firdes::complex_band_pass(1, input_rate, -channel_rate / 2, channel_rate / 2, channel_rate / 2);
+  if_coeffs = gr::filter::firdes::complex_band_pass(1, input_rate, -d_bandwidth / 2, d_bandwidth / 2, d_bandwidth );
 
   freq_xlat = make_freq_xlating_fft_filter(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
 
-  BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Size: " << if_coeffs.size();
+  BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << if_coeffs.size();
 
   // ARB Resampler
   double arb_rate = channel_rate / resampled_rate;
-  BOOST_LOG_TRIVIAL(info) << "\t Channelizer ARB - Symbol Rate: " << channel_rate << " Resampled Rate: " << resampled_rate << " ARB Rate: " << arb_rate;
+  
   double arb_size = 32;
   double arb_atten = 30; // was originally 100
   // Create a filter that covers the full bandwidth of the output signal
@@ -104,14 +105,13 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
 #else
     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten, gr::fft::window::WIN_BLACKMAN_HARRIS);
 #endif
+    BOOST_LOG_TRIVIAL(info) << "\t Channelizer ARB - Symbol Rate: " << channel_rate << " Resampled Rate: " << resampled_rate << " ARB Rate: " << arb_rate << " ARB Taps: " << arb_taps.size() << " BW: " << bw << " TB: " << tb;
     arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
   } else if (arb_rate > 1) {
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
   }
   
-
-  double sps = d_samples_per_symbol;
   double def_excess_bw = 0.2;
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
@@ -122,7 +122,7 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   squelch = gr::analog::pwr_squelch_cc::make(squelch_db, 0.0001, 0, true);
 
   rms_agc = gr::blocks::rms_agc::make(0.45, 0.85);
-  fll_band_edge = gr::digital::fll_band_edge_cc::make(sps, def_excess_bw, 2 * sps + 1, (2.0 * pi) / sps / 250); // OP25 has this set to 350 instead of 250
+  fll_band_edge = gr::digital::fll_band_edge_cc::make(d_samples_per_symbol, def_excess_bw, 2 * d_samples_per_symbol + 1, (2.0 * pi) / d_samples_per_symbol / 250); // OP25 has this set to 350 instead of 250
 
   connect(self(), 0, freq_xlat, 0);
 

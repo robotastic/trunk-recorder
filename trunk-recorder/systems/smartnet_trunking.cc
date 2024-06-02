@@ -60,7 +60,7 @@ smartnet_trunking::smartnet_trunking(float f,
 
   smartnet_decode_sptr decode = smartnet_make_decode(queue, sys_num);
 
-  prefilter = xlat_channelizer::make(input_rate, channelizer::smartnet_samples_per_symbol, channelizer::smartnet_symbol_rate, center_freq, false);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::smartnet_samples_per_symbol, channelizer::smartnet_symbol_rate, xlat_channelizer::channel_bandwidth, center_freq, false);
 
   connect(self(), 0, prefilter, 0);
   connect(prefilter, 0, pll_demod, 0);

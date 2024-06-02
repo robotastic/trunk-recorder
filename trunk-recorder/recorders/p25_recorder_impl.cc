@@ -50,7 +50,7 @@ void p25_recorder_impl::initialize(Source *src) {
     this->set_enable_audio_streaming(config->enable_audio_streaming);
   }
 
-  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center_freq, conventional);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, xlat_channelizer::channel_bandwidth, center_freq, conventional);
   // initialize_prefilter();
   //  initialize_p25();
 
