@@ -114,7 +114,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   }
 
   int samp_per_sym        = 2;
-  double bandwidth = 12500;
+  double bandwidth = 16000;
   system_channel_rate = 16000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
@@ -128,7 +128,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   squelch_two = gr::analog::pwr_squelch_ff::make(-200, 0.01, 0, true);
 
   if (use_tone_squelch) {
-    tone_squelch = gr::analog::ctcss_squelch_ff::make(wav_sample_rate, this->tone_freq, 0.01, 0, 0, false);
+    tone_squelch = gr::analog::ctcss_squelch_ff::make(system_channel_rate, this->tone_freq, 0.01, 0, 0, false);
   }
   // k = quad_rate/(2*math.pi*max_dev) = 48k / (6.283185*5000) = 1.527
 
@@ -148,6 +148,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
 
   audio_resampler_taps = design_filter(1, (system_channel_rate / wav_sample_rate)); // Calculated to make sample rate changable -- must be an integer
 
+  BOOST_LOG_TRIVIAL(info) << "Audio Resampler Taps: " << audio_resampler_taps.size() << " Decimation: " << (system_channel_rate / wav_sample_rate);
   // downsample from 48k to 8k
   decim_audio = gr::filter::fir_filter_fff::make((system_channel_rate / wav_sample_rate), audio_resampler_taps); // Calculated to make sample rate changable
 
@@ -186,15 +187,11 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   connect(prefilter, 0, demod, 0);
   connect(demod, 0, deemph, 0);
   if (use_tone_squelch) {
-    connect(deemph, 0,  decim_audio, 0);
-    connect(decim_audio, 0, tone_squelch, 0);
-    connect(tone_squelch, 0, squelch_two, 0);
+    connect(deemph, 0, tone_squelch, 0); 
+      connect(tone_squelch, 0, squelch_two, 0);
   } else {
-    connect(deemph, 0, decim_audio, 0);
-    connect(decim_audio, 0, squelch_two, 0);
+    connect(deemph, 0, squelch_two, 0);
   }
-
-
 
   connect(squelch_two, 0, decoder_sink, 0);
   connect(squelch_two, 0, high_f, 0);
