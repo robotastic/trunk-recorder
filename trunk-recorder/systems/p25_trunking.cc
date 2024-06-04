@@ -130,7 +130,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   rx_queue = queue;
   qpsk_mod = qpsk;
 
-  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, center_freq, false);
+  prefilter = xlat_channelizer::make(input_rate, channelizer::phase1_samples_per_symbol, channelizer::phase1_symbol_rate, xlat_channelizer::channel_bandwidth, center_freq, false);
 
   initialize_p25();
 
