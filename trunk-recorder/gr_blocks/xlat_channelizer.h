@@ -96,6 +96,7 @@ private:
 
   gr::filter::fft_filter_ccc::sptr bandpass_filter;
   gr::filter::fft_filter_ccf::sptr lowpass_filter;
+  gr::filter::fft_filter_ccf::sptr channel_lpf;
   gr::filter::fft_filter_ccf::sptr cutoff_filter;
 
   gr::filter::pfb_arb_resampler_ccf::sptr arb_resampler;
