@@ -56,26 +56,27 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
 
   const float pi = M_PI;
 
-  int decimation = floor(input_rate / channel_rate);
-  double resampled_rate = float(input_rate) / float(decimation);
-  /*
-      std::vector<float> if_coeffs;
-  #if GNURADIO_VERSION < 0x030900
+  int initial_decim = floor(input_rate / 96000);
+  double initial_rate = double(input_rate) / double(initial_decim);
+  int decim = floor(initial_rate / channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
 
-    if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate / 2, resampled_rate / 2, gr::filter::firdes::WIN_HAMMING);
-  #else
-    if_coeffs = gr::filter::firdes::low_pass(1.0, input_rate, resampled_rate / 2, resampled_rate / 2, gr::fft::window::WIN_HAMMING);
-  #endif
-  freq_xlat = gr::filter::freq_xlating_fir_filter<gr_complex, gr_complex, float>::make(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
-  */
+  int decimation = floor(input_rate / channel_rate);
+  // double resampled_rate = float(input_rate) / float(decimation);
+
+
+  //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
+  std::vector<float>  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, d_bandwidth / 2, d_bandwidth / 4, 60);
 
   std::vector<gr_complex> if_coeffs;
-  if_coeffs = gr::filter::firdes::complex_band_pass(1, input_rate, -d_bandwidth / 2, d_bandwidth / 2, d_bandwidth );
+  if_coeffs = gr::filter::firdes::complex_band_pass_2(1, input_rate, -24000, 24000, 12000, 10 );
 
-  freq_xlat = make_freq_xlating_fft_filter(decimation, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
+  channel_lpf = gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
-  BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << if_coeffs.size();
+  freq_xlat = make_freq_xlating_fft_filter(initial_decim, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
 
+  // BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << if_coeffs.size();
+  BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - if_coeffs: " << if_coeffs.size() << " Decim: " << decim << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << channel_lpf_taps.size();
   // ARB Resampler
   double arb_rate = channel_rate / resampled_rate;
   
@@ -125,21 +126,21 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   fll_band_edge = gr::digital::fll_band_edge_cc::make(d_samples_per_symbol, def_excess_bw, 2 * d_samples_per_symbol + 1, (2.0 * pi) / d_samples_per_symbol / 250); // OP25 has this set to 350 instead of 250
 
   connect(self(), 0, freq_xlat, 0);
-
+  connect(freq_xlat, 0, channel_lpf, 0);
   if (d_use_squelch) {
     BOOST_LOG_TRIVIAL(info) << "Conventional - with Squelch";
     if (arb_rate == 1.0) {
-      connect(freq_xlat, 0, squelch, 0);
+      connect(channel_lpf, 0, squelch, 0);
     } else {
-      connect(freq_xlat, 0, arb_resampler, 0);
+      connect(channel_lpf, 0, arb_resampler, 0);
       connect(arb_resampler, 0, squelch, 0);
     }
     connect(squelch, 0, rms_agc, 0);
   } else {
     if (arb_rate == 1.0) {
-      connect(freq_xlat, 0, rms_agc, 0);
+      connect(channel_lpf, 0, rms_agc, 0);
     } else {
-      connect(freq_xlat, 0, arb_resampler, 0);
+      connect(channel_lpf, 0, arb_resampler, 0);
       connect(arb_resampler, 0, rms_agc, 0);
     }
   }
