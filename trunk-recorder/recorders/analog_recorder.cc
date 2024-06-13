@@ -144,7 +144,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   d_fftaps.resize(2);
   d_fbtaps.resize(2);
   calculate_iir_taps(d_tau);
-  deemph = gr::filter::iir_filter_ffd::make(d_fftaps, d_fbtaps);
+  deemph = gr::filter::iir_filter_ffd::make(d_fftaps, d_fbtaps, false);
 
   audio_resampler_taps = design_filter(1, (system_channel_rate / wav_sample_rate)); // Calculated to make sample rate changable -- must be an integer
 
