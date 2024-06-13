@@ -1,6 +1,6 @@
 #include "xlat_channelizer.h"
 
-xlat_channelizer::sptr xlat_channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double bandwidth,double center_freq, bool use_squelch) {
+xlat_channelizer::sptr xlat_channelizer::make(double input_rate, int samples_per_symbol, double symbol_rate, double bandwidth, double center_freq, bool use_squelch) {
 
   return gnuradio::get_initial_sptr(new xlat_channelizer(input_rate, samples_per_symbol, symbol_rate, bandwidth, center_freq, use_squelch));
 }
@@ -64,22 +64,19 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   int decimation = floor(input_rate / channel_rate);
   // double resampled_rate = float(input_rate) / float(decimation);
 
-
-  //  channel_lpf_taps =  gr::filter::firdes::low_pass_2(1.0, pre_channel_rate, 5000, 2000, 60);
-  std::vector<float>  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, d_bandwidth / 2, d_bandwidth / 4, 60);
-
   std::vector<gr_complex> if_coeffs;
-  if_coeffs = gr::filter::firdes::complex_band_pass_2(1, input_rate, -24000, 24000, 12000, 10 );
-
-  channel_lpf = gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
+  if_coeffs = gr::filter::firdes::complex_band_pass_2(1, input_rate, -24000, 24000, 12000, 10);
 
   freq_xlat = make_freq_xlating_fft_filter(initial_decim, if_coeffs, 0, input_rate); // inital_lpf_taps, 0, input_rate);
+
+  std::vector<float> channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, d_bandwidth / 2, d_bandwidth / 4, 60);
+  channel_lpf = gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
   // BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << if_coeffs.size();
   BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - if_coeffs: " << if_coeffs.size() << " Decim: " << decim << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << channel_lpf_taps.size();
   // ARB Resampler
   double arb_rate = channel_rate / resampled_rate;
-  
+
   double arb_size = 32;
   double arb_atten = 30; // was originally 100
   // Create a filter that covers the full bandwidth of the output signal
@@ -112,7 +109,7 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
     exit(1);
   }
-  
+
   double def_excess_bw = 0.2;
   // Squelch DB
   // on a trunked network where you know you will have good signal, a carrier
@@ -166,7 +163,6 @@ double xlat_channelizer::get_pwr() {
     return DB_UNSET;
   }
 }
-
 
 void xlat_channelizer::tune_offset(double f) {
 

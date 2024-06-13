@@ -114,7 +114,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   }
 
   int samp_per_sym        = 2;
-  double bandwidth = 12000;
+  double bandwidth = 8000;
   system_channel_rate = 16000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
@@ -358,6 +358,7 @@ bool analog_recorder::start(Call *call) {
 
 
   // BOOST_LOG_TRIVIAL(error) << "Setting squelch to: " << squelch_db << " block says: " << squelch->threshold();
+  
   levels->set_k(system->get_analog_levels());
   int d_max_dev = system->get_max_dev();
   /*
@@ -365,7 +366,6 @@ bool analog_recorder::start(Call *call) {
   channel_lpf->set_taps(channel_lpf_taps);*/
   quad_gain = system_channel_rate / (2.0 * M_PI * (d_max_dev + 1000));
   demod->set_gain(quad_gain);
-
   int offset_amount = (center_freq - chan_freq);
   prefilter->tune_offset(offset_amount);
 
