@@ -362,9 +362,7 @@ bool analog_recorder::start(Call *call) {
   
   levels->set_k(system->get_analog_levels());
   int d_max_dev = system->get_max_dev();
-  /*
-  channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, d_max_dev, 1000, 100);
-  channel_lpf->set_taps(channel_lpf_taps);*/
+  prefilter->set_max_dev(d_max_dev);
   quad_gain = system_channel_rate / (2.0 * M_PI * (d_max_dev + 1000));
   demod->set_gain(quad_gain);
   int offset_amount = (center_freq - chan_freq);

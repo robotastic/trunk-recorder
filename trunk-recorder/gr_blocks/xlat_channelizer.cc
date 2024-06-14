@@ -57,7 +57,7 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   const float pi = M_PI;
 
   int initial_decim = floor(input_rate / 96000);
-  double initial_rate = double(input_rate) / double(initial_decim);
+  initial_rate = double(input_rate) / double(initial_decim);
   int decim = floor(initial_rate / channel_rate);
   double resampled_rate = double(initial_rate) / double(decim);
 
@@ -169,6 +169,11 @@ void xlat_channelizer::tune_offset(double f) {
   float freq = static_cast<float>(f);
 
   freq_xlat->set_center_freq(-freq);
+}
+
+void xlat_channelizer::set_max_dev(double max_dev) {
+  std::vector<float> channel_lpf_taps = gr::filter::firdes::low_pass_2(1.0, initial_rate, max_dev, d_bandwidth / 2, 60);
+  channel_lpf->set_taps(channel_lpf_taps);
 }
 
 void xlat_channelizer::set_squelch_db(double squelch_db) {

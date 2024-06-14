@@ -62,6 +62,7 @@ public:
   void set_samples_per_symbol(int samples_per_symbol);
   void set_squelch_db(double squelch_db);
   void set_analog_squelch(bool analog_squelch);
+  void set_max_dev(double max_dev); 
 
 private:
   bool double_decim;
@@ -76,6 +77,7 @@ private:
 
   bool d_use_squelch;
   long symbol_rate;
+  double initial_rate;
   double squelch_db;
   long decim;
 

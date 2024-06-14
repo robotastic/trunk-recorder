@@ -293,7 +293,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         double digital_levels = element.value("digitalLevels", 1.0);
         double analog_levels = element.value("analogLevels", 8.0);
         double squelch_db = element.value("squelch", -160.0);
-        int max_dev = element.value("maxDev", 6000);
+        int max_dev = element.value("maxDev", 4000);
         double filter_width = element.value("filterWidth", 1.0);
         bool conversation_mode = element.value("conversationMode", true);
         bool mod_exists = element.contains("modulation");
