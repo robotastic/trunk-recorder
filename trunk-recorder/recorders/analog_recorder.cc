@@ -114,7 +114,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   }
 
   int samp_per_sym        = 2;
-  double bandwidth = 8000;
+  double bandwidth = 12000;
   system_channel_rate = 96000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
