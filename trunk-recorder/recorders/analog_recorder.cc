@@ -115,7 +115,7 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
 
   int samp_per_sym        = 2;
   double bandwidth = 8000;
-  system_channel_rate = 16000; // 4800 * samp_per_sym;
+  system_channel_rate = 96000; // 4800 * samp_per_sym;
   wav_sample_rate = 16000;     // Must be an integer decimation of system_channel_rate
 
   // The Prefilter provides the initial squelch for the channel
@@ -188,15 +188,16 @@ analog_recorder::analog_recorder(Source *src, Recorder_Type type, float tone_fre
   connect(demod, 0, deemph, 0);
   if (use_tone_squelch) {
     connect(deemph, 0, tone_squelch, 0); 
-      connect(tone_squelch, 0, squelch_two, 0);
+      connect(tone_squelch, 0, decim_audio, 0);
   } else {
-    connect(deemph, 0, squelch_two, 0);
+    connect(deemph, 0, decim_audio, 0);
   }
 
-  connect(squelch_two, 0, decoder_sink, 0);
-  connect(squelch_two, 0, high_f, 0);
+  connect(decim_audio, 0, decoder_sink, 0);
+  connect(decim_audio, 0, high_f, 0);
   connect(high_f, 0, low_f, 0);
-  connect(low_f, 0, levels, 0);
+  connect(low_f, 0, squelch_two, 0);
+  connect(squelch_two, 0, levels, 0);
   connect(levels, 0, converter, 0);
   connect(converter, 0, wav_sink, 0);
 

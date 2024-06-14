@@ -73,7 +73,7 @@ xlat_channelizer::xlat_channelizer(double input_rate, int samples_per_symbol, do
   channel_lpf = gr::filter::fft_filter_ccf::make(decim, channel_lpf_taps);
 
   // BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - Decim: " << decimation << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << if_coeffs.size();
-  BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer single-stage decimator - if_coeffs: " << if_coeffs.size() << " Decim: " << decim << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << channel_lpf_taps.size();
+  BOOST_LOG_TRIVIAL(info) << "\t Xlating Channelizer decimator - freq_xlating taps: " << if_coeffs.size() << " Decim: " << decim << " Resampled Rate: " << resampled_rate << " Lowpass Taps: " << channel_lpf_taps.size();
   // ARB Resampler
   double arb_rate = channel_rate / resampled_rate;
 
