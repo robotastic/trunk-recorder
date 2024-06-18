@@ -631,6 +631,7 @@ void handle_message(std::vector<TrunkMessage> messages, System *sys, Config &con
       if(msg_count > 1){
         sys->set_message_count(msg_count - 1);
       }
+      break;
     }
 
     case TDULC:
