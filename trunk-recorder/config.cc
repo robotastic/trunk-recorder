@@ -613,10 +613,23 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     }
 
     BOOST_LOG_TRIVIAL(info) << "\n\n-------------------------------------\nPLUGINS\n-------------------------------------\n";
-    add_internal_plugin("openmhz_uploader", "libopenmhz_uploader.so", data);
-    add_internal_plugin("broadcastify_uploader", "libbroadcastify_uploader.so", data);
-    add_internal_plugin("unit_script", "libunit_script.so", data);
-    add_internal_plugin("stat_socket", "libstat_socket.so", data);
+    // add internal plugins only if mandatory config keys exist in the config file
+    if (config.upload_server != "")
+      add_internal_plugin("openmhz_uploader", "libopenmhz_uploader.so", data);
+    
+    if (config.bcfy_calls_server != "")
+      add_internal_plugin("broadcastify_uploader", "libbroadcastify_uploader.so", data);
+    
+    if (config.status_server != "")
+      add_internal_plugin("stat_socket", "libstat_socket.so", data);
+
+    for (const auto& system : data["systems"]) {
+      if (system.find("unitScript") != system.end()) {
+        add_internal_plugin("unit_script", "libunit_script.so", data);
+        break;
+      }
+    }
+  
     initialize_plugins(data, &config, sources, systems);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
