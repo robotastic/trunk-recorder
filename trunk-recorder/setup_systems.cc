@@ -22,7 +22,7 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
         tone_freq = tg->tone;
 
         // If there is a per channel squelch setting, use it, otherwise use the system squelch setting
-        if (tg->squelch_db != 999) {
+        if (tg->squelch_db != DB_UNSET) {
           call = new Call_conventional(tg->number, tg->freq, system, config, tg->squelch_db, tg->signal_detection);
         } else {
           call = new Call_conventional(tg->number, tg->freq, system, config, system->get_squelch_db(), tg->signal_detection);

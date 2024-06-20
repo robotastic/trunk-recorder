@@ -483,15 +483,13 @@ Here are the column headers and some sample data:
 
 This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A **conventional** system would have Analog Recorders, while **conventionalP25** or **conventionalDMR** would have digital recorders. **conventionalSIGMF** is a conventional system with SIGMF Recorders.
 
-*Tone based squelch is currently not supported.*
-
-
 | Column Name | Required | Value |
 |-------------|----------|-------|
 | TG Number     | ✔️        | The Talkgroup Number formatted as a decimal number. This has to be the first column |
 | Frequency        |  ✔️       | The frequency in MHz or Hz for the channel (decimal point must be used for MHz) |
-| Tone | ✔️        | The Tone for the talkgroup. This value is not used. *Tone based squelch is currently not supported.* |
+| Tone |        | The CTCSS Tone for the talkgroup. |
 | Alpha Tag |       | A 16 character description that is intended as a shortened display on radio displays |
+| Description |   | A longer description of the talkgroup  |
 | Category |    |  The category for the Talkgroup |
 | Tag       |   |  The Service Tag for the Talkgroup |
 | Comment |        | Use this field to capture comments about a talkgroup. It will be ignored by Trunk Recorder. |
@@ -499,13 +497,12 @@ This file allows for you to specify additional information about conventional ch
 | Signal Detector |    | Set to `false` if you do not want to use the Signal Detector for this channel. The Signal Detector scans a source's bandwidth and only enables a channel if a signal over a threshold is detected. If it not used, the channel will always be enabled and the Squelch will be running which uses more CPU. Default is `true`|
 | Squelch |    | Value in dB to use for the Squelch for this channel. If this is not set then the System Squelch value will be used instead. |
 
+A **Header Row** is required for the file, with a header provided for each of the columns that will be used. The columns can be in any order. For the Optional columns, if they are left blank for some of the rows, the default value will be used instead.
 
-The **Enable** Column is optional and defaults to *True*. It only needs to be added to rows that you do not want to have recorded. For those rows, set **Enable** to *False*.
-
-| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Category  | Enable (*optional*) |
-| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
-| 300       | 462275000 | 94.8  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
-| 325       | 462275000 | 151.4 | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
+| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Category  | Enable | Signal Detector | Squelch |
+| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- | ---- | ---- |
+| 300       | 462275000 | 94.8  | Town A Police | Town A Police Dispatch | Police | Town A |    |  false |  |
+| 325       | 462275000 | 151.4 | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | false   |  |  -50 |
 
 
 ## unitTagsFile

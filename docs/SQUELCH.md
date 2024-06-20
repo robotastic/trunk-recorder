@@ -12,7 +12,7 @@ flowchart TD
     style nk stroke-width:2px,stroke-dasharray: 2
 ```
 
-Conventional Systems can use up a lot of CPU. Prior to v5.0, conventional recorders are always "on" waiting for a signal to break squelch. With v5.0 you now have a Signal Detector per source. Its job is to look over the bandwidth for that source and perform an FFT. For each FFT bin that is over a power threshold, it will look for a **Conventional Recorder** that has similar frequencies. If there is a match, it will Enable the recorder in the Souce's Recorder Selector. The Recorder Selector is just a way to determine if a Recorder should receive samples from the Source. In your logs, look for smoething like `[ 0 ] AnalogC	Enabled - Freq: 855.737500 MHz	 Detected Signal: -63dBM (Threshold: -69dBM)` if you see that, it means that the **Signal Detector** has turned on a conventional recorder. 
+Conventional Systems can use up a lot of CPU. Prior to v5.0, conventional recorders are always "on" waiting for a signal to break squelch. With v5.0 you now have a Signal Detector per source. Its job is to look over the bandwidth for that source and perform an FFT. For each FFT bin that is over a power threshold, it will look for a **Conventional Recorder** that has similar frequencies. If there is a match, it will Enable the recorder in the Souce's Recorder Selector. The Recorder Selector is just a way to determine if a Recorder should receive samples from the Source. In your logs, look for something like `[ 0 ] AnalogC	Enabled - Freq: 855.737500 MHz	 Detected Signal: -63dBM (Threshold: -69dBM)` if you see that, it means that the **Signal Detector** has turned on a conventional recorder. 
 
 The **Signal Detector** automatically tries to find a power threshold to separate signal from noise. It is not perfect. If you are seeing a recorder not turn on when there is a signal, that could be because the Signal Detector threshold is not being set correctly. Or, if the Recorder is always being enabled by the Signal Detector, even when there is not a transmission, that is also a sign that is not automatically being set correctly. You can manually set the Signal Detector Threshold in the `config.json` file. Just to make things more confusing, the power levels used in the Signal Detector are slightly different than the values used for the Squelch. 
 
@@ -23,16 +23,77 @@ Each Conventional Recorder also has a Squelch setting. Once a Conventional Recor
 
 - Use a visual signal analyzer program, like GQRX to explore the signal you are trying to capture
   - Adjust the gain settings so that you have strong signals without adding a lot of noise. Copy these gain settings into the `config.json` file.
-  - Note the Db value for the noise floor. This is the 
+  - Note the Db value for the noise floor. You should set the squelch value to be in between the noise floor value and the the signal peak values.
+  - In the `config.json` file you can specify the squelch value for the whole system, or do it channel by channel, or a mix:
+  - **System Wide Squelch**
+    - `config.json`
+      ```json
+        {
+          "systems": [
+          {
+              "type": "conventional",
+              "squelch": -50 
+          }
+        }
+      ```
+  - **Channel Specific Squelch**
+      - `config.json`
+        ```json
+          {
+            "systems": [
+            {
+                "type": "conventional",
+                "channelFile": "channels.csv",
+            }
+          }
+        ```
+      - `channels.csv`
+        | TG Number | Frequency |  Squelch |
+        | --------- | --------- | -------- |
+        | 300       | 462275000 | -50 |
 
+        ```csv
+        TG Number, Frequency, Squelch
+        300, 462275000, -50
+        ```
+  - **Hybrid Squelch**
+      - `config.json`
+        ```json
+          {
+            "systems": [
+            {
+                "type": "conventional",
+                "channelFile": "channels.csv",
+                "squelch": -50
+            }
+          }
+        ```
+      - `channels.csv`
+        | TG Number | Frequency |  Squelch |
+        | --------- | --------- | -------- |
+        | 300       | 462275000 | -70 |
+        | 301       | 462300000 |  |
 
+        ```csv
+        TG Number, Frequency, Squelch
+        300, 462275000, -70
+        301, 462300000, 
+        ```
 
-Things to try:
+## Debugging a Conventional System
 
-- Use GQRX to fine tune gain. Turn off AGC
-- Set Signal Detector Threshold to something high like -10 so that recorders are always enabled.
-- Set sequelch value for the recorders so that it starts and stop predictably
-- remove Signal Detector Threshold and see if the automatic setting works
-- if auto doesn't work, fine tune the Signal Detector threshold so that it only displays the Enabled when a recording starts
+- ### The Channels for a System are never being recorded
+  - Try setting the squelch value to something very low, like -100. This should cause the Recorder to always be on and recording. When you quit trunk-recorder you should have a long file, possibly of static. If you, it is possible that the Signal Detector is not working correctly. 
+- ### Signal Detector is not working correctly
+  - IF you are not seeing a line like: `[ 0 ] AnalogC	Enabled - Freq: 855.737500 MHz	 Detected Signal: -63dBM (Threshold: -69dBM)` and you know there is a transmission on that frequency, it is a sign the the threshold for the Signal Detector is not being set correctly. To test this out, manually set the signal detector threshold in the `sources: [{}]` section of the config.json file. 
 
-I will try to write up some guide on doing this
+    ```json
+        "sources": [
+          {
+            "center": 851734375,
+            "rate": 2000000,
+            "driver": "osmosdr",
+            "signalDetectorThreshold": -100
+        }]
+    ```
+  This will effectively leave all of the recorders enabled all the time... which is not the most efficient. If this does work, then try to find a value for the `signalDetectorThreshold` that works reliably. RF power is measured differently between the Signal Detector and the Squelch block. You may need to use a value roughly 10 dB higher for the Signal Detector. Ideally, you only want the Signal Detector to enable a recorder when a there is a transmission that would trigger the squelch block in the Recorder.

@@ -131,8 +131,8 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
 
     BOOST_LOG_TRIVIAL(error) << "Column Headers are required for Channel CSV files";
     BOOST_LOG_TRIVIAL(error) << "The first column must be 'TG Number'";
-    BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Tone', 'Frequency',";
-    BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
+    BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Frequency'";
+    BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Tone', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
     exit(0);
   } else {
     BOOST_LOG_TRIVIAL(info) << "Found Columns: " << internals::format_row(reader.get_col_names(), ", ");
@@ -141,8 +141,8 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
   for (size_t i = 0; i < headers.size(); i++) {
     if (find(defined_headers.begin(), defined_headers.end(), headers[i]) == defined_headers.end()) {
       BOOST_LOG_TRIVIAL(error) << "Unknown column header: " << headers[i];
-      BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Tone', 'Frequency',";
-      BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
+      BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Frequency'";
+      BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Tone', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
       exit(0);
     }
   }
