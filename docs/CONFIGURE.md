@@ -456,6 +456,9 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
             "useTCP":true}
         }
 ```
+#### Example - Sending Audio to FFMPEG for compression
+Here's an FFMPEG command that takes PCM audio from simplestream via UDP, cleans it up, and outputs ogg/opus to stdout.  Note that this will only work if sendTGID and sendJSON are both set to false and only a single talkgroup is fed to ffmpeg over the UDP port, as ffmpeg cannot interpret any metadata.
+`ffmpeg -loglevel warning -f s16le -ar 16000 -ac 1 -i udp://localhost:9125 -af:a adeclick -f:a ogg -c:a libopus -frame_duration:a 20 -vbr:a on -b:a 48000 -application:a voip pipe:1`
 
 ## talkgroupsFile
 
