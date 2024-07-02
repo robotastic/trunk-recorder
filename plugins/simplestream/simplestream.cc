@@ -182,7 +182,7 @@ class Simple_Stream : public Plugin_Api {
                 //create JSON metadata
                 json_object = {
                    {"talkgroup", call_info.talkgroup},
-                   {"patched_talkgroups",call_info.patched_talkgroups},
+                   {"patched_talkgroups",patched_talkgroups},
                    {"freq", call_info.freq},
                    {"short_name", call_info.short_name},
                    {"event","call_end"},
