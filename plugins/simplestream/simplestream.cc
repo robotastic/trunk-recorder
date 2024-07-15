@@ -63,13 +63,22 @@ class Simple_Stream : public Plugin_Api {
   }
   
   int audio_stream(Call *call, Recorder *recorder, int16_t *samples, int sampleCount){
-    int recorder_id = recorder->get_num();
+    //Call local_call = *call;
+    System *call_system = call->get_system();
+    uint32_t call_tgid = call->get_talkgroup();
+    uint32_t call_src = call->get_current_source_id();
+    uint32_t call_freq = call->get_freq();
+    std::string call_short_name = call->get_short_name();
+    std::string call_src_tag = call_system->find_unit_tag(call_src);
+    std::vector<unsigned long> patched_talkgroups = call_system->get_talkgroup_patch(call_tgid);
+
+    Recorder local_recorder = *recorder;
+    int recorder_id = local_recorder.get_num();
     boost::system::error_code error;
     BOOST_FOREACH (auto stream, streams){
-      if (0==stream.short_name.compare(call->get_system()->get_short_name()) || (0==stream.short_name.compare(""))){ //Check if shortName matches or is not specified
-        std::vector<unsigned long> patched_talkgroups = call->get_system()->get_talkgroup_patch(call->get_talkgroup());
+      if (0==stream.short_name.compare(call_short_name) || (0==stream.short_name.compare(""))){ //Check if shortName matches or is not specified
         if (patched_talkgroups.size() == 0){
-          patched_talkgroups.push_back(call->get_talkgroup());
+          patched_talkgroups.push_back(call_tgid);
         }
         BOOST_FOREACH (auto TGID, patched_talkgroups){
           if ((TGID==stream.TGID || stream.TGID==0)){  //setting TGID to 0 in the config file will stream everything
@@ -80,13 +89,13 @@ class Simple_Stream : public Plugin_Api {
             if (stream.sendJSON==true){
               //create JSON metadata
               json_object = {
-                 {"src", call->get_current_source_id()},
-                 {"src_tag", call->get_system()->find_unit_tag(call->get_current_source_id())},
+                 {"src", call_src},
+                 {"src_tag",call_src_tag},
                  {"talkgroup", TGID},
                  {"patched_talkgroups",patched_talkgroups},
-                 {"freq", call->get_freq()},
-                 {"short_name", call->get_short_name()},
-                 {"audio_sample_rate",recorder->get_wav_hz()},
+                 {"freq", call_freq},
+                 {"short_name", call_short_name},
+                 {"audio_sample_rate",local_recorder.get_wav_hz()},
                  {"event","audio"},
               };
               json_string = json_object.dump();
@@ -115,16 +124,24 @@ class Simple_Stream : public Plugin_Api {
 
   int call_start(Call *call){
     boost::system::error_code error;
+    System *call_system = call->get_system();
+    uint32_t call_tgid = call->get_talkgroup();
+    uint32_t call_src = call->get_current_source_id();
+    uint32_t call_freq = call->get_freq();
+    std::string call_short_name = call->get_short_name();
+    std::string call_src_tag = call_system->find_unit_tag(call_src);
+    std::string call_tgid_tag = call->get_talkgroup_tag();
+    std::vector<unsigned long> patched_talkgroups = call_system->get_talkgroup_patch(call_tgid);
+    
     BOOST_FOREACH (auto stream, streams){
       if (stream.sendJSON == true && stream.sendCallStart == true){
-        if (0==stream.short_name.compare(call->get_system()->get_short_name()) || (0==stream.short_name.compare(""))){ //Check if shortName matches or is not specified
-          std::vector<unsigned long> patched_talkgroups = call->get_system()->get_talkgroup_patch(call->get_talkgroup());
+        if (0==stream.short_name.compare(call_short_name) || (0==stream.short_name.compare(""))){ //Check if shortName matches or is not specified
           if (patched_talkgroups.size() == 0){
-            patched_talkgroups.push_back(call->get_talkgroup());
+            patched_talkgroups.push_back(call_tgid);
           }
           std::vector<std::string> patched_talkgroup_tags;
           BOOST_FOREACH (auto TGID, patched_talkgroups){
-            Talkgroup* this_tg = call->get_system()->find_talkgroup(TGID);
+            Talkgroup* this_tg = call_system->find_talkgroup(TGID);
             if (this_tg != nullptr) {
               patched_talkgroup_tags.push_back(this_tg->alpha_tag);
             }
@@ -135,14 +152,14 @@ class Simple_Stream : public Plugin_Api {
               if (stream.sendJSON==true){
                 //create JSON metadata
                 json_object = {
-                   {"src", call->get_current_source_id()},
-                   {"src_tag", call->get_system()->find_unit_tag(call->get_current_source_id())},
-                   {"talkgroup", call->get_talkgroup()},
-                   {"talkgroup_tag", call->get_talkgroup_tag()},
+                   {"src", call_src},
+                   {"src_tag", call_src_tag},
+                   {"talkgroup", call_tgid},
+                   {"talkgroup_tag",call_tgid_tag},
                    {"patched_talkgroups",patched_talkgroups},
                    {"patched_talkgroup_tags",patched_talkgroup_tags},
-                   {"freq", call->get_freq()},
-                   {"short_name", call->get_short_name()},
+                   {"freq", call_freq},
+                   {"short_name", call_short_name},
                    {"event","call_start"},
                 };
                 json_string = json_object.dump();
