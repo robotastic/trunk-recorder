@@ -73,7 +73,7 @@ public:
 
 	/* For getting Src and Terminator for DMR Recorder */
 	int get_src_id(); 
-	bool get_terminated();
+	std::pair<bool,long> get_terminated();
 
 private:
 	uint8_t     d_slot[SLOT_SIZE];	// array of bits comprising the current slot
@@ -103,7 +103,7 @@ private:
 	int         d_chan;
 	int         d_slot_mask;
 	int			d_src_id;
-	bool		d_terminated;
+	std::pair<bool,long>		d_terminated;
     log_ts&      logts;
 	CBPTC19696  bptc;
 	CDMRTrellis trellis;

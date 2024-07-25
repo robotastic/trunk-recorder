@@ -1,17 +1,27 @@
-Trunk Recorder - v4.7.2
-=======================
+![Trunk Recorder](./docs/media/trunk-recorder-header.png)
+---
+[![Discord](./docs/media/discord.jpg)](https://discord.gg/btJAhESnks) &nbsp;&nbsp;
+
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful?** 
 Become a [Sponsor](https://github.com/sponsors/robotastic) to help support continued development and operation!
 Thank you to everyone who has contributed!
 
+## 🎉 V5.0 Our Best Release Yet!!
+Thanks to everyone who contributed, tested and helped collect cored dumps! 
+
 ## Overview
 Need help? Got something working? Share it!
 
-[Discord Server](https://discord.gg/btJAhESnks) - and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
 
-[Documentation](https://trunkrecorder.com/docs/intro)
+- [Discord Server](https://discord.gg/btJAhESnks) 
+
+- [Documentation](https://trunkrecorder.com/docs/intro)
+
+- ... and don't forget the [Wiki](https://github.com/robotastic/trunk-recorder/wiki)
+
+![screenshot](./docs/media/screenshot.jpg)
 
 Trunk Recorder is able to record the calls on trunked and conventional radio systems. It uses 1 or more Software Defined Radios (SDRs) to do this. The SDRs capture large swathes of RF and then use software to process what was received. [GNU Radio](https://gnuradio.org/) is used to do this processing because it provides lots of convenient RF blocks that can be pieced together to allow for complex RF processing. The libraries from the amazing [OP25](http://op25.osmocom.org/trac/wiki) project are used for a lot of the P25 functionality. Multiple radio systems can be recorded at the same time.
 
@@ -19,28 +29,22 @@ Trunk Recorder is able to record the calls on trunked and conventional radio sys
 Trunk Recorder currently supports the following:
 
  - Trunked P25 & SmartNet Systems
- - Conventional P25 & analog systems, where each group has a dedicated RF channel
+ - Conventional P25, DMR & analog systems, where each talkgroup has a dedicated RF channel
  - P25 Phase 1, P25 Phase 2 & Analog voice channels
 
-Supported platforms:
+### Supported platforms
 
-**Ubuntu** (18.04,  20.04, 21.04, 22.04, 23.04); **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04, 22.04); **Arch Linux** (2021.09.20); **Debian** (9.x); **macOS**
+- **Ubuntu** (18.04,  20.04, 21.04, 22.04, 23.04) 
+- **Raspberry Pi** (Raspberry OS/Raspbian & Ubuntu 21.04, 22.04) 
+- **Arch Linux** (2021.09.20)
+- **Debian** (9.x)
+- **macOS**
 
 GNU Radio 3.7 - 3.10
 
-...and SDRs:
+### SDRs
 
 RTL-SDR dongles; HackRF; Ettus USRP B200, B210, B205; BladeRF; Airspy; SDRplay
-
-
-## Version Notes
-### v4.7
-- The talkgroup file format was updated and Column headers are now required. Details are [here](docs/CONFIGURE.md#talkgroupsfile).
-### v4.0
-- The executable generated has changed from `recorder` to `trunk-recorder` to help differentiate it from other applications that maybe installed.
-- A new method is used to detect the end of call. Instead of waiting for a timeout after the last trunking message is received, the voice channel is monitored for messages announcing the end of a transmission. Each transmission is stored in a separate file and then merged together after a talkgroup stops using a frequency.
-- The format for audio filenames has changed slightly. 
-  It is now: [ Talkgroup ID ]\_[ Unix Timestamp ]-[ Frequency ]-call\_[ Call Counter ].wav
 
 
 ## Install

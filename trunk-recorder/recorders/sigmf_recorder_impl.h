@@ -69,49 +69,37 @@
 #include <gnuradio/msg_queue.h>
 #include <json.hpp>
 #include "../gr_blocks/rms_agc.h"
+#include "../gr_blocks/channelizer.h"
+#include "../gr_blocks/xlat_channelizer.h"
 #include "recorder.h"
 
 #include "../source.h"
+#include "../call_conventional.h"
 
 class sigmf_recorder_impl : public sigmf_recorder {
 
 public:
-  sigmf_recorder_impl(Source *src);
-
-  void tune_offset(double f);
+  sigmf_recorder_impl(Source *src, Recorder_Type type);
   bool start(Call *call);
   void stop();
   double get_freq();
+  int get_freq_error();
   int get_num();
   double get_current_length();
+  void set_enabled(bool enabled);
+  bool is_enabled();
   bool is_active();
   State get_state();
   int lastupdate();
   long elapsed();
 
-  gr::msg_queue::sptr tune_queue;
-  gr::msg_queue::sptr traffic_queue;
-  gr::msg_queue::sptr rx_queue;
-  // void forecast(int noutput_items, gr_vector_int &ninput_items_required);
 
 private:
-  void generate_arb_taps();
-  void initialize_prefilter();
-  void initialize_prefilter_xlat();
-  sigmf_recorder_impl::DecimSettings get_decim(long speed);
-  void initialize_prefilter_decim();
-
-  bool double_decim;
   double center, freq;
   int silence_frames;
   long talkgroup;
-    double arb_rate;
       long input_rate;
-        long decim;
-        long if_rate;
-  double resampled_rate;
-        long if1;
-  long if2;
+
   const int phase1_samples_per_symbol = 5;
   const double phase1_symbol_rate = 4800;
 
@@ -126,7 +114,8 @@ private:
   // int num;
   State state;
 
-
+  //channelizer::sptr prefilter;
+  xlat_channelizer::sptr prefilter;
   std::vector<float> arb_taps;
   std::vector<gr_complex> bandpass_filter_coeffs;
   std::vector<float> inital_lpf_taps;

@@ -166,6 +166,7 @@ There is a list of available Plugins [here](./Plugins.md).
 | gain             |    ✓     |               | number                      | The RF gain setting for the SDR. Use a program like GQRX to find a good value. |
 | digitalRecorders |          |               | number                      | The number of Digital Recorders to have attached to this source. This is essentially the number of simultaneous calls you can record at the same time in the frequency range that this Source will be tuned to. It is limited by the CPU power of the machine. Some experimentation might be needed to find the appropriate number. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
 | analogRecorders  |          |               | number                      | The number of Analog Recorder to have attached to this source. The same as Digital Recorders except for Analog Voice channels. *This is only required for Trunk systems. Channels in Conventional systems have dedicated recorders and do not need to be included here.* |
+| signalDetectorThreshold |       |           | number                      | If set, a static threshold will be used for the Signal Detector on all conventional recorder. Otherwise, the threshold value for the noise floor will be automatically be determined. Only set this is you are having problems. The value is in dB, but is generally higher than the Squelch value because the power is measured differently |
 | ppm              |          |       0       | number                      | The tuning error for the SDR in ppm (parts per million), as an alternative to `error` above. Use a program like GQRX to find an accurate value. |
 | agc              |          |     false     | **true** / **false**        | Whether or not to enable the SDR's automatic gain control (if supported). This is false by default. It is not recommended to set this as it often yields worse performance compared to a manual gain setting. |
 | gainSettings     |          |               | { "stageName": value}       | Set the gain for any stage. The value for this setting should be passed as an object, where the key specifies the name of the gain stage and the value is the amount of gain, as an int. For example:<br /> ````"gainSettings": { "IF": 10, "BB": 11},```` |
@@ -213,7 +214,7 @@ There is a list of available Plugins [here](./Plugins.md).
 | Key                    | Required | Default Value              | Type                                                                         | Description                                                  |
 | ---------------------- | :------: | -------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | shortName              |    ✓     |                            | string                                                                       | This is a nickname for the system. It is used to help name and organize the recordings from this system. It should be 4-6 letters with no spaces. |
-| type                   |    ✓     |                            | **"smartnet"**, **"p25"**, **"conventional"**, **"conventionalDMR"** or **"conventionalP25"** | The type of radio system.                                    |
+| type                   |    ✓     |                            | **"smartnet"**, **"p25"**, **"conventional"**, **"conventionalDMR"** or **"conventionalP25"**, **"conventionalSIGMF"** | The type of radio system.                                    |
 | control_channels       |    ✓     |                            | array of numbers;<br />[496537500, 496437500]                                | *For trunked systems* The control channel frequencies for the system, in Hz. The frequencies will automatically be cycled through if the system moves to an alternate channel. |
 | channels               |    ✓     |                            | array of numbers;<br />[166725000, 166925000, 167075000, 166850000]          | *For conventional systems*  The channel frequencies, in Hz, used for the system. The channels get assigned a virtual talkgroup number based upon their position in the array. Squelch levels need to be specified for the Source(s) being used. |
 | channelFile            |    ✓     |                            | string                                                                       | *For conventional systems* The filename for a CSV file that provides information about the conventional channels. The format for the file is described below. Squelch levels need to be specified for the Source(s) being used. *Use channels or channelFile, not both*. |
@@ -221,6 +222,7 @@ There is a list of available Plugins [here](./Plugins.md).
 | squelch                |          | -160                       | number                                                                       | Squelch in DB, this needs to be set for all conventional systems. The squelch setting is also used for analog talkgroups in a SmartNet system. I generally use -60 for my rtl-sdr. The closer the squelch is to 0, the stronger the signal has to be to unmute it. |
 | talkgroupsFile         |          |                            | string                                                                       | The filename for a CSV file that provides information about the talkgroups. It determines whether a talkgroup is analog or digital, and what priority it should have. This file should be located in the same directory as the trunk-recorder executable. |
 | apiKey                 |          |                            | string                                                                       | *if uploadServer is set* System-specific API key for uploading calls to OpenMHz.com. See the Config tab for your system in OpenMHz to find what the value should be. |
+| openmhzSystemId        |          | `shortName`                | string                                                                       | *if uploadServer is set* By default, the plugin will upload calls to the `shortName` OpenMHz system.  Setting this value will allow uploads to any specific OpenMHz system with its valid API key.  This is useful in a multi-site setup where multiple trunk-recorder systems may be aggregating calls to the same OpenMHz feed. | 
 | broadcastifyApiKey     |          |                            | string                                                                       | *if broadcastifyCallsServer is set* System-specific API key for Broadcastify Calls |
 | broadcastifySystemId   |          |                            | number                                                                       | *if broadcastifyCallsServer is set* System ID for Broadcastify Calls <br />(this is an integer, and different from the RadioReference system ID) |
 | uploadScript           |          |                            | string                                                                       | The filename of a script that is called after each recording has finished. Checkout *encode-upload.sh.sample* as an example. Should probably start with `./` ( or `../`). |
@@ -490,29 +492,28 @@ Here are the column headers and some sample data:
 
 ## channelFile
 
-This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A **Conventional** system would have Analog Recorders, while **ConventionalP25** or **ConventionalDMR** would have digital recorders.
-
-*Tone based squelch is currently not supported.*
-
+This file allows for you to specify additional information about conventional channels. A recorder is started for each line in the file and set the to frequency specified. The type of recorder is based on the type of System. A **conventional** system would have Analog Recorders, while **conventionalP25** or **conventionalDMR** would have digital recorders. **conventionalSIGMF** is a conventional system with SIGMF Recorders.
 
 | Column Name | Required | Value |
 |-------------|----------|-------|
 | TG Number     | ✔️        | The Talkgroup Number formatted as a decimal number. This has to be the first column |
 | Frequency        |  ✔️       | The frequency in MHz or Hz for the channel (decimal point must be used for MHz) |
-| Tone | ✔️        | The Tone for the talkgroup. This value is not used. *Tone based squelch is currently not supported.* |
+| Tone |        | The CTCSS Tone for the talkgroup. |
 | Alpha Tag |       | A 16 character description that is intended as a shortened display on radio displays |
+| Description |   | A longer description of the talkgroup  |
 | Category |    |  The category for the Talkgroup |
 | Tag       |   |  The Service Tag for the Talkgroup |
 | Comment |        | Use this field to capture comments about a talkgroup. It will be ignored by Trunk Recorder. |
 | Enable |        | Set to 'false' if you do not want this talkgroup/channel to created |
+| Signal Detector |    | Set to `false` if you do not want to use the Signal Detector for this channel. The Signal Detector scans a source's bandwidth and only enables a channel if a signal over a threshold is detected. If it not used, the channel will always be enabled and the Squelch will be running which uses more CPU. Default is `true`|
+| Squelch |    | Value in dB to use for the Squelch for this channel. If this is not set then the System Squelch value will be used instead. |
 
+A **Header Row** is required for the file, with a header provided for each of the columns that will be used. The columns can be in any order. For the Optional columns, if they are left blank for some of the rows, the default value will be used instead.
 
-The **Enable** Column is optional and defaults to *True*. It only needs to be added to rows that you do not want to have recorded. For those rows, set **Enable** to *False*.
-
-| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Category  | Enable (*optional*) |
-| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- |
-| 300       | 462275000 | 94.8  | Town A Police | Town A Police Dispatch | Police | Town A |                     |
-| 325       | 462275000 | 151.4 | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | False               |
+| TG Number | Frequency | Tone     | Alpha Tag     | Description            | Tag    | Category  | Enable | Signal Detector | Squelch |
+| --------- | --------- | -------- | ------------- | ---------------------- | ------ | ------ | ------------------- | ---- | ---- |
+| 300       | 462275000 | 94.8  | Town A Police | Town A Police Dispatch | Police | Town A |    |  false |  |
+| 325       | 462275000 | 151.4 | Town B DPW    | Town B Trash Dispatch  | DPW    | Town B | false   |  |  -50 |
 
 
 ## unitTagsFile

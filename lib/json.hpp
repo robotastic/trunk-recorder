@@ -71,7 +71,7 @@
 #define NLOHMANN_JSON_VERSION_PATCH 2   // NOLINT(modernize-macro-to-enum)
 
 #ifndef JSON_DIAGNOSTICS
-    #define JSON_DIAGNOSTICS 0
+    #define JSON_DIAGNOSTICS 1
 #endif
 
 #ifndef JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON

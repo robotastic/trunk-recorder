@@ -39,28 +39,28 @@ void set_logging_level(std::string log_level) {
 }
 
 struct NoColorLoggingFormatter {
-    void operator()(logging::record_view const& rec, logging::formatting_ostream& strm) const {
-        auto message = rec.attribute_values()[logging::aux::default_attribute_names::message()];
-        auto message_str = message.extract<std::string>().get();
+  void operator()(logging::record_view const &rec, logging::formatting_ostream &strm) const {
+    auto message = rec.attribute_values()[logging::aux::default_attribute_names::message()];
+    auto message_str = message.extract<std::string>().get();
 
-        std::regex escape_seq_regex("\u001B\\[[0-9;]+m");
-        strm << std::regex_replace(message_str, escape_seq_regex, "");
-    }
+    std::regex escape_seq_regex("\u001B\\[[0-9;]+m");
+    strm << std::regex_replace(message_str, escape_seq_regex, "");
+  }
 };
 
 void setup_console_log(std::string log_color, std::string time_fmt) {
   boost::shared_ptr<sinks::synchronous_sink<sinks::basic_text_ostream_backend<char>>> console_sink = logging::add_console_log(std::clog);
-  
-  if ((log_color == "console" ) || (log_color == "all")) {
-    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
-                        logging::expressions::smessage);
+
+  if ((log_color == "console") || (log_color == "all")) {
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                                logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                                logging::expressions::attr<logging::trivial::severity_level>("Severity") %
+                                logging::expressions::smessage);
   } else {
-    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                        logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                        logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
-                        logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
+    console_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                                logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                                logging::expressions::attr<logging::trivial::severity_level>("Severity") %
+                                logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
   }
 
   std::locale loc = std::locale("C");
@@ -74,15 +74,15 @@ void setup_file_log(std::string log_dir, std::string log_color, std::string time
       keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
       keywords::auto_flush = true);
 
-  if ((log_color == "logfile" ) || (log_color == "all")) {
-    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+  if ((log_color == "logfile") || (log_color == "all")) {
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") %
                             logging::expressions::smessage);
   } else {
-    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") % 
-                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) % 
-                            logging::expressions::attr<logging::trivial::severity_level>("Severity") % 
+    log_sink->set_formatter(logging::expressions::format("[%1%] (%2%)   %3%") %
+                            logging::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", time_fmt) %
+                            logging::expressions::attr<logging::trivial::severity_level>("Severity") %
                             logging::expressions::wrap_formatter(NoColorLoggingFormatter{}));
   }
 }
@@ -121,7 +121,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
 
     config.log_color = data.value("logColor", (color ? "console" : "none"));
 
-    config.console_log =  data.value("consoleLog", true); 
+    config.console_log = data.value("consoleLog", true);
     if (config.console_log) {
       setup_console_log(config.log_color, "%Y-%m-%d %H:%M:%S.%f");
     }
@@ -201,7 +201,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     config.record_uu_v_calls = data.value("recordUUVCalls", true);
     BOOST_LOG_TRIVIAL(info) << "Record Unit to Unit Voice Calls: " << config.record_uu_v_calls;
     config.new_call_from_update = data.value("newCallFromUpdate", true);
-    BOOST_LOG_TRIVIAL(info) << "New Call from UPDATE Messages" << config.new_call_from_update;
+    BOOST_LOG_TRIVIAL(info) << "New Call from UPDATE Messages: " << config.new_call_from_update;
     std::string frequency_format_string = data.value("frequencyFormat", "mhz");
 
     if (boost::iequals(frequency_format_string, "mhz")) {
@@ -247,7 +247,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         BOOST_LOG_TRIVIAL(info) << "System Type: " << system->get_system_type();
 
         // If it is a conventional System
-        if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR")) {
+        if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (system->get_system_type() == "conventionalDMR") || (system->get_system_type() == "conventionalSIGMF")) {
 
           bool channel_file_exist = element.contains("channelFile");
           bool channels_exist = element.contains("channels");
@@ -293,7 +293,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         double digital_levels = element.value("digitalLevels", 1.0);
         double analog_levels = element.value("analogLevels", 8.0);
         double squelch_db = element.value("squelch", -160.0);
-        int max_dev = element.value("maxDev", 4000);
+        int max_dev = element.value("maxDev", 5000);
         double filter_width = element.value("filterWidth", 1.0);
         bool conversation_mode = element.value("conversationMode", true);
         bool mod_exists = element.contains("modulation");
@@ -309,9 +309,10 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
             BOOST_LOG_TRIVIAL(info) << "Modulation: fsk4";
           } else {
             qpsk_mod = true;
-            BOOST_LOG_TRIVIAL(error) << "! System Modulation Not Specified, could be fsk4 or qpsk, assuming qpsk";
+            BOOST_LOG_TRIVIAL(error) << "! System Modulation specified but not recognized, it needs to be either \"fsk4\" or \"qpsk\", assuming qpsk";
           }
         } else {
+          BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
           qpsk_mod = true;
         }
 
@@ -498,6 +499,11 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(info) << "VGA2 Gain: " << element.value("vga2Gain", 0);
           BOOST_LOG_TRIVIAL(info) << "Idle Silence: " << element.value("silenceFrame", 0);
 
+          if ((driver == "osmosdr") && (long(rate) % 24000 != 0)) {
+            BOOST_LOG_TRIVIAL(error) << "OsmoSDR must have a sample rate that is a multiple of 24000, current rate: " << rate << " for device: " << device;
+            //return false;
+          }
+
           if ((ppm != 0) && (error != 0)) {
             BOOST_LOG_TRIVIAL(info) << "Both PPM and Error should not be set at the same time. Setting Error to 0.";
             error = 0;
@@ -507,6 +513,10 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           // SoapySDRPlay3 quirk: autogain must be disabled before any of the gains can be set
           if (source->get_device().find("sdrplay") != std::string::npos) {
             source->set_gain_mode(agc);
+          }
+
+          if (element.contains("signalDetectorThreshold")) {
+            source->set_signal_detector_threshold(element["signalDetectorThreshold"]);
           }
 
           if (element.contains("gainSettings")) {

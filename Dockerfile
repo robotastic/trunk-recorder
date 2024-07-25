@@ -50,6 +50,20 @@ RUN cd /tmp && \
   cd /tmp && \
   rm -rf librtlsdr
 
+# Compile librtlsdr-dev 2.0 for SDR-Blog v4 support and other updates
+# Ubuntu 22.04 LTS has librtlsdr 0.6.0
+RUN cd /tmp && \
+  git clone https://github.com/steve-m/librtlsdr.git && \
+  cd librtlsdr && \
+  mkdir build && \
+  cd build && \
+  cmake .. && \
+  make -j$(nproc) && \
+  make install && \
+  ldconfig && \
+  cd /tmp && \
+  rm -rf librtlsdr
+
 # Compile gr-osmosdr ourselves using a fork with various patches included
 RUN cd /tmp && \
   git clone https://github.com/racerxdl/gr-osmosdr.git && \

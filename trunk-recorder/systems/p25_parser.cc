@@ -109,6 +109,10 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
   message.tdma_slot = 0;
   message.freq = 0;
   message.opcode = opcode;
+  message.patch_data.sg = 0;
+  message.patch_data.ga1 = 0;
+  message.patch_data.ga2 = 0;
+  message.patch_data.ga3 = 0; 
 
   BOOST_LOG_TRIVIAL(trace) << "decode_mbt_data: $" << opcode;
   if (opcode == 0x0) { // grp voice channel grant
@@ -181,7 +185,7 @@ std::vector<TrunkMessage> P25Parser::decode_mbt_data(unsigned long opcode, boost
     unsigned long lg = bitset_shift_mask(mbt_data, 127, 0x1);
     unsigned long gav = bitset_shift_mask(mbt_data, 120, 0x3);
 
-      os << "mbt28\tmbt(0x28) grp_aff_rsp:\tMFRID: " << mfrid <<  "\tWACN: " <<  wacn << "\tSYID: " << syid << "\tLG: " << lg << "\tGAV: " << gav << "\tADA: " << ada << "\tGA: " << ga << "\tLG: " << lg;
+      os << "mbt28\tmbt(0x28) grp_aff_rsp:\tMFRID: " << mfrid <<  "\tWACN: " <<  wacn << "\tSYID: " << syid << "\tLG: " << lg << "\tGAV: " << gav << "\tADA: " << ada << "\tGA: " << ga << "\tLG: " << lg << "\tGID: " << gid;
       message.meta = os.str();
       BOOST_LOG_TRIVIAL(debug) << os.str();
   } else if (opcode == 0x3a) { // rfss status
@@ -285,6 +289,10 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   message.tdma_slot = 0;
   message.freq = 0;
   message.opcode = opcode;
+  message.patch_data.sg = 0;
+  message.patch_data.ga1 = 0;
+  message.patch_data.ga2 = 0;
+  message.patch_data.ga3 = 0; 
 
   BOOST_LOG_TRIVIAL(trace) << "TSBK: opcode: $" << std::hex << opcode;
   if (opcode == 0x00) { // group voice chan grant
@@ -306,7 +314,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       moto_patch_data.ga3 = ga3;
       message.patch_data = moto_patch_data;
     } else {
-      unsigned long opts  = bitset_shift_mask(tsbk, 72, 0xff);
+      // unsigned long opts  = bitset_shift_mask(tsbk, 72, 0xff); // not required for anything 
       bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
       bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
       bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
@@ -343,7 +351,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     // Options are not present in an UPDATE
 
     if (mfrid == 0x90) {
-        unsigned long opts = bitset_shift_mask(tsbk, 72, 0xff);
+        // unsigned long opts = bitset_shift_mask(tsbk, 72, 0xff);  // not required for anything
         bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
         bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
         bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
@@ -466,15 +474,15 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
     } else {
       bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
       bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-      bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
-      bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
-      int priority = bitset_shift_mask(tsbk, 72, 0x07);
+      // bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
+      // bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
+      // int priority = bitset_shift_mask(tsbk, 72, 0x07);
 
       unsigned long ch1 = bitset_shift_mask(tsbk, 48, 0xffff);
-      unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
+      // unsigned long ch2 = bitset_shift_mask(tsbk, 32, 0xffff);
       unsigned long ga1 = bitset_shift_mask(tsbk, 16, 0xffff);
       unsigned long f1 = channel_id_to_frequency(ch1, sys_num);
-      unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
+      // unsigned long f2 = channel_id_to_frequency(ch2, sys_num);
 
       message.message_type = UPDATE;
       message.freq = f1;
@@ -483,7 +491,7 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
       message.encrypted = encrypted;
       if (get_tdma_slot(ch1, sys_num) >= 0) {
         message.phase2_tdma = true;
-        message.tdma_slot = get_tdma_slot(ch2, sys_num);
+        message.tdma_slot = get_tdma_slot(ch1, sys_num);
       } else {
         message.phase2_tdma = false;
         message.tdma_slot = 0;
@@ -964,11 +972,19 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
     return messages;
   } else if (type < 0) {
     BOOST_LOG_TRIVIAL(debug) << "unknown message type " << type;
+    message.message_type = INVALID_CC_MESSAGE;
     messages.push_back(message);
     return messages;
   }
 
   std::string s = msg->to_string();
+
+ if (s.length() < 2) {
+    BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " Len: " << s.length();
+    message.message_type = INVALID_CC_MESSAGE;
+    messages.push_back(message);
+    return messages;
+  }
 
   // # nac is always 1st two bytes
   // ac = (ord(s[0]) << 8) + ord(s[1])
@@ -977,11 +993,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   int shift = s0 << 8;
   long nac = shift + s1;
 
-  if (s.length() < 2) {
-    BOOST_LOG_TRIVIAL(error) << "P25 Parse error, s: " << s << " s0: " << static_cast<int>(s0) << " s1: " << static_cast<int>(s1) << " shift: " << shift << " nac: " << nac << " type: " << type << " Len: " << s.length();
-    messages.push_back(message);
-    return messages;
-  }
+ 
 
   if (nac == 0xffff) {
     // # TDMA
@@ -995,7 +1007,7 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
   // //" at %f state %d len %d" %(nac, type, time.time(), self.state, len(s))
   if ((type != 7) && (type != 12)) // and nac not in self.trunked_systems:
   {
-    BOOST_LOG_TRIVIAL(debug) << std::hex << "NON TBSK: nac " << nac << std::dec << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length();
+    BOOST_LOG_TRIVIAL(debug) << std::hex << "NON TSBK: nac " << nac << std::dec << " type " << type << " size " << msg->to_string().length() << " mesg len: " << msg->length();
   
     /*
        if not self.configs:
@@ -1071,6 +1083,11 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
     return decode_mbt_data(opcode, header, mbt_data, link_id, nac, sys_num);
     // self.trunked_systems[nac].decode_mbt_data(opcode, header << 16, mbt_data
     // << 32)
+  } else if (type == 15)
+  {
+    //TDU with Link Contol. Link Control words should not be seen on an active Control Channel.
+    BOOST_LOG_TRIVIAL(debug) << "P25 Parser: TDULC on control channel. Retuning to next control channel.";
+    message.message_type = TDULC;
   }
   messages.push_back(message);
   return messages;

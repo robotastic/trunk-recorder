@@ -1,20 +1,20 @@
 #include <curl/curl.h>
-#include <time.h>
 #include <iomanip>
+#include <time.h>
 #include <vector>
 
 #include "../../trunk-recorder/call_concluder/call_concluder.h"
 #include "../../trunk-recorder/plugin_manager/plugin_api.h"
+#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
+#include <boost/algorithm/string.hpp>
 #include <boost/dll/alias.hpp> // for BOOST_DLL_ALIAS
 #include <boost/foreach.hpp>
-#include <boost/algorithm/string.hpp>
-#include "../trunk-recorder/gr_blocks/decoder_wrapper.h"
 #include <sys/stat.h>
 
 struct Rdio_Scanner_System {
   std::string api_key;
   std::string short_name;
-  uint32_t    system_id;
+  uint32_t system_id;
   std::string talkgroupsFile;
   Talkgroups *talkgroups;
   bool compress_wav;
@@ -104,20 +104,21 @@ public:
       source_list << "]";
     }
 
-    if (call_info.patched_talkgroups.size()>1){
+    if (call_info.patched_talkgroups.size() > 1) {
       for (unsigned long i = 0; i < call_info.patched_talkgroups.size(); i++) {
-        if (i!=0) {
+        if (i != 0) {
           patch_list << ",";
         }
         patch_list << (int)call_info.patched_talkgroups[i];
       }
       patch_list << "]";
-    }
-    else {
+    } else {
       patch_list << "]";
     }
-
-
+    char formattedTalkgroup[62];
+    snprintf(formattedTalkgroup, 61, "%c[%dm%10ld%c[0m", 0x1B, 35, call_info.talkgroup, 0x1B);
+    std::string talkgroup_display = boost::lexical_cast<std::string>(formattedTalkgroup);
+    
     std::ostringstream freq_list;
     std::string freq_list_string;
     freq_list << std::fixed << std::setprecision(2);
@@ -125,7 +126,7 @@ public:
 
     if (call_info.transmission_error_list.size() != 0) {
       for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
-          freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len  << ", \"errorCount\": " << std::setprecision(0) <<call_info.transmission_error_list[i].error_count << ", \"spikeCount\": " << call_info.transmission_error_list[i].spike_count << "}";
+        freq_list << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len << ", \"errorCount\": " << std::setprecision(0) << call_info.transmission_error_list[i].error_count << ", \"spikeCount\": " << call_info.transmission_error_list[i].spike_count << "}";
 
         if (i < (call_info.transmission_error_list.size() - 1)) {
           freq_list << ", ";
@@ -133,14 +134,12 @@ public:
           freq_list << "]";
         }
       }
-    }else {
+    } else {
       freq_list << "]";
     }
 
+    // BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
 
-
-    //BOOST_LOG_TRIVIAL(error) << "Got source list: " << source_list.str();
-    CURL *curl;
     CURLMcode res;
     CURLM *multi_handle;
     int still_running = 0;
@@ -152,110 +151,82 @@ public:
     call_length_string = call_length.str();
     patch_list_string = patch_list.str();
 
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
     struct curl_slist *headerlist = NULL;
 
     /* Fill in the file upload field. This makes libcurl load data from
      the given file name when curl_easy_perform() is called. */
-    curl_formadd(&formpost,
-                &lastptr,
-                CURLFORM_COPYNAME, "audio",
-                CURLFORM_FILE, compress_wav ? call_info.converted : call_info.filename,
-                CURLFORM_CONTENTTYPE, "application/octet-stream",
-                CURLFORM_END);
 
-    curl_formadd(&formpost,
-                &lastptr,
-                 CURLFORM_COPYNAME, "audioName",
-                 CURLFORM_COPYCONTENTS, audioName.c_str(),
-                 CURLFORM_END);
+    CURL *curl = curl_easy_init();
+    curl_mime *mime;
+    curl_mimepart *part;
 
-    curl_formadd(&formpost,
-                &lastptr,
-                 CURLFORM_COPYNAME, "audioType",
-                 CURLFORM_COPYCONTENTS, compress_wav ? "audio/mp4" : "audio/wav",
-                 CURLFORM_END);
+    mime = curl_mime_init(curl);
+    part = curl_mime_addpart(mime);
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "dateTime",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.start_time).c_str(),
-                 CURLFORM_END);
+    curl_mime_filedata(part, compress_wav ? call_info.converted : call_info.filename);
+    curl_mime_type(part, "application/octet-stream"); /* content-type for this part */
+    curl_mime_name(part, "audio");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "frequencies",
-                 CURLFORM_COPYCONTENTS, freq_list_string.c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, audioName.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "audioName");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "frequency",
-                 CURLFORM_COPYCONTENTS, freq_string.c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, compress_wav ? "audio/mp4" : "audio/wav", CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "audioType");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "key",
-                 CURLFORM_COPYCONTENTS, api_key.c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.start_time).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "dateTime");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "patches",
-                 CURLFORM_COPYCONTENTS, patch_list_string.c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, freq_list_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "frequencies");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "talkgroup",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, freq_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "frequency");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "talkgroupGroup",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_group).c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, api_key.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "key");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "talkgroupLabel",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_alpha_tag).c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, patch_list_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "patches");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "talkgroupTag",
-                 CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_tag).c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "talkgroup");
 
-    curl_formadd(&formpost,
-                  &lastptr,
-                  CURLFORM_COPYNAME, "talkgroupName",
-                  CURLFORM_COPYCONTENTS, boost::lexical_cast<std::string>(call_info.talkgroup_description).c_str(),
-                  CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup_group).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "talkgroupGroup");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "sources",
-                 CURLFORM_COPYCONTENTS, source_list_string.c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup_alpha_tag).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "talkgroupLabel");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "system",
-                 CURLFORM_COPYCONTENTS, std::to_string(system_id).c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup_tag).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "talkgroupTag");
 
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "systemLabel",
-                 CURLFORM_COPYCONTENTS, call_info.short_name.c_str(),
-                 CURLFORM_END);
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, boost::lexical_cast<std::string>(call_info.talkgroup_description).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "talkgroupName");
 
-    curl = curl_easy_init();
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, source_list_string.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "sources");
+
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, std::to_string(system_id).c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "system");
+
+    part = curl_mime_addpart(mime);
+    curl_mime_data(part, call_info.short_name.c_str(), CURL_ZERO_TERMINATED);
+    curl_mime_name(part, "systemLabel");
+
     multi_handle = curl_multi_init();
 
     /* initialize custom header list (stating that Expect: 100-continue is not wanted */
@@ -268,7 +239,7 @@ public:
 
       curl_easy_setopt(curl, CURLOPT_USERAGENT, "TrunkRecorder1.0");
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-      curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+      curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
@@ -347,8 +318,8 @@ public:
       /* always cleanup */
       curl_easy_cleanup(curl);
 
-      /* then cleanup the formpost chain */
-      curl_formfree(formpost);
+      /* then cleanup the mime */
+      curl_mime_free(mime);
 
       /* free slist */
       curl_slist_free_all(headerlist);
@@ -359,13 +330,14 @@ public:
       if (res == CURLM_OK && response_code == 200) {
         struct stat file_info;
         stat(compress_wav ? call_info.converted : call_info.filename, &file_info);
-
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRdio Scanner Upload Success - file size: " << file_info.st_size;
+        std::string loghdr = log_header(call_info.short_name,call_info.call_num,call_info.talkgroup_display,call_info.freq);
+        BOOST_LOG_TRIVIAL(info) << loghdr << "Rdio Scanner Upload Success - file size: " << file_info.st_size;
         ;
         return 0;
       }
     }
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRdio Scanner Upload Error: " << response_buffer;
+    std::string loghdr = log_header(call_info.short_name,call_info.call_num,call_info.talkgroup_display,call_info.freq);
+    BOOST_LOG_TRIVIAL(error) << loghdr << "Rdio Scanner Upload Error: " << response_buffer;
     return 1;
   }
 
@@ -373,7 +345,8 @@ public:
     return upload(call_info);
   }
 
- int parse_config(json config_data) {
+  int parse_config(json config_data) {
+    std::string log_prefix = "\t[Rdio Scanner]\t";
     /*
           system->set_rdioscanner_api_key(node.second.get<std::string>("rdioscannerApiKey", ""));
       BOOST_LOG_TRIVIAL(info) << "Rdio Scanner API Key: " << system->get_rdioscanner_api_key();
@@ -390,55 +363,56 @@ public:
     }
 
     this->data.server = config_data.value("server", "");
-    BOOST_LOG_TRIVIAL(info) << "Rdio Scanner Server: " << this->data.server;
+    BOOST_LOG_TRIVIAL(info) << log_prefix << "Rdio Scanner Server: " << this->data.server;
 
     // from: http://www.zedwood.com/article/cpp-boost-url-regex
+    boost::regex api_regex("(.*)(.{2}$)");
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
 
     if (!regex_match(this->data.server.c_str(), what, ex)) {
-      BOOST_LOG_TRIVIAL(error) << "Unable to parse Rdio Scanner Server URL\n";
+      BOOST_LOG_TRIVIAL(error) << log_prefix << "Unable to parse Rdio Scanner Server URL\n";
       return 1;
     }
 
-        // Gets the API key for each system, if defined
-      for (json element : config_data["systems"]) {
-        bool rdioscanner_exists = element.contains("apiKey");
-       if (rdioscanner_exists) {
-         Rdio_Scanner_System sys;
+    // Gets the API key for each system, if defined
+    for (json element : config_data["systems"]) {
+      bool rdioscanner_exists = element.contains("apiKey");
+      if (rdioscanner_exists) {
+        Rdio_Scanner_System sys;
+        sys.api_key = element.value("apiKey", "");
+        sys.system_id = element.value("systemId", 0);
+        sys.short_name = element.value("shortName", "");
+        regex_match(sys.api_key.c_str(), what, api_regex);
+        std::string redacted_api(what[2].first, what[2].second);
+        BOOST_LOG_TRIVIAL(info) << log_prefix << "Uploading calls for: " << sys.short_name  << "\t Rdio System: " << sys.system_id << "\t API Key: ******" << redacted_api;
+        this->data.systems.push_back(sys);
+      }
+    }
 
-         sys.api_key = element.value("apiKey", "");
-         sys.system_id = element.value("systemId", 0);
-         sys.short_name = element.value("shortName", "");
-         BOOST_LOG_TRIVIAL(info) << "Uploading calls for: " << sys.short_name;
-         this->data.systems.push_back(sys);
-       }
-     }
-
-     if (this->data.systems.size() == 0) {
-       BOOST_LOG_TRIVIAL(error) << "Rdio Scanner Server set, but no Systems are configured\n";
-       return 1;
-     }
+    if (this->data.systems.size() == 0) {
+      BOOST_LOG_TRIVIAL(error) << log_prefix << "Rdio Scanner Server set, but no Systems are configured\n";
+      return 1;
+    }
 
     return 0;
   }
 
-
- /*
-   int start() { return 0; }
-   int stop() { return 0; }
-   int poll_one() { return 0; }
-   int signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) { return 0; }
-   int audio_stream(Recorder *recorder, float *samples, int sampleCount) { return 0; }
-   int call_start(Call *call) { return 0; }
-   int calls_active(std::vector<Call *> calls) { return 0; }
-   int setup_recorder(Recorder *recorder) { return 0; }
-   int setup_system(System *system) { return 0; }
-   int setup_systems(std::vector<System *> systems) { return 0; }
-   int setup_sources(std::vector<Source *> sources) { return 0; }
-   int setup_config(std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
-   int system_rates(std::vector<System *> systems, float timeDiff) { return 0; }
-*/
+  /*
+    int start() { return 0; }
+    int stop() { return 0; }
+    int poll_one() { return 0; }
+    int signal(long unitId, const char *signaling_type, gr::blocks::SignalType sig_type, Call *call, System *system, Recorder *recorder) { return 0; }
+    int audio_stream(Recorder *recorder, float *samples, int sampleCount) { return 0; }
+    int call_start(Call *call) { return 0; }
+    int calls_active(std::vector<Call *> calls) { return 0; }
+    int setup_recorder(Recorder *recorder) { return 0; }
+    int setup_system(System *system) { return 0; }
+    int setup_systems(std::vector<System *> systems) { return 0; }
+    int setup_sources(std::vector<Source *> sources) { return 0; }
+    int setup_config(std::vector<Source *> sources, std::vector<System *> systems) { return 0; }
+    int system_rates(std::vector<System *> systems, float timeDiff) { return 0; }
+ */
   // Factory method
   static boost::shared_ptr<Rdio_Scanner_Uploader> create() {
     return boost::shared_ptr<Rdio_Scanner_Uploader>(
@@ -448,5 +422,5 @@ public:
 
 BOOST_DLL_ALIAS(
     Rdio_Scanner_Uploader::create, // <-- this function is exported with...
-    create_plugin             // <-- ...this alias name
+    create_plugin                  // <-- ...this alias name
 )

@@ -21,12 +21,12 @@ The [Built-in Plugins](#built-in-plugins) are compiled and installed when you se
 
 #### Plugin Object
 
-| Key     | Required | Default Value | Type                 | Description                                                  |
-| ------- | :------: | ------------- | -------------------- | ------------------------------------------------------------ |
-| library |    ✓     |               | string               | the name of the library that contains the plugin.            |
+| Key     | Required | Default Value | Type                 | Description                                                                                                                 |
+| ------- | :------: | ------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| library |    ✓     |               | string               | the name of the library that contains the plugin.                                                                           |
 | name    |    ✓     |               | string               | the name of the plugin. This name is used to find the `<name>_plugin_new` method that creates a new instance of the plugin. |
-| enabled |          | true          | **true** / **false** | control whether a configured plugin is enabled or disabled   |
-|         |          |               |                      | *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.* |
+| enabled |          | true          | **true** / **false** | control whether a configured plugin is enabled or disabled                                                                  |
+|         |          |               |                      | *Additional elements can be added, they will be passed into the `parse_config` method of the plugin.*                       |
 
 
 ## Built-in Plugins
@@ -38,18 +38,18 @@ The [Built-in Plugins](#built-in-plugins) are compiled and installed when you se
 
 This plugin makes it easy to connect Trunk Recorder with [Rdio Scanner](https://github.com/chuot/rdio-scanner). It uploads recordings and the information about them. The following additional settings are required:
 
-| Key     | Required | Default Value | Type   | Description                                                  |
-| ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
-| server  |    ✓     |               | string | The URL for uploading to Rdio Scanner. The default is an empty string. It should be the same URL as the one you are using to access Rdio Scanner. |
+| Key     | Required | Default Value | Type   | Description                                                                                                                                                                |
+| ------- | :------: | ------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| server  |    ✓     |               | string | The URL for uploading to Rdio Scanner. The default is an empty string. It should be the same URL as the one you are using to access Rdio Scanner.                          |
 | systems |    ✓     |               | array  | This is an array of objects, where each is a system that should be passed to Rdio Scanner. More information about what should be in each object is in the following table. |
 
 *Rdio Scanner System Object:*
 
-| Key       | Required | Default Value | Type   | Description                                                  |
-| --------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
-| systemId  |    ✓     |               | number | System ID for Rdio Scanner.                                  |
+| Key       | Required | Default Value | Type   | Description                                                                                                                                                  |
+| --------- | :------: | ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| systemId  |    ✓     |               | number | System ID for Rdio Scanner.                                                                                                                                  |
 | apiKey    |    ✓     |               | string | System-specific API key for uploading calls to Rdio Scanner. See the ApiKey section in the Rdio Scanner administrative dashboard for the value it should be. |
-| shortName |    ✓     |               | string | This should match the shortName of a system that is defined in the main section of the config file. |
+| shortName |    ✓     |               | string | This should match the shortName of a system that is defined in the main section of the config file.                                                          |
 
 
 
@@ -80,20 +80,20 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 
 **NOTE 2: trunk-recorder passes analog audio to this plugin at 16 kHz sample rate and digital audio at 8 kHz sample rate.  Since the audio data being streamed doesn't contain the sample rate, analog and digital audio should be configured to be sent to different ports to receivers that are matched to the same sample rate.**
 
-| Key     | Required | Default Value | Type   | Description                                                  |
-| ------- | :------: | ------------- | ------ | ------------------------------------------------------------ |
-| streams |    ✓     |               | array  | This is an array of objects, where each is an audio stream that will be sent to a specific IP address and UDP port. More information about what should be in each object is in the following table. |
+| Key     | Required | Default Value | Type  | Description                                                                                                                                                                                         |
+| ------- | :------: | ------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| streams |    ✓     |               | array | This is an array of objects, where each is an audio stream that will be sent to a specific IP address and UDP port. More information about what should be in each object is in the following table. |
 
 *Audio Stream Object:*
 
-| Key       | Required | Default Value | Type                 | Description                                                  |
-| --------- | :------: | ------------- | -------------------- | ------------------------------------------------------------ |
-| address   |    ✓     |               | string               | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
-| port      |    ✓     |               | number               | UDP or TCP port that this stream will send audio to.         |
-| TGID      |    ✓     |               | number               | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
-| sendTGID  |          |     false     | **true** / **false** | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
-| shortName |          |               | string               | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID.
-|  useTCP   |          |     false     | **true** / **false** | When set to true, TCP will be used instead of UDP.
+| Key       | Required | Default Value | Type                 | Description                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --------- | :------: | ------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| address   |    ✓     |               | string               | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on.                                                                                                                                                                                                                                                                                           |
+| port      |    ✓     |               | number               | UDP or TCP port that this stream will send audio to.                                                                                                                                                                                                                                                                                                                                                                |
+| TGID      |    ✓     |               | number               | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups.                                                                                                                                                                                                                                                                                                              |
+| sendTGID  |          | false         | **true** / **false** | When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent.                                                                                                                                                                                                                                                                          |
+| shortName |          |               | string               | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, each system must be sent to a different port to prevent interleaved audio for talkgroups from different Systems with the same TGID. |
+| useTCP    |          | false         | **true** / **false** | When set to true, TCP will be used instead of UDP.                                                                                                                                                                                                                                                                                                                                                                  |
 
 ###### Plugin Object Example #1:
 This example will stream audio from talkgroup 58914 on system "CountyTrunked" to the local machine on UDP port 9123.
@@ -185,11 +185,59 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
         }
 ```
 
-
-
 ## Community Plugins
-* [MQTT Status](https://github.com/robotastic/trunk-recorder-mqtt-status): Publishes the current status of a Trunk Recorder instance over MQTT
-* [MQTT Statistics](https://github.com/robotastic/trunk-recorder-mqtt-statistics): Publishes statistics about a Trunk Recorder instance over MQTT
-* [Decode rates logger](https://github.com/rosecitytransit/trunk-recorder-decode-rate): Logs trunking control channel decode rates to a CSV file, and includes a PHP file that outputs an SVG graph
-* [Daily call log and live Web page](https://github.com/rosecitytransit/trunk-recorder-daily-log): Creates a daily log of calls (instead of just individual JSON files) and includes an updating PHP Web page w/audio player
-* [Prometheus exporter](https://github.com/USA-RedDragon/trunk-recorder-prometheus): Publishes statistics to a metrics endpoint via HTTP
+Community plugins can extend the features of Trunk Recorder and allow customized workflows or analysis.  
+> As new plugins are developed, authors are encouraged to add to the below tables by submitting a PR to this document.
+
+#### External Plugins
+Plugins that are built out-of-tree and installed seperately from Trunk Recorder:
+| Plugin Name / Link                                                                              | Description                                                                                                               |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [MQTT Status](https://github.com/robotastic/trunk-recorder-mqtt-status)                         | Publishes the current status of a Trunk Recorder instance over MQTT                                                       |
+| [MQTT Statistics](https://github.com/robotastic/trunk-recorder-mqtt-statistics)                 | Publishes statistics about a Trunk Recorder instance over MQTT                                                            |
+| [Decode rates logger](https://github.com/rosecitytransit/trunk-recorder-decode-rate)            | Logs trunking control channel decode rates to a CSV file, and includes a PHP file that outputs an SVG graph               |
+| [Daily call log and live Web page](https://github.com/rosecitytransit/trunk-recorder-daily-log) | Creates a daily log of calls (instead of just individual JSON files) and includes an updating PHP Web page w/audio player |
+| [Prometheus exporter](https://github.com/USA-RedDragon/trunk-recorder-prometheus)               | Publishes statistics to a metrics endpoint via HTTP                                                                       |
+
+#### user_plugins
+Plugins that are ready to clone into `/user_plugins` for automatic building and installation:
+| Plugin Name / Link                                                     | Description                         |
+| ---------------------------------------------------------------------- | ----------------------------------- |
+| [Placeholder](https://github.com/tr_plugin_developer/my-tr-plugin.git) | Not a real plugin, but it could be. |
+
+## Automatic Building and Development
+As an alternative to developing out-of-tree, or within `/plugins`, user plugins may be staged into a subdirectory of `/user_plugins` to automatically compile as if they were a built-in plugin.  Minor changes may be required for exsting user plugins to benefit from automatic building, but this should simplify the process of development and installation, and ensure plugins remain up-to-date with any changes to Trunk Recorder.
+
+#### Example
+1. Clone the plugin repository
+```bash
+cd /user_plugins
+git clone https://github.com/tr_plugin_developer/my-tr-plugin.git
+```
+&emsp; or add it as a submodule.  
+```bash
+cd /user_plugins
+git submodule add https://github.com/tr_plugin_developer/my-tr-plugin.git
+```
+
+2. Review plugin requrements, and ensure all dependencies have been met.
+
+3. Return to your 'build' directory, and resume from the `cmake` step: e.g.
+```bash
+cd trunk-build
+cmake ../trunk-recorder
+```
+&emsp; Note that the plugin is displayed near the end of the cmake output:
+```
+-- Added user plugin: my-tr-plugin
+```
+
+4. Contine to build and install Trunk Recorder with included plugins:
+```bash
+make
+sudo make install
+```
+&emsp; Return to the `cmake` step as you add or remove user plugins.
+
+### Development Quick-Start
+Any of the built-in plugins in `/plugins` can be directly copied to `/user_plugins` as a template for development.  The `rdio_scanner` plugin is a good example of a curl-based uploader, and `stat_socket` shows how many of the internal Trunk Recorder methods can be accessed for live updates or offline analysis.  Ensure that instances of the previous plugin name are changed in `CMakeFile.txt` to avoid any conflicts with built-in plugins.

@@ -46,9 +46,8 @@ selector_impl::selector_impl(size_t itemsize,
       d_output_index(output_index),
       d_num_inputs(0),
       d_num_outputs(0) {
-  message_port_register_in(pmt::mp("en"));
-  set_msg_handler(pmt::mp("en"), boost::bind(&selector_impl::handle_enable, this, boost::placeholders::_1));
 
+  d_enabled_output_ports = std::vector<bool>(d_max_port, false);
   // TODO: add message ports for input_index and output_index
 }
 
@@ -66,26 +65,24 @@ void selector_impl::set_input_index(unsigned int input_index) {
     throw std::out_of_range("input_index must be < ninputs");
 }
 
+// This enables a single output port and disables all others
 void selector_impl::set_output_index(unsigned int output_index) {
   gr::thread::scoped_lock l(d_mutex);
 
   if (output_index < 0)
     throw std::out_of_range("input_index must be >= 0");
 
-  if (output_index < d_num_outputs)
+  if (output_index < d_max_port)
     d_output_index = output_index;
   else
     throw std::out_of_range("output_index must be < noutputs");
-}
 
-void selector_impl::handle_enable(pmt::pmt_t msg) {
-  if (pmt::is_bool(msg)) {
-    bool en = pmt::to_bool(msg);
-    gr::thread::scoped_lock l(d_mutex);
-    d_enabled = en;
-  } else {
-    GR_LOG_WARN(d_logger,
-                "handle_enable: Non-PMT type received, expecting Boolean PMT");
+  for (unsigned int out_idx = 0; out_idx < d_max_port; out_idx++) {
+    if (output_index == out_idx) {
+      d_enabled_output_ports[out_idx] = true;
+    } else {
+      d_enabled_output_ports[out_idx] = false;
+    }
   }
 }
 
@@ -108,6 +105,26 @@ bool selector_impl::check_topology(int ninputs, int noutputs) {
   }
 }
 
+void selector_impl::set_port_enabled(unsigned int port, bool enabled) {
+  if (port >= d_max_port) {
+    BOOST_LOG_TRIVIAL(info) << "disable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
+    return;
+  }
+
+  gr::thread::scoped_lock l(d_mutex);
+  d_enabled_output_ports[port] = enabled;
+}
+
+bool selector_impl::is_port_enabled(unsigned int port) {
+  if (port >= d_max_port) {
+    BOOST_LOG_TRIVIAL(info) << "disable_output_port() - Port: " << port << " is greater than max port of: " << d_max_port;
+    return false;
+  }
+
+  gr::thread::scoped_lock l(d_mutex);
+  return d_enabled_output_ports[port];
+}
+
 int selector_impl::general_work(int noutput_items,
                                 gr_vector_int &ninput_items,
                                 gr_vector_const_void_star &input_items,
@@ -116,22 +133,24 @@ int selector_impl::general_work(int noutput_items,
   uint8_t **out = (uint8_t **)&output_items[0];
 
   gr::thread::scoped_lock l(d_mutex);
-  if (d_enabled) {
+
+  for (size_t out_idx = 0; out_idx < output_items.size(); out_idx++) {
+    if (d_enabled_output_ports[out_idx]) {
+      std::copy(in[d_input_index],
+                in[d_input_index] + noutput_items * d_itemsize,
+                out[out_idx]);
+      produce(out_idx, noutput_items);
+    }
+  }
+
+  /*
     std::copy(in[d_input_index],
               in[d_input_index] + noutput_items * d_itemsize,
               out[d_output_index]);
-    produce(d_output_index, noutput_items);
-  }
+    produce(d_output_index, noutput_items);*/
 
   consume_each(noutput_items);
   return WORK_CALLED_PRODUCE;
-}
-
-void selector_impl::setup_rpc() {
-#ifdef GR_CTRLPORT
-  add_rpc_variable(rpcbasic_sptr(new rpcbasic_register_handler<selector>(
-      alias(), "en", "", "Enable", RPC_PRIVLVL_MIN, DISPNULL)));
-#endif /* GR_CTRLPORT */
 }
 
 } /* namespace blocks */
