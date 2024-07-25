@@ -223,8 +223,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-deprecated-declarations -Wno-error=depreca
 
 SET(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC -D_GLIBCXX_ASSERTIONS")
+# The D_GLIBCXX_ASSERTIONS flag will cause a crash when an error is detected, making it easier to catch bugs
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC -D_GLIBCXX_ASSERTIONS")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC")
 
 
 list(APPEND trunk_recorder_sources
