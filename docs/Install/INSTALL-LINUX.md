@@ -213,7 +213,7 @@ Now restart to make sure these drivers are not loaded.
 
 ## Configuring Trunk Recorder
 
-The next step is to [configure Trunk Recorder](CONFIGURE.md) for the system you are trying to capture.
+The next step is to [configure Trunk Recorder](../CONFIGURE.md) for the system you are trying to capture.
 
 ## Running trunk recorder. 
 

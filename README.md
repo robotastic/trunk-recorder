@@ -1,7 +1,7 @@
 ![Trunk Recorder](./docs/media/trunk-recorder-header.png)
 ---
 [![Discord](./docs/media/discord.jpg)](https://discord.gg/btJAhESnks) &nbsp;&nbsp;
-[![Trunk Recorder Docuemntation](./docs/media/trunk-recorder-docs.png)](https://trunkrecorder.com/docs/intro) 
+
 
 ## Sponsors
 **Do you find Trunk Recorder and OpenMHz useful?** 
