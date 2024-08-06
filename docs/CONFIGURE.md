@@ -362,7 +362,9 @@ This plugin does not, by itself, stream audio to any online services.  Because i
 | address   |    ✓     |               | string               | IP address to send this audio stream to.  Use "127.0.0.1" to send to the same computer that trunk-recorder is running on. |
 | port      |    ✓     |               | number               | UDP or TCP port that this stream will send audio to.         |
 | TGID      |    ✓     |               | number               | Audio from this Talkgroup ID will be sent on this stream.  Set to 0 to stream all recorded talkgroups. |
-| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, src, freq, audio_sample_rate, and short_name.  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored.
+| sendJSON  |          |     false     | **true** / **false** | When set to true, JSON metadata will be prepended to the audio data each time a packet is sent.  JSON fields are talkgroup, patched_talkgroups, src, src_tag, freq, audio_sample_rate, short_name, event (set to "audio").  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian). If this is set to **true**, the sendTGID field will be ignored. |
+| sendCallStart |      | false         | **true** / **false** | Only used if sendJSON is set to **true**.  When set to true, a JSON message will be sent at the start of each call that includes the following JSON fields: talkgroup, talkgroup_tag, patched_talkgroups, patched_talkgroup_tags, src, src_tag, freq, short_name, event (set to "call_start").  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian).
+| sendCallEnd |      | false         | **true** / **false** | Only used if sendJSON is set to **true**.  When set to true, a JSON message will be sent at the end of each call that includes the following JSON fields: talkgroup, patched_talkgroups, freq, short_name, event (set to "call_end").  The length of the JSON metadata is prepended to the metadata in long integer format (4 bytes, little endian).
 | sendTGID  |          |     false     | **true** / **false** | Deprecated.  Recommend using sendJSON for metadata instead.  If sendJSON is set to true, this setting will be ignored.  When set to true, the TGID will be prepended in long integer format (4 bytes, little endian) to the audio data each time a packet is sent. |
 | shortName |          |               | string               | shortName of the System that audio should be streamed for.  This should match the shortName of a system that is defined in the main section of the config file.  When omitted, all Systems will be streamed to the address and port configured.  If TGIDs from Systems overlap, JSON metadata should be used to prevent interleaved audio for talkgroups from different Systems with the same TGID.
 |  useTCP   |          |     false     | **true** / **false** | When set to true, TCP will be used instead of UDP.
@@ -456,6 +458,9 @@ The matching simplestream config to send audio from talkgroup 58918 to TCP port 
             "useTCP":true}
         }
 ```
+#### Example - Sending Audio to FFMPEG for compression
+Here's an FFMPEG command that takes PCM audio from simplestream via UDP, cleans it up, and outputs ogg/opus to stdout.  Note that this will only work if sendTGID and sendJSON are both set to false and only a single talkgroup is fed to ffmpeg over the UDP port, as ffmpeg cannot interpret any metadata.
+`ffmpeg -loglevel warning -f s16le -ar 16000 -ac 1 -i udp://localhost:9125 -af:a adeclick -f:a ogg -c:a libopus -frame_duration:a 20 -vbr:a on -b:a 48000 -application:a voip pipe:1`
 
 ## talkgroupsFile
 
