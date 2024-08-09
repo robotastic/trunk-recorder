@@ -12,6 +12,9 @@
 #include <map>
 #include <vector>
 
+#include "../csv_helper.h"
+#include <csv-parser/csv.hpp>
+
 struct Freq_Table {
   unsigned long id;
   long offset;
@@ -25,6 +28,7 @@ struct Freq_Table {
 class P25Parser : public TrunkParser {
   std::map<int, std::map<int, Freq_Table>> freq_tables;
   std::map<int, Freq_Table>::iterator it;
+  bool custom_freq_table_loaded = false;
 
 public:
   P25Parser();
@@ -37,6 +41,7 @@ public:
   std::string channel_id_to_freq_string(int chan_id, int sys_num);
   void print_bitset(boost::dynamic_bitset<> &tsbk);
   void add_freq_table(int freq_table_id, Freq_Table table, int sys_num);
+  void load_freq_table(std::string custom_freq_table_file, int sys_num);
   double channel_id_to_frequency(int chan_id, int sys_num);
   std::string channel_to_string(int chan, int sys_num);
   std::vector<TrunkMessage> parse_message(gr::message::sptr msg, System *system);

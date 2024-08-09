@@ -121,6 +121,9 @@ public:
   virtual void set_channel_file(std::string channel_file) = 0;
   virtual bool has_channel_file() = 0;
   virtual void set_unit_tags_file(std::string) = 0;
+  virtual void set_custom_freq_table_file(std::string custom_freq_table_file) = 0;
+  virtual std::string get_custom_freq_table_file() = 0;
+  virtual bool has_custom_freq_table_file() = 0;
   virtual int control_channel_count() = 0;
   virtual void add_control_channel(double channel) = 0;
   virtual double get_next_control_channel() = 0;

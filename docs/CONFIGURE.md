@@ -248,6 +248,7 @@ There is a list of available Plugins [here](./Plugins.md).
 | bandplanHigh           |          |                            | number                                                                       | *SmartNet, 400_custom only* The highest channel in the system, specified in Hz. |
 | bandplanSpacing        |          |                            | number                                                                       | *SmartNet, 400_custom only* The channel spacing, specified in Hz. Typically this is *25000*. |
 | bandplanOffset         |          |                            | number                                                                       | *SmartNet, 400_custom only* The offset used to calculate frequencies. |
+| customFrequencyTableFile|         |                            | string                                                                       | *P25 only* The filename for a CSV file that provides information about the P25 custom frequency tables. The format for the file is described below. |
 | decodeMDC              |          | false                      | **true** / **false**                                                         | *Conventional systems only* enable the MDC-1200 signaling decoder. |
 | decodeFSync            |          | false                      | **true** / **false**                                                         | *Conventional systems only* enable the Fleet Sync signaling decoder. |
 | decodeStar             |          | false                      | **true** / **false**                                                         | *Conventional systems only* enable the Star signaling decoder. |
@@ -534,3 +535,28 @@ In the second row of the example below, the first capture group `([0-9]{2})` bec
 | 911000                   | Dispatch     |
 | 1[1245]10([0-9]{2})[127] | Engine $1    |
 | /^1[78]3(1[0-9]{2})/     | Ambulance $1 |
+
+## customFrequencyTableFile
+
+This file allows for you to specify custom P25 frequency table information.
+
+**It is highly recommended to only use this file when the system control channel is not accurately broadcasting frequency table information. In most cases, this file should not be needed.**
+
+| Column Name | Required | Value |
+|-------------|----------|-------|
+| TABLEID     | ✔️       | The frequency table ID. This ID uses One-Based numbering to match the RadioReference format. |
+| TYPE        | ✔️       | The type of frequency table. This should be either **TDMA** or **FDMA**. |
+| BASE        | ✔️       | The base frequency defined in MHz. (Example: 851.00625)|
+| SPACING     | ✔️       | The channel spacing defined in KHz. (Example 6.25)  |
+| OFFSET      | ✔️       | The transmit offset defined in MHz. (Example -45)  |
+
+A **Header Row** is required for the file and the headers must match the column names above. Column headers are case sensitive and must be provided in uppercase.
+
+**RadioReference Subscribers** please note that if you copy this information directly from RadioReference, you will need to update the column headers.
+
+| TABLEID | TYPE | BASE      | SPACING | OFFSET |
+|---------|------|-----------|---------|--------|
+| 1       | FDMA | 851.00625 | 6.25    | -45    |
+| 2       | FDMA | 762.00625 | 6.25    | +30    |
+| 3       | TDMA | 851.01250 | 12.5    | -45    |
+| 4       | TDMA | 762.00625 | 12.5    | +30    |
