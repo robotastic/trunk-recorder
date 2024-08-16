@@ -18,11 +18,23 @@ bool start_recorder(Call *call, TrunkMessage message, Config &config, System *sy
 
   bool source_found = false;
   bool recorder_found = false;
+  bool override_record_unknown = false;
+  
   Recorder *recorder;
   Recorder *debug_recorder;
   Recorder *sigmf_recorder;
+  
+  if (!talkgroup){
+    BOOST_FOREACH (auto &TGID, sys->get_talkgroup_patch(call->get_talkgroup())) {  //for each talkgroup in the patch
+      if (sys->find_talkgroup(TGID) != NULL){  //if the patched talkgroup is known
+        override_record_unknown = true;
+        std::string loghdr = log_header( call->get_short_name(), call->get_call_num(), call->get_talkgroup_display(), call->get_freq());
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[33mEnabling recording of TG not in Talkgroup File due to active supergroup patch\u001b[0m ";
+      }
+    }
+  }
 
-  if (!talkgroup && (sys->get_record_unknown() == false)) {
+  if (!talkgroup && (sys->get_record_unknown() == false) && override_record_unknown == false) {
     call->set_state(MONITORING);
     call->set_monitoring_state(UNKNOWN_TG);
     if (sys->get_hideUnknown() == false) {
