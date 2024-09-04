@@ -66,7 +66,7 @@ class Simple_Stream : public Plugin_Api {
     //Call local_call = *call;
     System *call_system = call->get_system();
     uint32_t call_tgid = call->get_talkgroup();
-    uint32_t call_src = call->get_current_source_id();
+    int32_t call_src = call->get_current_source_id();
     uint32_t call_freq = call->get_freq();
     std::string call_short_name = call->get_short_name();
     std::string call_src_tag = call_system->find_unit_tag(call_src);
@@ -126,7 +126,7 @@ class Simple_Stream : public Plugin_Api {
     boost::system::error_code error;
     System *call_system = call->get_system();
     uint32_t call_tgid = call->get_talkgroup();
-    uint32_t call_src = call->get_current_source_id();
+    int32_t call_src = call->get_current_source_id();
     uint32_t call_freq = call->get_freq();
     std::string call_short_name = call->get_short_name();
     std::string call_src_tag = call_system->find_unit_tag(call_src);
