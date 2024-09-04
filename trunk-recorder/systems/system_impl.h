@@ -59,6 +59,7 @@ public:
   std::string talkgroups_file;
   std::string channel_file;
   std::string unit_tags_file;
+  std::string custom_freq_table_file;
   std::string short_name;
   std::string api_key;
   std::string bcfy_api_key;
@@ -181,6 +182,9 @@ public:
   void set_channel_file(std::string channel_file);
   bool has_channel_file();
   void set_unit_tags_file(std::string);
+  void set_custom_freq_table_file(std::string custom_freq_table_file);
+  std::string get_custom_freq_table_file();
+  bool has_custom_freq_table_file();
   int control_channel_count();
   int get_message_count();
   void set_message_count(int count);

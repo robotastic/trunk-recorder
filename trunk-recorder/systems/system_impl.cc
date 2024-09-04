@@ -323,6 +323,22 @@ void System_impl::set_unit_tags_file(std::string unit_tags_file) {
   this->unit_tags->load_unit_tags(unit_tags_file);
 }
 
+void System_impl::set_custom_freq_table_file(std::string custom_freq_table_file) {
+  this->custom_freq_table_file = custom_freq_table_file;
+}
+
+std::string System_impl::get_custom_freq_table_file(){
+  return this->custom_freq_table_file;
+}
+
+bool System_impl::has_custom_freq_table_file() {
+    if (this->custom_freq_table_file.length() > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 Source *System_impl::get_source() {
   return this->source;
 }

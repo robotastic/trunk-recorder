@@ -284,6 +284,16 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           }
           system->set_talkgroups_file(element.value("talkgroupsFile", ""));
           BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
+
+          bool custom_freq_table_file_exists = element.contains("customFrequencyTableFile");
+          if (custom_freq_table_file_exists)
+          {
+            std::string custom_freq_table_file = element["customFrequencyTableFile"];
+            system->set_custom_freq_table_file(custom_freq_table_file);
+            BOOST_LOG_TRIVIAL(info) << "Custom Frequency Table File: " << custom_freq_table_file;
+          }
+
+
         } else {
           BOOST_LOG_TRIVIAL(error) << "System Type in config.json not recognized";
           return false;

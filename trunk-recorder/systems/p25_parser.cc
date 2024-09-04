@@ -1,7 +1,68 @@
 #include "p25_parser.h"
 #include "../formatter.h"
 
+using namespace csv;
+
 P25Parser::P25Parser() {}
+
+
+void P25Parser::load_freq_table(std::string custom_freq_table_file, int sys_num) {
+
+  if (custom_freq_table_file == "") {
+    return;
+  } else {
+    BOOST_LOG_TRIVIAL(info) << "Loading Custom Frequency Table File: " << custom_freq_table_file;
+  }
+
+  CSVFormat format;
+  format.trim({' ', '\t'});
+  CSVReader reader(custom_freq_table_file, format);
+  std::vector<std::string> headers = reader.get_col_names();
+
+  if (headers[0] != "TABLEID" || headers[1] != "TYPE" || headers[2] != "BASE" || headers[3] != "SPACING" || headers[4] != "OFFSET" ) {
+    BOOST_LOG_TRIVIAL(error) << "Cuustom Frequency Table File Invalid Headers.";
+  }
+
+  for (CSVRow &row : reader) { // Input iterator
+    unsigned long id = row["TABLEID"].get<unsigned long>() - 1; //CSV Format is One-Based, but the Standard is Zero-Based.
+    std::string type = row["TYPE"].get<std::string>();
+    unsigned long frequency = row["BASE"].get<double>() * 1000000;
+    unsigned long step = row["SPACING"].get<double>() * 1000;
+
+    // Need to remove the "+" sign from positive numbers if it exists.
+    std::string offset_string = row["OFFSET"].get<std::string>();
+    if(offset_string[0] == '+'){
+      offset_string = offset_string.substr(1);
+    }
+
+    long offset = std::stol(offset_string) * 1000000;
+
+    Freq_Table temp_table;
+    temp_table.id = id;
+    temp_table.frequency = frequency;
+    temp_table.step = step;
+    temp_table.offset = offset;
+
+    if(type == "FDMA"){
+      temp_table.phase2_tdma = false;
+      temp_table.slots_per_carrier = 1;
+      temp_table.bandwidth = 12.5;
+    }
+    else
+    {
+      temp_table.phase2_tdma = true;
+      temp_table.slots_per_carrier = 2;
+      temp_table.bandwidth = 6.25;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Adding Frequency Table:\t" << id << "\t" << type << "\t" << frequency << "\t" << step << "\t" << offset;
+  
+    add_freq_table(id, temp_table, sys_num);
+  }
+
+  custom_freq_table_loaded = true;
+
+}
 
 void P25Parser::add_freq_table(int freq_table_id, Freq_Table temp_table, int sys_num) {
   /*std::cout << "Add  - Channel id " << std::dec << chan_id << " freq " <<
@@ -962,6 +1023,11 @@ std::vector<TrunkMessage> P25Parser::parse_message(gr::message::sptr msg, System
 
   long type = msg->type();
   int sys_num = system->get_sys_num();
+
+  if(system->has_custom_freq_table_file() && custom_freq_table_loaded == false){
+    load_freq_table(system->get_custom_freq_table_file(), sys_num);
+  }
+
   TrunkMessage message;
   message.message_type = UNKNOWN;
   message.opcode = 255;
