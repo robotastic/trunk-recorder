@@ -86,6 +86,7 @@ public:
   bool conversation_mode;
   bool qpsk_mod;
   double squelch_db;
+  float tau;
   double analog_levels;
   double digital_levels;
 
@@ -154,6 +155,8 @@ public:
   bool get_qpsk_mod();
   void set_squelch_db(double s);
   double get_squelch_db();
+  void set_tau(float tau);
+  float get_tau() const;
   void set_max_dev(int max_dev);
   int get_max_dev();
   void set_filter_width(double f);
