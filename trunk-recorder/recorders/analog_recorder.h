@@ -68,8 +68,8 @@ int plugman_signal(long unitId, const char *signaling_type, gr::blocks::SignalTy
 analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type);
 analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq);
 class analog_recorder : public gr::hier_block2, public Recorder {
-  friend analog_recorder_sptr make_analog_recorder(Source *src, System *system, Recorder_Type type);
-  friend analog_recorder_sptr make_analog_recorder(Source *src, System *system, Recorder_Type type, float tone_freq);
+  friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type);
+  friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq);
 
 protected:
   analog_recorder(Source *src, System *system, Recorder_Type type, float tone_freq);
