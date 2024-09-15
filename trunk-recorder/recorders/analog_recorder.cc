@@ -37,11 +37,11 @@ std::vector<float> design_filter(double interpolation, double deci) {
   return result;
 }
 
-analog_recorder_sptr make_analog_recorder(Source *src, System *system, Recorder_Type type) {
+analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type) {
   return gnuradio::get_initial_sptr(new analog_recorder(src, system, type, -1));
 }
 
-analog_recorder_sptr make_analog_recorder(Source *src, System *system, Recorder_Type type, float tone_freq) {
+analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq) {
   return gnuradio::get_initial_sptr(new analog_recorder(src, system, type, tone_freq));
 }
 
@@ -154,7 +154,7 @@ analog_recorder::analog_recorder(Source *src, System *system, Recorder_Type type
   converter = gr::blocks::float_to_short::make(1, 32767);
 
   /* de-emphasis */
-  d_tau = system->get_tau(); //updated to pull from config
+  d_tau = (system != nullptr) ? system->get_tau() : 0.000075f;  // Default to 75us if system is not provided
   d_fftaps.resize(2);
   d_fbtaps.resize(2);
   calculate_iir_taps(d_tau);
