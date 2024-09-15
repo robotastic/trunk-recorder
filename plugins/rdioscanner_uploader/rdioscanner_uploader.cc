@@ -25,8 +25,12 @@ struct Rdio_Scanner_Uploader_Data {
   std::string server;
 };
 
+boost::mutex curl_share_mutex;
+
 class Rdio_Scanner_Uploader : public Plugin_Api {
   Rdio_Scanner_Uploader_Data data;
+  CURLSH *curl_share;
+  long curl_dns_ttl;
 
 public:
   Rdio_Scanner_System *get_system(std::string short_name) {
@@ -244,6 +248,9 @@ public:
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
 
+      curl_easy_setopt(curl, CURLOPT_SHARE, curl_share); 
+      curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, curl_dns_ttl);
+
       curl_multi_add_handle(multi_handle, curl);
 
       curl_multi_perform(multi_handle, &still_running);
@@ -395,7 +402,23 @@ public:
       return 1;
     }
 
+    // Initialize shared curl cache to reduce DNS lookups (5 min TTL)
+    curl_share = curl_share_init();
+    curl_share_setopt(curl_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+    curl_share_setopt(curl_share, CURLSHOPT_LOCKFUNC, curl_lock_cb);
+    curl_share_setopt(curl_share, CURLSHOPT_UNLOCKFUNC, curl_unlock_cb);
+    curl_dns_ttl = 300;
+
     return 0;
+  }
+
+  // curl callbacks
+  static void curl_lock_cb(CURL *handle, curl_lock_data data, curl_lock_access access, void *userptr) {
+    curl_share_mutex.lock();
+  }
+
+  static void curl_unlock_cb(CURL *handle, curl_lock_data data, curl_lock_access access, void *userptr) {
+    curl_share_mutex.unlock();
   }
 
   /*

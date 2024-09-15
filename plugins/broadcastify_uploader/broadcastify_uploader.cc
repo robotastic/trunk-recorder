@@ -21,10 +21,14 @@ struct Broadcastify_Uploader_Data {
   bool ssl_verify_disable;
 };
 
+boost::mutex curl_share_mutex;
+
 class Broadcastify_Uploader : public Plugin_Api {
   // float aggr_;
   // my_plugin_aggregator() : aggr_(0) {}
   Broadcastify_Uploader_Data data;
+  CURLSH *curl_share;
+  long curl_dns_ttl;
 
 public:
   std::string get_api_key(std::string short_name) {
@@ -101,6 +105,9 @@ public:
 
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
+      curl_easy_setopt(curl, CURLOPT_SHARE, curl_share); 
+      curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, curl_dns_ttl);
+
       /* Perform the request, res will get the return code */
       res = curl_easy_perform(curl);
 
@@ -168,6 +175,9 @@ public:
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_buffer);
+
+      curl_easy_setopt(curl, CURLOPT_SHARE, curl_share); 
+      curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, curl_dns_ttl);
 
       // broadcastify seems to make a habit out of letting their ssl certs expire
       if (this->data.ssl_verify_disable) {
@@ -356,7 +366,23 @@ public:
       return 1;
     }
 
+    // Initialize shared curl cache to reduce DNS lookups (5 min TTL)
+    curl_share = curl_share_init();
+    curl_share_setopt(curl_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+    curl_share_setopt(curl_share, CURLSHOPT_LOCKFUNC, curl_lock_cb);
+    curl_share_setopt(curl_share, CURLSHOPT_UNLOCKFUNC, curl_unlock_cb);
+    curl_dns_ttl = 300;
+
     return 0;
+  }
+
+  // curl callbacks
+  static void curl_lock_cb(CURL *handle, curl_lock_data data, curl_lock_access access, void *userptr) {
+    curl_share_mutex.lock();
+  }
+
+  static void curl_unlock_cb(CURL *handle, curl_lock_data data, curl_lock_access access, void *userptr) {
+    curl_share_mutex.unlock();
   }
 
   /*
