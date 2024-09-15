@@ -155,8 +155,8 @@ public:
   bool get_qpsk_mod();
   void set_squelch_db(double s);
   double get_squelch_db();
-  void set_tau(float tau);
-  float get_tau() const;
+  void set_tau(float tau) override;
+  float get_tau() const override;
   void set_max_dev(int max_dev);
   int get_max_dev();
   void set_filter_width(double f);
