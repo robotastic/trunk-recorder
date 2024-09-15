@@ -93,8 +93,8 @@ public:
   virtual bool get_qpsk_mod() = 0;
   virtual void set_squelch_db(double s) = 0;
   virtual double get_squelch_db() = 0;
-  virtual void set_tau(float t) = 0;
-  virtual float get_tau() = 0;
+  virtual void set_tau(float tau) = 0;
+  virtual float get_tau() const = 0;
   virtual void set_max_dev(int max_dev) = 0;
   virtual int get_max_dev() = 0;
   virtual void set_filter_width(double f) = 0;
