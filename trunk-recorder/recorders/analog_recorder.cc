@@ -37,12 +37,12 @@ std::vector<float> design_filter(double interpolation, double deci) {
   return result;
 }
 
-analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type) {
-  return gnuradio::get_initial_sptr(new analog_recorder(src, type, -1));
+analog_recorder_sptr make_analog_recorder(Source *src, System *system, Recorder_Type type) {
+  return gnuradio::get_initial_sptr(new analog_recorder(src, system, type, -1));
 }
 
-analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq) {
-  return gnuradio::get_initial_sptr(new analog_recorder(src, type, tone_freq));
+analog_recorder_sptr make_analog_recorder(Source *src, System *system, Recorder_Type type, float tone_freq) {
+  return gnuradio::get_initial_sptr(new analog_recorder(src, system, type, tone_freq));
 }
 
 void analog_recorder::set_tau(float tau) {
@@ -91,7 +91,7 @@ analog_recorder::analog_recorder(Source *src, System *system, Recorder_Type type
   // int nchars;
 
   source = src;
-  this.system = system;
+  this->system = system;
   chan_freq = source->get_center();
   center_freq = source->get_center();
   config = source->get_config();
