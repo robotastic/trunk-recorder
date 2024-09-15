@@ -38,11 +38,11 @@ std::vector<float> design_filter(double interpolation, double deci) {
 }
 
 analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type) {
-  return gnuradio::get_initial_sptr(new analog_recorder(src, system, type, -1));
+  return gnuradio::get_initial_sptr(new analog_recorder(src, static_cast<System*>(nullptr), type, -1));
 }
 
 analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq) {
-  return gnuradio::get_initial_sptr(new analog_recorder(src, system, type, tone_freq));
+  return gnuradio::get_initial_sptr(new analog_recorder(src, static_cast<System*>(nullptr), type, tone_freq));
 }
 
 void analog_recorder::set_tau(float tau) {
