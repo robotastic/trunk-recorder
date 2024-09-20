@@ -303,7 +303,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         double digital_levels = element.value("digitalLevels", 1.0);
         double analog_levels = element.value("analogLevels", 8.0);
         double squelch_db = element.value("squelch", -160.0);
-        float tau = element.value("deemphasisTau", 0.000075);  // Default to 75us if not specified
+        float tau = element.value("deemphasisTau", 0.000750);  // Default to 750us if not specified
         int max_dev = element.value("maxDev", 5000);
         double filter_width = element.value("filterWidth", 1.0);
         bool conversation_mode = element.value("conversationMode", true);
