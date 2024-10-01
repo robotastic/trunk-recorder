@@ -185,14 +185,14 @@ void iqfile_source_impl::open(const char* filename,
     }
 
     if ((d_new_fp = fopen(filename, "rb")) == NULL) {
-        GR_LOG_ERROR(d_logger, boost::format("%s: %s") % filename % strerror(errno));
+        GR_LOG_ERROR(d_logger, (boost::format("%s: %s") % filename % strerror(errno)).str());
         throw std::runtime_error("can't open file");
     }
 
     struct GR_STAT st;
 
     if (GR_FSTAT(GR_FILENO(d_new_fp), &st)) {
-        GR_LOG_ERROR(d_logger, boost::format("%s: %s") % filename % strerror(errno));
+        GR_LOG_ERROR(d_logger, (boost::format("%s: %s") % filename % strerror(errno)).str());
         throw std::runtime_error("can't fstat file");
     }
     if (S_ISREG(st.st_mode)) {
