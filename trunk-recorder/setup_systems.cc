@@ -42,6 +42,7 @@ bool setup_conventional_channel(System *system, double frequency, long channel_i
           rec = source->create_conventional_recorder(tb);
         }
         rec->start(call);
+        rec->set_tau(system->get_tau()); //set the tau value for the recorder from the system config
         call->set_is_analog(true);
         call->set_recorder((Recorder *)rec.get());
         call->set_state(RECORDING);
