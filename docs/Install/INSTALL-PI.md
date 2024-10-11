@@ -84,7 +84,13 @@ sudo apt upgrade
 sudo apt -y install libssl-dev openssl curl git fdkaac sox libcurl3-gnutls libcurl4 libcurl4-openssl-dev gnuradio gnuradio-dev gr-osmosdr libhackrf-dev libuhd-dev cmake make build-essential libboost-all-dev libusb-1.0-0-dev libsndfile1-dev
 ```
 
-Configure RTL-SDRs to load correctly:
+- Remove xtra-dkms.
+DKMS is not needed on the Raspberry Pi platform, and just causes issues. The above command actually returns an error on Raspberry Pi OS. So we remove that module from our build so we do not get errors from subsaquent `apt` calls.
+```bash
+sudo apt remove xtrx-dkms
+```
+
+## Configure RTL-SDRs to load correctly:
 
 ```bash
 sudo wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules ~/rtl-sdr.rules
@@ -97,7 +103,55 @@ You will need to restart for the rules to take effect. Logging out and logging b
 sudo shutdown -r now
 ```
 
-Now go [Build](#build-trunk-recorder) Trunk Recorder!
+## Configuring the UHD for Ettus SDRs
+
+If you haven't setup UHD yet there are a few extra steps you need to take:
+
+Install the UHD drivers:
+
+```bash
+sudo apt-get install libuhd-dev uhd-host
+```
+
+Download the firmware images. The location of the downloader is different than the error message:
+
+```bash
+dpkg -L uhd-host | grep "downloader"
+```
+The run the downloader at the location identified, it should be something like this:
+
+```bash
+sudo python3 /usr/libexec/uhd/utils/uhd_images_downloader.py
+```
+
+Setup the udev rules so any user can access the USB, as documented [here](https://files.ettus.com/manual/page_transport.html#transport_usb_udev):
+
+```bash
+cd /usr/libexec/uhd/utils/
+sudo cp uhd-usrp.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+## Building Trunk Recorder
+
+In order to keep your copy of the Trunk Recorder source code free of build artifacts created by the build process, it is suggested to create a separate "out-of-tree" build directory. We will use `trunk-build` as our build directory. We by default do this in our home directory (`~` - Is a shortcut back to home.).
+
+**Note:** Depending on the ammount of RAM in your Raspberry Pi, it may be best to run `make -j1` (2GB), `make -j3` (4GB), and `make -j4` (8GB) in order to ensure that you do not run out of RAM, at the cost of making the compile process take longer. If you ran out of RAM the compile process will fail competely, so it can be an acceptable tradeoff.
+
+```bash
+cd ~
+mkdir trunk-build
+git clone https://github.com/robotastic/trunk-recorder.git
+cd trunk-build
+cmake ../trunk-recorder
+make -j1
+sudo make install
+```
+
+## Configuring Trunk Recorder
+
+The next step is to [configure Trunk Recorder](../CONFIGURE.md) for the system you are trying to capture.
 
 ***
 # Ubuntu 22.04 Server (64-bit support!)
