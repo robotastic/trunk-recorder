@@ -303,6 +303,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         double digital_levels = element.value("digitalLevels", 1.0);
         double analog_levels = element.value("analogLevels", 8.0);
         double squelch_db = element.value("squelch", -160.0);
+        float tau = element.value("deemphasisTau", 0.000750);  // Default to 750us if not specified
         int max_dev = element.value("maxDev", 5000);
         double filter_width = element.value("filterWidth", 1.0);
         bool conversation_mode = element.value("conversationMode", true);
@@ -325,7 +326,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
           BOOST_LOG_TRIVIAL(info) << "Modulation: qpsk";
           qpsk_mod = true;
         }
-
+        system->set_tau(tau);
         system->set_squelch_db(squelch_db);
         system->set_analog_levels(analog_levels);
         system->set_digital_levels(digital_levels);
@@ -337,6 +338,7 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
         BOOST_LOG_TRIVIAL(info) << "Analog Recorder Maximum Deviation: " << element.value("maxDev", 4000);
         BOOST_LOG_TRIVIAL(info) << "Filter Width: " << filter_width;
         BOOST_LOG_TRIVIAL(info) << "Squelch: " << element.value("squelch", -160);
+        BOOST_LOG_TRIVIAL(info) << "De-emphasis Tau: " << tau;
         system->set_api_key(element.value("apiKey", ""));
         BOOST_LOG_TRIVIAL(info) << "API Key: " << system->get_api_key();
         system->set_bcfy_api_key(element.value("broadcastifyApiKey", ""));

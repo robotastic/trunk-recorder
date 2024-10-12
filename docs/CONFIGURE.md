@@ -253,6 +253,7 @@ There is a list of available Plugins [here](./Plugins.md).
 | decodeFSync            |          | false                      | **true** / **false**                                                         | *Conventional systems only* enable the Fleet Sync signaling decoder. |
 | decodeStar             |          | false                      | **true** / **false**                                                         | *Conventional systems only* enable the Star signaling decoder. |
 | decodeTPS              |          | false                      | **true** / **false**                                                         | *Conventional systems only* enable the Motorola Tactical Public Safety (aka FDNY Fireground) signaling decoder. |
+| deemphasisTau              |          | 0.000750                      | number                                                        | *Conventional systems only* configure the de-emphasis time constant. 750µs for NFM (default), 75µs for WFM North America, 50µs for WFM most other regions.   |
 | enabled                |          | true                       | **true** / **false**                                                         | control whether a configured system is enabled or disabled                 |
 
 ***

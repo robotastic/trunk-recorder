@@ -204,6 +204,14 @@ double System_impl::get_squelch_db() {
   return squelch_db;
 }
 
+void System_impl::set_tau(float t){
+  tau = t;
+}
+
+float System_impl::get_tau() const{
+  return tau;
+}
+
 void System_impl::set_filter_width(double filter_width) {
   this->filter_width = filter_width;
 }

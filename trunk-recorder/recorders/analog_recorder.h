@@ -72,7 +72,7 @@ class analog_recorder : public gr::hier_block2, public Recorder {
   friend analog_recorder_sptr make_analog_recorder(Source *src, Recorder_Type type, float tone_freq);
 
 protected:
-  analog_recorder(Source *src, Recorder_Type type, float tone_freq);
+  analog_recorder(Source *src, System *system, Recorder_Type type, float tone_freq);
 
 public:
   ~analog_recorder();
@@ -105,6 +105,8 @@ public:
   void plugin_callback_handler(int16_t *samples, int sampleCount);
   double get_output_sample_rate();
   double since_last_write();
+  void set_tau(float tau);
+  float get_tau() const;
 
 private:
   double center_freq, chan_freq;
@@ -130,12 +132,13 @@ private:
   /* De-emph IIR filter taps */
   std::vector<double> d_fftaps; /*! Feed forward taps. */
   std::vector<double> d_fbtaps; /*! Feed back taps. */
-  double d_tau;                 /*! De-emphasis time constant. */
+  float d_tau;                 /*! De-emphasis time constant. */
 
   Call *call;
   Config *config;
   Source *source;
-  void calculate_iir_taps(double tau);
+  System *system;
+  void calculate_iir_taps(float tau);
 
   /* GR blocks */
   // channelizer::sptr prefilter;
