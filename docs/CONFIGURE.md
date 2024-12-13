@@ -149,7 +149,7 @@ There is a list of available Plugins [here](./Plugins.md).
 | audioStreaming               |          | false                                            | **true** / **false**                                         | Whether or not to enable the audio streaming callbacks for plugins. |
 | newCallFromUpdate            |          | true                                             | **true** / **false**                                         | Allow for UPDATE trunking messages to start a new Call, in addition to GRANT messages. This may result in more Calls with no transmisions, and use more Recorders. The flipside is that it may catch parts of a Call that would have otherwise been missed. Turn this off if you are running out of Recorders. |
 | softVocoder                  |          | false                                            | **true** / **false**                                         | Use the Software Decode vocoder from OP25 for Phase 1 audio. Give it a try if you are hearing weird tones in your audio. Whether it makes your audio sound better or worse is a matter of preference. |
-
+| recordUUVCalls               |          | true                                             | **true** / **false**                                         | *P25 only* Record Unit to Unit Voice calls.        |
 
 
 ## Source Object
@@ -236,7 +236,6 @@ There is a list of available Plugins [here](./Plugins.md).
 | digitalLevels          |          | 1                          | number (1-16)                                                                | The amount of amplification that will be applied to the digital audio. |
 | unitTagsFile           |          |                            | string                                                                       | The filename of a CSV file that provides information about the unit tags. The format for the file is described below. |
 | recordUnknown          |          | true                       | **true** / **false**                                                         | Record talkgroups if they are not listed in the Talkgroups File. |
-| recordUUVCalls         |          | true                       | **true** / **false**                                                         | *P25 only* Record Unit to Unit Voice calls.        |
 | hideEncrypted          |          | false                      | **true** / **false**                                                         | Hide encrypted talkgroups log entries                        |
 | hideUnknownTalkgroups  |          | false                      | **true** / **false**                                                         | Hide unknown talkgroups log entries                          |
 | minDuration            |          | 0<br />(which is disabled) | number                                                                       | The minimum call duration in seconds (decimals allowed), calls below this number will have recordings deleted and will not be uploaded. |
