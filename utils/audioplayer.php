@@ -2,6 +2,10 @@
 // no leading period
 $FileType = 'm4a';
 
+date_default_timezone_set('America/New_York');
+$date = new DateTimeImmutable();
+
+
 /**
 *   This allows you to remove the leading portion of a directory name, so you can use
 *   absolute paths in the config file, and not have to match that structure in your web server
@@ -123,7 +127,7 @@ if (isset($_REQUEST['since']))
                     'size_kb'    => round($file->getSize() / 1024),
                     'talkgroup'  => ($TGS[$system->shortName][$TGID]['tag']) ?? $TGID,
                     'unix_date'  => $TIME,
-                    'date'       => strftime('%F %T', $TIME),
+                    'date' => date("Y-m-d\TH:i:s\Z",$TIME),
                     'frequency'  => ($FREQ / 1000000),
                     'systemname' => $system->shortName,
                 ];
