@@ -10,7 +10,7 @@ To get started, create a directory and place your **config.json** file there and
 
 ```bash
 docker run -it \
-  --devices "/dev/bus/usb:/dev/bus/usb:rwm" -e TZ=$(cat /etc/timezone) --user "$(id -u):$(id -g)" \
+  --device "/dev/bus/usb:/dev/bus/usb:rwm" -e TZ=$(cat /etc/timezone) --user "$(id -u):$(id -g)" \
   -v $(pwd):/app \
   -v /var/run/dbus:/var/run/dbus \
   -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket \
