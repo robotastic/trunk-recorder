@@ -458,12 +458,12 @@ void rx_sync::output(int16_t * samp_buf, const ssize_t slot_id) {
 		d_audio.send_audio(samp_buf, NSAMP_OUTPUT * sizeof(int16_t));
 }
 
-bool rx_sync::get_terminated(int slot) {
+std::pair<bool,long> rx_sync::get_terminated(int slot) {
 	if ((slot == 0) || (slot == 1)) {
 		return dmr.get_terminated(slot);
 	}
 	fprintf(stderr, "Error, Slot given is not 0 or 1\n");
-	return false;
+	return std::make_pair(false, 0);
 }
 
 int rx_sync::get_src_id(int slot) {

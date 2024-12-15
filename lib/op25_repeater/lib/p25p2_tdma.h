@@ -57,7 +57,7 @@ public:
 	inline void set_debug(int debug) { d_debug = debug; }
 	bool rx_sym(uint8_t sym);
 	int handle_frame(void) ;
-  	bool get_call_terminated();
+  	std::pair<bool,long> get_call_terminated();
 	void reset_call_terminated();
 	long get_ptt_src_id();
 	long get_ptt_grp_id();
@@ -82,7 +82,7 @@ private:
 	bool d_do_msgq;
 	int d_msgq_id;
 	bool d_do_audio_output;
-	bool terminate_call;
+	std::pair<bool,long> terminate_call;
 	long src_id;
 	long grp_id;
 	const op25_audio& op25audio;

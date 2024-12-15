@@ -34,8 +34,6 @@ class p25_recorder : virtual public gr::hier_block2, virtual public Recorder {
 public:
   p25_recorder(){};
   virtual ~p25_recorder(){};
-  virtual DecimSettings get_decim(long speed) = 0;
-  virtual void tune_offset(double f) = 0;
   virtual void tune_freq(double f) = 0;
   virtual bool start(Call *call) = 0;
   virtual void stop() = 0;
@@ -48,9 +46,12 @@ public:
   virtual void set_source(long src) = 0;
   virtual double since_last_write() = 0;
   virtual double get_current_length() = 0;
+  virtual void set_enabled(bool enabled) {};
+  virtual bool is_enabled() { return false; };
   virtual bool is_active() = 0;
   virtual bool is_idle() = 0;
   virtual bool is_squelched() = 0;
+  virtual double get_pwr() = 0;
   virtual std::vector<Transmission> get_transmission_list() = 0;
   virtual State get_state() = 0;
   virtual int lastupdate() = 0;

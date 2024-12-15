@@ -13,8 +13,8 @@ std::string Call_impl::get_capture_dir() {
   return this->config.capture_dir;
 }
 
-std::string Call_impl::get_temp_dir() { 
-  return this->config.temp_dir; 
+std::string Call_impl::get_temp_dir() {
+  return this->config.temp_dir;
 }
 
 /*
@@ -30,9 +30,12 @@ Call *Call::make(TrunkMessage message, System *s, Config c) {
 Call_impl::Call_impl(long t, double f, System *s, Config c) {
   config = c;
   call_num = call_counter++;
+  noise = 
+  signal = DB_UNSET;
   final_length = 0;
   idle_count = 0;
   curr_freq = 0;
+  freq_error = 0;
   curr_src_id = -1;
   talkgroup = t;
   sys = s;
@@ -60,10 +63,13 @@ Call_impl::Call_impl(long t, double f, System *s, Config c) {
 Call_impl::Call_impl(TrunkMessage message, System *s, Config c) {
   config = c;
   call_num = call_counter++;
+  noise = DB_UNSET;
+  signal = DB_UNSET;
   final_length = 0;
   idle_count = 0;
   curr_src_id = -1;
   curr_freq = 0;
+  freq_error = 0;
   talkgroup = message.talkgroup;
   sys = s;
   start_time = time(NULL);
@@ -105,8 +111,9 @@ void Call_impl::stop_call() {
     // If the call is being recorded, check to see if the recorder is currently in an INACTIVE state. This means that the recorder is not
     // doing anything and can be stopped.
     if ((state == RECORDING) && this->get_recorder()->is_idle()) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\tStopping Recorded Call_impl - Last Update: " << this->since_last_update() << "s";
-    } 
+      std::string loghdr = log_header( sys->get_short_name(), this->get_call_num(), this->get_talkgroup_display(), this->get_freq());
+      BOOST_LOG_TRIVIAL(info) << loghdr << "Stopping Recorded Call_impl - Last Update: " << this->since_last_update() << "s";
+    }
   }
 }
 long Call_impl::get_call_num() {
@@ -118,16 +125,33 @@ void Call_impl::conclude_call() {
   stop_time = time(NULL);
 
   if (state == RECORDING || (state == MONITORING && monitoringState == SUPERSEDED)) {
-    final_length = recorder->get_current_length();
-
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call_impl::end_call() State is recording, but no recorder assigned!";
-    }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\t\u001b[33mConcluding Recorded Call\u001b[0m - Last Update: " << this->since_last_update() << "s\tRecorder last write:" << recorder->since_last_write() << "\tCall Elapsed: " << this->elapsed();
+    } else {
+      final_length = recorder->get_current_length();
 
-    if (was_update) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(get_freq()) << "\t\u001b[33mCall was UPDATE not GRANT\u001b[0m";
     }
+
+
+    if (this->is_conventional()) {
+      // Update the signal and noise levels for the call
+      // the squelch could be open if the program is being forced to stop
+      if (this->get_recorder()->is_idle()) {
+        this->set_noise(this->get_recorder()->get_pwr());
+      } else {
+        this->set_signal(this->get_recorder()->get_pwr());
+      }
+        std::string loghdr = log_header( sys->get_short_name(), this->get_call_num(), this->get_talkgroup_display(), this->get_freq());
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[33mConcluding Recorded Call\u001b[0m - Last Update: " << this->since_last_update() << "s\tRecorder last write:" << recorder->since_last_write() << "\tCall Elapsed: " << this->elapsed() << "\t Signal: " << floor(this->get_signal()) << "dBm\t Noise: " << floor(this->get_noise()) << "dBm";
+    } else {
+        std::string loghdr = log_header( sys->get_short_name(), this->get_call_num(), this->get_talkgroup_display(), this->get_freq());
+        BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[33mConcluding Recorded Call\u001b[0m - Last Update: " << this->since_last_update() << "s\tRecorder last write:" << recorder->since_last_write() << "\tCall Elapsed: " << this->elapsed();
+    }
+    if (was_update) {
+      std::string loghdr = log_header( sys->get_short_name(), this->get_call_num(), this->get_talkgroup_display(), this->get_freq());
+      BOOST_LOG_TRIVIAL(info) << loghdr << "\u001b[33mCall was UPDATE not GRANT\u001b[0m";
+    }
+    freq_error = this->get_recorder()->get_freq_error();
     this->get_recorder()->stop();
     transmission_list = this->get_recorder()->get_transmission_list();
     if (this->get_sigmf_recording() == true) {
@@ -160,7 +184,6 @@ Recorder *Call_impl::get_debug_recorder() {
 
 void Call_impl::set_recorder(Recorder *r) {
   recorder = r;
-  // BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tTG: " << this->get_talkgroup_display() << "\tFreq: " << format_freq(this->get_freq()) << "\t\u001b[32mStarting Recorder on Src: " << recorder->get_source()->get_device() << "\u001b[0m";
 }
 
 Recorder *Call_impl::get_recorder() {
@@ -169,6 +192,10 @@ Recorder *Call_impl::get_recorder() {
 
 double Call_impl::get_freq() {
   return curr_freq;
+}
+
+int Call_impl::get_freq_error() {
+  return freq_error;
 }
 
 double Call_impl::get_final_length() {
@@ -283,6 +310,22 @@ bool Call_impl::get_duplex() {
   return duplex;
 }
 
+double Call_impl::get_signal() {
+  return signal;
+}
+
+double Call_impl::get_noise() {
+  return noise;
+}
+
+void Call_impl::set_signal(double s) {
+  signal = s;
+}
+
+void Call_impl::set_noise(double n) {
+  noise = n;
+}
+
 void Call_impl::set_tdma_slot(int m) {
   tdma_slot = m;
   if (!phase2_tdma && tdma_slot) {
@@ -334,12 +377,13 @@ bool Call_impl::add_source(long src) {
 }
 
 bool Call_impl::update(TrunkMessage message) {
-    last_update = time(NULL);
-    if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
-      BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]\t\033[0;34m" << this->get_call_num() << "C\033[0m\tCall_impl Update, message mismatch - Call_impl TG: " << get_talkgroup() << "\t Call_impl Freq: " << get_freq() << "\tMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
-    } else {
-      return add_source(message.source);
-    }
+  last_update = time(NULL);
+  if ((message.freq != this->curr_freq) || (message.talkgroup != this->talkgroup)) {
+    std::string loghdr = log_header( sys->get_short_name(), this->get_call_num(), this->get_talkgroup_display(), this->get_freq());
+    BOOST_LOG_TRIVIAL(error) << loghdr << "C\033[0m\tCall_impl Update, message mismatch - \ttMsg Tg: " << message.talkgroup << "\tMsg Freq: " << message.freq;
+  } else {
+    return add_source(message.source);
+  }
   return false;
 }
 
@@ -348,7 +392,7 @@ int Call_impl::since_last_update() {
 }
 
 double Call_impl::since_last_voice_update() {
-    if (state == RECORDING) {
+  if (state == RECORDING) {
     Recorder *rec = this->get_recorder();
     if (rec != NULL) {
       return rec->since_last_write();
@@ -356,7 +400,6 @@ double Call_impl::since_last_voice_update() {
   }
   return -1;
 }
-
 
 long Call_impl::elapsed() {
   return time(NULL) - start_time;

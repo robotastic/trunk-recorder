@@ -3,6 +3,9 @@
 #include <ctime>
 #include <string>
 #include <vector>
+#include <json.hpp>
+
+const int DB_UNSET = 999;
 
 struct Transmission {
   long source;
@@ -77,11 +80,13 @@ enum Call_Data_Status { INITIAL,
                   
 enum Recorder_Type { DEBUG,
                       SIGMF,
+                      SIGMFC,
                       ANALOG,
                       ANALOGC,
                       P25,
                       P25C,
-                      DMR };
+                      DMR,
+                      SMARTNET };
 
 struct Call_Data_t {
   long talkgroup;
@@ -93,6 +98,11 @@ struct Call_Data_t {
   std::string talkgroup_group;
   long call_num;
   double freq;
+  int freq_error;
+  int source_num;
+  int recorder_num;
+  double signal;
+  double noise;
   long start_time;
   long stop_time;
   long error_count;
@@ -127,6 +137,9 @@ struct Call_Data_t {
   Call_Data_Status status;
   time_t process_call_time;
   int retry_attempt;
+
+  std::vector<int> plugin_retry_list;
+  nlohmann::ordered_json call_json;
 };
 
 #endif

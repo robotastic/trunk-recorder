@@ -58,10 +58,6 @@
 
 #include "../gr_blocks/transmission_sink.h"
 
-//#include <op25_repeater/include/op25_repeater/rx_status.h>
-
-unsigned GCD(unsigned u, unsigned v);
-
 class Recorder {
 
 public:
@@ -70,24 +66,39 @@ public:
     long decim2;
   };
 
+  int rec_num;
+  int rssi=0;
+  static int rec_counter;
+  std::string get_type_string();
+  bool conventional;
+  unsigned int selector_port;
+
+  int get_selector_port() { return selector_port;}
+  void set_selector_port(unsigned int port) {selector_port = port;}
   Recorder(Recorder_Type  type);
+  int get_num() { return rec_num; };
+  Recorder_Type get_type() { return type; };
+  virtual double get_pwr() { return 0; };
+
+  bool is_conventional() { return conventional; };
+
   virtual void tune_offset(double f){};
   virtual void tune_freq(double f){};
   virtual bool start(Call *call) { return false; };
   virtual void stop(){};
   virtual void set_tdma_slot(int slot){};
   virtual double get_freq() { return 0; };
+  virtual int get_freq_error() { return 0; };
   virtual Source *get_source() { return NULL; };
   virtual std::vector<Transmission> get_transmission_list() { return {}; };
   virtual void set_source(long src){};
   virtual Call_Source *get_source_list() { return NULL; };
-  int get_num() { return rec_num; };
   virtual long get_source_count() { return 0; };
   virtual long get_wav_hz() { return 8000; };
   virtual long get_talkgroup() { return 0; };
   virtual State get_state() { return INACTIVE; };
-  std::string get_type_string();
-  Recorder_Type get_type() { return type; }
+  virtual void set_enabled(bool enabled) {};
+  virtual bool is_enabled() { return false; };
   virtual bool is_active() { return false; };
   virtual bool is_analog() { return false; };
   virtual bool is_idle() { return true; };
@@ -95,8 +106,6 @@ public:
   virtual double get_current_length() { return 0; };
   virtual double since_last_write() { return 0; };
   virtual void clear(){};
-  int rec_num;
-  static int rec_counter;
   virtual boost::property_tree::ptree get_stats();
   virtual int get_recording_count() { return recording_count; }
   virtual double get_recording_duration() { return recording_duration; }

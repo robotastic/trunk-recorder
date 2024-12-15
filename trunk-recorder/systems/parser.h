@@ -20,6 +20,8 @@ enum MessageType {
   UU_ANS_REQ = 13,
   UU_V_GRANT = 14,
   UU_V_UPDATE = 15,
+  INVALID_CC_MESSAGE = 16,
+  TDULC = 17,
   UNKNOWN = 99
 };
 

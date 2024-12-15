@@ -26,6 +26,7 @@ class Source;
 class analog_recorder;
 class p25_recorder;
 class dmr_recorder;
+class sigmf_recorder;
 enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id = 0,
                               talkGroupDisplayFormat_id_tag = 1,
                               talkGroupDisplayFormat_tag_id = 2 };
@@ -34,10 +35,12 @@ enum TalkgroupDisplayFormat { talkGroupDisplayFormat_id = 0,
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 #else
 typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
 typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+typedef std::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 #endif
 
 class System {
@@ -90,6 +93,8 @@ public:
   virtual bool get_qpsk_mod() = 0;
   virtual void set_squelch_db(double s) = 0;
   virtual double get_squelch_db() = 0;
+  virtual void set_tau(float tau) = 0;
+  virtual float get_tau() const = 0;
   virtual void set_max_dev(int max_dev) = 0;
   virtual int get_max_dev() = 0;
   virtual void set_filter_width(double f) = 0;
@@ -118,6 +123,9 @@ public:
   virtual void set_channel_file(std::string channel_file) = 0;
   virtual bool has_channel_file() = 0;
   virtual void set_unit_tags_file(std::string) = 0;
+  virtual void set_custom_freq_table_file(std::string custom_freq_table_file) = 0;
+  virtual std::string get_custom_freq_table_file() = 0;
+  virtual bool has_custom_freq_table_file() = 0;
   virtual int control_channel_count() = 0;
   virtual void add_control_channel(double channel) = 0;
   virtual double get_next_control_channel() = 0;
@@ -129,9 +137,11 @@ public:
   virtual int get_decode_rate() = 0;
   virtual void add_channel(double channel) = 0;
   virtual void add_conventional_recorder(analog_recorder_sptr rec) = 0;
-  virtual std::vector<analog_recorder_sptr> get_conventional_recorders() = 0;
+  virtual void add_conventionalSIGMF_recorder(sigmf_recorder_sptr rec) = 0;
   virtual void add_conventionalP25_recorder(p25_recorder_sptr rec) = 0;
   virtual void add_conventionalDMR_recorder(dmr_recorder_sptr rec) = 0;
+  virtual std::vector<analog_recorder_sptr> get_conventional_recorders() = 0;
+  virtual std::vector<sigmf_recorder_sptr> get_conventionalSIGMF_recorders() = 0;
   virtual std::vector<p25_recorder_sptr> get_conventionalP25_recorders() = 0;
   virtual std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders() = 0;
   virtual std::vector<double> get_channels() = 0;

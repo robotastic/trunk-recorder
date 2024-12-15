@@ -7,7 +7,7 @@
 #include "../systems/system.h"
 #include "../systems/parser.h"
 #include "../formatter.h"
-#define JSON_DIAGNOSTICS 1
+
 #include <json.hpp>
 
 typedef enum {

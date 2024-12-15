@@ -59,6 +59,8 @@
 #include "../gr_blocks/rms_agc.h"
 //#include <op25_repeater/include/op25_repeater/rmsagc_ff.h>
 #include "../gr_blocks/freq_xlating_fft_filter.h"
+#include "../gr_blocks/channelizer.h"
+#include "../gr_blocks/xlat_channelizer.h"
 
 class p25_trunking;
 
@@ -100,7 +102,6 @@ public:
 
   void set_center(double c);
   void set_rate(long s);
-  void tune_offset(double f);
   void tune_freq(double f);
   double get_freq();
   void enable();
@@ -110,9 +111,6 @@ public:
   gr::msg_queue::sptr rx_queue;
 
 private:
-  p25_trunking::DecimSettings get_decim(long speed);
-  void generate_arb_taps();
-  void initialize_prefilter();
   void initialize_qpsk();
   void initialize_fsk4();
   void initialize_p25();
@@ -142,6 +140,9 @@ private:
   std::vector<float> lowpass_filter_coeffs;
   std::vector<float> cutoff_filter_coeffs;
 
+
+  //channelizer::sptr prefilter;
+  xlat_channelizer::sptr prefilter;
   gr::analog::sig_source_c::sptr lo;
   gr::analog::sig_source_c::sptr bfo;
   gr::blocks::multiply_cc::sptr mixer;
