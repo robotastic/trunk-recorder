@@ -24,6 +24,7 @@
 #define INCLUDED_GR_SELECTOR_IMPL_H
 
 #include "selector.h"
+#include <boost/log/trivial.hpp>
 #include <gnuradio/thread/thread.h>
 
 namespace gr {
@@ -33,9 +34,10 @@ class selector_impl : public selector {
 private:
   size_t d_itemsize;
   bool d_enabled;
+  std::vector<bool> d_enabled_output_ports;
   unsigned int d_input_index, d_output_index;
   unsigned int d_num_inputs, d_num_outputs; // keep track of the topology
-
+  const unsigned int d_max_port = 100;
   gr::thread::mutex d_mutex;
 
 public:
@@ -44,12 +46,10 @@ public:
 
   void forecast(int noutput_items, gr_vector_int &ninput_items_required);
   bool check_topology(int ninputs, int noutputs);
-  void setup_rpc();
-  void handle_enable(pmt::pmt_t msg);
-  void set_enabled(bool enable) {
-    gr::thread::scoped_lock l(d_mutex);
-    d_enabled = enable;
-  }
+
+  void set_port_enabled(unsigned int port, bool enabled);
+  bool is_port_enabled(unsigned int port);
+
   bool enabled() const { return d_enabled; }
 
   void set_input_index(unsigned int input_index);

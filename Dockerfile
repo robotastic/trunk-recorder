@@ -1,23 +1,18 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:24.04 AS builder
 
 # Install docker for passing the socket to allow for intercontainer exec
 RUN apt-get update && \
   apt-get -y upgrade &&\
   export DEBIAN_FRONTEND=noninteractive && \
-  apt-get install -y \
-    apt-transport-https \
+  apt-get install --no-install-recommends -y \
     build-essential \
     ca-certificates \
     cmake \
     curl \
-    docker.io \
-    fdkaac \
     git \
-    gnupg \
-    gnuradio \
     gnuradio-dev \
-    gr-funcube \
-    gr-iqbal \
+    gr-osmosdr \
+    libosmosdr-dev \
     libairspy-dev \
     libairspyhf-dev \
     libbladerf-dev \
@@ -35,29 +30,11 @@ RUN apt-get update && \
     libssl-dev \
     libuhd-dev \
     libusb-dev \
+    libusb-1.0-0-dev \
     libxtrx-dev \
     pkg-config \
-    software-properties-common \
-    sox \
-    wget && \
-  rm -rf /var/lib/apt/lists/*
-
-# Fix the error message level for SmartNet
-
-RUN sed -i 's/log_level = debug/log_level = info/g' /etc/gnuradio/conf.d/gnuradio-runtime.conf
-
-# Compile gr-osmosdr ourselves using a fork with various patches included
-RUN cd /tmp && \
-  git clone https://github.com/racerxdl/gr-osmosdr.git && \
-  cd gr-osmosdr && \
-  mkdir build && \
-  cd build && \
-  cmake -DENABLE_NONFREE=TRUE .. && \
-  make -j$(nproc) && \
-  make install && \
-  ldconfig && \
-  cd /tmp && \
-  rm -rf gr-osmosdr
+    wget \
+    python3-six
 
 WORKDIR /src
 
@@ -65,13 +42,24 @@ COPY . .
 
 WORKDIR /src/build
 
-RUN cmake .. && make -j$(nproc) && make install
+RUN cmake .. && make -j$(nproc) && make DESTDIR=/newroot install
 
-#USER nobody
+#Stage 2 build
+FROM ubuntu:24.04
+RUN apt-get update && apt-get -y upgrade && apt-get install --no-install-recommends -y ca-certificates gr-funcube gr-iqbal curl wget libboost-log1.83.0 \
+    libboost-chrono1.83.0t64 libgnuradio-digital3.10.9t64 libgnuradio-analog3.10.9t64 libgnuradio-filter3.10.9t64 libgnuradio-network3.10.9t64  \
+    libgnuradio-uhd3.10.9t64 libgnuradio-osmosdr0.2.0t64 libsoapysdr0.8 soapysdr0.8-module-all libairspyhf1 libfreesrp0 librtlsdr2 libxtrx0 sox fdkaac docker.io && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /usr/share/{doc,man,info} && rm -rf /usr/local/share/{doc,man,info}
 
+COPY --from=builder /newroot /
+
+# Fix the error message level for SmartNet
+RUN mkdir -p /etc/gnuradio/conf.d/ && echo 'log_level = info' >> /etc/gnuradio/conf.d/gnuradio-runtime.conf && ldconfig
 WORKDIR /app
 
 # GNURadio requires a place to store some files, can only be set via $HOME env var.
 ENV HOME=/tmp
 
-CMD trunk-recorder --config=/app/config.json
+#USER nobody
+CMD ["trunk-recorder", "--config=/app/config.json"]

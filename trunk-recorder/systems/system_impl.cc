@@ -204,6 +204,14 @@ double System_impl::get_squelch_db() {
   return squelch_db;
 }
 
+void System_impl::set_tau(float t){
+  tau = t;
+}
+
+float System_impl::get_tau() const{
+  return tau;
+}
+
 void System_impl::set_filter_width(double filter_width) {
   this->filter_width = filter_width;
 }
@@ -323,6 +331,22 @@ void System_impl::set_unit_tags_file(std::string unit_tags_file) {
   this->unit_tags->load_unit_tags(unit_tags_file);
 }
 
+void System_impl::set_custom_freq_table_file(std::string custom_freq_table_file) {
+  this->custom_freq_table_file = custom_freq_table_file;
+}
+
+std::string System_impl::get_custom_freq_table_file(){
+  return this->custom_freq_table_file;
+}
+
+bool System_impl::has_custom_freq_table_file() {
+    if (this->custom_freq_table_file.length() > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 Source *System_impl::get_source() {
   return this->source;
 }
@@ -366,6 +390,14 @@ void System_impl::add_conventionalP25_recorder(p25_recorder_sptr rec) {
 
 void System_impl::add_conventionalDMR_recorder(dmr_recorder_sptr rec) {
   conventionalDMR_recorders.push_back(rec);
+}
+
+void System_impl::add_conventionalSIGMF_recorder(sigmf_recorder_sptr rec) {
+  conventionalSIGMF_recorders.push_back(rec);
+}
+
+std::vector<sigmf_recorder_sptr> System_impl::get_conventionalSIGMF_recorders() {
+  return conventionalSIGMF_recorders;
 }
 
 std::vector<p25_recorder_sptr> System_impl::get_conventionalP25_recorders() {
@@ -631,6 +663,20 @@ void System_impl::clear_stale_talkgroup_patches() {
     }
     BOOST_LOG_TRIVIAL(debug) << "Active Patch of TGIDs" << printstring;
   }
+}
+
+void System_impl::print_active_talkgroup_patches() {
+  // Print out all active patches to the console
+  BOOST_LOG_TRIVIAL(info) << "[ " << short_name << " ] " << talkgroup_patches.size() << " active talkgroup patches:";
+  BOOST_FOREACH (auto &patch, talkgroup_patches) {
+    std::string printstring = " - ";
+    BOOST_FOREACH (auto &patch_element, patch.second) {
+      printstring += " ";
+      printstring += std::to_string(patch_element.first);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Active Patch of TGIDs" << printstring;
+  }
+
 }
 
 bool System_impl::get_multiSite() {

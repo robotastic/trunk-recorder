@@ -4,6 +4,7 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
+const int Call_Concluder::MAX_RETRY = 2;
 std::list<std::future<Call_Data_t>> Call_Concluder::call_data_workers = {};
 std::list<Call_Data_t> Call_Concluder::retry_call_list = {};
 
@@ -50,62 +51,76 @@ int convert_media(char *filename, char *converted) {
   return nchars;
 }
 
-int create_call_json(Call_Data_t call_info) {
-  // Create the JSON status file
+int create_call_json(Call_Data_t& call_info) {
+  // Create call JSON, write it to disk, and pass back a json object to call_info
+  
+  // Using nlohmann::ordered_json to preserve the previous order
+  // Bools are stored as 0 or 1 as in previous versions
+  // Call length is rounded up to the nearest second as in previous versions
+  // Time stored in fractional seconds will omit trailing zeroes per json spec (1.20 -> 1.2) 
+  nlohmann::ordered_json json_data =
+      {
+          {"freq", int(call_info.freq)},
+          {"freq_error", int(call_info.freq_error)},
+          {"signal", int(call_info.signal)},
+          {"noise", int(call_info.noise)},
+          {"source_num", int(call_info.source_num)},
+          {"recorder_num", int(call_info.recorder_num)},
+          {"tdma_slot", int(call_info.tdma_slot)},
+          {"phase2_tdma", int(call_info.phase2_tdma)},
+          {"start_time", call_info.start_time},
+          {"stop_time", call_info.stop_time},
+          {"emergency", int(call_info.emergency)},
+          {"priority", call_info.priority},
+          {"mode", int(call_info.mode)},
+          {"duplex", int(call_info.duplex)},
+          {"encrypted",int(call_info.encrypted)},
+          {"call_length", int(std::round(call_info.length))},
+          {"talkgroup", call_info.talkgroup},
+          {"talkgroup_tag", call_info.talkgroup_alpha_tag},
+          {"talkgroup_description", call_info.talkgroup_description},
+          {"talkgroup_group_tag", call_info.talkgroup_tag},
+          {"talkgroup_group", call_info.talkgroup_group},
+          {"audio_type", call_info.audio_type},
+          {"short_name", call_info.short_name}};
+  // Add any patched talkgroups
+  if (call_info.patched_talkgroups.size() > 1) {
+    BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
+      json_data["patched_talkgroups"] += int(TGID);
+    }
+  }
+  // Add frequencies / IMBE errors
+  for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
+    json_data["freqList"] += {
+        {"freq", int(call_info.freq)},
+        {"time", call_info.transmission_error_list[i].time},
+        {"pos", call_info.transmission_error_list[i].position},
+        {"len", call_info.transmission_error_list[i].total_len},
+        {"error_count", int(call_info.transmission_error_list[i].error_count)},
+        {"spike_count", int(call_info.transmission_error_list[i].spike_count)}};
+  }
+  // Add sources / tags
+  for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
+    json_data["srcList"] += {
+        {"src", int(call_info.transmission_source_list[i].source)},
+        {"time", call_info.transmission_source_list[i].time},
+        {"pos", call_info.transmission_source_list[i].position},
+        {"emergency", int(call_info.transmission_source_list[i].emergency)},
+        {"signal_system", call_info.transmission_source_list[i].signal_system},
+        {"tag", call_info.transmission_source_list[i].tag}};
+  }
+  // Add created JSON to call_info  
+  call_info.call_json = json_data;
+
+  // Output the JSON status file
   std::ofstream json_file(call_info.status_filename);
-
   if (json_file.is_open()) {
-    json_file << "{\n";
-    json_file << "\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ",\n";
-    json_file << "\"start_time\": " << call_info.start_time << ",\n";
-    json_file << "\"stop_time\": " << call_info.stop_time << ",\n";
-    json_file << "\"emergency\": " << call_info.emergency << ",\n";
-    json_file << "\"priority\": " << call_info.priority << ",\n";
-    json_file << "\"mode\": " << call_info.mode << ",\n";
-    json_file << "\"duplex\": " << call_info.duplex << ",\n";
-    json_file << "\"encrypted\": " << call_info.encrypted << ",\n";
-    json_file << "\"call_length\": " << call_info.length << ",\n";
-    json_file << "\"talkgroup\": " << call_info.talkgroup << ",\n";
-    json_file << "\"talkgroup_tag\": \"" << call_info.talkgroup_alpha_tag << "\",\n";
-    json_file << "\"talkgroup_description\": \"" << call_info.talkgroup_description << "\",\n";
-    json_file << "\"talkgroup_group_tag\": \"" << call_info.talkgroup_tag << "\",\n";
-    json_file << "\"talkgroup_group\": \"" << call_info.talkgroup_group << "\",\n";
-    json_file << "\"audio_type\": \"" << call_info.audio_type << "\",\n";
-    json_file << "\"short_name\": \"" << call_info.short_name << "\",\n";
-    if (call_info.patched_talkgroups.size() > 1) {
-      json_file << "\"patched_talkgroups\": [";
-      bool first = true;
-      BOOST_FOREACH (auto &TGID, call_info.patched_talkgroups) {
-        if (!first) {
-          json_file << ",";
-        }
-        first = false;
-        json_file << (int)TGID;
-      }
-      json_file << "],\n";
-    }
-    json_file << "\"freqList\": [ ";
-    for (std::size_t i = 0; i < call_info.transmission_error_list.size(); i++) {
-      if (i != 0) {
-        json_file << ", ";
-      }
-      json_file << "{\"freq\": " << std::fixed << std::setprecision(0) << call_info.freq << ", \"time\": " << call_info.transmission_error_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_error_list[i].position << ", \"len\": " << call_info.transmission_error_list[i].total_len << ", \"error_count\": \"" << std::fixed << std::setprecision(0) << call_info.transmission_error_list[i].error_count << "\", \"spike_count\": \"" << call_info.transmission_error_list[i].spike_count << "\"}";
-    }
-    json_file << " ],\n";
-    json_file << "\"srcList\": [ ";
-
-    for (std::size_t i = 0; i < call_info.transmission_source_list.size(); i++) {
-      if (i != 0) {
-        json_file << ", ";
-      }
-      json_file << "{\"src\": " << std::fixed << call_info.transmission_source_list[i].source << ", \"time\": " << call_info.transmission_source_list[i].time << ", \"pos\": " << std::fixed << std::setprecision(2) << call_info.transmission_source_list[i].position << ", \"emergency\": " << call_info.transmission_source_list[i].emergency << ", \"signal_system\": \"" << call_info.transmission_source_list[i].signal_system << "\", \"tag\": \"" << call_info.transmission_source_list[i].tag << "\"}";
-    }
-    json_file << " ]\n";
-    json_file << "}\n";
-    json_file.close();
+    // Write the JSON to disk, indented 2 spaces per level
+    json_file << json_data.dump(2);
     return 0;
   } else {
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \t Unable to create JSON file: " << call_info.status_filename;
+    std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
+    BOOST_LOG_TRIVIAL(error) << loghdr << "C\033[0m \t Unable to create JSON file: " << call_info.status_filename;
     return 1;
   }
 }
@@ -228,8 +243,8 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     if (call_info.upload_script.length() != 0) {
       shell_command << call_info.upload_script << " " << call_info.filename << " " << call_info.status_filename << " " << call_info.converted;
       shell_command_string = shell_command.str();
-
-      BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \t Running upload script: " << shell_command_string;
+      std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
+      BOOST_LOG_TRIVIAL(info) << loghdr << "C\033[0m \t Running upload script: " << shell_command_string;
 
       result = system(shell_command_string.c_str());
     }
@@ -292,6 +307,11 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
   call_info.error_count = 0;
   call_info.spike_count = 0;
   call_info.freq = call->get_freq();
+  call_info.freq_error = call->get_freq_error();
+  call_info.signal = call->get_signal();
+  call_info.noise = call->get_noise();
+  call_info.recorder_num = call->get_recorder()->get_num();
+  call_info.source_num = call->get_recorder()->get_source()->get_num();
   call_info.encrypted = call->get_encrypted();
   call_info.emergency = call->get_emergency();
   call_info.priority = call->get_priority();
@@ -342,8 +362,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 
     if (t.length < sys->get_min_tx_duration()) {
       if (!call_info.transmission_archive) {
-
-        BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tRemoving transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << ".";
+        std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
+        BOOST_LOG_TRIVIAL(info) << loghdr << "Removing transmission less than " << sys->get_min_tx_duration() << " seconds. Actual length: " << t.length << ".";
         call_info.min_transmissions_removed++;
 
         if (checkIfFile(t.filename)) {
@@ -362,7 +382,8 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
     }
 
     std::stringstream transmission_info;
-    transmission_info << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\t- Transmission src: " << t.source << display_tag << " pos: " << format_time(total_length) << " length: " << format_time(t.length);
+    std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
+    transmission_info << loghdr << "- Transmission src: " << t.source << display_tag << " pos: " << format_time(total_length) << " length: " << format_time(t.length);
 
     if (t.error_count < 1) {
       BOOST_LOG_TRIVIAL(info) << transmission_info.str();
@@ -397,22 +418,23 @@ Call_Data_t Call_Concluder::create_call_data(Call *call, System *sys, Config con
 void Call_Concluder::conclude_call(Call *call, System *sys, Config config) {
   Call_Data_t call_info = create_call_data(call, sys, config);
 
+  std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
   if(call->get_state() == MONITORING && call->get_monitoring_state() == SUPERSEDED){
-    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\tFreq: " << format_freq(call_info.freq) << "\tCall has been superseded. Removing files.";
+    BOOST_LOG_TRIVIAL(info) << loghdr << "Call has been superseded. Removing files.";
     remove_call_files(call_info);
     return;
   }
   else if (call_info.transmission_list.size()== 0 && call_info.min_transmissions_removed == 0) {
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\t Freq: " << format_freq(call_info.freq) << "\tNo Transmissions were recorded!";
+    BOOST_LOG_TRIVIAL(error) << loghdr << "No Transmissions were recorded!";
     return;
   }
   else if (call_info.transmission_list.size() == 0 && call_info.min_transmissions_removed > 0) {
-    BOOST_LOG_TRIVIAL(info) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\t Freq: " << format_freq(call_info.freq) << "\tNo Transmissions were recorded! " << call_info.min_transmissions_removed << " tranmissions less than " << sys->get_min_tx_duration() << " seconds were removed.";
+    BOOST_LOG_TRIVIAL(info) << loghdr << "No Transmissions were recorded! " << call_info.min_transmissions_removed << " transmissions less than " << sys->get_min_tx_duration() << " seconds were removed.";
     return;
   }
 
   if (call_info.length <= sys->get_min_duration()) {
-    BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m\tTG: " << call_info.talkgroup_display << "\t Freq: " << format_freq(call_info.freq) << "\t Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
+    BOOST_LOG_TRIVIAL(error) << loghdr << "Call length: " << call_info.length << " is less than min duration: " << sys->get_min_duration();
     remove_call_files(call_info);
     return;
   }
@@ -426,10 +448,11 @@ void Call_Concluder::manage_call_data_workers() {
 
     if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
       Call_Data_t call_info = it->get();
-
+      
       if (call_info.status == RETRY) {
         call_info.retry_attempt++;
         time_t start_time = call_info.start_time;
+        std::string loghdr = log_header( call_info.short_name, call_info.call_num, call_info.talkgroup_display , call_info.freq);
 
         if (call_info.retry_attempt > Call_Concluder::MAX_RETRY) {
           BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m Failed to conclude call - TG: " << call_info.talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z");
@@ -438,7 +461,7 @@ void Call_Concluder::manage_call_data_workers() {
           long backoff = (2 ^ call_info.retry_attempt * 60) + jitter;
           call_info.process_call_time = time(0) + backoff;
           retry_call_list.push_back(call_info);
-          BOOST_LOG_TRIVIAL(error) << "[" << call_info.short_name << "]\t\033[0;34m" << call_info.call_num << "C\033[0m \tTG: " << call_info.talkgroup_display << "\t" << std::put_time(std::localtime(&start_time), "%c %Z") << " retry attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
+          BOOST_LOG_TRIVIAL(error) << loghdr << std::put_time(std::localtime(&start_time), "%c %Z") << " retry attempt " << call_info.retry_attempt << " in " << backoff << "s\t retry queue: " << retry_call_list.size() << " calls";
         }
       }
       it = call_data_workers.erase(it);

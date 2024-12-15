@@ -29,15 +29,18 @@ class Source;
 class analog_recorder;
 class p25_recorder;
 class dmr_recorder;
+class sigmf_recorder;
 
 #if GNURADIO_VERSION < 0x030900
 typedef boost::shared_ptr<analog_recorder> analog_recorder_sptr;
 typedef boost::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef boost::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+typedef boost::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 #else
 typedef std::shared_ptr<analog_recorder> analog_recorder_sptr;
 typedef std::shared_ptr<p25_recorder> p25_recorder_sptr;
 typedef std::shared_ptr<dmr_recorder> dmr_recorder_sptr;
+typedef std::shared_ptr<sigmf_recorder> sigmf_recorder_sptr;
 #endif
 
 class System_impl : public System {
@@ -56,6 +59,7 @@ public:
   std::string talkgroups_file;
   std::string channel_file;
   std::string unit_tags_file;
+  std::string custom_freq_table_file;
   std::string short_name;
   std::string api_key;
   std::string bcfy_api_key;
@@ -82,6 +86,7 @@ public:
   bool conversation_mode;
   bool qpsk_mod;
   double squelch_db;
+  float tau;
   double analog_levels;
   double digital_levels;
 
@@ -93,6 +98,7 @@ public:
   std::vector<analog_recorder_sptr> conventional_recorders;
   std::vector<p25_recorder_sptr> conventionalP25_recorders;
   std::vector<dmr_recorder_sptr> conventionalDMR_recorders;
+  std::vector<sigmf_recorder_sptr> conventionalSIGMF_recorders;
   bool transmission_archive;
   bool audio_archive;
   bool record_unknown;
@@ -149,6 +155,8 @@ public:
   bool get_qpsk_mod();
   void set_squelch_db(double s);
   double get_squelch_db();
+  void set_tau(float tau) override;
+  float get_tau() const override;
   void set_max_dev(int max_dev);
   int get_max_dev();
   void set_filter_width(double f);
@@ -177,6 +185,9 @@ public:
   void set_channel_file(std::string channel_file);
   bool has_channel_file();
   void set_unit_tags_file(std::string);
+  void set_custom_freq_table_file(std::string custom_freq_table_file);
+  std::string get_custom_freq_table_file();
+  bool has_custom_freq_table_file();
   int control_channel_count();
   int get_message_count();
   void set_message_count(int count);
@@ -188,10 +199,12 @@ public:
   int channel_count();
   void add_channel(double channel);
   void add_conventional_recorder(analog_recorder_sptr rec);
-  std::vector<analog_recorder_sptr> get_conventional_recorders();
   void add_conventionalP25_recorder(p25_recorder_sptr rec);
+  void add_conventionalSIGMF_recorder(sigmf_recorder_sptr rec);
   void add_conventionalDMR_recorder(dmr_recorder_sptr rec);
   std::vector<p25_recorder_sptr> get_conventionalP25_recorders();
+  std::vector<analog_recorder_sptr> get_conventional_recorders();
+  std::vector<sigmf_recorder_sptr> get_conventionalSIGMF_recorders();
   std::vector<dmr_recorder_sptr> get_conventionalDMR_recorders();
   std::vector<double> get_channels();
   std::vector<double> get_control_channels();
@@ -226,6 +239,7 @@ public:
   void update_active_talkgroup_patches(PatchData f_data);
   void delete_talkgroup_patch(PatchData f_data);
   void clear_stale_talkgroup_patches();
+  void print_active_talkgroup_patches();
 
   bool get_multiSite();
   void set_multiSite(bool multiSite);

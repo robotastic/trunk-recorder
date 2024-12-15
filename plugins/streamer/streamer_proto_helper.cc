@@ -46,7 +46,7 @@ streamer::SystemInfo* ToSystemInfo(System *system) {
 
     std::vector<double> channels;
 
-    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25")) {
+    if ((system->get_system_type() == "conventional") || (system->get_system_type() == "conventionalP25") || (sys->get_system_type() == "conventionalDMR") || (sys->get_system_type() == "conventionalSIGMF")) {
       channels = system->get_channels();
     } else {
       channels = system->get_control_channels();

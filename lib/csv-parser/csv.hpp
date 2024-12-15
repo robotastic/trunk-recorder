@@ -8047,7 +8047,7 @@ namespace csv {
                     if (c >= 0x00 && c <= 0x1f)
                     {
                         // print character c as \uxxxx
-                        sprintf(&result[pos + 1], "u%04x", int(c));
+                        snprintf(&result[pos + 1],sizeof(result) - pos, "u%04x", int(c));
                         pos += 6;
                         // overwrite trailing null character
                         result[pos] = '\\';

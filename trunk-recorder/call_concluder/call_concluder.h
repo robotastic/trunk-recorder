@@ -18,9 +18,9 @@
 Call_Data_t upload_call_worker(Call_Data_t call_info);
 
 class Call_Concluder {
-  static const int MAX_RETRY = 2;
 
 public:
+  static const int MAX_RETRY;
   static std::list<Call_Data_t> retry_call_list;
   static std::list<std::future<Call_Data_t>> call_data_workers;
   

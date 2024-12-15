@@ -22,7 +22,9 @@
 ########################################################################
 
 cmake_minimum_required(VERSION 3.12)
-project(Trunk-Recorder LANGUAGES CXX C VERSION "4.7.1")
+
+project(Trunk-Recorder LANGUAGES CXX C VERSION "5.0.0")
+
 
 configure_file(cmake.h.in "${PROJECT_BINARY_DIR}/cmake.h" @ONLY)
 add_definitions(-DMANUAL_GITINFO="${MANUAL_GITINFO}")
@@ -219,12 +221,14 @@ link_directories(
     ${OPENSSL_ROOT_DIR}/lib
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g3")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-deprecated-declarations -Wno-error=deprecated-declarations -g3")
 
 SET(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC")
+# The D_GLIBCXX_ASSERTIONS flag will cause a crash when an error is detected, making it easier to catch bugs
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC -D_GLIBCXX_ASSERTIONS")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-narrowing -fvisibility=hidden -fPIC")
 
 
 list(APPEND trunk_recorder_sources
@@ -250,6 +254,8 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/sources/iq_file_source.cc
   trunk-recorder/csv_helper.cc
   trunk-recorder/config.cc
+  trunk-recorder/setup_systems.cc
+  trunk-recorder/monitor_systems.cc
   trunk-recorder/talkgroup.cc
   trunk-recorder/talkgroups.cc
   trunk-recorder/unit_tag.cc
@@ -272,8 +278,13 @@ list(APPEND trunk_recorder_sources
   trunk-recorder/gr_blocks/decoder_wrapper_impl.cc
   trunk-recorder/gr_blocks/plugin_wrapper_impl.cc
   trunk-recorder/gr_blocks/selector_impl.cc
+  trunk-recorder/gr_blocks/pwr_squelch_cc_impl.cc
+  trunk-recorder/gr_blocks/squelch_base_cc_impl.cc
   trunk-recorder/gr_blocks/wavfile_gr3.8.cc
   trunk-recorder/gr_blocks/rms_agc.cc
+  trunk-recorder/gr_blocks/channelizer.cc
+    trunk-recorder/gr_blocks/xlat_channelizer.cc
+    trunk-recorder/gr_blocks/signal_detector_cvf_impl.cc
   )
 
 
@@ -337,18 +348,27 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/json.hpp" # source file
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/trunk-recorder" # target directory
 )
 
-
+# Add built-in plugins located in /plugins
 add_subdirectory(plugins/openmhz_uploader)
-
 add_subdirectory(plugins/stat_socket)
-
 add_subdirectory(plugins/broadcastify_uploader)
-
 add_subdirectory(plugins/unit_script)
-
 add_subdirectory(plugins/rdioscanner_uploader)
-
 add_subdirectory(plugins/simplestream)
+
+# Add user plugins located in /user_plugins
+# Matching: /user_plugins/${plugin_dir}/CMakeLists.txt
+file(GLOB plugin_dirs "user_plugins/*")
+foreach(plugin_dir ${plugin_dirs})
+  if(IS_DIRECTORY ${plugin_dir})
+    file(GLOB cmakelists "${plugin_dir}/CMakeLists.txt")
+    if(cmakelists)
+      add_subdirectory(${plugin_dir})
+      get_filename_component(dir_name ${plugin_dir} NAME)
+      message(STATUS "Added user plugin: ${dir_name}")
+    endif()
+  endif()
+endforeach()
 
 add_executable(trunk-recorder trunk-recorder/main.cc) # ${trunk_recorder_sources})
 

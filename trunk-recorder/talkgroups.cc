@@ -42,7 +42,7 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
     BOOST_LOG_TRIVIAL(info) << "Found Columns: " << internals::format_row(reader.get_col_names(), ", ");
   }
 
-  for (int i = 0; i < headers.size(); i++) {
+  for (size_t i = 0; i < headers.size(); i++) {
     if (find(defined_headers.begin(), defined_headers.end(), headers[i]) == defined_headers.end()) {
       BOOST_LOG_TRIVIAL(error) << "Unknown column header: " << headers[i];
       BOOST_LOG_TRIVIAL(error) << "Required columns are: 'Decimal', 'Mode', 'Description'";
@@ -78,7 +78,7 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
       exit(0);
     }
 
-    if ((reader.index_of("Description") >= 0) && row["Description"].is_str()) {
+    if (reader.index_of("Description") >= 0) {
       description = row["Description"].get<std::string>();
     } else {
       BOOST_LOG_TRIVIAL(error) << "Description is required for Row: " << reader.n_rows();
@@ -86,15 +86,15 @@ void Talkgroups::load_talkgroups(int sys_num, std::string filename) {
       exit(0);
     }
 
-    if ((reader.index_of("Alpha Tag") >= 0) && row["Alpha Tag"].is_str()) {
+    if (reader.index_of("Alpha Tag") >= 0) {
       alpha_tag = row["Alpha Tag"].get<std::string>();
     }
 
-    if ((reader.index_of("Tag") >= 0) && row["Tag"].is_str()) {
+    if (reader.index_of("Tag") >= 0) {
       tag = row["Tag"].get<std::string>();
     }
 
-    if ((reader.index_of("Category") >= 0) && row["Category"].is_str()) {
+    if (reader.index_of("Category") >= 0) {
       group = row["Category"].get<std::string>();
     }
 
@@ -125,24 +125,24 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
   format.trim({' ', '\t'});
   CSVReader reader(filename, format);
   std::vector<std::string> headers = reader.get_col_names();
-  std::vector<std::string> defined_headers = {"TG Number", "Tone", "Frequency", "Alpha Tag", "Description", "Category", "Tag", "Enable", "Comment"};
+  std::vector<std::string> defined_headers = {"TG Number", "Tone", "Frequency", "Alpha Tag", "Description", "Category", "Tag", "Enable", "Comment", "Signal Detector", "Squelch"};
 
   if (headers[0] != "TG Number") {
 
     BOOST_LOG_TRIVIAL(error) << "Column Headers are required for Channel CSV files";
     BOOST_LOG_TRIVIAL(error) << "The first column must be 'TG Number'";
-    BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Tone', 'Frequency',";
-    BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment'";
+    BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Frequency'";
+    BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Tone', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
     exit(0);
   } else {
     BOOST_LOG_TRIVIAL(info) << "Found Columns: " << internals::format_row(reader.get_col_names(), ", ");
   }
 
-  for (int i = 0; i < headers.size(); i++) {
+  for (size_t i = 0; i < headers.size(); i++) {
     if (find(defined_headers.begin(), defined_headers.end(), headers[i]) == defined_headers.end()) {
       BOOST_LOG_TRIVIAL(error) << "Unknown column header: " << headers[i];
-      BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Tone', 'Frequency',";
-      BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Description', 'Category', 'Tag', 'Enable', 'Comment'";
+      BOOST_LOG_TRIVIAL(error) << "Required columns are: 'TG Number', 'Frequency'";
+      BOOST_LOG_TRIVIAL(error) << "Optional columns are: 'Alpha Tag', 'Tone', 'Description', 'Category', 'Tag', 'Enable', 'Comment', 'Signal Detector', 'Squelch'";
       exit(0);
     }
   }
@@ -150,13 +150,13 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
   long lines_pushed = 0;
   for (CSVRow &row : reader) { // Input iterator
     Talkgroup *tg = NULL;
-    int priority = 1;
-    unsigned long preferredNAC = 0;
     long tg_number = 0;
     std::string alpha_tag = "";
     std::string description = "";
     std::string tag = "";
     std::string group = "";
+    double squelch_db = DB_UNSET;
+    bool signal_detector = true;
     double freq = 0;
     double tone = 0;
     bool enable = true;
@@ -196,13 +196,24 @@ void Talkgroups::load_channels(int sys_num, std::string filename) {
       }
     }
 
+    if ((reader.index_of("Squelch") >= 0) && row["Squelch"].is_num()) {
+      squelch_db = row["Squelch"].get<double>();
+    }
+
+    if ((reader.index_of("Signal Detector") >= 0) && row["Signal Detector"].is_str()) {
+      if (boost::iequals(row["Signal Detector"].get<std::string>(), "false")) {
+        signal_detector = false;
+      }
+    }
+
+
     if ((reader.index_of("Enable") >= 0) && row["Enable"].is_str()) {
       if (boost::iequals(row["Enable"].get<std::string>(), "false")) {
         enable = false;
       }
     }
     if (enable) {
-      tg = new Talkgroup(sys_num, tg_number, freq, tone, alpha_tag, description, tag, group);
+      tg = new Talkgroup(sys_num, tg_number, freq, tone, alpha_tag, description, tag, group, squelch_db, signal_detector);
       talkgroups.push_back(tg);
       lines_pushed++;
     }
