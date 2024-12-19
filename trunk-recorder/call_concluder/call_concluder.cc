@@ -232,8 +232,13 @@ Call_Data_t upload_call_worker(Call_Data_t call_info) {
     if (call_info.compress_wav) {
       // TR records files as .wav files. They need to be compressed before being upload to online services.
 
-
-      result = convert_media(call_info.filename, call_info.converted, std::ctime(&call_info.start_time), call_info.short_name.c_str(), call_info.talkgroup_display.c_str());
+      char *talkgroup_title;
+      if (call_info.talkgroup_alpha_tag.length() > 0) {
+        talkgroup_title = (char *)call_info.talkgroup_alpha_tag.c_str();
+      } else {
+        talkgroup_title = (char *)std::to_string(call_info.talkgroup).c_str();
+      }
+      result = convert_media(call_info.filename, call_info.converted, std::ctime(&call_info.start_time), call_info.short_name.c_str(), talkgroup_title);
 
       if (result < 0) {
         call_info.status = FAILED;
