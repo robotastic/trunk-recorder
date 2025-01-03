@@ -78,7 +78,7 @@ public:
     typedef typename transport_con_type::ptr transport_con_ptr;
 
     /// Type of a pointer to the ASIO io_service being used
-    typedef lib::asio::io_service * io_service_ptr;
+    typedef lib::asio::io_context * io_service_ptr;
     /// Type of a shared pointer to the acceptor being used
     typedef lib::shared_ptr<lib::asio::ip::tcp::acceptor> acceptor_ptr;
     /// Type of a shared pointer to the resolver being used
@@ -86,7 +86,7 @@ public:
     /// Type of timer handle
     typedef lib::shared_ptr<lib::asio::steady_timer> timer_ptr;
     /// Type of a shared pointer to an io_service work object
-    typedef lib::shared_ptr<lib::asio::io_service::work> work_ptr;
+    typedef lib::shared_ptr<lib::asio::io_context::work> work_ptr;
 
     /// Type of socket pre-bind handler
     typedef lib::function<lib::error_code(acceptor_ptr)> tcp_pre_bind_handler;
@@ -230,9 +230,9 @@ public:
         // TODO: remove the use of auto_ptr when C++98/03 support is no longer
         //       necessary.
 #ifdef _WEBSOCKETPP_CPP11_MEMORY_
-        lib::unique_ptr<lib::asio::io_service> service(new lib::asio::io_service());
+        lib::unique_ptr<lib::asio::io_context> service(new lib::asio::io_context());
 #else
-        lib::auto_ptr<lib::asio::io_service> service(new lib::asio::io_service());
+        lib::auto_ptr<lib::asio::io_context> service(new lib::asio::io_context());
 #endif
         init_asio(service.get(), ec);
         if( !ec ) service.release(); // Call was successful, transfer ownership
@@ -252,9 +252,9 @@ public:
         // TODO: remove the use of auto_ptr when C++98/03 support is no longer
         //       necessary.
 #ifdef _WEBSOCKETPP_CPP11_MEMORY_
-        lib::unique_ptr<lib::asio::io_service> service(new lib::asio::io_service());
+        lib::unique_ptr<lib::asio::io_context> service(new lib::asio::io_context());
 #else
-        lib::auto_ptr<lib::asio::io_service> service(new lib::asio::io_service());
+        lib::auto_ptr<lib::asio::io_context> service(new lib::asio::io_context());
 #endif
         init_asio( service.get() );
         // If control got this far without an exception, then ownership has successfully been taken
@@ -375,7 +375,7 @@ public:
      *
      * @return A reference to the endpoint's io_service
      */
-    lib::asio::io_service & get_io_service() {
+    lib::asio::io_context & get_io_service() {
         return *m_io_service;
     }
     
@@ -687,7 +687,7 @@ public:
      * @since 0.3.0
      */
     void start_perpetual() {
-        m_work.reset(new lib::asio::io_service::work(*m_io_service));
+        m_work.reset(new lib::asio::io_context::work(*m_io_service));
     }
 
     /// Clears the endpoint's perpetual flag, allowing it to exit when empty

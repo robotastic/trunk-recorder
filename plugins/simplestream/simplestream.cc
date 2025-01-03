@@ -49,7 +49,7 @@ class Simple_Stream : public Plugin_Api {
       stream.TGID = element["TGID"];
       stream.address = element["address"];
       stream.port = element["port"];
-      stream.remote_endpoint = ip::udp::endpoint(ip::address::from_string(stream.address), stream.port);
+      stream.remote_endpoint = ip::udp::endpoint(ip::make_address(stream.address), stream.port);
       stream.sendTGID = element.value("sendTGID",false);
       stream.sendJSON = element.value("sendJSON",false);
       stream.sendCallStart = element.value("sendCallStart",false);
@@ -228,7 +228,7 @@ class Simple_Stream : public Plugin_Api {
       if (stream.tcp == true){
         ip::tcp::socket *my_tcp_socket = new ip::tcp::socket{my_tcp_io_service};
         stream.tcp_socket = my_tcp_socket;
-        stream.tcp_socket->connect(ip::tcp::endpoint( boost::asio::ip::address::from_string(stream.address), stream.port ));
+        stream.tcp_socket->connect(ip::tcp::endpoint( boost::asio::ip::make_address(stream.address), stream.port ));
       }
     }
     my_socket.open(ip::udp::v4());
