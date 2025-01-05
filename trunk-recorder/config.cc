@@ -628,7 +628,6 @@ bool load_config(string config_file, Config &config, gr::top_block_sptr &tb, std
     add_internal_plugin("openmhz_uploader", "libopenmhz_uploader.so", data);
     add_internal_plugin("broadcastify_uploader", "libbroadcastify_uploader.so", data);
     add_internal_plugin("unit_script", "libunit_script.so", data);
-    add_internal_plugin("stat_socket", "libstat_socket.so", data);
     initialize_plugins(data, &config, sources, systems);
   } catch (std::exception const &e) {
     BOOST_LOG_TRIVIAL(error) << "Failed parsing Config: " << e.what();
