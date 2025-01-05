@@ -41,7 +41,7 @@ public:
 
     double threshold() const override { return 10 * log10(d_threshold); }
     void set_threshold(double db) override;
-    double get_pwr() ;
+    double get_pwr() override;
     void set_alpha(double alpha) override;
 
     int ramp() const override { return squelch_base_cc_impl::ramp(); }
