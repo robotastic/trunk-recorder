@@ -604,24 +604,31 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
 
     BOOST_LOG_TRIVIAL(debug) << "tsbk04\tUnit to Unit Chan Grant\tChannel ID: " << channel_to_string(ch, sys_num) << "\tFreq: " << format_freq(f) << "\tTarget ID: " << std::setw(7) << ta << "\tTDMA " << get_tdma_slot(ch, sys_num) << "\tSource ID: " << sa;
   } else if (opcode == 0x05) { // Unit To Unit Answer Request
-    bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
-    bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
-    bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
-    bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
-    int priority = bitset_shift_mask(tsbk, 72, 0x07);
-    unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
-    unsigned long si = bitset_shift_mask(tsbk, 40, 0xffffff);
+    unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+    if (mfrid == 0x90) { // MOTOROLA_OSP_TRAFFIC_CHANNEL_ID
+      os << "MOTOROLA_OSP_TRAFFIC_CHANNEL_ID(0x05):";
+      message.meta = os.str();
+      BOOST_LOG_TRIVIAL(debug) << os.str();
+    } else {
+      bool emergency = (bool)bitset_shift_mask(tsbk, 72, 0x80);
+      bool encrypted = (bool)bitset_shift_mask(tsbk, 72, 0x40);
+      bool duplex = (bool)bitset_shift_mask(tsbk, 72, 0x20);
+      bool mode = (bool)bitset_shift_mask(tsbk, 72, 0x10);
+      int priority = bitset_shift_mask(tsbk, 72, 0x07);
+      unsigned long sa = bitset_shift_mask(tsbk, 16, 0xffffff);
+      unsigned long si = bitset_shift_mask(tsbk, 40, 0xffffff);
 
-    message.message_type = UU_ANS_REQ;
-    message.emergency = emergency;
-    message.encrypted = encrypted;
-    message.duplex = duplex;
-    message.mode = mode;
-    message.priority = priority;
-    message.source = sa;
-    message.talkgroup = si;
+      message.message_type = UU_ANS_REQ;
+      message.emergency = emergency;
+      message.encrypted = encrypted;
+      message.duplex = duplex;
+      message.mode = mode;
+      message.priority = priority;
+      message.source = sa;
+      message.talkgroup = si;
 
-    BOOST_LOG_TRIVIAL(debug) << "tsbk05\tUnit To Unit Answer Request\tsa " << sa << "\tSource ID: " << si;
+      BOOST_LOG_TRIVIAL(debug) << "tsbk05\tUnit To Unit Answer Request\tsa " << sa << "\tSource ID: " << si;
+    }
   } else if (opcode == 0x06) { //  Unit to Unit Voice Channel Grant Update (UU_V_CH_GRANT_UPDT)
     // unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
     //  unsigned long opts  = bitset_shift_mask(tsbk,72,0xff);
@@ -648,7 +655,18 @@ std::vector<TrunkMessage> P25Parser::decode_tsbk(boost::dynamic_bitset<> &tsbk, 
   } else if (opcode == 0x08) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk08: Telephone Interconnect Voice Channel Grant";
   } else if (opcode == 0x09) {
-    BOOST_LOG_TRIVIAL(debug) << "tsbk09: Telephone Interconnect Voice Channel Grant Update";
+    unsigned long mfrid = bitset_shift_mask(tsbk, 80, 0xff);
+    if (mfrid == 0x90) { // MOTOROLA_OSP_SYSTEM_LOADING
+      unsigned long mk = bitset_shift_mask(tsbk, 76, 0xf);
+      unsigned long ms = bitset_shift_mask(tsbk, 70, 0xff);
+      unsigned long value = bitset_shift_mask(tsbk, 64, 0xffff);
+      
+      os << "MOTOROLA_OSP_SYSTEM_LOADING(0x09): \tScan Marker: " <<  std::dec << mk << std::setw(4) << ms << " microslots (" << std::hex << std::setfill('0') << std::setw(4) << value << ")";
+      message.meta = os.str();
+      BOOST_LOG_TRIVIAL(debug) << os.str();
+    } else {
+      BOOST_LOG_TRIVIAL(debug) << "tsbk09: Telephone Interconnect Voice Channel Grant Update";
+    }
   } else if (opcode == 0x0a) {
     BOOST_LOG_TRIVIAL(debug) << "tsbk0a: Telephone Interconnect Answer Request";
   } else if (opcode == 0x14) {
