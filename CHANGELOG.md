@@ -1,5 +1,9 @@
 Trunk Recorder ChangeLog
 ========================
+### Unreleased
+* Added openssh-client
+* Added ffmpeg
+
 ### Version 4.6.0
 * Cleaned up Rdio Scanner talkgroup display logs. by @tadscottsmith in https://github.com/robotastic/trunk-recorder/pull/750
 * adjust Source sample rate to match SDR sample rate by @aaknitt in https://github.com/robotastic/trunk-recorder/pull/753

@@ -34,7 +34,9 @@ RUN apt-get update && \
     libxtrx-dev \
     pkg-config \
     wget \
-    python3-six
+    python3-six \
+    openssh-client \
+    ffmpeg
 
 WORKDIR /src
 
