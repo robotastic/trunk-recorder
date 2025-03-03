@@ -30,7 +30,7 @@ Call *Call::make(TrunkMessage message, System *s, Config c) {
 Call_impl::Call_impl(long t, double f, System *s, Config c) {
   config = c;
   call_num = call_counter++;
-  noise = 
+  noise = DB_UNSET;
   signal = DB_UNSET;
   final_length = 0;
   idle_count = 0;
